@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QSplitter
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QSplitter, QLabel
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QPixmap
 
 from qfluentwidgets import FluentWindow, NavigationItemPosition, qrouter, FluentIcon
 
@@ -239,6 +239,12 @@ class MainWindow(FluentWindow):
 
     def setup_navigation(self):
         """设置导航栏"""
+        # 隐藏返回按钮
+        self.navigationInterface.setReturnButtonVisible(False)
+
+        # 添加 Logo 到左上角
+        self._setup_logo()
+
         # 色彩提取
         self.addSubInterface(
             self.color_extract_interface,
@@ -265,6 +271,39 @@ class MainWindow(FluentWindow):
 
         # 设置默认选中的导航项
         self.navigationInterface.setCurrentItem(self.color_extract_interface.objectName())
+
+    def _setup_logo(self):
+        """在导航栏左上角设置 Logo"""
+        logo_label = QLabel(self.navigationInterface.panel)
+        logo_label.setObjectName('logoLabel')
+
+        # 加载 Logo 图标
+        logo_path = 'd:\\青山公仔\\应用\\Py测试\\color_card\\logo\\Color Card_logo.ico'
+
+        # 使用 QIcon 加载 ICO 文件以获取最佳分辨率
+        from PySide6.QtGui import QIcon
+        from PySide6.QtCore import QSize
+        icon = QIcon(logo_path)
+
+        # 获取所需尺寸（先尝试获取 64x64 的高分辨率图标）
+        icon_size = 32
+        pixmap = icon.pixmap(icon.actualSize(QSize(icon_size, icon_size)))
+
+        if not pixmap.isNull():
+            # 将图标缩放到目标显示尺寸（使用高质量缩放）
+            target_size = 28
+            scaled_pixmap = pixmap.scaled(
+                target_size, target_size,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            logo_label.setPixmap(scaled_pixmap)
+            logo_label.setFixedSize(40, 40)
+            logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            # 将 Logo 插入到导航栏顶部布局的开头（在返回按钮之前）
+            top_layout = self.navigationInterface.panel.topLayout
+            top_layout.insertWidget(0, logo_label, 0, Qt.AlignTop)
 
     def open_image(self):
         """打开图片（从色彩提取界面调用）"""
