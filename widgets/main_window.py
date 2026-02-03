@@ -10,6 +10,7 @@ from .luminance_canvas import LuminanceCanvas
 from .histogram_widget import HistogramWidget
 from .settings_interface import SettingsInterface
 from color_utils import get_color_info
+from config_manager import get_config_manager
 
 
 class ColorExtractInterface(QWidget):
@@ -193,10 +194,27 @@ class MainWindow(FluentWindow):
         super().__init__()
         self.setWindowTitle("取色卡 · Color Card")
         self.setMinimumSize(800, 550)
-        self.resize(940, 660)
+
+        # 加载配置
+        self._config_manager = get_config_manager()
+        self._config = self._config_manager.load()
+
+        # 应用窗口大小配置
+        window_config = self._config.get('window', {})
+        width = window_config.get('width', 940)
+        height = window_config.get('height', 660)
+        self.resize(width, height)
 
         self.create_sub_interface()
         self.setup_navigation()
+
+    def closeEvent(self, event):
+        """窗口关闭事件，保存配置"""
+        # 保存窗口大小
+        self._config_manager.set('window.width', self.width())
+        self._config_manager.set('window.height', self.height())
+        self._config_manager.save()
+        event.accept()
 
     def create_sub_interface(self):
         """创建子界面"""
@@ -288,3 +306,7 @@ class MainWindow(FluentWindow):
         self.settings_interface.hex_display_changed.connect(
             self.color_extract_interface.color_card_panel.set_hex_visible
         )
+
+        # 应用加载的配置到色卡面板
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        self.color_extract_interface.color_card_panel.set_hex_visible(hex_visible)

@@ -9,6 +9,7 @@ from qfluentwidgets import (
 )
 
 from .about_dialog import AboutDialog
+from config_manager import get_config_manager
 
 
 def get_title_color():
@@ -28,7 +29,8 @@ class SettingsInterface(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('settings')
-        self._hex_visible = True
+        self._config_manager = get_config_manager()
+        self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.setup_ui()
 
     def setup_ui(self):
@@ -114,6 +116,8 @@ class SettingsInterface(QWidget):
     def _on_hex_display_changed(self, checked):
         """16进制显示开关状态改变"""
         self._hex_visible = checked
+        self._config_manager.set('settings.hex_visible', checked)
+        self._config_manager.save()
         self.hex_display_changed.emit(checked)
 
     def set_hex_visible(self, visible):
