@@ -339,11 +339,12 @@ class ColorCard(QWidget):
 
 
 class ColorCardPanel(QWidget):
-    """色卡面板（包含5个色卡）"""
-    def __init__(self, parent=None):
+    """色卡面板（包含多个色卡）"""
+    def __init__(self, parent=None, card_count=5):
         super().__init__(parent)
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
+        self._card_count = card_count
         self.setup_ui()
 
     def setup_ui(self):
@@ -352,7 +353,7 @@ class ColorCardPanel(QWidget):
         layout.setSpacing(15)
 
         self.cards = []
-        for i in range(5):
+        for i in range(self._card_count):
             card = ColorCard(i)
             self.cards.append(card)
             layout.addWidget(card)
@@ -385,3 +386,35 @@ class ColorCardPanel(QWidget):
     def is_hex_visible(self):
         """获取16进制颜色值显示状态"""
         return self._hex_visible
+
+    def set_card_count(self, count):
+        """设置色卡数量
+
+        Args:
+            count: 色卡数量 (2-5)
+        """
+        if count < 2 or count > 5:
+            return
+
+        if count == self._card_count:
+            return
+
+        old_count = self._card_count
+        self._card_count = count
+
+        layout = self.layout()
+
+        if count > old_count:
+            # 增加色卡
+            for i in range(old_count, count):
+                card = ColorCard(i)
+                card.set_color_modes(self._color_modes)
+                card.set_hex_visible(self._hex_visible)
+                self.cards.append(card)
+                layout.addWidget(card)
+        else:
+            # 减少色卡
+            for i in range(old_count - 1, count - 1, -1):
+                card = self.cards.pop()
+                layout.removeWidget(card)
+                card.deleteLater()

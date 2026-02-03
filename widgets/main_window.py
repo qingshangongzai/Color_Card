@@ -405,6 +405,16 @@ class MainWindow(FluentWindow):
             self.color_extract_interface.color_card_panel.set_color_modes
         )
 
+        # 连接色彩提取采样点数改变信号
+        self.settings_interface.color_sample_count_changed.connect(
+            self._on_color_sample_count_changed
+        )
+
+        # 连接明度提取采样点数改变信号
+        self.settings_interface.luminance_sample_count_changed.connect(
+            self._on_luminance_sample_count_changed
+        )
+
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.color_extract_interface.color_card_panel.set_hex_visible(hex_visible)
@@ -412,3 +422,22 @@ class MainWindow(FluentWindow):
         # 应用加载的色彩模式配置到色卡面板
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self.color_extract_interface.color_card_panel.set_color_modes(color_modes)
+
+        # 应用加载的采样点数量配置
+        color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
+        self.color_extract_interface.image_canvas.set_picker_count(color_sample_count)
+        self.color_extract_interface.color_card_panel.set_card_count(color_sample_count)
+
+        luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
+        self.luminance_extract_interface.luminance_canvas.set_picker_count(luminance_sample_count)
+        self.luminance_extract_interface.histogram_widget.clear()
+
+    def _on_color_sample_count_changed(self, count):
+        """色彩提取采样点数改变"""
+        self.color_extract_interface.image_canvas.set_picker_count(count)
+        self.color_extract_interface.color_card_panel.set_card_count(count)
+
+    def _on_luminance_sample_count_changed(self, count):
+        """明度提取采样点数改变"""
+        self.luminance_extract_interface.luminance_canvas.set_picker_count(count)
+        self.luminance_extract_interface.histogram_widget.clear()

@@ -47,7 +47,9 @@ class ConfigManager:
             "app_version": version_manager.get_version(),
             "settings": {
                 "hex_visible": True,
-                "color_modes": ["HSB", "LAB"]
+                "color_modes": ["HSB", "LAB"],
+                "color_sample_count": 5,
+                "luminance_sample_count": 5
             },
             "window": {
                 "width": 940,

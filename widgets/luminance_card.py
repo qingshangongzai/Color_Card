@@ -111,9 +111,10 @@ class LuminanceCard(QWidget):
 
 
 class LuminanceCardPanel(QWidget):
-    """明度信息卡面板（包含5个Zone卡）"""
-    def __init__(self, parent=None):
+    """明度信息卡面板（包含多个Zone卡）"""
+    def __init__(self, parent=None, card_count=5):
         super().__init__(parent)
+        self._card_count = card_count
         self.setup_ui()
 
     def setup_ui(self):
@@ -122,7 +123,7 @@ class LuminanceCardPanel(QWidget):
         layout.setSpacing(15)
 
         self.cards = []
-        for i in range(5):
+        for i in range(self._card_count):
             card = LuminanceCard(i)
             self.cards.append(card)
             layout.addWidget(card)
@@ -136,3 +137,33 @@ class LuminanceCardPanel(QWidget):
         """清空所有卡片"""
         for card in self.cards:
             card.clear()
+
+    def set_card_count(self, count):
+        """设置卡片数量
+
+        Args:
+            count: 卡片数量 (2-5)
+        """
+        if count < 2 or count > 5:
+            return
+
+        if count == self._card_count:
+            return
+
+        old_count = self._card_count
+        self._card_count = count
+
+        layout = self.layout()
+
+        if count > old_count:
+            # 增加卡片
+            for i in range(old_count, count):
+                card = LuminanceCard(i)
+                self.cards.append(card)
+                layout.addWidget(card)
+        else:
+            # 减少卡片
+            for i in range(old_count - 1, count - 1, -1):
+                card = self.cards.pop()
+                layout.removeWidget(card)
+                card.deleteLater()

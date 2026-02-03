@@ -52,7 +52,7 @@ class LuminanceCanvas(QWidget):
     image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, picker_count=5):
         super().__init__(parent)
         self.setMinimumSize(600, 400)
         self.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
@@ -65,6 +65,7 @@ class LuminanceCanvas(QWidget):
         self._picker_zones = []  # 存储每个取色器的区域编号
         self._loader = None
         self._pending_image_path = None
+        self._picker_count = picker_count
 
         # Zone高亮相关
         self._highlighted_zone = -1  # 当前高亮显示的Zone (-1表示无)
@@ -82,8 +83,8 @@ class LuminanceCanvas(QWidget):
             QColor(255, 51, 102, 100),   # Zone 7: 红色 (极亮)
         ]
 
-        # 创建5个取色点（初始隐藏）
-        for i in range(5):
+        # 创建取色点（初始隐藏）
+        for i in range(self._picker_count):
             picker = ColorPicker(i, self)
             picker.position_changed.connect(self.on_picker_moved)
             picker.drag_started.connect(self.on_picker_drag_started)
@@ -163,6 +164,56 @@ class LuminanceCanvas(QWidget):
         for i, picker in enumerate(self._pickers):
             pos = self._picker_positions[i]
             picker.move(pos.x() - picker.radius, pos.y() - picker.radius)
+
+    def set_picker_count(self, count):
+        """设置取色点数量
+
+        Args:
+            count: 取色点数量 (2-5)
+        """
+        if count < 2 or count > 5:
+            return
+
+        if count == self._picker_count:
+            return
+
+        old_count = self._picker_count
+        self._picker_count = count
+
+        if count > old_count:
+            # 增加取色点
+            for i in range(old_count, count):
+                picker = ColorPicker(i, self)
+                picker.position_changed.connect(self.on_picker_moved)
+                picker.drag_started.connect(self.on_picker_drag_started)
+                picker.drag_finished.connect(self.on_picker_drag_finished)
+                # 如果有图片，显示取色点
+                if self._image and not self._image.isNull():
+                    picker.show()
+                else:
+                    picker.hide()
+                self._pickers.append(picker)
+                # 新取色点位置在最后一个取色点旁边
+                if old_count > 0:
+                    last_pos = self._picker_positions[-1]
+                    new_pos = QPoint(last_pos.x() + 50, last_pos.y())
+                else:
+                    new_pos = QPoint(100, 100)
+                self._picker_positions.append(new_pos)
+                self._picker_zones.append("0-1")
+        else:
+            # 减少取色点
+            for i in range(old_count - 1, count - 1, -1):
+                picker = self._pickers.pop()
+                picker.deleteLater()
+                self._picker_positions.pop()
+                self._picker_zones.pop()
+
+        self.update_picker_positions()
+
+        # 如果有图片，重新提取区域
+        if self._image and not self._image.isNull():
+            self.extract_all_zones()
 
     def on_picker_drag_started(self, index):
         """取色点开始拖动"""

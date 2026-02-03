@@ -1,11 +1,11 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QSizePolicy, QScrollArea
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 
 from qfluentwidgets import (
     SettingCardGroup, PushSettingCard,
     FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition,
-    isDarkTheme, SwitchButton, ComboBox
+    isDarkTheme, SwitchButton, ComboBox, SpinBox
 )
 
 from .about_dialog import AboutDialog
@@ -31,6 +31,10 @@ class SettingsInterface(QWidget):
     hex_display_changed = Signal(bool)
     # 信号：色彩模式改变
     color_modes_changed = Signal(list)
+    # 信号：色彩提取采样点数改变
+    color_sample_count_changed = Signal(int)
+    # 信号：明度提取采样点数改变
+    luminance_sample_count_changed = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -38,11 +42,21 @@ class SettingsInterface(QWidget):
         self._config_manager = get_config_manager()
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self._color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self._color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
+        self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
         self.setup_ui()
 
     def setup_ui(self):
         """设置界面布局"""
-        layout = QVBoxLayout(self)
+        # 创建滚动区域
+        self.scroll_area = QScrollArea(self)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
+
+        # 创建内容容器
+        self.content_widget = QWidget()
+        self.content_widget.setStyleSheet("background: transparent;")
+        layout = QVBoxLayout(self.content_widget)
         layout.setContentsMargins(36, 36, 36, 36)
         layout.setSpacing(20)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -54,7 +68,7 @@ class SettingsInterface(QWidget):
         layout.addWidget(title_label)
 
         # 显示设置分组
-        self.display_group = SettingCardGroup("显示设置", self)
+        self.display_group = SettingCardGroup("显示设置", self.content_widget)
 
         # 16进制颜色值显示开关卡片
         self.hex_display_card = self._create_switch_card(
@@ -69,10 +83,34 @@ class SettingsInterface(QWidget):
         self.color_mode_card = self._create_color_mode_card()
         self.display_group.addSettingCard(self.color_mode_card)
 
+        # 色彩提取采样点数卡片
+        self.color_sample_count_card = self._create_spin_box_card(
+            FluentIcon.PALETTE,
+            "色彩提取采样点数",
+            "设置色彩提取面板的采样点数量（2-5）",
+            self._color_sample_count,
+            2,
+            5,
+            self._on_color_sample_count_changed
+        )
+        self.display_group.addSettingCard(self.color_sample_count_card)
+
+        # 明度提取采样点数卡片
+        self.luminance_sample_count_card = self._create_spin_box_card(
+            FluentIcon.BRIGHTNESS,
+            "明度提取采样点数",
+            "设置明度提取面板的采样点数量（2-5）",
+            self._luminance_sample_count,
+            2,
+            5,
+            self._on_luminance_sample_count_changed
+        )
+        self.display_group.addSettingCard(self.luminance_sample_count_card)
+
         layout.addWidget(self.display_group)
 
         # 帮助分组
-        self.help_group = SettingCardGroup("帮助", self)
+        self.help_group = SettingCardGroup("帮助", self.content_widget)
 
         # 版本更新卡片
         self.update_card = PushSettingCard(
@@ -105,13 +143,21 @@ class SettingsInterface(QWidget):
         # 添加弹性空间
         layout.addStretch()
 
+        # 将内容容器设置到滚动区域
+        self.scroll_area.setWidget(self.content_widget)
+
+        # 设置主布局
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(self.scroll_area)
+
     def _create_switch_card(self, icon, title, content, initial_checked):
         """创建自定义开关卡片"""
         card = PushSettingCard("", icon, title, content, self.display_group)
         card.button.setVisible(False)  # 隐藏默认按钮
 
         # 创建开关按钮
-        switch = SwitchButton(self)
+        switch = SwitchButton(self.content_widget)
         switch.setChecked(initial_checked)
         switch.checkedChanged.connect(self._on_hex_display_changed)
 
@@ -121,6 +167,29 @@ class SettingsInterface(QWidget):
 
         # 保存开关引用
         card.switch_button = switch
+
+        return card
+
+    def _create_spin_box_card(self, icon, title, content, initial_value, min_value, max_value, callback):
+        """创建自定义下拉列表卡片"""
+        card = PushSettingCard("", icon, title, content, self.display_group)
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        # 添加数值选项
+        for i in range(min_value, max_value + 1):
+            combo_box.addItem(str(i))
+        combo_box.setCurrentText(str(initial_value))
+        combo_box.setFixedWidth(80)
+        combo_box.currentTextChanged.connect(lambda text: callback(int(text)))
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
 
         return card
 
@@ -136,7 +205,7 @@ class SettingsInterface(QWidget):
         card.button.setVisible(False)  # 隐藏默认按钮
 
         # 创建选择控件容器
-        combo_container = QWidget(card)
+        combo_container = QWidget(self.content_widget)
         combo_layout = QHBoxLayout(combo_container)
         combo_layout.setContentsMargins(0, 0, 0, 0)
         combo_layout.setSpacing(10)
@@ -194,6 +263,20 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.color_modes', self._color_modes)
         self._config_manager.save()
         self.color_modes_changed.emit(self._color_modes)
+
+    def _on_color_sample_count_changed(self, value):
+        """色彩提取采样点数改变"""
+        self._color_sample_count = value
+        self._config_manager.set('settings.color_sample_count', value)
+        self._config_manager.save()
+        self.color_sample_count_changed.emit(value)
+
+    def _on_luminance_sample_count_changed(self, value):
+        """明度提取采样点数改变"""
+        self._luminance_sample_count = value
+        self._config_manager.set('settings.luminance_sample_count', value)
+        self._config_manager.save()
+        self.luminance_sample_count_changed.emit(value)
 
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
