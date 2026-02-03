@@ -5,11 +5,15 @@ from PySide6.QtGui import QColor
 from qfluentwidgets import (
     SettingCardGroup, PushSettingCard,
     FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition,
-    isDarkTheme, SwitchButton
+    isDarkTheme, SwitchButton, ComboBox
 )
 
 from .about_dialog import AboutDialog
 from config_manager import get_config_manager
+
+
+# 可选的色彩模式列表
+AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
 
 
 def get_title_color():
@@ -25,12 +29,15 @@ class SettingsInterface(QWidget):
 
     # 信号：16进制显示开关状态改变
     hex_display_changed = Signal(bool)
+    # 信号：色彩模式改变
+    color_modes_changed = Signal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('settings')
         self._config_manager = get_config_manager()
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
+        self._color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self.setup_ui()
 
     def setup_ui(self):
@@ -57,6 +64,10 @@ class SettingsInterface(QWidget):
             self._hex_visible
         )
         self.display_group.addSettingCard(self.hex_display_card)
+
+        # 色彩模式选择卡片
+        self.color_mode_card = self._create_color_mode_card()
+        self.display_group.addSettingCard(self.color_mode_card)
 
         layout.addWidget(self.display_group)
 
@@ -113,12 +124,76 @@ class SettingsInterface(QWidget):
 
         return card
 
+    def _create_color_mode_card(self):
+        """创建色彩模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.BRUSH,
+            "色彩模式显示",
+            "选择在色卡中显示的两种色彩模式",
+            self.display_group
+        )
+        card.button.setVisible(False)  # 隐藏默认按钮
+
+        # 创建选择控件容器
+        combo_container = QWidget(card)
+        combo_layout = QHBoxLayout(combo_container)
+        combo_layout.setContentsMargins(0, 0, 0, 0)
+        combo_layout.setSpacing(10)
+
+        # 第一列选择
+        self.mode_combo_1 = ComboBox(combo_container)
+        self.mode_combo_1.addItems(AVAILABLE_COLOR_MODES)
+        self.mode_combo_1.setCurrentText(self._color_modes[0])
+        self.mode_combo_1.setFixedWidth(80)
+        self.mode_combo_1.currentTextChanged.connect(self._on_color_mode_changed)
+
+        # 分隔标签
+        separator = QLabel("+", combo_container)
+        separator.setStyleSheet("color: gray;")
+
+        # 第二列选择
+        self.mode_combo_2 = ComboBox(combo_container)
+        self.mode_combo_2.addItems(AVAILABLE_COLOR_MODES)
+        self.mode_combo_2.setCurrentText(self._color_modes[1])
+        self.mode_combo_2.setFixedWidth(80)
+        self.mode_combo_2.currentTextChanged.connect(self._on_color_mode_changed)
+
+        combo_layout.addWidget(self.mode_combo_1)
+        combo_layout.addWidget(separator)
+        combo_layout.addWidget(self.mode_combo_2)
+
+        # 将选择控件添加到卡片布局
+        card.hBoxLayout.addWidget(combo_container, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        return card
+
     def _on_hex_display_changed(self, checked):
         """16进制显示开关状态改变"""
         self._hex_visible = checked
         self._config_manager.set('settings.hex_visible', checked)
         self._config_manager.save()
         self.hex_display_changed.emit(checked)
+
+    def _on_color_mode_changed(self):
+        """色彩模式选择改变"""
+        mode1 = self.mode_combo_1.currentText()
+        mode2 = self.mode_combo_2.currentText()
+
+        # 如果两列选择相同，自动调整第二列
+        if mode1 == mode2:
+            # 找到下一个不同的模式
+            for mode in AVAILABLE_COLOR_MODES:
+                if mode != mode1:
+                    self.mode_combo_2.setCurrentText(mode)
+                    mode2 = mode
+                    break
+
+        self._color_modes = [mode1, mode2]
+        self._config_manager.set('settings.color_modes', self._color_modes)
+        self._config_manager.save()
+        self.color_modes_changed.emit(self._color_modes)
 
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
@@ -129,6 +204,17 @@ class SettingsInterface(QWidget):
     def is_hex_visible(self):
         """获取16进制显示开关状态"""
         return self._hex_visible
+
+    def set_color_modes(self, modes):
+        """设置色彩模式选择"""
+        if len(modes) >= 2:
+            self._color_modes = [modes[0], modes[1]]
+            self.mode_combo_1.setCurrentText(modes[0])
+            self.mode_combo_2.setCurrentText(modes[1])
+
+    def get_color_modes(self):
+        """获取当前色彩模式"""
+        return self._color_modes
 
     def on_check_update(self):
         """检查更新按钮点击"""

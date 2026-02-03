@@ -45,15 +45,42 @@ def rgb_to_hex(r, g, b):
     return f"#{r:02X}{g:02X}{b:02X}"
 
 
+def rgb_to_hsl(r, g, b):
+    """将RGB转换为HSL (Hue, Saturation, Lightness)"""
+    r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+    h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+    return h * 360, s * 100, l * 100
+
+
+def rgb_to_cmyk(r, g, b):
+    """将RGB转换为CMYK (Cyan, Magenta, Yellow, Key/Black)"""
+    r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+
+    k = 1 - max(r_norm, g_norm, b_norm)
+    if k == 1:
+        return 0, 0, 0, 100
+
+    c = (1 - r_norm - k) / (1 - k)
+    m = (1 - g_norm - k) / (1 - k)
+    y = (1 - b_norm - k) / (1 - k)
+
+    return c * 100, m * 100, y * 100, k * 100
+
+
 def get_color_info(r, g, b):
     """获取颜色的完整信息"""
     h, s, b_val = rgb_to_hsb(r, g, b)
     l, a, b_lab = rgb_to_lab(r, g, b)
+    h_hsl, s_hsl, l_hsl = rgb_to_hsl(r, g, b)
+    c, m, y, k = rgb_to_cmyk(r, g, b)
 
     return {
         'rgb': (r, g, b),
         'hsb': (round(h), round(s), round(b_val)),
         'lab': (round(l), round(a), round(b_lab)),
+        'hsl': (round(h_hsl), round(s_hsl), round(l_hsl)),
+        'cmyk': (round(c), round(m), round(y), round(k)),
+        'rgb_display': (r, g, b),
         'hex': rgb_to_hex(r, g, b)
     }
 

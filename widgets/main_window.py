@@ -400,6 +400,15 @@ class MainWindow(FluentWindow):
             self.color_extract_interface.color_card_panel.set_hex_visible
         )
 
+        # 连接色彩模式改变信号到色卡面板
+        self.settings_interface.color_modes_changed.connect(
+            self.color_extract_interface.color_card_panel.set_color_modes
+        )
+
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.color_extract_interface.color_card_panel.set_hex_visible(hex_visible)
+
+        # 应用加载的色彩模式配置到色卡面板
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self.color_extract_interface.color_card_panel.set_color_modes(color_modes)

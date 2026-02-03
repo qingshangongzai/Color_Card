@@ -5,6 +5,41 @@ from PySide6.QtGui import QColor
 from qfluentwidgets import isDarkTheme, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition
 
 
+# 色彩模式配置：模式名称 -> (显示名称, 标签列表, 单位列表, 格式化函数)
+COLOR_MODE_CONFIG = {
+    'HSB': (
+        'HSB',
+        ['H:', 'S:', 'B:'],
+        ['°', '%', '%'],
+        lambda values: [f"{values[0]}°", f"{values[1]}%", f"{values[2]}%"]
+    ),
+    'LAB': (
+        'LAB',
+        ['L:', 'a:', 'b:'],
+        ['', '', ''],
+        lambda values: [str(values[0]), str(values[1]), str(values[2])]
+    ),
+    'HSL': (
+        'HSL',
+        ['H:', 'S:', 'L:'],
+        ['°', '%', '%'],
+        lambda values: [f"{values[0]}°", f"{values[1]}%", f"{values[2]}%"]
+    ),
+    'CMYK': (
+        'CMYK',
+        ['C:', 'M:', 'Y:', 'K:'],
+        ['%', '%', '%', '%'],
+        lambda values: [f"{values[0]}%", f"{values[1]}%", f"{values[2]}%", f"{values[3]}%"]
+    ),
+    'RGB': (
+        'RGB',
+        ['R:', 'G:', 'B:'],
+        ['', '', ''],
+        lambda values: [str(values[0]), str(values[1]), str(values[2])]
+    )
+}
+
+
 def get_text_color(secondary=False):
     """获取主题文本颜色"""
     if isDarkTheme():
@@ -62,12 +97,85 @@ class ColorValueLabel(QWidget):
         self.value.setText(str(value))
 
 
+class ColorModeContainer(QWidget):
+    """显示单个色彩模式的容器"""
+    def __init__(self, mode='HSB', parent=None):
+        super().__init__(parent)
+        self._mode = mode
+        self._labels = []
+        self.setup_ui()
+
+    def setup_ui(self):
+        """设置界面"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(2)
+
+        # 根据模式创建标签
+        config = COLOR_MODE_CONFIG.get(self._mode, COLOR_MODE_CONFIG['HSB'])
+        labels_text = config[1]
+
+        self._labels = []
+        for text in labels_text:
+            label = ColorValueLabel(text)
+            self._labels.append(label)
+            layout.addWidget(label)
+
+    def set_mode(self, mode):
+        """设置色彩模式"""
+        if self._mode == mode:
+            return
+
+        self._mode = mode
+
+        # 清除现有标签
+        layout = self.layout()
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        # 重新创建标签
+        config = COLOR_MODE_CONFIG.get(mode, COLOR_MODE_CONFIG['HSB'])
+        labels_text = config[1]
+
+        self._labels = []
+        for text in labels_text:
+            label = ColorValueLabel(text)
+            self._labels.append(label)
+            layout.addWidget(label)
+
+    def update_values(self, color_info):
+        """更新颜色值显示"""
+        mode_key = self._mode.lower()
+        if mode_key not in color_info:
+            return
+
+        values = color_info[mode_key]
+        config = COLOR_MODE_CONFIG.get(self._mode, COLOR_MODE_CONFIG['HSB'])
+        format_func = config[3]
+        formatted_values = format_func(values)
+
+        for i, label in enumerate(self._labels):
+            if i < len(formatted_values):
+                label.set_value(formatted_values[i])
+            else:
+                label.set_value("--")
+
+    def clear_values(self):
+        """清空所有值"""
+        for label in self._labels:
+            label.set_value("--")
+
+
 class ColorCard(QWidget):
     """单个色卡组件"""
     def __init__(self, index, parent=None):
         super().__init__(parent)
         self.index = index
         self._hex_value = "--"
+        self._color_modes = ['HSB', 'LAB']
+        self._current_color_info = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -87,37 +195,13 @@ class ColorCard(QWidget):
         values_layout.setContentsMargins(0, 0, 0, 0)
         values_layout.setSpacing(10)
 
-        # HSB 值（左列）
-        hsb_container = QWidget()
-        hsb_layout = QVBoxLayout(hsb_container)
-        hsb_layout.setContentsMargins(0, 0, 0, 0)
-        hsb_layout.setSpacing(2)
+        # 第一列色彩模式
+        self.mode_container_1 = ColorModeContainer(self._color_modes[0])
+        values_layout.addWidget(self.mode_container_1)
 
-        self.h_label = ColorValueLabel("H:")
-        self.s_label = ColorValueLabel("S:")
-        self.b_label = ColorValueLabel("B:")
-
-        hsb_layout.addWidget(self.h_label)
-        hsb_layout.addWidget(self.s_label)
-        hsb_layout.addWidget(self.b_label)
-
-        values_layout.addWidget(hsb_container)
-
-        # LAB 值（右列）
-        lab_container = QWidget()
-        lab_layout = QVBoxLayout(lab_container)
-        lab_layout.setContentsMargins(0, 0, 0, 0)
-        lab_layout.setSpacing(2)
-
-        self.l_label = ColorValueLabel("L:")
-        self.a_label = ColorValueLabel("a:")
-        self.b_lab_label = ColorValueLabel("b:")
-
-        lab_layout.addWidget(self.l_label)
-        lab_layout.addWidget(self.a_label)
-        lab_layout.addWidget(self.b_lab_label)
-
-        values_layout.addWidget(lab_container)
+        # 第二列色彩模式
+        self.mode_container_2 = ColorModeContainer(self._color_modes[1])
+        values_layout.addWidget(self.mode_container_2)
 
         layout.addWidget(values_container)
 
@@ -190,8 +274,23 @@ class ColorCard(QWidget):
                 parent=self.window()
             )
 
+    def set_color_modes(self, modes):
+        """设置显示的色彩模式"""
+        if len(modes) < 2:
+            return
+
+        self._color_modes = [modes[0], modes[1]]
+        self.mode_container_1.set_mode(modes[0])
+        self.mode_container_2.set_mode(modes[1])
+
+        # 如果有当前颜色信息，更新显示
+        if self._current_color_info:
+            self.update_color_display()
+
     def set_color(self, color_info):
         """设置颜色信息"""
+        self._current_color_info = color_info
+
         # 更新颜色块
         r, g, b = color_info['rgb']
         color_str = f"rgb({r}, {g}, {b})"
@@ -200,17 +299,8 @@ class ColorCard(QWidget):
             f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
         )
 
-        # 更新HSB值
-        h, s, b_val = color_info['hsb']
-        self.h_label.set_value(f"{h}°")
-        self.s_label.set_value(f"{s}%")
-        self.b_label.set_value(f"{b_val}%")
-
-        # 更新LAB值
-        l, a, b_lab = color_info['lab']
-        self.l_label.set_value(l)
-        self.a_label.set_value(a)
-        self.b_lab_label.set_value(b_lab)
+        # 更新色彩模式值
+        self.update_color_display()
 
         # 更新16进制值
         self._hex_value = color_info['hex']
@@ -218,18 +308,24 @@ class ColorCard(QWidget):
         self.hex_button.setEnabled(True)
         self.copy_button.setEnabled(True)
 
+    def update_color_display(self):
+        """根据当前模式更新颜色值显示"""
+        if not self._current_color_info:
+            return
+
+        self.mode_container_1.update_values(self._current_color_info)
+        self.mode_container_2.update_values(self._current_color_info)
+
     def clear_color(self):
         """清空颜色，恢复默认状态"""
+        self._current_color_info = None
+
         # 重置颜色块
         self._update_placeholder_style()
 
-        # 重置所有值为 "--"
-        self.h_label.set_value("--")
-        self.s_label.set_value("--")
-        self.b_label.set_value("--")
-        self.l_label.set_value("--")
-        self.a_label.set_value("--")
-        self.b_lab_label.set_value("--")
+        # 重置所有值
+        self.mode_container_1.clear_values()
+        self.mode_container_2.clear_values()
 
         # 重置16进制值
         self._hex_value = "--"
@@ -247,6 +343,7 @@ class ColorCardPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._hex_visible = True
+        self._color_modes = ['HSB', 'LAB']
         self.setup_ui()
 
     def setup_ui(self):
@@ -259,6 +356,15 @@ class ColorCardPanel(QWidget):
             card = ColorCard(i)
             self.cards.append(card)
             layout.addWidget(card)
+
+    def set_color_modes(self, modes):
+        """设置显示的色彩模式"""
+        if len(modes) < 2:
+            return
+
+        self._color_modes = [modes[0], modes[1]]
+        for card in self.cards:
+            card.set_color_modes(self._color_modes)
 
     def update_color(self, index, color_info):
         """更新指定索引的颜色"""

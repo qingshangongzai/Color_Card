@@ -46,7 +46,8 @@ class ConfigManager:
             "version": self.CONFIG_VERSION,
             "app_version": version_manager.get_version(),
             "settings": {
-                "hex_visible": True
+                "hex_visible": True,
+                "color_modes": ["HSB", "LAB"]
             },
             "window": {
                 "width": 940,
