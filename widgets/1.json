@@ -1,0 +1,65 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "D:/\u9752\u5c71\u516c\u4ed4/\u5e94\u7528/Py\u6d4b\u8bd5/\u53d6\u8272\u5361/main.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": true
+  },
+  {
+   "optionDest": "console",
+   "value": false
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "D:/\u9752\u5c71\u516c\u4ed4/\u5e94\u7528/Py\u6d4b\u8bd5/\u53d6\u8272\u5361/color_utils.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "D:/\u9752\u5c71\u516c\u4ed4/\u5e94\u7528/Py\u6d4b\u8bd5/\u53d6\u8272\u5361/widgets;widgets/"
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}
