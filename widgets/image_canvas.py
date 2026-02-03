@@ -50,6 +50,7 @@ class ImageCanvas(QWidget):
     open_image_requested = Signal()  # 信号：请求打开图片
     change_image_requested = Signal()  # 信号：请求更换图片
     clear_image_requested = Signal()  # 信号：请求清空图片
+    image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -354,3 +355,6 @@ class ImageCanvas(QWidget):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.update()
+
+        # 发送图片已清空信号，用于同步到其他面板
+        self.image_cleared.emit()

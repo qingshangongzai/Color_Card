@@ -45,6 +45,7 @@ class ColorExtractInterface(QWidget):
         self.image_canvas.open_image_requested.connect(self.open_image)
         self.image_canvas.change_image_requested.connect(self.open_image)
         self.image_canvas.clear_image_requested.connect(self.clear_image)
+        self.image_canvas.image_cleared.connect(self.on_image_cleared)
     
     def open_image(self):
         """打开图片文件"""
@@ -83,10 +84,12 @@ class ColorExtractInterface(QWidget):
         self.image_canvas.clear_image()
         self.color_card_panel.clear_colors()
 
-        # 重置窗口标题
+    def on_image_cleared(self):
+        """图片已清空回调（同步清除明度面板）"""
+        # 同步清除明度提取面板
         window = self.window()
-        if window:
-            window.setWindowTitle("取色卡 · Color Card")
+        if window and hasattr(window, 'sync_clear_to_luminance'):
+            window.sync_clear_to_luminance()
 
 
 class LuminanceExtractInterface(QWidget):
@@ -121,6 +124,7 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas.open_image_requested.connect(self.open_image)
         self.luminance_canvas.change_image_requested.connect(self.change_image)
         self.luminance_canvas.clear_image_requested.connect(self.clear_image)
+        self.luminance_canvas.image_cleared.connect(self.on_image_cleared)
 
     def open_image(self):
         """打开图片文件（由主窗口处理）"""
@@ -173,6 +177,13 @@ class LuminanceExtractInterface(QWidget):
         """清空图片"""
         self.luminance_canvas.clear_image()
         self.histogram_widget.clear()
+
+    def on_image_cleared(self):
+        """图片已清空回调（同步清除色彩面板）"""
+        # 同步清除色彩提取面板
+        window = self.window()
+        if window and hasattr(window, 'sync_clear_to_color'):
+            window.sync_clear_to_color()
 
 
 class MainWindow(FluentWindow):
@@ -238,3 +249,19 @@ class MainWindow(FluentWindow):
     def sync_image_data_to_luminance(self, pixmap, image):
         """同步图片数据到明度提取面板（避免重复加载）"""
         self.luminance_extract_interface.set_image_data(pixmap, image)
+
+    def sync_clear_to_luminance(self):
+        """同步清除明度提取面板"""
+        self.luminance_extract_interface.luminance_canvas.clear_image()
+        self.luminance_extract_interface.histogram_widget.clear()
+        self._reset_window_title()
+
+    def sync_clear_to_color(self):
+        """同步清除色彩提取面板"""
+        self.color_extract_interface.image_canvas.clear_image()
+        self.color_extract_interface.color_card_panel.clear_colors()
+        self._reset_window_title()
+
+    def _reset_window_title(self):
+        """重置窗口标题"""
+        self.setWindowTitle("取色卡 · Color Card")
