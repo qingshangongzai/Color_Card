@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QPlainTextEdit
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor
 
 from qfluentwidgets import isDarkTheme
 
 from version import version_manager
+from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
 
 
 def get_background_color():
@@ -30,7 +31,14 @@ class AboutDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("关于")
         self.setFixedSize(520, 480)
+        
+        # 设置窗口图标
+        self.setWindowIcon(load_icon_universal())
+        
         self.setup_ui()
+        
+        # 修复任务栏图标（在窗口显示后调用）
+        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
 
     def setup_ui(self):
         """设置界面布局"""
