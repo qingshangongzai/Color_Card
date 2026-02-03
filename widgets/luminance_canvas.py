@@ -50,6 +50,7 @@ class LuminanceCanvas(QWidget):
     change_image_requested = Signal()  # 信号：请求更换图片
     clear_image_requested = Signal()  # 信号：请求清空图片
     image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
+    picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -151,11 +152,13 @@ class LuminanceCanvas(QWidget):
         """取色点开始拖动"""
         picker = self._pickers[index]
         picker.set_active(True)
+        self.picker_dragging.emit(index, True)
 
     def on_picker_drag_finished(self, index):
         """取色点结束拖动"""
         picker = self._pickers[index]
         picker.set_active(False)
+        self.picker_dragging.emit(index, False)
 
     def on_picker_moved(self, index, new_pos):
         """取色点移动时的回调"""

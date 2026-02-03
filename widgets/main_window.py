@@ -19,6 +19,7 @@ class ColorExtractInterface(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._dragging_index = -1  # 当前正在拖动的采样点索引
         self.setup_ui()
         self.setup_connections()
     
@@ -127,6 +128,7 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas.change_image_requested.connect(self.change_image)
         self.luminance_canvas.clear_image_requested.connect(self.clear_image)
         self.luminance_canvas.image_cleared.connect(self.on_image_cleared)
+        self.luminance_canvas.picker_dragging.connect(self.on_picker_dragging)
 
     def open_image(self):
         """打开图片文件（由主窗口处理）"""
@@ -145,7 +147,8 @@ class LuminanceExtractInterface(QWidget):
         """设置图片（由主窗口调用同步）"""
         self.luminance_canvas.set_image(image_path)
         self.histogram_widget.set_image(self.luminance_canvas.get_image())
-        self.update_histogram_highlight()
+        # 导入图片时不显示高亮
+        self.histogram_widget.clear_highlight()
 
     def set_image_data(self, pixmap, image):
         """设置图片数据（直接使用已加载的图片，避免重复加载）"""
@@ -156,20 +159,43 @@ class LuminanceExtractInterface(QWidget):
     def _update_histogram_with_image(self, image):
         """更新直方图（延迟执行）"""
         self.histogram_widget.set_image(image)
-        self.update_histogram_highlight()
+        # 导入图片时不显示高亮
+        self.histogram_widget.clear_highlight()
 
     def on_image_loaded(self, file_path):
         """图片加载完成回调"""
         # 更新直方图
         self.histogram_widget.set_image(self.luminance_canvas.get_image())
-        self.update_histogram_highlight()
+        # 导入图片时不显示高亮
+        self.histogram_widget.clear_highlight()
 
     def on_luminance_picked(self, index, zone):
-        """明度提取回调"""
-        self.update_histogram_highlight()
+        """明度提取回调 - 拖动时实时更新黄框"""
+        # 只在拖动过程中更新高亮
+        if self._dragging_index == index:
+            self.histogram_widget.set_highlight_zones([zone])
+
+    def on_picker_dragging(self, index, is_dragging):
+        """取色点拖动状态回调
+
+        Args:
+            index: 取色点索引
+            is_dragging: 是否正在拖动
+        """
+        if is_dragging:
+            # 记录正在拖动的采样点索引
+            self._dragging_index = index
+            # 显示当前拖动采样点的区域高亮
+            zones = self.luminance_canvas.get_picker_zones()
+            if 0 <= index < len(zones):
+                self.histogram_widget.set_highlight_zones([zones[index]])
+        else:
+            # 拖动结束，清除记录和高亮
+            self._dragging_index = -1
+            self.histogram_widget.clear_highlight()
 
     def update_histogram_highlight(self):
-        """更新直方图高亮区域"""
+        """更新直方图高亮区域（仅在拖动时使用）"""
         zones = self.luminance_canvas.get_picker_zones()
         # 去重
         unique_zones = list(set(zones))
