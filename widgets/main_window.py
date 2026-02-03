@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QSplitter, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QLabel
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QPixmap
 
@@ -8,6 +8,8 @@ from .image_canvas import ImageCanvas
 from .color_card import ColorCardPanel
 from .luminance_canvas import LuminanceCanvas
 from .histogram_widget import HistogramWidget
+from .hsb_color_wheel import HSBColorWheel
+from .rgb_histogram_widget import RGBHistogramWidget
 from .settings_interface import SettingsInterface
 from color_utils import get_color_info
 from config_manager import get_config_manager
@@ -16,31 +18,58 @@ from version import version_manager
 
 class ColorExtractInterface(QWidget):
     """色彩提取界面"""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging_index = -1  # 当前正在拖动的采样点索引
         self.setup_ui()
         self.setup_connections()
-    
+
     def setup_ui(self):
         """设置界面布局"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        splitter = QSplitter(Qt.Orientation.Vertical)
-        layout.addWidget(splitter, stretch=1)
+        # 主分割器（垂直）
+        main_splitter = QSplitter(Qt.Orientation.Vertical)
+        layout.addWidget(main_splitter, stretch=1)
 
+        # 上半部分：水平分割器（图片 + 右侧组件）
+        top_splitter = QSplitter(Qt.Orientation.Horizontal)
+        top_splitter.setMinimumHeight(300)
+
+        # 左侧：图片画布
         self.image_canvas = ImageCanvas()
-        self.image_canvas.setMinimumHeight(300)
-        splitter.addWidget(self.image_canvas)
+        self.image_canvas.setMinimumWidth(400)
+        top_splitter.addWidget(self.image_canvas)
 
+        # 右侧：垂直分割器（HSB色环 + RGB直方图）
+        right_splitter = QSplitter(Qt.Orientation.Vertical)
+        right_splitter.setMinimumWidth(200)
+        right_splitter.setMaximumWidth(350)
+
+        # HSB色环
+        self.hsb_color_wheel = HSBColorWheel()
+        right_splitter.addWidget(self.hsb_color_wheel)
+
+        # RGB直方图
+        self.rgb_histogram_widget = RGBHistogramWidget()
+        right_splitter.addWidget(self.rgb_histogram_widget)
+
+        right_splitter.setSizes([200, 150])
+        top_splitter.addWidget(right_splitter)
+
+        # 设置左右比例
+        top_splitter.setSizes([600, 250])
+        main_splitter.addWidget(top_splitter)
+
+        # 下半部分：色卡面板
         self.color_card_panel = ColorCardPanel()
         self.color_card_panel.setMinimumHeight(200)
-        splitter.addWidget(self.color_card_panel)
+        main_splitter.addWidget(self.color_card_panel)
 
-        splitter.setSizes([400, 220])
+        main_splitter.setSizes([450, 220])
     
     def setup_connections(self):
         """设置信号连接"""
@@ -76,16 +105,23 @@ class ColorExtractInterface(QWidget):
             # 立即同步图片数据到明度面板（只设置图片，不计算）
             # 明度面板会自己延迟执行耗时操作
             window.sync_image_data_to_luminance(pixmap, image)
+        # 更新RGB直方图
+        self.rgb_histogram_widget.set_image(image)
     
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
         color_info = get_color_info(*rgb)
         self.color_card_panel.update_color(index, color_info)
+        # 更新HSB色环上的采样点
+        self.hsb_color_wheel.update_sample_point(index, rgb)
 
     def clear_image(self):
         """清空图片"""
         self.image_canvas.clear_image()
         self.color_card_panel.clear_colors()
+        # 清除HSB色环和RGB直方图
+        self.hsb_color_wheel.clear_sample_points()
+        self.rgb_histogram_widget.clear()
 
     def on_image_cleared(self):
         """图片已清空回调（同步清除明度面板）"""
@@ -436,6 +472,8 @@ class MainWindow(FluentWindow):
         """色彩提取采样点数改变"""
         self.color_extract_interface.image_canvas.set_picker_count(count)
         self.color_extract_interface.color_card_panel.set_card_count(count)
+        # 更新HSB色环的采样点数量
+        self.color_extract_interface.hsb_color_wheel.set_sample_count(count)
 
     def _on_luminance_sample_count_changed(self, count):
         """明度提取采样点数改变"""

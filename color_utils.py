@@ -210,3 +210,63 @@ def calculate_histogram(image, sample_step=4):
         histogram[luminance] += 1
 
     return histogram
+
+
+def calculate_rgb_histogram(image, sample_step=4):
+    """计算图片的RGB直方图（使用采样优化）
+
+    Args:
+        image: QImage 对象
+        sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+
+    Returns:
+        三个长度为256的列表的元组：(R_histogram, G_histogram, B_histogram)
+    """
+    histogram_r = [0] * 256
+    histogram_g = [0] * 256
+    histogram_b = [0] * 256
+
+    if image is None or image.isNull():
+        return histogram_r, histogram_g, histogram_b
+
+    width = image.width()
+    height = image.height()
+
+    # 采样计算直方图，大幅提高性能
+    for y in range(0, height, sample_step):
+        for x in range(0, width, sample_step):
+            color = image.pixelColor(x, y)
+            r = color.red()
+            g = color.green()
+            b = color.blue()
+            histogram_r[r] += 1
+            histogram_g[g] += 1
+            histogram_b[b] += 1
+
+    # 额外采样最右侧和最底部的边缘像素，确保高亮区域不被遗漏
+    # 采样最右列
+    if width > 0:
+        right_x = width - 1
+        for y in range(0, height, sample_step):
+            color = image.pixelColor(right_x, y)
+            histogram_r[color.red()] += 1
+            histogram_g[color.green()] += 1
+            histogram_b[color.blue()] += 1
+
+    # 采样最底行
+    if height > 0:
+        bottom_y = height - 1
+        for x in range(0, width, sample_step):
+            color = image.pixelColor(x, bottom_y)
+            histogram_r[color.red()] += 1
+            histogram_g[color.green()] += 1
+            histogram_b[color.blue()] += 1
+
+    # 采样右下角像素（如果尚未被采样）
+    if width > 0 and height > 0:
+        color = image.pixelColor(width - 1, height - 1)
+        histogram_r[color.red()] += 1
+        histogram_g[color.green()] += 1
+        histogram_b[color.blue()] += 1
+
+    return histogram_r, histogram_g, histogram_b
