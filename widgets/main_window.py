@@ -332,18 +332,25 @@ class MainWindow(FluentWindow):
         from PySide6.QtCore import QSize
         icon = QIcon(logo_path)
 
-        # 获取所需尺寸（先尝试获取 64x64 的高分辨率图标）
-        icon_size = 32
+        # 获取设备像素比（支持高 DPI 屏幕）
+        pixel_ratio = self.devicePixelRatio()
+
+        # 获取所需尺寸（请求更大的图标以获得更好的质量）
+        # 在高 DPI 屏幕上请求更高分辨率的图标
+        icon_size = int(64 * pixel_ratio)
         pixmap = icon.pixmap(icon.actualSize(QSize(icon_size, icon_size)))
 
         if not pixmap.isNull():
             # 将图标缩放到目标显示尺寸（使用高质量缩放）
-            target_size = 28
+            target_size = int(28 * pixel_ratio)
             scaled_pixmap = pixmap.scaled(
                 target_size, target_size,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
+            # 设置设备像素比，确保在高 DPI 屏幕上正确显示
+            scaled_pixmap.setDevicePixelRatio(pixel_ratio)
+
             logo_label.setPixmap(scaled_pixmap)
             logo_label.setFixedSize(40, 40)
             logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
