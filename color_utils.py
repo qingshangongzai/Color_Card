@@ -60,10 +60,41 @@ def get_color_info(r, g, b):
 
 def get_luminance(r, g, b):
     """计算像素的明度值 (0-255)
-    
-    使用 Rec. 709 标准计算亮度值
+
+    使用 Rec. 709 标准计算亮度值，包含 sRGB Gamma 校正
+    这是 Lightroom、Photoshop 等专业软件使用的标准方法
     """
-    return int(0.2126 * r + 0.7152 * g + 0.0722 * b)
+    # 步骤1: 归一化到 0-1 范围
+    r_norm = r / 255.0
+    g_norm = g / 255.0
+    b_norm = b / 255.0
+
+    # 步骤2: sRGB Gamma 解码（转换到线性空间）
+    # sRGB 的 gamma 曲线近似于 gamma 2.2，但使用更精确的公式
+    def srgb_to_linear(c):
+        if c <= 0.04045:
+            return c / 12.92
+        else:
+            return ((c + 0.055) / 1.055) ** 2.4
+
+    r_linear = srgb_to_linear(r_norm)
+    g_linear = srgb_to_linear(g_norm)
+    b_linear = srgb_to_linear(b_norm)
+
+    # 步骤3: 在线性空间应用 Rec. 709 权重
+    luminance_linear = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
+
+    # 步骤4: 将结果编码回 sRGB Gamma 空间（为了显示一致性）
+    def linear_to_srgb(c):
+        if c <= 0.0031308:
+            return c * 12.92
+        else:
+            return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+
+    luminance_srgb = linear_to_srgb(luminance_linear)
+
+    # 步骤5: 转换回 0-255 范围
+    return min(255, round(luminance_srgb * 255))
 
 
 def get_zone(luminance):
@@ -121,10 +152,34 @@ def calculate_histogram(image, sample_step=4):
     height = image.height()
 
     # 采样计算直方图，大幅提高性能
+    # 确保包含边缘像素，使用 min 函数防止越界
     for y in range(0, height, sample_step):
         for x in range(0, width, sample_step):
             color = image.pixelColor(x, y)
             luminance = get_luminance(color.red(), color.green(), color.blue())
             histogram[luminance] += 1
+
+    # 额外采样最右侧和最底部的边缘像素，确保高亮区域不被遗漏
+    # 采样最右列
+    if width > 0:
+        right_x = width - 1
+        for y in range(0, height, sample_step):
+            color = image.pixelColor(right_x, y)
+            luminance = get_luminance(color.red(), color.green(), color.blue())
+            histogram[luminance] += 1
+
+    # 采样最底行
+    if height > 0:
+        bottom_y = height - 1
+        for x in range(0, width, sample_step):
+            color = image.pixelColor(x, bottom_y)
+            luminance = get_luminance(color.red(), color.green(), color.blue())
+            histogram[luminance] += 1
+
+    # 采样右下角像素（如果尚未被采样）
+    if width > 0 and height > 0:
+        color = image.pixelColor(width - 1, height - 1)
+        luminance = get_luminance(color.red(), color.green(), color.blue())
+        histogram[luminance] += 1
 
     return histogram

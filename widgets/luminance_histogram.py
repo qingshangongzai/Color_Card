@@ -53,10 +53,10 @@ class LuminanceHistogram(QWidget):
         for y in range(height):
             for x in range(width):
                 color = self._image.pixelColor(x, y)
-                # 使用相对亮度公式
-                luminance = int(0.299 * color.red() + 
-                              0.587 * color.green() + 
-                              0.114 * color.blue())
+                # 使用 Rec. 709 标准计算亮度值（与 color_utils.py 保持一致）
+                luminance = int(0.2126 * color.red() +
+                              0.7152 * color.green() +
+                              0.0722 * color.blue())
                 luminance = max(0, min(255, luminance))
                 self._histogram_data[luminance] += 1
                 
