@@ -4,6 +4,8 @@ from PySide6.QtGui import QColor
 
 from qfluentwidgets import isDarkTheme
 
+from version import version_manager
+
 
 def get_background_color():
     """获取主题背景颜色"""
@@ -56,7 +58,10 @@ class AboutDialog(QDialog):
 
     def _get_about_text(self):
         """获取关于页面的纯文本内容"""
-        return """Color Card 是一款专为摄影师开发的图片分析小工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，辅助后期调色和色彩管理。
+        app_info = version_manager.get_app_info()
+        version = version_manager.get_version()
+
+        return f"""{app_info['name']} v{version} 是一款专为摄影师开发的图片分析小工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，辅助后期调色和色彩管理。
 
 主要功能：
   • 图片色彩分析
@@ -65,10 +70,10 @@ class AboutDialog(QDialog):
   • 支持多种图片格式
 
 【开发团队】
-  • 出品：浮晓 HXiao Studio
-  • 开发：青山公仔
+  • 出品：{app_info['company']}
+  • 开发：{app_info['developer']}
   • 代码：Trae
-  • 联系邮箱：hxiao_studio@163.com
+  • 联系邮箱：{app_info['email']}
 
 【开源项目使用说明】
   • 本程序基于 PySide6 架构开发，许可证：LGPL v3

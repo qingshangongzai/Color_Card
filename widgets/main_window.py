@@ -11,6 +11,7 @@ from .histogram_widget import HistogramWidget
 from .settings_interface import SettingsInterface
 from color_utils import get_color_info
 from config_manager import get_config_manager
+from version import version_manager
 
 
 class ColorExtractInterface(QWidget):
@@ -192,7 +193,8 @@ class MainWindow(FluentWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("取色卡 · Color Card")
+        self._version = version_manager.get_version()
+        self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
         self.setMinimumSize(800, 550)
 
         # 加载配置
@@ -337,7 +339,7 @@ class MainWindow(FluentWindow):
 
     def _reset_window_title(self):
         """重置窗口标题"""
-        self.setWindowTitle("取色卡 · Color Card")
+        self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
 
     def _setup_settings_connections(self):
         """连接设置界面的信号"""

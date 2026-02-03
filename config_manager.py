@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from version import version_manager
+
 
 class ConfigManager:
     """配置管理器，处理应用程序配置的加载和保存"""
@@ -42,6 +44,7 @@ class ConfigManager:
         """加载默认配置"""
         self._config = {
             "version": self.CONFIG_VERSION,
+            "app_version": version_manager.get_version(),
             "settings": {
                 "hex_visible": True
             },
