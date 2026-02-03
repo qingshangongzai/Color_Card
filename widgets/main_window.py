@@ -325,6 +325,11 @@ class MainWindow(FluentWindow):
         # 隐藏返回按钮
         self.navigationInterface.setReturnButtonVisible(False)
 
+        # 设置导航栏始终展开（禁用折叠）
+        # 注意：必须先设置展开宽度，再设置不可折叠，否则展开时会使用默认宽度322
+        self.navigationInterface.setExpandWidth(200)
+        self.navigationInterface.setCollapsible(False)
+
         # 添加 Logo 到左上角
         self._setup_logo()
 
