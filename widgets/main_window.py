@@ -63,7 +63,7 @@ class ColorExtractInterface(QWidget):
         """图片加载完成回调"""
         window = self.window()
         if window:
-            window.setWindowTitle(f"Color Extractor - {file_path.split('/')[-1]}")
+            window.setWindowTitle(f"取色卡 · Color Card - {file_path.split('/')[-1]}")
 
     def on_image_data_loaded(self, pixmap, image):
         """图片数据加载完成回调（用于同步到其他面板）"""
@@ -86,7 +86,7 @@ class ColorExtractInterface(QWidget):
         # 重置窗口标题
         window = self.window()
         if window:
-            window.setWindowTitle("Color Extractor - 图片颜色提取器")
+            window.setWindowTitle("取色卡 · Color Card")
 
 
 class LuminanceExtractInterface(QWidget):
@@ -180,7 +180,7 @@ class MainWindow(FluentWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Color Extractor - 图片颜色提取器")
+        self.setWindowTitle("取色卡 · Color Card")
         self.setMinimumSize(800, 550)
         self.resize(940, 660)
 
