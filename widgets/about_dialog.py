@@ -1,5 +1,24 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QPlainTextEdit
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
+
+from qfluentwidgets import isDarkTheme
+
+
+def get_background_color():
+    """获取主题背景颜色"""
+    if isDarkTheme():
+        return QColor(40, 40, 40)
+    else:
+        return QColor(245, 245, 245)
+
+
+def get_text_color():
+    """获取主题文本颜色"""
+    if isDarkTheme():
+        return QColor(255, 255, 255)
+    else:
+        return QColor(40, 40, 40)
 
 
 class AboutDialog(QDialog):
@@ -17,10 +36,18 @@ class AboutDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
+        # 获取主题颜色
+        bg_color = get_background_color()
+        text_color = get_text_color()
+
         # 纯文本编辑器显示内容
         self.text_edit = QPlainTextEdit(self)
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlainText(self._get_about_text())
+        # 设置主题感知的背景色和文本颜色
+        self.text_edit.setStyleSheet(
+            f"QPlainTextEdit {{ background-color: {bg_color.name()}; color: {text_color.name()}; border: none; }}"
+        )
         layout.addWidget(self.text_edit, stretch=1)
 
     def contextMenuEvent(self, event):

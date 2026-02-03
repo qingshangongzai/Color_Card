@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 
 from qfluentwidgets import (
-    ScrollArea, SettingCardGroup, PushSettingCard,
+    SettingCardGroup, PushSettingCard,
     FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition,
     isDarkTheme
 )
@@ -19,7 +19,7 @@ def get_title_color():
         return QColor(40, 40, 40)
 
 
-class SettingsInterface(ScrollArea):
+class SettingsInterface(QWidget):
     """设置界面"""
 
     def __init__(self, parent=None):
@@ -29,11 +29,7 @@ class SettingsInterface(ScrollArea):
 
     def setup_ui(self):
         """设置界面布局"""
-        self.scroll_widget = QWidget()
-        self.setWidget(self.scroll_widget)
-        self.setWidgetResizable(True)
-
-        layout = QVBoxLayout(self.scroll_widget)
+        layout = QVBoxLayout(self)
         layout.setContentsMargins(36, 36, 36, 36)
         layout.setSpacing(20)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -45,7 +41,7 @@ class SettingsInterface(ScrollArea):
         layout.addWidget(title_label)
 
         # 帮助分组
-        self.help_group = SettingCardGroup("帮助", self.scroll_widget)
+        self.help_group = SettingCardGroup("帮助", self)
 
         # 版本更新卡片
         self.update_card = PushSettingCard(
