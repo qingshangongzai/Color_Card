@@ -15,7 +15,7 @@ COLOR_MODE_CONFIG = {
     ),
     'LAB': (
         'LAB',
-        ['L:', 'a:', 'b:'],
+        ['L:', 'A:', 'B:'],
         ['', '', ''],
         lambda values: [str(values[0]), str(values[1]), str(values[2])]
     ),
