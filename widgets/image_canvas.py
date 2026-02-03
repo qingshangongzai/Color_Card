@@ -1,17 +1,52 @@
-from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint, Signal, QRect
+from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtCore import Qt, QPoint, Signal, QRect, QThread, QTimer
 from PySide6.QtGui import QPainter, QPixmap, QImage, QColor, QFont
 
-from qfluentwidgets import RoundMenu, Action, FluentIcon
+from qfluentwidgets import RoundMenu, Action, FluentIcon, IndeterminateProgressRing
 
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
+
+from PIL import Image
+import io
+
+
+class ImageLoader(QThread):
+    """图片加载工作线程（使用PIL在子线程读取图片数据）"""
+    loaded = Signal(bytes, int, int, str)  # 信号：图片数据(bytes), 宽度, 高度, 格式
+    error = Signal(str)  # 信号：错误信息
+
+    def __init__(self, image_path):
+        super().__init__()
+        self._image_path = image_path
+
+    def run(self):
+        """在子线程中使用PIL加载图片"""
+        try:
+            # 使用PIL打开图片（PIL是线程安全的）
+            with Image.open(self._image_path) as pil_image:
+                # 转换为RGB模式（处理RGBA、P模式等）
+                if pil_image.mode != 'RGB':
+                    pil_image = pil_image.convert('RGB')
+
+                # 获取图片尺寸
+                width, height = pil_image.size
+
+                # 将图片保存为内存中的BMP格式（无压缩，便于快速转换）
+                buffer = io.BytesIO()
+                pil_image.save(buffer, format='BMP')
+                image_data = buffer.getvalue()
+
+                self.loaded.emit(image_data, width, height, 'BMP')
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class ImageCanvas(QWidget):
     """图片显示画布，支持取色点拖动"""
     color_picked = Signal(int, tuple)  # 信号：索引, RGB颜色
     image_loaded = Signal(str)  # 信号：图片路径
+    image_data_loaded = Signal(object, object)  # 信号：QPixmap, QImage（用于同步到其他面板）
     open_image_requested = Signal()  # 信号：请求打开图片
     change_image_requested = Signal()  # 信号：请求更换图片
     clear_image_requested = Signal()  # 信号：请求清空图片
@@ -28,6 +63,13 @@ class ImageCanvas(QWidget):
         self._picker_positions = []
         self._zoom_viewer = None
         self._active_picker_index = -1
+        self._loader = None
+        self._pending_image_path = None
+
+        # 创建加载指示器
+        self._loading_indicator = IndeterminateProgressRing(self)
+        self._loading_indicator.setFixedSize(64, 64)
+        self._loading_indicator.hide()
 
         # 创建放大视图
         self._zoom_viewer = ZoomViewer(self)
@@ -43,37 +85,92 @@ class ImageCanvas(QWidget):
             self._picker_positions.append(QPoint(100 + i * 100, 100))
 
         self.update_picker_positions()
+        self._update_loading_indicator_position()
 
     def set_image(self, image_path):
-        """加载并显示图片"""
-        # 加载原始高分辨率图片
-        self._original_pixmap = QPixmap(image_path)
-        self._image = QImage(image_path)
+        """异步加载并显示图片"""
+        # 保存图片路径
+        self._pending_image_path = image_path
 
-        if self._original_pixmap and not self._original_pixmap.isNull():
-            # 设置放大视图的图片
-            self._zoom_viewer.set_image(self._image)
+        # 如果已有加载线程在运行，先停止
+        if self._loader is not None and self._loader.isRunning():
+            self._loader.quit()
+            self._loader.wait()
 
-            # 显示取色点
-            for picker in self._pickers:
-                picker.show()
+        # 显示加载指示器
+        self._loading_indicator.start()
+        self._loading_indicator.show()
+        self._update_loading_indicator_position()
 
-            # 改变光标为默认
-            self.setCursor(Qt.CursorShape.ArrowCursor)
+        # 创建并启动加载线程
+        self._loader = ImageLoader(image_path)
+        self._loader.loaded.connect(self._on_image_loaded)
+        self._loader.error.connect(self._on_image_load_error)
+        self._loader.finished.connect(self._cleanup_loader)
+        self._loader.start()
 
-            # 重新初始化取色点位置到图片中心区域
-            center_x = self.width() // 2
-            center_y = self.height() // 2
-            for i, picker in enumerate(self._pickers):
-                offset_x = (i - 2) * 50
-                self._picker_positions[i] = QPoint(center_x + offset_x, center_y)
+    def _update_loading_indicator_position(self):
+        """更新加载指示器位置到中心"""
+        x = (self.width() - self._loading_indicator.width()) // 2
+        y = (self.height() - self._loading_indicator.height()) // 2
+        self._loading_indicator.move(x, y)
 
-            self.update_picker_positions()
-            self.extract_all_colors()
-            self.update()
+    def _cleanup_loader(self):
+        """清理加载线程"""
+        if self._loader is not None:
+            self._loader.deleteLater()
+            self._loader = None
 
-            # 发送图片加载信号
-            self.image_loaded.emit(image_path)
+    def _on_image_loaded(self, image_data, width, height, fmt):
+        """图片加载完成的回调（在主线程中创建QImage/QPixmap）"""
+        # 从字节数据创建QImage（在主线程中安全执行）
+        self._image = QImage.fromData(image_data, fmt)
+        self._original_pixmap = QPixmap.fromImage(self._image)
+
+        # 隐藏加载指示器
+        self._loading_indicator.stop()
+        self._loading_indicator.hide()
+
+        # 设置放大视图的图片
+        self._zoom_viewer.set_image(self._image)
+
+        # 显示取色点
+        for picker in self._pickers:
+            picker.show()
+
+        # 改变光标为默认
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+
+        # 重新初始化取色点位置到图片中心区域
+        center_x = self.width() // 2
+        center_y = self.height() // 2
+        for i, picker in enumerate(self._pickers):
+            offset_x = (i - 2) * 50
+            self._picker_positions[i] = QPoint(center_x + offset_x, center_y)
+
+        self.update_picker_positions()
+        self.update()
+
+        # 发送图片加载信号
+        if self._pending_image_path:
+            self.image_loaded.emit(self._pending_image_path)
+            # 同时发送图片数据信号，用于同步到其他面板
+            self.image_data_loaded.emit(self._original_pixmap, self._image)
+
+        # 延迟提取颜色，让UI先响应，用户可以立即切换面板
+        QTimer.singleShot(300, self.extract_all_colors)
+
+    def _on_image_load_error(self, error_msg):
+        """图片加载失败的回调"""
+        # 隐藏加载指示器
+        self._loading_indicator.stop()
+        self._loading_indicator.hide()
+
+        # 恢复光标
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        # 可以在这里添加错误提示，暂时只打印
+        print(f"图片加载失败: {error_msg}")
 
     def update_picker_positions(self):
         """更新所有取色点的位置"""
@@ -219,6 +316,7 @@ class ImageCanvas(QWidget):
     def resizeEvent(self, event):
         """窗口大小改变时重新调整图片"""
         super().resizeEvent(event)
+        self._update_loading_indicator_position()
         if self._image and not self._image.isNull():
             # 窗口大小改变时，只需重新提取颜色（因为显示区域变了）
             self.extract_all_colors()

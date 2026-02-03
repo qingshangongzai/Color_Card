@@ -96,27 +96,29 @@ def get_zone_bounds(zone_str):
     return (start * 32, (start + 1) * 32 - 1)
 
 
-def calculate_histogram(image):
-    """计算图片的明度直方图
-    
+def calculate_histogram(image, sample_step=4):
+    """计算图片的明度直方图（使用采样优化）
+
     Args:
         image: QImage 对象
-    
+        sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+
     Returns:
         长度为256的列表，表示每个明度值的像素数量
     """
     histogram = [0] * 256
-    
+
     if image is None or image.isNull():
         return histogram
-    
+
     width = image.width()
     height = image.height()
-    
-    for y in range(height):
-        for x in range(width):
+
+    # 采样计算直方图，大幅提高性能
+    for y in range(0, height, sample_step):
+        for x in range(0, width, sample_step):
             color = image.pixelColor(x, y)
             luminance = get_luminance(color.red(), color.green(), color.blue())
             histogram[luminance] += 1
-    
+
     return histogram

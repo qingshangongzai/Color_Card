@@ -1,11 +1,45 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint, Signal, QRect
+from PySide6.QtCore import Qt, QPoint, Signal, QRect, QTimer, QThread
 from PySide6.QtGui import QPainter, QPixmap, QImage, QColor, QFont
 
 from qfluentwidgets import RoundMenu, Action, FluentIcon
 
 from .color_picker import ColorPicker
 from color_utils import get_luminance, get_zone
+
+from PIL import Image
+import io
+
+
+class ImageLoader(QThread):
+    """图片加载工作线程（使用PIL在子线程读取图片数据）"""
+    loaded = Signal(bytes, int, int, str)  # 信号：图片数据(bytes), 宽度, 高度, 格式
+    error = Signal(str)  # 信号：错误信息
+
+    def __init__(self, image_path):
+        super().__init__()
+        self._image_path = image_path
+
+    def run(self):
+        """在子线程中使用PIL加载图片"""
+        try:
+            # 使用PIL打开图片（PIL是线程安全的）
+            with Image.open(self._image_path) as pil_image:
+                # 转换为RGB模式（处理RGBA、P模式等）
+                if pil_image.mode != 'RGB':
+                    pil_image = pil_image.convert('RGB')
+
+                # 获取图片尺寸
+                width, height = pil_image.size
+
+                # 将图片保存为内存中的BMP格式（无压缩，便于快速转换）
+                buffer = io.BytesIO()
+                pil_image.save(buffer, format='BMP')
+                image_data = buffer.getvalue()
+
+                self.loaded.emit(image_data, width, height, 'BMP')
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class LuminanceCanvas(QWidget):
@@ -27,6 +61,8 @@ class LuminanceCanvas(QWidget):
         self._pickers = []
         self._picker_positions = []
         self._picker_zones = []  # 存储每个取色器的区域编号
+        self._loader = None
+        self._pending_image_path = None
 
         # 创建5个取色点（初始隐藏）
         for i in range(5):
@@ -42,11 +78,47 @@ class LuminanceCanvas(QWidget):
         self.update_picker_positions()
 
     def set_image(self, image_path):
-        """加载并显示图片"""
-        # 加载原始高分辨率图片
-        self._original_pixmap = QPixmap(image_path)
-        self._image = QImage(image_path)
+        """异步加载并显示图片"""
+        # 保存图片路径
+        self._pending_image_path = image_path
 
+        # 如果已有加载线程在运行，先停止
+        if self._loader is not None and self._loader.isRunning():
+            self._loader.quit()
+            self._loader.wait()
+
+        # 创建并启动加载线程
+        self._loader = ImageLoader(image_path)
+        self._loader.loaded.connect(self._on_image_loaded)
+        self._loader.error.connect(self._on_image_load_error)
+        self._loader.finished.connect(self._cleanup_loader)
+        self._loader.start()
+
+    def _cleanup_loader(self):
+        """清理加载线程"""
+        if self._loader is not None:
+            self._loader.deleteLater()
+            self._loader = None
+
+    def _on_image_loaded(self, image_data, width, height, fmt):
+        """图片加载完成的回调（在主线程中创建QImage/QPixmap）"""
+        # 从字节数据创建QImage（在主线程中安全执行）
+        self._image = QImage.fromData(image_data, fmt)
+        self._original_pixmap = QPixmap.fromImage(self._image)
+        self._setup_after_load()
+
+    def _on_image_load_error(self, error_msg):
+        """图片加载失败的回调"""
+        print(f"明度面板图片加载失败: {error_msg}")
+
+    def set_image_data(self, pixmap, image):
+        """直接使用已加载的图片数据（避免重复加载）"""
+        self._original_pixmap = pixmap
+        self._image = image
+        self._setup_after_load()
+
+    def _setup_after_load(self):
+        """图片加载完成后的设置"""
         if self._original_pixmap and not self._original_pixmap.isNull():
             # 显示取色点
             for picker in self._pickers:
@@ -63,11 +135,10 @@ class LuminanceCanvas(QWidget):
                 self._picker_positions[i] = QPoint(center_x + offset_x, center_y)
 
             self.update_picker_positions()
-            self.extract_all_zones()
             self.update()
 
-            # 发送图片加载信号
-            self.image_loaded.emit(image_path)
+            # 延迟提取区域，让UI先响应，用户可以立即切换面板
+            QTimer.singleShot(300, self.extract_all_zones)
 
     def update_picker_positions(self):
         """更新所有取色点的位置"""

@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QSplitter
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction
 
 from qfluentwidgets import FluentWindow, NavigationItemPosition, qrouter, FluentIcon
@@ -41,6 +41,7 @@ class ColorExtractInterface(QWidget):
         """设置信号连接"""
         self.image_canvas.color_picked.connect(self.on_color_picked)
         self.image_canvas.image_loaded.connect(self.on_image_loaded)
+        self.image_canvas.image_data_loaded.connect(self.on_image_data_loaded)
         self.image_canvas.open_image_requested.connect(self.open_image)
         self.image_canvas.change_image_requested.connect(self.open_image)
         self.image_canvas.clear_image_requested.connect(self.clear_image)
@@ -63,9 +64,14 @@ class ColorExtractInterface(QWidget):
         window = self.window()
         if window:
             window.setWindowTitle(f"Color Extractor - {file_path.split('/')[-1]}")
-            # 同步图片到明度提取面板
-            if hasattr(window, 'sync_image_to_luminance'):
-                window.sync_image_to_luminance(file_path)
+
+    def on_image_data_loaded(self, pixmap, image):
+        """图片数据加载完成回调（用于同步到其他面板）"""
+        window = self.window()
+        if window and hasattr(window, 'sync_image_data_to_luminance'):
+            # 立即同步图片数据到明度面板（只设置图片，不计算）
+            # 明度面板会自己延迟执行耗时操作
+            window.sync_image_data_to_luminance(pixmap, image)
     
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
@@ -133,6 +139,17 @@ class LuminanceExtractInterface(QWidget):
         """设置图片（由主窗口调用同步）"""
         self.luminance_canvas.set_image(image_path)
         self.histogram_widget.set_image(self.luminance_canvas.get_image())
+        self.update_histogram_highlight()
+
+    def set_image_data(self, pixmap, image):
+        """设置图片数据（直接使用已加载的图片，避免重复加载）"""
+        self.luminance_canvas.set_image_data(pixmap, image)
+        # 延迟更新直方图，避免与区域提取同时执行
+        QTimer.singleShot(400, lambda: self._update_histogram_with_image(image))
+
+    def _update_histogram_with_image(self, image):
+        """更新直方图（延迟执行）"""
+        self.histogram_widget.set_image(image)
         self.update_histogram_highlight()
 
     def on_image_loaded(self, file_path):
@@ -211,6 +228,10 @@ class MainWindow(FluentWindow):
         self.color_extract_interface.open_image()
 
     def sync_image_to_luminance(self, image_path):
-        """同步图片到明度提取面板"""
+        """同步图片路径到明度提取面板（保留用于兼容）"""
         if image_path:
             self.luminance_extract_interface.set_image(image_path)
+
+    def sync_image_data_to_luminance(self, pixmap, image):
+        """同步图片数据到明度提取面板（避免重复加载）"""
+        self.luminance_extract_interface.set_image_data(pixmap, image)
