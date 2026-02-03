@@ -2,6 +2,32 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 
+from qfluentwidgets import isDarkTheme
+
+
+def get_text_color(secondary=False):
+    """获取主题文本颜色"""
+    if isDarkTheme():
+        return QColor(160, 160, 160) if secondary else QColor(255, 255, 255)
+    else:
+        return QColor(120, 120, 120) if secondary else QColor(40, 40, 40)
+
+
+def get_placeholder_color():
+    """获取占位符颜色（空色块背景）"""
+    if isDarkTheme():
+        return QColor(60, 60, 60)
+    else:
+        return QColor(204, 204, 204)
+
+
+def get_border_color():
+    """获取边框颜色"""
+    if isDarkTheme():
+        return QColor(80, 80, 80)
+    else:
+        return QColor(221, 221, 221)
+
 
 class ColorValueLabel(QWidget):
     """显示单个颜色值的标签"""
@@ -12,13 +38,25 @@ class ColorValueLabel(QWidget):
         layout.setSpacing(5)
 
         self.label = QLabel(label_text)
-        self.label.setStyleSheet("color: #888; font-size: 11px;")
         self.value = QLabel("--")
-        self.value.setStyleSheet("color: #333; font-size: 12px; font-weight: bold;")
+
+        self._update_styles()
 
         layout.addWidget(self.label)
         layout.addWidget(self.value)
         layout.addStretch()
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        secondary_color = get_text_color(secondary=True)
+        primary_color = get_text_color(secondary=False)
+
+        self.label.setStyleSheet(
+            f"color: {secondary_color.name()}; font-size: 11px;"
+        )
+        self.value.setStyleSheet(
+            f"color: {primary_color.name()}; font-size: 12px; font-weight: bold;"
+        )
 
     def set_value(self, value):
         self.value.setText(str(value))
@@ -39,7 +77,7 @@ class ColorCard(QWidget):
         # 颜色块
         self.color_block = QWidget()
         self.color_block.setFixedHeight(80)
-        self.color_block.setStyleSheet("background-color: #cccccc; border-radius: 4px;")
+        self._update_placeholder_style()
         layout.addWidget(self.color_block)
 
         # 数值区域（两列布局）
@@ -83,13 +121,21 @@ class ColorCard(QWidget):
         layout.addWidget(values_container)
         layout.addStretch()
 
+    def _update_placeholder_style(self):
+        """更新占位符样式"""
+        placeholder_color = get_placeholder_color()
+        self.color_block.setStyleSheet(
+            f"background-color: {placeholder_color.name()}; border-radius: 4px;"
+        )
+
     def set_color(self, color_info):
         """设置颜色信息"""
         # 更新颜色块
         r, g, b = color_info['rgb']
         color_str = f"rgb({r}, {g}, {b})"
+        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid #ddd;"
+            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
         )
 
         # 更新HSB值
@@ -107,7 +153,7 @@ class ColorCard(QWidget):
     def clear_color(self):
         """清空颜色，恢复默认状态"""
         # 重置颜色块
-        self.color_block.setStyleSheet("background-color: #cccccc; border-radius: 4px;")
+        self._update_placeholder_style()
 
         # 重置所有值为 "--"
         self.h_label.set_value("--")

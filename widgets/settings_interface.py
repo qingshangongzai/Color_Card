@@ -1,12 +1,22 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QSizePolicy
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 
 from qfluentwidgets import (
     ScrollArea, SettingCardGroup, PushSettingCard,
-    FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition
+    FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition,
+    isDarkTheme
 )
 
 from .about_dialog import AboutDialog
+
+
+def get_title_color():
+    """获取标题颜色"""
+    if isDarkTheme():
+        return QColor(255, 255, 255)
+    else:
+        return QColor(40, 40, 40)
 
 
 class SettingsInterface(ScrollArea):
@@ -30,7 +40,8 @@ class SettingsInterface(ScrollArea):
 
         # 标题
         title_label = QLabel("设置")
-        title_label.setStyleSheet("font-size: 28px; font-weight: bold; color: #333;")
+        title_color = get_title_color()
+        title_label.setStyleSheet(f"font-size: 28px; font-weight: bold; color: {title_color.name()};")
         layout.addWidget(title_label)
 
         # 帮助分组

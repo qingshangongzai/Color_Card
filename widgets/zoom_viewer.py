@@ -2,6 +2,16 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QPainter, QImage, QColor, QPen, QBrush, QPainterPath
 
+from qfluentwidgets import isDarkTheme
+
+
+def get_crosshair_color():
+    """获取十字准星颜色"""
+    if isDarkTheme():
+        return QColor(200, 200, 200)
+    else:
+        return QColor(40, 40, 40)
+
 
 class ZoomViewer(QWidget):
     """放大视图组件，拖动取色点时显示周围像素的放大效果"""
@@ -69,13 +79,13 @@ class ZoomViewer(QWidget):
         source_rect = self._image.copy(src_x, src_y, self._source_rect_size, self._source_rect_size)
         painter.drawImage(self.rect(), source_rect)
 
-        # 绘制中心十字准星（深色）
+        # 绘制中心十字准星（主题适配颜色）
         painter.setClipping(False)
         center_x = self.width() // 2
         center_y = self.height() // 2
         cross_size = 8
 
-        pen = QPen(QColor(40, 40, 40), 2)
+        pen = QPen(get_crosshair_color(), 2)
         painter.setPen(pen)
 
         # 水平线
