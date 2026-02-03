@@ -218,6 +218,9 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.TOP
         )
 
+        # 设置默认选中的导航项
+        self.navigationInterface.setCurrentItem(self.color_extract_interface.objectName())
+
     def open_image(self):
         """打开图片（从色彩提取界面调用）"""
         self.color_extract_interface.open_image()
