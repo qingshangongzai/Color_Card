@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QPainter, QColor, QPen, QFont, QLinearGradient
 
 from color_utils import calculate_histogram, get_zone_bounds
@@ -7,6 +7,9 @@ from color_utils import calculate_histogram, get_zone_bounds
 
 class HistogramWidget(QWidget):
     """明度直方图组件 - 参考Lightroom风格设计"""
+
+    zone_pressed = Signal(int)   # 信号：Zone被按下 (0-7)
+    zone_released = Signal()     # 信号：Zone被释放
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -18,6 +21,10 @@ class HistogramWidget(QWidget):
         self._histogram = [0] * 256
         self._max_count = 0
         self._highlight_zones = []  # 高亮显示的区域列表
+        self._pressed_zone = -1     # 当前按下的Zone
+
+        # 启用鼠标跟踪
+        self.setMouseTracking(True)
 
     def set_image(self, image):
         """设置图片并计算直方图"""
@@ -86,14 +93,38 @@ class HistogramWidget(QWidget):
             QColor(65, 65, 65),   # Zone 7: 极亮
         ]
 
+        # 按下状态的Zone背景色（更亮一些）
+        zone_pressed_colors = [
+            QColor(50, 50, 60),   # Zone 0: 极暗
+            QColor(55, 55, 65),   # Zone 1: 暗
+            QColor(60, 60, 70),   # Zone 2: 偏暗
+            QColor(65, 65, 75),   # Zone 3: 中灰
+            QColor(70, 70, 80),   # Zone 4: 偏亮
+            QColor(75, 75, 85),   # Zone 5: 亮
+            QColor(80, 80, 90),   # Zone 6: 很亮
+            QColor(85, 85, 95),   # Zone 7: 极亮
+        ]
+
         for i in range(8):
             zone_x = x + i * zone_width
+            # 如果是按下的Zone，使用高亮背景色
+            if i == self._pressed_zone:
+                bg_color = zone_pressed_colors[i]
+            else:
+                bg_color = zone_bg_colors[i]
+
             # 绘制Zone背景
             painter.fillRect(
                 int(zone_x), y,
                 int(zone_width + 0.5), height,
-                zone_bg_colors[i]
+                bg_color
             )
+
+            # 如果当前Zone被按下，绘制边框
+            if i == self._pressed_zone:
+                painter.setPen(QPen(QColor(0, 150, 255), 2))
+                painter.setBrush(Qt.BrushStyle.NoBrush)
+                painter.drawRect(int(zone_x), y, int(zone_width), height)
 
         # 绘制Zone分隔线
         pen = QPen(QColor(80, 80, 80), 1)
@@ -225,4 +256,61 @@ class HistogramWidget(QWidget):
         self._histogram = [0] * 256
         self._max_count = 0
         self._highlight_zones = []
+        self._pressed_zone = -1
         self.update()
+
+    def _get_zone_from_pos(self, pos):
+        """根据鼠标位置获取对应的Zone (0-7)
+
+        Args:
+            pos: 鼠标位置 (QPoint)
+
+        Returns:
+            Zone编号 (0-7)，如果不在有效区域返回 -1
+        """
+        margin_left = 35
+        margin_right = 15
+        margin_top = 15
+        margin_bottom = 30
+
+        draw_width = self.width() - margin_left - margin_right
+        draw_height = self.height() - margin_top - margin_bottom
+
+        # 检查是否在绘图区域内
+        if not (margin_left <= pos.x() <= margin_left + draw_width and
+                margin_top <= pos.y() <= margin_top + draw_height):
+            return -1
+
+        # 计算Zone (0-7)
+        zone_width = draw_width / 8.0
+        zone_index = int((pos.x() - margin_left) / zone_width)
+
+        return max(0, min(7, zone_index))
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            zone = self._get_zone_from_pos(event.pos())
+            if zone >= 0:
+                self._pressed_zone = zone
+                self.zone_pressed.emit(zone)
+                self.update()
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动事件"""
+        if self._pressed_zone >= 0:
+            zone = self._get_zone_from_pos(event.pos())
+            if zone >= 0 and zone != self._pressed_zone:
+                self._pressed_zone = zone
+                self.zone_pressed.emit(zone)
+                self.update()
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
+        if event.button() == Qt.MouseButton.LeftButton and self._pressed_zone >= 0:
+            self._pressed_zone = -1
+            self.zone_released.emit()
+            self.update()
+        event.accept()

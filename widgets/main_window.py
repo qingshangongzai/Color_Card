@@ -100,6 +100,7 @@ class LuminanceExtractInterface(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._dragging_index = -1  # 当前正在拖动的采样点索引
         self.setup_ui()
         self.setup_connections()
 
@@ -129,6 +130,10 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas.clear_image_requested.connect(self.clear_image)
         self.luminance_canvas.image_cleared.connect(self.on_image_cleared)
         self.luminance_canvas.picker_dragging.connect(self.on_picker_dragging)
+
+        # 连接直方图点击信号
+        self.histogram_widget.zone_pressed.connect(self.on_histogram_zone_pressed)
+        self.histogram_widget.zone_released.connect(self.on_histogram_zone_released)
 
     def open_image(self):
         """打开图片文件（由主窗口处理）"""
@@ -212,6 +217,20 @@ class LuminanceExtractInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'sync_clear_to_color'):
             window.sync_clear_to_color()
+
+    def on_histogram_zone_pressed(self, zone):
+        """直方图Zone被按下时调用
+
+        Args:
+            zone: Zone编号 (0-7)
+        """
+        # 在画布上高亮显示该Zone的亮度范围
+        self.luminance_canvas.highlight_zone(zone)
+
+    def on_histogram_zone_released(self):
+        """直方图Zone被释放时调用"""
+        # 清除画布上的高亮显示
+        self.luminance_canvas.clear_zone_highlight()
 
 
 class MainWindow(FluentWindow):

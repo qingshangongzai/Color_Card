@@ -66,6 +66,22 @@ class LuminanceCanvas(QWidget):
         self._loader = None
         self._pending_image_path = None
 
+        # Zone高亮相关
+        self._highlighted_zone = -1  # 当前高亮显示的Zone (-1表示无)
+        self._zone_highlight_pixmap = None  # 高亮遮罩缓存
+
+        # Zone高亮颜色配置 (Zone 0-7)
+        self._zone_highlight_colors = [
+            QColor(0, 102, 255, 100),    # Zone 0: 深蓝色 (极暗)
+            QColor(0, 128, 255, 100),    # Zone 1: 蓝色 (暗)
+            QColor(0, 153, 255, 100),    # Zone 2: 浅蓝色 (偏暗)
+            QColor(0, 204, 102, 100),    # Zone 3: 绿色 (中灰)
+            QColor(102, 255, 102, 100),  # Zone 4: 浅绿色 (偏亮)
+            QColor(255, 204, 0, 100),    # Zone 5: 黄色 (亮)
+            QColor(255, 128, 0, 100),    # Zone 6: 橙色 (很亮)
+            QColor(255, 51, 102, 100),   # Zone 7: 红色 (极亮)
+        ]
+
         # 创建5个取色点（初始隐藏）
         for i in range(5):
             picker = ColorPicker(i, self)
@@ -253,6 +269,9 @@ class LuminanceCanvas(QWidget):
                 target_rect = QRect(x, y, w, h)
                 painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
 
+                # 绘制Zone高亮遮罩（在图片上方）
+                self._draw_zone_highlight(painter, display_rect)
+
                 # 绘制区域标注
                 self._draw_zone_labels(painter, display_rect)
         else:
@@ -367,3 +386,171 @@ class LuminanceCanvas(QWidget):
     def get_picker_zones(self):
         """获取所有取色器的区域编号"""
         return self._picker_zones.copy()
+
+    def highlight_zone(self, zone):
+        """高亮显示指定Zone的亮度范围
+
+        Args:
+            zone: Zone编号 (0-7)
+        """
+        if not (0 <= zone <= 7):
+            return
+
+        if self._image is None or self._image.isNull():
+            return
+
+        self._highlighted_zone = zone
+        self._zone_highlight_pixmap = None  # 清除缓存，重新生成
+        self.update()
+
+    def clear_zone_highlight(self):
+        """清除Zone高亮显示"""
+        self._highlighted_zone = -1
+        self._zone_highlight_pixmap = None
+        self.update()
+
+    def _generate_zone_highlight_pixmap(self, display_rect):
+        """生成Zone高亮遮罩图
+
+        Args:
+            display_rect: 图片显示区域 (x, y, w, h)
+
+        Returns:
+            QPixmap: 高亮遮罩图
+        """
+        if self._image is None or self._image.isNull():
+            return None
+
+        disp_x, disp_y, disp_w, disp_h = display_rect
+
+        # 创建透明遮罩图
+        highlight_pixmap = QPixmap(self.size())
+        highlight_pixmap.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(highlight_pixmap)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+
+        # 获取当前Zone的颜色
+        zone_color = self._zone_highlight_colors[self._highlighted_zone]
+
+        # 计算亮度范围
+        min_lum = self._highlighted_zone * 32
+        max_lum = (self._highlighted_zone + 1) * 32 - 1
+
+        # 计算缩放比例
+        scale_x = self._image.width() / disp_w
+        scale_y = self._image.height() / disp_h
+
+        # 采样步长（性能优化）
+        sample_step = 4
+
+        # 遍历显示区域的像素
+        for dy in range(0, disp_h, sample_step):
+            for dx in range(0, disp_w, sample_step):
+                # 计算对应的原始图片坐标
+                img_x = int(dx * scale_x)
+                img_y = int(dy * scale_y)
+
+                # 边界检查
+                img_x = min(img_x, self._image.width() - 1)
+                img_y = min(img_y, self._image.height() - 1)
+
+                # 获取像素颜色并计算亮度
+                color = self._image.pixelColor(img_x, img_y)
+                luminance = get_luminance(color.red(), color.green(), color.blue())
+
+                # 如果亮度在当前Zone范围内，绘制遮罩
+                if min_lum <= luminance <= max_lum:
+                    painter.fillRect(
+                        disp_x + dx,
+                        disp_y + dy,
+                        sample_step,
+                        sample_step,
+                        zone_color
+                    )
+
+        painter.end()
+        return highlight_pixmap
+
+    def _draw_zone_highlight(self, painter, display_rect):
+        """绘制Zone高亮遮罩
+
+        Args:
+            painter: QPainter对象
+            display_rect: 图片显示区域 (x, y, w, h)
+        """
+        if self._highlighted_zone < 0:
+            return
+
+        # 如果缓存不存在，生成遮罩图
+        if self._zone_highlight_pixmap is None:
+            self._zone_highlight_pixmap = self._generate_zone_highlight_pixmap(display_rect)
+
+        # 绘制遮罩图
+        if self._zone_highlight_pixmap:
+            painter.drawPixmap(0, 0, self._zone_highlight_pixmap)
+
+        # 绘制Zone信息提示
+        self._draw_zone_highlight_info(painter, display_rect)
+
+    def _draw_zone_highlight_info(self, painter, display_rect):
+        """绘制Zone高亮信息提示
+
+        Args:
+            painter: QPainter对象
+            display_rect: 图片显示区域 (x, y, w, h)
+        """
+        if self._highlighted_zone < 0:
+            return
+
+        disp_x, disp_y, disp_w, disp_h = display_rect
+
+        # 准备文字
+        zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8"]
+        zone_names = [
+            "黑色", "阴影", "暗部", "中间调",
+            "亮部", "高光", "白色", "极白"
+        ]
+        label = zone_labels[self._highlighted_zone]
+        name = zone_names[self._highlighted_zone]
+
+        # 计算亮度范围
+        min_lum = self._highlighted_zone * 32
+        max_lum = (self._highlighted_zone + 1) * 32 - 1
+
+        text = f"{label} ({name}) | 亮度: {min_lum}-{max_lum}"
+
+        # 设置字体
+        font = QFont()
+        font.setPointSize(11)
+        font.setBold(True)
+        painter.setFont(font)
+
+        # 计算文字尺寸
+        text_rect = painter.boundingRect(QRect(), Qt.AlignmentFlag.AlignLeft, text)
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        # 背景框位置和尺寸
+        padding = 10
+        box_width = text_width + padding * 2
+        box_height = text_height + padding * 2
+        box_x = disp_x + (disp_w - box_width) // 2
+        box_y = disp_y + 20
+
+        # 绘制半透明背景框
+        bg_color = QColor(0, 0, 0, 180)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(bg_color)
+        painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
+
+        # 绘制文字
+        text_color = self._zone_highlight_colors[self._highlighted_zone]
+        # 使用不透明版本的颜色
+        text_color.setAlpha(255)
+        painter.setPen(text_color)
+        painter.drawText(
+            box_x + padding,
+            box_y + padding + text_height - 4,
+            text
+        )
