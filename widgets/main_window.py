@@ -62,9 +62,7 @@ class ColorExtractInterface(QWidget):
     
     def on_image_loaded(self, file_path):
         """图片加载完成回调"""
-        window = self.window()
-        if window:
-            window.setWindowTitle(f"取色卡 · Color Card - {file_path.split('/')[-1]}")
+        pass
 
     def on_image_data_loaded(self, pixmap, image):
         """图片数据加载完成回调（用于同步到其他面板）"""
