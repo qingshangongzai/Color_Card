@@ -307,6 +307,10 @@ class ImageCanvas(QWidget):
 
         return x, y, scaled_size.width(), scaled_size.height()
 
+    def get_image_display_rect(self):
+        """获取图片在画布中的显示区域（供子组件使用）"""
+        return self.get_display_rect()
+
     def extract_color(self, index):
         """提取指定取色点的颜色"""
         if self._image is None or self._image.isNull():
