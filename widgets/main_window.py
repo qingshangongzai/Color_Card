@@ -8,6 +8,7 @@ from .image_canvas import ImageCanvas
 from .color_card import ColorCardPanel
 from .luminance_canvas import LuminanceCanvas
 from .histogram_widget import HistogramWidget
+from .settings_interface import SettingsInterface
 from color_utils import get_color_info
 
 
@@ -209,6 +210,11 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.setObjectName('luminanceExtract')
         self.stackedWidget.addWidget(self.luminance_extract_interface)
 
+        # 设置界面
+        self.settings_interface = SettingsInterface(self)
+        self.settings_interface.setObjectName('settings')
+        self.stackedWidget.addWidget(self.settings_interface)
+
     def setup_navigation(self):
         """设置导航栏"""
         # 色彩提取
@@ -225,6 +231,14 @@ class MainWindow(FluentWindow):
             FluentIcon.BRIGHTNESS,
             "明度提取",
             position=NavigationItemPosition.TOP
+        )
+
+        # 设置（放在底部）
+        self.addSubInterface(
+            self.settings_interface,
+            FluentIcon.SETTING,
+            "设置",
+            position=NavigationItemPosition.BOTTOM
         )
 
         # 设置默认选中的导航项

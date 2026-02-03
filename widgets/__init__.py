@@ -5,6 +5,8 @@ from .color_card import ColorCard, ColorCardPanel
 from .zoom_viewer import ZoomViewer
 from .luminance_canvas import LuminanceCanvas
 from .histogram_widget import HistogramWidget
+from .settings_interface import SettingsInterface
+from .about_dialog import AboutDialog
 
 __all__ = [
     'MainWindow',
@@ -14,5 +16,7 @@ __all__ = [
     'ColorCardPanel',
     'ZoomViewer',
     'LuminanceCanvas',
-    'HistogramWidget'
+    'HistogramWidget',
+    'SettingsInterface',
+    'AboutDialog'
 ]
