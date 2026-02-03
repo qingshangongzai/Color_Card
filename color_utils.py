@@ -40,6 +40,11 @@ def rgb_to_lab(r, g, b):
     return l, a, b_val
 
 
+def rgb_to_hex(r, g, b):
+    """将RGB转换为16进制颜色值"""
+    return f"#{r:02X}{g:02X}{b:02X}"
+
+
 def get_color_info(r, g, b):
     """获取颜色的完整信息"""
     h, s, b_val = rgb_to_hsb(r, g, b)
@@ -48,7 +53,8 @@ def get_color_info(r, g, b):
     return {
         'rgb': (r, g, b),
         'hsb': (round(h), round(s), round(b_val)),
-        'lab': (round(l), round(a), round(b_lab))
+        'lab': (round(l), round(a), round(b_lab)),
+        'hex': rgb_to_hex(r, g, b)
     }
 
 

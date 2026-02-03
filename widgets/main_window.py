@@ -30,13 +30,14 @@ class ColorExtractInterface(QWidget):
         layout.addWidget(splitter, stretch=1)
 
         self.image_canvas = ImageCanvas()
+        self.image_canvas.setMinimumHeight(300)
         splitter.addWidget(self.image_canvas)
 
         self.color_card_panel = ColorCardPanel()
-        self.color_card_panel.setMaximumHeight(280)
+        self.color_card_panel.setMinimumHeight(200)
         splitter.addWidget(self.color_card_panel)
 
-        splitter.setSizes([500, 200])
+        splitter.setSizes([400, 220])
     
     def setup_connections(self):
         """设置信号连接"""
@@ -215,6 +216,9 @@ class MainWindow(FluentWindow):
         self.settings_interface.setObjectName('settings')
         self.stackedWidget.addWidget(self.settings_interface)
 
+        # 连接设置信号
+        self._setup_settings_connections()
+
     def setup_navigation(self):
         """设置导航栏"""
         # 色彩提取
@@ -277,3 +281,10 @@ class MainWindow(FluentWindow):
     def _reset_window_title(self):
         """重置窗口标题"""
         self.setWindowTitle("取色卡 · Color Card")
+
+    def _setup_settings_connections(self):
+        """连接设置界面的信号"""
+        # 连接16进制显示开关信号到色卡面板
+        self.settings_interface.hex_display_changed.connect(
+            self.color_extract_interface.color_card_panel.set_hex_visible
+        )

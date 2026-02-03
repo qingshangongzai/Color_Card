@@ -1,11 +1,11 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QSizePolicy
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 
 from qfluentwidgets import (
     SettingCardGroup, PushSettingCard,
     FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition,
-    isDarkTheme
+    isDarkTheme, SwitchButton
 )
 
 from .about_dialog import AboutDialog
@@ -22,9 +22,13 @@ def get_title_color():
 class SettingsInterface(QWidget):
     """设置界面"""
 
+    # 信号：16进制显示开关状态改变
+    hex_display_changed = Signal(bool)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('settings')
+        self._hex_visible = True
         self.setup_ui()
 
     def setup_ui(self):
@@ -39,6 +43,20 @@ class SettingsInterface(QWidget):
         title_color = get_title_color()
         title_label.setStyleSheet(f"font-size: 28px; font-weight: bold; color: {title_color.name()};")
         layout.addWidget(title_label)
+
+        # 显示设置分组
+        self.display_group = SettingCardGroup("显示设置", self)
+
+        # 16进制颜色值显示开关卡片
+        self.hex_display_card = self._create_switch_card(
+            FluentIcon.PALETTE,
+            "显示16进制颜色值",
+            "在色彩提取面板的色卡中显示16进制颜色值和复制按钮",
+            self._hex_visible
+        )
+        self.display_group.addSettingCard(self.hex_display_card)
+
+        layout.addWidget(self.display_group)
 
         # 帮助分组
         self.help_group = SettingCardGroup("帮助", self)
@@ -73,6 +91,40 @@ class SettingsInterface(QWidget):
 
         # 添加弹性空间
         layout.addStretch()
+
+    def _create_switch_card(self, icon, title, content, initial_checked):
+        """创建自定义开关卡片"""
+        card = PushSettingCard("", icon, title, content, self.display_group)
+        card.button.setVisible(False)  # 隐藏默认按钮
+
+        # 创建开关按钮
+        switch = SwitchButton(self)
+        switch.setChecked(initial_checked)
+        switch.checkedChanged.connect(self._on_hex_display_changed)
+
+        # 将开关添加到卡片布局
+        card.hBoxLayout.addWidget(switch, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存开关引用
+        card.switch_button = switch
+
+        return card
+
+    def _on_hex_display_changed(self, checked):
+        """16进制显示开关状态改变"""
+        self._hex_visible = checked
+        self.hex_display_changed.emit(checked)
+
+    def set_hex_visible(self, visible):
+        """设置16进制显示开关状态"""
+        self._hex_visible = visible
+        if hasattr(self.hex_display_card, 'switch_button'):
+            self.hex_display_card.switch_button.setChecked(visible)
+
+    def is_hex_visible(self):
+        """获取16进制显示开关状态"""
+        return self._hex_visible
 
     def on_check_update(self):
         """检查更新按钮点击"""

@@ -1,8 +1,8 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QApplication
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 
-from qfluentwidgets import isDarkTheme
+from qfluentwidgets import isDarkTheme, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition
 
 
 def get_text_color(secondary=False):
@@ -67,6 +67,7 @@ class ColorCard(QWidget):
     def __init__(self, index, parent=None):
         super().__init__(parent)
         self.index = index
+        self._hex_value = "--"
         self.setup_ui()
 
     def setup_ui(self):
@@ -119,6 +120,29 @@ class ColorCard(QWidget):
         values_layout.addWidget(lab_container)
 
         layout.addWidget(values_container)
+
+        # 16进制颜色值显示区域
+        self.hex_container = QWidget()
+        hex_layout = QHBoxLayout(self.hex_container)
+        hex_layout.setContentsMargins(0, 5, 0, 0)
+        hex_layout.setSpacing(5)
+
+        # 16进制值显示按钮
+        self.hex_button = PushButton("--")
+        self.hex_button.setFixedHeight(28)
+        self.hex_button.setEnabled(False)
+        self._update_hex_button_style()
+
+        # 复制按钮
+        self.copy_button = ToolButton(FluentIcon.COPY)
+        self.copy_button.setFixedSize(28, 28)
+        self.copy_button.setEnabled(False)
+        self.copy_button.clicked.connect(self._copy_hex_to_clipboard)
+
+        hex_layout.addWidget(self.hex_button, stretch=1)
+        hex_layout.addWidget(self.copy_button)
+
+        layout.addWidget(self.hex_container)
         layout.addStretch()
 
     def _update_placeholder_style(self):
@@ -127,6 +151,44 @@ class ColorCard(QWidget):
         self.color_block.setStyleSheet(
             f"background-color: {placeholder_color.name()}; border-radius: 4px;"
         )
+
+    def _update_hex_button_style(self):
+        """更新16进制按钮样式"""
+        primary_color = get_text_color(secondary=False)
+        self.hex_button.setStyleSheet(
+            f"""
+            PushButton {{
+                font-size: 12px;
+                font-weight: bold;
+                color: {primary_color.name()};
+                background-color: transparent;
+                border: 1px solid {get_border_color().name()};
+                border-radius: 4px;
+                padding: 4px 8px;
+            }}
+            PushButton:disabled {{
+                color: {get_text_color(secondary=True).name()};
+                background-color: transparent;
+            }}
+            """
+        )
+
+    def _copy_hex_to_clipboard(self):
+        """复制16进制颜色值到剪贴板"""
+        if self._hex_value and self._hex_value != "--":
+            clipboard = QApplication.clipboard()
+            clipboard.setText(self._hex_value)
+
+            # 显示复制成功提示
+            InfoBar.success(
+                title="已复制",
+                content=f"颜色值 {self._hex_value} 已复制到剪贴板",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
 
     def set_color(self, color_info):
         """设置颜色信息"""
@@ -150,6 +212,12 @@ class ColorCard(QWidget):
         self.a_label.set_value(a)
         self.b_lab_label.set_value(b_lab)
 
+        # 更新16进制值
+        self._hex_value = color_info['hex']
+        self.hex_button.setText(self._hex_value)
+        self.hex_button.setEnabled(True)
+        self.copy_button.setEnabled(True)
+
     def clear_color(self):
         """清空颜色，恢复默认状态"""
         # 重置颜色块
@@ -163,11 +231,22 @@ class ColorCard(QWidget):
         self.a_label.set_value("--")
         self.b_lab_label.set_value("--")
 
+        # 重置16进制值
+        self._hex_value = "--"
+        self.hex_button.setText("--")
+        self.hex_button.setEnabled(False)
+        self.copy_button.setEnabled(False)
+
+    def set_hex_visible(self, visible):
+        """设置16进制显示区域的可见性"""
+        self.hex_container.setVisible(visible)
+
 
 class ColorCardPanel(QWidget):
     """色卡面板（包含5个色卡）"""
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._hex_visible = True
         self.setup_ui()
 
     def setup_ui(self):
@@ -190,3 +269,13 @@ class ColorCardPanel(QWidget):
         """清空所有色卡颜色"""
         for card in self.cards:
             card.clear_color()
+
+    def set_hex_visible(self, visible):
+        """设置是否显示16进制颜色值"""
+        self._hex_visible = visible
+        for card in self.cards:
+            card.set_hex_visible(visible)
+
+    def is_hex_visible(self):
+        """获取16进制颜色值显示状态"""
+        return self._hex_visible
