@@ -30,13 +30,13 @@ class VersionManager:
 
         # 应用程序元数据
         self.app_info = {
-            "name": "Color Card",
+            "name": "取色卡",
             "name_en": "Color Card",
             "company": "浮晓 HXiao Studio",
             "copyright": "© 2026 浮晓 HXiao Studio",
-            "description": "Color Card - 图片颜色提取器",
-            "internal_name": "ColorCard",
-            "original_filename": "ColorCard.exe",
+            "description": "取色卡 - Color Card",
+            "internal_name": "Color_Card",
+            "original_filename": "Color_Card.exe",
             "developer": "青山公仔",
             "email": "hxiao_studio@163.com"
         }
