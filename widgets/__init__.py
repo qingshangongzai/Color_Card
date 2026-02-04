@@ -5,7 +5,7 @@ from .color_picker import ColorPicker
 from .color_card import ColorCard, ColorCardPanel
 from .zoom_viewer import ZoomViewer
 from .luminance_canvas import LuminanceCanvas
-from .histogram_widget import HistogramWidget
+from .luminance_histogram_widget import LuminanceHistogramWidget
 from .settings_interface import SettingsInterface
 from .about_dialog import AboutDialog
 from .update_dialog import UpdateAvailableDialog
@@ -20,7 +20,7 @@ __all__ = [
     'ColorCardPanel',
     'ZoomViewer',
     'LuminanceCanvas',
-    'HistogramWidget',
+    'LuminanceHistogramWidget',
     'SettingsInterface',
     'AboutDialog',
     'UpdateAvailableDialog'

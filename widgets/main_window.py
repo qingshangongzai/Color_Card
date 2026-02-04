@@ -21,8 +21,8 @@ from color_utils import get_color_info
 from config_manager import get_config_manager
 from version import version_manager
 from .color_card import ColorCardPanel
-from .histogram_widget import HistogramWidget
-from .hsb_color_wheel import HSBColorWheel
+from .luminance_histogram_widget import LuminanceHistogramWidget
+from .color_wheel import HSBColorWheel
 from .image_canvas import ImageCanvas
 from .luminance_canvas import LuminanceCanvas
 from .rgb_histogram_widget import RGBHistogramWidget
@@ -164,7 +164,7 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas = LuminanceCanvas()
         splitter.addWidget(self.luminance_canvas)
 
-        self.histogram_widget = HistogramWidget()
+        self.histogram_widget = LuminanceHistogramWidget()
         splitter.addWidget(self.histogram_widget)
 
         splitter.setSizes([400, 150])

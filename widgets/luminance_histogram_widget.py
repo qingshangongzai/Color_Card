@@ -1,7 +1,7 @@
 """Color Card - 图片颜色提取工具
 Copyright (c) 2026 浮晓 HXiao Studio
 
-模块名称: histogram_widget
+模块名称: luminance_histogram_widget
 功能描述: 明度直方图组件，显示图片的明度分布和Zone分区
 
 作者: 青山公仔
@@ -17,11 +17,12 @@ from PySide6.QtWidgets import QWidget
 from color_utils import calculate_histogram, get_zone_bounds
 
 
-class HistogramWidget(QWidget):
-    """明度直方图组件 - 参考Lightroom风格设计"""
+class LuminanceHistogramWidget(QWidget):
+    """明度直方图组件 - 参考Lightroom风格设计，显示图片的明度分布和Zone分区"""
 
     zone_pressed = Signal(int)   # 信号：Zone被按下 (0-7)
     zone_released = Signal()     # 信号：Zone被释放
+    zone_changed = Signal(int)   # 信号：当前Zone变化 (0-7)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -34,6 +35,7 @@ class HistogramWidget(QWidget):
         self._max_count = 0
         self._highlight_zones = []  # 高亮显示的区域列表
         self._pressed_zone = -1     # 当前按下的Zone
+        self._current_zone = -1     # 当前选中的Zone
 
         # 启用鼠标跟踪
         self.setMouseTracking(True)
@@ -53,10 +55,35 @@ class HistogramWidget(QWidget):
         self._highlight_zones = zones
         self.update()
 
+    def set_current_zone(self, zone: int):
+        """设置当前选中的Zone (0-7)"""
+        if 0 <= zone <= 7 and zone != self._current_zone:
+            self._current_zone = zone
+            self.zone_changed.emit(zone)
+            self.update()
+
     def clear_highlight(self):
         """清除高亮"""
         self._highlight_zones = []
         self.update()
+
+    def clear(self):
+        """清除直方图数据"""
+        self._histogram = [0] * 256
+        self._max_count = 0
+        self._highlight_zones = []
+        self._pressed_zone = -1
+        self._current_zone = -1
+        self.update()
+
+    def get_zone_from_luminance(self, luminance: int) -> int:
+        """根据明度值获取Zone (0-7)"""
+        return min(7, luminance // 32)
+
+    def get_zone_label(self, zone: int) -> str:
+        """获取Zone的显示标签"""
+        labels = ["0", "1", "2", "3", "4", "5", "6", "7"]
+        return labels[zone] if 0 <= zone <= 7 else "--"
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -105,8 +132,8 @@ class HistogramWidget(QWidget):
             QColor(65, 65, 65),   # Zone 7: 极亮
         ]
 
-        # 按下状态的Zone背景色（更亮一些）
-        zone_pressed_colors = [
+        # 按下状态或选中状态的Zone背景色（更亮一些）
+        zone_active_colors = [
             QColor(50, 50, 60),   # Zone 0: 极暗
             QColor(55, 55, 65),   # Zone 1: 暗
             QColor(60, 60, 70),   # Zone 2: 偏暗
@@ -119,9 +146,9 @@ class HistogramWidget(QWidget):
 
         for i in range(8):
             zone_x = x + i * zone_width
-            # 如果是按下的Zone，使用高亮背景色
-            if i == self._pressed_zone:
-                bg_color = zone_pressed_colors[i]
+            # 如果是按下的Zone或当前选中的Zone，使用高亮背景色
+            if i == self._pressed_zone or i == self._current_zone:
+                bg_color = zone_active_colors[i]
             else:
                 bg_color = zone_bg_colors[i]
 
@@ -132,8 +159,8 @@ class HistogramWidget(QWidget):
                 bg_color
             )
 
-            # 如果当前Zone被按下，绘制边框
-            if i == self._pressed_zone:
+            # 如果当前Zone被按下或选中，绘制边框
+            if i == self._pressed_zone or i == self._current_zone:
                 painter.setPen(QPen(QColor(0, 150, 255), 2))
                 painter.setBrush(Qt.BrushStyle.NoBrush)
                 painter.drawRect(int(zone_x), y, int(zone_width), height)
@@ -263,13 +290,7 @@ class HistogramWidget(QWidget):
             max_text = str(self._max_count)
             painter.drawText(5, y + 10, max_text)
 
-    def clear(self):
-        """清除直方图数据"""
-        self._histogram = [0] * 256
-        self._max_count = 0
-        self._highlight_zones = []
-        self._pressed_zone = -1
-        self.update()
+
 
     def _get_zone_from_pos(self, pos):
         """根据鼠标位置获取对应的Zone (0-7)
@@ -305,7 +326,9 @@ class HistogramWidget(QWidget):
             zone = self._get_zone_from_pos(event.pos())
             if zone >= 0:
                 self._pressed_zone = zone
+                self._current_zone = zone
                 self.zone_pressed.emit(zone)
+                self.zone_changed.emit(zone)
                 self.update()
         event.accept()
 
@@ -315,7 +338,9 @@ class HistogramWidget(QWidget):
             zone = self._get_zone_from_pos(event.pos())
             if zone >= 0 and zone != self._pressed_zone:
                 self._pressed_zone = zone
+                self._current_zone = zone
                 self.zone_pressed.emit(zone)
+                self.zone_changed.emit(zone)
                 self.update()
         event.accept()
 
