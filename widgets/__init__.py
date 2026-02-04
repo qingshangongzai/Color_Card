@@ -1,3 +1,4 @@
+from .base_canvas import BaseCanvas, ImageLoader
 from .main_window import MainWindow
 from .image_canvas import ImageCanvas
 from .color_picker import ColorPicker
@@ -10,6 +11,8 @@ from .about_dialog import AboutDialog
 from .update_dialog import UpdateAvailableDialog
 
 __all__ = [
+    'BaseCanvas',
+    'ImageLoader',
     'MainWindow',
     'ImageCanvas',
     'ColorPicker',

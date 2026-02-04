@@ -9,83 +9,37 @@ Copyright (c) 2026 浮晓 HXiao Studio
 """
 
 # 标准库导入
-import io
+from typing import List, Optional, Tuple
 
 # 第三方库导入
-from PIL import Image
-from PySide6.QtCore import QPoint, QPointF, QRect, Qt, QThread, QTimer, Signal
-from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
+from PySide6.QtCore import QPoint, QPointF, QRect, Qt, Signal
+from PySide6.QtGui import QColor, QFont, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget
-from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
 from color_utils import get_luminance, get_zone
+from .base_canvas import BaseCanvas
 from .color_picker import ColorPicker
 
 
-class ImageLoader(QThread):
-    """图片加载工作线程（使用PIL在子线程读取图片数据）"""
-    loaded = Signal(bytes, int, int, str)  # 信号：图片数据(bytes), 宽度, 高度, 格式
-    error = Signal(str)  # 信号：错误信息
-
-    def __init__(self, image_path):
-        super().__init__()
-        self._image_path = image_path
-
-    def run(self):
-        """在子线程中使用PIL加载图片"""
-        try:
-            # 使用PIL打开图片（PIL是线程安全的）
-            with Image.open(self._image_path) as pil_image:
-                # 转换为RGB模式（处理RGBA、P模式等）
-                if pil_image.mode != 'RGB':
-                    pil_image = pil_image.convert('RGB')
-
-                # 获取图片尺寸
-                width, height = pil_image.size
-
-                # 将图片保存为内存中的BMP格式（无压缩，便于快速转换）
-                buffer = io.BytesIO()
-                pil_image.save(buffer, format='BMP')
-                image_data = buffer.getvalue()
-
-                self.loaded.emit(image_data, width, height, 'BMP')
-        except Exception as e:
-            self.error.emit(str(e))
-
-
-class LuminanceCanvas(QWidget):
+class LuminanceCanvas(BaseCanvas):
     """明度提取画布，支持取色点拖动和区域标注"""
+
     luminance_picked = Signal(int, str)  # 信号：索引, 区域编号
-    image_loaded = Signal(str)  # 信号：图片路径
-    open_image_requested = Signal()  # 信号：请求打开图片
-    change_image_requested = Signal()  # 信号：请求更换图片
-    clear_image_requested = Signal()  # 信号：请求清空图片
-    image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
-    def __init__(self, parent=None, picker_count=5):
-        super().__init__(parent)
-        self.setMinimumSize(600, 400)
-        self.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
+    def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
+        super().__init__(parent, picker_count)
 
-        self._original_pixmap = None
-        self._image = None
-        self._pickers = []
-        self._picker_positions = []
-        self._picker_rel_positions = []  # 存储相对于图片的归一化坐标 (0.0-1.0)
-        self._picker_zones = []  # 存储每个取色器的区域编号
-        self._loader = None
-        self._pending_image_path = None
-        self._picker_count = picker_count
+        self._pickers: List[ColorPicker] = []
+        self._picker_zones: List[str] = []  # 存储每个取色器的区域编号
 
         # Zone高亮相关
-        self._highlighted_zone = -1  # 当前高亮显示的Zone (-1表示无)
-        self._zone_highlight_pixmap = None  # 高亮遮罩缓存
+        self._highlighted_zone: int = -1  # 当前高亮显示的Zone (-1表示无)
+        self._zone_highlight_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
 
         # Zone高亮颜色配置 (Zone 0-7)
-        self._zone_highlight_colors = [
+        self._zone_highlight_colors: List[QColor] = [
             QColor(0, 102, 255, 100),    # Zone 0: 深蓝色 (极暗)
             QColor(0, 128, 255, 100),    # Zone 1: 蓝色 (暗)
             QColor(0, 153, 255, 100),    # Zone 2: 浅蓝色 (偏暗)
@@ -100,8 +54,8 @@ class LuminanceCanvas(QWidget):
         for i in range(self._picker_count):
             picker = ColorPicker(i, self)
             picker.position_changed.connect(self.on_picker_moved)
-            picker.drag_started.connect(self.on_picker_drag_started)
-            picker.drag_finished.connect(self.on_picker_drag_finished)
+            picker.drag_started.connect(self._on_picker_drag_started)
+            picker.drag_finished.connect(self._on_picker_drag_finished)
             picker.hide()  # 初始隐藏
             self._pickers.append(picker)
             self._picker_positions.append(QPoint(100 + i * 100, 100))
@@ -110,47 +64,11 @@ class LuminanceCanvas(QWidget):
 
         self.update_picker_positions()
 
-    def set_image(self, image_path):
-        """异步加载并显示图片"""
-        # 保存图片路径
-        self._pending_image_path = image_path
-
-        # 如果已有加载线程在运行，先停止
-        if self._loader is not None and self._loader.isRunning():
-            self._loader.quit()
-            self._loader.wait()
-
-        # 创建并启动加载线程
-        self._loader = ImageLoader(image_path)
-        self._loader.loaded.connect(self._on_image_loaded)
-        self._loader.error.connect(self._on_image_load_error)
-        self._loader.finished.connect(self._cleanup_loader)
-        self._loader.start()
-
-    def _cleanup_loader(self):
-        """清理加载线程"""
-        if self._loader is not None:
-            self._loader.deleteLater()
-            self._loader = None
-
-    def _on_image_loaded(self, image_data, width, height, fmt):
-        """图片加载完成的回调（在主线程中创建QImage/QPixmap）"""
-        # 从字节数据创建QImage（在主线程中安全执行）
-        self._image = QImage.fromData(image_data, fmt)
-        self._original_pixmap = QPixmap.fromImage(self._image)
-        self._setup_after_load()
-
-    def _on_image_load_error(self, error_msg):
+    def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
         print(f"明度面板图片加载失败: {error_msg}")
 
-    def set_image_data(self, pixmap, image):
-        """直接使用已加载的图片数据（避免重复加载）"""
-        self._original_pixmap = pixmap
-        self._image = image
-        self._setup_after_load()
-
-    def _setup_after_load(self):
+    def _setup_after_load(self) -> None:
         """图片加载完成后的设置"""
         if self._original_pixmap and not self._original_pixmap.isNull():
             # 显示取色点
@@ -160,183 +78,57 @@ class LuminanceCanvas(QWidget):
             # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
-            # 重新初始化取色点位置到图片中心区域
-            center_x = 0.5  # 使用相对坐标，中心为 0.5
-            center_y = 0.5
-            for i, picker in enumerate(self._pickers):
-                offset_x = (i - 2) * 0.05  # 使用相对偏移（5%）
-                self._picker_rel_positions[i] = QPointF(center_x + offset_x, center_y)
-
+            # 初始化取色点位置
+            self._init_picker_positions()
             self.update_picker_positions()
             self.update()
 
             # 延迟提取区域，让UI先响应，用户可以立即切换面板
-            QTimer.singleShot(300, self.extract_all_zones)
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(300, self.extract_all)
 
-    def update_picker_positions(self):
-        """更新所有取色点的位置"""
-        # 如果有图片，使用相对坐标计算画布坐标
-        if self._image and not self._image.isNull():
-            display_rect = self.get_display_rect()
-            if display_rect:
-                disp_x, disp_y, disp_w, disp_h = display_rect
-                
-                for i, picker in enumerate(self._pickers):
-                    rel_pos = self._picker_rel_positions[i]
-                    
-                    # 将相对坐标转换为画布坐标
-                    canvas_x = disp_x + rel_pos.x() * disp_w
-                    canvas_y = disp_y + rel_pos.y() * disp_h
-                    
-                    # 更新画布坐标存储
-                    self._picker_positions[i] = QPoint(int(canvas_x), int(canvas_y))
-                    
-                    # 更新取色点显示位置
-                    picker.move(self._picker_positions[i].x() - picker.radius, 
-                               self._picker_positions[i].y() - picker.radius)
-        else:
-            # 没有图片时，直接使用存储的画布坐标
-            for i, picker in enumerate(self._pickers):
-                pos = self._picker_positions[i]
-                picker.move(pos.x() - picker.radius, pos.y() - picker.radius)
+    def _update_picker_position(self, index: int, canvas_x: int, canvas_y: int) -> None:
+        """更新单个取色点的位置"""
+        if index < len(self._pickers):
+            picker = self._pickers[index]
+            picker.move(canvas_x - picker.radius, canvas_y - picker.radius)
 
-    def set_picker_count(self, count):
-        """设置取色点数量
-
-        Args:
-            count: 取色点数量 (2-5)
-        """
-        if count < 2 or count > 5:
-            return
-
-        if count == self._picker_count:
-            return
-
-        old_count = self._picker_count
-        self._picker_count = count
-
-        if count > old_count:
-            # 增加取色点
-            for i in range(old_count, count):
-                picker = ColorPicker(i, self)
-                picker.position_changed.connect(self.on_picker_moved)
-                picker.drag_started.connect(self.on_picker_drag_started)
-                picker.drag_finished.connect(self.on_picker_drag_finished)
-                # 如果有图片，显示取色点
-                if self._image and not self._image.isNull():
-                    picker.show()
-                else:
-                    picker.hide()
-                self._pickers.append(picker)
-                # 新取色点位置在最后一个取色点旁边
-                if old_count > 0:
-                    last_rel_pos = self._picker_rel_positions[-1]
-                    new_rel_pos = QPointF(last_rel_pos.x() + 0.05, last_rel_pos.y())
-                else:
-                    new_rel_pos = QPointF(0.5, 0.5)  # 默认在中心
-                self._picker_positions.append(QPoint(100, 100))  # 临时画布坐标
-                self._picker_rel_positions.append(new_rel_pos)
-                self._picker_zones.append("0-1")
-        else:
-            # 减少取色点
-            for i in range(old_count - 1, count - 1, -1):
-                picker = self._pickers.pop()
-                picker.deleteLater()
-                self._picker_positions.pop()
-                self._picker_rel_positions.pop()
-                self._picker_zones.pop()
-
-        self.update_picker_positions()
-
-        # 如果有图片，重新提取区域
-        if self._image and not self._image.isNull():
-            self.extract_all_zones()
-
-    def on_picker_drag_started(self, index):
+    def _on_picker_drag_started(self, index: int) -> None:
         """取色点开始拖动"""
-        picker = self._pickers[index]
-        picker.set_active(True)
+        if index < len(self._pickers):
+            picker = self._pickers[index]
+            picker.set_active(True)
         self.picker_dragging.emit(index, True)
 
-    def on_picker_drag_finished(self, index):
+    def _on_picker_drag_finished(self, index: int) -> None:
         """取色点结束拖动"""
-        picker = self._pickers[index]
-        picker.set_active(False)
+        if index < len(self._pickers):
+            picker = self._pickers[index]
+            picker.set_active(False)
         self.picker_dragging.emit(index, False)
 
-    def on_picker_moved(self, index, new_pos):
-        """取色点移动时的回调"""
-        # 更新画布坐标
-        self._picker_positions[index] = new_pos
-        
-        # 如果有图片，将画布坐标转换为相对坐标并存储
+    def _on_picker_added(self, index: int) -> None:
+        """添加取色点时的回调"""
+        picker = ColorPicker(index, self)
+        picker.position_changed.connect(self.on_picker_moved)
+        picker.drag_started.connect(self._on_picker_drag_started)
+        picker.drag_finished.connect(self._on_picker_drag_finished)
+        # 如果有图片，显示取色点
         if self._image and not self._image.isNull():
-            display_rect = self.get_display_rect()
-            if display_rect:
-                disp_x, disp_y, disp_w, disp_h = display_rect
-                
-                # 将画布坐标转换为相对坐标
-                rel_x = (new_pos.x() - disp_x) / disp_w
-                rel_y = (new_pos.y() - disp_y) / disp_h
-                
-                # 限制在图片范围内
-                rel_x = max(0.0, min(1.0, rel_x))
-                rel_y = max(0.0, min(1.0, rel_y))
-                
-                # 更新相对坐标
-                self._picker_rel_positions[index] = QPointF(rel_x, rel_y)
-        
-        self.extract_zone(index)
-        self.update()
+            picker.show()
+        else:
+            picker.hide()
+        self._pickers.append(picker)
+        self._picker_zones.append("0-1")
 
-    def canvas_to_image_pos(self, canvas_pos):
-        """将画布坐标转换为原始图片坐标"""
-        if self._image is None or self._image.isNull():
-            return None
+    def _on_picker_removed(self, index: int) -> None:
+        """移除取色点时的回调"""
+        if index < len(self._pickers):
+            picker = self._pickers.pop()
+            picker.deleteLater()
+            self._picker_zones.pop()
 
-        display_rect = self.get_display_rect()
-        if display_rect is None:
-            return None
-
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        # 将画布坐标转换为图片坐标
-        img_x = canvas_pos.x() - disp_x
-        img_y = canvas_pos.y() - disp_y
-
-        # 检查坐标是否在图片显示范围内
-        if 0 <= img_x < disp_w and 0 <= img_y < disp_h:
-            # 计算在原始图片中的坐标
-            scale_x = self._image.width() / disp_w
-            scale_y = self._image.height() / disp_h
-
-            orig_x = int(img_x * scale_x)
-            orig_y = int(img_y * scale_y)
-
-            # 确保坐标在原始图片范围内
-            orig_x = max(0, min(orig_x, self._image.width() - 1))
-            orig_y = max(0, min(orig_y, self._image.height() - 1))
-
-            return QPoint(orig_x, orig_y)
-
-        return None
-
-    def get_display_rect(self):
-        """计算图片在画布中的显示区域"""
-        if self._original_pixmap is None or self._original_pixmap.isNull():
-            return None
-
-        # 计算缩放后的尺寸（保持比例）
-        scaled_size = self._original_pixmap.size()
-        scaled_size.scale(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
-
-        # 居中显示
-        x = (self.width() - scaled_size.width()) // 2
-        y = (self.height() - scaled_size.height()) // 2
-
-        return x, y, scaled_size.width(), scaled_size.height()
-
-    def extract_zone(self, index):
+    def extract_at(self, index: int) -> None:
         """提取指定取色点的区域编号"""
         if self._image is None or self._image.isNull():
             return
@@ -356,42 +148,20 @@ class LuminanceCanvas(QWidget):
             # 发送信号
             self.luminance_picked.emit(index, zone)
 
-    def extract_all_zones(self):
+    def extract_all(self) -> None:
         """提取所有取色点的区域编号"""
         for i in range(len(self._pickers)):
-            self.extract_zone(i)
+            self.extract_at(i)
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+    def _draw_overlay(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+        """绘制叠加内容"""
+        # 绘制Zone高亮遮罩（在图片上方）
+        self._draw_zone_highlight(painter, display_rect)
 
-        # 绘制背景
-        painter.fillRect(self.rect(), QColor(42, 42, 42))
+        # 绘制区域标注
+        self._draw_zone_labels(painter, display_rect)
 
-        # 绘制图片（使用原始高分辨率图片，实时缩放显示）
-        if self._original_pixmap and not self._original_pixmap.isNull():
-            display_rect = self.get_display_rect()
-            if display_rect:
-                x, y, w, h = display_rect
-                target_rect = QRect(x, y, w, h)
-                painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
-
-                # 绘制Zone高亮遮罩（在图片上方）
-                self._draw_zone_highlight(painter, display_rect)
-
-                # 绘制区域标注
-                self._draw_zone_labels(painter, display_rect)
-        else:
-            # 没有图片时显示提示文字
-            painter.setPen(QColor(150, 150, 150))
-            font = QFont()
-            font.setPointSize(14)
-            painter.setFont(font)
-            text = "点击导入图片"
-            text_rect = painter.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
-            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
-
-    def _draw_zone_labels(self, painter, display_rect):
+    def _draw_zone_labels(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制区域标注（白色小方框+黑色文字）"""
         disp_x, disp_y, disp_w, disp_h = display_rect
 
@@ -432,45 +202,9 @@ class LuminanceCanvas(QWidget):
                 text_y = box_y + (box_height - text_height) // 2
                 painter.drawText(text_x, text_y + text_height - 2, zone)
 
-    def mousePressEvent(self, event):
-        """鼠标点击事件"""
-        if event.button() == Qt.MouseButton.LeftButton:
-            # 如果没有图片，点击打开文件对话框
-            if self._original_pixmap is None or self._original_pixmap.isNull():
-                self.open_image_requested.emit()
-            event.accept()
-
-    def resizeEvent(self, event):
-        """窗口大小改变时重新调整图片"""
-        super().resizeEvent(event)
-        if self._image and not self._image.isNull():
-            # 窗口大小改变时，更新取色点位置并重新提取区域
-            self.update_picker_positions()
-            self.extract_all_zones()
-            self.update()
-
-    def contextMenuEvent(self, event):
-        """右键菜单事件"""
-        # 只有在有图片时才显示右键菜单
-        if self._original_pixmap is None or self._original_pixmap.isNull():
-            return
-
-        menu = RoundMenu("")
-
-        change_action = Action(FluentIcon.PHOTO, "更换图片")
-        change_action.triggered.connect(self.change_image_requested.emit)
-        menu.addAction(change_action)
-
-        clear_action = Action(FluentIcon.DELETE, "清空图片")
-        clear_action.triggered.connect(self.clear_image_requested.emit)
-        menu.addAction(clear_action)
-
-        menu.exec(event.globalPos())
-
-    def clear_image(self):
+    def clear_image(self) -> None:
         """清空图片"""
-        self._original_pixmap = None
-        self._image = None
+        super().clear_image()
 
         # 隐藏取色点
         for picker in self._pickers:
@@ -478,28 +212,16 @@ class LuminanceCanvas(QWidget):
 
         # 重置区域编号
         self._picker_zones = ["0-1"] * len(self._pickers)
-        
-        # 重置相对坐标到默认位置
-        for i in range(len(self._picker_rel_positions)):
-            self._picker_rel_positions[i] = QPointF(0.5, 0.5)
 
-        # 恢复光标为手型
-        self.setCursor(Qt.CursorShape.PointingHandCursor)
+    def get_picker_zones(self) -> List[str]:
+        """获取所有取色器的区域编号
 
-        self.update()
-
-        # 发送图片已清空信号，用于同步到其他面板
-        self.image_cleared.emit()
-
-    def get_image(self):
-        """获取当前图片"""
-        return self._image
-
-    def get_picker_zones(self):
-        """获取所有取色器的区域编号"""
+        Returns:
+            list: 区域编号列表
+        """
         return self._picker_zones.copy()
 
-    def highlight_zone(self, zone):
+    def highlight_zone(self, zone: int) -> None:
         """高亮显示指定Zone的亮度范围
 
         Args:
@@ -515,13 +237,13 @@ class LuminanceCanvas(QWidget):
         self._zone_highlight_pixmap = None  # 清除缓存，重新生成
         self.update()
 
-    def clear_zone_highlight(self):
+    def clear_zone_highlight(self) -> None:
         """清除Zone高亮显示"""
         self._highlighted_zone = -1
         self._zone_highlight_pixmap = None
         self.update()
 
-    def _generate_zone_highlight_pixmap(self, display_rect):
+    def _generate_zone_highlight_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
         """生成Zone高亮遮罩图
 
         Args:
@@ -584,7 +306,7 @@ class LuminanceCanvas(QWidget):
         painter.end()
         return highlight_pixmap
 
-    def _draw_zone_highlight(self, painter, display_rect):
+    def _draw_zone_highlight(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制Zone高亮遮罩
 
         Args:
@@ -605,7 +327,7 @@ class LuminanceCanvas(QWidget):
         # 绘制Zone信息提示
         self._draw_zone_highlight_info(painter, display_rect)
 
-    def _draw_zone_highlight_info(self, painter, display_rect):
+    def _draw_zone_highlight_info(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制Zone高亮信息提示
 
         Args:
