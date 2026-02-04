@@ -21,8 +21,8 @@ def get_base_path() -> str:
         if hasattr(sys, '_MEIPASS'):
             return sys._MEIPASS
         return os.path.dirname(sys.executable)
-    # 开发环境
-    return os.path.dirname(os.path.abspath(__file__))
+    # 开发环境 - 返回项目根目录（utils/ 的父目录）
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def get_icon_path() -> Optional[str]:
