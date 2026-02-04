@@ -213,6 +213,9 @@ class AboutDialog(QDialog):
   • 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
+  • 本程序使用UPX工具压缩可执行文件体积。
+    官网：https://upx.github.io/
+
   • 本程序使用Inno Setup工具将独立的可执行文件打包为安装程序。
     官网：https://jrsoftware.org/isinfo.php
 
