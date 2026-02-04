@@ -14,10 +14,11 @@ from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
+from .base_histogram import BaseHistogram
 from color_utils import calculate_histogram, get_zone_bounds
 
 
-class LuminanceHistogramWidget(QWidget):
+class LuminanceHistogramWidget(BaseHistogram):
     """明度直方图组件 - 参考Lightroom风格设计，显示图片的明度分布和Zone分区"""
 
     zone_pressed = Signal(int)   # 信号：Zone被按下 (0-7)
@@ -28,11 +29,8 @@ class LuminanceHistogramWidget(QWidget):
         super().__init__(parent)
         self.setMinimumHeight(180)
         self.setMaximumHeight(220)
-        # 使用更深的背景色，接近LR的风格
         self.setStyleSheet("background-color: #141414; border-radius: 4px;")
 
-        self._histogram = [0] * 256
-        self._max_count = 0
         self._highlight_zones = []  # 高亮显示的区域列表
         self._pressed_zone = -1     # 当前按下的Zone
         self._current_zone = -1     # 当前选中的Zone
@@ -42,9 +40,8 @@ class LuminanceHistogramWidget(QWidget):
 
     def set_image(self, image):
         """设置图片并计算直方图"""
-        self._histogram = calculate_histogram(image)
-        self._max_count = max(self._histogram) if self._histogram else 0
-        self.update()
+        histogram = calculate_histogram(image)
+        self.set_data(histogram)
 
     def set_highlight_zones(self, zones):
         """设置高亮显示的区域
@@ -69,8 +66,7 @@ class LuminanceHistogramWidget(QWidget):
 
     def clear(self):
         """清除直方图数据"""
-        self._histogram = [0] * 256
-        self._max_count = 0
+        super().clear()
         self._highlight_zones = []
         self._pressed_zone = -1
         self._current_zone = -1
@@ -85,36 +81,43 @@ class LuminanceHistogramWidget(QWidget):
         labels = ["0", "1", "2", "3", "4", "5", "6", "7"]
         return labels[zone] if 0 <= zone <= 7 else "--"
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # 绘制深色背景
-        painter.fillRect(self.rect(), QColor(20, 20, 20))
-
-        # 计算绘图区域（留边距）
-        margin_left = 35
-        margin_right = 15
-        margin_top = 15
-        margin_bottom = 30
-
-        draw_width = self.width() - margin_left - margin_right
-        draw_height = self.height() - margin_top - margin_bottom
-
-        if draw_width <= 0 or draw_height <= 0:
+    def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制直方图曲线 - LR风格"""
+        if self._max_count == 0:
             return
 
         # 绘制Zone背景色块（类似LR的风格）
-        self._draw_zone_background(painter, margin_left, margin_top, draw_width, draw_height)
+        self._draw_zone_background(painter, x, y, width, height)
 
-        # 绘制直方图
-        self._draw_histogram(painter, margin_left, margin_top, draw_width, draw_height)
+        # 使用渐变填充，从浅灰到白色
+        gradient = QLinearGradient(x, y + height, x, y)
+        gradient.setColorAt(0, QColor(120, 120, 120))
+        gradient.setColorAt(1, QColor(200, 200, 200))
 
-        # 绘制高亮区域（黄色半透明覆盖）
-        self._draw_highlight(painter, margin_left, margin_top, draw_width, draw_height)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(gradient)
 
-        # 绘制刻度标签
-        self._draw_labels(painter, margin_left, margin_top, draw_width, draw_height)
+        # 每个明度值对应的宽度
+        bar_width = width / 256.0
+
+        # 绘制直方图柱子
+        for i in range(256):
+            # 计算柱子高度 - 使用相对最大值的比例
+            bar_height = (self._histogram[i] / self._max_count) * height
+
+            if bar_height > 0:
+                # 绘制柱子
+                bar_x = x + i * bar_width
+                bar_y = y + height - bar_height
+
+                # 计算柱子宽度
+                if i == 255:
+                    current_bar_width = max(1, int(x + width - bar_x))
+                else:
+                    next_bar_x = x + (i + 1) * bar_width
+                    current_bar_width = max(1, int(next_bar_x - bar_x + 0.5))
+
+                painter.drawRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height))
 
     def _draw_zone_background(self, painter, x, y, width, height):
         """绘制Zone背景色块 - LR风格"""
@@ -172,42 +175,7 @@ class LuminanceHistogramWidget(QWidget):
             line_x = int(x + i * zone_width)
             painter.drawLine(line_x, y, line_x, y + height)
 
-    def _draw_histogram(self, painter, x, y, width, height):
-        """绘制直方图曲线 - LR风格"""
-        if self._max_count == 0:
-            return
-
-        # 使用渐变填充，从浅灰到白色
-        gradient = QLinearGradient(x, y + height, x, y)
-        gradient.setColorAt(0, QColor(120, 120, 120))
-        gradient.setColorAt(1, QColor(200, 200, 200))
-
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(gradient)
-
-        # 每个明度值对应的宽度
-        bar_width = width / 256.0
-
-        # 绘制直方图柱子
-        for i in range(256):
-            # 计算柱子高度 - 使用相对最大值的比例
-            bar_height = (self._histogram[i] / self._max_count) * height
-
-            if bar_height > 0:
-                # 绘制柱子
-                bar_x = x + i * bar_width
-                bar_y = y + height - bar_height
-
-                # 计算柱子宽度
-                if i == 255:
-                    current_bar_width = max(1, int(x + width - bar_x))
-                else:
-                    next_bar_x = x + (i + 1) * bar_width
-                    current_bar_width = max(1, int(next_bar_x - bar_x + 0.5))
-
-                painter.drawRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height))
-
-    def _draw_highlight(self, painter, x, y, width, height):
+    def _draw_custom_overlay(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制高亮区域 - LR风格的黄色覆盖"""
         if not self._highlight_zones:
             return
@@ -252,7 +220,7 @@ class LuminanceHistogramWidget(QWidget):
             )
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
-    def _draw_labels(self, painter, x, y, width, height):
+    def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制刻度标签 - Zone 0-8 风格"""
         font = QFont()
         font.setPointSize(8)
@@ -279,18 +247,10 @@ class LuminanceHistogramWidget(QWidget):
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
         # 绘制底部基线
-        painter.setPen(QPen(QColor(80, 80, 80), 1))
-        painter.drawLine(x, y + height, x + width, y + height)
+        self._draw_bottom_baseline(painter, x, y, width, height)
 
         # 绘制左侧Y轴标签（最大值）
-        if self._max_count > 0:
-            painter.setPen(QColor(120, 120, 120))
-            font.setPointSize(7)
-            painter.setFont(font)
-            max_text = str(self._max_count)
-            painter.drawText(5, y + 10, max_text)
-
-
+        self._draw_max_label(painter, x, y)
 
     def _get_zone_from_pos(self, pos):
         """根据鼠标位置获取对应的Zone (0-7)
@@ -301,22 +261,17 @@ class LuminanceHistogramWidget(QWidget):
         Returns:
             Zone编号 (0-7)，如果不在有效区域返回 -1
         """
-        margin_left = 35
-        margin_right = 15
-        margin_top = 15
-        margin_bottom = 30
-
-        draw_width = self.width() - margin_left - margin_right
-        draw_height = self.height() - margin_top - margin_bottom
+        draw_width = self.width() - self._margin_left - self._margin_right
+        draw_height = self.height() - self._margin_top - self._margin_bottom
 
         # 检查是否在绘图区域内
-        if not (margin_left <= pos.x() <= margin_left + draw_width and
-                margin_top <= pos.y() <= margin_top + draw_height):
+        if not (self._margin_left <= pos.x() <= self._margin_left + draw_width and
+                self._margin_top <= pos.y() <= self._margin_top + draw_height):
             return -1
 
         # 计算Zone (0-7)
         zone_width = draw_width / 8.0
-        zone_index = int((pos.x() - margin_left) / zone_width)
+        zone_index = int((pos.x() - self._margin_left) / zone_width)
 
         return max(0, min(7, zone_index))
 

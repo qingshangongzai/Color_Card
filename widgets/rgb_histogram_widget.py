@@ -10,14 +10,15 @@ Copyright (c) 2026 浮晓 HXiao Studio
 
 # 第三方库导入
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtGui import QColor, QFont, QPainter
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
+from .base_histogram import BaseHistogram
 from color_utils import calculate_rgb_histogram
 
 
-class RGBHistogramWidget(QWidget):
+class RGBHistogramWidget(BaseHistogram):
     """RGB直方图组件 - 显示图片的RGB三通道分布"""
 
     def __init__(self, parent=None):
@@ -25,10 +26,14 @@ class RGBHistogramWidget(QWidget):
         self.setMinimumHeight(120)
         self.setMaximumHeight(180)
 
+        # RGB三通道数据
         self._histogram_r = [0] * 256
         self._histogram_g = [0] * 256
         self._histogram_b = [0] * 256
-        self._max_count = 0
+
+        # 调整边距以适应标题和图例
+        self._margin_top = 25  # 顶部留空间给标题
+        self._margin_right = 10
 
     def set_image(self, image):
         """设置图片并计算RGB直方图
@@ -51,46 +56,9 @@ class RGBHistogramWidget(QWidget):
         self._histogram_r = [0] * 256
         self._histogram_g = [0] * 256
         self._histogram_b = [0] * 256
-        self._max_count = 0
-        self.update()
+        super().clear()
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # 绘制深色背景（参考明度直方图风格）
-        painter.fillRect(self.rect(), QColor(20, 20, 20))
-
-        # 计算绘图区域（留边距）
-        margin_left = 35
-        margin_right = 10
-        margin_top = 25  # 顶部留空间给标题
-        margin_bottom = 20
-
-        draw_width = self.width() - margin_left - margin_right
-        draw_height = self.height() - margin_top - margin_bottom
-
-        if draw_width <= 0 or draw_height <= 0:
-            return
-
-        # 绘制标题
-        self._draw_title(painter)
-
-        # 绘制RGB直方图
-        self._draw_histogram(painter, margin_left, margin_top, draw_width, draw_height)
-
-        # 绘制刻度标签
-        self._draw_labels(painter, margin_left, margin_top, draw_width, draw_height)
-
-    def _draw_title(self, painter):
-        """绘制标题"""
-        painter.setPen(QColor(200, 200, 200))
-        font = painter.font()
-        font.setPointSize(9)
-        painter.setFont(font)
-        painter.drawText(10, 18, "RGB直方图")
-
-    def _draw_histogram(self, painter, x, y, width, height):
+    def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制RGB直方图
 
         三条曲线叠加显示：R（红色）、G（绿色）、B（蓝色）
@@ -131,13 +99,31 @@ class RGBHistogramWidget(QWidget):
 
                     painter.drawRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height))
 
-    def _draw_labels(self, painter, x, y, width, height):
+    def _draw_custom_overlay(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制图例（R、G、B标识）"""
+        legend_y = y - 5
+        legend_items = [
+            ("R", QColor(255, 50, 50)),
+            ("G", QColor(0, 200, 0)),
+            ("B", QColor(0, 100, 255))
+        ]
+
+        legend_x = x + width - 60
+        for text, color in legend_items:
+            painter.setPen(color)
+            painter.drawText(legend_x, legend_y, text)
+            legend_x += 20
+
+    def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制刻度标签"""
+        # 绘制标题
+        self._draw_title(painter)
+
+        # 绘制底部刻度线和数值
         font = QFont()
         font.setPointSize(7)
         painter.setFont(font)
 
-        # 绘制底部刻度线和数值
         tick_positions = [0, 64, 128, 192, 255]
 
         for value in tick_positions:
@@ -158,27 +144,15 @@ class RGBHistogramWidget(QWidget):
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
         # 绘制底部基线
-        painter.setPen(QPen(QColor(80, 80, 80), 1))
-        painter.drawLine(x, y + height, x + width, y + height)
+        self._draw_bottom_baseline(painter, x, y, width, height)
 
         # 绘制左侧Y轴标签（最大值）
-        if self._max_count > 0:
-            painter.setPen(QColor(120, 120, 120))
-            font.setPointSize(6)
-            painter.setFont(font)
-            max_text = str(self._max_count)
-            painter.drawText(2, y + 8, max_text)
+        self._draw_max_label(painter, x, y)
 
-        # 绘制图例（R、G、B标识）
-        legend_y = y - 5
-        legend_items = [
-            ("R", QColor(255, 50, 50)),
-            ("G", QColor(0, 200, 0)),
-            ("B", QColor(0, 100, 255))
-        ]
-
-        legend_x = x + width - 60
-        for text, color in legend_items:
-            painter.setPen(color)
-            painter.drawText(legend_x, legend_y, text)
-            legend_x += 20
+    def _draw_title(self, painter: QPainter):
+        """绘制标题"""
+        painter.setPen(QColor(200, 200, 200))
+        font = painter.font()
+        font.setPointSize(9)
+        painter.setFont(font)
+        painter.drawText(10, 18, "RGB直方图")
