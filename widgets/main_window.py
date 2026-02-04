@@ -294,6 +294,9 @@ class MainWindow(FluentWindow):
         self._config_manager = get_config_manager()
         self._config = self._config_manager.load()
 
+        # 防止清空同步的递归标志
+        self._is_clearing = False
+
         # 应用窗口大小配置
         window_config = self._config.get('window', {})
         width = window_config.get('width', 940)
@@ -446,15 +449,27 @@ class MainWindow(FluentWindow):
 
     def sync_clear_to_luminance(self):
         """同步清除明度提取面板"""
-        self.luminance_extract_interface.luminance_canvas.clear_image()
-        self.luminance_extract_interface.histogram_widget.clear()
-        self._reset_window_title()
+        if self._is_clearing:
+            return
+        self._is_clearing = True
+        try:
+            self.luminance_extract_interface.luminance_canvas.clear_image()
+            self.luminance_extract_interface.histogram_widget.clear()
+            self._reset_window_title()
+        finally:
+            self._is_clearing = False
 
     def sync_clear_to_color(self):
         """同步清除色彩提取面板"""
-        self.color_extract_interface.image_canvas.clear_image()
-        self.color_extract_interface.color_card_panel.clear_colors()
-        self._reset_window_title()
+        if self._is_clearing:
+            return
+        self._is_clearing = True
+        try:
+            self.color_extract_interface.image_canvas.clear_image()
+            self.color_extract_interface.color_card_panel.clear_colors()
+            self._reset_window_title()
+        finally:
+            self._is_clearing = False
 
     def _reset_window_title(self):
         """重置窗口标题"""
