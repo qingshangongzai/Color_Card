@@ -1,6 +1,6 @@
-# 取色卡 · Color Card
+# Color Card
 
-基于 PySide6 和 PyQt-Fluent-Widgets 开发的 GUI 程序，类似 Adobe Color 的色卡网站，用于从图片中提取颜色和明度信息。
+基于 PySide6 和 PyQt-Fluent-Widgets 开发的图片颜色分析工具，用于从图片中提取颜色信息和分析明度分布。
 
 ## 功能特性
 

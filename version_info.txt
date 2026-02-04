@@ -23,7 +23,7 @@ VSVersionInfo(
             StringStruct(u'OriginalFilename', u'ColorCard.exe'),
             StringStruct(u'ProductName', u'Color Card'),
             StringStruct(u'ProductVersion', u'1.0.0'),
-            StringStruct(u'Comments', u'专为摄影师开发的图片分析小工具，帮助快速分析图像的色彩分布、亮度信息等关键数据')
+            StringStruct(u'Comments', u'图片颜色分析工具，帮助快速提取颜色信息和分析明度分布')
           ]
         )
       ]
