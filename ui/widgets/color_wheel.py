@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: color_wheel
-功能描述: HSB色环组件，显示采样点在HSB色彩空间中的位置
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPainter, QPen, QPixmap

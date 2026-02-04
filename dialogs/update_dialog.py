@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: update_dialog
-功能描述: 更新检查对话框，检查并显示应用程序更新信息
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 标准库导入
 import re
 

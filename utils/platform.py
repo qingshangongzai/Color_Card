@@ -1,20 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: platform
-功能描述: 平台相关工具模块，提供 Windows 任务栏图标显示支持
-
-本模块提供以下功能：
-1. 设置 AppUserModelID（必须在创建 QApplication 之前调用）
-2. 修复 Windows 任务栏图标显示
-3. 窗口图标修复混入类
-
-参考文档：状态栏图标显示参考文档.md
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 标准库导入
 import ctypes
 import os

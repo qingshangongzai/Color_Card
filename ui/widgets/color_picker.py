@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: color_picker
-功能描述: 取色点组件，可拖动的圆形取色点
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 第三方库导入
 from PySide6.QtCore import QPoint, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen

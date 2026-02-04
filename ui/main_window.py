@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: main_window
-功能描述: 主窗口实现，包含色彩提取界面和明度提取界面
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon

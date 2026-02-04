@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: version
-功能描述: 版本管理模块，负责管理应用程序的版本信息和应用元数据
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 from typing import Dict
 
 

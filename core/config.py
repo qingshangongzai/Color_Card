@@ -1,15 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: config
-功能描述: 配置管理模块，负责应用程序状态的保存和加载
-
-配置文件位置：用户主目录下的 .color_card/config.json
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 标准库导入
 import json
 from pathlib import Path

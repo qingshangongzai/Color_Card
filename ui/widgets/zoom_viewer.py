@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: zoom_viewer
-功能描述: 放大视图组件，拖动取色点时显示周围像素的放大效果
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 第三方库导入
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen

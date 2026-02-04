@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: main
-功能描述: 应用程序入口，初始化 QApplication 和主窗口
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 标准库导入
 import ctypes
 import os

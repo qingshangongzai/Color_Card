@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: histograms
-功能描述: 直方图组件模块，包含明度直方图和RGB直方图
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 第三方库导入
 from typing import List, Optional
 from PySide6.QtCore import Qt, Signal

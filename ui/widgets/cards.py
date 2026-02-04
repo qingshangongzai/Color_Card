@@ -1,13 +1,3 @@
-"""Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: cards
-功能描述: 卡片组件模块，包含色卡和明度卡组件
-
-作者: 青山公仔
-创建日期: 2026-02-04
-"""
-
 # 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QFont, QPainter
