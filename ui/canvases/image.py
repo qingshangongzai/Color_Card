@@ -18,9 +18,8 @@ from PySide6.QtWidgets import QWidget
 from qfluentwidgets import IndeterminateProgressRing
 
 # 项目模块导入
-from .base_canvas import BaseCanvas
-from .color_picker import ColorPicker
-from .zoom_viewer import ZoomViewer
+from .base import BaseCanvas
+from ..widgets import ColorPicker, ZoomViewer
 
 
 class ImageCanvas(BaseCanvas):

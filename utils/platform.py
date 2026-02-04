@@ -1,14 +1,13 @@
 """Color Card - 图片颜色提取工具
 Copyright (c) 2026 浮晓 HXiao Studio
 
-模块名称: icon_utils
-功能描述: 图标工具模块，提供 Windows 任务栏图标显示支持
+模块名称: platform
+功能描述: 平台相关工具模块，提供 Windows 任务栏图标显示支持
 
 本模块提供以下功能：
 1. 设置 AppUserModelID（必须在创建 QApplication 之前调用）
-2. 加载应用程序图标（支持开发环境和打包后的环境）
-3. 修复 Windows 任务栏图标显示
-4. 窗口图标修复混入类
+2. 修复 Windows 任务栏图标显示
+3. 窗口图标修复混入类
 
 参考文档：状态栏图标显示参考文档.md
 
@@ -19,12 +18,13 @@ Copyright (c) 2026 浮晓 HXiao Studio
 # 标准库导入
 import ctypes
 import os
-import sys
 from typing import Dict, Optional
 
 # 第三方库导入
 from PySide6.QtCore import QObject, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+
+# 项目模块导入
+from .icon import get_icon_path
 
 
 def set_app_user_model_id() -> bool:
@@ -46,84 +46,6 @@ def set_app_user_model_id() -> bool:
         return True
     except (AttributeError, OSError):
         return False
-
-
-def get_base_path() -> str:
-    """获取应用程序基础路径
-
-    支持开发环境和 PyInstaller 打包后的环境
-
-    Returns:
-        str: 应用程序基础路径
-    """
-    if getattr(sys, 'frozen', False):
-        # PyInstaller 打包后的环境
-        if hasattr(sys, '_MEIPASS'):
-            return sys._MEIPASS
-        return os.path.dirname(sys.executable)
-    # 开发环境
-    return os.path.dirname(os.path.abspath(__file__))
-
-
-def get_icon_path() -> Optional[str]:
-    """获取图标文件路径
-
-    Returns:
-        str: 图标文件的完整路径，如果找不到则返回 None
-    """
-    base_path = get_base_path()
-
-    # 可能的图标路径列表
-    possible_paths = [
-        os.path.join(base_path, 'logo', 'Color Card_logo.ico'),
-        os.path.join(base_path, 'Color Card_logo.ico'),
-        os.path.join(base_path, 'logo.ico'),
-        os.path.join(base_path, 'logo', 'logo.ico'),
-    ]
-
-    for path in possible_paths:
-        if os.path.exists(path):
-            return path
-
-    return None
-
-
-def load_icon_universal() -> QIcon:
-    """统一的图标加载函数，适用于所有环境
-
-    Returns:
-        QIcon: 应用程序图标对象
-    """
-    icon_path = get_icon_path()
-
-    if icon_path:
-        icon = QIcon(icon_path)
-        if not icon.isNull():
-            return icon
-
-    # 如果找不到图标，创建后备图标
-    return create_fallback_icon()
-
-
-def create_fallback_icon() -> QIcon:
-    """创建后备图标（当找不到图标文件时使用）
-
-    Returns:
-        QIcon: 后备图标对象
-    """
-    try:
-        # 创建一个简单的蓝色图标
-        pixmap = QPixmap(32, 32)
-        pixmap.fill(QColor("#0078d4"))
-
-        painter = QPainter(pixmap)
-        painter.setPen(QColor('white'))
-        painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "CC")
-        painter.end()
-
-        return QIcon(pixmap)
-    except (RuntimeError, ValueError):
-        return QIcon()
 
 
 # 全局变量：跟踪每个窗口的图标修复状态
@@ -179,6 +101,7 @@ def fix_windows_taskbar_icon_for_window(window) -> bool:
             )
         else:
             # 对于 PNG 等格式，需要先加载为位图
+            from PySide6.QtGui import QPixmap
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
                 h_icon = pixmap.toImage().bits()

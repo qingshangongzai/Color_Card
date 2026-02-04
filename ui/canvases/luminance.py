@@ -17,9 +17,9 @@ from PySide6.QtGui import QColor, QFont, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from color_utils import get_luminance, get_zone
-from .base_canvas import BaseCanvas
-from .color_picker import ColorPicker
+from core import get_luminance, get_zone
+from .base import BaseCanvas
+from ..widgets import ColorPicker
 
 
 class LuminanceCanvas(BaseCanvas):

@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme
 
 # 项目模块导入
-from icon_utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 from version import version_manager
 
 

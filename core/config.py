@@ -1,7 +1,7 @@
 """Color Card - 图片颜色提取工具
 Copyright (c) 2026 浮晓 HXiao Studio
 
-模块名称: config_manager
+模块名称: config
 功能描述: 配置管理模块，负责应用程序状态的保存和加载
 
 配置文件位置：用户主目录下的 .color_card/config.json
@@ -135,7 +135,6 @@ class ConfigManager:
                 value = value[k]
             else:
                 return default
-
         return value
 
     def set(self, key: str, value: Any) -> None:
@@ -186,7 +185,6 @@ class ConfigManager:
             window_config: 窗口配置字典
         """
         self._config["window"] = window_config
-
 
 # 全局配置管理器实例
 _config_manager: Optional[ConfigManager] = None

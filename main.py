@@ -49,8 +49,8 @@ from qfluentwidgets import setTheme, setThemeColor, Theme
 sys.stdout = _old_stdout
 
 # 项目模块导入
-from icon_utils import fix_windows_taskbar_icon_for_window, load_icon_universal
-from widgets import MainWindow
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from ui import MainWindow
 
 
 def main():

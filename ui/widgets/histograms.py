@@ -1,26 +1,162 @@
 """Color Card - 图片颜色提取工具
 Copyright (c) 2026 浮晓 HXiao Studio
 
-模块名称: luminance_histogram_widget
-功能描述: 明度直方图组件，显示图片的明度分布和Zone分区
+模块名称: histograms
+功能描述: 直方图组件模块，包含明度直方图和RGB直方图
 
 作者: 青山公仔
 创建日期: 2026-02-04
 """
 
 # 第三方库导入
+from typing import List, Optional
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from .base_histogram import BaseHistogram
-from color_utils import calculate_histogram, get_zone_bounds
+from core import calculate_histogram, calculate_rgb_histogram, get_zone_bounds
+
+
+class BaseHistogram(QWidget):
+    """直方图基类，提供通用的直方图绘制功能
+    
+    功能：
+        - 绘制柱状图
+        - 支持数据归一化
+        - 自定义颜色
+        
+    子类需要实现：
+        - _draw_histogram(painter, x, y, width, height): 绘制直方图
+        - _draw_custom_overlay(painter, x, y, width, height): 绘制自定义叠加内容
+        - _draw_labels(painter, x, y, width, height): 绘制刻度标签
+        
+    信号：
+        data_changed: 数据变化时发射（子类可扩展）
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._histogram: List[int] = []
+        self._max_count = 0
+        
+        # 绘图边距
+        self._margin_left = 35
+        self._margin_right = 15
+        self._margin_top = 15
+        self._margin_bottom = 30
+        
+        # 背景色
+        self._background_color = QColor(20, 20, 20)
+        
+    def set_data(self, data: List[int]):
+        """设置直方图数据
+        
+        Args:
+            data: 长度为 256 的整数列表
+        """
+        self._histogram = data
+        self._max_count = max(data) if data else 0
+        self.update()
+        
+    def clear(self):
+        """清空数据"""
+        self._histogram = []
+        self._max_count = 0
+        self.update()
+        
+    def paintEvent(self, event):
+        """绘制直方图"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # 绘制背景
+        painter.fillRect(self.rect(), self._background_color)
+        
+        # 计算绘图区域
+        draw_width = self.width() - self._margin_left - self._margin_right
+        draw_height = self.height() - self._margin_top - self._margin_bottom
+        
+        if draw_width <= 0 or draw_height <= 0:
+            return
+            
+        # 绘制直方图
+        self._draw_histogram(painter, self._margin_left, self._margin_top, draw_width, draw_height)
+        
+        # 绘制自定义叠加内容
+        self._draw_custom_overlay(painter, self._margin_left, self._margin_top, draw_width, draw_height)
+        
+        # 绘制刻度标签
+        self._draw_labels(painter, self._margin_left, self._margin_top, draw_width, draw_height)
+        
+    def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制直方图（子类必须实现）
+        
+        Args:
+            painter: QPainter 对象
+            x: 绘图区域左上角 X 坐标
+            y: 绘图区域左上角 Y 坐标
+            width: 绘图区域宽度
+            height: 绘图区域高度
+        """
+        raise NotImplementedError("子类必须实现 _draw_histogram 方法")
+        
+    def _draw_custom_overlay(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制自定义叠加内容（子类重写）
+        
+        Args:
+            painter: QPainter 对象
+            x: 绘图区域左上角 X 坐标
+            y: 绘图区域左上角 Y 坐标
+            width: 绘图区域宽度
+            height: 绘图区域高度
+        """
+        pass
+        
+    def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制刻度标签（子类必须实现）
+        
+        Args:
+            painter: QPainter 对象
+            x: 绘图区域左上角 X 坐标
+            y: 绘图区域左上角 Y 坐标
+            width: 绘图区域宽度
+            height: 绘图区域高度
+        """
+        raise NotImplementedError("子类必须实现 _draw_labels 方法")
+        
+    def _draw_bottom_baseline(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制底部基线（辅助方法）
+        
+        Args:
+            painter: QPainter 对象
+            x: 绘图区域左上角 X 坐标
+            y: 绘图区域左上角 Y 坐标
+            width: 绘图区域宽度
+            height: 绘图区域高度
+        """
+        painter.setPen(QPen(QColor(80, 80, 80), 1))
+        painter.drawLine(x, y + height, x + width, y + height)
+        
+    def _draw_max_label(self, painter: QPainter, x: int, y: int):
+        """绘制左侧Y轴最大值标签（辅助方法）
+        
+        Args:
+            painter: QPainter 对象
+            x: 绘图区域左上角 X 坐标
+            y: 绘图区域左上角 Y 坐标
+        """
+        if self._max_count > 0:
+            painter.setPen(QColor(120, 120, 120))
+            font = QFont()
+            font.setPointSize(7)
+            painter.setFont(font)
+            max_text = str(self._max_count)
+            painter.drawText(5, y + 10, max_text)
 
 
 class LuminanceHistogramWidget(BaseHistogram):
     """明度直方图组件 - 参考Lightroom风格设计，显示图片的明度分布和Zone分区"""
-
     zone_pressed = Signal(int)   # 信号：Zone被按下 (0-7)
     zone_released = Signal()     # 信号：Zone被释放
     zone_changed = Signal(int)   # 信号：当前Zone变化 (0-7)
@@ -119,7 +255,7 @@ class LuminanceHistogramWidget(BaseHistogram):
 
                 painter.drawRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height))
 
-    def _draw_zone_background(self, painter, x, y, width, height):
+    def _draw_zone_background(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制Zone背景色块 - LR风格"""
         zone_width = width / 8.0
 
@@ -149,6 +285,7 @@ class LuminanceHistogramWidget(BaseHistogram):
 
         for i in range(8):
             zone_x = x + i * zone_width
+
             # 如果是按下的Zone或当前选中的Zone，使用高亮背景色
             if i == self._pressed_zone or i == self._current_zone:
                 bg_color = zone_active_colors[i]
@@ -272,7 +409,6 @@ class LuminanceHistogramWidget(BaseHistogram):
         # 计算Zone (0-7)
         zone_width = draw_width / 8.0
         zone_index = int((pos.x() - self._margin_left) / zone_width)
-
         return max(0, min(7, zone_index))
 
     def mousePressEvent(self, event):
@@ -306,3 +442,141 @@ class LuminanceHistogramWidget(BaseHistogram):
             self.zone_released.emit()
             self.update()
         event.accept()
+
+
+class RGBHistogramWidget(BaseHistogram):
+    """RGB直方图组件 - 显示图片的RGB三通道分布"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumHeight(120)
+        self.setMaximumHeight(180)
+
+        # RGB三通道数据
+        self._histogram_r = [0] * 256
+        self._histogram_g = [0] * 256
+        self._histogram_b = [0] * 256
+
+        # 调整边距以适应标题和图例
+        self._margin_top = 25  # 顶部留空间给标题
+        self._margin_right = 10
+
+    def set_image(self, image):
+        """设置图片并计算RGB直方图
+
+        Args:
+            image: QImage 对象
+        """
+        self._histogram_r, self._histogram_g, self._histogram_b = calculate_rgb_histogram(image)
+
+        # 计算最大值用于归一化
+        max_r = max(self._histogram_r) if self._histogram_r else 0
+        max_g = max(self._histogram_g) if self._histogram_g else 0
+        max_b = max(self._histogram_b) if self._histogram_b else 0
+        self._max_count = max(max_r, max_g, max_b)
+        self.update()
+
+    def clear(self):
+        """清除直方图数据"""
+        self._histogram_r = [0] * 256
+        self._histogram_g = [0] * 256
+        self._histogram_b = [0] * 256
+        super().clear()
+
+    def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制RGB直方图
+
+        三条曲线叠加显示：R（红色）、G（绿色）、B（蓝色）
+        """
+        if self._max_count == 0:
+            return
+
+        # 每个亮度值对应的宽度
+        bar_width = width / 256.0
+
+        # 绘制三个通道的直方图（从后往前绘制，确保重叠区域可见）
+        channels = [
+            (self._histogram_b, QColor(0, 100, 255, 180)),   # 蓝色通道（最底层）
+            (self._histogram_g, QColor(0, 200, 0, 180)),     # 绿色通道
+            (self._histogram_r, QColor(255, 50, 50, 180)),   # 红色通道（最顶层）
+        ]
+
+        for histogram, color in channels:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(color)
+
+            # 绘制直方图柱子
+            for i in range(256):
+                # 计算柱子高度 - 使用相对最大值的比例
+                bar_height = (histogram[i] / self._max_count) * height
+
+                if bar_height > 0:
+                    # 绘制柱子
+                    bar_x = x + i * bar_width
+                    bar_y = y + height - bar_height
+
+                    # 计算柱子宽度
+                    if i == 255:
+                        current_bar_width = max(1, int(x + width - bar_x))
+                    else:
+                        next_bar_x = x + (i + 1) * bar_width
+                        current_bar_width = max(1, int(next_bar_x - bar_x + 0.5))
+
+                    painter.drawRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height))
+
+    def _draw_custom_overlay(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制图例（R、G、B标识）"""
+        legend_y = y - 5
+        legend_items = [
+            ("R", QColor(255, 50, 50)),
+            ("G", QColor(0, 200, 0)),
+            ("B", QColor(0, 100, 255))
+        ]
+
+        legend_x = x + width - 60
+        for text, color in legend_items:
+            painter.setPen(color)
+            painter.drawText(legend_x, legend_y, text)
+            legend_x += 20
+
+    def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制刻度标签"""
+        # 绘制标题
+        self._draw_title(painter)
+
+        # 绘制底部刻度线和数值
+        font = QFont()
+        font.setPointSize(7)
+        painter.setFont(font)
+
+        tick_positions = [0, 64, 128, 192, 255]
+        for value in tick_positions:
+            tick_x = int(x + value * width / 256.0)
+
+            # 绘制刻度线
+            painter.setPen(QColor(100, 100, 100))
+            painter.drawLine(tick_x, y + height, tick_x, y + height + 3)
+
+            # 绘制刻度值
+            text = str(value)
+            text_rect = painter.boundingRect(
+                tick_x - 15, y + height + 5,
+                30, 14,
+                Qt.AlignmentFlag.AlignCenter, text
+            )
+            painter.setPen(QColor(150, 150, 150))
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
+
+        # 绘制底部基线
+        self._draw_bottom_baseline(painter, x, y, width, height)
+
+        # 绘制左侧Y轴标签（最大值）
+        self._draw_max_label(painter, x, y)
+
+    def _draw_title(self, painter: QPainter):
+        """绘制标题"""
+        painter.setPen(QColor(200, 200, 200))
+        font = painter.font()
+        font.setPointSize(9)
+        painter.setFont(font)
+        painter.drawText(10, 18, "RGB直方图")

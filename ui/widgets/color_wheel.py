@@ -15,7 +15,7 @@ from PySide6.QtWidgets import QWidget
 from qfluentwidgets import isDarkTheme
 
 # 项目模块导入
-from color_utils import rgb_to_hsb
+from core import rgb_to_hsb
 
 
 class HSBColorWheel(QWidget):

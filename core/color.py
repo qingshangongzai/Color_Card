@@ -1,7 +1,7 @@
 """Color Card - 图片颜色提取工具
 Copyright (c) 2026 浮晓 HXiao Studio
 
-模块名称: color_utils
+模块名称: color
 功能描述: 颜色空间转换工具，支持 RGB、HSB、LAB、HSL、CMYK 等颜色空间
 
 作者: 青山公仔

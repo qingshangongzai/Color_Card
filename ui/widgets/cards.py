@@ -1,8 +1,8 @@
 """Color Card - 图片颜色提取工具
 Copyright (c) 2026 浮晓 HXiao Studio
 
-模块名称: color_card
-功能描述: 色卡面板组件，显示提取的颜色信息和多种色彩模式
+模块名称: cards
+功能描述: 卡片组件模块，包含色卡和明度卡组件
 
 作者: 青山公仔
 创建日期: 2026-02-04
@@ -10,12 +10,113 @@ Copyright (c) 2026 浮晓 HXiao Studio
 
 # 第三方库导入
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont, QPainter
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, isDarkTheme
 
-# 项目模块导入
-from .base_card import BaseCard, BaseCardPanel
+
+class BaseCard(QWidget):
+    """卡片基类，提供统一的卡片接口
+    
+    子类需要实现：
+        - setup_ui(): 设置界面
+        - clear(): 清空显示
+    """
+    
+    def __init__(self, index: int, parent=None):
+        super().__init__(parent)
+        self.index = index
+        self.setup_ui()
+    
+    def setup_ui(self):
+        """设置界面（子类必须实现）"""
+        raise NotImplementedError("子类必须实现 setup_ui 方法")
+    
+    def clear(self):
+        """清空显示（子类必须实现）"""
+        raise NotImplementedError("子类必须实现 clear 方法")
+
+
+class BaseCardPanel(QWidget):
+    """卡片面板基类，提供统一的卡片管理功能
+    
+    功能：
+        - 卡片列表管理
+        - 卡片数量控制（2-5个）
+        - 批量清空卡片
+    """
+    
+    def __init__(self, parent=None, card_count: int = 5):
+        super().__init__(parent)
+        self._card_count = card_count
+        self.cards = []
+        self.setup_ui()
+        self._create_initial_cards()
+    
+    def _create_initial_cards(self):
+        """创建初始卡片"""
+        for i in range(self._card_count):
+            card = self._create_card(i)
+            self.cards.append(card)
+            self.layout().addWidget(card)
+    
+    def setup_ui(self):
+        """设置界面"""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(15)
+    
+    def set_card_count(self, count: int):
+        """设置卡片数量
+        
+        Args:
+            count: 卡片数量 (2-5)
+        """
+        if count < 2 or count > 5:
+            return
+        
+        if count == self._card_count:
+            return
+        
+        old_count = self._card_count
+        self._card_count = count
+        
+        layout = self.layout()
+        
+        if count > old_count:
+            self._add_cards(old_count, count)
+        else:
+            self._remove_cards(old_count, count)
+    
+    def _add_cards(self, old_count: int, new_count: int):
+        """增加卡片（子类重写）"""
+        for i in range(old_count, new_count):
+            card = self._create_card(i)
+            self.cards.append(card)
+            self.layout().addWidget(card)
+    
+    def _remove_cards(self, old_count: int, new_count: int):
+        """减少卡片"""
+        for i in range(old_count - 1, new_count - 1, -1):
+            card = self.cards.pop()
+            self.layout().removeWidget(card)
+            card.deleteLater()
+    
+    def _create_card(self, index: int):
+        """创建单个卡片（子类必须实现）
+        
+        Args:
+            index: 卡片索引
+            
+        Returns:
+            BaseCard: 卡片实例
+        """
+        raise NotImplementedError("子类必须实现 _create_card 方法")
+    
+    def clear_all(self):
+        """清空所有卡片"""
+        for card in self.cards:
+            card.clear()
 
 
 # 色彩模式配置：模式名称 -> (显示名称, 标签列表, 单位列表, 格式化函数)
@@ -56,7 +157,7 @@ COLOR_MODE_CONFIG = {
 def get_text_color(secondary=False):
     """获取主题文本颜色"""
     if isDarkTheme():
-        return QColor(160, 160, 160) if secondary else QColor(255, 255, 255)
+        return QColor(160, 160, 160) if secondary else QColor(255,255,255)
     else:
         return QColor(120, 120, 120) if secondary else QColor(40, 40, 40)
 
@@ -87,7 +188,6 @@ class ColorValueLabel(QWidget):
 
         self.label = QLabel(label_text)
         self.value = QLabel("--")
-
         self._update_styles()
 
         layout.addWidget(self.label)
@@ -127,7 +227,6 @@ class ColorModeContainer(QWidget):
         # 根据模式创建标签
         config = COLOR_MODE_CONFIG.get(self._mode, COLOR_MODE_CONFIG['HSB'])
         labels_text = config[1]
-
         self._labels = []
         for text in labels_text:
             label = ColorValueLabel(text)
@@ -138,7 +237,6 @@ class ColorModeContainer(QWidget):
         """设置色彩模式"""
         if self._mode == mode:
             return
-
         self._mode = mode
 
         # 清除现有标签
@@ -151,7 +249,6 @@ class ColorModeContainer(QWidget):
         # 重新创建标签
         config = COLOR_MODE_CONFIG.get(mode, COLOR_MODE_CONFIG['HSB'])
         labels_text = config[1]
-
         self._labels = []
         for text in labels_text:
             label = ColorValueLabel(text)
@@ -273,7 +370,6 @@ class ColorCard(BaseCard):
         if self._hex_value and self._hex_value != "--":
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
-
             # 显示复制成功提示
             InfoBar.success(
                 title="已复制",
@@ -386,3 +482,121 @@ class ColorCardPanel(BaseCardPanel):
     def is_hex_visible(self):
         """获取16进制颜色值显示状态"""
         return self._hex_visible
+
+
+def get_zone_background_color():
+    """获取Zone框背景颜色"""
+    if isDarkTheme():
+        return QColor(70, 70, 70)
+    else:
+        return QColor(255, 255, 255)
+
+
+def get_zone_text_color():
+    """获取Zone框文字颜色"""
+    if isDarkTheme():
+        return QColor(255, 255, 255)
+    else:
+        return QColor(0, 0, 0)
+
+
+def get_secondary_text_color():
+    """获取次要文字颜色"""
+    if isDarkTheme():
+        return QColor(160, 160, 160)
+    else:
+        return QColor(120, 120, 120)
+
+
+class ZoneValueLabel(QWidget):
+    """显示Zone值的标签 - 主题适配背景框 + 主题适配文字"""
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(50, 30)
+        self._zone = -1
+        self._luminance = 0
+
+    def set_zone(self, zone: int, luminance: int = 0):
+        """设置Zone值"""
+        self._zone = zone
+        self._luminance = luminance
+        self.update()
+
+    def clear(self):
+        """清空显示"""
+        self._zone = -1
+        self._luminance = 0
+        self.update()
+
+    def get_zone_label(self) -> str:
+        """获取Zone显示标签"""
+        if self._zone < 0:
+            return "--"
+        return str(self._zone)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # 主题适配背景框
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(get_zone_background_color())
+        painter.drawRoundedRect(0, 0, self.width(), self.height(), 4, 4)
+
+        # 主题适配文字
+        painter.setPen(get_zone_text_color())
+        font = QFont()
+        font.setPointSize(12)
+        font.setBold(True)
+        painter.setFont(font)
+
+        label = self.get_zone_label()
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, label)
+
+
+class LuminanceCard(BaseCard):
+    """单个明度信息卡 - 简化版，只显示Zone"""
+    def __init__(self, index, parent=None):
+        super().__init__(index, parent)
+
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(10)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Zone显示框
+        self.zone_label = ZoneValueLabel()
+        layout.addWidget(self.zone_label, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # 索引标签
+        index_label = QLabel(f"#{self.index + 1}")
+        secondary_color = get_secondary_text_color()
+        index_label.setStyleSheet(f"color: {secondary_color.name()}; font-size: 11px;")
+        index_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(index_label)
+
+        layout.addStretch()
+
+    def set_zone(self, zone: int, luminance: int = 0):
+        """设置Zone信息"""
+        self.zone_label.set_zone(zone, luminance)
+
+    def clear(self):
+        """清空显示"""
+        self.zone_label.clear()
+
+
+class LuminanceCardPanel(BaseCardPanel):
+    """明度信息卡面板（包含多个Zone卡）"""
+    def __init__(self, parent=None, card_count=5):
+        super().__init__(parent, card_count)
+
+    def _create_card(self, index):
+        """创建明度卡实例"""
+        return LuminanceCard(index)
+
+    def update_zone(self, index: int, zone: int, luminance: int = 0):
+        """更新指定索引的Zone"""
+        if 0 <= index < len(self.cards):
+            self.cards[index].set_zone(zone, luminance)

@@ -20,8 +20,8 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from config_manager import get_config_manager
-from .about_dialog import AboutDialog
+from core import get_config_manager
+from dialogs import AboutDialog
 
 
 # 可选的色彩模式列表
