@@ -7,6 +7,7 @@ from .luminance_canvas import LuminanceCanvas
 from .histogram_widget import HistogramWidget
 from .settings_interface import SettingsInterface
 from .about_dialog import AboutDialog
+from .update_dialog import UpdateAvailableDialog
 
 __all__ = [
     'MainWindow',
@@ -18,5 +19,6 @@ __all__ = [
     'LuminanceCanvas',
     'HistogramWidget',
     'SettingsInterface',
-    'AboutDialog'
+    'AboutDialog',
+    'UpdateAvailableDialog'
 ]
