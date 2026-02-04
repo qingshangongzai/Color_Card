@@ -199,17 +199,7 @@ class AboutDialog(QDialog):
         app_info = version_manager.get_app_info()
         version = version_manager.get_version()
 
-        return f"""{app_info['name']} v{version} 是一款专为摄影师开发的图片分析小工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，辅助后期调色和色彩管理。
-
-主要功能：
-  • 图片色彩分析
-  • 亮度分布统计
-  • 色彩卡片生成
-  • 支持多种图片格式
-
-【注意事项】
-· 本程序仅供学习交流使用，请勿用于商业用途；
-· 使用本程序产生的一切后果由使用者自行承担。
+        return f"""　　取色卡（Color Card）是一款专为摄影师开发的图片分析小工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，辅助后期调色和色彩管理。
 
 【开发团队】
   • 出品：{app_info['company']}
