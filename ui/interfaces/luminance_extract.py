@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
 
 # 项目模块导入
 from ..canvases import LuminanceCanvas
-from ..widgets import LuminanceHistogramWidget
+from ..histograms import LuminanceHistogramWidget
 
 
 class LuminanceExtractInterface(QWidget):

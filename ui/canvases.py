@@ -22,7 +22,8 @@ from qfluentwidgets import Action, FluentIcon, IndeterminateProgressRing, RoundM
 
 # 项目模块导入
 from core import get_luminance, get_zone
-from .widgets import ColorPicker, ZoomViewer
+from .color_picker import ColorPicker
+from .zoom_viewer import ZoomViewer
 
 
 class ImageLoader(QThread):

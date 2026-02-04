@@ -6,7 +6,9 @@ from qfluentwidgets import FluentIcon
 # 项目模块导入
 from core import get_color_info
 from ..canvases import ImageCanvas
-from ..widgets import ColorCardPanel, HSBColorWheel, RGBHistogramWidget
+from ..cards import ColorCardPanel
+from ..color_wheel import HSBColorWheel
+from ..histograms import RGBHistogramWidget
 
 
 class ColorExtractInterface(QWidget):

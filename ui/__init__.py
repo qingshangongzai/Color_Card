@@ -2,13 +2,19 @@
 
 from .main_window import MainWindow
 from .canvases import BaseCanvas, ImageCanvas, LuminanceCanvas
-from .widgets import (
+from .cards import (
     BaseCard, BaseCardPanel,
     ColorCard, ColorCardPanel,
-    LuminanceCard, LuminanceCardPanel,
-    ColorPicker, HSBColorWheel, ZoomViewer,
-    BaseHistogram, LuminanceHistogramWidget, RGBHistogramWidget
+    LuminanceCard, LuminanceCardPanel
 )
+from .histograms import (
+    BaseHistogram,
+    LuminanceHistogramWidget,
+    RGBHistogramWidget
+)
+from .color_picker import ColorPicker
+from .color_wheel import HSBColorWheel
+from .zoom_viewer import ZoomViewer
 from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface
 
 __all__ = [

@@ -11,7 +11,9 @@ from core import get_color_info
 from core import get_config_manager
 from version import version_manager
 from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface
-from .widgets import ColorCardPanel, LuminanceHistogramWidget, HSBColorWheel, RGBHistogramWidget
+from .cards import ColorCardPanel
+from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
+from .color_wheel import HSBColorWheel
 from .canvases import ImageCanvas, LuminanceCanvas
 
 
