@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout
-from PySide6.QtCore import Qt, QPoint, Signal, QRect, QThread, QTimer
+from PySide6.QtCore import Qt, QPoint, Signal, QRect, QThread, QTimer, QPointF
 from PySide6.QtGui import QPainter, QPixmap, QImage, QColor, QFont
 
 from qfluentwidgets import RoundMenu, Action, FluentIcon, IndeterminateProgressRing
@@ -62,6 +62,7 @@ class ImageCanvas(QWidget):
         self._image = None
         self._pickers = []
         self._picker_positions = []
+        self._picker_rel_positions = []  # 存储相对于图片的归一化坐标 (0.0-1.0)
         self._zoom_viewer = None
         self._active_picker_index = -1
         self._loader = None
@@ -85,6 +86,7 @@ class ImageCanvas(QWidget):
             picker.hide()  # 初始隐藏
             self._pickers.append(picker)
             self._picker_positions.append(QPoint(100 + i * 100, 100))
+            self._picker_rel_positions.append(QPointF(0.5, 0.5))  # 默认在图片中心
 
         self.update_picker_positions()
         self._update_loading_indicator_position()
@@ -144,11 +146,11 @@ class ImageCanvas(QWidget):
         self.setCursor(Qt.CursorShape.ArrowCursor)
 
         # 重新初始化取色点位置到图片中心区域
-        center_x = self.width() // 2
-        center_y = self.height() // 2
+        center_x = 0.5  # 使用相对坐标，中心为 0.5
+        center_y = 0.5
         for i, picker in enumerate(self._pickers):
-            offset_x = (i - 2) * 50
-            self._picker_positions[i] = QPoint(center_x + offset_x, center_y)
+            offset_x = (i - 2) * 0.05  # 使用相对偏移（5%）
+            self._picker_rel_positions[i] = QPointF(center_x + offset_x, center_y)
 
         self.update_picker_positions()
         self.update()
@@ -176,9 +178,30 @@ class ImageCanvas(QWidget):
 
     def update_picker_positions(self):
         """更新所有取色点的位置"""
-        for i, picker in enumerate(self._pickers):
-            pos = self._picker_positions[i]
-            picker.move(pos.x() - picker.radius, pos.y() - picker.radius)
+        # 如果有图片，使用相对坐标计算画布坐标
+        if self._image and not self._image.isNull():
+            display_rect = self.get_display_rect()
+            if display_rect:
+                disp_x, disp_y, disp_w, disp_h = display_rect
+                
+                for i, picker in enumerate(self._pickers):
+                    rel_pos = self._picker_rel_positions[i]
+                    
+                    # 将相对坐标转换为画布坐标
+                    canvas_x = disp_x + rel_pos.x() * disp_w
+                    canvas_y = disp_y + rel_pos.y() * disp_h
+                    
+                    # 更新画布坐标存储
+                    self._picker_positions[i] = QPoint(int(canvas_x), int(canvas_y))
+                    
+                    # 更新取色点显示位置
+                    picker.move(self._picker_positions[i].x() - picker.radius, 
+                               self._picker_positions[i].y() - picker.radius)
+        else:
+            # 没有图片时，直接使用存储的画布坐标
+            for i, picker in enumerate(self._pickers):
+                pos = self._picker_positions[i]
+                picker.move(pos.x() - picker.radius, pos.y() - picker.radius)
 
     def set_picker_count(self, count):
         """设置取色点数量
@@ -210,17 +233,19 @@ class ImageCanvas(QWidget):
                 self._pickers.append(picker)
                 # 新取色点位置在最后一个取色点旁边
                 if old_count > 0:
-                    last_pos = self._picker_positions[-1]
-                    new_pos = QPoint(last_pos.x() + 50, last_pos.y())
+                    last_rel_pos = self._picker_rel_positions[-1]
+                    new_rel_pos = QPointF(last_rel_pos.x() + 0.05, last_rel_pos.y())
                 else:
-                    new_pos = QPoint(100, 100)
-                self._picker_positions.append(new_pos)
+                    new_rel_pos = QPointF(0.5, 0.5)  # 默认在中心
+                self._picker_positions.append(QPoint(100, 100))  # 临时画布坐标
+                self._picker_rel_positions.append(new_rel_pos)
         else:
             # 减少取色点
             for i in range(old_count - 1, count - 1, -1):
                 picker = self._pickers.pop()
                 picker.deleteLater()
                 self._picker_positions.pop()
+                self._picker_rel_positions.pop()
 
         self.update_picker_positions()
 
@@ -241,7 +266,26 @@ class ImageCanvas(QWidget):
 
     def on_picker_moved(self, index, new_pos):
         """取色点移动时的回调"""
+        # 更新画布坐标
         self._picker_positions[index] = new_pos
+        
+        # 如果有图片，将画布坐标转换为相对坐标并存储
+        if self._image and not self._image.isNull():
+            display_rect = self.get_display_rect()
+            if display_rect:
+                disp_x, disp_y, disp_w, disp_h = display_rect
+                
+                # 将画布坐标转换为相对坐标
+                rel_x = (new_pos.x() - disp_x) / disp_w
+                rel_y = (new_pos.y() - disp_y) / disp_h
+                
+                # 限制在图片范围内
+                rel_x = max(0.0, min(1.0, rel_x))
+                rel_y = max(0.0, min(1.0, rel_y))
+                
+                # 更新相对坐标
+                self._picker_rel_positions[index] = QPointF(rel_x, rel_y)
+        
         self.extract_color(index)
         self.update_zoom_viewer()
 
@@ -372,7 +416,8 @@ class ImageCanvas(QWidget):
         super().resizeEvent(event)
         self._update_loading_indicator_position()
         if self._image and not self._image.isNull():
-            # 窗口大小改变时，只需重新提取颜色（因为显示区域变了）
+            # 窗口大小改变时，更新取色点位置并重新提取颜色
+            self.update_picker_positions()
             self.extract_all_colors()
             self.update()
 
@@ -403,6 +448,10 @@ class ImageCanvas(QWidget):
         for picker in self._pickers:
             picker.hide()
         self._zoom_viewer.hide()
+
+        # 重置相对坐标到默认位置
+        for i in range(len(self._picker_rel_positions)):
+            self._picker_rel_positions[i] = QPointF(0.5, 0.5)
 
         # 恢复光标为手型
         self.setCursor(Qt.CursorShape.PointingHandCursor)
