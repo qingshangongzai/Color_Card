@@ -1,15 +1,27 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QSizePolicy, QScrollArea
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
+
+模块名称: settings_interface
+功能描述: 设置界面，提供应用程序配置选项
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
-
+from PySide6.QtWidgets import (
+    QHBoxLayout, QLabel, QScrollArea, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
+)
 from qfluentwidgets import (
-    SettingCardGroup, PushSettingCard,
-    FluentIcon, PrimaryPushButton, InfoBar, InfoBarPosition,
-    isDarkTheme, SwitchButton, ComboBox, SpinBox
+    ComboBox, FluentIcon, InfoBar, InfoBarPosition, PrimaryPushButton,
+    PushSettingCard, SettingCardGroup, SpinBox, SwitchButton, isDarkTheme
 )
 
-from .about_dialog import AboutDialog
+# 项目模块导入
 from config_manager import get_config_manager
+from .about_dialog import AboutDialog
 
 
 # 可选的色彩模式列表

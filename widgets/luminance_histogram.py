@@ -1,6 +1,17 @@
-from PySide6.QtWidgets import QWidget
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
+
+模块名称: luminance_histogram
+功能描述: 明度直方图组件，显示图片的明度分布
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPainter, QColor, QPen, QFont, QImage
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen
+from PySide6.QtWidgets import QWidget
 
 
 class LuminanceHistogram(QWidget):

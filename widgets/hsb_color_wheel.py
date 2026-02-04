@@ -1,9 +1,20 @@
-from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QColor, QPen, QPixmap
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
 
+模块名称: hsb_color_wheel
+功能描述: HSB色环组件，显示采样点在HSB色彩空间中的位置
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QPainter, QPen, QPixmap
+from PySide6.QtWidgets import QWidget
 from qfluentwidgets import isDarkTheme
 
+# 项目模块导入
 from color_utils import rgb_to_hsb
 
 

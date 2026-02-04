@@ -1,7 +1,17 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPainter, QFont
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
 
+模块名称: luminance_card
+功能描述: 明度卡片组件，显示明度提取结果
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QFont, QPainter
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import isDarkTheme
 
 

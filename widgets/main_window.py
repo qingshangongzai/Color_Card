@@ -1,19 +1,32 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QLabel
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
+
+模块名称: main_window
+功能描述: 主窗口实现，包含色彩提取界面和明度提取界面
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QPixmap
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (
+    QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
+)
+from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter
 
-from qfluentwidgets import FluentWindow, NavigationItemPosition, qrouter, FluentIcon
-
-from .image_canvas import ImageCanvas
-from .color_card import ColorCardPanel
-from .luminance_canvas import LuminanceCanvas
-from .histogram_widget import HistogramWidget
-from .hsb_color_wheel import HSBColorWheel
-from .rgb_histogram_widget import RGBHistogramWidget
-from .settings_interface import SettingsInterface
+# 项目模块导入
 from color_utils import get_color_info
 from config_manager import get_config_manager
 from version import version_manager
+from .color_card import ColorCardPanel
+from .histogram_widget import HistogramWidget
+from .hsb_color_wheel import HSBColorWheel
+from .image_canvas import ImageCanvas
+from .luminance_canvas import LuminanceCanvas
+from .rgb_histogram_widget import RGBHistogramWidget
+from .settings_interface import SettingsInterface
 
 
 class ColorExtractInterface(QWidget):
@@ -83,7 +96,6 @@ class ColorExtractInterface(QWidget):
     
     def open_image(self):
         """打开图片文件"""
-        from PySide6.QtWidgets import QFileDialog
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "选择图片",
@@ -384,7 +396,6 @@ class MainWindow(FluentWindow):
         logo_path = 'd:\\青山公仔\\应用\\Py测试\\color_card\\logo\\Color Card_logo.ico'
 
         # 使用 QIcon 加载 ICO 文件以获取最佳分辨率
-        from PySide6.QtGui import QIcon
         from PySide6.QtCore import QSize
         icon = QIcon(logo_path)
 

@@ -1,7 +1,19 @@
-from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QColor, QPen, QFont
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
 
+模块名称: rgb_histogram_widget
+功能描述: RGB直方图组件，显示图片的RGB三通道分布
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QFont, QPainter, QPen
+from PySide6.QtWidgets import QWidget
+
+# 项目模块导入
 from color_utils import calculate_rgb_histogram
 
 

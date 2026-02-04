@@ -1,22 +1,27 @@
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
+
+模块名称: about_dialog
+功能描述: 关于对话框，显示应用程序信息和许可证
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
 # 标准库导入
 from pathlib import Path
 
 # 第三方库导入
-from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QFrame,
-    QPlainTextEdit, QDialog
-)
 from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtGui import QDesktopServices, QColor
-
-from qfluentwidgets import (
-    PushButton, PrimaryPushButton,
-    CaptionLabel, isDarkTheme
+from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtWidgets import (
+    QDialog, QFrame, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
 )
+from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme
 
 # 项目模块导入
+from icon_utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 from version import version_manager
-from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
 
 
 def get_background_color():

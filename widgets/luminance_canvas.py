@@ -1,14 +1,26 @@
-from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint, Signal, QRect, QTimer, QThread, QPointF
-from PySide6.QtGui import QPainter, QPixmap, QImage, QColor, QFont
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
 
-from qfluentwidgets import RoundMenu, Action, FluentIcon
+模块名称: luminance_canvas
+功能描述: 明度画布组件，支持图片显示、明度提取、区域选择
 
-from .color_picker import ColorPicker
-from color_utils import get_luminance, get_zone
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
 
-from PIL import Image
+# 标准库导入
 import io
+
+# 第三方库导入
+from PIL import Image
+from PySide6.QtCore import QPoint, QPointF, QRect, Qt, QThread, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
+from PySide6.QtWidgets import QWidget
+from qfluentwidgets import Action, FluentIcon, RoundMenu
+
+# 项目模块导入
+from color_utils import get_luminance, get_zone
+from .color_picker import ColorPicker
 
 
 class ImageLoader(QThread):

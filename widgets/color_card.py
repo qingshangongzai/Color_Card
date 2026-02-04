@@ -1,8 +1,18 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QApplication
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
+
+模块名称: color_card
+功能描述: 色卡面板组件，显示提取的颜色信息和多种色彩模式
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
-
-from qfluentwidgets import isDarkTheme, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, isDarkTheme
 
 
 # 色彩模式配置：模式名称 -> (显示名称, 标签列表, 单位列表, 格式化函数)

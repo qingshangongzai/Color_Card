@@ -1,25 +1,29 @@
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
+
+模块名称: update_dialog
+功能描述: 更新检查对话框，检查并显示应用程序更新信息
+
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
 # 标准库导入
 import re
 
 # 第三方库导入
-from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QDialog, QLabel
-)
-from PySide6.QtCore import Qt, QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices, QColor
-
-from qfluentwidgets import (
-    PushButton, PrimaryPushButton, InfoBar, InfoBarPosition, isDarkTheme
-)
-
-# 项目模块导入
-from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal
+from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, isDarkTheme
 
 try:
     import requests
 except ImportError:
     requests = None
+
+# 项目模块导入
+from icon_utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 
 
 class UpdateCheckThread(QThread):

@@ -1,14 +1,26 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout
-from PySide6.QtCore import Qt, QPoint, Signal, QRect, QThread, QTimer, QPointF
-from PySide6.QtGui import QPainter, QPixmap, QImage, QColor, QFont
+"""Color Card - 图片颜色提取工具
+Copyright (c) 2026 浮晓 HXiao Studio
 
-from qfluentwidgets import RoundMenu, Action, FluentIcon, IndeterminateProgressRing
+模块名称: image_canvas
+功能描述: 图片画布组件，支持图片显示、拖拽打开、取色点拖动
 
+作者: 青山公仔
+创建日期: 2026-02-04
+"""
+
+# 标准库导入
+import io
+
+# 第三方库导入
+from PIL import Image
+from PySide6.QtCore import QPoint, QPointF, QRect, Qt, QThread, QTimer, Signal
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
+from PySide6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import Action, FluentIcon, IndeterminateProgressRing, RoundMenu
+
+# 项目模块导入
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
-
-from PIL import Image
-import io
 
 
 class ImageLoader(QThread):
