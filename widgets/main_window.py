@@ -286,16 +286,31 @@ class MainWindow(FluentWindow):
         window_config = self._config.get('window', {})
         width = window_config.get('width', 940)
         height = window_config.get('height', 660)
+        is_maximized = window_config.get('is_maximized', False)
         self.resize(width, height)
 
         self.create_sub_interface()
         self.setup_navigation()
 
+        # 如果之前是最大化状态，恢复最大化
+        if is_maximized:
+            self.showMaximized()
+
     def closeEvent(self, event):
         """窗口关闭事件，保存配置"""
-        # 保存窗口大小
-        self._config_manager.set('window.width', self.width())
-        self._config_manager.set('window.height', self.height())
+        # 保存窗口最大化状态
+        is_maximized = self.isMaximized()
+        self._config_manager.set('window.is_maximized', is_maximized)
+
+        # 保存窗口大小（如果最大化，保存正常尺寸而非最大化尺寸）
+        if is_maximized:
+            normal_geometry = self.normalGeometry()
+            self._config_manager.set('window.width', normal_geometry.width())
+            self._config_manager.set('window.height', normal_geometry.height())
+        else:
+            self._config_manager.set('window.width', self.width())
+            self._config_manager.set('window.height', self.height())
+
         self._config_manager.save()
         event.accept()
 

@@ -53,7 +53,8 @@ class ConfigManager:
             },
             "window": {
                 "width": 940,
-                "height": 660
+                "height": 660,
+                "is_maximized": False
             }
         }
 
