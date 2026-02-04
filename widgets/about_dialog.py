@@ -124,7 +124,7 @@ class AboutDialog(QDialog):
         self.project_button = PrimaryPushButton("项目地址")
         self.project_button.setMinimumWidth(90)
         self.project_button.clicked.connect(
-            lambda: self._open_url("https://gitee.com/qingshangongzai/color-card")
+            lambda: self._open_url("https://gitee.com/qingshangongzai/color_card")
         )
         buttons_layout.addWidget(self.project_button)
 
@@ -179,7 +179,7 @@ class AboutDialog(QDialog):
             QDesktopServices.openUrl(file_url)
         else:
             # 如果文件不存在，打开项目地址
-            self._open_url("https://gitee.com/qingshangongzai/color-card")
+            self._open_url("https://gitee.com/qingshangongzai/color_card")
 
     def _open_agreement_file(self):
         """打开用户协议文件"""
