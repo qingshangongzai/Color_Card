@@ -32,6 +32,16 @@ def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
 def rgb_to_lab(r: int, g: int, b: int) -> Tuple[float, float, float]:
     """将RGB转换为LAB颜色空间
 
+    LAB颜色空间是一种设备无关的颜色空间，L代表亮度(0-100)，
+    A和B代表颜色对立通道(-128到127)，适合用于颜色差异计算。
+
+    转换步骤：
+    1. RGB归一化到0-1范围
+    2. 应用sRGB Gamma校正（转换到线性空间）
+    3. 转换为XYZ颜色空间（使用sRGB转换矩阵）
+    4. 使用D65参考白点归一化XYZ值
+    5. 转换为LAB颜色空间
+
     Args:
         r: 红色通道值 (0-255)
         g: 绿色通道值 (0-255)
@@ -40,28 +50,39 @@ def rgb_to_lab(r: int, g: int, b: int) -> Tuple[float, float, float]:
     Returns:
         tuple: (L 0-100, A -128-127, B -128-127)
     """
-    # 首先转换为XYZ
+    # 步骤1: 归一化到 0-1 范围
     r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
 
-    # 应用gamma校正
+    # 步骤2: 应用gamma校正（转换到线性空间）
+    # sRGB的gamma曲线近似于gamma 2.2，但使用更精确的分段公式
+    # 小于等于0.04045的值使用线性转换，大于0.04045的值使用幂函数
     r_norm = r_norm ** 2.2 if r_norm > 0.04045 else r_norm / 12.92
     g_norm = g_norm ** 2.2 if g_norm > 0.04045 else g_norm / 12.92
     b_norm = b_norm ** 2.2 if b_norm > 0.04045 else b_norm / 12.92
 
-    # 转换为XYZ
+    # 步骤3: 转换为XYZ颜色空间
+    # 使用sRGB到XYZ的转换矩阵（基于CIE 1931标准）
+    # X = 0.4124564*R + 0.3575761*G + 0.1804375*B
+    # Y = 0.2126729*R + 0.7151522*G + 0.0721750*B
+    # Z = 0.0193339*R + 0.1191920*G + 0.9503041*B
     x = r_norm * 0.4124564 + g_norm * 0.3575761 + b_norm * 0.1804375
     y = r_norm * 0.2126729 + g_norm * 0.7151522 + b_norm * 0.0721750
     z = r_norm * 0.0193339 + g_norm * 0.1191920 + b_norm * 0.9503041
 
-    # 参考白点D65
+    # 步骤4: 使用D65参考白点归一化XYZ值
+    # D65是标准日光白点，色温约6500K，是sRGB和大多数显示器的标准白点
     x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
-
     x, y, z = x / x_ref, y / y_ref, z / z_ref
 
-    # 转换为LAB
+    # 步骤5: 转换为LAB颜色空间
+    # 使用分段函数f(t)处理非线性转换
     def f(t: float) -> float:
+        # 大于0.008856的值使用立方根，小于等于的值使用线性转换
         return t ** (1/3) if t > 0.008856 else 7.787 * t + 16/116
 
+    # L = 116*f(Y) - 16 (亮度分量)
+    # A = 500*(f(X) - f(Y)) (红绿对立分量)
+    # B = 200*(f(Y) - f(Z)) (黄蓝对立分量)
     l = 116 * f(y) - 16
     a_val = 500 * (f(x) - f(y))
     b_val = 200 * (f(y) - f(z))

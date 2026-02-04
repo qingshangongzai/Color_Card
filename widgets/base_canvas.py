@@ -167,7 +167,23 @@ class BaseCanvas(QWidget):
             self._picker_rel_positions[i] = QPointF(center_x + offset_x, center_y)
 
     def update_picker_positions(self) -> None:
-        """更新所有取色点的位置"""
+        """更新所有取色点的位置
+
+        根据相对坐标（0.0-1.0）计算画布坐标，实现取色点位置
+        在图片缩放时保持相对位置不变。
+
+        坐标转换算法：
+        1. 获取图片显示区域 (disp_x, disp_y, disp_w, disp_h)
+        2. 将相对坐标转换为画布坐标：
+           canvas_x = disp_x + rel_x * disp_w
+           canvas_y = disp_y + rel_y * disp_h
+        3. 更新取色点UI位置
+
+        相对坐标的优势：
+        - 图片缩放时取色点位置自动调整
+        - 图片尺寸变化时保持相对位置不变
+        - 便于保存和恢复取色点位置
+        """
         # 如果有图片，使用相对坐标计算画布坐标
         if self._image and not self._image.isNull():
             display_rect = self.get_display_rect()
@@ -178,6 +194,7 @@ class BaseCanvas(QWidget):
                     rel_pos = self._picker_rel_positions[i]
 
                     # 将相对坐标转换为画布坐标
+                    # 公式：画布坐标 = 显示区域起点 + 相对坐标 × 显示区域尺寸
                     canvas_x = disp_x + rel_pos.x() * disp_w
                     canvas_y = disp_y + rel_pos.y() * disp_h
 
@@ -267,6 +284,16 @@ class BaseCanvas(QWidget):
     def on_picker_moved(self, index: int, new_pos: QPoint) -> None:
         """取色点移动时的回调
 
+        将取色点的画布坐标转换为相对坐标并存储，确保在图片缩放时
+        取色点位置保持不变。
+
+        坐标转换算法（画布坐标 → 相对坐标）：
+        1. 获取图片显示区域 (disp_x, disp_y, disp_w, disp_h)
+        2. 计算相对坐标：
+           rel_x = (画布X - 显示区域X) / 显示区域宽度
+           rel_y = (画布Y - 显示区域Y) / 显示区域高度
+        3. 限制相对坐标在 [0.0, 1.0] 范围内
+
         Args:
             index: 取色点索引
             new_pos: 新的画布坐标位置
@@ -281,10 +308,11 @@ class BaseCanvas(QWidget):
                 disp_x, disp_y, disp_w, disp_h = display_rect
 
                 # 将画布坐标转换为相对坐标
+                # 公式：相对坐标 = (画布坐标 - 显示区域起点) / 显示区域尺寸
                 rel_x = (new_pos.x() - disp_x) / disp_w
                 rel_y = (new_pos.y() - disp_y) / disp_h
 
-                # 限制在图片范围内
+                # 限制在图片范围内（防止取色点超出图片边界）
                 rel_x = max(0.0, min(1.0, rel_x))
                 rel_y = max(0.0, min(1.0, rel_y))
 
@@ -314,6 +342,20 @@ class BaseCanvas(QWidget):
     def canvas_to_image_pos(self, canvas_pos: QPoint) -> Optional[QPoint]:
         """将画布坐标转换为原始图片坐标
 
+        坐标转换算法（画布坐标 → 原始图片坐标）：
+        1. 获取图片显示区域 (disp_x, disp_y, disp_w, disp_h)
+        2. 计算在显示区域内的相对位置：
+           img_x = 画布X - 显示区域X
+           img_y = 画布Y - 显示区域Y
+        3. 检查是否在显示区域内
+        4. 计算缩放比例：
+           scale_x = 原始图片宽度 / 显示区域宽度
+           scale_y = 原始图片高度 / 显示区域高度
+        5. 转换为原始图片坐标：
+           orig_x = img_x × scale_x
+           orig_y = img_y × scale_y
+        6. 边界检查，确保坐标在有效范围内
+
         Args:
             canvas_pos: 画布坐标
 
@@ -330,19 +372,22 @@ class BaseCanvas(QWidget):
         disp_x, disp_y, disp_w, disp_h = display_rect
 
         # 将画布坐标转换为图片坐标
+        # 首先计算在显示区域内的相对位置
         img_x = canvas_pos.x() - disp_x
         img_y = canvas_pos.y() - disp_y
 
         # 检查坐标是否在图片显示范围内
         if 0 <= img_x < disp_w and 0 <= img_y < disp_h:
             # 计算在原始图片中的坐标
+            # 缩放比例 = 原始图片尺寸 / 显示区域尺寸
             scale_x = self._image.width() / disp_w
             scale_y = self._image.height() / disp_h
 
+            # 应用缩放比例
             orig_x = int(img_x * scale_x)
             orig_y = int(img_y * scale_y)
 
-            # 确保坐标在原始图片范围内
+            # 确保坐标在原始图片范围内（边界检查）
             orig_x = max(0, min(orig_x, self._image.width() - 1))
             orig_y = max(0, min(orig_y, self._image.height() - 1))
 
@@ -353,6 +398,25 @@ class BaseCanvas(QWidget):
     def get_display_rect(self) -> Optional[Tuple[int, int, int, int]]:
         """计算图片在画布中的显示区域
 
+        使用保持比例的缩放算法，将图片完整显示在画布中心。
+
+        缩放算法：
+        1. 获取画布尺寸和原始图片尺寸
+        2. 计算宽度和高度的缩放比例：
+           scale_w = 画布宽度 / 图片宽度
+           scale_h = 画布高度 / 图片高度
+        3. 选择较小的缩放比例（确保图片完整显示）
+        4. 使用 Qt.KeepAspectRatio 模式缩放图片
+        5. 计算居中位置：
+           x = (画布宽度 - 缩放后宽度) / 2
+           y = (画布高度 - 缩放后高度) / 2
+
+        算法特点：
+        - 保持图片宽高比，不会变形
+        - 图片完整显示在画布内（不会被裁剪）
+        - 居中显示，四周留有空白
+        - 缩放比例不会超过1.0（不会放大）
+
         Returns:
             tuple: (x, y, width, height) 或 None
         """
@@ -360,10 +424,13 @@ class BaseCanvas(QWidget):
             return None
 
         # 计算缩放后的尺寸（保持比例）
+        # Qt.KeepAspectRatio 会自动选择合适的缩放比例
+        # 确保图片完整显示在画布内，不会被裁剪
         scaled_size = self._original_pixmap.size()
         scaled_size.scale(self.size(), Qt.AspectRatioMode.KeepAspectRatio)
 
         # 居中显示
+        # 计算水平和垂直方向的偏移量，使图片居中
         x = (self.width() - scaled_size.width()) // 2
         y = (self.height() - scaled_size.height()) // 2
 
