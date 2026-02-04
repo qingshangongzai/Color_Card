@@ -261,3 +261,7 @@ class MainWindow(FluentWindow):
         """明度提取采样点数改变"""
         self.luminance_extract_interface.luminance_canvas.set_picker_count(count)
         self.luminance_extract_interface.histogram_widget.clear()
+        # 如果有图片，重新计算直方图
+        image = self.luminance_extract_interface.luminance_canvas.get_image()
+        if image and not image.isNull():
+            self.luminance_extract_interface.histogram_widget.set_image(image)
