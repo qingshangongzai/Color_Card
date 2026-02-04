@@ -14,6 +14,9 @@ from PySide6.QtGui import QColor, QFont, QPainter
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import isDarkTheme
 
+# 项目模块导入
+from .base_card import BaseCard, BaseCardPanel
+
 
 def get_zone_background_color():
     """获取Zone框背景颜色"""
@@ -85,12 +88,10 @@ class ZoneValueLabel(QWidget):
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, label)
 
 
-class LuminanceCard(QWidget):
+class LuminanceCard(BaseCard):
     """单个明度信息卡 - 简化版，只显示Zone"""
     def __init__(self, index, parent=None):
-        super().__init__(parent)
-        self.index = index
-        self.setup_ui()
+        super().__init__(index, parent)
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -120,60 +121,16 @@ class LuminanceCard(QWidget):
         self.zone_label.clear()
 
 
-class LuminanceCardPanel(QWidget):
+class LuminanceCardPanel(BaseCardPanel):
     """明度信息卡面板（包含多个Zone卡）"""
     def __init__(self, parent=None, card_count=5):
-        super().__init__(parent)
-        self._card_count = card_count
-        self.setup_ui()
+        super().__init__(parent, card_count)
 
-    def setup_ui(self):
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(15)
-
-        self.cards = []
-        for i in range(self._card_count):
-            card = LuminanceCard(i)
-            self.cards.append(card)
-            layout.addWidget(card)
+    def _create_card(self, index):
+        """创建明度卡实例"""
+        return LuminanceCard(index)
 
     def update_zone(self, index: int, zone: int, luminance: int = 0):
         """更新指定索引的Zone"""
         if 0 <= index < len(self.cards):
             self.cards[index].set_zone(zone, luminance)
-
-    def clear_all(self):
-        """清空所有卡片"""
-        for card in self.cards:
-            card.clear()
-
-    def set_card_count(self, count):
-        """设置卡片数量
-
-        Args:
-            count: 卡片数量 (2-5)
-        """
-        if count < 2 or count > 5:
-            return
-
-        if count == self._card_count:
-            return
-
-        old_count = self._card_count
-        self._card_count = count
-
-        layout = self.layout()
-
-        if count > old_count:
-            # 增加卡片
-            for i in range(old_count, count):
-                card = LuminanceCard(i)
-                self.cards.append(card)
-                layout.addWidget(card)
-        else:
-            # 减少卡片
-            for i in range(old_count - 1, count - 1, -1):
-                card = self.cards.pop()
-                layout.removeWidget(card)
-                card.deleteLater()

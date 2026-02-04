@@ -130,7 +130,7 @@ class ColorExtractInterface(QWidget):
     def clear_image(self):
         """清空图片"""
         self.image_canvas.clear_image()
-        self.color_card_panel.clear_colors()
+        self.color_card_panel.clear_all()
         # 清除HSB色环和RGB直方图
         self.hsb_color_wheel.clear_sample_points()
         self.rgb_histogram_widget.clear()
@@ -466,7 +466,7 @@ class MainWindow(FluentWindow):
         self._is_clearing = True
         try:
             self.color_extract_interface.image_canvas.clear_image()
-            self.color_extract_interface.color_card_panel.clear_colors()
+            self.color_extract_interface.color_card_panel.clear_all()
             self._reset_window_title()
         finally:
             self._is_clearing = False
