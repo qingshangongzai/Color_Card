@@ -1,3 +1,7 @@
+# 标准库导入
+from pathlib import Path
+
+# 第三方库导入
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QFrame,
     QPlainTextEdit, QDialog
@@ -10,6 +14,7 @@ from qfluentwidgets import (
     CaptionLabel, isDarkTheme
 )
 
+# 项目模块导入
 from version import version_manager
 from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
 
@@ -123,18 +128,16 @@ class AboutDialog(QDialog):
         )
         buttons_layout.addWidget(self.project_button)
 
-        # 开源许可按钮（占位）
+        # 开源许可按钮
         self.license_button = PushButton("开源许可")
         self.license_button.setMinimumWidth(90)
-        self.license_button.setEnabled(False)
-        self.license_button.setToolTip("功能开发中，敬请期待")
+        self.license_button.clicked.connect(self._open_license_file)
         buttons_layout.addWidget(self.license_button)
         
-        # 用户协议按钮（占位）
+        # 用户协议按钮
         self.agreement_button = PushButton("用户协议")
         self.agreement_button.setMinimumWidth(90)
-        self.agreement_button.setEnabled(False)
-        self.agreement_button.setToolTip("功能开发中，敬请期待")
+        self.agreement_button.clicked.connect(self._open_agreement_file)
         buttons_layout.addWidget(self.agreement_button)
         
         buttons_layout.addStretch()
@@ -164,6 +167,32 @@ class AboutDialog(QDialog):
             url: 要打开的URL地址
         """
         QDesktopServices.openUrl(QUrl(url))
+
+    def _open_license_file(self):
+        """打开开源许可文件"""
+        # 获取许可证文件路径（相对于项目根目录的 file/LICENSE.html）
+        license_path = Path(__file__).parent.parent / "file" / "LICENSE.html"
+        
+        if license_path.exists():
+            # 转换为文件URL并打开
+            file_url = QUrl.fromLocalFile(str(license_path.absolute()))
+            QDesktopServices.openUrl(file_url)
+        else:
+            # 如果文件不存在，打开项目地址
+            self._open_url("https://gitee.com/qingshangongzai/color-card")
+
+    def _open_agreement_file(self):
+        """打开用户协议文件"""
+        # 获取用户协议文件路径（相对于项目根目录的 file/UserAgreement.html）
+        agreement_path = Path(__file__).parent.parent / "file" / "UserAgreement.html"
+        
+        if agreement_path.exists():
+            # 转换为文件URL并打开
+            file_url = QUrl.fromLocalFile(str(agreement_path.absolute()))
+            QDesktopServices.openUrl(file_url)
+        else:
+            # 如果文件不存在，打开项目地址
+            self._open_url("https://gitee.com/qingshangongzai/color-card")
 
     def _get_about_text(self):
         """获取关于页面的文本内容"""
