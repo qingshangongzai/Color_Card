@@ -1,14 +1,3 @@
-"""
-Color Card - 图片颜色提取工具
-Copyright (c) 2026 浮晓 HXiao Studio
-
-模块名称: canvases
-功能描述: 画布模块，包含图片加载工作线程、画布基类、图片画布和明度画布
-
-作者: 青山公仔
-创建日期: 2026-02-05
-"""
-
 # 标准库导入
 import io
 from typing import List, Optional, Tuple
