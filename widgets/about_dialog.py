@@ -154,7 +154,7 @@ class AboutDialog(QDialog):
         
         copyright_label = CaptionLabel(
             f"版权所有 {app_info['copyright']}\n"
-            "基于 LGPL v3 开源，仅供学习交流使用"
+            "基于 GPL v3 开源，仅供学习交流使用"
         )
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
@@ -215,10 +215,10 @@ class AboutDialog(QDialog):
   • 本程序 UI 组件使用 PySide6-Fluent-Widgets，许可证：GPLv3
     项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
 
- · 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
+  • 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
- · 本程序使用Inno Setup工具将独立的可执行文件打包为安装程序。
+  • 本程序使用Inno Setup工具将独立的可执行文件打包为安装程序。
     官网：https://jrsoftware.org/isinfo.php
 
 【特别鸣谢】
