@@ -307,6 +307,8 @@ class SettingsInterface(QWidget):
     color_sample_count_changed = Signal(int)
     # 信号：明度提取采样点数改变
     luminance_sample_count_changed = Signal(int)
+    # 信号：直方图缩放模式改变
+    histogram_scaling_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -316,6 +318,7 @@ class SettingsInterface(QWidget):
         self._color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self._color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
         self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
+        self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
         self.setup_ui()
 
     def setup_ui(self):
@@ -378,6 +381,10 @@ class SettingsInterface(QWidget):
             self._on_luminance_sample_count_changed
         )
         self.display_group.addSettingCard(self.luminance_sample_count_card)
+
+        # 直方图缩放模式卡片
+        self.histogram_scaling_card = self._create_histogram_scaling_card()
+        self.display_group.addSettingCard(self.histogram_scaling_card)
 
         layout.addWidget(self.display_group)
 
@@ -549,6 +556,51 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.luminance_sample_count', value)
         self._config_manager.save()
         self.luminance_sample_count_changed.emit(value)
+
+    def _create_histogram_scaling_card(self):
+        """创建直方图缩放模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.DOCUMENT,
+            "直方图缩放模式",
+            "选择直方图的缩放方式（线性/自适应）",
+            self.display_group
+        )
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem("线性缩放")
+        combo_box.setItemData(0, "linear")
+        combo_box.addItem("自适应缩放")
+        combo_box.setItemData(1, "adaptive")
+
+        # 设置当前值
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._histogram_scaling_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_histogram_scaling_mode_changed)
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_histogram_scaling_mode_changed(self, index):
+        """直方图缩放模式改变"""
+        combo_box = self.histogram_scaling_card.combo_box
+        mode = combo_box.itemData(index)
+        self._histogram_scaling_mode = mode
+        self._config_manager.set('settings.histogram_scaling_mode', mode)
+        self._config_manager.save()
+        self.histogram_scaling_mode_changed.emit(mode)
 
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""

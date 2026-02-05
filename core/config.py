@@ -44,7 +44,8 @@ class ConfigManager:
                 "hex_visible": True,
                 "color_modes": ["HSB", "LAB"],
                 "color_sample_count": 5,
-                "luminance_sample_count": 5
+                "luminance_sample_count": 5,
+                "histogram_scaling_mode": "adaptive"
             },
             "scheme": {
                 "default_scheme": "monochromatic",

@@ -1,4 +1,5 @@
 # 第三方库导入
+import math
 from typing import List, Optional
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
@@ -29,13 +30,14 @@ class BaseHistogram(QWidget):
         super().__init__(parent)
         self._histogram: List[int] = []
         self._max_count = 0
-        
+        self._scaling_mode = "linear"  # "linear" 或 "adaptive"
+
         # 绘图边距
         self._margin_left = 35
         self._margin_right = 15
         self._margin_top = 15
         self._margin_bottom = 30
-        
+
         # 背景色
         self._background_color = QColor(42, 42, 42)
         
@@ -54,7 +56,38 @@ class BaseHistogram(QWidget):
         self._histogram = []
         self._max_count = 0
         self.update()
-        
+
+    def set_scaling_mode(self, mode: str):
+        """设置直方图缩放模式
+
+        Args:
+            mode: "linear" 线性缩放，"adaptive" 自适应缩放（对数归一化）
+        """
+        if mode in ("linear", "adaptive"):
+            self._scaling_mode = mode
+            self.update()
+
+    def _calculate_bar_height(self, count: int, max_count: int, height: int) -> float:
+        """根据缩放模式计算柱子高度
+
+        Args:
+            count: 当前亮度值的像素数量
+            max_count: 最大像素数量
+            height: 绘图区域高度
+
+        Returns:
+            float: 柱子高度
+        """
+        if max_count == 0 or count == 0:
+            return 0
+
+        if self._scaling_mode == "linear":
+            return (count / max_count) * height
+        else:  # adaptive: 使用平方根缩放
+            sqrt_max = math.sqrt(max_count)
+            sqrt_count = math.sqrt(count)
+            return (sqrt_count / sqrt_max) * height
+
     def paintEvent(self, event):
         """绘制直方图"""
         painter = QPainter(self)
@@ -228,8 +261,8 @@ class LuminanceHistogramWidget(BaseHistogram):
 
         # 绘制直方图柱子
         for i in range(256):
-            # 计算柱子高度 - 使用相对最大值的比例
-            bar_height = (self._histogram[i] / self._max_count) * height
+            # 计算柱子高度 - 使用基类的计算方法
+            bar_height = self._calculate_bar_height(self._histogram[i], self._max_count, height)
 
             if bar_height > 0:
                 # 绘制柱子
@@ -497,8 +530,8 @@ class RGBHistogramWidget(BaseHistogram):
 
             # 绘制直方图柱子
             for i in range(256):
-                # 计算柱子高度 - 使用相对最大值的比例
-                bar_height = (histogram[i] / self._max_count) * height
+                # 计算柱子高度 - 使用基类的计算方法
+                bar_height = self._calculate_bar_height(histogram[i], self._max_count, height)
 
                 if bar_height > 0:
                     # 绘制柱子

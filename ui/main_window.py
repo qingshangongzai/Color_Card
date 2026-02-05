@@ -256,6 +256,11 @@ class MainWindow(FluentWindow):
             self._on_luminance_sample_count_changed
         )
 
+        # 连接直方图缩放模式改变信号
+        self.settings_interface.histogram_scaling_mode_changed.connect(
+            self._on_histogram_scaling_mode_changed
+        )
+
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.color_extract_interface.color_card_panel.set_hex_visible(hex_visible)
@@ -273,6 +278,11 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.luminance_canvas.set_picker_count(luminance_sample_count)
         self.luminance_extract_interface.histogram_widget.clear()
 
+        # 应用加载的直方图缩放模式配置
+        histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
+        self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        self.luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
+
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
         self.color_extract_interface.image_canvas.set_picker_count(count)
@@ -288,3 +298,8 @@ class MainWindow(FluentWindow):
         image = self.luminance_extract_interface.luminance_canvas.get_image()
         if image and not image.isNull():
             self.luminance_extract_interface.histogram_widget.set_image(image)
+
+    def _on_histogram_scaling_mode_changed(self, mode):
+        """直方图缩放模式改变"""
+        self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(mode)
+        self.luminance_extract_interface.histogram_widget.set_scaling_mode(mode)
