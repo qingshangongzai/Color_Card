@@ -55,6 +55,10 @@ class BaseCardPanel(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(15)
+
+        # 设置sizePolicy，允许水平压缩但保持最小宽度
+        from PySide6.QtWidgets import QSizePolicy
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
     
     def set_card_count(self, count: int):
         """设置卡片数量
@@ -277,18 +281,27 @@ class ColorCard(BaseCard):
         super().__init__(index, parent)
 
     def setup_ui(self):
+        from PySide6.QtWidgets import QSizePolicy
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
+        # 设置sizePolicy，允许垂直压缩
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # 设置色卡最小高度，确保文字区域有足够空间
+        self.setMinimumHeight(160)
+
         # 颜色块
         self.color_block = QWidget()
-        self.color_block.setFixedHeight(80)
+        self.color_block.setMinimumHeight(40)
+        self.color_block.setMaximumHeight(80)
         self._update_placeholder_style()
         layout.addWidget(self.color_block)
 
         # 数值区域（两列布局）
         values_container = QWidget()
+        values_container.setMinimumHeight(60)
         values_layout = QHBoxLayout(values_container)
         values_layout.setContentsMargins(0, 0, 0, 0)
         values_layout.setSpacing(10)
@@ -305,6 +318,8 @@ class ColorCard(BaseCard):
 
         # 16进制颜色值显示区域
         self.hex_container = QWidget()
+        self.hex_container.setMinimumHeight(30)
+        self.hex_container.setMaximumHeight(40)
         hex_layout = QHBoxLayout(self.hex_container)
         hex_layout.setContentsMargins(0, 5, 0, 0)
         hex_layout.setSpacing(5)

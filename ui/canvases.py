@@ -71,7 +71,12 @@ class BaseCanvas(QWidget):
 
     def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
         super().__init__(parent)
-        self.setMinimumSize(600, 400)
+        from PySide6.QtWidgets import QSizePolicy
+
+        # 设置sizePolicy，允许在水平和垂直方向上都充分扩展和压缩
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # 设置合理的最小尺寸，允许画布在压缩时调整大小
+        self.setMinimumSize(300, 200)
         self.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
