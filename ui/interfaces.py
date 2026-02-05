@@ -15,7 +15,8 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, get_config_manager
-from dialogs import AboutDialog
+from dialogs import AboutDialog, UpdateAvailableDialog
+from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
 from .color_wheel import HSBColorWheel
@@ -564,15 +565,8 @@ class SettingsInterface(QWidget):
 
     def on_check_update(self):
         """检查更新按钮点击"""
-        InfoBar.info(
-            title="提示",
-            content="当前已是最新版本",
-            orient=Qt.Orientation.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=2000,
-            parent=self
-        )
+        current_version = version_manager.get_version()
+        UpdateAvailableDialog.check_update(self, current_version)
 
     def on_show_about(self):
         """显示关于对话框"""

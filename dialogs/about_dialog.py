@@ -210,6 +210,12 @@ class AboutDialog(QDialog):
   • 本程序 UI 组件使用 PySide6-Fluent-Widgets，许可证：GPLv3
     项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
 
+  • 本程序使用 requests 库进行网络请求，许可证：Apache-2.0
+    项目地址：https://github.com/psf/requests
+
+  • 本程序使用 Pillow 库处理图像，许可证：MIT
+    项目地址：https://github.com/python-pillow/Pillow
+
   • 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 

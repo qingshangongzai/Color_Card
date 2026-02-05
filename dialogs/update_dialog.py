@@ -104,6 +104,8 @@ class UpdateAvailableDialog(QDialog):
     当检测到有新版本时弹出，提供跳转到发行页面的功能。
     """
 
+    _check_thread = None  # 类变量，用于保存检查更新的线程对象
+
     def __init__(self, parent=None, current_version="", latest_version=""):
         """初始化新版本提示对话框
 
@@ -210,7 +212,7 @@ class UpdateAvailableDialog(QDialog):
             return
 
         # 创建并启动检查线程
-        check_thread = UpdateCheckThread(current_version)
+        UpdateAvailableDialog._check_thread = UpdateCheckThread(current_version)
 
         def on_check_finished(success, latest_version, error_msg):
             if success:
@@ -237,5 +239,5 @@ class UpdateAvailableDialog(QDialog):
                     position=InfoBarPosition.TOP,
                 )
 
-        check_thread.check_finished.connect(on_check_finished)
-        check_thread.start()
+        UpdateAvailableDialog._check_thread.check_finished.connect(on_check_finished)
+        UpdateAvailableDialog._check_thread.start()
