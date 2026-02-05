@@ -530,28 +530,29 @@ class RGBHistogramWidget(BaseHistogram):
             legend_x += 20
 
     def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
-        """绘制刻度标签"""
+        """绘制刻度标签 - Zone 0-8 风格"""
         # 绘制标题
         self._draw_title(painter)
 
-        # 绘制底部刻度线和数值
         font = QFont()
-        font.setPointSize(7)
+        font.setPointSize(8)
         painter.setFont(font)
 
-        tick_positions = [0, 64, 128, 192, 255]
-        for value in tick_positions:
-            tick_x = int(x + value * width / 256.0)
+        # 绘制底部刻度线和数值 - Zone 0 到 8
+        zone_width = width / 8.0
+
+        for i in range(9):  # 0, 1, 2, 3, 4, 5, 6, 7, 8
+            tick_x = int(x + i * zone_width)
 
             # 绘制刻度线
             painter.setPen(QColor(100, 100, 100))
-            painter.drawLine(tick_x, y + height, tick_x, y + height + 3)
+            painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
 
-            # 绘制刻度值
-            text = str(value)
+            # 绘制刻度值 (0-8)
+            text = str(i)
             text_rect = painter.boundingRect(
-                tick_x - 15, y + height + 5,
-                30, 14,
+                tick_x - 15, y + height + 6,
+                30, 18,
                 Qt.AlignmentFlag.AlignCenter, text
             )
             painter.setPen(QColor(150, 150, 150))
