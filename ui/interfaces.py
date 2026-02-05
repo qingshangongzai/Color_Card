@@ -52,28 +52,31 @@ class ColorExtractInterface(QWidget):
 
         # 主分割器（垂直）
         main_splitter = QSplitter(Qt.Orientation.Vertical)
+        main_splitter.setMinimumHeight(400)
         layout.addWidget(main_splitter, stretch=1)
 
         # 上半部分：水平分割器（图片 + 右侧组件）
         top_splitter = QSplitter(Qt.Orientation.Horizontal)
-        top_splitter.setMinimumHeight(300)
+        top_splitter.setMinimumHeight(250)
 
         # 左侧：图片画布
         self.image_canvas = ImageCanvas()
-        self.image_canvas.setMinimumWidth(400)
+        self.image_canvas.setMinimumWidth(300)
         top_splitter.addWidget(self.image_canvas)
 
         # 右侧：垂直分割器（HSB色环 + RGB直方图）
         right_splitter = QSplitter(Qt.Orientation.Vertical)
-        right_splitter.setMinimumWidth(200)
+        right_splitter.setMinimumWidth(180)
         right_splitter.setMaximumWidth(350)
 
         # HSB色环
         self.hsb_color_wheel = HSBColorWheel()
+        self.hsb_color_wheel.setMinimumHeight(150)
         right_splitter.addWidget(self.hsb_color_wheel)
 
         # RGB直方图
         self.rgb_histogram_widget = RGBHistogramWidget()
+        self.rgb_histogram_widget.setMinimumHeight(100)
         right_splitter.addWidget(self.rgb_histogram_widget)
 
         right_splitter.setSizes([200, 150])
@@ -166,12 +169,16 @@ class LuminanceExtractInterface(QWidget):
         layout.setSpacing(10)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.setMinimumHeight(300)
         layout.addWidget(splitter, stretch=1)
 
         self.luminance_canvas = LuminanceCanvas()
+        self.luminance_canvas.setMinimumHeight(200)
         splitter.addWidget(self.luminance_canvas)
 
         self.histogram_widget = LuminanceHistogramWidget()
+        self.histogram_widget.setMinimumHeight(120)
+        self.histogram_widget.setMaximumHeight(250)
         splitter.addWidget(self.histogram_widget)
 
         splitter.setSizes([400, 150])
