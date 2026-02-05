@@ -37,7 +37,7 @@ class BaseHistogram(QWidget):
         self._margin_bottom = 30
         
         # 背景色
-        self._background_color = QColor(20, 20, 20)
+        self._background_color = QColor(42, 42, 42)
         
     def set_data(self, data: List[int]):
         """设置直方图数据
@@ -155,7 +155,7 @@ class LuminanceHistogramWidget(BaseHistogram):
         super().__init__(parent)
         self.setMinimumHeight(180)
         self.setMaximumHeight(220)
-        self.setStyleSheet("background-color: #141414; border-radius: 4px;")
+        self.setStyleSheet("background-color: #2a2a2a; border-radius: 4px;")
 
         self._highlight_zones = []  # 高亮显示的区域列表
         self._pressed_zone = -1     # 当前按下的Zone
