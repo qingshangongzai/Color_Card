@@ -76,9 +76,9 @@ class HSBColorWheel(QWidget):
 
     def _get_theme_colors(self):
         """获取主题颜色"""
-        # 背景统一为纯黑色
+        # 背景统一为深灰色
         return {
-            'bg': QColor(0, 0, 0),
+            'bg': QColor(20, 20, 20),
             'border': QColor(80, 80, 80),
             'text': QColor(200, 200, 200),
             'sample_border': QColor(255, 255, 255)
