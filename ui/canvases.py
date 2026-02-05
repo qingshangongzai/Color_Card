@@ -732,16 +732,16 @@ class LuminanceCanvas(BaseCanvas):
         self._highlighted_zone: int = -1  # 当前高亮显示的Zone (-1表示无)
         self._zone_highlight_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
 
-        # Zone高亮颜色配置 (Zone 0-7)
+        # Zone高亮颜色配置 (Zone 0-7) - Adobe标准映射
         self._zone_highlight_colors: List[QColor] = [
-            QColor(0, 102, 255, 100),    # Zone 0: 深蓝色 (极暗)
-            QColor(0, 128, 255, 100),    # Zone 1: 蓝色 (暗)
-            QColor(0, 153, 255, 100),    # Zone 2: 浅蓝色 (偏暗)
-            QColor(0, 204, 102, 100),    # Zone 3: 绿色 (中灰)
-            QColor(102, 255, 102, 100),  # Zone 4: 浅绿色 (偏亮)
-            QColor(255, 204, 0, 100),    # Zone 5: 黄色 (亮)
-            QColor(255, 128, 0, 100),    # Zone 6: 橙色 (很亮)
-            QColor(255, 51, 102, 100),   # Zone 7: 红色 (极亮)
+            QColor(0, 102, 255, 100),    # Zone 0: 深蓝色 (黑色 Blacks)
+            QColor(0, 128, 255, 100),    # Zone 1: 蓝色 (黑色 Blacks)
+            QColor(0, 153, 255, 100),    # Zone 2: 浅蓝色 (阴影 Shadows)
+            QColor(0, 204, 102, 100),    # Zone 3: 绿色 (中间调 Midtones)
+            QColor(102, 255, 102, 100),  # Zone 4: 浅绿色 (中间调 Midtones)
+            QColor(255, 204, 0, 100),    # Zone 5: 黄色 (中间调 Midtones)
+            QColor(255, 128, 0, 100),    # Zone 6: 橙色 (高光 Highlights)
+            QColor(255, 51, 102, 100),   # Zone 7: 红色 (白色 Whites)
         ]
 
         # 创建取色点（初始隐藏）
@@ -1032,11 +1032,11 @@ class LuminanceCanvas(BaseCanvas):
 
         disp_x, disp_y, disp_w, disp_h = display_rect
 
-        # 准备文字
+        # 准备文字 - Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
         zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8"]
         zone_names = [
-            "黑色", "阴影", "暗部", "中间调",
-            "亮部", "高光", "白色", "极白"
+            "黑色", "黑色", "阴影", "中间调",
+            "中间调", "中间调", "高光", "白色"
         ]
         label = zone_labels[self._highlighted_zone]
         name = zone_names[self._highlighted_zone]
