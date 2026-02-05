@@ -663,9 +663,11 @@ class ColorSchemeInterface(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
-        # 顶部控制栏
-        top_layout = QHBoxLayout()
+        # 顶部控制栏（居中显示）
+        top_container = QWidget()
+        top_layout = QHBoxLayout(top_container)
         top_layout.setSpacing(15)
+        top_layout.setContentsMargins(0, 0, 0, 0)
 
         # 配色方案选择下拉框
         scheme_label = QLabel("配色方案:")
@@ -690,60 +692,45 @@ class ColorSchemeInterface(QWidget):
         self.random_btn.setFixedWidth(100)
         top_layout.addWidget(self.random_btn)
 
-        top_layout.addStretch()
-        layout.addLayout(top_layout)
+        layout.addWidget(top_container, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        # 主内容区域（水平分割）
-        content_layout = QHBoxLayout()
-        content_layout.setSpacing(20)
+        # 主内容区域：色轮和明度调整（垂直布局，色轮居中）
+        content_layout = QVBoxLayout()
+        content_layout.setSpacing(15)
+        content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # 左侧：色环和明度滑块
-        left_layout = QVBoxLayout()
-        left_layout.setSpacing(15)
-
-        # 可交互色环
+        # 可交互色环（居中）
         self.color_wheel = InteractiveColorWheel(self)
         self.color_wheel.setFixedSize(300, 300)
-        left_layout.addWidget(self.color_wheel, alignment=Qt.AlignmentFlag.AlignCenter)
+        content_layout.addWidget(self.color_wheel, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        # 明度调整滑块
-        brightness_layout = QHBoxLayout()
+        # 明度调整滑块（色轮下方，整体居中但控件紧凑排列）
+        brightness_container = QWidget()
+        brightness_layout = QHBoxLayout(brightness_container)
+        brightness_layout.setSpacing(5)
+        brightness_layout.setContentsMargins(0, 0, 0, 0)
+
         brightness_label = QLabel("明度调整:")
         brightness_layout.addWidget(brightness_label)
 
-        self.brightness_slider = Slider(Qt.Orientation.Horizontal, self)
+        self.brightness_slider = Slider(Qt.Orientation.Horizontal, brightness_container)
         self.brightness_slider.setRange(-50, 50)
         self.brightness_slider.setValue(0)
         self.brightness_slider.setFixedWidth(200)
         brightness_layout.addWidget(self.brightness_slider)
 
         self.brightness_value_label = QLabel("0")
-        self.brightness_value_label.setFixedWidth(30)
+        self.brightness_value_label.setFixedWidth(25)
         brightness_layout.addWidget(self.brightness_value_label)
 
-        brightness_layout.addStretch()
-        left_layout.addLayout(brightness_layout)
-
-        left_layout.addStretch()
-        content_layout.addLayout(left_layout, stretch=1)
-
-        # 右侧：色块面板
-        right_layout = QVBoxLayout()
-        right_layout.setSpacing(15)
-
-        # 色块面板标题
-        panel_title = QLabel("配色预览")
-        panel_title.setStyleSheet("font-size: 16px; font-weight: bold;")
-        right_layout.addWidget(panel_title)
-
-        # 色块面板
-        self.color_panel = SchemeColorPanel(self)
-        right_layout.addWidget(self.color_panel)
-
-        right_layout.addStretch()
-        content_layout.addLayout(right_layout, stretch=2)
+        content_layout.addWidget(brightness_container, alignment=Qt.AlignmentFlag.AlignCenter)
+        content_layout.addStretch()
 
         layout.addLayout(content_layout, stretch=1)
+
+        # 下方：色块面板
+        self.color_panel = SchemeColorPanel(self)
+        layout.addWidget(self.color_panel)
 
     def setup_connections(self):
         """设置信号连接"""
