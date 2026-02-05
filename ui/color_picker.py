@@ -1,6 +1,7 @@
+# 第三方库导入
+from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint, Signal
-from PySide6.QtGui import QPainter, QColor, QPen
 
 
 class ColorPicker(QWidget):
@@ -82,10 +83,28 @@ class ColorPicker(QWidget):
             # 计算新位置
             new_pos = self.mapToParent(event.pos()) - self._drag_offset
 
-            # 限制在父控件范围内
-            parent_rect = self.parent().rect()
-            new_pos.setX(max(0, min(new_pos.x(), parent_rect.width() - self.width())))
-            new_pos.setY(max(0, min(new_pos.y(), parent_rect.height() - self.height())))
+            # 获取父控件（ImageCanvas）的图片显示区域
+            parent = self.parent()
+            if hasattr(parent, 'get_image_display_rect'):
+                display_rect = parent.get_image_display_rect()
+                if display_rect:
+                    disp_x, disp_y, disp_w, disp_h = display_rect
+                    # 限制取色点中心在图片显示区域内
+                    center_x = new_pos.x() + self.radius
+                    center_y = new_pos.y() + self.radius
+
+                    # 限制中心点在图片区域内
+                    center_x = max(disp_x, min(center_x, disp_x + disp_w))
+                    center_y = max(disp_y, min(center_y, disp_y + disp_h))
+
+                    # 转换回左上角坐标
+                    new_pos.setX(center_x - self.radius)
+                    new_pos.setY(center_y - self.radius)
+            else:
+                # 回退：限制在父控件范围内
+                parent_rect = parent.rect()
+                new_pos.setX(max(0, min(new_pos.x(), parent_rect.width() - self.width())))
+                new_pos.setY(max(0, min(new_pos.y(), parent_rect.height() - self.height())))
 
             self.move(new_pos)
             self.position_changed.emit(self.index, new_pos + QPoint(self.radius, self.radius))

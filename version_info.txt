@@ -1,0 +1,37 @@
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(2026,2,5,1),
+    prodvers=(1,0,0,0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x4,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          u'080404B0',
+          [
+            StringStruct(u'CompanyName', u'浮晓 HXiao Studio'),
+            StringStruct(u'FileDescription', u'取色卡 - Color Card'),
+            StringStruct(u'FileVersion', u'2026.2.5'),
+            StringStruct(u'InternalName', u'Color_Card'),
+            StringStruct(u'LegalCopyright', u'© 2026 浮晓 HXiao Studio'),
+            StringStruct(u'OriginalFilename', u'Color_Card.exe'),
+            StringStruct(u'ProductName', u'取色卡'),
+            StringStruct(u'ProductVersion', u'1.0.0'),
+            StringStruct(u'Comments', u'图片颜色分析工具，帮助快速提取颜色信息和分析明度分布')
+          ]
+        )
+      ]
+    ),
+    VarFileInfo(
+      [
+        VarStruct(u'Translation', [2052, 1200])
+      ]
+    )
+  ]
+)
