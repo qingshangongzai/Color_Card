@@ -127,82 +127,50 @@ class HSBColorWheel(QWidget):
         self._wheel_cache = None
 
     def _generate_wheel_cache(self):
-        """生成色环背景缓存"""
+        """生成真正的HSB色彩空间色环"""
         import math
-
-        # 创建缓存图像
-        self._wheel_cache = QPixmap(self.size())
-        self._wheel_cache.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(self._wheel_cache)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        colors = self._get_theme_colors()
-
-        # 绘制背景
-        painter.fillRect(self.rect(), colors['bg'])
+        from PySide6.QtGui import QImage
 
         # 计算色环几何参数
         self._calculate_wheel_geometry()
 
-        # 绘制HSB色环背景（优化版本）
-        # 减少分段数以提高性能
-        num_segments = 120  # 从360减少到120，足够平滑
+        # 创建QImage用于逐像素绘制
+        width = self.width()
+        height = self.height()
+        image = QImage(width, height, QImage.Format.Format_ARGB32)
+        image.fill(self._get_theme_colors()['bg'].rgb())
 
-        for i in range(num_segments):
-            # 计算当前段的角度（度）
-            angle_start = i * 360 / num_segments
-            angle_end = (i + 1) * 360 / num_segments
+        # 逐像素计算HSB颜色
+        for y in range(height):
+            for x in range(width):
+                # 计算相对于中心的距离和角度
+                dx = x - self._center_x
+                dy = y - self._center_y
+                distance = math.sqrt(dx * dx + dy * dy)
 
-            # 当前段的色相
-            hue = angle_start
+                # 只绘制圆形区域内的像素
+                if distance <= self._wheel_radius:
+                    # 计算角度（色相）
+                    angle = math.atan2(-dy, dx)  # 注意Y轴翻转
+                    hue = (angle / (2 * math.pi)) % 1.0
 
-            # 绘制从外到内的渐变条（一直到中心）
-            num_rings = 15  # 从25减少到15，提高性能
-            for j in range(num_rings):
-                # 计算内外半径（从外到内，包括中心）
-                r_outer = self._wheel_radius * (j + 1) / num_rings
-                r_inner = self._wheel_radius * j / num_rings
+                    # 计算饱和度（距离中心的远近）
+                    saturation = min(distance / self._wheel_radius, 1.0)
 
-                # 当前环的饱和度（外圈100%，中心0%）
-                saturation = 100 * (j + 0.5) / num_rings
+                    # 设置亮度为1.0（最大值）
+                    value = 1.0
 
-                # 创建颜色
-                color = QColor.fromHsvF(hue / 360.0, saturation / 100.0, 1.0)
+                    # 计算颜色
+                    color = QColor.fromHsvF(hue, saturation, value)
+                    image.setPixelColor(x, y, color)
 
-                # 绘制扇形段
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(color)
+        # 转换为QPixmap
+        self._wheel_cache = QPixmap.fromImage(image)
 
-                # 使用多边形近似扇形
-                points = []
-                num_arc_points = 4  # 从5减少到4
-
-                # 外弧
-                for k in range(num_arc_points):
-                    t = k / (num_arc_points - 1)
-                    a = (angle_start + t * (angle_end - angle_start)) * math.pi / 180
-                    points.append((
-                        self._center_x + r_outer * math.cos(a),
-                        self._center_y - r_outer * math.sin(a)
-                    ))
-
-                # 内弧（反向）
-                for k in range(num_arc_points):
-                    t = k / (num_arc_points - 1)
-                    a = (angle_end - t * (angle_end - angle_start)) * math.pi / 180
-                    points.append((
-                        self._center_x + r_inner * math.cos(a),
-                        self._center_y - r_inner * math.sin(a)
-                    ))
-
-                # 转换为QPoint并绘制
-                from PySide6.QtCore import QPoint
-                qpoints = [QPoint(int(p[0]), int(p[1])) for p in points]
-                painter.drawPolygon(qpoints)
-
-        # 绘制外边框
-        painter.setPen(QPen(colors['border'], 2))
+        # 绘制边框
+        painter = QPainter(self._wheel_cache)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(self._get_theme_colors()['border'], 2))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(
             self._center_x - self._wheel_radius,
@@ -210,7 +178,6 @@ class HSBColorWheel(QWidget):
             self._wheel_radius * 2,
             self._wheel_radius * 2
         )
-
         painter.end()
 
         # 标记缓存有效
