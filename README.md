@@ -8,7 +8,9 @@
 
 **开源协议**：本项目采用 **GNU General Public License v3.0 (GPL 3.0)** 开源协议，所有代码和文档均遵循该协议的条款和条件。
 
-**开源地址**：https://gitee.com/qingshangongzai/color_card
+**开源地址**：
+- **主仓库（Gitee）**：https://gitee.com/qingshangongzai/color_card
+- **镜像仓库（GitHub）**：https://github.com/qingshangongzai/Color_Card
 
 ### 核心功能特色
 
@@ -49,7 +51,12 @@
 1. **克隆仓库**：
 
    ```bash
+   # 从 Gitee 克隆（国内推荐）
    git clone https://gitee.com/qingshangongzai/color_card.git
+   
+   # 或从 GitHub 克隆
+   git clone https://github.com/qingshangongzai/Color_Card.git
+   
    cd color_card
    ```
 
@@ -319,11 +326,11 @@ from ui import MainWindow
 
 ### 代码贡献流程
 
-1. Fork 本项目的 Gitee 仓库
+1. Fork 本项目的 Gitee 主仓库或 GitHub 镜像仓库
 2. 创建你的特性分支：`git checkout -b feature/你的功能名称`
 3. 提交你的更改：`git commit -m '[类型] 添加了某个功能'`
-4. 将分支推送到 Gitee：`git push origin feature/你的功能名称`
-5. 在 Gitee 上对该分支创建一个 Pull Request
+4. 将分支推送到你的 Fork：`git push origin feature/你的功能名称`
+5. 在 Gitee 主仓库上对该分支创建一个 Pull Request（推荐）
 
 ### 遵循开发规范
 
@@ -358,7 +365,8 @@ Color Card 采用 **GNU General Public License v3.0 (GPL 3.0)** 许可证发布�
 
 ## 联系方式
 
-- **开源仓库（Gitee）**：[https://gitee.com/qingshangongzai/color_card](https://gitee.com/qingshangongzai/color_card)
+- **主仓库（Gitee）**：[https://gitee.com/qingshangongzai/color_card](https://gitee.com/qingshangongzai/color_card)
+- **镜像仓库（GitHub）**：[https://github.com/qingshangongzai/Color_Card](https://github.com/qingshangongzai/Color_Card)
 - **联系邮箱**：[hxiao_studio@163.com](mailto:hxiao_studio@163.com)
 
 ---
