@@ -77,7 +77,7 @@ class BaseCanvas(QWidget):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         # 设置合理的最小尺寸，允许画布在压缩时调整大小
         self.setMinimumSize(300, 200)
-        self.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
+        self.setStyleSheet("background-color: #000000; border-radius: 8px;")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self._original_pixmap: Optional[QPixmap] = None
@@ -450,7 +450,7 @@ class BaseCanvas(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
         # 绘制背景
-        painter.fillRect(self.rect(), QColor(42, 42, 42))
+        painter.fillRect(self.rect(), QColor(0, 0, 0))
 
         # 绘制图片（使用原始高分辨率图片，实时缩放显示）
         if self._original_pixmap and not self._original_pixmap.isNull():

@@ -76,20 +76,13 @@ class HSBColorWheel(QWidget):
 
     def _get_theme_colors(self):
         """获取主题颜色"""
-        if isDarkTheme():
-            return {
-                'bg': QColor(42, 42, 42),
-                'border': QColor(80, 80, 80),
-                'text': QColor(200, 200, 200),
-                'sample_border': QColor(255, 255, 255)
-            }
-        else:
-            return {
-                'bg': QColor(240, 240, 240),
-                'border': QColor(200, 200, 200),
-                'text': QColor(60, 60, 60),
-                'sample_border': QColor(255, 255, 255)
-            }
+        # 背景统一为纯黑色
+        return {
+            'bg': QColor(0, 0, 0),
+            'border': QColor(80, 80, 80),
+            'text': QColor(200, 200, 200),
+            'sample_border': QColor(255, 255, 255)
+        }
 
     def _calculate_wheel_geometry(self):
         """计算色环几何参数"""
