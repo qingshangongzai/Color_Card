@@ -283,27 +283,28 @@ class LuminanceHistogramWidget(BaseHistogram):
         zone_width = width / 8.0
 
         # Zone颜色配置 - 使用更 subtle 的背景色
+        # Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
         zone_bg_colors = [
-            QColor(30, 30, 30),   # Zone 0: 极暗
-            QColor(35, 35, 35),   # Zone 1: 暗
-            QColor(40, 40, 40),   # Zone 2: 偏暗
-            QColor(45, 45, 45),   # Zone 3: 中灰
-            QColor(50, 50, 50),   # Zone 4: 偏亮
-            QColor(55, 55, 55),   # Zone 5: 亮
-            QColor(60, 60, 60),   # Zone 6: 很亮
-            QColor(65, 65, 65),   # Zone 7: 极亮
+            QColor(30, 30, 30),   # Zone 0: 黑色(Blacks) 0-10%
+            QColor(35, 35, 35),   # Zone 1: 黑色(Blacks) 10-20%
+            QColor(40, 40, 40),   # Zone 2: 阴影(Shadows) 20-30%
+            QColor(45, 45, 45),   # Zone 3: 中间调(Midtones) 30-40%
+            QColor(50, 50, 50),   # Zone 4: 中间调(Midtones) 40-50%
+            QColor(55, 55, 55),   # Zone 5: 中间调(Midtones) 50-60%
+            QColor(60, 60, 60),   # Zone 6: 高光(Highlights) 70-80%
+            QColor(65, 65, 65),   # Zone 7: 白色(Whites) 90-100%
         ]
 
         # 按下状态或选中状态的Zone背景色（更亮一些）
         zone_active_colors = [
-            QColor(50, 50, 60),   # Zone 0: 极暗
-            QColor(55, 55, 65),   # Zone 1: 暗
-            QColor(60, 60, 70),   # Zone 2: 偏暗
-            QColor(65, 65, 75),   # Zone 3: 中灰
-            QColor(70, 70, 80),   # Zone 4: 偏亮
-            QColor(75, 75, 85),   # Zone 5: 亮
-            QColor(80, 80, 90),   # Zone 6: 很亮
-            QColor(85, 85, 95),   # Zone 7: 极亮
+            QColor(50, 50, 60),   # Zone 0: 黑色(Blacks)
+            QColor(55, 55, 65),   # Zone 1: 黑色(Blacks)
+            QColor(60, 60, 70),   # Zone 2: 阴影(Shadows)
+            QColor(65, 65, 75),   # Zone 3: 中间调(Midtones)
+            QColor(70, 70, 80),   # Zone 4: 中间调(Midtones)
+            QColor(75, 75, 85),   # Zone 5: 中间调(Midtones)
+            QColor(80, 80, 90),   # Zone 6: 高光(Highlights)
+            QColor(85, 85, 95),   # Zone 7: 白色(Whites)
         ]
 
         for i in range(8):
