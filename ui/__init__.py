@@ -13,9 +13,10 @@ from .histograms import (
     RGBHistogramWidget
 )
 from .color_picker import ColorPicker
-from .color_wheel import HSBColorWheel
+from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .zoom_viewer import ZoomViewer
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface
+from .scheme_widgets import SchemeColorInfoCard, SchemeColorPanel
 
 __all__ = [
     # 主窗口
@@ -34,6 +35,7 @@ __all__ = [
     # 控件
     'ColorPicker',
     'HSBColorWheel',
+    'InteractiveColorWheel',
     'ZoomViewer',
     # 直方图
     'BaseHistogram',
@@ -43,4 +45,8 @@ __all__ = [
     'ColorExtractInterface',
     'LuminanceExtractInterface',
     'SettingsInterface',
+    'ColorSchemeInterface',
+    # 配色方案组件
+    'SchemeColorInfoCard',
+    'SchemeColorPanel',
 ]

@@ -46,6 +46,11 @@ class ConfigManager:
                 "color_sample_count": 5,
                 "luminance_sample_count": 5
             },
+            "scheme": {
+                "default_scheme": "monochromatic",
+                "color_count": 5,
+                "brightness_adjustment": 0
+            },
             "window": {
                 "width": 940,
                 "height": 660,

@@ -354,3 +354,249 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
         histogram_b[color.blue()] += 1
 
     return histogram_r, histogram_g, histogram_b
+
+
+def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
+    """将HSB转换为RGB
+
+    Args:
+        h: 色相 (0-360)
+        s: 饱和度 (0-100)
+        b: 亮度 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+    """
+    h_norm = h / 360.0
+    s_norm = s / 100.0
+    v_norm = b / 100.0
+
+    r, g, b_out = colorsys.hsv_to_rgb(h_norm, s_norm, v_norm)
+    return round(r * 255), round(g * 255), round(b_out * 255)
+
+
+def generate_monochromatic(hue: float, count: int = 4) -> List[Tuple[float, float, float]]:
+    """生成同色系配色方案
+
+    基于同一色相，通过调整饱和度和亮度生成和谐的颜色组合
+
+    Args:
+        hue: 基准色相 (0-360)
+        count: 生成颜色数量 (默认4)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    # 根据数量生成饱和度和明度序列
+    if count == 4:
+        saturations = [100, 75, 50, 25]
+        brightnesses = [100, 90, 80, 70]
+    else:
+        saturations = [100 - i * (80 / max(count - 1, 1)) for i in range(count)]
+        brightnesses = [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+
+    for i in range(count):
+        s = max(20, min(100, saturations[i] if i < len(saturations) else 50))
+        b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
+        colors.append((hue % 360, s, b))
+
+    return colors
+
+
+def generate_analogous(hue: float, angle: float = 30, count: int = 4) -> List[Tuple[float, float, float]]:
+    """生成邻近色配色方案
+
+    在色相环上选择与基准色相邻的颜色，创造和谐统一的视觉效果
+
+    Args:
+        hue: 基准色相 (0-360)
+        angle: 邻近角度范围 (默认30度)
+        count: 生成颜色数量 (默认4)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    if count == 4:
+        # 4个颜色：基准色两侧各1个，加上基准色和另一个过渡色
+        hues = [
+            (hue - angle) % 360,
+            (hue - angle / 2) % 360,
+            hue % 360,
+            (hue + angle / 2) % 360
+        ]
+    else:
+        step = (2 * angle) / max(count - 1, 1)
+        hues = [(hue - angle + i * step) % 360 for i in range(count)]
+
+    for h in hues:
+        colors.append((h, 85, 90))
+
+    return colors
+
+
+def generate_complementary(hue: float, count: int = 5) -> List[Tuple[float, float, float]]:
+    """生成互补色配色方案
+
+    选择色相环上相对位置的颜色（相差180度），创造强烈对比
+    所有采样点集中在两个区域：基准色区域和互补色区域
+
+    Args:
+        hue: 基准色相 (0-360)
+        count: 生成颜色数量 (默认5)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    comp_hue = (hue + 180) % 360
+
+    if count == 5:
+        # 基准色一侧3个：通过调整饱和度和明度来区分，保持色相一致
+        colors = [
+            (hue, 100, 100),      # 基准色：最鲜艳
+            (hue, 75, 90),        # 基准色：降低饱和度
+            (hue, 50, 80),        # 基准色：进一步降低饱和度
+            # 互补色一侧2个
+            (comp_hue, 100, 100), # 互补色：最鲜艳
+            (comp_hue, 75, 90),   # 互补色：降低饱和度
+        ]
+    else:
+        # 平均分配：基准色一侧 ceil(count/2)，互补色一侧 floor(count/2)
+        base_count = (count + 1) // 2
+        comp_count = count - base_count
+
+        # 基准色一侧：同一色相，不同饱和度
+        for i in range(base_count):
+            s = 100 - i * (50 / max(base_count, 1))  # 饱和度从100递减
+            b = 100 - i * (20 / max(base_count, 1))  # 明度稍微降低
+            colors.append((hue, max(50, s), max(80, b)))
+
+        # 互补色一侧：同一色相，不同饱和度
+        for i in range(comp_count):
+            s = 100 - i * (50 / max(comp_count, 1))
+            b = 100 - i * (20 / max(comp_count, 1))
+            colors.append((comp_hue, max(50, s), max(80, b)))
+
+    return colors
+
+
+def generate_split_complementary(hue: float, angle: float = 30, count: int = 3) -> List[Tuple[float, float, float]]:
+    """生成分离补色配色方案
+
+    选择基准色和互补色两侧的颜色，既有对比又更柔和
+
+    Args:
+        hue: 基准色相 (0-360)
+        angle: 分离角度 (默认30度)
+        count: 生成颜色数量 (默认3)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    comp_hue = (hue + 180) % 360
+    left_comp = (comp_hue - angle) % 360
+    right_comp = (comp_hue + angle) % 360
+
+    if count == 3:
+        # 3个颜色：基准色 + 两个分离补色
+        colors = [
+            (hue, 100, 100),
+            (left_comp, 100, 100),
+            (right_comp, 100, 100)
+        ]
+    else:
+        colors.append((hue, 100, 100))
+        colors.append((left_comp, 100, 100))
+        colors.append((right_comp, 100, 100))
+        remaining = count - 3
+        for i in range(remaining):
+            blend_hue = (hue + (i + 1) * 60) % 360
+            colors.append((blend_hue, 70, 85))
+
+    return colors
+
+
+def generate_double_complementary(hue: float, angle: float = 30, count: int = 4) -> List[Tuple[float, float, float]]:
+    """生成双补色配色方案
+
+    选择两组互补色，创造丰富而平衡的配色方案
+
+    Args:
+        hue: 基准色相 (0-360)
+        angle: 分离角度 (默认30度)
+        count: 生成颜色数量 (默认4)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    comp_hue = (hue + 180) % 360
+    second_hue = (hue + angle) % 360
+    second_comp = (second_hue + 180) % 360
+
+    if count == 4:
+        # 4个颜色：两组互补色
+        colors = [
+            (hue, 100, 100),
+            (comp_hue, 100, 100),
+            (second_hue, 100, 100),
+            (second_comp, 100, 100)
+        ]
+    else:
+        hues = [hue, comp_hue, second_hue, second_comp]
+        for i in range(min(count, 4)):
+            colors.append((hues[i], 90, 95))
+        for i in range(4, count):
+            blend_hue = (hue + i * 45) % 360
+            colors.append((blend_hue, 70, 85))
+
+    return colors
+
+
+def adjust_brightness(hsb_colors: List[Tuple[float, float, float]], brightness_delta: float) -> List[Tuple[float, float, float]]:
+    """调整配色方案的明度
+
+    Args:
+        hsb_colors: HSB颜色列表 [(h, s, b), ...]
+        brightness_delta: 明度调整值 (-100 到 +100)
+
+    Returns:
+        list: 调整后的HSB颜色列表
+    """
+    adjusted = []
+    for h, s, b in hsb_colors:
+        new_b = max(10, min(100, b + brightness_delta))
+        adjusted.append((h, s, new_b))
+    return adjusted
+
+
+def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5) -> List[Tuple[int, int, int]]:
+    """获取配色方案的预览颜色（RGB格式）
+
+    Args:
+        scheme_type: 配色方案类型 ('monochromatic', 'analogous', 'complementary',
+                     'split_complementary', 'double_complementary')
+        base_hue: 基准色相 (0-360)
+        count: 生成颜色数量
+
+    Returns:
+        list: RGB颜色列表 [(r, g, b), ...]
+    """
+    # 根据方案类型调用对应的生成器，正确处理参数
+    if scheme_type == 'monochromatic':
+        hsb_colors = generate_monochromatic(base_hue, count)
+    elif scheme_type == 'analogous':
+        hsb_colors = generate_analogous(base_hue, 30, count)
+    elif scheme_type == 'complementary':
+        hsb_colors = generate_complementary(base_hue, count)
+    elif scheme_type == 'split_complementary':
+        hsb_colors = generate_split_complementary(base_hue, 30, count)
+    elif scheme_type == 'double_complementary':
+        hsb_colors = generate_double_complementary(base_hue, 30, count)
+    else:
+        hsb_colors = generate_monochromatic(base_hue, count)
+
+    return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]

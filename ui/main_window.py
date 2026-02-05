@@ -10,7 +10,7 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel
@@ -78,6 +78,11 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.setObjectName('luminanceExtract')
         self.stackedWidget.addWidget(self.luminance_extract_interface)
 
+        # 配色方案界面
+        self.color_scheme_interface = ColorSchemeInterface(self)
+        self.color_scheme_interface.setObjectName('colorScheme')
+        self.stackedWidget.addWidget(self.color_scheme_interface)
+
         # 设置界面
         self.settings_interface = SettingsInterface(self)
         self.settings_interface.setObjectName('settings')
@@ -112,6 +117,14 @@ class MainWindow(FluentWindow):
             self.luminance_extract_interface,
             FluentIcon.BRIGHTNESS,
             "明度提取",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 配色方案
+        self.addSubInterface(
+            self.color_scheme_interface,
+            FluentIcon.PALETTE,
+            "配色方案",
             position=NavigationItemPosition.TOP
         )
 
@@ -221,6 +234,16 @@ class MainWindow(FluentWindow):
         # 连接色彩模式改变信号到色卡面板
         self.settings_interface.color_modes_changed.connect(
             self.color_extract_interface.color_card_panel.set_color_modes
+        )
+
+        # 连接16进制显示开关信号到配色方案面板
+        self.settings_interface.hex_display_changed.connect(
+            self.color_scheme_interface.update_display_settings
+        )
+
+        # 连接色彩模式改变信号到配色方案面板
+        self.settings_interface.color_modes_changed.connect(
+            lambda modes: self.color_scheme_interface.update_display_settings(color_modes=modes)
         )
 
         # 连接色彩提取采样点数改变信号

@@ -19,8 +19,9 @@ from dialogs import AboutDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
-from .color_wheel import HSBColorWheel
+from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
+from .scheme_widgets import SchemeColorPanel
 
 
 # 可选的色彩模式列表
@@ -579,3 +580,224 @@ class SettingsInterface(QWidget):
         """显示关于对话框"""
         dialog = AboutDialog(self)
         dialog.exec()
+
+
+class ColorSchemeInterface(QWidget):
+    """配色方案界面"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('colorSchemeInterface')
+        self._current_scheme = 'monochromatic'
+        self._base_hue = 0.0
+        self._base_saturation = 100.0
+        self._base_brightness = 100.0
+        self._brightness_adjustment = 0
+
+        # 获取配置管理器
+        from core import get_config_manager
+        self._config_manager = get_config_manager()
+
+        self.setup_ui()
+        self.setup_connections()
+        self._load_settings()
+        # 根据初始配色方案设置卡片数量
+        self._update_card_count()
+        self._generate_scheme_colors()
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        # 顶部控制栏
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(15)
+
+        # 配色方案选择下拉框
+        scheme_label = QLabel("配色方案:")
+        top_layout.addWidget(scheme_label)
+
+        self.scheme_combo = ComboBox(self)
+        self.scheme_combo.addItem("同色系")
+        self.scheme_combo.addItem("邻近色")
+        self.scheme_combo.addItem("互补色")
+        self.scheme_combo.addItem("分离补色")
+        self.scheme_combo.addItem("双补色")
+        self.scheme_combo.setItemData(0, "monochromatic")
+        self.scheme_combo.setItemData(1, "analogous")
+        self.scheme_combo.setItemData(2, "complementary")
+        self.scheme_combo.setItemData(3, "split_complementary")
+        self.scheme_combo.setItemData(4, "double_complementary")
+        self.scheme_combo.setFixedWidth(150)
+        top_layout.addWidget(self.scheme_combo)
+
+        # 随机按钮
+        self.random_btn = PrimaryPushButton(FluentIcon.SYNC, "随机", self)
+        self.random_btn.setFixedWidth(100)
+        top_layout.addWidget(self.random_btn)
+
+        top_layout.addStretch()
+        layout.addLayout(top_layout)
+
+        # 主内容区域（水平分割）
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(20)
+
+        # 左侧：色环和明度滑块
+        left_layout = QVBoxLayout()
+        left_layout.setSpacing(15)
+
+        # 可交互色环
+        self.color_wheel = InteractiveColorWheel(self)
+        self.color_wheel.setFixedSize(300, 300)
+        left_layout.addWidget(self.color_wheel, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # 明度调整滑块
+        brightness_layout = QHBoxLayout()
+        brightness_label = QLabel("明度调整:")
+        brightness_layout.addWidget(brightness_label)
+
+        self.brightness_slider = Slider(Qt.Orientation.Horizontal, self)
+        self.brightness_slider.setRange(-50, 50)
+        self.brightness_slider.setValue(0)
+        self.brightness_slider.setFixedWidth(200)
+        brightness_layout.addWidget(self.brightness_slider)
+
+        self.brightness_value_label = QLabel("0")
+        self.brightness_value_label.setFixedWidth(30)
+        brightness_layout.addWidget(self.brightness_value_label)
+
+        brightness_layout.addStretch()
+        left_layout.addLayout(brightness_layout)
+
+        left_layout.addStretch()
+        content_layout.addLayout(left_layout, stretch=1)
+
+        # 右侧：色块面板
+        right_layout = QVBoxLayout()
+        right_layout.setSpacing(15)
+
+        # 色块面板标题
+        panel_title = QLabel("配色预览")
+        panel_title.setStyleSheet("font-size: 16px; font-weight: bold;")
+        right_layout.addWidget(panel_title)
+
+        # 色块面板
+        self.color_panel = SchemeColorPanel(self)
+        right_layout.addWidget(self.color_panel)
+
+        right_layout.addStretch()
+        content_layout.addLayout(right_layout, stretch=2)
+
+        layout.addLayout(content_layout, stretch=1)
+
+    def setup_connections(self):
+        """设置信号连接"""
+        self.scheme_combo.currentIndexChanged.connect(self.on_scheme_changed)
+        self.random_btn.clicked.connect(self.on_random_clicked)
+        self.color_wheel.base_color_changed.connect(self.on_base_color_changed)
+        self.brightness_slider.valueChanged.connect(self.on_brightness_changed)
+
+    def _load_settings(self):
+        """加载显示设置"""
+        # 从配置管理器读取设置
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+
+        # 应用设置到色块面板
+        self.color_panel.update_settings(hex_visible, color_modes)
+
+    def _update_card_count(self):
+        """根据当前配色方案更新卡片数量"""
+        scheme_counts = {
+            'monochromatic': 4,      # 同色系：4个
+            'analogous': 4,          # 邻近色：4个
+            'complementary': 5,      # 互补色：5个
+            'split_complementary': 3, # 分离补色：3个
+            'double_complementary': 4  # 双补色：4个
+        }
+        count = scheme_counts.get(self._current_scheme, 5)
+        self.color_panel.set_card_count(count)
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置（由设置界面调用）
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        if hex_visible is not None:
+            self.color_panel.set_hex_visible(hex_visible)
+
+        if color_modes is not None and len(color_modes) >= 2:
+            self.color_panel.set_color_modes(color_modes)
+
+    def on_scheme_changed(self, index):
+        """配色方案改变回调"""
+        self._current_scheme = self.scheme_combo.currentData()
+
+        # 根据配色方案类型调整卡片数量
+        self._update_card_count()
+
+        self._generate_scheme_colors()
+
+    def on_random_clicked(self):
+        """随机按钮点击回调"""
+        import random
+        self._base_hue = random.uniform(0, 360)
+        self._base_saturation = random.uniform(60, 100)
+        self.color_wheel.set_base_color(self._base_hue, self._base_saturation, self._base_brightness)
+        self._generate_scheme_colors()
+
+    def on_base_color_changed(self, h, s, b):
+        """基准颜色改变回调"""
+        self._base_hue = h
+        self._base_saturation = s
+        self._generate_scheme_colors()
+
+    def on_brightness_changed(self, value):
+        """明度调整回调"""
+        self._brightness_adjustment = value
+        self.brightness_value_label.setText(str(value))
+        # 更新色轮的全局明度
+        self.color_wheel.set_global_brightness(value)
+        self._generate_scheme_colors()
+
+    def _generate_scheme_colors(self):
+        """生成配色方案颜色"""
+        from core import get_scheme_preview_colors, adjust_brightness, hsb_to_rgb, rgb_to_hsb
+
+        # 根据配色方案类型确定颜色数量
+        scheme_counts = {
+            'monochromatic': 4,      # 同色系：4个
+            'analogous': 4,          # 邻近色：4个
+            'complementary': 5,      # 互补色：5个
+            'split_complementary': 3, # 分离补色：3个
+            'double_complementary': 4  # 双补色：4个
+        }
+        count = scheme_counts.get(self._current_scheme, 5)
+
+        # 生成基础配色
+        colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
+
+        # 转换为HSB并应用明度调整
+        hsb_colors = []
+        for rgb in colors:
+            h, s, b = rgb_to_hsb(*rgb)
+            hsb_colors.append((h, s, b))
+
+        if self._brightness_adjustment != 0:
+            hsb_colors = adjust_brightness(hsb_colors, self._brightness_adjustment)
+            colors = [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]
+
+        # 更新色块面板
+        self.color_panel.set_colors(colors)
+
+        # 更新色环上的配色方案点
+        self.color_wheel.set_scheme_colors(hsb_colors)
+
+
+# 导入需要在类定义之后导入的模块
+from qfluentwidgets import Slider
