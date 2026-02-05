@@ -2,24 +2,18 @@
 import re
 
 # 第三方库导入
-from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QDialog, QLabel
-)
-from PySide6.QtCore import Qt, QThread, Signal, QUrl
-from PySide6.QtGui import QDesktopServices, QColor
-
-from qfluentwidgets import (
-    PushButton, PrimaryPushButton, InfoBar, InfoBarPosition, isDarkTheme
-)
-
-# 项目模块导入
-from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal
+from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, isDarkTheme
 
 try:
     import requests
 except ImportError:
     requests = None
+
+# 项目模块导入
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 
 
 class UpdateCheckThread(QThread):
@@ -109,6 +103,8 @@ class UpdateAvailableDialog(QDialog):
 
     当检测到有新版本时弹出，提供跳转到发行页面的功能。
     """
+
+    _check_thread = None  # 类变量，用于保存检查更新的线程对象
 
     def __init__(self, parent=None, current_version="", latest_version=""):
         """初始化新版本提示对话框
@@ -216,7 +212,7 @@ class UpdateAvailableDialog(QDialog):
             return
 
         # 创建并启动检查线程
-        check_thread = UpdateCheckThread(current_version)
+        UpdateAvailableDialog._check_thread = UpdateCheckThread(current_version)
 
         def on_check_finished(success, latest_version, error_msg):
             if success:
@@ -243,5 +239,5 @@ class UpdateAvailableDialog(QDialog):
                     position=InfoBarPosition.TOP,
                 )
 
-        check_thread.check_finished.connect(on_check_finished)
-        check_thread.start()
+        UpdateAvailableDialog._check_thread.check_finished.connect(on_check_finished)
+        UpdateAvailableDialog._check_thread.start()

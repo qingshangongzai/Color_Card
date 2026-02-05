@@ -1,10 +1,11 @@
-from PySide6.QtWidgets import QWidget
+# 第三方库导入
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QColor, QPen, QPixmap
-
+from PySide6.QtGui import QColor, QPainter, QPen, QPixmap
+from PySide6.QtWidgets import QWidget
 from qfluentwidgets import isDarkTheme
 
-from color_utils import rgb_to_hsb
+# 项目模块导入
+from core import rgb_to_hsb
 
 
 class HSBColorWheel(QWidget):

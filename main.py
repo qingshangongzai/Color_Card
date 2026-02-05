@@ -1,23 +1,26 @@
+# 标准库导入
+import ctypes
+import os
 import sys
 from io import StringIO
 
-# ========== 第 1 步：在导入 PySide6 之前设置 AppUserModelID ==========
-# 这必须在创建 QApplication 之前调用！
-import os
-import ctypes
 
 def set_app_user_model_id():
-    """设置 AppUserModelID"""
+    """设置 Windows AppUserModelID
+    
+    这必须在创建 QApplication 之前调用！
+    格式：CompanyName.AppName.Version
+    """
     if os.name != 'nt':
         return False
     
     try:
-        # 格式：CompanyName.AppName.Version
         app_id = 'HXiaoStudio.ColorCard.1.0.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
         return True
     except Exception:
         return False
+
 
 # 立即调用（在导入 PySide6 之前）
 set_app_user_model_id()
@@ -26,17 +29,18 @@ set_app_user_model_id()
 _old_stdout = sys.stdout
 sys.stdout = StringIO()
 
-from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import Qt
+# 第三方库导入
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon
-
-from qfluentwidgets import FluentWindow, setTheme, Theme, setThemeColor
+from PySide6.QtWidgets import QApplication
+from qfluentwidgets import setTheme, setThemeColor, Theme
 
 # 恢复 stdout
 sys.stdout = _old_stdout
 
-from widgets import MainWindow
-from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
+# 项目模块导入
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from ui import MainWindow
 
 
 def main():
@@ -57,7 +61,6 @@ def main():
     window.show()
     
     # 修复任务栏图标（在窗口显示后调用）
-    from PySide6.QtCore import QTimer
     QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(window))
 
     sys.exit(app.exec())

@@ -1,6 +1,7 @@
+# 第三方库导入
+from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint, Signal
-from PySide6.QtGui import QPainter, QColor, QPen
 
 
 class ColorPicker(QWidget):

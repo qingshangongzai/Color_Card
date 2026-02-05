@@ -1,7 +1,7 @@
+# 第三方库导入
+from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
-from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QPainter, QImage, QColor, QPen, QBrush, QPainterPath
-
 from qfluentwidgets import isDarkTheme
 
 

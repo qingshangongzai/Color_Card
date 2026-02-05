@@ -1,25 +1,22 @@
-"""版本管理模块
-
-负责管理应用程序的版本信息和应用元数据。
-"""
+from typing import Dict
 
 
 class VersionManager:
     """应用程序版本管理器，负责管理应用程序的版本信息和应用元数据"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初始化版本管理器"""
         # 版本号组件
-        self.major = 1
-        self.minor = 0
-        self.patch = 0
-        self.build = 0
+        self.major: int = 1
+        self.minor: int = 0
+        self.patch: int = 0
+        self.build: int = 0
 
         # 核心版本信息
-        self.version = f"{self.major}.{self.minor}.{self.patch}"
+        self.version: str = f"{self.major}.{self.minor}.{self.patch}"
 
         # 详细版本信息结构
-        self.version_info = {
+        self.version_info: Dict[str, int | str] = {
             "major": self.major,
             "minor": self.minor,
             "patch": self.patch,
@@ -29,7 +26,7 @@ class VersionManager:
         }
 
         # 应用程序元数据
-        self.app_info = {
+        self.app_info: Dict[str, str] = {
             "name": "取色卡",
             "name_en": "Color Card",
             "company": "浮晓 HXiao Studio",
@@ -41,7 +38,7 @@ class VersionManager:
             "email": "hxiao_studio@163.com"
         }
 
-    def get_version(self):
+    def get_version(self) -> str:
         """获取当前版本号
 
         Returns:
@@ -49,7 +46,7 @@ class VersionManager:
         """
         return self.version
 
-    def get_version_info(self):
+    def get_version_info(self) -> Dict[str, int | str]:
         """获取版本详细信息
 
         Returns:
@@ -57,7 +54,7 @@ class VersionManager:
         """
         return self.version_info.copy()
 
-    def get_app_info(self):
+    def get_app_info(self) -> Dict[str, str]:
         """获取应用程序信息
 
         Returns:
@@ -65,7 +62,7 @@ class VersionManager:
         """
         return self.app_info.copy()
 
-    def get_full_app_name(self):
+    def get_full_app_name(self) -> str:
         """获取完整应用程序名称（包含版本号）
 
         Returns:
@@ -73,7 +70,7 @@ class VersionManager:
         """
         return f"{self.app_info['name']} v{self.version}"
 
-    def get_file_version_info(self):
+    def get_file_version_info(self) -> Dict[str, int]:
         """获取文件版本信息（用于Windows EXE元数据）
 
         Returns:
@@ -88,4 +85,4 @@ class VersionManager:
 
 
 # 创建全局版本管理器实例
-version_manager = VersionManager()
+version_manager: VersionManager = VersionManager()

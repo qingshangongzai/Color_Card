@@ -2,21 +2,16 @@
 from pathlib import Path
 
 # 第三方库导入
-from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QFrame,
-    QPlainTextEdit, QDialog
-)
 from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtGui import QDesktopServices, QColor
-
-from qfluentwidgets import (
-    PushButton, PrimaryPushButton,
-    CaptionLabel, isDarkTheme
+from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtWidgets import (
+    QDialog, QFrame, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
 )
+from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme
 
 # 项目模块导入
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 from version import version_manager
-from icon_utils import load_icon_universal, fix_windows_taskbar_icon_for_window
 
 
 def get_background_color():
@@ -215,8 +210,17 @@ class AboutDialog(QDialog):
   • 本程序 UI 组件使用 PySide6-Fluent-Widgets，许可证：GPLv3
     项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
 
+  • 本程序使用 requests 库进行网络请求，许可证：Apache-2.0
+    项目地址：https://github.com/psf/requests
+
+  • 本程序使用 Pillow 库处理图像，许可证：MIT
+    项目地址：https://github.com/python-pillow/Pillow
+
   • 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
+
+  • 本程序使用UPX工具压缩可执行文件体积。
+    官网：https://upx.github.io/
 
   • 本程序使用Inno Setup工具将独立的可执行文件打包为安装程序。
     官网：https://jrsoftware.org/isinfo.php

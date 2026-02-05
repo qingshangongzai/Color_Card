@@ -1,6 +1,6 @@
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(2026,2,4,1),
+    filevers=(2026,2,5,1),
     prodvers=(1,0,0,0),
     mask=0x3f,
     flags=0x0,
@@ -17,7 +17,7 @@ VSVersionInfo(
           [
             StringStruct(u'CompanyName', u'浮晓 HXiao Studio'),
             StringStruct(u'FileDescription', u'取色卡 - Color Card'),
-            StringStruct(u'FileVersion', u'2026.2.4'),
+            StringStruct(u'FileVersion', u'2026.2.5'),
             StringStruct(u'InternalName', u'Color_Card'),
             StringStruct(u'LegalCopyright', u'© 2026 浮晓 HXiao Studio'),
             StringStruct(u'OriginalFilename', u'Color_Card.exe'),

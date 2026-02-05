@@ -1,27 +1,22 @@
-"""配置管理模块
-
-负责应用程序状态的保存和加载，使用 JSON 格式存储配置。
-配置文件位置：用户主目录下的 .color_card/config.json
-"""
-
+# 标准库导入
 import json
-import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+# 项目模块导入
 from version import version_manager
 
 
 class ConfigManager:
     """配置管理器，处理应用程序配置的加载和保存"""
 
-    CONFIG_VERSION = "1.0"
-    CONFIG_DIR_NAME = ".color_card"
-    CONFIG_FILE_NAME = "config.json"
+    CONFIG_VERSION: str = "1.0"
+    CONFIG_DIR_NAME: str = ".color_card"
+    CONFIG_FILE_NAME: str = "config.json"
 
-    def __init__(self):
+    def __init__(self) -> None:
         """初始化配置管理器"""
-        self._config_path = self._get_config_path()
+        self._config_path: Path = self._get_config_path()
         self._config: Dict[str, Any] = {}
         self._load_default_config()
 
@@ -35,12 +30,12 @@ class ConfigManager:
         config_dir = home_dir / self.CONFIG_DIR_NAME
         return config_dir / self.CONFIG_FILE_NAME
 
-    def _ensure_config_dir(self):
+    def _ensure_config_dir(self) -> None:
         """确保配置目录存在"""
         config_dir = self._config_path.parent
         config_dir.mkdir(parents=True, exist_ok=True)
 
-    def _load_default_config(self):
+    def _load_default_config(self) -> None:
         """加载默认配置"""
         self._config = {
             "version": self.CONFIG_VERSION,
@@ -80,7 +75,7 @@ class ConfigManager:
 
         return self._config
 
-    def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]):
+    def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
         """递归合并配置字典
 
         Args:
@@ -93,7 +88,7 @@ class ConfigManager:
             else:
                 base[key] = value
 
-    def save(self, config: Optional[Dict[str, Any]] = None):
+    def save(self, config: Optional[Dict[str, Any]] = None) -> None:
         """保存配置到文件
 
         Args:
@@ -128,10 +123,9 @@ class ConfigManager:
                 value = value[k]
             else:
                 return default
-
         return value
 
-    def set(self, key: str, value: Any):
+    def set(self, key: str, value: Any) -> None:
         """设置配置项
 
         Args:
@@ -156,7 +150,7 @@ class ConfigManager:
         """
         return self._config.get("settings", {})
 
-    def set_settings(self, settings: Dict[str, Any]):
+    def set_settings(self, settings: Dict[str, Any]) -> None:
         """设置设置配置
 
         Args:
@@ -172,14 +166,13 @@ class ConfigManager:
         """
         return self._config.get("window", {})
 
-    def set_window_config(self, window_config: Dict[str, Any]):
+    def set_window_config(self, window_config: Dict[str, Any]) -> None:
         """设置窗口配置
 
         Args:
             window_config: 窗口配置字典
         """
         self._config["window"] = window_config
-
 
 # 全局配置管理器实例
 _config_manager: Optional[ConfigManager] = None
