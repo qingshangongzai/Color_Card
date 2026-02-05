@@ -1,6 +1,9 @@
+# 标准库导入
+import math
+
 # 第三方库导入
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QPixmap
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QPen, QPixmap, QCursor
 from PySide6.QtWidgets import QWidget
 from qfluentwidgets import isDarkTheme
 
@@ -251,3 +254,306 @@ class HSBColorWheel(QWidget):
         super().resizeEvent(event)
         self._calculate_wheel_geometry()
         self._invalidate_cache()  # 使缓存失效，下次绘制时重新生成
+
+
+class InteractiveColorWheel(QWidget):
+    """可交互的HSB色环组件 - 支持拖动选择基准色并显示配色方案点"""
+
+    base_color_changed = Signal(float, float, float)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumSize(250, 250)
+        self.setMaximumSize(400, 400)
+        self.setCursor(QCursor(Qt.CursorShape.CrossCursor))
+
+        self._base_hue = 0.0
+        self._base_saturation = 100.0
+        self._base_brightness = 100.0
+        self._dragging = False
+
+        self._wheel_radius = 0
+        self._center_x = 0
+        self._center_y = 0
+
+        self._wheel_cache = None
+        self._cache_valid = False
+        self._cached_theme = None
+
+        # 配色方案颜色点列表 [(h, s, b), ...]
+        self._scheme_colors = []
+
+        # 全局明度调整值 (-100 到 +100)
+        self._global_brightness = 0
+
+    def set_base_color(self, h: float, s: float, b: float):
+        """设置基准颜色
+
+        Args:
+            h: 色相 (0-360)
+            s: 饱和度 (0-100)
+            b: 亮度 (0-100)
+        """
+        self._base_hue = h % 360
+        self._base_saturation = max(0, min(100, s))
+        self._base_brightness = max(0, min(100, b))
+        self.update()
+
+    def get_base_color(self) -> tuple:
+        """获取基准颜色
+
+        Returns:
+            tuple: (色相, 饱和度, 亮度)
+        """
+        return self._base_hue, self._base_saturation, self._base_brightness
+
+    def set_scheme_colors(self, colors: list):
+        """设置配色方案颜色点
+
+        Args:
+            colors: HSB颜色列表 [(h, s, b), ...]
+        """
+        self._scheme_colors = colors if colors else []
+        self.update()
+
+    def clear_scheme_colors(self):
+        """清除配色方案颜色点"""
+        self._scheme_colors = []
+        self.update()
+
+    def set_global_brightness(self, brightness: int):
+        """设置全局明度调整值
+
+        Args:
+            brightness: 明度调整值 (-100 到 +100)
+        """
+        self._global_brightness = max(-100, min(100, brightness))
+        self._invalidate_cache()  # 使缓存失效，重新生成色轮
+        self.update()
+
+    def _get_theme_colors(self):
+        """获取主题颜色"""
+        return {
+            'bg': QColor(42, 42, 42),
+            'border': QColor(80, 80, 80),
+            'selector_border': QColor(255, 255, 255),
+            'selector_inner': QColor(0, 0, 0),
+            'scheme_point_border': QColor(255, 255, 255),
+            'scheme_point_inner': QColor(0, 0, 0)
+        }
+
+    def _calculate_wheel_geometry(self):
+        """计算色环几何参数"""
+        margin = 25
+        available_size = min(self.width(), self.height()) - margin * 2
+        self._wheel_radius = available_size // 2
+        self._center_x = self.width() // 2
+        self._center_y = self.height() // 2
+
+    def _hsb_to_position(self, h: float, s: float, b: float = 100.0) -> tuple:
+        """将HSB值转换为色环上的位置
+
+        Args:
+            h: 色相 (0-360)
+            s: 饱和度 (0-100)
+            b: 明度 (0-100)，明度越低越靠近中心
+
+        Returns:
+            (x, y) 坐标
+        """
+        angle_rad = (h * math.pi / 180.0)
+        max_radius = self._wheel_radius * 0.85
+
+        # 位置由饱和度和明度共同决定
+        # 饱和度决定水平距离，明度决定垂直距离（明度越低越靠近中心）
+        saturation_factor = s / 100.0
+        brightness_factor = b / 100.0
+
+        # 综合因素：明度越低，点越靠近中心
+        radius = max_radius * saturation_factor * brightness_factor
+
+        x = self._center_x + radius * math.cos(angle_rad)
+        y = self._center_y - radius * math.sin(angle_rad)
+
+        return int(x), int(y)
+
+    def _position_to_hsb(self, x: int, y: int) -> tuple:
+        """将色环上的位置转换为HSB值
+
+        Args:
+            x: X坐标
+            y: Y坐标
+
+        Returns:
+            (色相, 饱和度)
+        """
+        dx = x - self._center_x
+        dy = y - self._center_y
+        distance = math.sqrt(dx * dx + dy * dy)
+
+        max_radius = self._wheel_radius * 0.85
+        saturation = min(distance / max_radius, 1.0) * 100
+
+        angle = math.atan2(-dy, dx)
+        hue = (angle / (2 * math.pi)) % 1.0 * 360
+
+        return hue, saturation
+
+    def _invalidate_cache(self):
+        """使缓存失效"""
+        self._cache_valid = False
+        self._wheel_cache = None
+
+    def _generate_wheel_cache(self):
+        """生成色环缓存"""
+        from PySide6.QtGui import QImage
+
+        self._calculate_wheel_geometry()
+
+        width = self.width()
+        height = self.height()
+        image = QImage(width, height, QImage.Format.Format_ARGB32)
+        image.fill(self._get_theme_colors()['bg'].rgb())
+
+        # 计算全局明度因子 (0.1 到 1.0)
+        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+
+        for y in range(height):
+            for x in range(width):
+                dx = x - self._center_x
+                dy = y - self._center_y
+                distance = math.sqrt(dx * dx + dy * dy)
+
+                if distance <= self._wheel_radius:
+                    angle = math.atan2(-dy, dx)
+                    hue = (angle / (2 * math.pi)) % 1.0
+                    saturation = min(distance / self._wheel_radius, 1.0)
+                    # 应用全局明度调整
+                    value = brightness_factor
+
+                    color = QColor.fromHsvF(hue, saturation, value)
+                    image.setPixelColor(x, y, color)
+
+        self._wheel_cache = QPixmap.fromImage(image)
+
+        painter = QPainter(self._wheel_cache)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setPen(QPen(self._get_theme_colors()['border'], 2))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(
+            self._center_x - self._wheel_radius,
+            self._center_y - self._wheel_radius,
+            self._wheel_radius * 2,
+            self._wheel_radius * 2
+        )
+        painter.end()
+
+        self._cache_valid = True
+        self._cached_theme = isDarkTheme()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        current_theme = isDarkTheme()
+        if not self._cache_valid or self._cached_theme != current_theme:
+            self._generate_wheel_cache()
+
+        if self._wheel_cache:
+            painter.drawPixmap(0, 0, self._wheel_cache)
+
+        # 先绘制配色方案颜色点
+        self._draw_scheme_points(painter)
+
+        # 最后绘制选择器（在最上层）
+        self._draw_selector(painter)
+
+    def _draw_scheme_points(self, painter):
+        """绘制配色方案颜色点"""
+        if not self._scheme_colors:
+            return
+
+        colors = self._get_theme_colors()
+        point_radius = 8
+
+        # 计算全局明度因子
+        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+
+        for i, (h, s, b) in enumerate(self._scheme_colors):
+            # 跳过基准色（第一个点），因为选择器会显示它
+            if i == 0:
+                continue
+
+            # 应用全局明度调整
+            adjusted_b = max(10, min(100, b * brightness_factor))
+
+            # 使用调整后的明度计算位置（明度越低越靠近中心）
+            x, y = self._hsb_to_position(h, s, adjusted_b)
+
+            # 绘制白色外边框
+            painter.setPen(QPen(colors['scheme_point_border'], 2))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(x - point_radius, y - point_radius,
+                              point_radius * 2, point_radius * 2)
+
+            # 绘制内部颜色（使用调整后的明度）
+            from core import hsb_to_rgb
+            rgb = hsb_to_rgb(h, s, adjusted_b)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(rgb[0], rgb[1], rgb[2]))
+            painter.drawEllipse(x - point_radius + 2, y - point_radius + 2,
+                              (point_radius - 2) * 2, (point_radius - 2) * 2)
+
+    def _draw_selector(self, painter):
+        """绘制选择器（基准色）"""
+        colors = self._get_theme_colors()
+
+        # 计算全局明度因子
+        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+        adjusted_brightness = max(10, min(100, self._base_brightness * brightness_factor))
+
+        # 使用调整后的明度计算位置
+        x, y = self._hsb_to_position(self._base_hue, self._base_saturation, adjusted_brightness)
+
+        selector_radius = 10
+
+        # 白色外边框
+        painter.setPen(QPen(colors['selector_border'], 3))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(x - selector_radius, y - selector_radius,
+                          selector_radius * 2, selector_radius * 2)
+
+        # 黑色内边框
+        painter.setPen(QPen(colors['selector_inner'], 2))
+        painter.drawEllipse(x - selector_radius + 3, y - selector_radius + 3,
+                          (selector_radius - 3) * 2, (selector_radius - 3) * 2)
+
+    def mousePressEvent(self, event):
+        """处理鼠标按下"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            hue, saturation = self._position_to_hsb(event.pos().x(), event.pos().y())
+            self._base_hue = hue
+            self._base_saturation = saturation
+            self._dragging = True
+            self.base_color_changed.emit(self._base_hue, self._base_saturation, self._base_brightness)
+            self.update()
+
+    def mouseMoveEvent(self, event):
+        """处理鼠标移动"""
+        if self._dragging:
+            hue, saturation = self._position_to_hsb(event.pos().x(), event.pos().y())
+            self._base_hue = hue
+            self._base_saturation = saturation
+            self.base_color_changed.emit(self._base_hue, self._base_saturation, self._base_brightness)
+            self.update()
+
+    def mouseReleaseEvent(self, event):
+        """处理鼠标释放"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._dragging = False
+
+    def resizeEvent(self, event):
+        """窗口大小改变"""
+        super().resizeEvent(event)
+        self._calculate_wheel_geometry()
+        self._invalidate_cache()
