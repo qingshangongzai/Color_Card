@@ -7,7 +7,7 @@ from PIL import Image
 from PySide6.QtCore import QPoint, QPointF, QRect, Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget
-from qfluentwidgets import Action, FluentIcon, IndeterminateProgressRing, RoundMenu
+from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
 from core import get_luminance, get_zone
@@ -558,12 +558,6 @@ class ImageCanvas(BaseCanvas):
         self._pickers: list = []
         self._zoom_viewer: Optional[ZoomViewer] = None
         self._active_picker_index: int = -1
-        self._loading_indicator: Optional[IndeterminateProgressRing] = None
-
-        # 创建加载指示器
-        self._loading_indicator = IndeterminateProgressRing(self)
-        self._loading_indicator.setFixedSize(64, 64)
-        self._loading_indicator.hide()
 
         # 创建放大视图
         self._zoom_viewer = ZoomViewer(self)
@@ -580,44 +574,20 @@ class ImageCanvas(BaseCanvas):
             self._picker_rel_positions.append(QPointF(0.5, 0.5))  # 默认在图片中心
 
         self.update_picker_positions()
-        self._update_loading_indicator_position()
-
-    def _update_loading_indicator_position(self) -> None:
-        """更新加载指示器位置到中心"""
-        if self._loading_indicator:
-            x = (self.width() - self._loading_indicator.width()) // 2
-            y = (self.height() - self._loading_indicator.height()) // 2
-            self._loading_indicator.move(x, y)
 
     def set_image(self, image_path: str) -> None:
         """异步加载并显示图片"""
-        # 显示加载指示器
-        if self._loading_indicator:
-            self._loading_indicator.start()
-            self._loading_indicator.show()
-            self._update_loading_indicator_position()
-
         super().set_image(image_path)
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """图片加载完成的回调"""
         super()._on_image_loaded(image_data, width, height, fmt)
 
-        # 隐藏加载指示器
-        if self._loading_indicator:
-            self._loading_indicator.stop()
-            self._loading_indicator.hide()
-
         # 改变光标为默认
         self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
-        # 隐藏加载指示器
-        if self._loading_indicator:
-            self._loading_indicator.stop()
-            self._loading_indicator.hide()
-
         # 恢复光标
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -734,7 +704,6 @@ class ImageCanvas(BaseCanvas):
     def resizeEvent(self, event) -> None:
         """窗口大小改变时重新调整图片"""
         super().resizeEvent(event)
-        self._update_loading_indicator_position()
 
     def clear_image(self) -> None:
         """清空图片"""
