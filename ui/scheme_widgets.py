@@ -32,8 +32,8 @@ class SchemeColorInfoCard(BaseCard):
 
         # 设置sizePolicy，允许垂直压缩
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        # 设置色卡最小高度，确保文字区域有足够空间
-        self.setMinimumHeight(160)
+        # 设置色卡最小高度，确保基本显示
+        self.setMinimumHeight(120)
 
         # 颜色块
         self.color_block = QWidget()
@@ -44,7 +44,7 @@ class SchemeColorInfoCard(BaseCard):
 
         # 数值区域（两列布局）
         values_container = QWidget()
-        values_container.setMinimumHeight(60)
+        values_container.setMinimumHeight(50)
         values_layout = QHBoxLayout(values_container)
         values_layout.setContentsMargins(0, 0, 0, 0)
         values_layout.setSpacing(10)
@@ -61,10 +61,10 @@ class SchemeColorInfoCard(BaseCard):
 
         # 16进制颜色值显示区域
         self.hex_container = QWidget()
-        self.hex_container.setMinimumHeight(30)
-        self.hex_container.setMaximumHeight(40)
+        self.hex_container.setMinimumHeight(28)
+        self.hex_container.setMaximumHeight(35)
         hex_layout = QHBoxLayout(self.hex_container)
-        hex_layout.setContentsMargins(0, 5, 0, 0)
+        hex_layout.setContentsMargins(0, 0, 0, 0)
         hex_layout.setSpacing(5)
 
         # 16进制值显示按钮
