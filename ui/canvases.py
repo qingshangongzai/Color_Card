@@ -880,13 +880,13 @@ class LuminanceCanvas(BaseCanvas):
                 box_x = pos.x() - box_width // 2
                 box_y = pos.y() - 35  # 取色器上方35像素
 
-                # 绘制白色填充方框
+                # 绘制深色填充方框
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(get_tooltip_bg_color())
+                painter.setBrush(QColor(40, 40, 40, 200))
                 painter.drawRect(box_x, box_y, box_width, box_height)
 
-                # 绘制黑色文字
-                painter.setPen(get_tooltip_text_color())
+                # 绘制白色文字
+                painter.setPen(QColor(255, 255, 255))
                 text_x = box_x + (box_width - text_width) // 2
                 text_y = box_y + (box_height - text_height) // 2
                 painter.drawText(text_x, text_y + text_height - 2, zone)
