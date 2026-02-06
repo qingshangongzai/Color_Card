@@ -260,6 +260,7 @@ class InteractiveColorWheel(QWidget):
     """可交互的HSB色环组件 - 支持拖动选择基准色并显示配色方案点"""
 
     base_color_changed = Signal(float, float, float)
+    scheme_color_changed = Signal(int, float, float, float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -285,6 +286,10 @@ class InteractiveColorWheel(QWidget):
 
         # 全局明度调整值 (-100 到 +100)
         self._global_brightness = 0
+
+        # 选中和拖动状态
+        self._selected_point_index = -1
+        self._dragging_point_index = -1
 
     def set_base_color(self, h: float, s: float, b: float):
         """设置基准颜色
@@ -339,7 +344,9 @@ class InteractiveColorWheel(QWidget):
             'selector_border': QColor(255, 255, 255),
             'selector_inner': QColor(0, 0, 0),
             'scheme_point_border': QColor(255, 255, 255),
-            'scheme_point_inner': QColor(0, 0, 0)
+            'scheme_point_inner': QColor(0, 0, 0),
+            'line': QColor(255, 255, 255, 128),
+            'line_selected': QColor(255, 255, 255, 200)
         }
 
     def _calculate_wheel_geometry(self):
@@ -400,6 +407,103 @@ class InteractiveColorWheel(QWidget):
         hue = (angle / (2 * math.pi)) % 1.0 * 360
 
         return hue, saturation
+
+    def _get_point_position(self, index: int) -> tuple:
+        """获取指定索引采样点的位置
+
+        Args:
+            index: 采样点索引（0为基准点）
+
+        Returns:
+            (x, y) 坐标
+        """
+        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+
+        if index == 0:
+            # 基准点
+            adjusted_b = max(10, min(100, self._base_brightness * brightness_factor))
+            return self._hsb_to_position(self._base_hue, self._base_saturation, adjusted_b)
+        elif 0 < index < len(self._scheme_colors):
+            # 其他采样点
+            h, s, b = self._scheme_colors[index]
+            adjusted_b = max(10, min(100, b * brightness_factor))
+            return self._hsb_to_position(h, s, adjusted_b)
+        return (0, 0)
+
+    def _hit_test_point(self, x: int, y: int) -> int:
+        """检测点击位置是否在某个采样点上
+
+        Args:
+            x: 点击X坐标
+            y: 点击Y坐标
+
+        Returns:
+            采样点索引（0为基准点），未命中返回-1
+        """
+        hit_radius = 15  # 点击检测半径
+
+        # 先检测基准点（索引0）
+        px, py = self._get_point_position(0)
+        distance = math.sqrt((x - px) ** 2 + (y - py) ** 2)
+        if distance <= hit_radius:
+            return 0
+
+        # 检测其他采样点
+        for i in range(1, len(self._scheme_colors)):
+            px, py = self._get_point_position(i)
+            distance = math.sqrt((x - px) ** 2 + (y - py) ** 2)
+            if distance <= hit_radius:
+                return i
+
+        return -1
+
+    def _point_to_saturation(self, index: int, x: int, y: int) -> float:
+        """根据鼠标位置计算采样点的新饱和度（沿连线方向）
+
+        Args:
+            index: 采样点索引
+            x: 鼠标X坐标
+            y: 鼠标Y坐标
+
+        Returns:
+            新的饱和度值 (0-100)
+        """
+        # 获取该采样点的色相（保持不变）
+        if index == 0:
+            hue = self._base_hue
+        else:
+            hue = self._scheme_colors[index][0]
+
+        # 计算鼠标位置相对于圆心的距离
+        dx = x - self._center_x
+        dy = y - self._center_y
+        distance = math.sqrt(dx * dx + dy * dy)
+
+        # 计算鼠标位置的角度
+        angle = math.atan2(-dy, dx)
+        mouse_hue = (angle / (2 * math.pi)) % 1.0 * 360
+
+        # 计算鼠标位置与采样点色相方向的夹角
+        hue_diff = abs(mouse_hue - hue)
+        if hue_diff > 180:
+            hue_diff = 360 - hue_diff
+
+        # 如果夹角太大，只使用距离投影到色相方向
+        max_radius = self._wheel_radius * 0.85
+        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+
+        if index == 0:
+            current_b = max(10, min(100, self._base_brightness * brightness_factor))
+        else:
+            current_b = max(10, min(100, self._scheme_colors[index][2] * brightness_factor))
+
+        # 计算饱和度（考虑明度影响）
+        if current_b > 0:
+            saturation = min(distance / max_radius / (current_b / 100.0), 1.0) * 100
+        else:
+            saturation = 0
+
+        return max(0, min(100, saturation))
 
     def _invalidate_cache(self):
         """使缓存失效"""
@@ -471,12 +575,12 @@ class InteractiveColorWheel(QWidget):
         self._draw_selector(painter)
 
     def _draw_scheme_points(self, painter):
-        """绘制配色方案颜色点"""
+        """绘制配色方案颜色点及连线"""
         if not self._scheme_colors:
             return
 
         colors = self._get_theme_colors()
-        point_radius = 8
+        base_point_radius = 8
 
         # 计算全局明度因子
         brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
@@ -491,6 +595,15 @@ class InteractiveColorWheel(QWidget):
 
             # 使用调整后的明度计算位置（明度越低越靠近中心）
             x, y = self._hsb_to_position(h, s, adjusted_b)
+
+            # 判断是否选中
+            is_selected = (i == self._selected_point_index)
+            point_radius = base_point_radius + 2 if is_selected else base_point_radius
+
+            # 绘制连线（从圆心到采样点）
+            line_color = colors['line_selected'] if is_selected else colors['line']
+            painter.setPen(QPen(line_color, 2 if is_selected else 1))
+            painter.drawLine(self._center_x, self._center_y, x, y)
 
             # 绘制白色外边框
             painter.setPen(QPen(colors['scheme_point_border'], 2))
@@ -507,7 +620,7 @@ class InteractiveColorWheel(QWidget):
                               (point_radius - 2) * 2, (point_radius - 2) * 2)
 
     def _draw_selector(self, painter):
-        """绘制选择器（基准色）"""
+        """绘制选择器（基准色）及连线"""
         colors = self._get_theme_colors()
 
         # 计算全局明度因子
@@ -517,7 +630,14 @@ class InteractiveColorWheel(QWidget):
         # 使用调整后的明度计算位置
         x, y = self._hsb_to_position(self._base_hue, self._base_saturation, adjusted_brightness)
 
+        # 判断是否选中（基准点索引为0）
+        is_selected = (self._selected_point_index == 0)
         selector_radius = 10
+
+        # 绘制连线（从圆心到基准点）
+        line_color = colors['line_selected'] if is_selected else colors['line']
+        painter.setPen(QPen(line_color, 2 if is_selected else 1))
+        painter.drawLine(self._center_x, self._center_y, x, y)
 
         # 白色外边框
         painter.setPen(QPen(colors['selector_border'], 3))
@@ -533,26 +653,55 @@ class InteractiveColorWheel(QWidget):
     def mousePressEvent(self, event):
         """处理鼠标按下"""
         if event.button() == Qt.MouseButton.LeftButton:
-            hue, saturation = self._position_to_hsb(event.pos().x(), event.pos().y())
-            self._base_hue = hue
-            self._base_saturation = saturation
-            self._dragging = True
-            self.base_color_changed.emit(self._base_hue, self._base_saturation, self._base_brightness)
-            self.update()
+            x, y = event.pos().x(), event.pos().y()
+
+            # 检测是否点击在采样点上
+            hit_index = self._hit_test_point(x, y)
+
+            if hit_index >= 0:
+                # 点击在采样点上，选中该点
+                self._selected_point_index = hit_index
+                self._dragging_point_index = hit_index
+                self._dragging = True
+                self.update()
+            else:
+                # 点击在空白处，拖动基准点（保持原有行为）
+                hue, saturation = self._position_to_hsb(x, y)
+                self._base_hue = hue
+                self._base_saturation = saturation
+                self._selected_point_index = 0  # 选中基准点
+                self._dragging_point_index = 0
+                self._dragging = True
+                self.base_color_changed.emit(self._base_hue, self._base_saturation, self._base_brightness)
+                self.update()
 
     def mouseMoveEvent(self, event):
         """处理鼠标移动"""
-        if self._dragging:
-            hue, saturation = self._position_to_hsb(event.pos().x(), event.pos().y())
+        if not self._dragging:
+            return
+
+        x, y = event.pos().x(), event.pos().y()
+
+        if self._dragging_point_index == 0:
+            # 拖动基准点，调整色相和饱和度
+            hue, saturation = self._position_to_hsb(x, y)
             self._base_hue = hue
             self._base_saturation = saturation
             self.base_color_changed.emit(self._base_hue, self._base_saturation, self._base_brightness)
-            self.update()
+        elif self._dragging_point_index > 0 and self._dragging_point_index < len(self._scheme_colors):
+            # 拖动其他采样点，沿连线调整饱和度
+            new_saturation = self._point_to_saturation(self._dragging_point_index, x, y)
+            h, s, b = self._scheme_colors[self._dragging_point_index]
+            self._scheme_colors[self._dragging_point_index] = (h, new_saturation, b)
+            self.scheme_color_changed.emit(self._dragging_point_index, h, new_saturation, b)
+
+        self.update()
 
     def mouseReleaseEvent(self, event):
         """处理鼠标释放"""
         if event.button() == Qt.MouseButton.LeftButton:
             self._dragging = False
+            self._dragging_point_index = -1
 
     def resizeEvent(self, event):
         """窗口大小改变"""
