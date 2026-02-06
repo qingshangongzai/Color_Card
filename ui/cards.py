@@ -2,7 +2,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPainter
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton
+from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, qconfig
 
 # 项目模块导入
 from .theme_colors import (
@@ -167,23 +167,10 @@ class ColorValueLabel(QWidget):
 
         self.label = QLabel(label_text)
         self.value = QLabel("--")
-        self._update_styles()
 
         layout.addWidget(self.label)
         layout.addWidget(self.value)
         layout.addStretch()
-
-    def _update_styles(self):
-        """更新样式以适配主题"""
-        secondary_color = get_text_color(secondary=True)
-        primary_color = get_text_color(secondary=False)
-
-        self.label.setStyleSheet(
-            f"color: {secondary_color.name()}; font-size: 11px;"
-        )
-        self.value.setStyleSheet(
-            f"color: {primary_color.name()}; font-size: 12px; font-weight: bold;"
-        )
 
     def set_value(self, value):
         self.value.setText(str(value))
@@ -196,6 +183,9 @@ class ColorModeContainer(QWidget):
         self._mode = mode
         self._labels = []
         self.setup_ui()
+        self._update_styles()
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面"""
@@ -211,6 +201,20 @@ class ColorModeContainer(QWidget):
             label = ColorValueLabel(text)
             self._labels.append(label)
             layout.addWidget(label)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        from qfluentwidgets import isDarkTheme
+        if isDarkTheme():
+            label_color = "#bbbbbb"
+            value_color = "#ffffff"
+        else:
+            label_color = "#666666"
+            value_color = "#333333"
+        
+        for label in self._labels:
+            label.label.setStyleSheet(f"color: {label_color}; font-size: 11px;")
+            label.value.setStyleSheet(f"color: {value_color}; font-size: 12px; font-weight: bold;")
 
     def set_mode(self, mode):
         """设置色彩模式"""
@@ -233,6 +237,9 @@ class ColorModeContainer(QWidget):
             label = ColorValueLabel(text)
             self._labels.append(label)
             layout.addWidget(label)
+        
+        # 应用当前主题样式
+        self._update_styles()
 
     def update_values(self, color_info):
         """更新颜色值显示"""

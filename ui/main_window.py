@@ -4,7 +4,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
 )
-from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter
+from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
 # 项目模块导入
 from core import get_color_info
@@ -17,11 +17,77 @@ from .color_wheel import HSBColorWheel
 from .canvases import ImageCanvas, LuminanceCanvas
 
 
+class CustomTitleBar(FluentTitleBar):
+    """自定义标题栏，添加深色模式切换按钮"""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # 创建深色模式切换按钮
+        self.themeButton = ToolButton(self)
+        self.themeButton.setFixedSize(40, 32)
+        self.themeButton.setToolTip("切换深色/浅色模式")
+        self.themeButton.setStyleSheet("""
+            ToolButton {
+                background-color: transparent !important;
+                border: none !important;
+            }
+            ToolButton:hover {
+                background-color: rgba(128, 128, 128, 30) !important;
+            }
+            ToolButton:pressed {
+                background-color: rgba(128, 128, 128, 50) !important;
+            }
+        """)
+        self._update_theme_icon()
+
+        # 连接点击事件
+        self.themeButton.clicked.connect(self._toggle_theme)
+
+        # 将按钮插入到最小化按钮之前
+        index = self.buttonLayout.indexOf(self.minBtn)
+        self.buttonLayout.insertWidget(index, self.themeButton)
+
+    def _toggle_theme(self):
+        """切换主题"""
+        if isDarkTheme():
+            setTheme(Theme.LIGHT)
+        else:
+            setTheme(Theme.DARK)
+        self._update_theme_icon()
+        # 重新应用按钮样式以覆盖 Fluent 主题样式
+        self._apply_theme_button_style()
+
+    def _apply_theme_button_style(self):
+        """应用主题按钮的无背景样式"""
+        self.themeButton.setStyleSheet("""
+            ToolButton {
+                background-color: transparent !important;
+                border: none !important;
+            }
+            ToolButton:hover {
+                background-color: rgba(128, 128, 128, 30) !important;
+            }
+            ToolButton:pressed {
+                background-color: rgba(128, 128, 128, 50) !important;
+            }
+        """)
+
+    def _update_theme_icon(self):
+        """根据当前主题更新按钮图标"""
+        # 使用 CONSTRACT（对比度）图标作为主题切换按钮
+        self.themeButton.setIcon(FluentIcon.CONSTRACT)
+
+
 class MainWindow(FluentWindow):
     """主窗口"""
 
     def __init__(self):
         super().__init__()
+
+        # 设置自定义标题栏
+        self.setTitleBar(CustomTitleBar(self))
+
         self._version = version_manager.get_version()
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
         self.setMinimumSize(800, 550)

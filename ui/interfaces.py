@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import (
     ComboBox, FluentIcon, InfoBar, InfoBarPosition, PrimaryPushButton,
-    PushButton, PushSettingCard, SettingCardGroup, SpinBox, SwitchButton
+    PushButton, PushSettingCard, SettingCardGroup, SpinBox, SubtitleLabel, SwitchButton, qconfig, isDarkTheme
 )
 
 # 项目模块导入
@@ -55,6 +55,7 @@ class ColorExtractInterface(QWidget):
         # 上半部分：水平分割器（图片 + 右侧组件）
         top_splitter = QSplitter(Qt.Orientation.Horizontal)
         top_splitter.setMinimumHeight(180)
+        top_splitter.setHandleWidth(0)  # 隐藏分隔条
 
         # 左侧：图片画布
         self.image_canvas = ImageCanvas()
@@ -67,6 +68,7 @@ class ColorExtractInterface(QWidget):
         right_splitter.setMinimumWidth(180)
         right_splitter.setMaximumWidth(350)
         right_splitter.setMinimumHeight(150)
+        right_splitter.setHandleWidth(0)  # 隐藏分隔条
 
         # HSB色环
         self.hsb_color_wheel = HSBColorWheel()
@@ -231,6 +233,7 @@ class LuminanceExtractInterface(QWidget):
 
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.setMinimumHeight(300)
+        splitter.setHandleWidth(0)  # 隐藏分隔条
         layout.addWidget(splitter, stretch=1)
 
         self.luminance_canvas = LuminanceCanvas()
@@ -400,9 +403,7 @@ class SettingsInterface(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 标题
-        title_label = QLabel("设置")
-        title_color = get_title_color()
-        title_label.setStyleSheet(f"font-size: 28px; font-weight: bold; color: {title_color.name()};")
+        title_label = SubtitleLabel("设置")
         layout.addWidget(title_label)
 
         # 显示设置分组
@@ -786,6 +787,9 @@ class ColorSchemeInterface(QWidget):
         # 根据初始配色方案设置卡片数量
         self._update_card_count()
         self._generate_scheme_colors()
+        self._update_styles()
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -800,8 +804,8 @@ class ColorSchemeInterface(QWidget):
         top_layout.setContentsMargins(0, 0, 0, 0)
 
         # 配色方案选择下拉框
-        scheme_label = QLabel("配色方案:")
-        top_layout.addWidget(scheme_label)
+        self.scheme_label = QLabel("配色方案:")
+        top_layout.addWidget(self.scheme_label)
 
         self.scheme_combo = ComboBox(self)
         self.scheme_combo.addItem("同色系")
@@ -864,8 +868,8 @@ class ColorSchemeInterface(QWidget):
         brightness_layout.setSpacing(5)
         brightness_layout.setContentsMargins(0, 0, 0, 0)
 
-        brightness_label = QLabel("明度调整:")
-        brightness_layout.addWidget(brightness_label)
+        self.brightness_label = QLabel("明度调整:")
+        brightness_layout.addWidget(self.brightness_label)
 
         self.brightness_slider = Slider(Qt.Orientation.Horizontal, brightness_container)
         self.brightness_slider.setRange(-50, 50)
@@ -895,6 +899,19 @@ class ColorSchemeInterface(QWidget):
         self.color_wheel.base_color_changed.connect(self.on_base_color_changed)
         self.color_wheel.scheme_color_changed.connect(self.on_scheme_color_changed)
         self.brightness_slider.valueChanged.connect(self.on_brightness_changed)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        if isDarkTheme():
+            label_color = "#ffffff"
+            value_color = "#ffffff"
+        else:
+            label_color = "#333333"
+            value_color = "#333333"
+        
+        self.scheme_label.setStyleSheet(f"color: {label_color};")
+        self.brightness_label.setStyleSheet(f"color: {label_color};")
+        self.brightness_value_label.setStyleSheet(f"color: {value_color};")
 
     def _load_settings(self):
         """加载显示设置"""
@@ -1101,9 +1118,7 @@ class FavoritesInterface(QWidget):
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        title_label = QLabel("色卡收藏")
-        title_color = get_title_color()
-        title_label.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {title_color.name()};")
+        title_label = SubtitleLabel("色卡收藏")
         header_layout.addWidget(title_label)
 
         header_layout.addStretch()

@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
     CardWidget, PushButton, ToolButton, FluentIcon,
-    InfoBar, InfoBarPosition, isDarkTheme
+    InfoBar, InfoBarPosition, isDarkTheme, qconfig
 )
 
 # 项目模块导入
@@ -28,6 +28,8 @@ class FavoriteColorCard(QWidget):
         self._current_color_info = None
         super().__init__(parent)
         self.setup_ui()
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_hex_button_style)
 
     def setup_ui(self):
         """设置界面"""
@@ -190,6 +192,9 @@ class FavoriteSchemeCard(CardWidget):
         super().__init__(parent)
         self.setup_ui()
         self._load_favorite_data()
+        self._update_styles()
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面"""
@@ -204,13 +209,13 @@ class FavoriteSchemeCard(CardWidget):
         header_layout.setSpacing(10)
 
         self.name_label = QLabel()
-        self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {get_text_color().name()};")
+        self.name_label.setStyleSheet("font-size: 14px; font-weight: bold;")
         header_layout.addWidget(self.name_label)
 
         header_layout.addStretch()
 
         self.time_label = QLabel()
-        self.time_label.setStyleSheet(f"font-size: 11px; color: {get_text_color(secondary=True).name()};")
+        self.time_label.setStyleSheet("font-size: 11px;")
         header_layout.addWidget(self.time_label)
 
         layout.addLayout(header_layout)
@@ -233,6 +238,18 @@ class FavoriteSchemeCard(CardWidget):
         button_layout.addWidget(self.delete_button)
 
         layout.addLayout(button_layout)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        if isDarkTheme():
+            name_color = "#ffffff"
+            time_color = "#aaaaaa"
+        else:
+            name_color = "#333333"
+            time_color = "#666666"
+        
+        self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color};")
+        self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color};")
 
     def _clear_color_cards(self):
         """清空所有色卡"""
