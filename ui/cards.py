@@ -177,8 +177,8 @@ class ColorValueLabel(QWidget):
     def __init__(self, label_text, parent=None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 2, 5, 2)
-        layout.setSpacing(5)
+        layout.setContentsMargins(3, 1, 3, 1)
+        layout.setSpacing(3)
 
         self.label = QLabel(label_text)
         self.value = QLabel("--")
@@ -285,26 +285,26 @@ class ColorCard(BaseCard):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(5)
+        layout.setSpacing(3)
 
         # 设置sizePolicy，允许垂直压缩
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         # 设置色卡最小高度，确保文字区域有足够空间
-        self.setMinimumHeight(160)
+        self.setMinimumHeight(120)
 
         # 颜色块
         self.color_block = QWidget()
-        self.color_block.setMinimumHeight(40)
+        self.color_block.setMinimumHeight(30)
         self.color_block.setMaximumHeight(80)
         self._update_placeholder_style()
         layout.addWidget(self.color_block)
 
         # 数值区域（两列布局）
         values_container = QWidget()
-        values_container.setMinimumHeight(60)
+        values_container.setMinimumHeight(45)
         values_layout = QHBoxLayout(values_container)
         values_layout.setContentsMargins(0, 0, 0, 0)
-        values_layout.setSpacing(10)
+        values_layout.setSpacing(5)
 
         # 第一列色彩模式
         self.mode_container_1 = ColorModeContainer(self._color_modes[0])
@@ -318,21 +318,21 @@ class ColorCard(BaseCard):
 
         # 16进制颜色值显示区域
         self.hex_container = QWidget()
-        self.hex_container.setMinimumHeight(30)
-        self.hex_container.setMaximumHeight(40)
+        self.hex_container.setMinimumHeight(26)
+        self.hex_container.setMaximumHeight(36)
         hex_layout = QHBoxLayout(self.hex_container)
-        hex_layout.setContentsMargins(0, 5, 0, 0)
-        hex_layout.setSpacing(5)
+        hex_layout.setContentsMargins(0, 2, 0, 0)
+        hex_layout.setSpacing(3)
 
         # 16进制值显示按钮
         self.hex_button = PushButton("--")
-        self.hex_button.setFixedHeight(28)
+        self.hex_button.setFixedHeight(24)
         self.hex_button.setEnabled(False)
         self._update_hex_button_style()
 
         # 复制按钮
         self.copy_button = ToolButton(FluentIcon.COPY)
-        self.copy_button.setFixedSize(28, 28)
+        self.copy_button.setFixedSize(24, 24)
         self.copy_button.setEnabled(False)
         self.copy_button.clicked.connect(self._copy_hex_to_clipboard)
 
