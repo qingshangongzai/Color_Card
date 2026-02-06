@@ -1,6 +1,6 @@
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
 )
@@ -18,7 +18,7 @@ from .canvases import ImageCanvas, LuminanceCanvas
 
 
 class CustomTitleBar(FluentTitleBar):
-    """自定义标题栏，添加深色模式切换按钮"""
+    """自定义标题栏，添加深色模式切换按钮和全屏切换按钮"""
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -44,9 +44,31 @@ class CustomTitleBar(FluentTitleBar):
         # 连接点击事件
         self.themeButton.clicked.connect(self._toggle_theme)
 
-        # 将按钮插入到最小化按钮之前
+        # 创建全屏切换按钮
+        self.fullscreenButton = ToolButton(self)
+        self.fullscreenButton.setFixedSize(40, 32)
+        self.fullscreenButton.setToolTip("全屏/退出全屏 (F11)")
+        self.fullscreenButton.setStyleSheet("""
+            ToolButton {
+                background-color: transparent !important;
+                border: none !important;
+            }
+            ToolButton:hover {
+                background-color: rgba(128, 128, 128, 30) !important;
+            }
+            ToolButton:pressed {
+                background-color: rgba(128, 128, 128, 50) !important;
+            }
+        """)
+        self._update_fullscreen_icon()
+
+        # 连接点击事件
+        self.fullscreenButton.clicked.connect(self._toggle_fullscreen)
+
+        # 将按钮插入到最小化按钮之前（深色模式按钮在前，全屏按钮在后）
         index = self.buttonLayout.indexOf(self.minBtn)
         self.buttonLayout.insertWidget(index, self.themeButton)
+        self.buttonLayout.insertWidget(index + 1, self.fullscreenButton)
 
     def _toggle_theme(self):
         """切换主题"""
@@ -77,6 +99,23 @@ class CustomTitleBar(FluentTitleBar):
         """根据当前主题更新按钮图标"""
         # 使用 CONSTRACT（对比度）图标作为主题切换按钮
         self.themeButton.setIcon(FluentIcon.CONSTRACT)
+
+    def _toggle_fullscreen(self):
+        """切换全屏/窗口模式"""
+        window = self.parent()
+        if window.isFullScreen():
+            window.showNormal()
+        else:
+            window.showFullScreen()
+        self._update_fullscreen_icon()
+
+    def _update_fullscreen_icon(self):
+        """根据当前全屏状态更新按钮图标"""
+        window = self.parent()
+        if window.isFullScreen():
+            self.fullscreenButton.setIcon(FluentIcon.BACK_TO_WINDOW)
+        else:
+            self.fullscreenButton.setIcon(FluentIcon.FULL_SCREEN)
 
 
 class MainWindow(FluentWindow):
@@ -112,6 +151,9 @@ class MainWindow(FluentWindow):
         # 如果之前是最大化状态，恢复最大化
         if is_maximized:
             self.showMaximized()
+
+        # 设置 F11 快捷键切换全屏
+        self._setup_fullscreen_shortcut()
 
     def closeEvent(self, event):
         """窗口关闭事件，保存配置"""
@@ -307,6 +349,21 @@ class MainWindow(FluentWindow):
         """刷新收藏面板"""
         if hasattr(self, 'favorites_interface'):
             self.favorites_interface._load_favorites()
+
+    def _setup_fullscreen_shortcut(self):
+        """设置 F11 快捷键切换全屏"""
+        self.fullscreen_shortcut = QShortcut(QKeySequence("F11"), self)
+        self.fullscreen_shortcut.activated.connect(self._toggle_fullscreen)
+
+    def _toggle_fullscreen(self):
+        """切换全屏/窗口模式"""
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+        # 更新标题栏按钮图标
+        if hasattr(self, 'titleBar') and hasattr(self.titleBar, '_update_fullscreen_icon'):
+            self.titleBar._update_fullscreen_icon()
 
     def _setup_settings_connections(self):
         """连接设置界面的信号"""
