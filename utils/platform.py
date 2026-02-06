@@ -1,6 +1,7 @@
 # 标准库导入
 import ctypes
 import os
+import sys
 from typing import Dict, Optional
 
 # 第三方库导入
@@ -8,6 +9,71 @@ from PySide6.QtCore import QObject, Qt, QTimer, Signal
 
 # 项目模块导入
 from .icon import get_icon_path
+
+
+# Windows DWM API 常量
+DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+
+
+def set_window_title_bar_theme(window, is_dark=False):
+    """为窗口设置标题栏主题（Windows 10+ 深色/浅色模式）
+
+    通过 Windows DWM (Desktop Window Manager) API 设置窗口标题栏的沉浸式深色模式。
+    仅支持 Windows 10 版本 2004 (Build 19041) 及以上，Windows 11 完全支持。
+
+    Args:
+        window: PySide6 窗口对象（QMainWindow 或 QDialog）
+        is_dark: 是否使用深色模式，True 为深色，False 为浅色
+
+    Returns:
+        bool: 设置成功返回 True，失败返回 False
+    """
+    try:
+        # 仅 Windows 平台支持
+        if sys.platform != "win32":
+            return False
+
+        # 窗口有效性检查
+        if not window:
+            return False
+
+        if hasattr(window, 'isValid') and callable(window.isValid):
+            if not window.isValid():
+                return False
+
+        if not hasattr(window, 'windowHandle'):
+            return False
+
+        window_handle = window.windowHandle()
+        if not window_handle:
+            return False
+
+        if hasattr(window_handle, 'isValid') and callable(window_handle.isValid):
+            if not window_handle.isValid():
+                return False
+
+        # 获取窗口句柄
+        hwnd = int(window_handle.winId())
+        value = ctypes.c_int(1 if is_dark else 0)
+
+        # 调用 DWM API 设置窗口标题栏主题
+        result = ctypes.windll.dwmapi.DwmSetWindowAttribute(
+            hwnd,
+            DWMWA_USE_IMMERSIVE_DARK_MODE,
+            ctypes.byref(value),
+            ctypes.sizeof(value)
+        )
+
+        return result == 0
+
+    except RuntimeError as e:
+        if "wrapped C/C++ object" in str(e) and "has been deleted" in str(e):
+            # 尝试设置已删除窗口的标题栏主题，静默跳过
+            return False
+        else:
+            return False
+    except Exception:
+        return False
 
 
 def set_app_user_model_id() -> bool:
