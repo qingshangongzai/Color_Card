@@ -56,34 +56,36 @@ class ColorExtractInterface(QWidget):
 
         # 主分割器（垂直）
         main_splitter = QSplitter(Qt.Orientation.Vertical)
-        main_splitter.setMinimumHeight(400)
+        main_splitter.setMinimumHeight(300)
         layout.addWidget(main_splitter, stretch=1)
 
         # 上半部分：水平分割器（图片 + 右侧组件）
         top_splitter = QSplitter(Qt.Orientation.Horizontal)
-        top_splitter.setMinimumHeight(250)
+        top_splitter.setMinimumHeight(180)
 
         # 左侧：图片画布
         self.image_canvas = ImageCanvas()
         self.image_canvas.setMinimumWidth(300)
+        self.image_canvas.setMinimumHeight(150)
         top_splitter.addWidget(self.image_canvas)
 
         # 右侧：垂直分割器（HSB色环 + RGB直方图）
         right_splitter = QSplitter(Qt.Orientation.Vertical)
         right_splitter.setMinimumWidth(180)
         right_splitter.setMaximumWidth(350)
+        right_splitter.setMinimumHeight(150)
 
         # HSB色环
         self.hsb_color_wheel = HSBColorWheel()
-        self.hsb_color_wheel.setMinimumHeight(150)
+        self.hsb_color_wheel.setMinimumHeight(100)
         right_splitter.addWidget(self.hsb_color_wheel)
 
         # RGB直方图
         self.rgb_histogram_widget = RGBHistogramWidget()
-        self.rgb_histogram_widget.setMinimumHeight(100)
+        self.rgb_histogram_widget.setMinimumHeight(60)
         right_splitter.addWidget(self.rgb_histogram_widget)
 
-        right_splitter.setSizes([200, 150])
+        right_splitter.setSizes([180, 120])
         top_splitter.addWidget(right_splitter)
 
         # 设置左右比例
@@ -92,6 +94,7 @@ class ColorExtractInterface(QWidget):
 
         # 收藏工具栏
         favorite_toolbar = QWidget()
+        favorite_toolbar.setMaximumHeight(40)
         favorite_toolbar_layout = QHBoxLayout(favorite_toolbar)
         favorite_toolbar_layout.setContentsMargins(0, 0, 0, 0)
         favorite_toolbar_layout.setSpacing(10)
@@ -107,10 +110,10 @@ class ColorExtractInterface(QWidget):
 
         # 下半部分：色卡面板
         self.color_card_panel = ColorCardPanel()
-        self.color_card_panel.setMinimumHeight(200)
+        self.color_card_panel.setMinimumHeight(130)
         main_splitter.addWidget(self.color_card_panel)
 
-        main_splitter.setSizes([450, 40, 220])
+        main_splitter.setSizes([350, 36, 180])
 
     def setup_connections(self):
         """设置信号连接"""
