@@ -1,5 +1,6 @@
 # 标准库导入
-# 无
+import uuid
+from datetime import datetime
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -10,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import (
     ComboBox, FluentIcon, InfoBar, InfoBarPosition, PrimaryPushButton,
-    PushSettingCard, SettingCardGroup, SpinBox, SwitchButton, isDarkTheme
+    PushButton, PushSettingCard, SettingCardGroup, SpinBox, SwitchButton, isDarkTheme
 )
 
 # 项目模块导入
@@ -22,6 +23,7 @@ from .cards import ColorCardPanel
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .scheme_widgets import SchemeColorPanel
+from .favorite_widgets import FavoriteSchemeList
 
 
 # 可选的色彩模式列表
@@ -42,6 +44,7 @@ class ColorExtractInterface(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging_index = -1  # 当前正在拖动的采样点索引
+        self._config_manager = get_config_manager()
         self.setup_ui()
         self.setup_connections()
 
@@ -87,12 +90,27 @@ class ColorExtractInterface(QWidget):
         top_splitter.setSizes([600, 250])
         main_splitter.addWidget(top_splitter)
 
+        # 收藏工具栏
+        favorite_toolbar = QWidget()
+        favorite_toolbar_layout = QHBoxLayout(favorite_toolbar)
+        favorite_toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        favorite_toolbar_layout.setSpacing(10)
+
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏当前配色", self)
+        self.favorite_button.setFixedHeight(32)
+        self.favorite_button.clicked.connect(self._on_favorite_clicked)
+        favorite_toolbar_layout.addWidget(self.favorite_button)
+
+        favorite_toolbar_layout.addStretch()
+
+        main_splitter.addWidget(favorite_toolbar)
+
         # 下半部分：色卡面板
         self.color_card_panel = ColorCardPanel()
         self.color_card_panel.setMinimumHeight(200)
         main_splitter.addWidget(self.color_card_panel)
 
-        main_splitter.setSizes([450, 220])
+        main_splitter.setSizes([450, 40, 220])
 
     def setup_connections(self):
         """设置信号连接"""
@@ -152,6 +170,51 @@ class ColorExtractInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'sync_clear_to_luminance'):
             window.sync_clear_to_luminance()
+
+    def _on_favorite_clicked(self):
+        """收藏按钮点击回调"""
+        colors = []
+        for card in self.color_card_panel.cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            InfoBar.warning(
+                title="无法收藏",
+                content="请先提取颜色后再收藏",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        favorite_data = {
+            "id": str(uuid.uuid4()),
+            "name": f"配色方案 {len(self._config_manager.get_favorites()) + 1}",
+            "colors": colors,
+            "created_at": datetime.now().isoformat(),
+            "source": "color_extract"
+        }
+
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新收藏面板
+        window = self.window()
+        if window and hasattr(window, 'refresh_favorites'):
+            window.refresh_favorites()
+
+        InfoBar.success(
+            title="收藏成功",
+            content=f"已收藏配色方案：{favorite_data['name']}",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
 
 
 class LuminanceExtractInterface(QWidget):
@@ -718,8 +781,6 @@ class ColorSchemeInterface(QWidget):
         self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
         self._color_wheel_mode = 'RGB'  # 色轮模式：RGB 或 RYB
 
-        # 获取配置管理器
-        from core import get_config_manager
         self._config_manager = get_config_manager()
 
         self.setup_ui()
@@ -763,6 +824,12 @@ class ColorSchemeInterface(QWidget):
         self.random_btn = PrimaryPushButton(FluentIcon.SYNC, "随机", self)
         self.random_btn.setFixedWidth(100)
         top_layout.addWidget(self.random_btn)
+
+        # 收藏按钮
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏", self)
+        self.favorite_button.setFixedWidth(80)
+        self.favorite_button.clicked.connect(self._on_favorite_clicked)
+        top_layout.addWidget(self.favorite_button)
 
         layout.addWidget(top_container, alignment=Qt.AlignmentFlag.AlignCenter)
 
@@ -964,6 +1031,230 @@ class ColorSchemeInterface(QWidget):
 
         # 更新色环上的配色方案点
         self.color_wheel.set_scheme_colors(self._scheme_colors)
+
+    def _on_favorite_clicked(self):
+        """收藏按钮点击回调"""
+        colors = []
+        for card in self.color_panel.cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            InfoBar.warning(
+                title="无法收藏",
+                content="没有可收藏的配色方案",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        favorite_data = {
+            "id": str(uuid.uuid4()),
+            "name": f"配色方案 {len(self._config_manager.get_favorites()) + 1}",
+            "colors": colors,
+            "created_at": datetime.now().isoformat(),
+            "source": "color_scheme"
+        }
+
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新收藏面板
+        window = self.window()
+        if window and hasattr(window, 'refresh_favorites'):
+            window.refresh_favorites()
+
+        InfoBar.success(
+            title="收藏成功",
+            content=f"已收藏配色方案：{favorite_data['name']}",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+
+class FavoritesInterface(QWidget):
+    """色卡收藏界面"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('favoritesInterface')
+        self._config_manager = get_config_manager()
+        self.setup_ui()
+        self._load_favorites()
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(15)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        title_label = QLabel("色卡收藏")
+        title_color = get_title_color()
+        title_label.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {title_color.name()};")
+        header_layout.addWidget(title_label)
+
+        header_layout.addStretch()
+
+        self.import_button = PushButton(FluentIcon.DOWN, "导入", self)
+        self.import_button.clicked.connect(self._on_import_clicked)
+        header_layout.addWidget(self.import_button)
+
+        self.export_button = PushButton(FluentIcon.UP, "导出", self)
+        self.export_button.clicked.connect(self._on_export_clicked)
+        header_layout.addWidget(self.export_button)
+
+        self.clear_all_button = PushButton(FluentIcon.DELETE, "清空所有", self)
+        self.clear_all_button.setMinimumWidth(100)
+        self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
+        header_layout.addWidget(self.clear_all_button)
+
+        layout.addLayout(header_layout)
+
+        self.favorite_list = FavoriteSchemeList(self)
+        self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
+        layout.addWidget(self.favorite_list, stretch=1)
+
+    def _load_favorites(self):
+        """加载收藏列表"""
+        favorites = self._config_manager.get_favorites()
+        self.favorite_list.set_favorites(favorites)
+
+    def _on_clear_all_clicked(self):
+        """清空所有按钮点击"""
+        from qfluentwidgets import MessageBox, FluentIcon as FIcon
+
+        msg_box = MessageBox(
+            "确认清空",
+            "确定要清空所有收藏的配色方案吗？此操作不可撤销。",
+            self
+        )
+        msg_box.yesButton.setText("确定")
+        msg_box.cancelButton.setText("取消")
+        if msg_box.exec():
+            self._config_manager.clear_favorites()
+            self._config_manager.save()
+            self._load_favorites()
+
+    def _on_favorite_deleted(self, favorite_id):
+        """收藏删除回调"""
+        self._config_manager.delete_favorite(favorite_id)
+        self._config_manager.save()
+        self._load_favorites()
+
+    def _on_import_clicked(self):
+        """导入按钮点击"""
+        from qfluentwidgets import MessageBox
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入收藏",
+            "",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 询问导入模式 - 使用两个独立的对话框
+        msg_box = MessageBox(
+            "选择导入模式",
+            "请选择导入方式：\n\n点击「是」追加到现有收藏\n点击「否」替换现有收藏",
+            self
+        )
+        msg_box.yesButton.setText("追加")
+        msg_box.cancelButton.setText("替换")
+
+        # 获取结果：1=追加, 0=替换
+        result = msg_box.exec()
+
+        # 确定导入模式
+        if result == 1:  # 点击了"追加"
+            mode = 'append'
+        else:  # 点击了"替换"
+            mode = 'replace'
+
+        success, count, error_msg = self._config_manager.import_favorites(file_path, mode)
+
+        if success:
+            self._config_manager.save()
+            self._load_favorites()
+            InfoBar.success(
+                title="导入成功",
+                content=f"成功导入 {count} 个配色方案",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content=error_msg,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+
+    def _on_export_clicked(self):
+        """导出按钮点击"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出收藏",
+            "color_card_favorites.json",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .json
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        success = self._config_manager.export_favorites(file_path)
+
+        if success:
+            InfoBar.success(
+                title="导出成功",
+                content=f"收藏已导出到：{file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+        else:
+            InfoBar.error(
+                title="导出失败",
+                content="导出过程中发生错误，请检查文件路径和权限",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        self.favorite_list.update_display_settings(hex_visible, color_modes)
 
 
 # 导入需要在类定义之后导入的模块

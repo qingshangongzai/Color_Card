@@ -10,7 +10,7 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, FavoritesInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel
@@ -83,6 +83,11 @@ class MainWindow(FluentWindow):
         self.color_scheme_interface.setObjectName('colorScheme')
         self.stackedWidget.addWidget(self.color_scheme_interface)
 
+        # 色卡收藏界面
+        self.favorites_interface = FavoritesInterface(self)
+        self.favorites_interface.setObjectName('favorites')
+        self.stackedWidget.addWidget(self.favorites_interface)
+
         # 设置界面
         self.settings_interface = SettingsInterface(self)
         self.settings_interface.setObjectName('settings')
@@ -125,6 +130,14 @@ class MainWindow(FluentWindow):
             self.color_scheme_interface,
             FluentIcon.PALETTE,
             "配色方案",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 色卡收藏
+        self.addSubInterface(
+            self.favorites_interface,
+            FluentIcon.HEART,
+            "色卡收藏",
             position=NavigationItemPosition.TOP
         )
 
@@ -224,6 +237,11 @@ class MainWindow(FluentWindow):
         """重置窗口标题"""
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
 
+    def refresh_favorites(self):
+        """刷新收藏面板"""
+        if hasattr(self, 'favorites_interface'):
+            self.favorites_interface._load_favorites()
+
     def _setup_settings_connections(self):
         """连接设置界面的信号"""
         # 连接16进制显示开关信号到色卡面板
@@ -264,6 +282,16 @@ class MainWindow(FluentWindow):
         # 连接色轮模式改变信号到配色方案界面
         self.settings_interface.color_wheel_mode_changed.connect(
             self.color_scheme_interface.set_color_wheel_mode
+        )
+
+        # 连接16进制显示开关信号到收藏界面
+        self.settings_interface.hex_display_changed.connect(
+            lambda visible: self.favorites_interface.update_display_settings(hex_visible=visible)
+        )
+
+        # 连接色彩模式改变信号到收藏界面
+        self.settings_interface.color_modes_changed.connect(
+            lambda modes: self.favorites_interface.update_display_settings(color_modes=modes)
         )
 
         # 应用加载的配置到色卡面板
