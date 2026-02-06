@@ -82,7 +82,7 @@ class CustomTitleBar(FluentTitleBar):
 
     def _apply_theme_button_style(self):
         """应用主题按钮的无背景样式"""
-        self.themeButton.setStyleSheet("""
+        style_sheet = """
             ToolButton {
                 background-color: transparent !important;
                 border: none !important;
@@ -93,7 +93,9 @@ class CustomTitleBar(FluentTitleBar):
             ToolButton:pressed {
                 background-color: rgba(128, 128, 128, 50) !important;
             }
-        """)
+        """
+        self.themeButton.setStyleSheet(style_sheet)
+        self.fullscreenButton.setStyleSheet(style_sheet)
 
     def _update_theme_icon(self):
         """根据当前主题更新按钮图标"""
