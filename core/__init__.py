@@ -20,6 +20,15 @@ from .color import (
     generate_double_complementary,
     adjust_brightness,
     get_scheme_preview_colors,
+    # RYB 色彩空间支持
+    rgb_hue_to_ryb_hue,
+    ryb_hue_to_rgb_hue,
+    generate_ryb_monochromatic,
+    generate_ryb_analogous,
+    generate_ryb_complementary,
+    generate_ryb_split_complementary,
+    generate_ryb_double_complementary,
+    get_scheme_preview_colors_ryb,
 )
 
 from .config import ConfigManager, get_config_manager
@@ -46,6 +55,15 @@ __all__ = [
     'generate_double_complementary',
     'adjust_brightness',
     'get_scheme_preview_colors',
+    # RYB 色彩空间支持
+    'rgb_hue_to_ryb_hue',
+    'ryb_hue_to_rgb_hue',
+    'generate_ryb_monochromatic',
+    'generate_ryb_analogous',
+    'generate_ryb_complementary',
+    'generate_ryb_split_complementary',
+    'generate_ryb_double_complementary',
+    'get_scheme_preview_colors_ryb',
     # 配置
     'ConfigManager',
     'get_config_manager',

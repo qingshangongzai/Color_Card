@@ -45,7 +45,8 @@ class ConfigManager:
                 "color_modes": ["HSB", "LAB"],
                 "color_sample_count": 5,
                 "luminance_sample_count": 5,
-                "histogram_scaling_mode": "adaptive"
+                "histogram_scaling_mode": "adaptive",
+                "color_wheel_mode": "RGB"
             },
             "scheme": {
                 "default_scheme": "monochromatic",
