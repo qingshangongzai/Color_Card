@@ -634,10 +634,21 @@ class InteractiveColorWheel(QWidget):
         is_selected = (self._selected_point_index == 0)
         selector_radius = 10
 
-        # 绘制连线（从圆心到基准点）
+        # 计算连线终点（圆的边缘，而非圆心）
+        dx = x - self._center_x
+        dy = y - self._center_y
+        distance = math.sqrt(dx * dx + dy * dy)
+        if distance > 0:
+            # 计算指向圆心的单位向量，从圆周边缘开始绘制
+            edge_x = x - (dx / distance) * selector_radius
+            edge_y = y - (dy / distance) * selector_radius
+        else:
+            edge_x, edge_y = x, y
+
+        # 绘制连线（从圆心到基准点圆的边缘）
         line_color = colors['line_selected'] if is_selected else colors['line']
         painter.setPen(QPen(line_color, 2 if is_selected else 1))
-        painter.drawLine(self._center_x, self._center_y, x, y)
+        painter.drawLine(self._center_x, self._center_y, int(edge_x), int(edge_y))
 
         # 白色外边框
         painter.setPen(QPen(colors['selector_border'], 3))
