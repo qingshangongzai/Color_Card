@@ -3,6 +3,9 @@ from PySide6.QtCore import QPoint, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QWidget
 
+# 项目模块导入
+from .theme_colors import get_picker_border_color, get_picker_fill_color
+
 
 class ColorPicker(QWidget):
     """可拖动的圆形取色点"""
@@ -21,7 +24,7 @@ class ColorPicker(QWidget):
 
         self._dragging = False
         self._drag_offset = QPoint()
-        self._color = QColor(255, 255, 255)
+        self._color = get_picker_fill_color()
         self._is_active = False
 
     def set_color(self, color):
@@ -57,7 +60,7 @@ class ColorPicker(QWidget):
         center = self.radius
         cross_size = 5
         pen_width = 2
-        painter.setPen(QPen(QColor(40, 40, 40), pen_width))
+        painter.setPen(QPen(get_picker_border_color(), pen_width))
         # 水平线
         painter.drawLine(center - cross_size, center, center + cross_size, center)
         # 垂直线

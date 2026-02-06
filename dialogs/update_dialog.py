@@ -3,9 +3,9 @@ import re
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal
-from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, isDarkTheme
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton
 
 try:
     import requests
@@ -14,6 +14,7 @@ except ImportError:
 
 # 项目模块导入
 from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from ui.theme_colors import get_dialog_bg_color, get_text_color
 
 
 class UpdateCheckThread(QThread):
@@ -132,7 +133,7 @@ class UpdateAvailableDialog(QDialog):
         )
 
         # 设置窗口背景色
-        bg_color = QColor(32, 32, 32) if isDarkTheme() else QColor(255, 255, 255)
+        bg_color = get_dialog_bg_color()
         self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
 
         self.setup_ui()
@@ -147,7 +148,7 @@ class UpdateAvailableDialog(QDialog):
         layout.setSpacing(15)
 
         # 提示文本
-        text_color = QColor(255, 255, 255) if isDarkTheme() else QColor(40, 40, 40)
+        text_color = get_text_color()
         info_label = QLabel("有新版本可以更新")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info_label.setStyleSheet(

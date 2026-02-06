@@ -186,7 +186,8 @@ color_card/
 │   ├── scheme_widgets.py  # 配色方案组件模块（SchemeColorInfoCard、SchemeColorPanel）
 │   ├── favorite_widgets.py # 收藏功能组件模块（FavoriteColorCard、FavoriteSchemeCard、FavoriteSchemeList）
 │   ├── zoom_viewer.py     # 缩放查看器模块
-│   └── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、FavoritesInterface）
+│   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、FavoritesInterface）
+│   └── theme_colors.py    # 主题颜色管理模块（统一颜色管理、主题感知颜色获取）
 ├── dialogs/               # 对话框模块目录
 │   ├── __init__.py
 │   ├── about_dialog.py    # 关于对话框
@@ -251,7 +252,25 @@ color_card/
   - FavoriteSchemeList：收藏列表容器，管理多个FavoriteSchemeCard
   - 动态色卡数量：根据收藏的颜色数量动态创建色卡
 
-#### 4. 直方图模块 (ui/histograms.py)
+#### 4. 主题颜色管理模块 (ui/theme_colors.py)
+
+统一管理系统中所有颜色值，支持深色/浅色主题自动切换：
+
+- **颜色分类管理**：背景色、文本色、边框色、控件特定颜色、Zone分区颜色等
+- **主题感知**：所有颜色函数根据当前主题（深色/浅色）自动返回对应颜色值
+- **硬编码消除**：集中管理颜色值，避免散落在各组件中的硬编码颜色
+- **使用示例**：
+  ```python
+  from ui.theme_colors import get_text_color, get_canvas_background_color
+  
+  # 获取主题文本颜色
+  text_color = get_text_color()
+  
+  # 获取画布背景色（固定灰黑色 #2a2a2a）
+  bg_color = get_canvas_background_color()
+  ```
+
+#### 5. 直方图模块 (ui/histograms.py)
 
 提供数据可视化功能：
 

@@ -1,8 +1,14 @@
 # 第三方库导入
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QFont, QPainter
+from PySide6.QtGui import QFont, QPainter
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, isDarkTheme
+from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton
+
+# 项目模块导入
+from .theme_colors import (
+    get_border_color, get_placeholder_color, get_secondary_text_color,
+    get_text_color, get_zone_background_color, get_zone_text_color
+)
 
 
 class BaseCard(QWidget):
@@ -148,28 +154,7 @@ COLOR_MODE_CONFIG = {
 }
 
 
-def get_text_color(secondary=False):
-    """获取主题文本颜色"""
-    if isDarkTheme():
-        return QColor(160, 160, 160) if secondary else QColor(255,255,255)
-    else:
-        return QColor(120, 120, 120) if secondary else QColor(40, 40, 40)
 
-
-def get_placeholder_color():
-    """获取占位符颜色（空色块背景）"""
-    if isDarkTheme():
-        return QColor(60, 60, 60)
-    else:
-        return QColor(204, 204, 204)
-
-
-def get_border_color():
-    """获取边框颜色"""
-    if isDarkTheme():
-        return QColor(80, 80, 80)
-    else:
-        return QColor(221, 221, 221)
 
 
 class ColorValueLabel(QWidget):
@@ -489,28 +474,7 @@ class ColorCardPanel(BaseCardPanel):
         return self._hex_visible
 
 
-def get_zone_background_color():
-    """获取Zone框背景颜色"""
-    if isDarkTheme():
-        return QColor(70, 70, 70)
-    else:
-        return QColor(255, 255, 255)
 
-
-def get_zone_text_color():
-    """获取Zone框文字颜色"""
-    if isDarkTheme():
-        return QColor(255, 255, 255)
-    else:
-        return QColor(0, 0, 0)
-
-
-def get_secondary_text_color():
-    """获取次要文字颜色"""
-    if isDarkTheme():
-        return QColor(160, 160, 160)
-    else:
-        return QColor(120, 120, 120)
 
 
 class ZoneValueLabel(QWidget):

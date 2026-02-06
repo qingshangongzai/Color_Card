@@ -3,25 +3,16 @@ from pathlib import Path
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QDialog, QFrame, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
 )
-from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme
+from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton
 
 # 项目模块导入
 from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 from version import version_manager
-
-
-def get_background_color():
-    """获取主题背景颜色"""
-    return QColor(32, 32, 32) if isDarkTheme() else QColor(255, 255, 255)
-
-
-def get_text_color():
-    """获取主题文本颜色"""
-    return QColor(255, 255, 255) if isDarkTheme() else QColor(40, 40, 40)
+from ui.theme_colors import get_dialog_bg_color, get_text_color
 
 
 class AboutDialog(QDialog):
@@ -48,7 +39,7 @@ class AboutDialog(QDialog):
         )
 
         # 设置窗口背景色（与 FluentWindow 一致）
-        bg_color = get_background_color()
+        bg_color = get_dialog_bg_color()
         self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
 
         self.setup_ui()
@@ -83,7 +74,7 @@ class AboutDialog(QDialog):
         self.text_edit.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         
         # 设置主题感知的样式
-        bg_color = get_background_color()
+        bg_color = get_dialog_bg_color()
         text_color = get_text_color()
         self.text_edit.setStyleSheet(
             f"QPlainTextEdit {{ background-color: {bg_color.name()}; "
