@@ -7,10 +7,10 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QDialog, QFrame, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
 )
-from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton
+from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme, qconfig
 
 # 项目模块导入
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from version import version_manager
 from ui.theme_colors import get_dialog_bg_color, get_text_color
 
@@ -46,6 +46,9 @@ class AboutDialog(QDialog):
 
         # 修复任务栏图标（在窗口显示后调用）
         QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
+
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -220,6 +223,17 @@ class AboutDialog(QDialog):
   • 感谢 PySide6 和 PyQt-Fluent-Widgets 开发团队提供的优秀框架
   • 感谢 Trae IDE 提供的 AI 辅助编程支持
 """
+
+    def _update_title_bar_theme(self):
+        """更新标题栏主题以适配当前主题"""
+        set_window_title_bar_theme(self, isDarkTheme())
+
+    def showEvent(self, event):
+        """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""
+        # 先设置标题栏主题（在父类 showEvent 之前）
+        self._update_title_bar_theme()
+        # 调用父类的 showEvent
+        super().showEvent(event)
 
     def contextMenuEvent(self, event):
         """屏蔽原生右键菜单"""
