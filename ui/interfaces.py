@@ -694,15 +694,32 @@ class ColorSchemeInterface(QWidget):
 
         layout.addWidget(top_container, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        # 主内容区域：色轮和明度调整（垂直布局，色轮居中）
-        content_layout = QVBoxLayout()
-        content_layout.setSpacing(15)
-        content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # 使用分割器分隔上下区域（避免重叠）
+        splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.setMinimumHeight(300)
+        splitter.setHandleWidth(0)  # 隐藏分隔条
+        layout.addWidget(splitter, stretch=1)
 
-        # 可交互色环（居中）
-        self.color_wheel = InteractiveColorWheel(self)
-        self.color_wheel.setFixedSize(300, 300)
-        content_layout.addWidget(self.color_wheel, alignment=Qt.AlignmentFlag.AlignCenter)
+        # 上半部分：色轮和明度调整
+        upper_widget = QWidget()
+        upper_layout = QVBoxLayout(upper_widget)
+        upper_layout.setContentsMargins(0, 0, 0, 0)
+        upper_layout.setSpacing(15)
+
+        # 色轮容器（与图片显示组件样式一致）
+        self.wheel_container = QWidget(self)
+        self.wheel_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.wheel_container.setMinimumSize(300, 200)
+        self.wheel_container.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
+
+        wheel_container_layout = QVBoxLayout(self.wheel_container)
+        wheel_container_layout.setContentsMargins(10, 10, 10, 10)
+
+        # 可交互色环（在容器内自适应，占满整个容器）
+        self.color_wheel = InteractiveColorWheel(self.wheel_container)
+        wheel_container_layout.addWidget(self.color_wheel, stretch=1)
+
+        upper_layout.addWidget(self.wheel_container, stretch=1)
 
         # 明度调整滑块（色轮下方，整体居中但控件紧凑排列）
         brightness_container = QWidget()
@@ -723,14 +740,16 @@ class ColorSchemeInterface(QWidget):
         self.brightness_value_label.setFixedWidth(25)
         brightness_layout.addWidget(self.brightness_value_label)
 
-        content_layout.addWidget(brightness_container, alignment=Qt.AlignmentFlag.AlignCenter)
-        content_layout.addStretch()
+        upper_layout.addWidget(brightness_container, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        layout.addLayout(content_layout, stretch=1)
+        splitter.addWidget(upper_widget)
 
         # 下方：色块面板
         self.color_panel = SchemeColorPanel(self)
-        layout.addWidget(self.color_panel)
+        self.color_panel.setMinimumHeight(150)
+        splitter.addWidget(self.color_panel)
+
+        splitter.setSizes([400, 200])
 
     def setup_connections(self):
         """设置信号连接"""

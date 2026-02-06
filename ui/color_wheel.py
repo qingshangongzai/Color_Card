@@ -4,7 +4,7 @@ import math
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen, QPixmap, QCursor
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QSizePolicy, QWidget
 from qfluentwidgets import isDarkTheme
 
 # 项目模块导入
@@ -263,8 +263,8 @@ class InteractiveColorWheel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setMinimumSize(250, 250)
-        self.setMaximumSize(400, 400)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.setMinimumSize(200, 200)
         self.setCursor(QCursor(Qt.CursorShape.CrossCursor))
 
         self._base_hue = 0.0
@@ -344,9 +344,11 @@ class InteractiveColorWheel(QWidget):
 
     def _calculate_wheel_geometry(self):
         """计算色环几何参数"""
-        margin = 25
+        # 使用较小的边距，让色轮占据更多空间
+        margin = 10
         available_size = min(self.width(), self.height()) - margin * 2
-        self._wheel_radius = available_size // 2
+        # 确保半径至少为10，避免负数或零
+        self._wheel_radius = max(10, available_size // 2)
         self._center_x = self.width() // 2
         self._center_y = self.height() // 2
 
