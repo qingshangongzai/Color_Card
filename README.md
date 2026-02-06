@@ -16,11 +16,13 @@
 
 - **可视化色彩提取**：通过直观的可拖动取色点，实时提取图片任意位置的颜色，支持5个取色点同时工作
 - **智能配色方案**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择和明度调整
+- **配色方案收藏**：支持收藏和管理配色方案，可自定义名称，方便后续快速查看和使用
+- **批量导入导出**：支持将收藏的配色方案导出为JSON文件，或从文件批量导入，便于备份和分享
 - **多色彩空间支持**：同时显示 HSB、LAB、HSL、CMYK、RGB 等多种色彩模式，满足不同场景的需求
 - **专业明度分析**：将图片按明度分为9个区域，提供直方图可视化，帮助理解图片的明度分布
 - **现代化界面**：基于 Fluent Design 设计语言，支持自动深色/浅色主题切换，提供流畅的用户体验
 - **高精度显示**：使用原始图片实时缩放，保证显示清晰度，取色点位置使用相对坐标系统，图片缩放时保持不变
-- **三面板同步**：色彩提取、明度分析和配色方案面板数据实时同步，切换面板时自动更新
+- **四面板同步**：色彩提取、明度分析、配色方案和收藏面板数据实时同步，切换面板时自动更新
 - **统一配置管理**：16进制颜色值显示和色彩模式设置全局统一，所有界面实时响应设置变更
 
 ### 适用场景
@@ -124,11 +126,19 @@
 
 #### 配色方案
 
-- **5种专业配色方案**：同色系、邻近色、互补色、分离补色、双补色
-- **可交互色环**：支持鼠标拖动选择基准色，实时显示配色方案在色环上的分布
-- **明度调整滑块**：调整配色方案的明度，色环和色块实时响应
-- **动态卡片数量**：根据配色方案类型自动调整色块数量（3-5个）
-- **统一显示设置**：使用与色彩提取相同的显示设置（16进制值、色彩模式）
+- **配色方案**
+  - **5种专业配色方案**：同色系、邻近色、互补色、分离补色、双补色
+  - **可交互色环**：支持鼠标拖动选择基准色，实时显示配色方案在色环上的分布
+  - **明度调整滑块**：调整配色方案的明度，色环和色块实时响应
+  - **动态卡片数量**：根据配色方案类型自动调整色块数量（3-5个）
+  - **统一显示设置**：使用与色彩提取相同的显示设置（16进制值、色彩模式）
+
+- **收藏管理**
+  - **一键收藏**：在色彩提取和配色方案面板均可快速收藏当前颜色方案
+  - **自定义名称**：为收藏的配色方案设置自定义名称，便于识别
+  - **列表展示**：以卡片形式展示所有收藏的配色方案，支持滚动浏览
+  - **删除管理**：支持单个删除或一键清空所有收藏
+  - **批量导入导出**：支持JSON格式的导入导出，便于备份和分享配色方案
 
 ---
 
@@ -164,7 +174,7 @@ color_card/
 ├── core/                   # 核心功能模块目录
 │   ├── __init__.py
 │   ├── color.py           # 颜色处理模块（颜色转换、明度计算、配色方案算法、直方图计算）
-│   └── config.py          # 配置管理模块
+│   └── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
 ├── ui/                     # UI模块目录（扁平化结构）
 │   ├── __init__.py        # 统一导出接口
 │   ├── main_window.py     # 主窗口类
@@ -174,8 +184,9 @@ color_card/
 │   ├── color_picker.py    # 颜色选择器模块
 │   ├── color_wheel.py     # 颜色轮模块（HSBColorWheel、InteractiveColorWheel）
 │   ├── scheme_widgets.py  # 配色方案组件模块（SchemeColorInfoCard、SchemeColorPanel）
+│   ├── favorite_widgets.py # 收藏功能组件模块（FavoriteColorCard、FavoriteSchemeCard、FavoriteSchemeList）
 │   ├── zoom_viewer.py     # 缩放查看器模块
-│   └── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface）
+│   └── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、FavoritesInterface）
 ├── dialogs/               # 对话框模块目录
 │   ├── __init__.py
 │   ├── about_dialog.py    # 关于对话框
@@ -215,7 +226,7 @@ color_card/
   - 区域选择和高亮显示
   - 双击提取像素功能
 
-#### 3. 卡片模块 (ui/cards.py 和 ui/scheme_widgets.py)
+#### 3. 卡片模块 (ui/cards.py、ui/scheme_widgets.py 和 ui/favorite_widgets.py)
 
 提供颜色信息展示功能：
 
@@ -234,6 +245,11 @@ color_card/
   - 与ColorCard保持一致的显示样式
   - 支持动态卡片数量（根据配色方案类型自动调整）
   - 复用ColorModeContainer组件，统一显示逻辑
+- **FavoriteColorCard / FavoriteSchemeCard / FavoriteSchemeList**（ui/favorite_widgets.py）：收藏功能卡片
+  - FavoriteColorCard：单个颜色显示卡片，与ColorCard样式一致
+  - FavoriteSchemeCard：收藏项卡片，包含名称、颜色列表、删除按钮
+  - FavoriteSchemeList：收藏列表容器，管理多个FavoriteSchemeCard
+  - 动态色卡数量：根据收藏的颜色数量动态创建色卡
 
 #### 4. 直方图模块 (ui/histograms.py)
 
