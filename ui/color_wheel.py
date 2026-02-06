@@ -9,6 +9,11 @@ from qfluentwidgets import isDarkTheme
 
 # 项目模块导入
 from core import rgb_to_hsb
+from .theme_colors import (
+    get_wheel_bg_color, get_wheel_border_color, get_wheel_text_color,
+    get_wheel_selector_border_color, get_wheel_selector_inner_color,
+    get_wheel_line_color
+)
 
 
 class HSBColorWheel(QWidget):
@@ -81,10 +86,10 @@ class HSBColorWheel(QWidget):
         """获取主题颜色"""
         # 背景统一为 #2a2a2a
         return {
-            'bg': QColor(42, 42, 42),
-            'border': QColor(80, 80, 80),
-            'text': QColor(200, 200, 200),
-            'sample_border': QColor(255, 255, 255)
+            'bg': get_wheel_bg_color(),
+            'border': get_wheel_border_color(),
+            'text': get_wheel_text_color(),
+            'sample_border': get_wheel_selector_border_color()
         }
 
     def _calculate_wheel_geometry(self):
@@ -339,14 +344,14 @@ class InteractiveColorWheel(QWidget):
     def _get_theme_colors(self):
         """获取主题颜色"""
         return {
-            'bg': QColor(42, 42, 42),
-            'border': QColor(80, 80, 80),
-            'selector_border': QColor(255, 255, 255),
-            'selector_inner': QColor(0, 0, 0),
-            'scheme_point_border': QColor(255, 255, 255),
-            'scheme_point_inner': QColor(0, 0, 0),
-            'line': QColor(255, 255, 255, 128),
-            'line_selected': QColor(255, 255, 255, 200)
+            'bg': get_wheel_bg_color(),
+            'border': get_wheel_border_color(),
+            'selector_border': get_wheel_selector_border_color(),
+            'selector_inner': get_wheel_selector_inner_color(),
+            'scheme_point_border': get_wheel_selector_border_color(),
+            'scheme_point_inner': get_wheel_selector_inner_color(),
+            'line': get_wheel_line_color(selected=False),
+            'line_selected': get_wheel_line_color(selected=True)
         }
 
     def _calculate_wheel_geometry(self):

@@ -4,14 +4,13 @@ from datetime import datetime
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QLabel, QScrollArea, QSplitter,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
     ComboBox, FluentIcon, InfoBar, InfoBarPosition, PrimaryPushButton,
-    PushButton, PushSettingCard, SettingCardGroup, SpinBox, SwitchButton, isDarkTheme
+    PushButton, PushSettingCard, SettingCardGroup, SpinBox, SwitchButton
 )
 
 # 项目模块导入
@@ -24,18 +23,11 @@ from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .scheme_widgets import SchemeColorPanel
 from .favorite_widgets import FavoriteSchemeList
+from .theme_colors import get_canvas_empty_bg_color, get_title_color
 
 
 # 可选的色彩模式列表
 AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
-
-
-def get_title_color():
-    """获取标题颜色"""
-    if isDarkTheme():
-        return QColor(255, 255, 255)
-    else:
-        return QColor(40, 40, 40)
 
 
 class ColorExtractInterface(QWidget):
@@ -854,7 +846,8 @@ class ColorSchemeInterface(QWidget):
         self.wheel_container = QWidget(self)
         self.wheel_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.wheel_container.setMinimumSize(300, 200)
-        self.wheel_container.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
+        bg_color = get_canvas_empty_bg_color()
+        self.wheel_container.setStyleSheet(f"background-color: {bg_color.name()}; border-radius: 8px;")
 
         wheel_container_layout = QVBoxLayout(self.wheel_container)
         wheel_container_layout.setContentsMargins(10, 10, 10, 10)

@@ -13,6 +13,10 @@ from qfluentwidgets import Action, FluentIcon, RoundMenu
 from core import get_luminance, get_zone
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
+from .theme_colors import (
+    get_canvas_background_color, get_canvas_empty_text_color, get_picker_colors,
+    get_tooltip_bg_color, get_tooltip_text_color
+)
 
 
 class ImageLoader(QThread):
@@ -77,7 +81,8 @@ class BaseCanvas(QWidget):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         # 设置合理的最小尺寸，允许画布在压缩时调整大小
         self.setMinimumSize(300, 200)
-        self.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
+        bg_color = get_canvas_background_color()
+        self.setStyleSheet(f"background-color: {bg_color.name()}; border-radius: 8px;")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self._original_pixmap: Optional[QPixmap] = None
@@ -450,7 +455,7 @@ class BaseCanvas(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
         # 绘制背景
-        painter.fillRect(self.rect(), QColor(42, 42, 42))
+        painter.fillRect(self.rect(), get_canvas_background_color())
 
         # 绘制图片（使用原始高分辨率图片，实时缩放显示）
         if self._original_pixmap and not self._original_pixmap.isNull():
@@ -464,7 +469,7 @@ class BaseCanvas(QWidget):
                 self._draw_overlay(painter, display_rect)
         else:
             # 没有图片时显示提示文字
-            painter.setPen(QColor(150, 150, 150))
+            painter.setPen(get_canvas_empty_text_color())
             font = QFont()
             font.setPointSize(14)
             painter.setFont(font)
@@ -733,16 +738,7 @@ class LuminanceCanvas(BaseCanvas):
         self._zone_highlight_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
 
         # Zone高亮颜色配置 (Zone 0-7) - Adobe标准映射
-        self._zone_highlight_colors: List[QColor] = [
-            QColor(0, 102, 255, 100),    # Zone 0: 深蓝色 (黑色 Blacks)
-            QColor(0, 128, 255, 100),    # Zone 1: 蓝色 (黑色 Blacks)
-            QColor(0, 153, 255, 100),    # Zone 2: 浅蓝色 (阴影 Shadows)
-            QColor(0, 204, 102, 100),    # Zone 3: 绿色 (中间调 Midtones)
-            QColor(102, 255, 102, 100),  # Zone 4: 浅绿色 (中间调 Midtones)
-            QColor(255, 204, 0, 100),    # Zone 5: 黄色 (中间调 Midtones)
-            QColor(255, 128, 0, 100),    # Zone 6: 橙色 (高光 Highlights)
-            QColor(255, 51, 102, 100),   # Zone 7: 红色 (白色 Whites)
-        ]
+        self._zone_highlight_colors: List[QColor] = get_picker_colors()
 
         # 创建取色点（初始隐藏）
         for i in range(self._picker_count):
@@ -886,11 +882,11 @@ class LuminanceCanvas(BaseCanvas):
 
                 # 绘制白色填充方框
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(255, 255, 255))
+                painter.setBrush(get_tooltip_bg_color())
                 painter.drawRect(box_x, box_y, box_width, box_height)
 
                 # 绘制黑色文字
-                painter.setPen(QColor(0, 0, 0))
+                painter.setPen(get_tooltip_text_color())
                 text_x = box_x + (box_width - text_width) // 2
                 text_y = box_y + (box_height - text_height) // 2
                 painter.drawText(text_x, text_y + text_height - 2, zone)
@@ -1066,9 +1062,8 @@ class LuminanceCanvas(BaseCanvas):
         box_y = disp_y + 20
 
         # 绘制半透明背景框
-        bg_color = QColor(0, 0, 0, 180)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(bg_color)
+        painter.setBrush(get_tooltip_bg_color())
         painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
 
         # 绘制文字

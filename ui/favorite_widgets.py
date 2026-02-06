@@ -333,6 +333,12 @@ class FavoriteSchemeList(QWidget):
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
+        # 设置滚动条角落为透明（防止出现灰色方块）
+        from PySide6.QtWidgets import QWidget
+        corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
+        self.scroll_area.setCornerWidget(corner_widget)
+
         self.content_widget = QWidget()
         self.content_widget.setStyleSheet("background: transparent;")
         self.content_layout = QVBoxLayout(self.content_widget)

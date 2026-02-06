@@ -2,15 +2,14 @@
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
-from qfluentwidgets import isDarkTheme
+
+# 项目模块导入
+from .theme_colors import get_zoom_bg_color, get_zoom_grid_color
 
 
 def get_crosshair_color():
     """获取十字准星颜色"""
-    if isDarkTheme():
-        return QColor(200, 200, 200)
-    else:
-        return QColor(40, 40, 40)
+    return get_zoom_bg_color()
 
 
 class ZoomViewer(QWidget):
@@ -99,5 +98,5 @@ class ZoomViewer(QWidget):
         painter.drawEllipse(1, 1, self.width() - 2, self.height() - 2)
 
         # 绘制阴影效果
-        painter.setPen(QPen(QColor(0, 0, 0, 80), 1))
+        painter.setPen(QPen(get_zoom_grid_color(), 1))
         painter.drawEllipse(0, 0, self.width(), self.height())
