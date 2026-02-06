@@ -309,6 +309,8 @@ class SettingsInterface(QWidget):
     luminance_sample_count_changed = Signal(int)
     # 信号：直方图缩放模式改变
     histogram_scaling_mode_changed = Signal(str)
+    # 信号：色轮模式改变
+    color_wheel_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -319,6 +321,7 @@ class SettingsInterface(QWidget):
         self._color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
         self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
         self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
+        self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self.setup_ui()
 
     def setup_ui(self):
@@ -385,6 +388,10 @@ class SettingsInterface(QWidget):
         # 直方图缩放模式卡片
         self.histogram_scaling_card = self._create_histogram_scaling_card()
         self.display_group.addSettingCard(self.histogram_scaling_card)
+
+        # 色轮模式卡片
+        self.color_wheel_mode_card = self._create_color_wheel_mode_card()
+        self.display_group.addSettingCard(self.color_wheel_mode_card)
 
         layout.addWidget(self.display_group)
 
@@ -602,6 +609,51 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         self.histogram_scaling_mode_changed.emit(mode)
 
+    def _create_color_wheel_mode_card(self):
+        """创建配色方案模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            "配色方案模式",
+            "选择配色方案使用的色彩逻辑（RGB: 光学混色，RYB: 美术混色）",
+            self.display_group
+        )
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem("RGB 光学")
+        combo_box.setItemData(0, "RGB")
+        combo_box.addItem("RYB 美术")
+        combo_box.setItemData(1, "RYB")
+
+        # 设置当前值
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._color_wheel_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_color_wheel_mode_changed)
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_color_wheel_mode_changed(self, index):
+        """色轮模式改变"""
+        combo_box = self.color_wheel_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._color_wheel_mode = mode
+        self._config_manager.set('settings.color_wheel_mode', mode)
+        self._config_manager.save()
+        self.color_wheel_mode_changed.emit(mode)
+
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
         self._hex_visible = visible
@@ -622,6 +674,24 @@ class SettingsInterface(QWidget):
     def get_color_modes(self):
         """获取当前色彩模式"""
         return self._color_modes
+
+    def get_color_wheel_mode(self):
+        """获取当前色轮模式"""
+        return self._color_wheel_mode
+
+    def set_color_wheel_mode(self, mode):
+        """设置色轮模式
+
+        Args:
+            mode: 'RGB' 或 'RYB'
+        """
+        self._color_wheel_mode = mode
+        if hasattr(self.color_wheel_mode_card, 'combo_box'):
+            combo_box = self.color_wheel_mode_card.combo_box
+            for i in range(combo_box.count()):
+                if combo_box.itemData(i) == mode:
+                    combo_box.setCurrentIndex(i)
+                    break
 
     def on_check_update(self):
         """检查更新按钮点击"""
@@ -646,6 +716,7 @@ class ColorSchemeInterface(QWidget):
         self._base_brightness = 100.0
         self._brightness_adjustment = 0
         self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
+        self._color_wheel_mode = 'RGB'  # 色轮模式：RGB 或 RYB
 
         # 获取配置管理器
         from core import get_config_manager
@@ -765,6 +836,7 @@ class ColorSchemeInterface(QWidget):
         # 从配置管理器读取设置
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
 
         # 应用设置到色块面板
         self.color_panel.update_settings(hex_visible, color_modes)
@@ -844,9 +916,22 @@ class ColorSchemeInterface(QWidget):
         self.color_wheel.set_global_brightness(value)
         self._generate_scheme_colors()
 
+    def set_color_wheel_mode(self, mode: str):
+        """设置色轮模式
+
+        Args:
+            mode: 'RGB' 或 'RYB'
+        """
+        if self._color_wheel_mode != mode:
+            self._color_wheel_mode = mode
+            self._generate_scheme_colors()
+
     def _generate_scheme_colors(self):
         """生成配色方案颜色"""
-        from core import get_scheme_preview_colors, adjust_brightness, hsb_to_rgb, rgb_to_hsb
+        from core import (
+            get_scheme_preview_colors, get_scheme_preview_colors_ryb,
+            adjust_brightness, hsb_to_rgb, rgb_to_hsb
+        )
 
         # 根据配色方案类型确定颜色数量
         scheme_counts = {
@@ -858,8 +943,11 @@ class ColorSchemeInterface(QWidget):
         }
         count = scheme_counts.get(self._current_scheme, 5)
 
-        # 生成基础配色
-        colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
+        # 根据色轮模式选择对应的配色生成函数
+        if self._color_wheel_mode == 'RYB':
+            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count)
+        else:
+            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
 
         # 转换为HSB并应用明度调整
         self._scheme_colors = []

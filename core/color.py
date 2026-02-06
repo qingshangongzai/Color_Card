@@ -600,3 +600,331 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5)
         hsb_colors = generate_monochromatic(base_hue, count)
 
     return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]
+
+
+# ==================== RYB 色彩空间支持 ====================
+
+# RYB 色相映射表：RGB色相角度 -> RYB色相角度
+# 基于传统美术色轮的红-黄-蓝三原色系统
+RYB_HUE_MAP_RGB_TO_RYB = {
+    0: 0,       # 红
+    30: 30,     # 橙红
+    60: 60,     # 橙
+    90: 90,     # 橙黄
+    120: 120,   # 黄
+    150: 150,   # 黄绿
+    180: 180,   # 绿（RYB中绿在180度）
+    210: 210,   # 青绿
+    240: 240,   # 青
+    270: 270,   # 蓝
+    300: 300,   # 紫
+    330: 330,   # 品红
+    360: 360,   # 红
+}
+
+# RYB 色相映射表：RYB色相角度 -> RGB色相角度
+RYB_HUE_MAP_RYB_TO_RGB = {
+    0: 0,       # 红
+    30: 30,     # 橙红
+    60: 60,     # 橙
+    90: 90,     # 橙黄
+    120: 120,   # 黄
+    150: 150,   # 黄绿
+    180: 180,   # 绿（RYB中绿在180度，RGB中绿在120度）
+    210: 210,   # 青绿
+    240: 240,   # 青
+    270: 270,   # 蓝
+    300: 300,   # 紫
+    330: 330,   # 品红
+    360: 360,   # 红
+}
+
+
+def rgb_hue_to_ryb_hue(rgb_hue: float) -> float:
+    """将 RGB 色相转换为 RYB 色相
+
+    RYB色轮是传统美术色轮，三原色为红、黄、蓝
+    与RGB色轮的主要差异：
+    - RYB中绿色在180度（黄和蓝之间）
+    - RGB中绿色在120度
+
+    Args:
+        rgb_hue: RGB色相 (0-360)
+
+    Returns:
+        float: RYB色相 (0-360)
+    """
+    # 规范化色相到 0-360
+    hue = rgb_hue % 360
+
+    # 分段线性映射
+    # RGB: 红(0) -> 黄(60) -> 绿(120) -> 青(180) -> 蓝(240) -> 紫(300) -> 红(360)
+    # RYB: 红(0) -> 橙(60) -> 黄(120) -> 绿(180) -> 蓝(240) -> 紫(300) -> 红(360)
+
+    if hue <= 60:
+        # 红到黄区域：RGB 0-60 -> RYB 0-120
+        return hue * 2
+    elif hue <= 120:
+        # 黄到绿区域：RGB 60-120 -> RYB 120-180
+        return 120 + (hue - 60)
+    elif hue <= 180:
+        # 绿到青区域：RGB 120-180 -> RYB 180-210
+        return 180 + (hue - 120) * 0.5
+    elif hue <= 240:
+        # 青到蓝区域：RGB 180-240 -> RYB 210-240
+        return 210 + (hue - 180) * 0.5
+    else:
+        # 蓝到红区域：RGB 240-360 -> RYB 240-360
+        return hue
+
+
+def ryb_hue_to_rgb_hue(ryb_hue: float) -> float:
+    """将 RYB 色相转换为 RGB 色相
+
+    Args:
+        ryb_hue: RYB色相 (0-360)
+
+    Returns:
+        float: RGB色相 (0-360)
+    """
+    # 规范化色相到 0-360
+    hue = ryb_hue % 360
+
+    # 反向映射
+    if hue <= 120:
+        # 红到黄区域：RYB 0-120 -> RGB 0-60
+        return hue * 0.5
+    elif hue <= 180:
+        # 黄到绿区域：RYB 120-180 -> RGB 60-120
+        return 60 + (hue - 120)
+    elif hue <= 210:
+        # 绿到青区域：RYB 180-210 -> RGB 120-180
+        return 120 + (hue - 180) * 2
+    elif hue <= 240:
+        # 青到蓝区域：RYB 210-240 -> RGB 180-240
+        return 180 + (hue - 210) * 2
+    else:
+        # 蓝到红区域：RYB 240-360 -> RGB 240-360
+        return hue
+
+
+def generate_ryb_monochromatic(ryb_hue: float, count: int = 4) -> List[Tuple[float, float, float]]:
+    """生成 RYB 同色系配色方案
+
+    Args:
+        ryb_hue: RYB基准色相 (0-360)
+        count: 生成颜色数量 (默认4)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
+    """
+    colors = []
+    # 根据数量生成饱和度和明度序列
+    if count == 4:
+        saturations = [100, 75, 50, 25]
+        brightnesses = [100, 90, 80, 70]
+    else:
+        saturations = [100 - i * (80 / max(count - 1, 1)) for i in range(count)]
+        brightnesses = [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+
+    # 转换 RYB 色相到 RGB 色相
+    rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
+
+    for i in range(count):
+        s = max(20, min(100, saturations[i] if i < len(saturations) else 50))
+        b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
+        colors.append((rgb_hue % 360, s, b))
+
+    return colors
+
+
+def generate_ryb_analogous(ryb_hue: float, angle: float = 30, count: int = 4) -> List[Tuple[float, float, float]]:
+    """生成 RYB 邻近色配色方案
+
+    Args:
+        ryb_hue: RYB基准色相 (0-360)
+        angle: 邻近角度范围 (默认30度)
+        count: 生成颜色数量 (默认4)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
+    """
+    colors = []
+    if count == 4:
+        # 4个颜色：基准色两侧各1个，加上基准色和另一个过渡色
+        ryb_hues = [
+            (ryb_hue - angle) % 360,
+            (ryb_hue - angle / 2) % 360,
+            ryb_hue % 360,
+            (ryb_hue + angle / 2) % 360
+        ]
+    else:
+        step = (2 * angle) / max(count - 1, 1)
+        ryb_hues = [(ryb_hue - angle + i * step) % 360 for i in range(count)]
+
+    for h in ryb_hues:
+        # 转换 RYB 色相到 RGB 色相
+        rgb_hue = ryb_hue_to_rgb_hue(h)
+        colors.append((rgb_hue, 85, 90))
+
+    return colors
+
+
+def generate_ryb_complementary(ryb_hue: float, count: int = 5) -> List[Tuple[float, float, float]]:
+    """生成 RYB 互补色配色方案
+
+    在RYB色轮中，互补色相差180度
+
+    Args:
+        ryb_hue: RYB基准色相 (0-360)
+        count: 生成颜色数量 (默认5)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
+    """
+    colors = []
+    ryb_comp_hue = (ryb_hue + 180) % 360
+
+    # 转换到 RGB 色相
+    rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
+    rgb_comp_hue = ryb_hue_to_rgb_hue(ryb_comp_hue)
+
+    if count == 5:
+        # 基准色一侧3个：通过调整饱和度和明度来区分
+        colors = [
+            (rgb_hue, 100, 100),
+            (rgb_hue, 75, 90),
+            (rgb_hue, 50, 80),
+            # 互补色一侧2个
+            (rgb_comp_hue, 100, 100),
+            (rgb_comp_hue, 75, 90),
+        ]
+    else:
+        # 平均分配
+        base_count = (count + 1) // 2
+        comp_count = count - base_count
+
+        for i in range(base_count):
+            s = 100 - i * (50 / max(base_count, 1))
+            b = 100 - i * (20 / max(base_count, 1))
+            colors.append((rgb_hue, max(50, s), max(80, b)))
+
+        for i in range(comp_count):
+            s = 100 - i * (50 / max(comp_count, 1))
+            b = 100 - i * (20 / max(comp_count, 1))
+            colors.append((rgb_comp_hue, max(50, s), max(80, b)))
+
+    return colors
+
+
+def generate_ryb_split_complementary(ryb_hue: float, angle: float = 30, count: int = 3) -> List[Tuple[float, float, float]]:
+    """生成 RYB 分离补色配色方案
+
+    Args:
+        ryb_hue: RYB基准色相 (0-360)
+        angle: 分离角度 (默认30度)
+        count: 生成颜色数量 (默认3)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
+    """
+    colors = []
+    ryb_comp_hue = (ryb_hue + 180) % 360
+    ryb_left_comp = (ryb_comp_hue - angle) % 360
+    ryb_right_comp = (ryb_comp_hue + angle) % 360
+
+    # 转换到 RGB 色相
+    rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
+    rgb_left = ryb_hue_to_rgb_hue(ryb_left_comp)
+    rgb_right = ryb_hue_to_rgb_hue(ryb_right_comp)
+
+    if count == 3:
+        colors = [
+            (rgb_hue, 100, 100),
+            (rgb_left, 100, 100),
+            (rgb_right, 100, 100)
+        ]
+    else:
+        colors.append((rgb_hue, 100, 100))
+        colors.append((rgb_left, 100, 100))
+        colors.append((rgb_right, 100, 100))
+        remaining = count - 3
+        for i in range(remaining):
+            blend_hue = (ryb_hue + (i + 1) * 60) % 360
+            rgb_blend = ryb_hue_to_rgb_hue(blend_hue)
+            colors.append((rgb_blend, 70, 85))
+
+    return colors
+
+
+def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: int = 4) -> List[Tuple[float, float, float]]:
+    """生成 RYB 双补色配色方案
+
+    Args:
+        ryb_hue: RYB基准色相 (0-360)
+        angle: 分离角度 (默认30度)
+        count: 生成颜色数量 (默认4)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
+    """
+    colors = []
+    ryb_comp_hue = (ryb_hue + 180) % 360
+    ryb_second_hue = (ryb_hue + angle) % 360
+    ryb_second_comp = (ryb_second_hue + 180) % 360
+
+    # 转换到 RGB 色相
+    rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
+    rgb_comp = ryb_hue_to_rgb_hue(ryb_comp_hue)
+    rgb_second = ryb_hue_to_rgb_hue(ryb_second_hue)
+    rgb_second_comp = ryb_hue_to_rgb_hue(ryb_second_comp)
+
+    if count == 4:
+        colors = [
+            (rgb_hue, 100, 100),
+            (rgb_comp, 100, 100),
+            (rgb_second, 100, 100),
+            (rgb_second_comp, 100, 100)
+        ]
+    else:
+        hues = [rgb_hue, rgb_comp, rgb_second, rgb_second_comp]
+        for i in range(min(count, 4)):
+            colors.append((hues[i], 90, 95))
+        for i in range(4, count):
+            blend_ryb = (ryb_hue + i * 45) % 360
+            rgb_blend = ryb_hue_to_rgb_hue(blend_ryb)
+            colors.append((rgb_blend, 70, 85))
+
+    return colors
+
+
+def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int = 5) -> List[Tuple[int, int, int]]:
+    """获取 RYB 配色方案的预览颜色（RGB格式）
+
+    Args:
+        scheme_type: 配色方案类型 ('monochromatic', 'analogous', 'complementary',
+                     'split_complementary', 'double_complementary')
+        base_hue: 基准色相 (0-360，RGB色相)
+        count: 生成颜色数量
+
+    Returns:
+        list: RGB颜色列表 [(r, g, b), ...]
+    """
+    # 先将 RGB 色相转换为 RYB 色相
+    ryb_hue = rgb_hue_to_ryb_hue(base_hue)
+
+    # 根据方案类型调用对应的 RYB 生成器
+    if scheme_type == 'monochromatic':
+        hsb_colors = generate_ryb_monochromatic(ryb_hue, count)
+    elif scheme_type == 'analogous':
+        hsb_colors = generate_ryb_analogous(ryb_hue, 30, count)
+    elif scheme_type == 'complementary':
+        hsb_colors = generate_ryb_complementary(ryb_hue, count)
+    elif scheme_type == 'split_complementary':
+        hsb_colors = generate_ryb_split_complementary(ryb_hue, 30, count)
+    elif scheme_type == 'double_complementary':
+        hsb_colors = generate_ryb_double_complementary(ryb_hue, 30, count)
+    else:
+        hsb_colors = generate_ryb_monochromatic(ryb_hue, count)
+
+    return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]

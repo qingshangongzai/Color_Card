@@ -261,6 +261,11 @@ class MainWindow(FluentWindow):
             self._on_histogram_scaling_mode_changed
         )
 
+        # 连接色轮模式改变信号到配色方案界面
+        self.settings_interface.color_wheel_mode_changed.connect(
+            self.color_scheme_interface.set_color_wheel_mode
+        )
+
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.color_extract_interface.color_card_panel.set_hex_visible(hex_visible)
@@ -282,6 +287,10 @@ class MainWindow(FluentWindow):
         histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
         self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(histogram_scaling_mode)
         self.luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
+
+        # 应用加载的色轮模式配置到配色方案界面
+        color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
+        self.color_scheme_interface.set_color_wheel_mode(color_wheel_mode)
 
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
