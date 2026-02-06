@@ -57,6 +57,7 @@ class ColorExtractInterface(QWidget):
         # 主分割器（垂直）
         main_splitter = QSplitter(Qt.Orientation.Vertical)
         main_splitter.setMinimumHeight(300)
+        main_splitter.setHandleWidth(0)  # 隐藏分隔条
         layout.addWidget(main_splitter, stretch=1)
 
         # 上半部分：水平分割器（图片 + 右侧组件）
@@ -94,9 +95,10 @@ class ColorExtractInterface(QWidget):
 
         # 收藏工具栏
         favorite_toolbar = QWidget()
-        favorite_toolbar.setMaximumHeight(40)
+        favorite_toolbar.setMaximumHeight(50)
+        favorite_toolbar.setStyleSheet("background: transparent;")
         favorite_toolbar_layout = QHBoxLayout(favorite_toolbar)
-        favorite_toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        favorite_toolbar_layout.setContentsMargins(0, 8, 0, 8)
         favorite_toolbar_layout.setSpacing(10)
 
         self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏当前配色", self)
