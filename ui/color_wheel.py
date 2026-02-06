@@ -365,7 +365,7 @@ class InteractiveColorWheel(QWidget):
         Args:
             h: 色相 (0-360)
             s: 饱和度 (0-100)
-            b: 明度 (0-100)，明度越低越靠近中心
+            b: 明度 (0-100)，仅用于颜色显示，不影响位置
 
         Returns:
             (x, y) 坐标
@@ -373,13 +373,9 @@ class InteractiveColorWheel(QWidget):
         angle_rad = (h * math.pi / 180.0)
         max_radius = self._wheel_radius * 0.85
 
-        # 位置由饱和度和明度共同决定
-        # 饱和度决定水平距离，明度决定垂直距离（明度越低越靠近中心）
-        saturation_factor = s / 100.0
-        brightness_factor = b / 100.0
-
-        # 综合因素：明度越低，点越靠近中心
-        radius = max_radius * saturation_factor * brightness_factor
+        # 位置仅由饱和度决定
+        # 饱和度越高，点越靠近边缘；饱和度越低，点越靠近中心
+        radius = max_radius * (s / 100.0)
 
         x = self._center_x + radius * math.cos(angle_rad)
         y = self._center_y - radius * math.sin(angle_rad)
@@ -468,40 +464,15 @@ class InteractiveColorWheel(QWidget):
         Returns:
             新的饱和度值 (0-100)
         """
-        # 获取该采样点的色相（保持不变）
-        if index == 0:
-            hue = self._base_hue
-        else:
-            hue = self._scheme_colors[index][0]
-
         # 计算鼠标位置相对于圆心的距离
         dx = x - self._center_x
         dy = y - self._center_y
         distance = math.sqrt(dx * dx + dy * dy)
 
-        # 计算鼠标位置的角度
-        angle = math.atan2(-dy, dx)
-        mouse_hue = (angle / (2 * math.pi)) % 1.0 * 360
-
-        # 计算鼠标位置与采样点色相方向的夹角
-        hue_diff = abs(mouse_hue - hue)
-        if hue_diff > 180:
-            hue_diff = 360 - hue_diff
-
-        # 如果夹角太大，只使用距离投影到色相方向
+        # 根据距离直接计算饱和度
+        # 距离中心越近，饱和度越低；距离中心越远，饱和度越高
         max_radius = self._wheel_radius * 0.85
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
-
-        if index == 0:
-            current_b = max(10, min(100, self._base_brightness * brightness_factor))
-        else:
-            current_b = max(10, min(100, self._scheme_colors[index][2] * brightness_factor))
-
-        # 计算饱和度（考虑明度影响）
-        if current_b > 0:
-            saturation = min(distance / max_radius / (current_b / 100.0), 1.0) * 100
-        else:
-            saturation = 0
+        saturation = min(distance / max_radius, 1.0) * 100
 
         return max(0, min(100, saturation))
 

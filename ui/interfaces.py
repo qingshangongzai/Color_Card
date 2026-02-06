@@ -1023,12 +1023,17 @@ class ColorSchemeInterface(QWidget):
 
         # 转换为HSB并应用明度调整
         self._scheme_colors = []
-        for rgb in colors:
+        for i, rgb in enumerate(colors):
             h, s, b = rgb_to_hsb(*rgb)
+            # 第一个颜色是基准色，使用用户设置的饱和度
+            if i == 0:
+                s = self._base_saturation
             self._scheme_colors.append((h, s, b))
 
         if self._brightness_adjustment != 0:
             self._scheme_colors = adjust_brightness(self._scheme_colors, self._brightness_adjustment)
+            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
+        else:
             colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
 
         # 更新色块面板
