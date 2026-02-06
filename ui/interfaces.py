@@ -645,6 +645,7 @@ class ColorSchemeInterface(QWidget):
         self._base_saturation = 100.0
         self._base_brightness = 100.0
         self._brightness_adjustment = 0
+        self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
 
         # 获取配置管理器
         from core import get_config_manager
@@ -756,6 +757,7 @@ class ColorSchemeInterface(QWidget):
         self.scheme_combo.currentIndexChanged.connect(self.on_scheme_changed)
         self.random_btn.clicked.connect(self.on_random_clicked)
         self.color_wheel.base_color_changed.connect(self.on_base_color_changed)
+        self.color_wheel.scheme_color_changed.connect(self.on_scheme_color_changed)
         self.brightness_slider.valueChanged.connect(self.on_brightness_changed)
 
     def _load_settings(self):
@@ -815,6 +817,25 @@ class ColorSchemeInterface(QWidget):
         self._base_saturation = s
         self._generate_scheme_colors()
 
+    def on_scheme_color_changed(self, index, h, s, b):
+        """配色方案采样点颜色改变回调
+
+        Args:
+            index: 采样点索引
+            h: 色相
+            s: 饱和度
+            b: 亮度
+        """
+        from core import hsb_to_rgb
+
+        # 更新配色方案数据
+        if 0 <= index < len(self._scheme_colors):
+            self._scheme_colors[index] = (h, s, b)
+
+            # 转换为RGB并更新色块面板
+            rgb = hsb_to_rgb(h, s, b)
+            self.color_panel.set_colors([hsb_to_rgb(*c) for c in self._scheme_colors])
+
     def on_brightness_changed(self, value):
         """明度调整回调"""
         self._brightness_adjustment = value
@@ -841,20 +862,20 @@ class ColorSchemeInterface(QWidget):
         colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
 
         # 转换为HSB并应用明度调整
-        hsb_colors = []
+        self._scheme_colors = []
         for rgb in colors:
             h, s, b = rgb_to_hsb(*rgb)
-            hsb_colors.append((h, s, b))
+            self._scheme_colors.append((h, s, b))
 
         if self._brightness_adjustment != 0:
-            hsb_colors = adjust_brightness(hsb_colors, self._brightness_adjustment)
-            colors = [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]
+            self._scheme_colors = adjust_brightness(self._scheme_colors, self._brightness_adjustment)
+            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
 
         # 更新色块面板
         self.color_panel.set_colors(colors)
 
         # 更新色环上的配色方案点
-        self.color_wheel.set_scheme_colors(hsb_colors)
+        self.color_wheel.set_scheme_colors(self._scheme_colors)
 
 
 # 导入需要在类定义之后导入的模块
