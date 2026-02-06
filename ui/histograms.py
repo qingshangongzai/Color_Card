@@ -310,8 +310,8 @@ class LuminanceHistogramWidget(BaseHistogram):
         for i in range(8):
             zone_x = x + i * zone_width
 
-            # 如果是按下的Zone或当前选中的Zone，使用高亮背景色
-            if i == self._pressed_zone or i == self._current_zone:
+            # 如果是按下的Zone，使用高亮背景色
+            if i == self._pressed_zone:
                 bg_color = zone_active_colors[i]
             else:
                 bg_color = zone_bg_colors[i]
@@ -323,8 +323,8 @@ class LuminanceHistogramWidget(BaseHistogram):
                 bg_color
             )
 
-            # 如果当前Zone被按下或选中，绘制边框
-            if i == self._pressed_zone or i == self._current_zone:
+            # 如果当前Zone被按下，绘制蓝色边框
+            if i == self._pressed_zone:
                 painter.setPen(QPen(QColor(0, 150, 255), 2))
                 painter.setBrush(Qt.BrushStyle.NoBrush)
                 painter.drawRect(int(zone_x), y, int(zone_width), height)
