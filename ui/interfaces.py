@@ -5,7 +5,7 @@ from datetime import datetime
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QScrollArea, QSplitter,
+    QFileDialog, QHBoxLayout, QLabel, QScrollArea, QSplitter, QStackedWidget,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
@@ -20,7 +20,7 @@ from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
-from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
+from .histograms import LuminanceHistogramWidget, RGBHistogramWidget, HueHistogramWidget
 from .scheme_widgets import SchemeColorPanel
 from .favorite_widgets import FavoriteSchemeList
 from .theme_colors import get_canvas_empty_bg_color, get_title_color
@@ -63,7 +63,7 @@ class ColorExtractInterface(QWidget):
         self.image_canvas.setMinimumHeight(150)
         top_splitter.addWidget(self.image_canvas)
 
-        # 右侧：垂直分割器（HSB色环 + RGB直方图）
+        # 右侧：垂直分割器（HSB色环 + 直方图堆叠窗口）
         right_splitter = QSplitter(Qt.Orientation.Vertical)
         right_splitter.setMinimumWidth(180)
         right_splitter.setMaximumWidth(350)
@@ -75,11 +75,19 @@ class ColorExtractInterface(QWidget):
         self.hsb_color_wheel.setMinimumHeight(100)
         right_splitter.addWidget(self.hsb_color_wheel)
 
+        # 直方图堆叠窗口（RGB/色相切换）
+        self.histogram_stack = QStackedWidget()
+        self.histogram_stack.setMinimumHeight(60)
+
         # RGB直方图
         self.rgb_histogram_widget = RGBHistogramWidget()
-        self.rgb_histogram_widget.setMinimumHeight(60)
-        right_splitter.addWidget(self.rgb_histogram_widget)
+        self.histogram_stack.addWidget(self.rgb_histogram_widget)
 
+        # 色相直方图
+        self.hue_histogram_widget = HueHistogramWidget()
+        self.histogram_stack.addWidget(self.hue_histogram_widget)
+
+        right_splitter.addWidget(self.histogram_stack)
         right_splitter.setSizes([180, 120])
         top_splitter.addWidget(right_splitter)
 
@@ -151,8 +159,9 @@ class ColorExtractInterface(QWidget):
             # 明度面板会自己延迟执行耗时操作
             window.sync_image_data_to_luminance(pixmap, image)
 
-        # 更新RGB直方图
+        # 更新RGB直方图和色相直方图
         self.rgb_histogram_widget.set_image(image)
+        self.hue_histogram_widget.set_image(image)
 
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
@@ -165,9 +174,10 @@ class ColorExtractInterface(QWidget):
         """清空图片"""
         self.image_canvas.clear_image()
         self.color_card_panel.clear_all()
-        # 清除HSB色环和RGB直方图
+        # 清除HSB色环和直方图
         self.hsb_color_wheel.clear_sample_points()
         self.rgb_histogram_widget.clear()
+        self.hue_histogram_widget.clear()
 
     def on_image_cleared(self):
         """图片已清空回调（同步清除明度面板）"""
@@ -175,6 +185,17 @@ class ColorExtractInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'sync_clear_to_luminance'):
             window.sync_clear_to_luminance()
+
+    def set_histogram_mode(self, mode: str):
+        """设置直方图显示模式
+
+        Args:
+            mode: 'rgb' 或 'hue'
+        """
+        if mode == 'hue':
+            self.histogram_stack.setCurrentIndex(1)
+        else:
+            self.histogram_stack.setCurrentIndex(0)
 
     def _on_favorite_clicked(self):
         """收藏按钮点击回调"""
@@ -484,6 +505,8 @@ class SettingsInterface(QWidget):
     histogram_scaling_mode_changed = Signal(str)
     # 信号：色轮模式改变
     color_wheel_mode_changed = Signal(str)
+    # 信号：直方图模式改变
+    histogram_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -495,6 +518,7 @@ class SettingsInterface(QWidget):
         self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
         self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
         self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
+        self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self.setup_ui()
 
     def setup_ui(self):
@@ -559,6 +583,10 @@ class SettingsInterface(QWidget):
         # 直方图缩放模式卡片
         self.histogram_scaling_card = self._create_histogram_scaling_card()
         self.display_group.addSettingCard(self.histogram_scaling_card)
+
+        # 直方图模式卡片（RGB/色相）
+        self.histogram_mode_card = self._create_histogram_mode_card()
+        self.display_group.addSettingCard(self.histogram_mode_card)
 
         # 色轮模式卡片
         self.color_wheel_mode_card = self._create_color_wheel_mode_card()
@@ -779,6 +807,51 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.histogram_scaling_mode', mode)
         self._config_manager.save()
         self.histogram_scaling_mode_changed.emit(mode)
+
+    def _create_histogram_mode_card(self):
+        """创建直方图模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            "直方图显示模式",
+            "选择色彩提取面板的直方图类型（RGB通道/色相分布）",
+            self.display_group
+        )
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem("RGB 通道")
+        combo_box.setItemData(0, "rgb")
+        combo_box.addItem("色相分布")
+        combo_box.setItemData(1, "hue")
+
+        # 设置当前值
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._histogram_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_histogram_mode_changed)
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_histogram_mode_changed(self, index):
+        """直方图模式改变"""
+        combo_box = self.histogram_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._histogram_mode = mode
+        self._config_manager.set('settings.histogram_mode', mode)
+        self._config_manager.save()
+        self.histogram_mode_changed.emit(mode)
 
     def _create_color_wheel_mode_card(self):
         """创建配色方案模式选择卡片"""
