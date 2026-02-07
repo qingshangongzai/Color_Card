@@ -590,7 +590,7 @@ class RGBHistogramWidget(BaseHistogram):
         """绘制标题"""
         from .theme_colors import get_text_color
         painter.setPen(get_text_color())
-        font = painter.font()
+        font = QFont()
         font.setPointSize(9)
         painter.setFont(font)
         painter.drawText(10, 18, "RGB直方图")
