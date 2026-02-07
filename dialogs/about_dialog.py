@@ -5,9 +5,9 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QTimer, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
-    QDialog, QFrame, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
+    QDialog, QFrame, QHBoxLayout, QVBoxLayout, QWidget
 )
-from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme, qconfig
+from qfluentwidgets import CaptionLabel, PlainTextEdit, PrimaryPushButton, PushButton, isDarkTheme, qconfig
 
 # 项目模块导入
 from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
@@ -71,17 +71,23 @@ class AboutDialog(QDialog):
         Args:
             parent_layout: 父布局对象
         """
-        self.text_edit = QPlainTextEdit(self)
+        self.text_edit = PlainTextEdit(self)
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlainText(self._get_about_text())
         self.text_edit.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        # 禁用焦点，去除底部蓝色条
+        self.text_edit.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         
         # 设置主题感知的样式
         bg_color = get_dialog_bg_color()
         text_color = get_text_color()
         self.text_edit.setStyleSheet(
-            f"QPlainTextEdit {{ background-color: {bg_color.name()}; "
-            f"color: {text_color.name()}; border: none; }}"
+            f"PlainTextEdit {{ background-color: {bg_color.name()}; "
+            f"color: {text_color.name()}; border: none; }}\n"
+            f"PlainTextEdit:focus {{ border: none; outline: none; }}\n"
+            f"PlainTextEdit::focus {{ border: none; }}\n"
+            f"QPlainTextEdit {{ border: none; }}\n"
+            f"QPlainTextEdit:focus {{ border: none; outline: none; }}"
         )
         
         parent_layout.addWidget(self.text_edit, stretch=1)

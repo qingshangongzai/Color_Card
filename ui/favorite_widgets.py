@@ -5,12 +5,12 @@ from datetime import datetime
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QScrollArea, QVBoxLayout, QHBoxLayout, QWidget, QLabel,
+    QVBoxLayout, QHBoxLayout, QWidget, QLabel,
     QSizePolicy, QApplication
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    CardWidget, PushButton, ToolButton, FluentIcon,
+    CardWidget, PushButton, ScrollArea, ToolButton, FluentIcon,
     InfoBar, InfoBarPosition, isDarkTheme, qconfig
 )
 
@@ -362,7 +362,7 @@ class FavoriteSchemeList(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        self.scroll_area = QScrollArea()
+        self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
 

@@ -50,6 +50,7 @@ sys.stdout = _old_stdout
 qInstallMessageHandler(qt_message_handler)
 
 # 项目模块导入
+from core import get_config_manager
 from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
 from ui import MainWindow
 
@@ -65,7 +66,18 @@ def main():
     app_icon = load_icon_universal()
     app.setWindowIcon(app_icon)
 
-    setTheme(Theme.AUTO)
+    # 加载主题配置并设置初始主题
+    config_manager = get_config_manager()
+    config_manager.load()
+    theme_setting = config_manager.get('settings.theme', 'auto')
+
+    if theme_setting == 'light':
+        setTheme(Theme.LIGHT)
+    elif theme_setting == 'dark':
+        setTheme(Theme.DARK)
+    else:
+        setTheme(Theme.AUTO)
+
     setThemeColor('#0078d4')
 
     window = MainWindow()

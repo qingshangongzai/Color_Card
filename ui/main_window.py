@@ -74,11 +74,18 @@ class CustomTitleBar(FluentTitleBar):
         """切换主题"""
         if isDarkTheme():
             setTheme(Theme.LIGHT)
+            theme_value = 'light'
         else:
             setTheme(Theme.DARK)
+            theme_value = 'dark'
         self._update_theme_icon()
         # 重新应用按钮样式以覆盖 Fluent 主题样式
         self._apply_theme_button_style()
+        # 保存主题配置
+        from core import get_config_manager
+        config_manager = get_config_manager()
+        config_manager.set('settings.theme', theme_value)
+        config_manager.save()
 
     def _apply_theme_button_style(self):
         """应用主题按钮的无背景样式"""

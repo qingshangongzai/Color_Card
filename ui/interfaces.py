@@ -5,12 +5,12 @@ from datetime import datetime
 # 第三方库导入
 from PySide6.QtCore import Qt, QThread, QTimer, Signal
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QScrollArea, QSplitter, QStackedWidget,
+    QFileDialog, QHBoxLayout, QLabel, QSplitter, QStackedWidget,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
     ComboBox, FluentIcon, InfoBar, InfoBarPosition, PrimaryPushButton,
-    PushButton, PushSettingCard, SettingCardGroup, SpinBox, SubtitleLabel, SwitchButton, qconfig, isDarkTheme
+    PushButton, PushSettingCard, ScrollArea, SettingCardGroup, SpinBox, SubtitleLabel, SwitchButton, qconfig, isDarkTheme
 )
 
 # 项目模块导入
@@ -640,7 +640,7 @@ class SettingsInterface(QWidget):
     def setup_ui(self):
         """设置界面布局"""
         # 创建滚动区域
-        self.scroll_area = QScrollArea(self)
+        self.scroll_area = ScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
