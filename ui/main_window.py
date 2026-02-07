@@ -188,6 +188,11 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.setObjectName('luminanceExtract')
         self.stackedWidget.addWidget(self.luminance_extract_interface)
 
+        # 连接明度提取面板的图片导入信号（独立导入时同步到色彩面板）
+        self.luminance_extract_interface.image_imported.connect(
+            self.on_luminance_image_imported
+        )
+
         # 配色方案界面
         self.color_scheme_interface = ColorSchemeInterface(self)
         self.color_scheme_interface.setObjectName('colorScheme')
@@ -305,10 +310,24 @@ class MainWindow(FluentWindow):
         """打开图片（从色彩提取界面调用）"""
         self.color_extract_interface.open_image()
 
-    def open_image_for_luminance(self):
-        """为明度提取打开图片（实际同步到色彩提取）"""
-        # 调用色彩提取的打开图片功能，然后同步到明度提取
-        self.color_extract_interface.open_image()
+    def on_luminance_image_imported(self, file_path, pixmap, image):
+        """明度提取面板独立导入图片后的同步回调
+
+        Args:
+            file_path: 图片文件路径
+            pixmap: QPixmap 对象
+            image: QImage 对象
+        """
+        # 同步图片数据到色彩提取面板（emit_sync=False 防止双向同步循环）
+        self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
+
+        # 更新RGB直方图
+        self.color_extract_interface.rgb_histogram_widget.set_image(image)
+
+        # 更新窗口标题
+        from pathlib import Path
+        file_name = Path(file_path).stem
+        self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
 
     def sync_image_to_luminance(self, image_path):
         """同步图片路径到明度提取面板（保留用于兼容）"""
@@ -317,7 +336,15 @@ class MainWindow(FluentWindow):
 
     def sync_image_data_to_luminance(self, pixmap, image):
         """同步图片数据到明度提取面板（避免重复加载）"""
-        self.luminance_extract_interface.set_image_data(pixmap, image)
+        # emit_sync=False 防止双向同步循环
+        self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
+        # 更新窗口标题
+        if hasattr(self.color_extract_interface, '_pending_image_path'):
+            from pathlib import Path
+            file_path = self.color_extract_interface._pending_image_path
+            if file_path:
+                file_name = Path(file_path).stem
+                self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
 
     def sync_clear_to_luminance(self):
         """同步清除明度提取面板"""
