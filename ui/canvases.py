@@ -695,8 +695,8 @@ class BaseCanvas(QWidget):
 
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
-        else:
-            # 没有图片时显示提示文字
+        elif not self._is_loading:
+            # 没有图片且不在加载状态时显示提示文字
             painter.setPen(get_canvas_empty_text_color())
             font = QFont()
             font.setPointSize(14)
