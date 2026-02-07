@@ -957,6 +957,58 @@ class ImageCanvas(BaseCanvas):
         for i in range(len(self._pickers)):
             self.extract_at(i)
 
+    def set_picker_positions_by_colors(self, dominant_colors: List[Tuple[int, int, int]], positions: List[Tuple[float, float]]) -> None:
+        """根据主色调位置批量设置取色点位置
+
+        将取色点移动到提取的主色调位置，并更新颜色显示。
+
+        Args:
+            dominant_colors: 主色调列表 [(r, g, b), ...]
+            positions: 相对坐标列表 [(rel_x, rel_y), ...]
+        """
+        if not self._image or self._image.isNull():
+            return
+
+        if not positions or len(positions) == 0:
+            return
+
+        # 限制数量不超过取色点数量
+        count = min(len(positions), len(self._pickers))
+
+        for i in range(count):
+            rel_x, rel_y = positions[i]
+            # 限制在有效范围内
+            rel_x = max(0.0, min(1.0, rel_x))
+            rel_y = max(0.0, min(1.0, rel_y))
+
+            # 更新相对坐标
+            self._picker_rel_positions[i] = QPointF(rel_x, rel_y)
+
+        # 更新画布坐标并移动取色点
+        self.update_picker_positions()
+
+        # 提取所有取色点的颜色
+        self.extract_all()
+
+        # 更新HSB色环上的采样点（如果存在）
+        if len(dominant_colors) > 0:
+            for i in range(count):
+                if i < len(dominant_colors):
+                    rgb = dominant_colors[i]
+                    # 更新取色点显示的颜色
+                    color = QColor(rgb[0], rgb[1], rgb[2])
+                    self._pickers[i].set_color(color)
+
+        self.update()
+
+    def get_image(self) -> Optional[QImage]:
+        """获取当前图片
+
+        Returns:
+            QImage: 当前图片对象，如果没有则返回 None
+        """
+        return self._image
+
     def resizeEvent(self, event) -> None:
         """窗口大小改变时重新调整图片"""
         super().resizeEvent(event)
