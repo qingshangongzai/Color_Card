@@ -219,6 +219,9 @@ class ColorExtractInterface(QWidget):
 class LuminanceExtractInterface(QWidget):
     """明度提取界面"""
 
+    # 信号：图片已独立导入（用于同步到色彩提取面板）
+    image_imported = Signal(str, object, object)  # 图片路径, QPixmap, QImage
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging_index = -1  # 当前正在拖动的采样点索引
@@ -257,22 +260,53 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas.image_cleared.connect(self.on_image_cleared)
         self.luminance_canvas.picker_dragging.connect(self.on_picker_dragging)
 
+        # 连接图片加载信号到同步回调（用于独立导入时同步到色彩面板）
+        self.luminance_canvas.image_loaded.connect(self._on_image_loaded_sync)
+
         # 连接直方图点击信号
         self.histogram_widget.zone_pressed.connect(self.on_histogram_zone_pressed)
         self.histogram_widget.zone_released.connect(self.on_histogram_zone_released)
 
     def open_image(self):
-        """打开图片文件（由主窗口处理）"""
-        # 实际打开操作由主窗口处理，然后同步到本界面
-        window = self.window()
-        if window and hasattr(window, 'open_image_for_luminance'):
-            window.open_image_for_luminance()
+        """打开图片文件（独立导入）"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "选择图片",
+            "",
+            "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+        )
+
+        if file_path:
+            self._load_image(file_path)
 
     def change_image(self):
-        """更换图片（由主窗口处理）"""
-        window = self.window()
-        if window and hasattr(window, 'open_image_for_luminance'):
-            window.open_image_for_luminance()
+        """更换图片"""
+        self.open_image()
+
+    def _load_image(self, file_path: str):
+        """加载图片并同步到色彩提取面板
+
+        Args:
+            file_path: 图片文件路径
+        """
+        self.luminance_canvas.set_image(file_path)
+
+    def _on_image_loaded_sync(self, file_path: str):
+        """图片加载完成后的同步回调
+
+        Args:
+            file_path: 图片文件路径
+        """
+        # 更新直方图
+        self.histogram_widget.set_image(self.luminance_canvas.get_image())
+        # 导入图片时不显示高亮
+        self.histogram_widget.clear_highlight()
+
+        # 发送信号，同步到色彩提取面板
+        pixmap = self.luminance_canvas._original_pixmap
+        image = self.luminance_canvas._image
+        if pixmap and not pixmap.isNull() and image and not image.isNull():
+            self.image_imported.emit(file_path, pixmap, image)
 
     def set_image(self, image_path):
         """设置图片（由主窗口调用同步）"""
@@ -281,9 +315,15 @@ class LuminanceExtractInterface(QWidget):
         # 导入图片时不显示高亮
         self.histogram_widget.clear_highlight()
 
-    def set_image_data(self, pixmap, image):
-        """设置图片数据（直接使用已加载的图片，避免重复加载）"""
-        self.luminance_canvas.set_image_data(pixmap, image)
+    def set_image_data(self, pixmap, image, emit_sync=True):
+        """设置图片数据（直接使用已加载的图片，避免重复加载）
+
+        Args:
+            pixmap: QPixmap 对象
+            image: QImage 对象
+            emit_sync: 是否发射同步信号（默认True，从其他面板同步时设为False）
+        """
+        self.luminance_canvas.set_image_data(pixmap, image, emit_sync=emit_sync)
         # 延迟更新直方图，避免与区域提取同时执行
         QTimer.singleShot(400, lambda: self._update_histogram_with_image(image))
 
@@ -294,11 +334,9 @@ class LuminanceExtractInterface(QWidget):
         self.histogram_widget.clear_highlight()
 
     def on_image_loaded(self, file_path):
-        """图片加载完成回调"""
-        # 更新直方图
-        self.histogram_widget.set_image(self.luminance_canvas.get_image())
-        # 导入图片时不显示高亮
-        self.histogram_widget.clear_highlight()
+        """图片加载完成回调（由主窗口同步时调用）"""
+        # 直方图更新已在 _on_image_loaded_sync 中处理
+        pass
 
     def on_luminance_picked(self, index, zone):
         """明度提取回调 - 拖动时实时更新黄框"""
