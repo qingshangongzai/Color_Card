@@ -199,6 +199,9 @@ class BaseCanvas(QWidget):
         self._picker_count: int = picker_count
         self._is_loading: bool = False  # 是否正在加载
 
+        # 启用文件拖拽接收
+        self.setAcceptDrops(True)
+
         # 创建加载状态显示组件
         self._setup_loading_ui()
 
@@ -775,6 +778,38 @@ class BaseCanvas(QWidget):
             QImage: 当前图片对象，如果没有则返回 None
         """
         return self._image
+
+    def dragEnterEvent(self, event) -> None:
+        """拖拽进入事件 - 检查是否为可接受的文件类型"""
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and len(urls) > 0:
+                file_path = urls[0].toLocalFile()
+                valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+                if file_path.lower().endswith(valid_extensions):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dragMoveEvent(self, event) -> None:
+        """拖拽移动事件"""
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event) -> None:
+        """拖拽释放事件 - 加载图片"""
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and len(urls) > 0:
+                file_path = urls[0].toLocalFile()
+                valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+                if file_path.lower().endswith(valid_extensions):
+                    self.set_image(file_path)
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
 
 
 class ImageCanvas(BaseCanvas):
