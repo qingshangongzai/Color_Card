@@ -762,6 +762,8 @@ class SettingsInterface(QWidget):
         # 创建开关按钮
         switch = SwitchButton(self.content_widget)
         switch.setChecked(initial_checked)
+        switch.setOnText("开")
+        switch.setOffText("关")
         switch.checkedChanged.connect(self._on_hex_display_changed)
 
         # 将开关添加到卡片布局
