@@ -47,7 +47,8 @@ class ConfigManager:
                 "color_sample_count": 5,
                 "luminance_sample_count": 5,
                 "histogram_scaling_mode": "adaptive",
-                "color_wheel_mode": "RGB"
+                "color_wheel_mode": "RGB",
+                "theme": "auto"
             },
             "scheme": {
                 "default_scheme": "monochromatic",
