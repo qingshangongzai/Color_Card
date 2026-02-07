@@ -73,11 +73,14 @@ class ColorExtractInterface(QWidget):
         # HSB色环
         self.hsb_color_wheel = HSBColorWheel()
         self.hsb_color_wheel.setMinimumHeight(100)
+        self.hsb_color_wheel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         right_splitter.addWidget(self.hsb_color_wheel)
 
         # 直方图堆叠窗口（RGB/色相切换）
         self.histogram_stack = QStackedWidget()
         self.histogram_stack.setMinimumHeight(60)
+        self.histogram_stack.setMaximumHeight(150)
+        self.histogram_stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         # RGB直方图
         self.rgb_histogram_widget = RGBHistogramWidget()
@@ -88,11 +91,11 @@ class ColorExtractInterface(QWidget):
         self.histogram_stack.addWidget(self.hue_histogram_widget)
 
         right_splitter.addWidget(self.histogram_stack)
-        right_splitter.setSizes([180, 120])
+        right_splitter.setSizes([200, 100])
         top_splitter.addWidget(right_splitter)
 
-        # 设置左右比例
-        top_splitter.setSizes([600, 250])
+        # 设置左右比例（图片区域:右侧组件区域）
+        top_splitter.setSizes([550, 280])
         main_splitter.addWidget(top_splitter)
 
         # 收藏工具栏

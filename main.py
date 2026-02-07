@@ -70,11 +70,16 @@ def main():
 
     window = MainWindow()
     window.show()
-    
+
     # 修复任务栏图标（在窗口显示后调用）
     QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(window))
 
-    sys.exit(app.exec())
+    try:
+        sys.exit(app.exec())
+    except KeyboardInterrupt:
+        # 用户中断程序（Ctrl+C），正常退出
+        print("\n程序被用户中断")
+        sys.exit(0)
 
 
 if __name__ == '__main__':
