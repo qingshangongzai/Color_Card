@@ -271,6 +271,27 @@ class ConfigManager:
 
         return len(self._config["favorites"]) < original_count
 
+    def rename_favorite(self, favorite_id: str, new_name: str) -> bool:
+        """重命名收藏
+
+        Args:
+            favorite_id: 收藏ID
+            new_name: 新名称
+
+        Returns:
+            bool: 是否重命名成功
+        """
+        if "favorites" not in self._config:
+            return False
+
+        favorites = self._config["favorites"]
+        for fav in favorites:
+            if fav.get("id") == favorite_id:
+                fav["name"] = new_name
+                return True
+
+        return False
+
     def clear_favorites(self) -> None:
         """清空所有收藏"""
         self._config["favorites"] = []

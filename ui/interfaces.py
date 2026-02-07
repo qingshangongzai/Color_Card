@@ -81,7 +81,7 @@ class DominantColorExtractor(QThread):
                 self.extraction_error.emit(str(e))
 
 
-from dialogs import AboutDialog, UpdateAvailableDialog
+from dialogs import AboutDialog, NameDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
@@ -286,9 +286,22 @@ class ColorExtractInterface(QWidget):
             )
             return
 
+        # 弹出命名对话框
+        default_name = f"配色方案 {len(self._config_manager.get_favorites()) + 1}"
+        dialog = NameDialog(
+            title="命名配色方案",
+            default_name=default_name,
+            parent=self.window()
+        )
+
+        if dialog.exec() != NameDialog.DialogCode.Accepted:
+            return
+
+        favorite_name = dialog.get_name()
+
         favorite_data = {
             "id": str(uuid.uuid4()),
-            "name": f"配色方案 {len(self._config_manager.get_favorites()) + 1}",
+            "name": favorite_name,
             "colors": colors,
             "created_at": datetime.now().isoformat(),
             "source": "color_extract"
@@ -304,7 +317,7 @@ class ColorExtractInterface(QWidget):
 
         InfoBar.success(
             title="收藏成功",
-            content=f"已收藏配色方案：{favorite_data['name']}",
+            content=f"已收藏配色方案：{favorite_name}",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1374,9 +1387,22 @@ class ColorSchemeInterface(QWidget):
             )
             return
 
+        # 弹出命名对话框
+        default_name = f"配色方案 {len(self._config_manager.get_favorites()) + 1}"
+        dialog = NameDialog(
+            title="命名配色方案",
+            default_name=default_name,
+            parent=self.window()
+        )
+
+        if dialog.exec() != NameDialog.DialogCode.Accepted:
+            return
+
+        favorite_name = dialog.get_name()
+
         favorite_data = {
             "id": str(uuid.uuid4()),
-            "name": f"配色方案 {len(self._config_manager.get_favorites()) + 1}",
+            "name": favorite_name,
             "colors": colors,
             "created_at": datetime.now().isoformat(),
             "source": "color_scheme"
@@ -1392,7 +1418,7 @@ class ColorSchemeInterface(QWidget):
 
         InfoBar.success(
             title="收藏成功",
-            content=f"已收藏配色方案：{favorite_data['name']}",
+            content=f"已收藏配色方案：{favorite_name}",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1443,6 +1469,7 @@ class FavoritesInterface(QWidget):
 
         self.favorite_list = FavoriteSchemeList(self)
         self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
+        self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
         layout.addWidget(self.favorite_list, stretch=1)
 
     def _load_favorites(self):
@@ -1471,6 +1498,49 @@ class FavoritesInterface(QWidget):
         self._config_manager.delete_favorite(favorite_id)
         self._config_manager.save()
         self._load_favorites()
+
+    def _on_favorite_renamed(self, favorite_id, current_name):
+        """收藏重命名回调
+
+        Args:
+            favorite_id: 收藏项ID
+            current_name: 当前名称
+        """
+        dialog = NameDialog(
+            title="重命名配色方案",
+            default_name=current_name,
+            parent=self.window()
+        )
+
+        if dialog.exec() != NameDialog.DialogCode.Accepted:
+            return
+
+        new_name = dialog.get_name()
+
+        # 更新收藏名称
+        if self._config_manager.rename_favorite(favorite_id, new_name):
+            self._config_manager.save()
+            self._load_favorites()
+
+            InfoBar.success(
+                title="重命名成功",
+                content=f"已重命名为：{new_name}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="重命名失败",
+                content="无法找到该配色方案",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
 
     def _on_import_clicked(self):
         """导入按钮点击"""
