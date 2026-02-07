@@ -29,6 +29,9 @@ from .color import (
     generate_ryb_split_complementary,
     generate_ryb_double_complementary,
     get_scheme_preview_colors_ryb,
+    # MMCQ 主色调提取
+    extract_dominant_colors,
+    find_dominant_color_positions,
 )
 
 from .config import ConfigManager, get_config_manager
@@ -64,6 +67,9 @@ __all__ = [
     'generate_ryb_split_complementary',
     'generate_ryb_double_complementary',
     'get_scheme_preview_colors_ryb',
+    # MMCQ 主色调提取
+    'extract_dominant_colors',
+    'find_dominant_color_positions',
     # 配置
     'ConfigManager',
     'get_config_manager',

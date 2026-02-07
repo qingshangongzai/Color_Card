@@ -14,7 +14,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager
+from core import get_color_info, get_config_manager, extract_dominant_colors, find_dominant_color_positions
 from dialogs import AboutDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
@@ -99,6 +99,12 @@ class ColorExtractInterface(QWidget):
         self.favorite_button.setFixedHeight(32)
         self.favorite_button.clicked.connect(self._on_favorite_clicked)
         favorite_toolbar_layout.addWidget(self.favorite_button)
+
+        # 主色调提取按钮
+        self.extract_dominant_button = PushButton(FluentIcon.PALETTE, "自动提取主色调", self)
+        self.extract_dominant_button.setFixedHeight(32)
+        self.extract_dominant_button.clicked.connect(self._on_extract_dominant_clicked)
+        favorite_toolbar_layout.addWidget(self.extract_dominant_button)
 
         favorite_toolbar_layout.addStretch()
 
@@ -214,6 +220,72 @@ class ColorExtractInterface(QWidget):
             duration=2000,
             parent=self.window()
         )
+
+    def _on_extract_dominant_clicked(self):
+        """主色调提取按钮点击回调"""
+        image = self.image_canvas.get_image()
+        if not image or image.isNull():
+            InfoBar.warning(
+                title="无法提取",
+                content="请先导入图片",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 获取当前设置的采样点数量
+        count = self._config_manager.get('settings.color_sample_count', 5)
+
+        # 使用 MMCQ 算法提取主色调
+        try:
+            dominant_colors = extract_dominant_colors(image, count=count)
+
+            if not dominant_colors:
+                InfoBar.error(
+                    title="提取失败",
+                    content="无法从图片中提取主色调",
+                    orient=Qt.Orientation.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP,
+                    duration=3000,
+                    parent=self.window()
+                )
+                return
+
+            # 找到每种主色调在图片中的位置
+            positions = find_dominant_color_positions(image, dominant_colors)
+
+            # 更新取色点位置
+            self.image_canvas.set_picker_positions_by_colors(dominant_colors, positions)
+
+            # 更新HSB色环上的采样点
+            for i, rgb in enumerate(dominant_colors):
+                if i < count:
+                    self.hsb_color_wheel.update_sample_point(i, rgb)
+
+            InfoBar.success(
+                title="提取完成",
+                content=f"已成功提取 {len(dominant_colors)} 个主色调",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+
+        except Exception as e:
+            InfoBar.error(
+                title="提取失败",
+                content=f"提取过程中发生错误: {str(e)}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
 
 
 class LuminanceExtractInterface(QWidget):

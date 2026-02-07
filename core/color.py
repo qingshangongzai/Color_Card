@@ -602,6 +602,299 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5)
     return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]
 
 
+# ==================== MMCQ 主色调提取算法 ====================
+
+class _ColorCube:
+    """MMCQ 颜色立方体，用于表示颜色空间中的一个区域"""
+
+    def __init__(self, pixels: List[Tuple[int, int, int]]):
+        """
+        Args:
+            pixels: RGB 像素列表 [(r, g, b), ...]
+        """
+        self.pixels = pixels
+        self._cache_volume = None
+        self._cache_avg_color = None
+
+    def get_volume(self) -> int:
+        """计算立方体体积（各颜色通道的范围乘积）"""
+        if self._cache_volume is not None:
+            return self._cache_volume
+
+        if not self.pixels:
+            self._cache_volume = 0
+            return 0
+
+        r_min = min(p[0] for p in self.pixels)
+        r_max = max(p[0] for p in self.pixels)
+        g_min = min(p[1] for p in self.pixels)
+        g_max = max(p[1] for p in self.pixels)
+        b_min = min(p[2] for p in self.pixels)
+        b_max = max(p[2] for p in self.pixels)
+
+        self._cache_volume = (r_max - r_min) * (g_max - g_min) * (b_max - b_min)
+        return self._cache_volume
+
+    def get_count(self) -> int:
+        """获取像素数量"""
+        return len(self.pixels)
+
+    def get_average_color(self) -> Tuple[int, int, int]:
+        """计算立方体内像素的平均颜色"""
+        if self._cache_avg_color is not None:
+            return self._cache_avg_color
+
+        if not self.pixels:
+            self._cache_avg_color = (0, 0, 0)
+            return self._cache_avg_color
+
+        r_sum = sum(p[0] for p in self.pixels)
+        g_sum = sum(p[1] for p in self.pixels)
+        b_sum = sum(p[2] for p in self.pixels)
+        count = len(self.pixels)
+
+        self._cache_avg_color = (
+            round(r_sum / count),
+            round(g_sum / count),
+            round(b_sum / count)
+        )
+        return self._cache_avg_color
+
+    def get_longest_axis(self) -> str:
+        """获取最长的颜色轴 ('r', 'g', 或 'b')"""
+        if not self.pixels:
+            return 'r'
+
+        r_min = min(p[0] for p in self.pixels)
+        r_max = max(p[0] for p in self.pixels)
+        g_min = min(p[1] for p in self.pixels)
+        g_max = max(p[1] for p in self.pixels)
+        b_min = min(p[2] for p in self.pixels)
+        b_max = max(p[2] for p in self.pixels)
+
+        r_range = r_max - r_min
+        g_range = g_max - g_min
+        b_range = b_max - b_min
+
+        max_range = max(r_range, g_range, b_range)
+        if max_range == r_range:
+            return 'r'
+        elif max_range == g_range:
+            return 'g'
+        else:
+            return 'b'
+
+    def split(self) -> Tuple['_ColorCube', '_ColorCube']:
+        """沿最长轴的中位数切分立方体"""
+        if not self.pixels:
+            return _ColorCube([]), _ColorCube([])
+
+        axis = self.get_longest_axis()
+        axis_index = {'r': 0, 'g': 1, 'b': 2}[axis]
+
+        # 按指定轴排序
+        sorted_pixels = sorted(self.pixels, key=lambda p: p[axis_index])
+        mid = len(sorted_pixels) // 2
+
+        # 切分为两个立方体
+        cube1 = _ColorCube(sorted_pixels[:mid])
+        cube2 = _ColorCube(sorted_pixels[mid:])
+
+        return cube1, cube2
+
+
+def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_ColorCube]:
+    """MMCQ 算法核心实现
+
+    Args:
+        pixels: RGB 像素列表
+        count: 目标颜色数量
+
+    Returns:
+        list: 颜色立方体列表
+    """
+    if not pixels or count <= 0:
+        return []
+
+    # 初始立方体包含所有像素
+    cubes = [_ColorCube(pixels)]
+
+    # 递归切分直到达到目标数量
+    while len(cubes) < count:
+        # 找到体积最大的立方体进行切分
+        max_volume = -1
+        cube_to_split = None
+        cube_index = -1
+
+        for i, cube in enumerate(cubes):
+            # 优先切分像素数量多且体积大的立方体
+            volume = cube.get_volume()
+            pixel_count = cube.get_count()
+            if pixel_count > 1 and volume > max_volume:
+                max_volume = volume
+                cube_to_split = cube
+                cube_index = i
+
+        if cube_to_split is None or cube_to_split.get_count() <= 1:
+            break
+
+        # 移除原立方体，添加切分后的两个立方体
+        cubes.pop(cube_index)
+        cube1, cube2 = cube_to_split.split()
+        cubes.append(cube1)
+        cubes.append(cube2)
+
+    return cubes
+
+
+def extract_dominant_colors(
+    image,
+    count: int = 5,
+    sample_step: int = 4
+) -> List[Tuple[int, int, int]]:
+    """使用 MMCQ 算法提取图片主色调
+
+    基于中位切分量化算法，递归分割颜色空间来提取主要颜色。
+    使用采样策略优化性能。
+
+    Args:
+        image: QImage 或 PIL Image 对象
+        count: 提取颜色数量 (3-8，默认5)
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
+
+    Returns:
+        list: RGB 主色调列表 [(r, g, b), ...]，按重要性排序
+    """
+    # 限制颜色数量范围
+    count = max(3, min(8, count))
+
+    # 提取像素数据
+    pixels = []
+
+    # 处理 QImage
+    if hasattr(image, 'width') and hasattr(image, 'height'):
+        # QImage
+        width = image.width()
+        height = image.height()
+
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                color = image.pixelColor(x, y)
+                pixels.append((color.red(), color.green(), color.blue()))
+
+        # 额外采样边缘像素
+        if width > 0 and height > 0:
+            for y in range(0, height, sample_step):
+                color = image.pixelColor(width - 1, y)
+                pixels.append((color.red(), color.green(), color.blue()))
+            for x in range(0, width, sample_step):
+                color = image.pixelColor(x, height - 1)
+                pixels.append((color.red(), color.green(), color.blue()))
+
+    # 处理 PIL Image
+    elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
+        # PIL Image
+        width, height = image.size
+
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                pixel = image.getpixel((x, y))
+                if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
+                    pixels.append((pixel[0], pixel[1], pixel[2]))
+
+    if not pixels:
+        return []
+
+    # 执行 MMCQ 算法
+    cubes = _mmcq_quantize(pixels, count)
+
+    # 按像素数量排序（数量越多越重要）
+    cubes.sort(key=lambda c: c.get_count(), reverse=True)
+
+    # 提取平均颜色
+    dominant_colors = [cube.get_average_color() for cube in cubes]
+
+    return dominant_colors
+
+
+def find_dominant_color_positions(
+    image,
+    dominant_colors: List[Tuple[int, int, int]],
+    sample_step: int = 4
+) -> List[Tuple[float, float]]:
+    """找到每种主色调在图片中的代表性位置
+
+    使用聚类思想，找到每种主色调在图片中的重心位置。
+
+    Args:
+        image: QImage 或 PIL Image 对象
+        dominant_colors: 主色调列表 [(r, g, b), ...]
+        sample_step: 采样步长（默认4）
+
+    Returns:
+        list: 相对坐标列表 [(rel_x, rel_y), ...]，与 dominant_colors 一一对应
+    """
+    if not dominant_colors:
+        return []
+
+    # 提取像素数据及其位置
+    pixel_data = []  # [(x, y, r, g, b), ...]
+
+    if hasattr(image, 'width') and hasattr(image, 'height'):
+        # QImage
+        width = image.width()
+        height = image.height()
+
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                color = image.pixelColor(x, y)
+                pixel_data.append((x, y, color.red(), color.green(), color.blue()))
+
+    elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
+        # PIL Image
+        width, height = image.size
+
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                pixel = image.getpixel((x, y))
+                if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
+                    pixel_data.append((x, y, pixel[0], pixel[1], pixel[2]))
+
+    if not pixel_data or width == 0 or height == 0:
+        # 返回默认中心位置
+        return [(0.5, 0.5)] * len(dominant_colors)
+
+    # 为每种主色调找到最接近的像素位置
+    positions = []
+    color_clusters = [[] for _ in dominant_colors]  # 每个颜色的像素位置列表
+
+    # 将每个像素归类到最接近的主色调
+    for x, y, r, g, b in pixel_data:
+        min_distance = float('inf')
+        closest_color_index = 0
+
+        for i, (dr, dg, db) in enumerate(dominant_colors):
+            # 计算欧几里得距离
+            distance = ((r - dr) ** 2 + (g - dg) ** 2 + (b - db) ** 2) ** 0.5
+            if distance < min_distance:
+                min_distance = distance
+                closest_color_index = i
+
+        color_clusters[closest_color_index].append((x, y))
+
+    # 计算每种颜色的重心位置
+    for cluster in color_clusters:
+        if cluster:
+            avg_x = sum(p[0] for p in cluster) / len(cluster)
+            avg_y = sum(p[1] for p in cluster) / len(cluster)
+            positions.append((avg_x / width, avg_y / height))
+        else:
+            # 如果没有像素属于该颜色，使用图片中心
+            positions.append((0.5, 0.5))
+
+    return positions
+
+
 # ==================== RYB 色彩空间支持 ====================
 
 # RYB 色相映射表：RGB色相角度 -> RYB色相角度
