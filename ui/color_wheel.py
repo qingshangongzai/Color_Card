@@ -3,7 +3,7 @@ import math
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QPainter, QPen, QPixmap, QCursor
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QCursor
 from PySide6.QtWidgets import QSizePolicy, QWidget
 from qfluentwidgets import isDarkTheme
 
@@ -247,7 +247,7 @@ class HSBColorWheel(QWidget):
         colors = self._get_theme_colors()
         painter.setPen(colors['text'])
 
-        font = painter.font()
+        font = QFont()
         font.setPointSize(9)
         painter.setFont(font)
 
