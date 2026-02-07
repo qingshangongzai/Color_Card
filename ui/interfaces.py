@@ -543,8 +543,8 @@ class SettingsInterface(QWidget):
         title_label = SubtitleLabel("设置")
         layout.addWidget(title_label)
 
-        # 显示设置分组
-        self.display_group = SettingCardGroup("显示设置", self.content_widget)
+        # 色卡显示设置分组
+        self.card_display_group = SettingCardGroup("色卡显示设置", self.content_widget)
 
         # 16进制颜色值显示开关卡片
         self.hex_display_card = self._create_switch_card(
@@ -553,11 +553,16 @@ class SettingsInterface(QWidget):
             "在色彩提取面板的色卡中显示16进制颜色值和复制按钮",
             self._hex_visible
         )
-        self.display_group.addSettingCard(self.hex_display_card)
+        self.card_display_group.addSettingCard(self.hex_display_card)
 
         # 色彩模式选择卡片
         self.color_mode_card = self._create_color_mode_card()
-        self.display_group.addSettingCard(self.color_mode_card)
+        self.card_display_group.addSettingCard(self.color_mode_card)
+
+        layout.addWidget(self.card_display_group)
+
+        # 采样设置分组
+        self.sampling_group = SettingCardGroup("采样设置", self.content_widget)
 
         # 色彩提取采样点数卡片
         self.color_sample_count_card = self._create_spin_box_card(
@@ -569,7 +574,7 @@ class SettingsInterface(QWidget):
             5,
             self._on_color_sample_count_changed
         )
-        self.display_group.addSettingCard(self.color_sample_count_card)
+        self.sampling_group.addSettingCard(self.color_sample_count_card)
 
         # 明度提取采样点数卡片
         self.luminance_sample_count_card = self._create_spin_box_card(
@@ -581,21 +586,31 @@ class SettingsInterface(QWidget):
             5,
             self._on_luminance_sample_count_changed
         )
-        self.display_group.addSettingCard(self.luminance_sample_count_card)
+        self.sampling_group.addSettingCard(self.luminance_sample_count_card)
+
+        layout.addWidget(self.sampling_group)
+
+        # 直方图设置分组
+        self.histogram_group = SettingCardGroup("直方图设置", self.content_widget)
 
         # 直方图缩放模式卡片
         self.histogram_scaling_card = self._create_histogram_scaling_card()
-        self.display_group.addSettingCard(self.histogram_scaling_card)
+        self.histogram_group.addSettingCard(self.histogram_scaling_card)
 
         # 直方图模式卡片（RGB/色相）
         self.histogram_mode_card = self._create_histogram_mode_card()
-        self.display_group.addSettingCard(self.histogram_mode_card)
+        self.histogram_group.addSettingCard(self.histogram_mode_card)
+
+        layout.addWidget(self.histogram_group)
+
+        # 配色方案设置分组
+        self.color_scheme_group = SettingCardGroup("配色方案设置", self.content_widget)
 
         # 色轮模式卡片
         self.color_wheel_mode_card = self._create_color_wheel_mode_card()
-        self.display_group.addSettingCard(self.color_wheel_mode_card)
+        self.color_scheme_group.addSettingCard(self.color_wheel_mode_card)
 
-        layout.addWidget(self.display_group)
+        layout.addWidget(self.color_scheme_group)
 
         # 帮助分组
         self.help_group = SettingCardGroup("帮助", self.content_widget)
@@ -641,7 +656,7 @@ class SettingsInterface(QWidget):
 
     def _create_switch_card(self, icon, title, content, initial_checked):
         """创建自定义开关卡片"""
-        card = PushSettingCard("", icon, title, content, self.display_group)
+        card = PushSettingCard("", icon, title, content, self.content_widget)
         card.button.setVisible(False)  # 隐藏默认按钮
 
         # 创建开关按钮
@@ -660,7 +675,7 @@ class SettingsInterface(QWidget):
 
     def _create_spin_box_card(self, icon, title, content, initial_value, min_value, max_value, callback):
         """创建自定义下拉列表卡片"""
-        card = PushSettingCard("", icon, title, content, self.display_group)
+        card = PushSettingCard("", icon, title, content, self.content_widget)
         card.button.setVisible(False)
 
         # 创建ComboBox控件
@@ -688,7 +703,7 @@ class SettingsInterface(QWidget):
             FluentIcon.BRUSH,
             "色彩模式显示",
             "选择在色卡中显示的两种色彩模式",
-            self.display_group
+            self.content_widget
         )
         card.button.setVisible(False)  # 隐藏默认按钮
 
@@ -773,7 +788,7 @@ class SettingsInterface(QWidget):
             FluentIcon.DOCUMENT,
             "直方图缩放模式",
             "选择直方图的缩放方式（线性/自适应）",
-            self.display_group
+            self.content_widget
         )
         card.button.setVisible(False)
 
@@ -818,7 +833,7 @@ class SettingsInterface(QWidget):
             FluentIcon.PALETTE,
             "直方图显示模式",
             "选择色彩提取面板的直方图类型（RGB通道/色相分布）",
-            self.display_group
+            self.content_widget
         )
         card.button.setVisible(False)
 
@@ -863,7 +878,7 @@ class SettingsInterface(QWidget):
             FluentIcon.PALETTE,
             "配色方案模式",
             "选择配色方案使用的色彩逻辑（RGB: 光学混色，RYB: 美术混色）",
-            self.display_group
+            self.content_widget
         )
         card.button.setVisible(False)
 
