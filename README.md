@@ -418,6 +418,8 @@ Color Card 采用 **GNU General Public License v3.0 (GPL 3.0)** 许可证发布�
 | PySide6 | LGPL-3.0 |
 | PySide6-Fluent-Widgets | GPL-3.0 |
 | Pillow | MIT License |
+| requests | Apache-2.0 |
+| numpy | BSD-3-Clause |
 
 ---
 

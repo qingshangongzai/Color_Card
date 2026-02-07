@@ -2,6 +2,13 @@
 import colorsys
 from typing import Dict, List, Tuple
 
+# 第三方库导入
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+
 
 def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
     """将RGB转换为HSB (Hue, Saturation, Brightness)
@@ -607,14 +614,48 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5)
 class _ColorCube:
     """MMCQ 颜色立方体，用于表示颜色空间中的一个区域"""
 
-    def __init__(self, pixels: List[Tuple[int, int, int]]):
+    def __init__(self, pixels: List[Tuple[int, int, int]], use_numpy: bool = False):
         """
         Args:
             pixels: RGB 像素列表 [(r, g, b), ...]
+            use_numpy: 是否使用 numpy 优化
         """
         self.pixels = pixels
+        self._use_numpy = use_numpy and NUMPY_AVAILABLE
         self._cache_volume = None
         self._cache_avg_color = None
+        self._cache_ranges = None
+        self._np_pixels = None
+
+        # 如果使用 numpy，预先转换为 numpy 数组
+        if self._use_numpy and pixels:
+            self._np_pixels = np.array(pixels, dtype=np.int32)
+
+    def _get_ranges(self) -> Tuple[int, int, int, int, int, int]:
+        """获取各颜色通道的范围（使用缓存）"""
+        if self._cache_ranges is not None:
+            return self._cache_ranges
+
+        if not self.pixels:
+            self._cache_ranges = (0, 0, 0, 0, 0, 0)
+            return self._cache_ranges
+
+        if self._use_numpy and self._np_pixels is not None:
+            # 使用 numpy 快速计算
+            r_min, r_max = int(self._np_pixels[:, 0].min()), int(self._np_pixels[:, 0].max())
+            g_min, g_max = int(self._np_pixels[:, 1].min()), int(self._np_pixels[:, 1].max())
+            b_min, b_max = int(self._np_pixels[:, 2].min()), int(self._np_pixels[:, 2].max())
+        else:
+            # 普通方法
+            r_min = min(p[0] for p in self.pixels)
+            r_max = max(p[0] for p in self.pixels)
+            g_min = min(p[1] for p in self.pixels)
+            g_max = max(p[1] for p in self.pixels)
+            b_min = min(p[2] for p in self.pixels)
+            b_max = max(p[2] for p in self.pixels)
+
+        self._cache_ranges = (r_min, r_max, g_min, g_max, b_min, b_max)
+        return self._cache_ranges
 
     def get_volume(self) -> int:
         """计算立方体体积（各颜色通道的范围乘积）"""
@@ -625,13 +666,7 @@ class _ColorCube:
             self._cache_volume = 0
             return 0
 
-        r_min = min(p[0] for p in self.pixels)
-        r_max = max(p[0] for p in self.pixels)
-        g_min = min(p[1] for p in self.pixels)
-        g_max = max(p[1] for p in self.pixels)
-        b_min = min(p[2] for p in self.pixels)
-        b_max = max(p[2] for p in self.pixels)
-
+        r_min, r_max, g_min, g_max, b_min, b_max = self._get_ranges()
         self._cache_volume = (r_max - r_min) * (g_max - g_min) * (b_max - b_min)
         return self._cache_volume
 
@@ -648,16 +683,23 @@ class _ColorCube:
             self._cache_avg_color = (0, 0, 0)
             return self._cache_avg_color
 
-        r_sum = sum(p[0] for p in self.pixels)
-        g_sum = sum(p[1] for p in self.pixels)
-        b_sum = sum(p[2] for p in self.pixels)
-        count = len(self.pixels)
+        if self._use_numpy and self._np_pixels is not None:
+            # 使用 numpy 快速计算
+            avg = self._np_pixels.mean(axis=0)
+            self._cache_avg_color = (int(round(avg[0])), int(round(avg[1])), int(round(avg[2])))
+        else:
+            # 普通方法
+            r_sum = sum(p[0] for p in self.pixels)
+            g_sum = sum(p[1] for p in self.pixels)
+            b_sum = sum(p[2] for p in self.pixels)
+            count = len(self.pixels)
 
-        self._cache_avg_color = (
-            round(r_sum / count),
-            round(g_sum / count),
-            round(b_sum / count)
-        )
+            self._cache_avg_color = (
+                round(r_sum / count),
+                round(g_sum / count),
+                round(b_sum / count)
+            )
+
         return self._cache_avg_color
 
     def get_longest_axis(self) -> str:
@@ -665,12 +707,7 @@ class _ColorCube:
         if not self.pixels:
             return 'r'
 
-        r_min = min(p[0] for p in self.pixels)
-        r_max = max(p[0] for p in self.pixels)
-        g_min = min(p[1] for p in self.pixels)
-        g_max = max(p[1] for p in self.pixels)
-        b_min = min(p[2] for p in self.pixels)
-        b_max = max(p[2] for p in self.pixels)
+        r_min, r_max, g_min, g_max, b_min, b_max = self._get_ranges()
 
         r_range = r_max - r_min
         g_range = g_max - g_min
@@ -687,18 +724,28 @@ class _ColorCube:
     def split(self) -> Tuple['_ColorCube', '_ColorCube']:
         """沿最长轴的中位数切分立方体"""
         if not self.pixels:
-            return _ColorCube([]), _ColorCube([])
+            return _ColorCube([], self._use_numpy), _ColorCube([], self._use_numpy)
 
         axis = self.get_longest_axis()
         axis_index = {'r': 0, 'g': 1, 'b': 2}[axis]
 
-        # 按指定轴排序
-        sorted_pixels = sorted(self.pixels, key=lambda p: p[axis_index])
-        mid = len(sorted_pixels) // 2
+        if self._use_numpy and self._np_pixels is not None:
+            # 使用 numpy 快速排序
+            sorted_indices = np.argsort(self._np_pixels[:, axis_index])
+            mid = len(sorted_indices) // 2
+
+            pixels1 = [self.pixels[i] for i in sorted_indices[:mid]]
+            pixels2 = [self.pixels[i] for i in sorted_indices[mid:]]
+        else:
+            # 普通方法
+            sorted_pixels = sorted(self.pixels, key=lambda p: p[axis_index])
+            mid = len(sorted_pixels) // 2
+            pixels1 = sorted_pixels[:mid]
+            pixels2 = sorted_pixels[mid:]
 
         # 切分为两个立方体
-        cube1 = _ColorCube(sorted_pixels[:mid])
-        cube2 = _ColorCube(sorted_pixels[mid:])
+        cube1 = _ColorCube(pixels1, self._use_numpy)
+        cube2 = _ColorCube(pixels2, self._use_numpy)
 
         return cube1, cube2
 
@@ -716,8 +763,11 @@ def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_Colo
     if not pixels or count <= 0:
         return []
 
+    # 判断是否使用 numpy 优化（像素数量较多时）
+    use_numpy = NUMPY_AVAILABLE and len(pixels) > 1000
+
     # 初始立方体包含所有像素
-    cubes = [_ColorCube(pixels)]
+    cubes = [_ColorCube(pixels, use_numpy)]
 
     # 递归切分直到达到目标数量
     while len(cubes) < count:
@@ -747,36 +797,50 @@ def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_Colo
     return cubes
 
 
-def extract_dominant_colors(
-    image,
-    count: int = 5,
-    sample_step: int = 4
-) -> List[Tuple[int, int, int]]:
-    """使用 MMCQ 算法提取图片主色调
+def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, int]]:
+    """快速提取图片像素数据
 
-    基于中位切分量化算法，递归分割颜色空间来提取主要颜色。
-    使用采样策略优化性能。
+    使用 numpy 优化像素提取性能。
 
     Args:
         image: QImage 或 PIL Image 对象
-        count: 提取颜色数量 (3-8，默认5)
-        sample_step: 采样步长，每隔N个像素采样一次（默认4）
+        sample_step: 采样步长
 
     Returns:
-        list: RGB 主色调列表 [(r, g, b), ...]，按重要性排序
+        list: RGB 像素列表
     """
-    # 限制颜色数量范围
-    count = max(3, min(8, count))
-
-    # 提取像素数据
     pixels = []
 
     # 处理 QImage
     if hasattr(image, 'width') and hasattr(image, 'height'):
-        # QImage
         width = image.width()
         height = image.height()
 
+        if NUMPY_AVAILABLE and hasattr(image, 'bits'):
+            # 使用 numpy 批量读取像素（QImage 格式）
+            try:
+                # 将 QImage 转换为 numpy 数组
+                image = image.convertToFormat(image.Format.Format_RGB888)
+                ptr = image.bits()
+                ptr.setsize(image.sizeInBytes())
+                arr = np.array(ptr).reshape(height, width, 3)
+
+                # 采样像素
+                arr_sampled = arr[::sample_step, ::sample_step]
+                pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+
+                # 额外采样边缘像素
+                if width > 0 and height > 0:
+                    right_edge = arr[::sample_step, -1]
+                    bottom_edge = arr[-1, ::sample_step]
+                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
+                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+
+                return pixels
+            except Exception:
+                pass  # 失败时回退到普通方法
+
+        # 普通方法（逐个读取）
         for y in range(0, height, sample_step):
             for x in range(0, width, sample_step):
                 color = image.pixelColor(x, y)
@@ -793,14 +857,62 @@ def extract_dominant_colors(
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
-        # PIL Image
         width, height = image.size
 
+        if NUMPY_AVAILABLE and hasattr(image, 'convert'):
+            # 使用 numpy 批量读取像素（PIL Image 格式）
+            try:
+                import numpy as np
+                arr = np.array(image.convert('RGB'))
+
+                # 采样像素
+                arr_sampled = arr[::sample_step, ::sample_step]
+                pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+
+                # 额外采样边缘像素
+                if width > 0 and height > 0:
+                    right_edge = arr[::sample_step, -1]
+                    bottom_edge = arr[-1, ::sample_step]
+                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
+                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+
+                return pixels
+            except Exception:
+                pass  # 失败时回退到普通方法
+
+        # 普通方法
         for y in range(0, height, sample_step):
             for x in range(0, width, sample_step):
                 pixel = image.getpixel((x, y))
                 if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
                     pixels.append((pixel[0], pixel[1], pixel[2]))
+
+    return pixels
+
+
+def extract_dominant_colors(
+    image,
+    count: int = 5,
+    sample_step: int = 4
+) -> List[Tuple[int, int, int]]:
+    """使用 MMCQ 算法提取图片主色调
+
+    基于中位切分量化算法，递归分割颜色空间来提取主要颜色。
+    使用采样策略和 numpy 优化性能。
+
+    Args:
+        image: QImage 或 PIL Image 对象
+        count: 提取颜色数量 (3-8，默认5)
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
+
+    Returns:
+        list: RGB 主色调列表 [(r, g, b), ...]，按重要性排序
+    """
+    # 限制颜色数量范围
+    count = max(3, min(8, count))
+
+    # 提取像素数据（使用优化后的方法）
+    pixels = _extract_pixels_fast(image, sample_step)
 
     if not pixels:
         return []
@@ -817,6 +929,90 @@ def extract_dominant_colors(
     return dominant_colors
 
 
+def _extract_pixels_with_positions_fast(
+    image,
+    sample_step: int = 4
+) -> Tuple[int, int, List[Tuple[int, int, int, int, int]]]:
+    """快速提取图片像素数据及其位置
+
+    Args:
+        image: QImage 或 PIL Image 对象
+        sample_step: 采样步长
+
+    Returns:
+        tuple: (width, height, pixel_data) 其中 pixel_data 是 [(x, y, r, g, b), ...]
+    """
+    pixel_data = []
+    width, height = 0, 0
+
+    # 处理 QImage
+    if hasattr(image, 'width') and hasattr(image, 'height'):
+        width = image.width()
+        height = image.height()
+
+        if NUMPY_AVAILABLE and hasattr(image, 'bits'):
+            # 使用 numpy 批量读取像素
+            try:
+                image = image.convertToFormat(image.Format.Format_RGB888)
+                ptr = image.bits()
+                ptr.setsize(image.sizeInBytes())
+                arr = np.array(ptr).reshape(height, width, 3)
+
+                # 采样像素位置
+                y_coords, x_coords = np.meshgrid(
+                    np.arange(0, height, sample_step),
+                    np.arange(0, width, sample_step),
+                    indexing='ij'
+                )
+
+                for y, x in zip(y_coords.flat, x_coords.flat):
+                    r, g, b = arr[y, x]
+                    pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+
+                return width, height, pixel_data
+            except Exception:
+                pass  # 失败时回退到普通方法
+
+        # 普通方法
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                color = image.pixelColor(x, y)
+                pixel_data.append((x, y, color.red(), color.green(), color.blue()))
+
+    # 处理 PIL Image
+    elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
+        width, height = image.size
+
+        if NUMPY_AVAILABLE and hasattr(image, 'convert'):
+            # 使用 numpy 批量读取像素
+            try:
+                arr = np.array(image.convert('RGB'))
+
+                # 采样像素位置
+                y_coords, x_coords = np.meshgrid(
+                    np.arange(0, height, sample_step),
+                    np.arange(0, width, sample_step),
+                    indexing='ij'
+                )
+
+                for y, x in zip(y_coords.flat, x_coords.flat):
+                    r, g, b = arr[y, x]
+                    pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+
+                return width, height, pixel_data
+            except Exception:
+                pass  # 失败时回退到普通方法
+
+        # 普通方法
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                pixel = image.getpixel((x, y))
+                if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
+                    pixel_data.append((x, y, pixel[0], pixel[1], pixel[2]))
+
+    return width, height, pixel_data
+
+
 def find_dominant_color_positions(
     image,
     dominant_colors: List[Tuple[int, int, int]],
@@ -825,6 +1021,7 @@ def find_dominant_color_positions(
     """找到每种主色调在图片中的代表性位置
 
     使用聚类思想，找到每种主色调在图片中的重心位置。
+    使用 numpy 优化性能。
 
     Args:
         image: QImage 或 PIL Image 对象
@@ -837,36 +1034,50 @@ def find_dominant_color_positions(
     if not dominant_colors:
         return []
 
-    # 提取像素数据及其位置
-    pixel_data = []  # [(x, y, r, g, b), ...]
-
-    if hasattr(image, 'width') and hasattr(image, 'height'):
-        # QImage
-        width = image.width()
-        height = image.height()
-
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                color = image.pixelColor(x, y)
-                pixel_data.append((x, y, color.red(), color.green(), color.blue()))
-
-    elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
-        # PIL Image
-        width, height = image.size
-
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                pixel = image.getpixel((x, y))
-                if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
-                    pixel_data.append((x, y, pixel[0], pixel[1], pixel[2]))
+    # 提取像素数据及其位置（使用优化后的方法）
+    width, height, pixel_data = _extract_pixels_with_positions_fast(image, sample_step)
 
     if not pixel_data or width == 0 or height == 0:
         # 返回默认中心位置
         return [(0.5, 0.5)] * len(dominant_colors)
 
-    # 为每种主色调找到最接近的像素位置
-    positions = []
-    color_clusters = [[] for _ in dominant_colors]  # 每个颜色的像素位置列表
+    # 使用 numpy 加速聚类计算
+    if NUMPY_AVAILABLE and len(pixel_data) > 100:
+        try:
+            # 转换为 numpy 数组
+            pixel_array = np.array(pixel_data, dtype=np.float32)  # [x, y, r, g, b]
+            dominant_array = np.array(dominant_colors, dtype=np.float32)  # [r, g, b]
+
+            # 提取颜色部分
+            pixel_colors = pixel_array[:, 2:5]  # [r, g, b]
+
+            # 计算每个像素到每个主色调的距离
+            # 使用广播: (n_pixels, 1, 3) - (1, n_colors, 3) -> (n_pixels, n_colors)
+            diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
+            distances = np.sum(diff ** 2, axis=2)  # 平方距离
+
+            # 找到每个像素最接近的主色调
+            closest_indices = np.argmin(distances, axis=1)
+
+            # 计算每种颜色的重心位置
+            positions = []
+            for i in range(len(dominant_colors)):
+                mask = closest_indices == i
+                cluster = pixel_array[mask]
+
+                if len(cluster) > 0:
+                    avg_x = cluster[:, 0].mean()
+                    avg_y = cluster[:, 1].mean()
+                    positions.append((avg_x / width, avg_y / height))
+                else:
+                    positions.append((0.5, 0.5))
+
+            return positions
+        except Exception:
+            pass  # 失败时回退到普通方法
+
+    # 普通方法（当 numpy 不可用或数据量较小时）
+    color_clusters = [[] for _ in dominant_colors]
 
     # 将每个像素归类到最接近的主色调
     for x, y, r, g, b in pixel_data:
@@ -874,7 +1085,6 @@ def find_dominant_color_positions(
         closest_color_index = 0
 
         for i, (dr, dg, db) in enumerate(dominant_colors):
-            # 计算欧几里得距离
             distance = ((r - dr) ** 2 + (g - dg) ** 2 + (b - db) ** 2) ** 0.5
             if distance < min_distance:
                 min_distance = distance
@@ -883,13 +1093,13 @@ def find_dominant_color_positions(
         color_clusters[closest_color_index].append((x, y))
 
     # 计算每种颜色的重心位置
+    positions = []
     for cluster in color_clusters:
         if cluster:
             avg_x = sum(p[0] for p in cluster) / len(cluster)
             avg_y = sum(p[1] for p in cluster) / len(cluster)
             positions.append((avg_x / width, avg_y / height))
         else:
-            # 如果没有像素属于该颜色，使用图片中心
             positions.append((0.5, 0.5))
 
     return positions
