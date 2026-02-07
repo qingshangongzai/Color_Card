@@ -22,6 +22,14 @@ def set_app_user_model_id():
         return False
 
 
+def qt_message_handler(mode, context, message):
+    """自定义 Qt 消息处理器，过滤掉 QFont::setPointSize 警告"""
+    if "QFont::setPointSize: Point size <= 0" in message:
+        return
+    # 调用默认处理器输出其他消息
+    sys.__stdout__.write(message + '\n')
+
+
 # 立即调用（在导入 PySide6 之前）
 set_app_user_model_id()
 
@@ -30,13 +38,16 @@ _old_stdout = sys.stdout
 sys.stdout = StringIO()
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, qInstallMessageHandler
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 from qfluentwidgets import setTheme, setThemeColor, Theme
 
 # 恢复 stdout
 sys.stdout = _old_stdout
+
+# 安装自定义 Qt 消息处理器以过滤 QFont 警告
+qInstallMessageHandler(qt_message_handler)
 
 # 项目模块导入
 from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
