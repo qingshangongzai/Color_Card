@@ -436,6 +436,11 @@ class MainWindow(FluentWindow):
             self.color_scheme_interface.set_color_wheel_mode
         )
 
+        # 连接直方图模式改变信号到色彩提取界面
+        self.settings_interface.histogram_mode_changed.connect(
+            self._on_histogram_mode_changed
+        )
+
         # 连接16进制显示开关信号到收藏界面
         self.settings_interface.hex_display_changed.connect(
             lambda visible: self.favorites_interface.update_display_settings(hex_visible=visible)
@@ -466,11 +471,16 @@ class MainWindow(FluentWindow):
         # 应用加载的直方图缩放模式配置
         histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
         self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        self.color_extract_interface.hue_histogram_widget.set_scaling_mode(histogram_scaling_mode)
         self.luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
 
         # 应用加载的色轮模式配置到配色方案界面
         color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self.color_scheme_interface.set_color_wheel_mode(color_wheel_mode)
+
+        # 应用加载的直方图模式配置
+        histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
+        self.color_extract_interface.set_histogram_mode(histogram_mode)
 
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
@@ -491,4 +501,9 @@ class MainWindow(FluentWindow):
     def _on_histogram_scaling_mode_changed(self, mode):
         """直方图缩放模式改变"""
         self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(mode)
+        self.color_extract_interface.hue_histogram_widget.set_scaling_mode(mode)
         self.luminance_extract_interface.histogram_widget.set_scaling_mode(mode)
+
+    def _on_histogram_mode_changed(self, mode):
+        """直方图显示模式改变"""
+        self.color_extract_interface.set_histogram_mode(mode)

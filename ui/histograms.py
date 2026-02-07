@@ -1,3 +1,6 @@
+# 标准库导入
+import colorsys
+
 # 第三方库导入
 import math
 from typing import List, Optional
@@ -594,3 +597,141 @@ class RGBHistogramWidget(BaseHistogram):
         font.setPointSize(9)
         painter.setFont(font)
         painter.drawText(10, 18, "RGB直方图")
+
+
+class HueHistogramWidget(BaseHistogram):
+    """色相分布直方图
+
+    显示图片中各色相的像素分布，排除黑白灰（饱和度/亮度过低的颜色）
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._histogram = [0] * 360  # 0-359 色相值
+        self.setMinimumHeight(120)
+        self.setMaximumHeight(180)
+
+        # 调整边距
+        self._margin_top = 25
+        self._margin_right = 10
+
+    def set_image(self, image):
+        """计算并显示图片的色相分布
+
+        Args:
+            image: QImage 对象
+        """
+        if image is None or image.isNull():
+            self._histogram = [0] * 360
+            self._max_count = 0
+            self.update()
+            return
+
+        self._histogram = self._calculate_hue_histogram(image)
+        self._max_count = max(self._histogram) if self._histogram else 1
+        self.update()
+
+    def _calculate_hue_histogram(self, image, sample_step: int = 4) -> List[int]:
+        """计算色相直方图，排除低饱和度/低亮度的颜色
+
+        Args:
+            image: QImage 对象
+            sample_step: 采样步长
+
+        Returns:
+            list: 长度为360的色相分布列表
+        """
+        histogram = [0] * 360
+        width = image.width()
+        height = image.height()
+
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                color = image.pixelColor(x, y)
+                r = color.red() / 255.0
+                g = color.green() / 255.0
+                b = color.blue() / 255.0
+                h, s, v = colorsys.rgb_to_hsv(r, g, b)
+
+                # 排除黑白灰（饱和度<10% 或 亮度<10%）
+                if s > 0.1 and v > 0.1:
+                    hue = int(h * 360) % 360
+                    histogram[hue] += 1
+
+        return histogram
+
+    def clear(self):
+        """清除直方图数据"""
+        self._histogram = [0] * 360
+        super().clear()
+
+    def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制色相直方图
+
+        使用彩虹色条显示0-360°色相分布
+        """
+        if self._max_count == 0:
+            return
+
+        bar_width = width / 360.0
+
+        for hue, count in enumerate(self._histogram):
+            bar_height = self._calculate_bar_height(count, self._max_count, height)
+
+            if bar_height > 0:
+                bar_x = x + hue * bar_width
+                bar_y = y + height - bar_height
+
+                # 计算柱子宽度
+                if hue == 359:
+                    current_bar_width = max(1, int(x + width - bar_x))
+                else:
+                    next_bar_x = x + (hue + 1) * bar_width
+                    current_bar_width = max(1, int(next_bar_x - bar_x + 0.5))
+
+                # 根据色相值计算颜色（固定饱和度和亮度）
+                color = QColor.fromHsv(hue, 255, 255)
+                painter.fillRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height), color)
+
+    def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制刻度标签"""
+        # 绘制标题
+        self._draw_title(painter)
+
+        font = QFont()
+        font.setPointSize(8)
+        painter.setFont(font)
+
+        # 绘制底部刻度线 - 0°, 90°, 180°, 270°, 360°
+        labels = [("0°", 0), ("90°", 90), ("180°", 180), ("270°", 270), ("360°", 360)]
+
+        for label, hue in labels:
+            tick_x = int(x + hue * width / 360.0)
+
+            # 绘制刻度线
+            painter.setPen(get_histogram_text_color())
+            painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
+
+            # 绘制刻度值
+            text_rect = painter.boundingRect(
+                tick_x - 15, y + height + 6,
+                30, 18,
+                Qt.AlignmentFlag.AlignCenter, label
+            )
+            painter.setPen(get_histogram_axis_color())
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, label)
+
+        # 绘制底部基线
+        self._draw_bottom_baseline(painter, x, y, width, height)
+
+        # 绘制左侧Y轴标签（最大值）
+        self._draw_max_label(painter, x, y)
+
+    def _draw_title(self, painter: QPainter):
+        """绘制标题"""
+        from .theme_colors import get_text_color
+        painter.setPen(get_text_color())
+        font = QFont()
+        font.setPointSize(9)
+        painter.setFont(font)
+        painter.drawText(10, 18, "色相分布")
