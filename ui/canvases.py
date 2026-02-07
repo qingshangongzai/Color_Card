@@ -853,13 +853,8 @@ class ImageCanvas(BaseCanvas):
             # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
-            # 显示取色点（在模糊预览上）
-            for picker in self._pickers:
-                picker.show()
-
-            # 初始化取色点位置
-            self._init_picker_positions()
-            self.update_picker_positions()
+            # 模糊预览阶段不显示取色点，等待完整图片加载完成
+            # 避免用户在预览阶段看到未就绪的采样点，提升用户体验
 
             # 更新加载提示
             self._loading_label.setText("正在加载高清图片...")
@@ -1098,13 +1093,8 @@ class LuminanceCanvas(BaseCanvas):
             # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
-            # 显示取色点（在模糊预览上）
-            for picker in self._pickers:
-                picker.show()
-
-            # 初始化取色点位置
-            self._init_picker_positions()
-            self.update_picker_positions()
+            # 模糊预览阶段不显示取色点，等待完整图片加载完成
+            # 避免用户在预览阶段看到未就绪的采样点，提升用户体验
 
             # 更新加载提示
             self._loading_label.setText("正在加载高清图片...")
