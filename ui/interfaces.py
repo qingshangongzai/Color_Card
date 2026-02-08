@@ -81,7 +81,7 @@ class DominantColorExtractor(QThread):
                 self.extraction_error.emit(str(e))
 
 
-from dialogs import AboutDialog, NameDialog, UpdateAvailableDialog
+from dialogs import AboutDialog, ColorblindPreviewDialog, NameDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
@@ -1541,6 +1541,7 @@ class FavoritesInterface(QWidget):
         self.favorite_list = FavoriteSchemeList(self)
         self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
         self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
+        self.favorite_list.favorite_preview.connect(self._on_favorite_preview)
         layout.addWidget(self.favorite_list, stretch=1)
 
     def _load_favorites(self):
@@ -1708,6 +1709,35 @@ class FavoritesInterface(QWidget):
                 duration=5000,
                 parent=self
             )
+
+    def _on_favorite_preview(self, favorite_data):
+        """收藏预览回调（色盲模拟）
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', '未命名')
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色方案没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示色盲模拟预览对话框
+        dialog = ColorblindPreviewDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=self.window()
+        )
+        dialog.exec()
 
     def update_display_settings(self, hex_visible=None, color_modes=None):
         """更新显示设置

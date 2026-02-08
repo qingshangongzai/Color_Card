@@ -6,6 +6,8 @@
 
 **开发理念**：在摄影后期处理中，色彩分析是一个重要的环节。取色卡旨在为摄影师提供一个简单、直观、专业的色彩提取工具，帮助分析图片的色调分布、提取关键色彩、理解明度构成。不同于通用的取色工具，取色卡专注于摄影场景的实际需求，提供专业级的色彩空间转换和明度分析功能。
 
+**关于本项目**：取色卡是借助 AI 编程工具（如 Trae 等）辅助开发的**非商业开源项目**。项目功能设计参考了 [Adobe Color](https://color.adobe.com/)、[Canva Palette Generator](https://www.canva.com/colors/color-palette-generator/) 等优秀的在线配色工具，旨在为中文用户提供一个**无需联网、无需注册、隐私安全**的本地替代品。所有代码均为独立实现，与 Adobe、Canva 等公司无任何关联。
+
 **开源协议**：本项目采用 **GNU General Public License v3.0 (GPL 3.0)** 开源协议，所有代码和文档均遵循该协议的条款和条件。
 
 **开源地址**：
@@ -170,6 +172,7 @@ color_card/
 ├── core/                   # 核心功能模块目录
 │   ├── __init__.py
 │   ├── color.py           # 颜色处理模块（颜色转换、明度计算、配色方案算法、直方图计算）
+│   ├── colorblind.py      # 色盲模拟模块（色盲类型定义、LMS色彩空间转换、色盲模拟算法）
 │   └── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
 ├── ui/                     # UI模块目录（扁平化结构）
 │   ├── __init__.py        # 统一导出接口
@@ -187,6 +190,7 @@ color_card/
 ├── dialogs/               # 对话框模块目录
 │   ├── __init__.py
 │   ├── about_dialog.py    # 关于对话框
+│   ├── colorblind_dialog.py # 色盲模拟预览对话框
 │   └── update_dialog.py   # 更新检查对话框
 └── utils/                 # 工具函数模块目录
     ├── __init__.py

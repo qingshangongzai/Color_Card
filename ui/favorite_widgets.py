@@ -186,6 +186,7 @@ class FavoriteSchemeCard(CardWidget):
 
     delete_requested = Signal(str)
     rename_requested = Signal(str, str)  # favorite_id, new_name
+    preview_requested = Signal(dict)  # favorite_data
 
     def __init__(self, favorite_data: dict, parent=None):
         self._favorite_data = favorite_data
@@ -235,15 +236,24 @@ class FavoriteSchemeCard(CardWidget):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
+        # 预览按钮（色盲模拟）
+        self.preview_button = ToolButton(FluentIcon.VIEW)
+        self.preview_button.setFixedSize(28, 28)
+        self.preview_button.setToolTip("色盲模拟预览")
+        self.preview_button.clicked.connect(self._on_preview_clicked)
+        button_layout.addWidget(self.preview_button)
+
         # 重命名按钮
         self.rename_button = ToolButton(FluentIcon.EDIT)
         self.rename_button.setFixedSize(28, 28)
+        self.rename_button.setToolTip("重命名")
         self.rename_button.clicked.connect(self._on_rename_clicked)
         button_layout.addWidget(self.rename_button)
 
         # 删除按钮
         self.delete_button = ToolButton(FluentIcon.DELETE)
         self.delete_button.setFixedSize(28, 28)
+        self.delete_button.setToolTip("删除")
         self.delete_button.clicked.connect(self._on_delete_clicked)
         button_layout.addWidget(self.delete_button)
 
@@ -330,6 +340,10 @@ class FavoriteSchemeCard(CardWidget):
         if favorite_id:
             self.rename_requested.emit(favorite_id, current_name)
 
+    def _on_preview_clicked(self):
+        """预览按钮点击（色盲模拟）"""
+        self.preview_requested.emit(self._favorite_data)
+
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
         self._hex_visible = visible
@@ -358,6 +372,7 @@ class FavoriteSchemeList(QWidget):
 
     favorite_deleted = Signal(str)
     favorite_renamed = Signal(str, str)  # favorite_id, current_name
+    favorite_preview = Signal(dict)  # favorite_data
 
     def __init__(self, parent=None):
         self._favorites = []
@@ -447,6 +462,7 @@ class FavoriteSchemeList(QWidget):
             card.set_color_modes(self._color_modes)
             card.delete_requested.connect(self.favorite_deleted)
             card.rename_requested.connect(self._on_rename_requested)
+            card.preview_requested.connect(self._on_preview_requested)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
 
@@ -460,6 +476,14 @@ class FavoriteSchemeList(QWidget):
             current_name: 当前名称
         """
         self.favorite_renamed.emit(favorite_id, current_name)
+
+    def _on_preview_requested(self, favorite_data):
+        """预览请求处理（色盲模拟）
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_preview.emit(favorite_data)
 
     def set_hex_visible(self, visible):
         """设置是否显示16进制颜色值"""
