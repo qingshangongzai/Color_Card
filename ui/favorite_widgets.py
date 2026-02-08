@@ -240,28 +240,24 @@ class FavoriteSchemeCard(CardWidget):
         # 对比度检查按钮
         self.contrast_button = ToolButton(FluentIcon.ZOOM_IN)
         self.contrast_button.setFixedSize(28, 28)
-        self.contrast_button.setToolTip("对比度检查")
         self.contrast_button.clicked.connect(self._on_contrast_clicked)
         button_layout.addWidget(self.contrast_button)
 
         # 预览按钮（色盲模拟）
         self.preview_button = ToolButton(FluentIcon.VIEW)
         self.preview_button.setFixedSize(28, 28)
-        self.preview_button.setToolTip("色盲模拟预览")
         self.preview_button.clicked.connect(self._on_preview_clicked)
         button_layout.addWidget(self.preview_button)
 
         # 重命名按钮
         self.rename_button = ToolButton(FluentIcon.EDIT)
         self.rename_button.setFixedSize(28, 28)
-        self.rename_button.setToolTip("重命名")
         self.rename_button.clicked.connect(self._on_rename_clicked)
         button_layout.addWidget(self.rename_button)
 
         # 删除按钮
         self.delete_button = ToolButton(FluentIcon.DELETE)
         self.delete_button.setFixedSize(28, 28)
-        self.delete_button.setToolTip("删除")
         self.delete_button.clicked.connect(self._on_delete_clicked)
         button_layout.addWidget(self.delete_button)
 
@@ -285,6 +281,14 @@ class FavoriteSchemeCard(CardWidget):
                     background-color: {card_bg.name()};
                     border: 1px solid {border_color.name()};
                     border-radius: 8px;
+                }}
+                ToolButton {{
+                    background-color: transparent;
+                    border: none;
+                }}
+                ToolButton:hover {{
+                    background-color: rgba(128, 128, 128, 30);
+                    border-radius: 4px;
                 }}
             """)
 
