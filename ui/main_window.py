@@ -492,8 +492,10 @@ class MainWindow(FluentWindow):
 
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
-        self.color_extract_interface.image_canvas.set_picker_count(count)
+        # 先更新色卡数量，确保新色卡已创建
         self.color_extract_interface.color_card_panel.set_card_count(count)
+        # 再更新取色点数量（这会触发 extract_all，发射 color_picked 信号）
+        self.color_extract_interface.image_canvas.set_picker_count(count)
         # 更新HSB色环的采样点数量
         self.color_extract_interface.hsb_color_wheel.set_sample_count(count)
 
