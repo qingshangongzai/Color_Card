@@ -152,13 +152,16 @@ class MainWindow(FluentWindow):
         width = window_config.get('width', 940)
         height = window_config.get('height', 660)
         is_maximized = window_config.get('is_maximized', False)
+        is_fullscreen = window_config.get('is_fullscreen', False)
         self.resize(width, height)
 
         self.create_sub_interface()
         self.setup_navigation()
 
-        # 如果之前是最大化状态，恢复最大化
-        if is_maximized:
+        # 恢复窗口状态（全屏优先于最大化）
+        if is_fullscreen:
+            self.showFullScreen()
+        elif is_maximized:
             self.showMaximized()
 
         # 设置 F11 快捷键切换全屏
@@ -166,12 +169,14 @@ class MainWindow(FluentWindow):
 
     def closeEvent(self, event):
         """窗口关闭事件，保存配置"""
-        # 保存窗口最大化状态
+        # 保存窗口状态（全屏和最大化需要区分保存）
+        is_fullscreen = self.isFullScreen()
         is_maximized = self.isMaximized()
+        self._config_manager.set('window.is_fullscreen', is_fullscreen)
         self._config_manager.set('window.is_maximized', is_maximized)
 
-        # 保存窗口大小（如果最大化，保存正常尺寸而非最大化尺寸）
-        if is_maximized:
+        # 保存窗口大小（如果最大化或全屏，保存正常尺寸而非当前尺寸）
+        if is_maximized or is_fullscreen:
             normal_geometry = self.normalGeometry()
             self._config_manager.set('window.width', normal_geometry.width())
             self._config_manager.set('window.height', normal_geometry.height())
