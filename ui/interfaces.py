@@ -89,7 +89,8 @@ from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget, HueHistogramWidget
 from .scheme_widgets import SchemeColorPanel
 from .favorite_widgets import FavoriteSchemeList
-from .theme_colors import get_canvas_empty_bg_color, get_title_color
+from .theme_colors import get_canvas_empty_bg_color, get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
+from utils.platform import is_windows_10
 
 
 # 可选的色彩模式列表
@@ -636,6 +637,8 @@ class SettingsInterface(QWidget):
         self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self.setup_ui()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -653,8 +656,8 @@ class SettingsInterface(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 标题
-        title_label = SubtitleLabel("设置")
-        layout.addWidget(title_label)
+        self.title_label = SubtitleLabel("设置")
+        layout.addWidget(self.title_label)
 
         # 色卡显示设置分组
         self.card_display_group = SettingCardGroup("色卡显示设置", self.content_widget)
@@ -1080,6 +1083,72 @@ class SettingsInterface(QWidget):
         dialog = AboutDialog(self)
         dialog.exec()
 
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+        
+        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            card_bg = get_card_background_color()
+            border_color = get_border_color()
+            text_color = get_text_color()
+            secondary_text = get_text_color(secondary=True)
+            
+            self.setStyleSheet(f"""
+                SettingsInterface {{
+                    background-color: transparent;
+                }}
+                ScrollArea {{
+                    background-color: transparent;
+                    border: none;
+                }}
+                ScrollArea > QWidget > QWidget {{
+                    background-color: transparent;
+                }}
+                SettingCardGroup {{
+                    background-color: {card_bg.name()};
+                    border: none;
+                }}
+                SettingCardGroup::title {{
+                    color: {text_color.name()};
+                    font-size: 14px;
+                    font-weight: bold;
+                }}
+                PushSettingCard {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+                PushSettingCard:hover {{
+                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
+                }}
+                PushSettingCard QLabel#titleLabel {{
+                    color: {text_color.name()};
+                    font-size: 13px;
+                }}
+                PushSettingCard QLabel#contentLabel {{
+                    color: {secondary_text.name()};
+                    font-size: 11px;
+                }}
+                ComboBox {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+                SwitchButton {{
+                    background-color: transparent;
+                }}
+                SpinBox {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+            """)
+
 
 class ColorSchemeInterface(QWidget):
     """配色方案界面"""
@@ -1436,6 +1505,8 @@ class FavoritesInterface(QWidget):
         self._config_manager = get_config_manager()
         self.setup_ui()
         self._load_favorites()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1447,8 +1518,8 @@ class FavoritesInterface(QWidget):
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        title_label = SubtitleLabel("色卡收藏")
-        header_layout.addWidget(title_label)
+        self.title_label = SubtitleLabel("色卡收藏")
+        header_layout.addWidget(self.title_label)
 
         header_layout.addStretch()
 
@@ -1646,6 +1717,49 @@ class FavoritesInterface(QWidget):
             color_modes: 色彩模式列表
         """
         self.favorite_list.update_display_settings(hex_visible, color_modes)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+        
+        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            card_bg = get_card_background_color()
+            border_color = get_border_color()
+            text_color = get_text_color()
+            
+            self.setStyleSheet(f"""
+                FavoritesInterface {{
+                    background-color: {bg_color.name()};
+                }}
+                ScrollArea {{
+                    background-color: transparent;
+                    border: none;
+                }}
+                ScrollArea > QWidget > QWidget {{
+                    background-color: transparent;
+                }}
+                FavoriteSchemeCard,
+                CardWidget {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+                PushButton {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+                PushButton:hover {{
+                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
+                }}
+                QLabel {{
+                    color: {text_color.name()};
+                }}
+            """)
 
 
 # 导入需要在类定义之后导入的模块

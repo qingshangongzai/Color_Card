@@ -17,6 +17,8 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_color_info
 from .cards import COLOR_MODE_CONFIG, ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
+from .theme_colors import get_card_background_color
+from utils.platform import is_windows_10
 
 
 class FavoriteColorCard(QWidget):
@@ -249,15 +251,24 @@ class FavoriteSchemeCard(CardWidget):
 
     def _update_styles(self):
         """更新样式以适配主题"""
-        if isDarkTheme():
-            name_color = "#ffffff"
-            time_color = "#aaaaaa"
-        else:
-            name_color = "#333333"
-            time_color = "#666666"
+        name_color = get_text_color(secondary=False)
+        time_color = get_text_color(secondary=True)
+        card_bg = get_card_background_color()
+        border_color = get_border_color()
+
+        self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
+        self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color.name()};")
         
-        self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color};")
-        self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color};")
+        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
+        if is_windows_10():
+            self.setStyleSheet(f"""
+                FavoriteSchemeCard,
+                CardWidget {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+            """)
 
     def _clear_color_cards(self):
         """清空所有色卡"""
@@ -355,6 +366,7 @@ class FavoriteSchemeList(QWidget):
         self._color_modes = ['HSB', 'LAB']
         super().__init__(parent)
         self.setup_ui()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面"""
@@ -388,29 +400,29 @@ class FavoriteSchemeList(QWidget):
         """显示空状态"""
         self._clear_cards()
 
-        empty_widget = QWidget()
-        empty_layout = QVBoxLayout(empty_widget)
+        self._empty_widget = QWidget()
+        empty_layout = QVBoxLayout(self._empty_widget)
         empty_layout.setContentsMargins(0, 0, 0, 0)
         empty_layout.setSpacing(15)
         empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        icon_label = QLabel()
-        icon_label.setStyleSheet("font-size: 48px; color: #999;")
-        icon_label.setText("⭐")
-        icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(icon_label)
+        self._icon_label = QLabel()
+        self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
+        self._icon_label.setText("⭐")
+        self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_layout.addWidget(self._icon_label)
 
-        text_label = QLabel("还没有收藏的配色方案")
-        text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
-        text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(text_label)
+        self._text_label = QLabel("还没有收藏的配色方案")
+        self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
+        self._text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_layout.addWidget(self._text_label)
 
-        hint_label = QLabel("在色彩提取或配色方案面板点击收藏按钮")
-        hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
-        hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(hint_label)
+        self._hint_label = QLabel("在色彩提取或配色方案面板点击收藏按钮")
+        self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
+        self._hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_layout.addWidget(self._hint_label)
 
-        self.content_layout.addWidget(empty_widget, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.content_layout.addWidget(self._empty_widget, alignment=Qt.AlignmentFlag.AlignCenter)
 
     def _clear_cards(self):
         """清空所有卡片"""
@@ -470,3 +482,21 @@ class FavoriteSchemeList(QWidget):
             self.set_hex_visible(hex_visible)
         if color_modes is not None:
             self.set_color_modes(color_modes)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        if hasattr(self, '_icon_label') and self._icon_label is not None:
+            try:
+                self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
+            except RuntimeError:
+                pass
+        if hasattr(self, '_text_label') and self._text_label is not None:
+            try:
+                self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
+            except RuntimeError:
+                pass
+        if hasattr(self, '_hint_label') and self._hint_label is not None:
+            try:
+                self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
+            except RuntimeError:
+                pass

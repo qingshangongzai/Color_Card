@@ -17,6 +17,11 @@ def get_card_background_color():
     return QColor(42, 42, 42) if isDarkTheme() else QColor(255, 255, 255)
 
 
+def get_interface_background_color():
+    """获取界面背景颜色（与FluentWindow一致）"""
+    return QColor(32, 32, 32) if isDarkTheme() else QColor(243, 243, 243)
+
+
 def get_histogram_background_color():
     """获取直方图背景颜色 - 固定灰黑色 #2a2a2a"""
     return QColor(42, 42, 42)
