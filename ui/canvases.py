@@ -7,12 +7,16 @@ from PIL import Image
 from PySide6.QtCore import QPoint, QPointF, QRect, Qt, QThread, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget
-from qfluentwidgets import Action, FluentIcon, IndeterminateProgressRing, RoundMenu
+from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
 from core import get_luminance, get_zone
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
+from .theme_colors import (
+    get_canvas_background_color, get_canvas_empty_text_color, get_picker_colors,
+    get_tooltip_bg_color, get_tooltip_text_color
+)
 
 
 class ImageLoader(QThread):
@@ -46,11 +50,115 @@ class ImageLoader(QThread):
             self.error.emit(str(e))
 
 
+class ProgressiveImageLoader(QThread):
+    """分阶段图片加载工作线程
+
+    实现三阶段加载：
+    1. 快速加载模糊预览（缩略图）
+    2. 加载完整分辨率图片
+    3. 发送进度更新
+
+    支持取消操作，避免阻塞UI线程
+    """
+    # 信号：模糊预览图片数据, 宽度, 高度
+    blurry_loaded = Signal(bytes, int, int)
+    # 信号：完整图片数据, 宽度, 高度, 格式
+    full_loaded = Signal(bytes, int, int, str)
+    # 信号：加载进度 (0-100)
+    progress = Signal(int)
+    # 信号：错误信息
+    error = Signal(str)
+
+    def __init__(self, image_path: str, blurry_size: int = 150) -> None:
+        super().__init__()
+        self._image_path: str = image_path
+        self._blurry_size: int = blurry_size  # 模糊预览的最大边长（减小以加快预览）
+        self._is_cancelled: bool = False  # 取消标志
+
+    def cancel(self) -> None:
+        """请求取消加载
+
+        设置取消标志，run方法会在关键检查点检查此标志
+        """
+        self._is_cancelled = True
+
+    def _check_cancelled(self) -> bool:
+        """检查是否被取消
+
+        Returns:
+            bool: True表示已取消
+        """
+        return self._is_cancelled
+
+    def run(self) -> None:
+        """在子线程中分阶段加载图片"""
+        try:
+            # 阶段1：快速加载模糊预览
+            self.progress.emit(10)
+
+            with Image.open(self._image_path) as pil_image:
+                # 检查是否被取消
+                if self._check_cancelled():
+                    return
+
+                # 转换为RGB模式
+                if pil_image.mode != 'RGB':
+                    pil_image = pil_image.convert('RGB')
+
+                width, height = pil_image.size
+
+                # 生成缩略图用于快速预览
+                thumb_image = pil_image.copy()
+                thumb_image.thumbnail((self._blurry_size, self._blurry_size), Image.Resampling.LANCZOS)
+
+                # 检查是否被取消
+                if self._check_cancelled():
+                    return
+
+                # 保存缩略图数据
+                buffer = io.BytesIO()
+                thumb_image.save(buffer, format='BMP')
+                blurry_data = buffer.getvalue()
+
+                # 发送模糊预览加载完成信号
+                self.blurry_loaded.emit(blurry_data, width, height)
+                self.progress.emit(40)
+
+                # 检查是否被取消
+                if self._check_cancelled():
+                    return
+
+                # 阶段2：加载完整图片
+                self.progress.emit(60)
+
+                # 检查是否被取消
+                if self._check_cancelled():
+                    return
+
+                full_buffer = io.BytesIO()
+                pil_image.save(full_buffer, format='BMP')
+                full_data = full_buffer.getvalue()
+
+                # 检查是否被取消
+                if self._check_cancelled():
+                    return
+
+                self.progress.emit(90)
+
+                # 发送完整图片加载完成信号
+                self.full_loaded.emit(full_data, width, height, 'BMP')
+                self.progress.emit(100)
+
+        except (IOError, OSError, ValueError) as e:
+            if not self._check_cancelled():
+                self.error.emit(str(e))
+
+
 class BaseCanvas(QWidget):
     """画布基类，提供图片加载、显示和取色点管理的公共功能
 
     功能：
-        - 异步图片加载
+        - 异步图片加载（支持分阶段加载）
         - 图片显示（保持比例）
         - 取色点管理
         - 坐标转换
@@ -71,8 +179,14 @@ class BaseCanvas(QWidget):
 
     def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
         super().__init__(parent)
-        self.setMinimumSize(600, 400)
-        self.setStyleSheet("background-color: #2a2a2a; border-radius: 8px;")
+        from PySide6.QtWidgets import QSizePolicy, QVBoxLayout, QLabel
+
+        # 设置sizePolicy，允许在水平和垂直方向上都充分扩展和压缩
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # 设置合理的最小尺寸，允许画布在压缩时调整大小
+        self.setMinimumSize(300, 200)
+        bg_color = get_canvas_background_color()
+        self.setStyleSheet(f"background-color: {bg_color.name()}; border-radius: 8px;")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self._original_pixmap: Optional[QPixmap] = None
@@ -80,11 +194,64 @@ class BaseCanvas(QWidget):
         self._picker_positions: List[QPoint] = []
         self._picker_rel_positions: List[QPointF] = []
         self._loader: Optional[ImageLoader] = None
+        self._progressive_loader: Optional[ProgressiveImageLoader] = None
         self._pending_image_path: Optional[str] = None
         self._picker_count: int = picker_count
+        self._is_loading: bool = False  # 是否正在加载
+
+        # 启用文件拖拽接收
+        self.setAcceptDrops(True)
+
+        # 创建加载状态显示组件
+        self._setup_loading_ui()
+
+    def _setup_loading_ui(self) -> None:
+        """设置加载状态UI"""
+        from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
+        from PySide6.QtCore import Qt
+
+        # 加载状态容器（居中显示）
+        self._loading_widget = QWidget(self)
+        self._loading_widget.setStyleSheet("background-color: rgba(42, 42, 42, 180); border-radius: 8px;")
+        self._loading_widget.hide()
+
+        layout = QVBoxLayout(self._loading_widget)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.setSpacing(10)
+
+        # 加载提示文字
+        self._loading_label = QLabel("正在导入图片...", self._loading_widget)
+        self._loading_label.setStyleSheet("color: white; font-size: 14px; background: transparent;")
+        self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self._loading_label)
+
+    def show_loading(self, text: str = "正在导入图片...") -> None:
+        """显示加载状态
+
+        Args:
+            text: 加载提示文字
+        """
+        self._is_loading = True
+        self._loading_label.setText(text)
+        self._loading_widget.setGeometry(self.rect())
+        self._loading_widget.show()
+        self._loading_widget.raise_()
+        self.update()
+
+    def hide_loading(self) -> None:
+        """隐藏加载状态"""
+        self._is_loading = False
+        self._loading_widget.hide()
+        self.update()
+
+    def resizeEvent(self, event) -> None:
+        """窗口大小改变时更新加载状态组件位置"""
+        super().resizeEvent(event)
+        if self._is_loading:
+            self._loading_widget.setGeometry(self.rect())
 
     def set_image(self, image_path: str) -> None:
-        """异步加载并显示图片
+        """异步加载并显示图片（使用分阶段加载，非阻塞）
 
         Args:
             image_path: 图片文件路径
@@ -92,23 +259,92 @@ class BaseCanvas(QWidget):
         # 保存图片路径
         self._pending_image_path = image_path
 
-        # 如果已有加载线程在运行，先停止
-        if self._loader is not None and self._loader.isRunning():
-            self._loader.quit()
-            self._loader.wait()
+        # 如果已有加载线程在运行，请求取消（非阻塞）
+        if self._progressive_loader is not None:
+            self._progressive_loader.cancel()
+            # 注意：不调用 wait()，避免阻塞UI线程
+            # 旧线程会在检查点发现取消标志后自然结束
+            self._progressive_loader = None
 
-        # 创建并启动加载线程
-        self._loader = ImageLoader(image_path)
-        self._loader.loaded.connect(self._on_image_loaded)
-        self._loader.error.connect(self._on_image_load_error)
-        self._loader.finished.connect(self._cleanup_loader)
-        self._loader.start()
+        # 显示加载状态
+        self.show_loading("正在导入图片...")
+
+        # 创建并启动分阶段加载线程
+        self._progressive_loader = ProgressiveImageLoader(image_path)
+        self._progressive_loader.blurry_loaded.connect(self._on_blurry_image_loaded)
+        self._progressive_loader.full_loaded.connect(self._on_full_image_loaded)
+        self._progressive_loader.progress.connect(self._on_loading_progress)
+        self._progressive_loader.error.connect(self._on_image_load_error)
+        self._progressive_loader.finished.connect(self._cleanup_progressive_loader)
+        self._progressive_loader.start()
 
     def _cleanup_loader(self) -> None:
         """清理加载线程"""
         if self._loader is not None:
             self._loader.deleteLater()
             self._loader = None
+
+    def _cleanup_progressive_loader(self) -> None:
+        """清理分阶段加载线程"""
+        if self._progressive_loader is not None:
+            self._progressive_loader.deleteLater()
+            self._progressive_loader = None
+
+    def _on_blurry_image_loaded(self, image_data: bytes, width: int, height: int) -> None:
+        """模糊预览图片加载完成的回调
+
+        Args:
+            image_data: 图片字节数据（缩略图）
+            width: 原始图片宽度
+            height: 原始图片高度
+        """
+        # 从字节数据创建QImage和QPixmap
+        blurry_image = QImage.fromData(image_data, 'BMP')
+        self._original_pixmap = QPixmap.fromImage(blurry_image)
+
+        # 保存原始尺寸信息
+        self._pending_image_width = width
+        self._pending_image_height = height
+
+        # 显示模糊预览
+        self._setup_blurry_preview()
+        self.update()
+
+    def _on_full_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
+        """完整图片加载完成的回调
+
+        Args:
+            image_data: 图片字节数据
+            width: 图片宽度
+            height: 图片高度
+            fmt: 图片格式
+        """
+        # 从字节数据创建QImage（在主线程中安全执行）
+        self._image = QImage.fromData(image_data, fmt)
+        self._original_pixmap = QPixmap.fromImage(self._image)
+
+        # 隐藏加载状态
+        self.hide_loading()
+
+        # 完成加载后的设置
+        self._setup_after_load()
+
+    def _on_loading_progress(self, progress: int) -> None:
+        """加载进度更新回调
+
+        Args:
+            progress: 加载进度 (0-100)
+        """
+        if progress < 40:
+            self._loading_label.setText(f"正在导入图片... {progress}%")
+        elif progress < 90:
+            self._loading_label.setText(f"正在加载高清图片... {progress}%")
+        else:
+            self._loading_label.setText(f"正在完成... {progress}%")
+
+    def _setup_blurry_preview(self) -> None:
+        """设置模糊预览（子类可重写）"""
+        pass
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """图片加载完成的回调（在主线程中创建QImage/QPixmap）
@@ -132,21 +368,26 @@ class BaseCanvas(QWidget):
 
         子类应重写此方法以提供特定的错误处理
         """
+        self.hide_loading()
         print(f"图片加载失败: {error_msg}")
 
-    def set_image_data(self, pixmap: QPixmap, image: QImage) -> None:
+    def set_image_data(self, pixmap: QPixmap, image: QImage, emit_sync: bool = True) -> None:
         """直接使用已加载的图片数据（避免重复加载）
 
         Args:
             pixmap: QPixmap 对象
             image: QImage 对象
+            emit_sync: 是否发射同步信号（默认True，从其他面板同步时设为False）
         """
         self._original_pixmap = pixmap
         self._image = image
-        self._setup_after_load()
+        self._setup_after_load(emit_sync=emit_sync)
 
-    def _setup_after_load(self) -> None:
+    def _setup_after_load(self, emit_sync: bool = True) -> None:
         """图片加载完成后的设置
+
+        Args:
+            emit_sync: 是否发射同步信号
 
         子类必须实现此方法
         """
@@ -445,7 +686,7 @@ class BaseCanvas(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
         # 绘制背景
-        painter.fillRect(self.rect(), QColor(42, 42, 42))
+        painter.fillRect(self.rect(), get_canvas_background_color())
 
         # 绘制图片（使用原始高分辨率图片，实时缩放显示）
         if self._original_pixmap and not self._original_pixmap.isNull():
@@ -457,9 +698,9 @@ class BaseCanvas(QWidget):
 
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
-        else:
-            # 没有图片时显示提示文字
-            painter.setPen(QColor(150, 150, 150))
+        elif not self._is_loading:
+            # 没有图片且不在加载状态时显示提示文字
+            painter.setPen(get_canvas_empty_text_color())
             font = QFont()
             font.setPointSize(14)
             painter.setFont(font)
@@ -538,6 +779,38 @@ class BaseCanvas(QWidget):
         """
         return self._image
 
+    def dragEnterEvent(self, event) -> None:
+        """拖拽进入事件 - 检查是否为可接受的文件类型"""
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and len(urls) > 0:
+                file_path = urls[0].toLocalFile()
+                valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+                if file_path.lower().endswith(valid_extensions):
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
+    def dragMoveEvent(self, event) -> None:
+        """拖拽移动事件"""
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event) -> None:
+        """拖拽释放事件 - 加载图片"""
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls and len(urls) > 0:
+                file_path = urls[0].toLocalFile()
+                valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+                if file_path.lower().endswith(valid_extensions):
+                    self.set_image(file_path)
+                    event.acceptProposedAction()
+                    return
+        event.ignore()
+
 
 class ImageCanvas(BaseCanvas):
     """图片显示画布，支持取色点拖动"""
@@ -553,12 +826,6 @@ class ImageCanvas(BaseCanvas):
         self._pickers: list = []
         self._zoom_viewer: Optional[ZoomViewer] = None
         self._active_picker_index: int = -1
-        self._loading_indicator: Optional[IndeterminateProgressRing] = None
-
-        # 创建加载指示器
-        self._loading_indicator = IndeterminateProgressRing(self)
-        self._loading_indicator.setFixedSize(64, 64)
-        self._loading_indicator.hide()
 
         # 创建放大视图
         self._zoom_viewer = ZoomViewer(self)
@@ -575,73 +842,67 @@ class ImageCanvas(BaseCanvas):
             self._picker_rel_positions.append(QPointF(0.5, 0.5))  # 默认在图片中心
 
         self.update_picker_positions()
-        self._update_loading_indicator_position()
-
-    def _update_loading_indicator_position(self) -> None:
-        """更新加载指示器位置到中心"""
-        if self._loading_indicator:
-            x = (self.width() - self._loading_indicator.width()) // 2
-            y = (self.height() - self._loading_indicator.height()) // 2
-            self._loading_indicator.move(x, y)
 
     def set_image(self, image_path: str) -> None:
-        """异步加载并显示图片"""
-        # 显示加载指示器
-        if self._loading_indicator:
-            self._loading_indicator.start()
-            self._loading_indicator.show()
-            self._update_loading_indicator_position()
-
+        """异步加载并显示图片（使用分阶段加载）"""
         super().set_image(image_path)
+
+    def _setup_blurry_preview(self) -> None:
+        """设置模糊预览（阶段1：快速显示缩略图）"""
+        if self._original_pixmap and not self._original_pixmap.isNull():
+            # 改变光标为默认
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+
+            # 模糊预览阶段不显示取色点，等待完整图片加载完成
+            # 避免用户在预览阶段看到未就绪的采样点，提升用户体验
+
+            # 更新加载提示
+            self._loading_label.setText("正在加载高清图片...")
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """图片加载完成的回调"""
         super()._on_image_loaded(image_data, width, height, fmt)
-
-        # 隐藏加载指示器
-        if self._loading_indicator:
-            self._loading_indicator.stop()
-            self._loading_indicator.hide()
 
         # 改变光标为默认
         self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
-        # 隐藏加载指示器
-        if self._loading_indicator:
-            self._loading_indicator.stop()
-            self._loading_indicator.hide()
-
         # 恢复光标
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         print(f"图片加载失败: {error_msg}")
 
-    def _setup_after_load(self) -> None:
-        """图片加载完成后的设置"""
+    def _setup_after_load(self, emit_sync: bool = True) -> None:
+        """图片加载完成后的设置（阶段3：完整图片加载完成后）
+
+        Args:
+            emit_sync: 是否发射同步信号（从其他面板同步时设为False，防止循环）
+        """
         if self._original_pixmap and not self._original_pixmap.isNull():
             # 设置放大视图的图片
             if self._zoom_viewer:
                 self._zoom_viewer.set_image(self._image)
 
-            # 显示取色点
+            # 确保取色点可见
             for picker in self._pickers:
                 picker.show()
 
-            # 初始化取色点位置
+            # 初始化取色点位置（关键：防止同步时取色点重叠）
             self._init_picker_positions()
+
+            # 更新取色点位置（使用完整图片尺寸）
             self.update_picker_positions()
             self.update()
 
-            # 发送图片加载信号
-            if self._pending_image_path:
+            # 发送图片加载信号（只在独立导入时发射，防止双向同步循环）
+            if emit_sync and self._pending_image_path:
                 self.image_loaded.emit(self._pending_image_path)
                 # 同时发送图片数据信号，用于同步到其他面板
                 self.image_data_loaded.emit(self._original_pixmap, self._image)
 
             # 延迟提取颜色，让UI先响应，用户可以立即切换面板
-            QTimer.singleShot(300, self.extract_all)
+            QTimer.singleShot(100, self.extract_all)
 
     def _update_picker_position(self, index: int, canvas_x: int, canvas_y: int) -> None:
         """更新单个取色点的位置"""
@@ -726,10 +987,61 @@ class ImageCanvas(BaseCanvas):
         for i in range(len(self._pickers)):
             self.extract_at(i)
 
+    def set_picker_positions_by_colors(self, dominant_colors: List[Tuple[int, int, int]], positions: List[Tuple[float, float]]) -> None:
+        """根据主色调位置批量设置取色点位置
+
+        将取色点移动到提取的主色调位置，并更新颜色显示。
+
+        Args:
+            dominant_colors: 主色调列表 [(r, g, b), ...]
+            positions: 相对坐标列表 [(rel_x, rel_y), ...]
+        """
+        if not self._image or self._image.isNull():
+            return
+
+        if not positions or len(positions) == 0:
+            return
+
+        # 限制数量不超过取色点数量
+        count = min(len(positions), len(self._pickers))
+
+        for i in range(count):
+            rel_x, rel_y = positions[i]
+            # 限制在有效范围内
+            rel_x = max(0.0, min(1.0, rel_x))
+            rel_y = max(0.0, min(1.0, rel_y))
+
+            # 更新相对坐标
+            self._picker_rel_positions[i] = QPointF(rel_x, rel_y)
+
+        # 更新画布坐标并移动取色点
+        self.update_picker_positions()
+
+        # 提取所有取色点的颜色
+        self.extract_all()
+
+        # 更新HSB色环上的采样点（如果存在）
+        if len(dominant_colors) > 0:
+            for i in range(count):
+                if i < len(dominant_colors):
+                    rgb = dominant_colors[i]
+                    # 更新取色点显示的颜色
+                    color = QColor(rgb[0], rgb[1], rgb[2])
+                    self._pickers[i].set_color(color)
+
+        self.update()
+
+    def get_image(self) -> Optional[QImage]:
+        """获取当前图片
+
+        Returns:
+            QImage: 当前图片对象，如果没有则返回 None
+        """
+        return self._image
+
     def resizeEvent(self, event) -> None:
         """窗口大小改变时重新调整图片"""
         super().resizeEvent(event)
-        self._update_loading_indicator_position()
 
     def clear_image(self) -> None:
         """清空图片"""
@@ -758,17 +1070,8 @@ class LuminanceCanvas(BaseCanvas):
         self._highlighted_zone: int = -1  # 当前高亮显示的Zone (-1表示无)
         self._zone_highlight_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
 
-        # Zone高亮颜色配置 (Zone 0-7)
-        self._zone_highlight_colors: List[QColor] = [
-            QColor(0, 102, 255, 100),    # Zone 0: 深蓝色 (极暗)
-            QColor(0, 128, 255, 100),    # Zone 1: 蓝色 (暗)
-            QColor(0, 153, 255, 100),    # Zone 2: 浅蓝色 (偏暗)
-            QColor(0, 204, 102, 100),    # Zone 3: 绿色 (中灰)
-            QColor(102, 255, 102, 100),  # Zone 4: 浅绿色 (偏亮)
-            QColor(255, 204, 0, 100),    # Zone 5: 黄色 (亮)
-            QColor(255, 128, 0, 100),    # Zone 6: 橙色 (很亮)
-            QColor(255, 51, 102, 100),   # Zone 7: 红色 (极亮)
-        ]
+        # Zone高亮颜色配置 (Zone 0-7) - Adobe标准映射
+        self._zone_highlight_colors: List[QColor] = get_picker_colors()
 
         # 创建取色点（初始隐藏）
         for i in range(self._picker_count):
@@ -784,27 +1087,49 @@ class LuminanceCanvas(BaseCanvas):
 
         self.update_picker_positions()
 
+    def _setup_blurry_preview(self) -> None:
+        """设置模糊预览（阶段1：快速显示缩略图）"""
+        if self._original_pixmap and not self._original_pixmap.isNull():
+            # 改变光标为默认
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+
+            # 模糊预览阶段不显示取色点，等待完整图片加载完成
+            # 避免用户在预览阶段看到未就绪的采样点，提升用户体验
+
+            # 更新加载提示
+            self._loading_label.setText("正在加载高清图片...")
+
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
         print(f"明度面板图片加载失败: {error_msg}")
 
-    def _setup_after_load(self) -> None:
-        """图片加载完成后的设置"""
+    def _setup_after_load(self, emit_sync: bool = True) -> None:
+        """图片加载完成后的设置（阶段3：完整图片加载完成后）
+
+        Args:
+            emit_sync: 是否发射同步信号（从其他面板同步时设为False，防止循环）
+        """
         if self._original_pixmap and not self._original_pixmap.isNull():
-            # 显示取色点
+            # 确保取色点可见
             for picker in self._pickers:
                 picker.show()
 
             # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
 
-            # 初始化取色点位置
+            # 初始化取色点位置（关键：防止同步时取色点重叠）
             self._init_picker_positions()
+
+            # 更新取色点位置（使用完整图片尺寸）
             self.update_picker_positions()
             self.update()
 
+            # 发送图片加载信号（只在独立导入时发射，防止双向同步循环）
+            if emit_sync and self._pending_image_path:
+                self.image_loaded.emit(self._pending_image_path)
+
             # 延迟提取区域，让UI先响应，用户可以立即切换面板
-            QTimer.singleShot(300, self.extract_all)
+            QTimer.singleShot(100, self.extract_all)
 
     def _update_picker_position(self, index: int, canvas_x: int, canvas_y: int) -> None:
         """更新单个取色点的位置"""
@@ -910,13 +1235,13 @@ class LuminanceCanvas(BaseCanvas):
                 box_x = pos.x() - box_width // 2
                 box_y = pos.y() - 35  # 取色器上方35像素
 
-                # 绘制白色填充方框
+                # 绘制深色填充方框
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(255, 255, 255))
+                painter.setBrush(QColor(40, 40, 40, 200))
                 painter.drawRect(box_x, box_y, box_width, box_height)
 
-                # 绘制黑色文字
-                painter.setPen(QColor(0, 0, 0))
+                # 绘制白色文字
+                painter.setPen(QColor(255, 255, 255))
                 text_x = box_x + (box_width - text_width) // 2
                 text_y = box_y + (box_height - text_height) // 2
                 painter.drawText(text_x, text_y + text_height - 2, zone)
@@ -1058,11 +1383,11 @@ class LuminanceCanvas(BaseCanvas):
 
         disp_x, disp_y, disp_w, disp_h = display_rect
 
-        # 准备文字
+        # 准备文字 - Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
         zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8"]
         zone_names = [
-            "黑色", "阴影", "暗部", "中间调",
-            "亮部", "高光", "白色", "极白"
+            "黑色", "黑色", "阴影", "中间调",
+            "中间调", "中间调", "高光", "白色"
         ]
         label = zone_labels[self._highlighted_zone]
         name = zone_names[self._highlighted_zone]
@@ -1092,9 +1417,8 @@ class LuminanceCanvas(BaseCanvas):
         box_y = disp_y + 20
 
         # 绘制半透明背景框
-        bg_color = QColor(0, 0, 0, 180)
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(bg_color)
+        painter.setBrush(get_tooltip_bg_color())
         painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
 
         # 绘制文字

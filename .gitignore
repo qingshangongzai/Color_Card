@@ -23,3 +23,17 @@ README - BetterGI StellTrack.md
 upx-5.1.0-win64.zip
 /upx/upx-5.1.0-win64
 发行说明.md
+PyQt6_Windows_TitleBar_DarkMode_Guide.md
+PyQt6_Windows_TitleBar_DarkMode_Guide.md
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+版权完善计划.md
+THIRD_PARTY_LICENSES.md
+activate.ps1
+activate.bat
+Python3.14t性能优化计划.md

@@ -1,38 +1,99 @@
 # 标准库导入
-# 无
+import uuid
+from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, QThread, QTimer, Signal
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QScrollArea, QSplitter,
+    QFileDialog, QHBoxLayout, QLabel, QSplitter, QStackedWidget,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
     ComboBox, FluentIcon, InfoBar, InfoBarPosition, PrimaryPushButton,
-    PushSettingCard, SettingCardGroup, SpinBox, SwitchButton, isDarkTheme
+    PushButton, PushSettingCard, ScrollArea, SettingCardGroup, SpinBox, SubtitleLabel, SwitchButton, qconfig, isDarkTheme
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager
-from dialogs import AboutDialog, UpdateAvailableDialog
+from core import get_color_info, get_config_manager, extract_dominant_colors, find_dominant_color_positions
+
+
+class DominantColorExtractor(QThread):
+    """主色调提取线程
+
+    在后台线程中执行主色调提取，避免阻塞UI。
+    支持取消操作。
+    """
+
+    # 信号：提取完成
+    extraction_finished = Signal(list, list)  # dominant_colors, positions
+    # 信号：提取失败
+    extraction_error = Signal(str)  # error_message
+    # 信号：提取进度（可选）
+    extraction_progress = Signal(int)  # progress_percent
+
+    def __init__(self, image, count: int = 5, parent=None):
+        """
+        Args:
+            image: QImage 对象
+            count: 提取颜色数量
+            parent: 父对象
+        """
+        super().__init__(parent)
+        self._image = image
+        self._count = count
+        self._is_cancelled = False
+
+    def cancel(self):
+        """请求取消提取"""
+        self._is_cancelled = True
+
+    def _check_cancelled(self) -> bool:
+        """检查是否被取消"""
+        return self._is_cancelled
+
+    def run(self):
+        """在子线程中执行主色调提取"""
+        try:
+            if self._check_cancelled() or not self._image or self._image.isNull():
+                return
+
+            # 提取主色调
+            dominant_colors = extract_dominant_colors(self._image, count=self._count)
+
+            if self._check_cancelled():
+                return
+
+            if not dominant_colors:
+                self.extraction_error.emit("无法从图片中提取主色调")
+                return
+
+            # 找到每种主色调在图片中的位置
+            positions = find_dominant_color_positions(self._image, dominant_colors)
+
+            if self._check_cancelled():
+                return
+
+            # 发送成功信号
+            self.extraction_finished.emit(dominant_colors, positions)
+
+        except Exception as e:
+            if not self._check_cancelled():
+                self.extraction_error.emit(str(e))
+
+
+from dialogs import AboutDialog, NameDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
-from .color_wheel import HSBColorWheel
-from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
+from .color_wheel import HSBColorWheel, InteractiveColorWheel
+from .histograms import LuminanceHistogramWidget, RGBHistogramWidget, HueHistogramWidget
+from .scheme_widgets import SchemeColorPanel
+from .favorite_widgets import FavoriteSchemeList
+from .theme_colors import get_canvas_empty_bg_color, get_title_color
 
 
 # 可选的色彩模式列表
 AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
-
-
-def get_title_color():
-    """获取标题颜色"""
-    if isDarkTheme():
-        return QColor(255, 255, 255)
-    else:
-        return QColor(40, 40, 40)
 
 
 class ColorExtractInterface(QWidget):
@@ -41,6 +102,8 @@ class ColorExtractInterface(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging_index = -1  # 当前正在拖动的采样点索引
+        self._config_manager = get_config_manager()
+        self._extractor = None  # 主色调提取线程
         self.setup_ui()
         self.setup_connections()
 
@@ -52,43 +115,85 @@ class ColorExtractInterface(QWidget):
 
         # 主分割器（垂直）
         main_splitter = QSplitter(Qt.Orientation.Vertical)
+        main_splitter.setMinimumHeight(300)
+        main_splitter.setHandleWidth(0)  # 隐藏分隔条
         layout.addWidget(main_splitter, stretch=1)
 
         # 上半部分：水平分割器（图片 + 右侧组件）
         top_splitter = QSplitter(Qt.Orientation.Horizontal)
-        top_splitter.setMinimumHeight(300)
+        top_splitter.setMinimumHeight(180)
+        top_splitter.setHandleWidth(0)  # 隐藏分隔条
 
         # 左侧：图片画布
         self.image_canvas = ImageCanvas()
-        self.image_canvas.setMinimumWidth(400)
+        self.image_canvas.setMinimumWidth(300)
+        self.image_canvas.setMinimumHeight(150)
         top_splitter.addWidget(self.image_canvas)
 
-        # 右侧：垂直分割器（HSB色环 + RGB直方图）
+        # 右侧：垂直分割器（HSB色环 + 直方图堆叠窗口）
         right_splitter = QSplitter(Qt.Orientation.Vertical)
-        right_splitter.setMinimumWidth(200)
+        right_splitter.setMinimumWidth(180)
         right_splitter.setMaximumWidth(350)
+        right_splitter.setMinimumHeight(150)
+        right_splitter.setHandleWidth(0)  # 隐藏分隔条
 
         # HSB色环
         self.hsb_color_wheel = HSBColorWheel()
+        self.hsb_color_wheel.setMinimumHeight(100)
+        self.hsb_color_wheel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         right_splitter.addWidget(self.hsb_color_wheel)
+
+        # 直方图堆叠窗口（RGB/色相切换）
+        self.histogram_stack = QStackedWidget()
+        self.histogram_stack.setMinimumHeight(60)
+        self.histogram_stack.setMaximumHeight(150)
+        self.histogram_stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         # RGB直方图
         self.rgb_histogram_widget = RGBHistogramWidget()
-        right_splitter.addWidget(self.rgb_histogram_widget)
+        self.histogram_stack.addWidget(self.rgb_histogram_widget)
 
-        right_splitter.setSizes([200, 150])
+        # 色相直方图
+        self.hue_histogram_widget = HueHistogramWidget()
+        self.histogram_stack.addWidget(self.hue_histogram_widget)
+
+        right_splitter.addWidget(self.histogram_stack)
+        right_splitter.setSizes([200, 100])
         top_splitter.addWidget(right_splitter)
 
-        # 设置左右比例
-        top_splitter.setSizes([600, 250])
+        # 设置左右比例（图片区域:右侧组件区域）
+        top_splitter.setSizes([550, 280])
         main_splitter.addWidget(top_splitter)
+
+        # 收藏工具栏
+        favorite_toolbar = QWidget()
+        favorite_toolbar.setMaximumHeight(50)
+        favorite_toolbar.setStyleSheet("background: transparent;")
+        favorite_toolbar_layout = QHBoxLayout(favorite_toolbar)
+        favorite_toolbar_layout.setContentsMargins(0, 8, 0, 8)
+        favorite_toolbar_layout.setSpacing(10)
+
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏当前配色", self)
+        self.favorite_button.setFixedHeight(32)
+        self.favorite_button.clicked.connect(self._on_favorite_clicked)
+        favorite_toolbar_layout.addWidget(self.favorite_button)
+
+        # 主色调提取按钮
+        self.extract_dominant_button = PushButton(FluentIcon.PALETTE, "自动提取主色调", self)
+        self.extract_dominant_button.setFixedHeight(32)
+        self.extract_dominant_button.clicked.connect(self._on_extract_dominant_clicked)
+        favorite_toolbar_layout.addWidget(self.extract_dominant_button)
+
+        favorite_toolbar_layout.addStretch()
+
+        main_splitter.addWidget(favorite_toolbar)
 
         # 下半部分：色卡面板
         self.color_card_panel = ColorCardPanel()
-        self.color_card_panel.setMinimumHeight(200)
+        self.color_card_panel.setMinimumHeight(130)
         main_splitter.addWidget(self.color_card_panel)
 
-        main_splitter.setSizes([450, 220])
+        main_splitter.setSizes([350, 36, 180])
 
     def setup_connections(self):
         """设置信号连接"""
@@ -124,8 +229,9 @@ class ColorExtractInterface(QWidget):
             # 明度面板会自己延迟执行耗时操作
             window.sync_image_data_to_luminance(pixmap, image)
 
-        # 更新RGB直方图
+        # 更新RGB直方图和色相直方图
         self.rgb_histogram_widget.set_image(image)
+        self.hue_histogram_widget.set_image(image)
 
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
@@ -138,9 +244,10 @@ class ColorExtractInterface(QWidget):
         """清空图片"""
         self.image_canvas.clear_image()
         self.color_card_panel.clear_all()
-        # 清除HSB色环和RGB直方图
+        # 清除HSB色环和直方图
         self.hsb_color_wheel.clear_sample_points()
         self.rgb_histogram_widget.clear()
+        self.hue_histogram_widget.clear()
 
     def on_image_cleared(self):
         """图片已清空回调（同步清除明度面板）"""
@@ -149,9 +256,180 @@ class ColorExtractInterface(QWidget):
         if window and hasattr(window, 'sync_clear_to_luminance'):
             window.sync_clear_to_luminance()
 
+    def set_histogram_mode(self, mode: str):
+        """设置直方图显示模式
+
+        Args:
+            mode: 'rgb' 或 'hue'
+        """
+        if mode == 'hue':
+            self.histogram_stack.setCurrentIndex(1)
+        else:
+            self.histogram_stack.setCurrentIndex(0)
+
+    def _on_favorite_clicked(self):
+        """收藏按钮点击回调"""
+        colors = []
+        for card in self.color_card_panel.cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            InfoBar.warning(
+                title="无法收藏",
+                content="请先提取颜色后再收藏",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 弹出命名对话框
+        default_name = f"配色方案 {len(self._config_manager.get_favorites()) + 1}"
+        dialog = NameDialog(
+            title="命名配色方案",
+            default_name=default_name,
+            parent=self.window()
+        )
+
+        if dialog.exec() != NameDialog.DialogCode.Accepted:
+            return
+
+        favorite_name = dialog.get_name()
+
+        favorite_data = {
+            "id": str(uuid.uuid4()),
+            "name": favorite_name,
+            "colors": colors,
+            "created_at": datetime.now().isoformat(),
+            "source": "color_extract"
+        }
+
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新收藏面板
+        window = self.window()
+        if window and hasattr(window, 'refresh_favorites'):
+            window.refresh_favorites()
+
+        InfoBar.success(
+            title="收藏成功",
+            content=f"已收藏配色方案：{favorite_name}",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+    def _on_extract_dominant_clicked(self):
+        """主色调提取按钮点击回调"""
+        image = self.image_canvas.get_image()
+        if not image or image.isNull():
+            InfoBar.warning(
+                title="无法提取",
+                content="请先导入图片",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 获取当前设置的采样点数量
+        count = self._config_manager.get('settings.color_sample_count', 5)
+
+        # 取消之前的提取线程（如果存在）
+        if self._extractor is not None and self._extractor.isRunning():
+            self._extractor.cancel()
+            self._extractor = None
+
+        # 显示正在提取的提示
+        InfoBar.info(
+            title="正在提取",
+            content="正在分析图片主色调，请稍候...",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+        # 禁用提取按钮，防止重复点击
+        self.extract_dominant_button.setEnabled(False)
+        self.extract_dominant_button.setText("提取中...")
+
+        # 创建并启动提取线程
+        self._extractor = DominantColorExtractor(image, count=count, parent=self)
+        self._extractor.extraction_finished.connect(self._on_extraction_finished)
+        self._extractor.extraction_error.connect(self._on_extraction_error)
+        self._extractor.finished.connect(self._on_extraction_finished_cleanup)
+        self._extractor.start()
+
+    def _on_extraction_finished(self, dominant_colors, positions):
+        """主色调提取完成回调
+
+        Args:
+            dominant_colors: 主色调列表 [(r, g, b), ...]
+            positions: 颜色位置列表 [(rel_x, rel_y), ...]
+        """
+        count = self._config_manager.get('settings.color_sample_count', 5)
+
+        # 更新取色点位置
+        self.image_canvas.set_picker_positions_by_colors(dominant_colors, positions)
+
+        # 更新HSB色环上的采样点
+        for i, rgb in enumerate(dominant_colors):
+            if i < count:
+                self.hsb_color_wheel.update_sample_point(i, rgb)
+
+        InfoBar.success(
+            title="提取完成",
+            content=f"已成功提取 {len(dominant_colors)} 个主色调",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+    def _on_extraction_error(self, error_message):
+        """主色调提取失败回调
+
+        Args:
+            error_message: 错误信息
+        """
+        InfoBar.error(
+            title="提取失败",
+            content=f"提取过程中发生错误: {error_message}",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=3000,
+            parent=self.window()
+        )
+
+    def _on_extraction_finished_cleanup(self):
+        """主色调提取完成后的清理工作"""
+        # 恢复提取按钮状态
+        self.extract_dominant_button.setEnabled(True)
+        self.extract_dominant_button.setText("自动提取主色调")
+
+        # 清理线程引用
+        if self._extractor is not None:
+            self._extractor.deleteLater()
+            self._extractor = None
+
 
 class LuminanceExtractInterface(QWidget):
     """明度提取界面"""
+
+    # 信号：图片已独立导入（用于同步到色彩提取面板）
+    image_imported = Signal(str, object, object)  # 图片路径, QPixmap, QImage
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -166,12 +444,17 @@ class LuminanceExtractInterface(QWidget):
         layout.setSpacing(10)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.setMinimumHeight(300)
+        splitter.setHandleWidth(0)  # 隐藏分隔条
         layout.addWidget(splitter, stretch=1)
 
         self.luminance_canvas = LuminanceCanvas()
+        self.luminance_canvas.setMinimumHeight(200)
         splitter.addWidget(self.luminance_canvas)
 
         self.histogram_widget = LuminanceHistogramWidget()
+        self.histogram_widget.setMinimumHeight(120)
+        self.histogram_widget.setMaximumHeight(250)
         splitter.addWidget(self.histogram_widget)
 
         splitter.setSizes([400, 150])
@@ -186,22 +469,53 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas.image_cleared.connect(self.on_image_cleared)
         self.luminance_canvas.picker_dragging.connect(self.on_picker_dragging)
 
+        # 连接图片加载信号到同步回调（用于独立导入时同步到色彩面板）
+        self.luminance_canvas.image_loaded.connect(self._on_image_loaded_sync)
+
         # 连接直方图点击信号
         self.histogram_widget.zone_pressed.connect(self.on_histogram_zone_pressed)
         self.histogram_widget.zone_released.connect(self.on_histogram_zone_released)
 
     def open_image(self):
-        """打开图片文件（由主窗口处理）"""
-        # 实际打开操作由主窗口处理，然后同步到本界面
-        window = self.window()
-        if window and hasattr(window, 'open_image_for_luminance'):
-            window.open_image_for_luminance()
+        """打开图片文件（独立导入）"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "选择图片",
+            "",
+            "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+        )
+
+        if file_path:
+            self._load_image(file_path)
 
     def change_image(self):
-        """更换图片（由主窗口处理）"""
-        window = self.window()
-        if window and hasattr(window, 'open_image_for_luminance'):
-            window.open_image_for_luminance()
+        """更换图片"""
+        self.open_image()
+
+    def _load_image(self, file_path: str):
+        """加载图片并同步到色彩提取面板
+
+        Args:
+            file_path: 图片文件路径
+        """
+        self.luminance_canvas.set_image(file_path)
+
+    def _on_image_loaded_sync(self, file_path: str):
+        """图片加载完成后的同步回调
+
+        Args:
+            file_path: 图片文件路径
+        """
+        # 更新直方图
+        self.histogram_widget.set_image(self.luminance_canvas.get_image())
+        # 导入图片时不显示高亮
+        self.histogram_widget.clear_highlight()
+
+        # 发送信号，同步到色彩提取面板
+        pixmap = self.luminance_canvas._original_pixmap
+        image = self.luminance_canvas._image
+        if pixmap and not pixmap.isNull() and image and not image.isNull():
+            self.image_imported.emit(file_path, pixmap, image)
 
     def set_image(self, image_path):
         """设置图片（由主窗口调用同步）"""
@@ -210,9 +524,15 @@ class LuminanceExtractInterface(QWidget):
         # 导入图片时不显示高亮
         self.histogram_widget.clear_highlight()
 
-    def set_image_data(self, pixmap, image):
-        """设置图片数据（直接使用已加载的图片，避免重复加载）"""
-        self.luminance_canvas.set_image_data(pixmap, image)
+    def set_image_data(self, pixmap, image, emit_sync=True):
+        """设置图片数据（直接使用已加载的图片，避免重复加载）
+
+        Args:
+            pixmap: QPixmap 对象
+            image: QImage 对象
+            emit_sync: 是否发射同步信号（默认True，从其他面板同步时设为False）
+        """
+        self.luminance_canvas.set_image_data(pixmap, image, emit_sync=emit_sync)
         # 延迟更新直方图，避免与区域提取同时执行
         QTimer.singleShot(400, lambda: self._update_histogram_with_image(image))
 
@@ -223,11 +543,9 @@ class LuminanceExtractInterface(QWidget):
         self.histogram_widget.clear_highlight()
 
     def on_image_loaded(self, file_path):
-        """图片加载完成回调"""
-        # 更新直方图
-        self.histogram_widget.set_image(self.luminance_canvas.get_image())
-        # 导入图片时不显示高亮
-        self.histogram_widget.clear_highlight()
+        """图片加载完成回调（由主窗口同步时调用）"""
+        # 直方图更新已在 _on_image_loaded_sync 中处理
+        pass
 
     def on_luminance_picked(self, index, zone):
         """明度提取回调 - 拖动时实时更新黄框"""
@@ -299,6 +617,12 @@ class SettingsInterface(QWidget):
     color_sample_count_changed = Signal(int)
     # 信号：明度提取采样点数改变
     luminance_sample_count_changed = Signal(int)
+    # 信号：直方图缩放模式改变
+    histogram_scaling_mode_changed = Signal(str)
+    # 信号：色轮模式改变
+    color_wheel_mode_changed = Signal(str)
+    # 信号：直方图模式改变
+    histogram_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -308,12 +632,15 @@ class SettingsInterface(QWidget):
         self._color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self._color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
         self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
+        self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
+        self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
+        self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self.setup_ui()
 
     def setup_ui(self):
         """设置界面布局"""
         # 创建滚动区域
-        self.scroll_area = QScrollArea(self)
+        self.scroll_area = ScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
@@ -326,13 +653,11 @@ class SettingsInterface(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 标题
-        title_label = QLabel("设置")
-        title_color = get_title_color()
-        title_label.setStyleSheet(f"font-size: 28px; font-weight: bold; color: {title_color.name()};")
+        title_label = SubtitleLabel("设置")
         layout.addWidget(title_label)
 
-        # 显示设置分组
-        self.display_group = SettingCardGroup("显示设置", self.content_widget)
+        # 色卡显示设置分组
+        self.card_display_group = SettingCardGroup("色卡显示设置", self.content_widget)
 
         # 16进制颜色值显示开关卡片
         self.hex_display_card = self._create_switch_card(
@@ -341,11 +666,16 @@ class SettingsInterface(QWidget):
             "在色彩提取面板的色卡中显示16进制颜色值和复制按钮",
             self._hex_visible
         )
-        self.display_group.addSettingCard(self.hex_display_card)
+        self.card_display_group.addSettingCard(self.hex_display_card)
 
         # 色彩模式选择卡片
         self.color_mode_card = self._create_color_mode_card()
-        self.display_group.addSettingCard(self.color_mode_card)
+        self.card_display_group.addSettingCard(self.color_mode_card)
+
+        layout.addWidget(self.card_display_group)
+
+        # 采样设置分组
+        self.sampling_group = SettingCardGroup("采样设置", self.content_widget)
 
         # 色彩提取采样点数卡片
         self.color_sample_count_card = self._create_spin_box_card(
@@ -357,7 +687,7 @@ class SettingsInterface(QWidget):
             5,
             self._on_color_sample_count_changed
         )
-        self.display_group.addSettingCard(self.color_sample_count_card)
+        self.sampling_group.addSettingCard(self.color_sample_count_card)
 
         # 明度提取采样点数卡片
         self.luminance_sample_count_card = self._create_spin_box_card(
@@ -369,9 +699,31 @@ class SettingsInterface(QWidget):
             5,
             self._on_luminance_sample_count_changed
         )
-        self.display_group.addSettingCard(self.luminance_sample_count_card)
+        self.sampling_group.addSettingCard(self.luminance_sample_count_card)
 
-        layout.addWidget(self.display_group)
+        layout.addWidget(self.sampling_group)
+
+        # 直方图设置分组
+        self.histogram_group = SettingCardGroup("直方图设置", self.content_widget)
+
+        # 直方图缩放模式卡片
+        self.histogram_scaling_card = self._create_histogram_scaling_card()
+        self.histogram_group.addSettingCard(self.histogram_scaling_card)
+
+        # 直方图模式卡片（RGB/色相）
+        self.histogram_mode_card = self._create_histogram_mode_card()
+        self.histogram_group.addSettingCard(self.histogram_mode_card)
+
+        layout.addWidget(self.histogram_group)
+
+        # 配色方案设置分组
+        self.color_scheme_group = SettingCardGroup("配色方案设置", self.content_widget)
+
+        # 色轮模式卡片
+        self.color_wheel_mode_card = self._create_color_wheel_mode_card()
+        self.color_scheme_group.addSettingCard(self.color_wheel_mode_card)
+
+        layout.addWidget(self.color_scheme_group)
 
         # 帮助分组
         self.help_group = SettingCardGroup("帮助", self.content_widget)
@@ -417,12 +769,14 @@ class SettingsInterface(QWidget):
 
     def _create_switch_card(self, icon, title, content, initial_checked):
         """创建自定义开关卡片"""
-        card = PushSettingCard("", icon, title, content, self.display_group)
+        card = PushSettingCard("", icon, title, content, self.content_widget)
         card.button.setVisible(False)  # 隐藏默认按钮
 
         # 创建开关按钮
         switch = SwitchButton(self.content_widget)
         switch.setChecked(initial_checked)
+        switch.setOnText("开")
+        switch.setOffText("关")
         switch.checkedChanged.connect(self._on_hex_display_changed)
 
         # 将开关添加到卡片布局
@@ -436,7 +790,7 @@ class SettingsInterface(QWidget):
 
     def _create_spin_box_card(self, icon, title, content, initial_value, min_value, max_value, callback):
         """创建自定义下拉列表卡片"""
-        card = PushSettingCard("", icon, title, content, self.display_group)
+        card = PushSettingCard("", icon, title, content, self.content_widget)
         card.button.setVisible(False)
 
         # 创建ComboBox控件
@@ -464,7 +818,7 @@ class SettingsInterface(QWidget):
             FluentIcon.BRUSH,
             "色彩模式显示",
             "选择在色卡中显示的两种色彩模式",
-            self.display_group
+            self.content_widget
         )
         card.button.setVisible(False)  # 隐藏默认按钮
 
@@ -542,6 +896,141 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         self.luminance_sample_count_changed.emit(value)
 
+    def _create_histogram_scaling_card(self):
+        """创建直方图缩放模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.DOCUMENT,
+            "直方图缩放模式",
+            "选择直方图的缩放方式（线性/自适应）",
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem("线性缩放")
+        combo_box.setItemData(0, "linear")
+        combo_box.addItem("自适应缩放")
+        combo_box.setItemData(1, "adaptive")
+
+        # 设置当前值
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._histogram_scaling_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_histogram_scaling_mode_changed)
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_histogram_scaling_mode_changed(self, index):
+        """直方图缩放模式改变"""
+        combo_box = self.histogram_scaling_card.combo_box
+        mode = combo_box.itemData(index)
+        self._histogram_scaling_mode = mode
+        self._config_manager.set('settings.histogram_scaling_mode', mode)
+        self._config_manager.save()
+        self.histogram_scaling_mode_changed.emit(mode)
+
+    def _create_histogram_mode_card(self):
+        """创建直方图模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            "直方图显示模式",
+            "选择色彩提取面板的直方图类型（RGB通道/色相分布）",
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem("RGB 通道")
+        combo_box.setItemData(0, "rgb")
+        combo_box.addItem("色相分布")
+        combo_box.setItemData(1, "hue")
+
+        # 设置当前值
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._histogram_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_histogram_mode_changed)
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_histogram_mode_changed(self, index):
+        """直方图模式改变"""
+        combo_box = self.histogram_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._histogram_mode = mode
+        self._config_manager.set('settings.histogram_mode', mode)
+        self._config_manager.save()
+        self.histogram_mode_changed.emit(mode)
+
+    def _create_color_wheel_mode_card(self):
+        """创建配色方案模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            "配色方案模式",
+            "选择配色方案使用的色彩逻辑（RGB: 光学混色，RYB: 美术混色）",
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem("RGB 光学")
+        combo_box.setItemData(0, "RGB")
+        combo_box.addItem("RYB 美术")
+        combo_box.setItemData(1, "RYB")
+
+        # 设置当前值
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._color_wheel_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_color_wheel_mode_changed)
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_color_wheel_mode_changed(self, index):
+        """色轮模式改变"""
+        combo_box = self.color_wheel_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._color_wheel_mode = mode
+        self._config_manager.set('settings.color_wheel_mode', mode)
+        self._config_manager.save()
+        self.color_wheel_mode_changed.emit(mode)
+
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
         self._hex_visible = visible
@@ -563,6 +1052,24 @@ class SettingsInterface(QWidget):
         """获取当前色彩模式"""
         return self._color_modes
 
+    def get_color_wheel_mode(self):
+        """获取当前色轮模式"""
+        return self._color_wheel_mode
+
+    def set_color_wheel_mode(self, mode):
+        """设置色轮模式
+
+        Args:
+            mode: 'RGB' 或 'RYB'
+        """
+        self._color_wheel_mode = mode
+        if hasattr(self.color_wheel_mode_card, 'combo_box'):
+            combo_box = self.color_wheel_mode_card.combo_box
+            for i in range(combo_box.count()):
+                if combo_box.itemData(i) == mode:
+                    combo_box.setCurrentIndex(i)
+                    break
+
     def on_check_update(self):
         """检查更新按钮点击"""
         current_version = version_manager.get_version()
@@ -572,3 +1079,574 @@ class SettingsInterface(QWidget):
         """显示关于对话框"""
         dialog = AboutDialog(self)
         dialog.exec()
+
+
+class ColorSchemeInterface(QWidget):
+    """配色方案界面"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('colorSchemeInterface')
+        self._current_scheme = 'monochromatic'
+        self._base_hue = 0.0
+        self._base_saturation = 100.0
+        self._base_brightness = 100.0
+        self._brightness_adjustment = 0
+        self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
+        self._color_wheel_mode = 'RGB'  # 色轮模式：RGB 或 RYB
+
+        self._config_manager = get_config_manager()
+
+        self.setup_ui()
+        self.setup_connections()
+        self._load_settings()
+        # 根据初始配色方案设置卡片数量
+        self._update_card_count()
+        self._generate_scheme_colors()
+        self._update_styles()
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        # 顶部控制栏（居中显示）
+        top_container = QWidget()
+        top_layout = QHBoxLayout(top_container)
+        top_layout.setSpacing(15)
+        top_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 配色方案选择下拉框
+        self.scheme_label = QLabel("配色方案:")
+        top_layout.addWidget(self.scheme_label)
+
+        self.scheme_combo = ComboBox(self)
+        self.scheme_combo.addItem("同色系")
+        self.scheme_combo.addItem("邻近色")
+        self.scheme_combo.addItem("互补色")
+        self.scheme_combo.addItem("分离补色")
+        self.scheme_combo.addItem("双补色")
+        self.scheme_combo.setItemData(0, "monochromatic")
+        self.scheme_combo.setItemData(1, "analogous")
+        self.scheme_combo.setItemData(2, "complementary")
+        self.scheme_combo.setItemData(3, "split_complementary")
+        self.scheme_combo.setItemData(4, "double_complementary")
+        self.scheme_combo.setFixedWidth(150)
+        top_layout.addWidget(self.scheme_combo)
+
+        # 随机按钮
+        self.random_btn = PrimaryPushButton(FluentIcon.SYNC, "随机", self)
+        self.random_btn.setFixedWidth(100)
+        top_layout.addWidget(self.random_btn)
+
+        # 收藏按钮
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏", self)
+        self.favorite_button.setFixedWidth(80)
+        self.favorite_button.clicked.connect(self._on_favorite_clicked)
+        top_layout.addWidget(self.favorite_button)
+
+        layout.addWidget(top_container, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # 使用分割器分隔上下区域（避免重叠）
+        splitter = QSplitter(Qt.Orientation.Vertical)
+        splitter.setMinimumHeight(300)
+        splitter.setHandleWidth(0)  # 隐藏分隔条
+        layout.addWidget(splitter, stretch=1)
+
+        # 上半部分：色轮和明度调整
+        upper_widget = QWidget()
+        upper_layout = QVBoxLayout(upper_widget)
+        upper_layout.setContentsMargins(0, 0, 0, 0)
+        upper_layout.setSpacing(15)
+
+        # 色轮容器（与图片显示组件样式一致）
+        self.wheel_container = QWidget(self)
+        self.wheel_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.wheel_container.setMinimumSize(300, 200)
+        bg_color = get_canvas_empty_bg_color()
+        self.wheel_container.setStyleSheet(f"background-color: {bg_color.name()}; border-radius: 8px;")
+
+        wheel_container_layout = QVBoxLayout(self.wheel_container)
+        wheel_container_layout.setContentsMargins(10, 10, 10, 10)
+
+        # 可交互色环（在容器内自适应，占满整个容器）
+        self.color_wheel = InteractiveColorWheel(self.wheel_container)
+        wheel_container_layout.addWidget(self.color_wheel, stretch=1)
+
+        upper_layout.addWidget(self.wheel_container, stretch=1)
+
+        # 明度调整滑块（色轮下方，整体居中但控件紧凑排列）
+        brightness_container = QWidget()
+        brightness_layout = QHBoxLayout(brightness_container)
+        brightness_layout.setSpacing(5)
+        brightness_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.brightness_label = QLabel("明度调整:")
+        brightness_layout.addWidget(self.brightness_label)
+
+        self.brightness_slider = Slider(Qt.Orientation.Horizontal, brightness_container)
+        self.brightness_slider.setRange(-50, 50)
+        self.brightness_slider.setValue(0)
+        self.brightness_slider.setFixedWidth(200)
+        brightness_layout.addWidget(self.brightness_slider)
+
+        self.brightness_value_label = QLabel("0")
+        self.brightness_value_label.setFixedWidth(25)
+        brightness_layout.addWidget(self.brightness_value_label)
+
+        upper_layout.addWidget(brightness_container, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        splitter.addWidget(upper_widget)
+
+        # 下方：色块面板
+        self.color_panel = SchemeColorPanel(self)
+        self.color_panel.setMinimumHeight(150)
+        splitter.addWidget(self.color_panel)
+
+        splitter.setSizes([400, 200])
+
+    def setup_connections(self):
+        """设置信号连接"""
+        self.scheme_combo.currentIndexChanged.connect(self.on_scheme_changed)
+        self.random_btn.clicked.connect(self.on_random_clicked)
+        self.color_wheel.base_color_changed.connect(self.on_base_color_changed)
+        self.color_wheel.scheme_color_changed.connect(self.on_scheme_color_changed)
+        self.brightness_slider.valueChanged.connect(self.on_brightness_changed)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        if isDarkTheme():
+            label_color = "#ffffff"
+            value_color = "#ffffff"
+        else:
+            label_color = "#333333"
+            value_color = "#333333"
+        
+        self.scheme_label.setStyleSheet(f"color: {label_color};")
+        self.brightness_label.setStyleSheet(f"color: {label_color};")
+        self.brightness_value_label.setStyleSheet(f"color: {value_color};")
+
+    def _load_settings(self):
+        """加载显示设置"""
+        # 从配置管理器读取设置
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
+
+        # 应用设置到色块面板
+        self.color_panel.update_settings(hex_visible, color_modes)
+
+    def _update_card_count(self):
+        """根据当前配色方案更新卡片数量"""
+        scheme_counts = {
+            'monochromatic': 4,      # 同色系：4个
+            'analogous': 4,          # 邻近色：4个
+            'complementary': 5,      # 互补色：5个
+            'split_complementary': 3, # 分离补色：3个
+            'double_complementary': 4  # 双补色：4个
+        }
+        count = scheme_counts.get(self._current_scheme, 5)
+        self.color_panel.set_card_count(count)
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置（由设置界面调用）
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        if hex_visible is not None:
+            self.color_panel.set_hex_visible(hex_visible)
+
+        if color_modes is not None and len(color_modes) >= 2:
+            self.color_panel.set_color_modes(color_modes)
+
+    def on_scheme_changed(self, index):
+        """配色方案改变回调"""
+        self._current_scheme = self.scheme_combo.currentData()
+
+        # 根据配色方案类型调整卡片数量
+        self._update_card_count()
+
+        self._generate_scheme_colors()
+
+    def on_random_clicked(self):
+        """随机按钮点击回调"""
+        import random
+        self._base_hue = random.uniform(0, 360)
+        self._base_saturation = random.uniform(60, 100)
+        self.color_wheel.set_base_color(self._base_hue, self._base_saturation, self._base_brightness)
+        self._generate_scheme_colors()
+
+    def on_base_color_changed(self, h, s, b):
+        """基准颜色改变回调"""
+        self._base_hue = h
+        self._base_saturation = s
+        self._generate_scheme_colors()
+
+    def on_scheme_color_changed(self, index, h, s, b):
+        """配色方案采样点颜色改变回调
+
+        Args:
+            index: 采样点索引
+            h: 色相
+            s: 饱和度
+            b: 亮度
+        """
+        from core import hsb_to_rgb
+
+        # 更新配色方案数据
+        if 0 <= index < len(self._scheme_colors):
+            self._scheme_colors[index] = (h, s, b)
+
+            # 转换为RGB并更新色块面板
+            rgb = hsb_to_rgb(h, s, b)
+            self.color_panel.set_colors([hsb_to_rgb(*c) for c in self._scheme_colors])
+
+    def on_brightness_changed(self, value):
+        """明度调整回调"""
+        self._brightness_adjustment = value
+        self.brightness_value_label.setText(str(value))
+        # 更新色轮的全局明度
+        self.color_wheel.set_global_brightness(value)
+        self._generate_scheme_colors()
+
+    def set_color_wheel_mode(self, mode: str):
+        """设置色轮模式
+
+        Args:
+            mode: 'RGB' 或 'RYB'
+        """
+        if self._color_wheel_mode != mode:
+            self._color_wheel_mode = mode
+            self._generate_scheme_colors()
+
+    def _generate_scheme_colors(self):
+        """生成配色方案颜色"""
+        from core import (
+            get_scheme_preview_colors, get_scheme_preview_colors_ryb,
+            adjust_brightness, hsb_to_rgb, rgb_to_hsb
+        )
+
+        # 根据配色方案类型确定颜色数量
+        scheme_counts = {
+            'monochromatic': 4,      # 同色系：4个
+            'analogous': 4,          # 邻近色：4个
+            'complementary': 5,      # 互补色：5个
+            'split_complementary': 3, # 分离补色：3个
+            'double_complementary': 4  # 双补色：4个
+        }
+        count = scheme_counts.get(self._current_scheme, 5)
+
+        # 根据色轮模式选择对应的配色生成函数
+        if self._color_wheel_mode == 'RYB':
+            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count)
+        else:
+            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
+
+        # 转换为HSB并应用明度调整
+        self._scheme_colors = []
+        for i, rgb in enumerate(colors):
+            h, s, b = rgb_to_hsb(*rgb)
+            # 第一个颜色是基准色，使用用户设置的饱和度
+            if i == 0:
+                s = self._base_saturation
+            self._scheme_colors.append((h, s, b))
+
+        if self._brightness_adjustment != 0:
+            self._scheme_colors = adjust_brightness(self._scheme_colors, self._brightness_adjustment)
+            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
+        else:
+            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
+
+        # 更新色块面板
+        self.color_panel.set_colors(colors)
+
+        # 更新色环上的配色方案点
+        self.color_wheel.set_scheme_colors(self._scheme_colors)
+
+    def _on_favorite_clicked(self):
+        """收藏按钮点击回调"""
+        colors = []
+        for card in self.color_panel.cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            InfoBar.warning(
+                title="无法收藏",
+                content="没有可收藏的配色方案",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 弹出命名对话框
+        default_name = f"配色方案 {len(self._config_manager.get_favorites()) + 1}"
+        dialog = NameDialog(
+            title="命名配色方案",
+            default_name=default_name,
+            parent=self.window()
+        )
+
+        if dialog.exec() != NameDialog.DialogCode.Accepted:
+            return
+
+        favorite_name = dialog.get_name()
+
+        favorite_data = {
+            "id": str(uuid.uuid4()),
+            "name": favorite_name,
+            "colors": colors,
+            "created_at": datetime.now().isoformat(),
+            "source": "color_scheme"
+        }
+
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新收藏面板
+        window = self.window()
+        if window and hasattr(window, 'refresh_favorites'):
+            window.refresh_favorites()
+
+        InfoBar.success(
+            title="收藏成功",
+            content=f"已收藏配色方案：{favorite_name}",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+
+class FavoritesInterface(QWidget):
+    """色卡收藏界面"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('favoritesInterface')
+        self._config_manager = get_config_manager()
+        self.setup_ui()
+        self._load_favorites()
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(15)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        title_label = SubtitleLabel("色卡收藏")
+        header_layout.addWidget(title_label)
+
+        header_layout.addStretch()
+
+        self.import_button = PushButton(FluentIcon.DOWN, "导入", self)
+        self.import_button.clicked.connect(self._on_import_clicked)
+        header_layout.addWidget(self.import_button)
+
+        self.export_button = PushButton(FluentIcon.UP, "导出", self)
+        self.export_button.clicked.connect(self._on_export_clicked)
+        header_layout.addWidget(self.export_button)
+
+        self.clear_all_button = PushButton(FluentIcon.DELETE, "清空所有", self)
+        self.clear_all_button.setMinimumWidth(100)
+        self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
+        header_layout.addWidget(self.clear_all_button)
+
+        layout.addLayout(header_layout)
+
+        self.favorite_list = FavoriteSchemeList(self)
+        self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
+        self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
+        layout.addWidget(self.favorite_list, stretch=1)
+
+    def _load_favorites(self):
+        """加载收藏列表"""
+        favorites = self._config_manager.get_favorites()
+        self.favorite_list.set_favorites(favorites)
+
+    def _on_clear_all_clicked(self):
+        """清空所有按钮点击"""
+        from qfluentwidgets import MessageBox, FluentIcon as FIcon
+
+        msg_box = MessageBox(
+            "确认清空",
+            "确定要清空所有收藏的配色方案吗？此操作不可撤销。",
+            self
+        )
+        msg_box.yesButton.setText("确定")
+        msg_box.cancelButton.setText("取消")
+        if msg_box.exec():
+            self._config_manager.clear_favorites()
+            self._config_manager.save()
+            self._load_favorites()
+
+    def _on_favorite_deleted(self, favorite_id):
+        """收藏删除回调"""
+        self._config_manager.delete_favorite(favorite_id)
+        self._config_manager.save()
+        self._load_favorites()
+
+    def _on_favorite_renamed(self, favorite_id, current_name):
+        """收藏重命名回调
+
+        Args:
+            favorite_id: 收藏项ID
+            current_name: 当前名称
+        """
+        dialog = NameDialog(
+            title="重命名配色方案",
+            default_name=current_name,
+            parent=self.window()
+        )
+
+        if dialog.exec() != NameDialog.DialogCode.Accepted:
+            return
+
+        new_name = dialog.get_name()
+
+        # 更新收藏名称
+        if self._config_manager.rename_favorite(favorite_id, new_name):
+            self._config_manager.save()
+            self._load_favorites()
+
+            InfoBar.success(
+                title="重命名成功",
+                content=f"已重命名为：{new_name}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="重命名失败",
+                content="无法找到该配色方案",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+
+    def _on_import_clicked(self):
+        """导入按钮点击"""
+        from qfluentwidgets import MessageBox
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入收藏",
+            "",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 询问导入模式 - 使用两个独立的对话框
+        msg_box = MessageBox(
+            "选择导入模式",
+            "请选择导入方式：\n\n点击「是」追加到现有收藏\n点击「否」替换现有收藏",
+            self
+        )
+        msg_box.yesButton.setText("追加")
+        msg_box.cancelButton.setText("替换")
+
+        # 获取结果：1=追加, 0=替换
+        result = msg_box.exec()
+
+        # 确定导入模式
+        if result == 1:  # 点击了"追加"
+            mode = 'append'
+        else:  # 点击了"替换"
+            mode = 'replace'
+
+        success, count, error_msg = self._config_manager.import_favorites(file_path, mode)
+
+        if success:
+            self._config_manager.save()
+            self._load_favorites()
+            InfoBar.success(
+                title="导入成功",
+                content=f"成功导入 {count} 个配色方案",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content=error_msg,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+
+    def _on_export_clicked(self):
+        """导出按钮点击"""
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出收藏",
+            "color_card_favorites.json",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .json
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        success = self._config_manager.export_favorites(file_path)
+
+        if success:
+            InfoBar.success(
+                title="导出成功",
+                content=f"收藏已导出到：{file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+        else:
+            InfoBar.error(
+                title="导出失败",
+                content="导出过程中发生错误，请检查文件路径和权限",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        self.favorite_list.update_display_settings(hex_visible, color_modes)
+
+
+# 导入需要在类定义之后导入的模块
+from qfluentwidgets import Slider

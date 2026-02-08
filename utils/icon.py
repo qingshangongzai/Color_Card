@@ -74,10 +74,11 @@ def create_fallback_icon() -> QIcon:
     try:
         # 创建一个简单的蓝色图标
         pixmap = QPixmap(32, 32)
-        pixmap.fill(QColor("#0078d4"))
+        # 使用主题蓝色作为后备图标颜色
+        pixmap.fill(QColor(0, 120, 212))
 
         painter = QPainter(pixmap)
-        painter.setPen(QColor('white'))
+        painter.setPen(QColor(255, 255, 255))
         painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "CC")
         painter.end()
 
