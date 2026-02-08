@@ -1160,7 +1160,7 @@ class ColorSchemeInterface(QWidget):
         self._base_hue = 0.0
         self._base_saturation = 100.0
         self._base_brightness = 100.0
-        self._brightness_adjustment = 0
+        self._brightness_value = 100  # 全局明度值 (10-100)，直接对应HSB的B值
         self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
         self._color_wheel_mode = 'RGB'  # 色轮模式：RGB 或 RYB
 
@@ -1257,13 +1257,13 @@ class ColorSchemeInterface(QWidget):
         brightness_layout.addWidget(self.brightness_label)
 
         self.brightness_slider = Slider(Qt.Orientation.Horizontal, brightness_container)
-        self.brightness_slider.setRange(-50, 50)
-        self.brightness_slider.setValue(0)
+        self.brightness_slider.setRange(10, 100)
+        self.brightness_slider.setValue(100)
         self.brightness_slider.setFixedWidth(200)
         brightness_layout.addWidget(self.brightness_slider)
 
-        self.brightness_value_label = QLabel("0")
-        self.brightness_value_label.setFixedWidth(25)
+        self.brightness_value_label = QLabel("100")
+        self.brightness_value_label.setFixedWidth(30)
         brightness_layout.addWidget(self.brightness_value_label)
 
         upper_layout.addWidget(brightness_container, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -1377,7 +1377,7 @@ class ColorSchemeInterface(QWidget):
 
     def on_brightness_changed(self, value):
         """明度调整回调"""
-        self._brightness_adjustment = value
+        self._brightness_value = value
         self.brightness_value_label.setText(str(value))
         # 更新色轮的全局明度
         self.color_wheel.set_global_brightness(value)
@@ -1410,26 +1410,21 @@ class ColorSchemeInterface(QWidget):
         }
         count = scheme_counts.get(self._current_scheme, 5)
 
-        # 根据色轮模式选择对应的配色生成函数
+        # 根据色轮模式选择对应的配色生成函数，传入基准饱和度
         if self._color_wheel_mode == 'RYB':
-            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count)
+            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count, self._base_saturation)
         else:
-            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
+            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count, self._base_saturation)
 
-        # 转换为HSB并应用明度调整
+        # 转换为HSB并应用全局明度值
         self._scheme_colors = []
         for i, rgb in enumerate(colors):
             h, s, b = rgb_to_hsb(*rgb)
-            # 第一个颜色是基准色，使用用户设置的饱和度
-            if i == 0:
-                s = self._base_saturation
-            self._scheme_colors.append((h, s, b))
+            # 使用全局明度值，忽略原始配色方案中的B值
+            self._scheme_colors.append((h, s, self._brightness_value))
 
-        if self._brightness_adjustment != 0:
-            self._scheme_colors = adjust_brightness(self._scheme_colors, self._brightness_adjustment)
-            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
-        else:
-            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
+        # 转换为RGB颜色用于显示
+        colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
 
         # 更新色块面板
         self.color_panel.set_colors(colors)

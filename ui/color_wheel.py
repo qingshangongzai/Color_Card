@@ -289,8 +289,8 @@ class InteractiveColorWheel(QWidget):
         # 配色方案颜色点列表 [(h, s, b), ...]
         self._scheme_colors = []
 
-        # 全局明度调整值 (-100 到 +100)
-        self._global_brightness = 0
+        # 全局明度值 (10-100)，直接对应HSB的B值百分比
+        self._global_brightness = 100
 
         # 选中和拖动状态
         self._selected_point_index = -1
@@ -332,12 +332,12 @@ class InteractiveColorWheel(QWidget):
         self.update()
 
     def set_global_brightness(self, brightness: int):
-        """设置全局明度调整值
+        """设置全局明度值
 
         Args:
-            brightness: 明度调整值 (-100 到 +100)
+            brightness: 明度值 (10-100)，直接对应HSB的B值百分比
         """
-        self._global_brightness = max(-100, min(100, brightness))
+        self._global_brightness = max(10, min(100, brightness))
         self._invalidate_cache()  # 使缓存失效，重新生成色轮
         self.update()
 
@@ -497,8 +497,8 @@ class InteractiveColorWheel(QWidget):
         image = QImage(width, height, QImage.Format.Format_ARGB32)
         image.fill(self._get_theme_colors()['bg'].rgb())
 
-        # 计算全局明度因子 (0.1 到 1.0)
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+        # 全局明度值直接作为HSB的B值 (0.1-1.0)
+        brightness_value = self._global_brightness / 100.0
 
         for y in range(height):
             for x in range(width):
@@ -510,8 +510,8 @@ class InteractiveColorWheel(QWidget):
                     angle = math.atan2(-dy, dx)
                     hue = (angle / (2 * math.pi)) % 1.0
                     saturation = min(distance / self._wheel_radius, 1.0)
-                    # 应用全局明度调整
-                    value = brightness_factor
+                    # 使用全局明度值
+                    value = brightness_value
 
                     color = QColor.fromHsvF(hue, saturation, value)
                     image.setPixelColor(x, y, color)
@@ -558,16 +558,16 @@ class InteractiveColorWheel(QWidget):
         colors = self._get_theme_colors()
         base_point_radius = 8
 
-        # 计算全局明度因子
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+        # 全局明度值直接作为HSB的B值
+        global_brightness_value = self._global_brightness
 
         for i, (h, s, b) in enumerate(self._scheme_colors):
             # 跳过基准色（第一个点），因为选择器会显示它
             if i == 0:
                 continue
 
-            # 应用全局明度调整
-            adjusted_b = max(10, min(100, b * brightness_factor))
+            # 使用统一的全局明度值，忽略原始配色方案中的B值
+            adjusted_b = global_brightness_value
 
             # 使用调整后的明度计算位置（明度越低越靠近中心）
             x, y = self._hsb_to_position(h, s, adjusted_b)
@@ -587,7 +587,7 @@ class InteractiveColorWheel(QWidget):
             painter.drawEllipse(x - point_radius, y - point_radius,
                               point_radius * 2, point_radius * 2)
 
-            # 绘制内部颜色（使用调整后的明度）
+            # 绘制内部颜色（使用统一的全局明度）
             from core import hsb_to_rgb
             rgb = hsb_to_rgb(h, s, adjusted_b)
             painter.setPen(Qt.PenStyle.NoPen)
@@ -599,9 +599,8 @@ class InteractiveColorWheel(QWidget):
         """绘制选择器（基准色）及连线"""
         colors = self._get_theme_colors()
 
-        # 计算全局明度因子
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
-        adjusted_brightness = max(10, min(100, self._base_brightness * brightness_factor))
+        # 全局明度值直接作为HSB的B值
+        adjusted_brightness = self._global_brightness
 
         # 使用调整后的明度计算位置
         x, y = self._hsb_to_position(self._base_hue, self._base_saturation, adjusted_brightness)
