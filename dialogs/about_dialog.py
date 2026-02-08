@@ -203,26 +203,45 @@ class AboutDialog(QDialog):
   • 联系邮箱：{app_info['email']}
 
 【开源项目使用说明】
-  • 本程序基于 PySide6 架构开发，许可证：LGPL v3
+  • 本程序基于 PySide6 架构开发
     版权所有：The Qt Company
+    许可证：LGPL v3
     项目地址：https://www.qt.io/
 
-  • 本程序 UI 组件使用 PySide6-Fluent-Widgets，许可证：GPLv3
+  • 本程序 UI 组件使用 PySide6-Fluent-Widgets
+    版权所有：zhiyiYo
+    许可证：GPLv3
     项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
 
-  • 本程序使用 requests 库进行网络请求，许可证：Apache-2.0
+  • 本程序使用 requests 库进行网络请求
+    版权所有：Kenneth Reitz
+    许可证：Apache-2.0
     项目地址：https://github.com/psf/requests
 
-  • 本程序使用 Pillow 库处理图像，许可证：MIT
+  • 本程序使用 Pillow 库处理图像
+    版权所有：Python Imaging Library Team
+    许可证：MIT
     项目地址：https://github.com/python-pillow/Pillow
 
-  • 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
+  • 本程序使用 numpy 库进行数值计算
+    版权所有：NumPy Developers
+    许可证：BSD-3-Clause
+    项目地址：https://github.com/numpy/numpy
+
+【开发工具链】
+  • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
+    版权所有：Brent Vollebregt
+    许可证：GPL-3.0
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
-  • 本程序使用UPX工具压缩可执行文件体积。
+  • 本程序使用 UPX 工具压缩可执行文件体积
+    版权所有：UPX Team
+    许可证：GPL-2.0+
     官网：https://upx.github.io/
 
-  • 本程序使用Inno Setup工具将独立的可执行文件打包为安装程序。
+  • 本程序使用 Inno Setup 工具将独立的可执行文件打包为安装程序
+    版权所有：Jordan Russell
+    许可证：基于修改的 BSD 许可证
     官网：https://jrsoftware.org/isinfo.php
 
 【特别鸣谢】
