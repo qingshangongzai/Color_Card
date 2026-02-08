@@ -187,6 +187,7 @@ class FavoriteSchemeCard(CardWidget):
     delete_requested = Signal(str)
     rename_requested = Signal(str, str)  # favorite_id, new_name
     preview_requested = Signal(dict)  # favorite_data
+    contrast_requested = Signal(dict)  # favorite_data
 
     def __init__(self, favorite_data: dict, parent=None):
         self._favorite_data = favorite_data
@@ -235,6 +236,13 @@ class FavoriteSchemeCard(CardWidget):
         # 操作按钮区域
         button_layout = QHBoxLayout()
         button_layout.addStretch()
+
+        # 对比度检查按钮
+        self.contrast_button = ToolButton(FluentIcon.ZOOM_IN)
+        self.contrast_button.setFixedSize(28, 28)
+        self.contrast_button.setToolTip("对比度检查")
+        self.contrast_button.clicked.connect(self._on_contrast_clicked)
+        button_layout.addWidget(self.contrast_button)
 
         # 预览按钮（色盲模拟）
         self.preview_button = ToolButton(FluentIcon.VIEW)
@@ -344,6 +352,10 @@ class FavoriteSchemeCard(CardWidget):
         """预览按钮点击（色盲模拟）"""
         self.preview_requested.emit(self._favorite_data)
 
+    def _on_contrast_clicked(self):
+        """对比度检查按钮点击"""
+        self.contrast_requested.emit(self._favorite_data)
+
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
         self._hex_visible = visible
@@ -373,6 +385,7 @@ class FavoriteSchemeList(QWidget):
     favorite_deleted = Signal(str)
     favorite_renamed = Signal(str, str)  # favorite_id, current_name
     favorite_preview = Signal(dict)  # favorite_data
+    favorite_contrast = Signal(dict)  # favorite_data
 
     def __init__(self, parent=None):
         self._favorites = []
@@ -463,6 +476,7 @@ class FavoriteSchemeList(QWidget):
             card.delete_requested.connect(self.favorite_deleted)
             card.rename_requested.connect(self._on_rename_requested)
             card.preview_requested.connect(self._on_preview_requested)
+            card.contrast_requested.connect(self._on_contrast_requested)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
 
@@ -484,6 +498,14 @@ class FavoriteSchemeList(QWidget):
             favorite_data: 收藏项数据
         """
         self.favorite_preview.emit(favorite_data)
+
+    def _on_contrast_requested(self, favorite_data):
+        """对比度检查请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_contrast.emit(favorite_data)
 
     def set_hex_visible(self, visible):
         """设置是否显示16进制颜色值"""

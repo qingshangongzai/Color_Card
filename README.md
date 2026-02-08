@@ -173,7 +173,8 @@ color_card/
 │   ├── __init__.py
 │   ├── color.py           # 颜色处理模块（颜色转换、明度计算、配色方案算法、直方图计算）
 │   ├── colorblind.py      # 色盲模拟模块（色盲类型定义、LMS色彩空间转换、色盲模拟算法）
-│   └── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
+│   ├── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
+│   └── contrast.py        # 对比度检查模块（WCAG对比度计算、等级判断）
 ├── ui/                     # UI模块目录（扁平化结构）
 │   ├── __init__.py        # 统一导出接口
 │   ├── main_window.py     # 主窗口类
@@ -191,6 +192,7 @@ color_card/
 │   ├── __init__.py
 │   ├── about_dialog.py    # 关于对话框
 │   ├── colorblind_dialog.py # 色盲模拟预览对话框
+│   ├── contrast_dialog.py # 对比度检查对话框
 │   └── update_dialog.py   # 更新检查对话框
 └── utils/                 # 工具函数模块目录
     ├── __init__.py

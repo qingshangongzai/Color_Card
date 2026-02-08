@@ -2,12 +2,14 @@
 
 from .about_dialog import AboutDialog
 from .colorblind_dialog import ColorblindPreviewDialog
+from .contrast_dialog import ContrastCheckDialog
 from .name_dialog import NameDialog
 from .update_dialog import UpdateAvailableDialog
 
 __all__ = [
     'AboutDialog',
     'ColorblindPreviewDialog',
+    'ContrastCheckDialog',
     'NameDialog',
     'UpdateAvailableDialog',
 ]

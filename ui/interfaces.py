@@ -81,7 +81,7 @@ class DominantColorExtractor(QThread):
                 self.extraction_error.emit(str(e))
 
 
-from dialogs import AboutDialog, ColorblindPreviewDialog, NameDialog, UpdateAvailableDialog
+from dialogs import AboutDialog, ColorblindPreviewDialog, ContrastCheckDialog, NameDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
@@ -1542,6 +1542,7 @@ class FavoritesInterface(QWidget):
         self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
         self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
         self.favorite_list.favorite_preview.connect(self._on_favorite_preview)
+        self.favorite_list.favorite_contrast.connect(self._on_favorite_contrast)
         layout.addWidget(self.favorite_list, stretch=1)
 
     def _load_favorites(self):
@@ -1733,6 +1734,35 @@ class FavoritesInterface(QWidget):
 
         # 显示色盲模拟预览对话框
         dialog = ColorblindPreviewDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=self.window()
+        )
+        dialog.exec()
+
+    def _on_favorite_contrast(self, favorite_data):
+        """收藏对比度检查回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', '未命名')
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法检查",
+                content="该配色方案没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示对比度检查对话框
+        dialog = ContrastCheckDialog(
             scheme_name=scheme_name,
             colors=colors,
             parent=self.window()
