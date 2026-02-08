@@ -1207,6 +1207,10 @@ class LuminanceCanvas(BaseCanvas):
 
     def _draw_zone_labels(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制区域标注（白色小方框+黑色文字）"""
+        # 如果正在加载中，不显示Zone标签
+        if self._is_loading:
+            return
+
         disp_x, disp_y, disp_w, disp_h = display_rect
 
         font = QFont()
