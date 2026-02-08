@@ -1,8 +1,14 @@
 # 第三方库导入
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QFont, QPainter
+from PySide6.QtGui import QFont, QPainter
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, isDarkTheme
+from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, qconfig
+
+# 项目模块导入
+from .theme_colors import (
+    get_border_color, get_placeholder_color, get_secondary_text_color,
+    get_text_color, get_zone_background_color, get_zone_text_color
+)
 
 
 class BaseCard(QWidget):
@@ -55,6 +61,10 @@ class BaseCardPanel(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(15)
+
+        # 设置sizePolicy，允许水平压缩但保持最小宽度
+        from PySide6.QtWidgets import QSizePolicy
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
     
     def set_card_count(self, count: int):
         """设置卡片数量
@@ -144,28 +154,7 @@ COLOR_MODE_CONFIG = {
 }
 
 
-def get_text_color(secondary=False):
-    """获取主题文本颜色"""
-    if isDarkTheme():
-        return QColor(160, 160, 160) if secondary else QColor(255,255,255)
-    else:
-        return QColor(120, 120, 120) if secondary else QColor(40, 40, 40)
 
-
-def get_placeholder_color():
-    """获取占位符颜色（空色块背景）"""
-    if isDarkTheme():
-        return QColor(60, 60, 60)
-    else:
-        return QColor(204, 204, 204)
-
-
-def get_border_color():
-    """获取边框颜色"""
-    if isDarkTheme():
-        return QColor(80, 80, 80)
-    else:
-        return QColor(221, 221, 221)
 
 
 class ColorValueLabel(QWidget):
@@ -173,28 +162,15 @@ class ColorValueLabel(QWidget):
     def __init__(self, label_text, parent=None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(5, 2, 5, 2)
-        layout.setSpacing(5)
+        layout.setContentsMargins(3, 1, 3, 1)
+        layout.setSpacing(3)
 
         self.label = QLabel(label_text)
         self.value = QLabel("--")
-        self._update_styles()
 
         layout.addWidget(self.label)
         layout.addWidget(self.value)
         layout.addStretch()
-
-    def _update_styles(self):
-        """更新样式以适配主题"""
-        secondary_color = get_text_color(secondary=True)
-        primary_color = get_text_color(secondary=False)
-
-        self.label.setStyleSheet(
-            f"color: {secondary_color.name()}; font-size: 11px;"
-        )
-        self.value.setStyleSheet(
-            f"color: {primary_color.name()}; font-size: 12px; font-weight: bold;"
-        )
 
     def set_value(self, value):
         self.value.setText(str(value))
@@ -207,6 +183,9 @@ class ColorModeContainer(QWidget):
         self._mode = mode
         self._labels = []
         self.setup_ui()
+        self._update_styles()
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面"""
@@ -222,6 +201,20 @@ class ColorModeContainer(QWidget):
             label = ColorValueLabel(text)
             self._labels.append(label)
             layout.addWidget(label)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        from qfluentwidgets import isDarkTheme
+        if isDarkTheme():
+            label_color = "#bbbbbb"
+            value_color = "#ffffff"
+        else:
+            label_color = "#666666"
+            value_color = "#333333"
+        
+        for label in self._labels:
+            label.label.setStyleSheet(f"color: {label_color}; font-size: 11px;")
+            label.value.setStyleSheet(f"color: {value_color}; font-size: 12px; font-weight: bold;")
 
     def set_mode(self, mode):
         """设置色彩模式"""
@@ -244,6 +237,9 @@ class ColorModeContainer(QWidget):
             label = ColorValueLabel(text)
             self._labels.append(label)
             layout.addWidget(label)
+        
+        # 应用当前主题样式
+        self._update_styles()
 
     def update_values(self, color_info):
         """更新颜色值显示"""
@@ -277,21 +273,30 @@ class ColorCard(BaseCard):
         super().__init__(index, parent)
 
     def setup_ui(self):
+        from PySide6.QtWidgets import QSizePolicy
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(5)
+        layout.setSpacing(3)
+
+        # 设置sizePolicy，允许垂直压缩
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # 设置色卡最小高度，确保文字区域有足够空间
+        self.setMinimumHeight(120)
 
         # 颜色块
         self.color_block = QWidget()
-        self.color_block.setFixedHeight(80)
+        self.color_block.setMinimumHeight(30)
+        self.color_block.setMaximumHeight(80)
         self._update_placeholder_style()
         layout.addWidget(self.color_block)
 
         # 数值区域（两列布局）
         values_container = QWidget()
+        values_container.setMinimumHeight(45)
         values_layout = QHBoxLayout(values_container)
         values_layout.setContentsMargins(0, 0, 0, 0)
-        values_layout.setSpacing(10)
+        values_layout.setSpacing(5)
 
         # 第一列色彩模式
         self.mode_container_1 = ColorModeContainer(self._color_modes[0])
@@ -305,19 +310,21 @@ class ColorCard(BaseCard):
 
         # 16进制颜色值显示区域
         self.hex_container = QWidget()
+        self.hex_container.setMinimumHeight(26)
+        self.hex_container.setMaximumHeight(36)
         hex_layout = QHBoxLayout(self.hex_container)
-        hex_layout.setContentsMargins(0, 5, 0, 0)
-        hex_layout.setSpacing(5)
+        hex_layout.setContentsMargins(0, 2, 0, 0)
+        hex_layout.setSpacing(3)
 
         # 16进制值显示按钮
         self.hex_button = PushButton("--")
-        self.hex_button.setFixedHeight(28)
+        self.hex_button.setFixedHeight(24)
         self.hex_button.setEnabled(False)
         self._update_hex_button_style()
 
         # 复制按钮
         self.copy_button = ToolButton(FluentIcon.COPY)
-        self.copy_button.setFixedSize(28, 28)
+        self.copy_button.setFixedSize(24, 24)
         self.copy_button.setEnabled(False)
         self.copy_button.clicked.connect(self._copy_hex_to_clipboard)
 
@@ -474,28 +481,7 @@ class ColorCardPanel(BaseCardPanel):
         return self._hex_visible
 
 
-def get_zone_background_color():
-    """获取Zone框背景颜色"""
-    if isDarkTheme():
-        return QColor(70, 70, 70)
-    else:
-        return QColor(255, 255, 255)
 
-
-def get_zone_text_color():
-    """获取Zone框文字颜色"""
-    if isDarkTheme():
-        return QColor(255, 255, 255)
-    else:
-        return QColor(0, 0, 0)
-
-
-def get_secondary_text_color():
-    """获取次要文字颜色"""
-    if isDarkTheme():
-        return QColor(160, 160, 160)
-    else:
-        return QColor(120, 120, 120)
 
 
 class ZoneValueLabel(QWidget):

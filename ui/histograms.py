@@ -1,4 +1,8 @@
+# 标准库导入
+import colorsys
+
 # 第三方库导入
+import math
 from typing import List, Optional
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
@@ -6,6 +10,12 @@ from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
 from core import calculate_histogram, calculate_rgb_histogram, get_zone_bounds
+from .theme_colors import (
+    get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
+    get_histogram_text_color, get_histogram_highlight_color, get_histogram_highlight_border_color,
+    get_histogram_highlight_text_color, get_zone_colors, get_zone_colors_highlight,
+    get_histogram_blue_color, get_histogram_green_color, get_histogram_red_color
+)
 
 
 class BaseHistogram(QWidget):
@@ -29,15 +39,16 @@ class BaseHistogram(QWidget):
         super().__init__(parent)
         self._histogram: List[int] = []
         self._max_count = 0
-        
+        self._scaling_mode = "linear"  # "linear" 或 "adaptive"
+
         # 绘图边距
         self._margin_left = 35
         self._margin_right = 15
         self._margin_top = 15
         self._margin_bottom = 30
-        
+
         # 背景色
-        self._background_color = QColor(20, 20, 20)
+        self._background_color = get_histogram_background_color()
         
     def set_data(self, data: List[int]):
         """设置直方图数据
@@ -54,7 +65,38 @@ class BaseHistogram(QWidget):
         self._histogram = []
         self._max_count = 0
         self.update()
-        
+
+    def set_scaling_mode(self, mode: str):
+        """设置直方图缩放模式
+
+        Args:
+            mode: "linear" 线性缩放，"adaptive" 自适应缩放（对数归一化）
+        """
+        if mode in ("linear", "adaptive"):
+            self._scaling_mode = mode
+            self.update()
+
+    def _calculate_bar_height(self, count: int, max_count: int, height: int) -> float:
+        """根据缩放模式计算柱子高度
+
+        Args:
+            count: 当前亮度值的像素数量
+            max_count: 最大像素数量
+            height: 绘图区域高度
+
+        Returns:
+            float: 柱子高度
+        """
+        if max_count == 0 or count == 0:
+            return 0
+
+        if self._scaling_mode == "linear":
+            return (count / max_count) * height
+        else:  # adaptive: 使用平方根缩放
+            sqrt_max = math.sqrt(max_count)
+            sqrt_count = math.sqrt(count)
+            return (sqrt_count / sqrt_max) * height
+
     def paintEvent(self, event):
         """绘制直方图"""
         painter = QPainter(self)
@@ -125,7 +167,7 @@ class BaseHistogram(QWidget):
             width: 绘图区域宽度
             height: 绘图区域高度
         """
-        painter.setPen(QPen(QColor(80, 80, 80), 1))
+        painter.setPen(QPen(get_histogram_grid_color(), 1))
         painter.drawLine(x, y + height, x + width, y + height)
         
     def _draw_max_label(self, painter: QPainter, x: int, y: int):
@@ -137,7 +179,7 @@ class BaseHistogram(QWidget):
             y: 绘图区域左上角 Y 坐标
         """
         if self._max_count > 0:
-            painter.setPen(QColor(120, 120, 120))
+            painter.setPen(get_histogram_axis_color())
             font = QFont()
             font.setPointSize(7)
             painter.setFont(font)
@@ -155,7 +197,8 @@ class LuminanceHistogramWidget(BaseHistogram):
         super().__init__(parent)
         self.setMinimumHeight(180)
         self.setMaximumHeight(220)
-        self.setStyleSheet("background-color: #141414; border-radius: 4px;")
+        bg_color = get_histogram_background_color()
+        self.setStyleSheet(f"background-color: {bg_color.name()}; border-radius: 4px;")
 
         self._highlight_zones = []  # 高亮显示的区域列表
         self._pressed_zone = -1     # 当前按下的Zone
@@ -217,8 +260,8 @@ class LuminanceHistogramWidget(BaseHistogram):
 
         # 使用渐变填充，从浅灰到白色
         gradient = QLinearGradient(x, y + height, x, y)
-        gradient.setColorAt(0, QColor(120, 120, 120))
-        gradient.setColorAt(1, QColor(200, 200, 200))
+        gradient.setColorAt(0, get_histogram_axis_color())
+        gradient.setColorAt(1, get_histogram_text_color())
 
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(gradient)
@@ -228,8 +271,8 @@ class LuminanceHistogramWidget(BaseHistogram):
 
         # 绘制直方图柱子
         for i in range(256):
-            # 计算柱子高度 - 使用相对最大值的比例
-            bar_height = (self._histogram[i] / self._max_count) * height
+            # 计算柱子高度 - 使用基类的计算方法
+            bar_height = self._calculate_bar_height(self._histogram[i], self._max_count, height)
 
             if bar_height > 0:
                 # 绘制柱子
@@ -250,34 +293,17 @@ class LuminanceHistogramWidget(BaseHistogram):
         zone_width = width / 8.0
 
         # Zone颜色配置 - 使用更 subtle 的背景色
-        zone_bg_colors = [
-            QColor(30, 30, 30),   # Zone 0: 极暗
-            QColor(35, 35, 35),   # Zone 1: 暗
-            QColor(40, 40, 40),   # Zone 2: 偏暗
-            QColor(45, 45, 45),   # Zone 3: 中灰
-            QColor(50, 50, 50),   # Zone 4: 偏亮
-            QColor(55, 55, 55),   # Zone 5: 亮
-            QColor(60, 60, 60),   # Zone 6: 很亮
-            QColor(65, 65, 65),   # Zone 7: 极亮
-        ]
+        # Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
+        zone_bg_colors = get_zone_colors()
 
         # 按下状态或选中状态的Zone背景色（更亮一些）
-        zone_active_colors = [
-            QColor(50, 50, 60),   # Zone 0: 极暗
-            QColor(55, 55, 65),   # Zone 1: 暗
-            QColor(60, 60, 70),   # Zone 2: 偏暗
-            QColor(65, 65, 75),   # Zone 3: 中灰
-            QColor(70, 70, 80),   # Zone 4: 偏亮
-            QColor(75, 75, 85),   # Zone 5: 亮
-            QColor(80, 80, 90),   # Zone 6: 很亮
-            QColor(85, 85, 95),   # Zone 7: 极亮
-        ]
+        zone_active_colors = get_zone_colors_highlight()
 
         for i in range(8):
             zone_x = x + i * zone_width
 
-            # 如果是按下的Zone或当前选中的Zone，使用高亮背景色
-            if i == self._pressed_zone or i == self._current_zone:
+            # 如果是按下的Zone，使用高亮背景色
+            if i == self._pressed_zone:
                 bg_color = zone_active_colors[i]
             else:
                 bg_color = zone_bg_colors[i]
@@ -289,14 +315,15 @@ class LuminanceHistogramWidget(BaseHistogram):
                 bg_color
             )
 
-            # 如果当前Zone被按下或选中，绘制边框
-            if i == self._pressed_zone or i == self._current_zone:
-                painter.setPen(QPen(QColor(0, 150, 255), 2))
+            # 如果当前Zone被按下，绘制蓝色边框
+            if i == self._pressed_zone:
+                from .theme_colors import get_accent_color
+                painter.setPen(QPen(get_accent_color(), 2))
                 painter.setBrush(Qt.BrushStyle.NoBrush)
                 painter.drawRect(int(zone_x), y, int(zone_width), height)
 
         # 绘制Zone分隔线
-        pen = QPen(QColor(80, 80, 80), 1)
+        pen = QPen(get_histogram_grid_color(), 1)
         painter.setPen(pen)
         for i in range(1, 8):
             line_x = int(x + i * zone_width)
@@ -319,13 +346,12 @@ class LuminanceHistogramWidget(BaseHistogram):
             zone_width_px = end_x - start_x
 
             # 绘制黄色半透明覆盖层
-            highlight_color = QColor(255, 200, 50, 60)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(highlight_color)
+            painter.setBrush(get_histogram_highlight_color())
             painter.drawRect(start_x, y, zone_width_px, height)
 
             # 绘制黄色边框
-            painter.setPen(QPen(QColor(255, 200, 50, 150), 2))
+            painter.setPen(QPen(get_histogram_highlight_border_color(), 2))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawRect(start_x, y, zone_width_px, height)
 
@@ -335,8 +361,7 @@ class LuminanceHistogramWidget(BaseHistogram):
             font.setBold(True)
             painter.setFont(font)
 
-            text_color = QColor(255, 220, 100)
-            painter.setPen(text_color)
+            painter.setPen(get_histogram_highlight_text_color())
 
             # 在区域中间显示编号
             text = zone
@@ -360,7 +385,7 @@ class LuminanceHistogramWidget(BaseHistogram):
             tick_x = int(x + i * zone_width)
 
             # 绘制刻度线
-            painter.setPen(QColor(100, 100, 100))
+            painter.setPen(get_histogram_text_color())
             painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
 
             # 绘制刻度值 (0-8)
@@ -370,7 +395,7 @@ class LuminanceHistogramWidget(BaseHistogram):
                 30, 18,
                 Qt.AlignmentFlag.AlignCenter, text
             )
-            painter.setPen(QColor(150, 150, 150))
+            painter.setPen(get_histogram_axis_color())
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
         # 绘制底部基线
@@ -486,9 +511,9 @@ class RGBHistogramWidget(BaseHistogram):
 
         # 绘制三个通道的直方图（从后往前绘制，确保重叠区域可见）
         channels = [
-            (self._histogram_b, QColor(0, 100, 255, 180)),   # 蓝色通道（最底层）
-            (self._histogram_g, QColor(0, 200, 0, 180)),     # 绿色通道
-            (self._histogram_r, QColor(255, 50, 50, 180)),   # 红色通道（最顶层）
+            (self._histogram_b, get_histogram_blue_color(180)),   # 蓝色通道（最底层）
+            (self._histogram_g, get_histogram_green_color(180)),  # 绿色通道
+            (self._histogram_r, get_histogram_red_color(180)),    # 红色通道（最顶层）
         ]
 
         for histogram, color in channels:
@@ -497,8 +522,8 @@ class RGBHistogramWidget(BaseHistogram):
 
             # 绘制直方图柱子
             for i in range(256):
-                # 计算柱子高度 - 使用相对最大值的比例
-                bar_height = (histogram[i] / self._max_count) * height
+                # 计算柱子高度 - 使用基类的计算方法
+                bar_height = self._calculate_bar_height(histogram[i], self._max_count, height)
 
                 if bar_height > 0:
                     # 绘制柱子
@@ -518,9 +543,9 @@ class RGBHistogramWidget(BaseHistogram):
         """绘制图例（R、G、B标识）"""
         legend_y = y - 5
         legend_items = [
-            ("R", QColor(255, 50, 50)),
-            ("G", QColor(0, 200, 0)),
-            ("B", QColor(0, 100, 255))
+            ("R", get_histogram_red_color()),
+            ("G", get_histogram_green_color()),
+            ("B", get_histogram_blue_color())
         ]
 
         legend_x = x + width - 60
@@ -530,31 +555,32 @@ class RGBHistogramWidget(BaseHistogram):
             legend_x += 20
 
     def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
-        """绘制刻度标签"""
+        """绘制刻度标签 - Zone 0-8 风格"""
         # 绘制标题
         self._draw_title(painter)
 
-        # 绘制底部刻度线和数值
         font = QFont()
-        font.setPointSize(7)
+        font.setPointSize(8)
         painter.setFont(font)
 
-        tick_positions = [0, 64, 128, 192, 255]
-        for value in tick_positions:
-            tick_x = int(x + value * width / 256.0)
+        # 绘制底部刻度线和数值 - Zone 0 到 8
+        zone_width = width / 8.0
+
+        for i in range(9):  # 0, 1, 2, 3, 4, 5, 6, 7, 8
+            tick_x = int(x + i * zone_width)
 
             # 绘制刻度线
-            painter.setPen(QColor(100, 100, 100))
-            painter.drawLine(tick_x, y + height, tick_x, y + height + 3)
+            painter.setPen(get_histogram_text_color())
+            painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
 
-            # 绘制刻度值
-            text = str(value)
+            # 绘制刻度值 (0-8)
+            text = str(i)
             text_rect = painter.boundingRect(
-                tick_x - 15, y + height + 5,
-                30, 14,
+                tick_x - 15, y + height + 6,
+                30, 18,
                 Qt.AlignmentFlag.AlignCenter, text
             )
-            painter.setPen(QColor(150, 150, 150))
+            painter.setPen(get_histogram_axis_color())
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
         # 绘制底部基线
@@ -565,8 +591,147 @@ class RGBHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        painter.setPen(QColor(200, 200, 200))
-        font = painter.font()
+        from .theme_colors import get_wheel_text_color
+        painter.setPen(get_wheel_text_color())
+        font = QFont()
         font.setPointSize(9)
         painter.setFont(font)
         painter.drawText(10, 18, "RGB直方图")
+
+
+class HueHistogramWidget(BaseHistogram):
+    """色相分布直方图
+
+    显示图片中各色相的像素分布，排除黑白灰（饱和度/亮度过低的颜色）
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._histogram = [0] * 360  # 0-359 色相值
+        self.setMinimumHeight(120)
+        self.setMaximumHeight(180)
+
+        # 调整边距
+        self._margin_top = 25
+        self._margin_right = 10
+
+    def set_image(self, image):
+        """计算并显示图片的色相分布
+
+        Args:
+            image: QImage 对象
+        """
+        if image is None or image.isNull():
+            self._histogram = [0] * 360
+            self._max_count = 0
+            self.update()
+            return
+
+        self._histogram = self._calculate_hue_histogram(image)
+        self._max_count = max(self._histogram) if self._histogram else 1
+        self.update()
+
+    def _calculate_hue_histogram(self, image, sample_step: int = 4) -> List[int]:
+        """计算色相直方图，排除低饱和度/低亮度的颜色
+
+        Args:
+            image: QImage 对象
+            sample_step: 采样步长
+
+        Returns:
+            list: 长度为360的色相分布列表
+        """
+        histogram = [0] * 360
+        width = image.width()
+        height = image.height()
+
+        for y in range(0, height, sample_step):
+            for x in range(0, width, sample_step):
+                color = image.pixelColor(x, y)
+                r = color.red() / 255.0
+                g = color.green() / 255.0
+                b = color.blue() / 255.0
+                h, s, v = colorsys.rgb_to_hsv(r, g, b)
+
+                # 排除黑白灰（饱和度<10% 或 亮度<10%）
+                if s > 0.1 and v > 0.1:
+                    hue = int(h * 360) % 360
+                    histogram[hue] += 1
+
+        return histogram
+
+    def clear(self):
+        """清除直方图数据"""
+        self._histogram = [0] * 360
+        super().clear()
+
+    def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制色相直方图
+
+        使用彩虹色条显示0-360°色相分布
+        """
+        if self._max_count == 0:
+            return
+
+        bar_width = width / 360.0
+
+        for hue, count in enumerate(self._histogram):
+            bar_height = self._calculate_bar_height(count, self._max_count, height)
+
+            if bar_height > 0:
+                bar_x = x + hue * bar_width
+                bar_y = y + height - bar_height
+
+                # 计算柱子宽度
+                if hue == 359:
+                    current_bar_width = max(1, int(x + width - bar_x))
+                else:
+                    next_bar_x = x + (hue + 1) * bar_width
+                    current_bar_width = max(1, int(next_bar_x - bar_x + 0.5))
+
+                # 根据色相值计算颜色（固定饱和度和亮度）
+                color = QColor.fromHsv(hue, 255, 255)
+                painter.fillRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height), color)
+
+    def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制刻度标签"""
+        # 绘制标题
+        self._draw_title(painter)
+
+        font = QFont()
+        font.setPointSize(8)
+        painter.setFont(font)
+
+        # 绘制底部刻度线 - 0°, 90°, 180°, 270°, 360°
+        labels = [("0°", 0), ("90°", 90), ("180°", 180), ("270°", 270), ("360°", 360)]
+
+        for label, hue in labels:
+            tick_x = int(x + hue * width / 360.0)
+
+            # 绘制刻度线
+            painter.setPen(get_histogram_text_color())
+            painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
+
+            # 绘制刻度值
+            text_rect = painter.boundingRect(
+                tick_x - 15, y + height + 6,
+                30, 18,
+                Qt.AlignmentFlag.AlignCenter, label
+            )
+            painter.setPen(get_histogram_axis_color())
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, label)
+
+        # 绘制底部基线
+        self._draw_bottom_baseline(painter, x, y, width, height)
+
+        # 绘制左侧Y轴标签（最大值）
+        self._draw_max_label(painter, x, y)
+
+    def _draw_title(self, painter: QPainter):
+        """绘制标题"""
+        from .theme_colors import get_wheel_text_color
+        painter.setPen(get_wheel_text_color())
+        font = QFont()
+        font.setPointSize(9)
+        painter.setFont(font)
+        painter.drawText(10, 18, "色相分布")

@@ -3,9 +3,9 @@ import re
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal
-from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, isDarkTheme
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, isDarkTheme, qconfig
 
 try:
     import requests
@@ -13,7 +13,8 @@ except ImportError:
     requests = None
 
 # 项目模块导入
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from ui.theme_colors import get_dialog_bg_color, get_text_color
 
 
 class UpdateCheckThread(QThread):
@@ -132,13 +133,16 @@ class UpdateAvailableDialog(QDialog):
         )
 
         # 设置窗口背景色
-        bg_color = QColor(32, 32, 32) if isDarkTheme() else QColor(255, 255, 255)
+        bg_color = get_dialog_bg_color()
         self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
 
         self.setup_ui()
 
         # 修复任务栏图标
         QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
+
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -147,7 +151,7 @@ class UpdateAvailableDialog(QDialog):
         layout.setSpacing(15)
 
         # 提示文本
-        text_color = QColor(255, 255, 255) if isDarkTheme() else QColor(40, 40, 40)
+        text_color = get_text_color()
         info_label = QLabel("有新版本可以更新")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info_label.setStyleSheet(
@@ -192,6 +196,17 @@ class UpdateAvailableDialog(QDialog):
         url = "https://gitee.com/qingshangongzai/color_card/releases"
         QDesktopServices.openUrl(QUrl(url))
         self.accept()
+
+    def _update_title_bar_theme(self):
+        """更新标题栏主题以适配当前主题"""
+        set_window_title_bar_theme(self, isDarkTheme())
+
+    def showEvent(self, event):
+        """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""
+        # 先设置标题栏主题（在父类 showEvent 之前）
+        self._update_title_bar_theme()
+        # 调用父类的 showEvent
+        super().showEvent(event)
 
     @staticmethod
     def check_update(parent, current_version):

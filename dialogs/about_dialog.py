@@ -3,25 +3,16 @@ from pathlib import Path
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtGui import QColor, QDesktopServices
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
-    QDialog, QFrame, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
+    QDialog, QFrame, QHBoxLayout, QVBoxLayout, QWidget
 )
-from qfluentwidgets import CaptionLabel, PrimaryPushButton, PushButton, isDarkTheme
+from qfluentwidgets import CaptionLabel, PlainTextEdit, PrimaryPushButton, PushButton, isDarkTheme, qconfig
 
 # 项目模块导入
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from version import version_manager
-
-
-def get_background_color():
-    """获取主题背景颜色"""
-    return QColor(32, 32, 32) if isDarkTheme() else QColor(255, 255, 255)
-
-
-def get_text_color():
-    """获取主题文本颜色"""
-    return QColor(255, 255, 255) if isDarkTheme() else QColor(40, 40, 40)
+from ui.theme_colors import get_dialog_bg_color, get_text_color
 
 
 class AboutDialog(QDialog):
@@ -48,13 +39,16 @@ class AboutDialog(QDialog):
         )
 
         # 设置窗口背景色（与 FluentWindow 一致）
-        bg_color = get_background_color()
+        bg_color = get_dialog_bg_color()
         self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
 
         self.setup_ui()
 
         # 修复任务栏图标（在窗口显示后调用）
         QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
+
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -77,17 +71,23 @@ class AboutDialog(QDialog):
         Args:
             parent_layout: 父布局对象
         """
-        self.text_edit = QPlainTextEdit(self)
+        self.text_edit = PlainTextEdit(self)
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlainText(self._get_about_text())
         self.text_edit.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        # 禁用焦点，去除底部蓝色条
+        self.text_edit.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         
         # 设置主题感知的样式
-        bg_color = get_background_color()
+        bg_color = get_dialog_bg_color()
         text_color = get_text_color()
         self.text_edit.setStyleSheet(
-            f"QPlainTextEdit {{ background-color: {bg_color.name()}; "
-            f"color: {text_color.name()}; border: none; }}"
+            f"PlainTextEdit {{ background-color: {bg_color.name()}; "
+            f"color: {text_color.name()}; border: none; }}\n"
+            f"PlainTextEdit:focus {{ border: none; outline: none; }}\n"
+            f"PlainTextEdit::focus {{ border: none; }}\n"
+            f"QPlainTextEdit {{ border: none; }}\n"
+            f"QPlainTextEdit:focus {{ border: none; outline: none; }}"
         )
         
         parent_layout.addWidget(self.text_edit, stretch=1)
@@ -203,32 +203,62 @@ class AboutDialog(QDialog):
   • 联系邮箱：{app_info['email']}
 
 【开源项目使用说明】
-  • 本程序基于 PySide6 架构开发，许可证：LGPL v3
+  • 本程序基于 PySide6 架构开发
     版权所有：The Qt Company
+    许可证：LGPL v3
     项目地址：https://www.qt.io/
 
-  • 本程序 UI 组件使用 PySide6-Fluent-Widgets，许可证：GPLv3
+  • 本程序 UI 组件使用 PySide6-Fluent-Widgets
+    版权所有：zhiyiYo
+    许可证：GPLv3
     项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
 
-  • 本程序使用 requests 库进行网络请求，许可证：Apache-2.0
+  • 本程序使用 requests 库进行网络请求
+    版权所有：Kenneth Reitz
+    许可证：Apache-2.0
     项目地址：https://github.com/psf/requests
 
-  • 本程序使用 Pillow 库处理图像，许可证：MIT
+  • 本程序使用 Pillow 库处理图像
+    版权所有：Python Imaging Library Team
+    许可证：MIT
     项目地址：https://github.com/python-pillow/Pillow
 
-  • 本程序使用auto-py-to-exe工具打包为独立的可执行文件。
+  • 本程序使用 numpy 库进行数值计算
+    版权所有：NumPy Developers
+    许可证：BSD-3-Clause
+    项目地址：https://github.com/numpy/numpy
+
+【开发工具链】
+  • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
+    版权所有：Brent Vollebregt
+    许可证：GPL-3.0
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
-  • 本程序使用UPX工具压缩可执行文件体积。
+  • 本程序使用 UPX 工具压缩可执行文件体积
+    版权所有：UPX Team
+    许可证：GPL-2.0+
     官网：https://upx.github.io/
 
-  • 本程序使用Inno Setup工具将独立的可执行文件打包为安装程序。
+  • 本程序使用 Inno Setup 工具将独立的可执行文件打包为安装程序
+    版权所有：Jordan Russell
+    许可证：基于修改的 BSD 许可证
     官网：https://jrsoftware.org/isinfo.php
 
 【特别鸣谢】
   • 感谢 PySide6 和 PyQt-Fluent-Widgets 开发团队提供的优秀框架
   • 感谢 Trae IDE 提供的 AI 辅助编程支持
 """
+
+    def _update_title_bar_theme(self):
+        """更新标题栏主题以适配当前主题"""
+        set_window_title_bar_theme(self, isDarkTheme())
+
+    def showEvent(self, event):
+        """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""
+        # 先设置标题栏主题（在父类 showEvent 之前）
+        self._update_title_bar_theme()
+        # 调用父类的 showEvent
+        super().showEvent(event)
 
     def contextMenuEvent(self, event):
         """屏蔽原生右键菜单"""

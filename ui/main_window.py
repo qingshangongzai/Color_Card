@@ -1,20 +1,130 @@
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
 )
-from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter
+from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
 # 项目模块导入
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, FavoritesInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel
 from .canvases import ImageCanvas, LuminanceCanvas
+
+
+class CustomTitleBar(FluentTitleBar):
+    """自定义标题栏，添加深色模式切换按钮和全屏切换按钮"""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # 创建深色模式切换按钮
+        self.themeButton = ToolButton(self)
+        self.themeButton.setFixedSize(40, 32)
+        self.themeButton.setToolTip("切换深色/浅色模式")
+        self.themeButton.setStyleSheet("""
+            ToolButton {
+                background-color: transparent !important;
+                border: none !important;
+            }
+            ToolButton:hover {
+                background-color: rgba(128, 128, 128, 30) !important;
+            }
+            ToolButton:pressed {
+                background-color: rgba(128, 128, 128, 50) !important;
+            }
+        """)
+        self._update_theme_icon()
+
+        # 连接点击事件
+        self.themeButton.clicked.connect(self._toggle_theme)
+
+        # 创建全屏切换按钮
+        self.fullscreenButton = ToolButton(self)
+        self.fullscreenButton.setFixedSize(40, 32)
+        self.fullscreenButton.setToolTip("全屏/退出全屏 (F11)")
+        self.fullscreenButton.setStyleSheet("""
+            ToolButton {
+                background-color: transparent !important;
+                border: none !important;
+            }
+            ToolButton:hover {
+                background-color: rgba(128, 128, 128, 30) !important;
+            }
+            ToolButton:pressed {
+                background-color: rgba(128, 128, 128, 50) !important;
+            }
+        """)
+        self._update_fullscreen_icon()
+
+        # 连接点击事件
+        self.fullscreenButton.clicked.connect(self._toggle_fullscreen)
+
+        # 将按钮插入到最小化按钮之前（深色模式按钮在前，全屏按钮在后）
+        index = self.buttonLayout.indexOf(self.minBtn)
+        self.buttonLayout.insertWidget(index, self.themeButton)
+        self.buttonLayout.insertWidget(index + 1, self.fullscreenButton)
+
+    def _toggle_theme(self):
+        """切换主题"""
+        if isDarkTheme():
+            setTheme(Theme.LIGHT)
+            theme_value = 'light'
+        else:
+            setTheme(Theme.DARK)
+            theme_value = 'dark'
+        self._update_theme_icon()
+        # 重新应用按钮样式以覆盖 Fluent 主题样式
+        self._apply_theme_button_style()
+        # 保存主题配置
+        from core import get_config_manager
+        config_manager = get_config_manager()
+        config_manager.set('settings.theme', theme_value)
+        config_manager.save()
+
+    def _apply_theme_button_style(self):
+        """应用主题按钮的无背景样式"""
+        style_sheet = """
+            ToolButton {
+                background-color: transparent !important;
+                border: none !important;
+            }
+            ToolButton:hover {
+                background-color: rgba(128, 128, 128, 30) !important;
+            }
+            ToolButton:pressed {
+                background-color: rgba(128, 128, 128, 50) !important;
+            }
+        """
+        self.themeButton.setStyleSheet(style_sheet)
+        self.fullscreenButton.setStyleSheet(style_sheet)
+
+    def _update_theme_icon(self):
+        """根据当前主题更新按钮图标"""
+        # 使用 CONSTRACT（对比度）图标作为主题切换按钮
+        self.themeButton.setIcon(FluentIcon.CONSTRACT)
+
+    def _toggle_fullscreen(self):
+        """切换全屏/窗口模式"""
+        window = self.parent()
+        if window.isFullScreen():
+            window.showNormal()
+        else:
+            window.showFullScreen()
+        self._update_fullscreen_icon()
+
+    def _update_fullscreen_icon(self):
+        """根据当前全屏状态更新按钮图标"""
+        window = self.parent()
+        if window.isFullScreen():
+            self.fullscreenButton.setIcon(FluentIcon.BACK_TO_WINDOW)
+        else:
+            self.fullscreenButton.setIcon(FluentIcon.FULL_SCREEN)
 
 
 class MainWindow(FluentWindow):
@@ -22,6 +132,10 @@ class MainWindow(FluentWindow):
 
     def __init__(self):
         super().__init__()
+
+        # 设置自定义标题栏
+        self.setTitleBar(CustomTitleBar(self))
+
         self._version = version_manager.get_version()
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
         self.setMinimumSize(800, 550)
@@ -46,6 +160,9 @@ class MainWindow(FluentWindow):
         # 如果之前是最大化状态，恢复最大化
         if is_maximized:
             self.showMaximized()
+
+        # 设置 F11 快捷键切换全屏
+        self._setup_fullscreen_shortcut()
 
     def closeEvent(self, event):
         """窗口关闭事件，保存配置"""
@@ -77,6 +194,21 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface = LuminanceExtractInterface(self)
         self.luminance_extract_interface.setObjectName('luminanceExtract')
         self.stackedWidget.addWidget(self.luminance_extract_interface)
+
+        # 连接明度提取面板的图片导入信号（独立导入时同步到色彩面板）
+        self.luminance_extract_interface.image_imported.connect(
+            self.on_luminance_image_imported
+        )
+
+        # 配色方案界面
+        self.color_scheme_interface = ColorSchemeInterface(self)
+        self.color_scheme_interface.setObjectName('colorScheme')
+        self.stackedWidget.addWidget(self.color_scheme_interface)
+
+        # 色卡收藏界面
+        self.favorites_interface = FavoritesInterface(self)
+        self.favorites_interface.setObjectName('favorites')
+        self.stackedWidget.addWidget(self.favorites_interface)
 
         # 设置界面
         self.settings_interface = SettingsInterface(self)
@@ -112,6 +244,22 @@ class MainWindow(FluentWindow):
             self.luminance_extract_interface,
             FluentIcon.BRIGHTNESS,
             "明度提取",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 配色方案
+        self.addSubInterface(
+            self.color_scheme_interface,
+            FluentIcon.PALETTE,
+            "配色方案",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 色卡收藏
+        self.addSubInterface(
+            self.favorites_interface,
+            FluentIcon.HEART,
+            "色卡收藏",
             position=NavigationItemPosition.TOP
         )
 
@@ -169,10 +317,25 @@ class MainWindow(FluentWindow):
         """打开图片（从色彩提取界面调用）"""
         self.color_extract_interface.open_image()
 
-    def open_image_for_luminance(self):
-        """为明度提取打开图片（实际同步到色彩提取）"""
-        # 调用色彩提取的打开图片功能，然后同步到明度提取
-        self.color_extract_interface.open_image()
+    def on_luminance_image_imported(self, file_path, pixmap, image):
+        """明度提取面板独立导入图片后的同步回调
+
+        Args:
+            file_path: 图片文件路径
+            pixmap: QPixmap 对象
+            image: QImage 对象
+        """
+        # 同步图片数据到色彩提取面板（emit_sync=False 防止双向同步循环）
+        self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
+
+        # 更新RGB直方图和色相直方图
+        self.color_extract_interface.rgb_histogram_widget.set_image(image)
+        self.color_extract_interface.hue_histogram_widget.set_image(image)
+
+        # 更新窗口标题
+        from pathlib import Path
+        file_name = Path(file_path).stem
+        self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
 
     def sync_image_to_luminance(self, image_path):
         """同步图片路径到明度提取面板（保留用于兼容）"""
@@ -181,7 +344,15 @@ class MainWindow(FluentWindow):
 
     def sync_image_data_to_luminance(self, pixmap, image):
         """同步图片数据到明度提取面板（避免重复加载）"""
-        self.luminance_extract_interface.set_image_data(pixmap, image)
+        # emit_sync=False 防止双向同步循环
+        self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
+        # 更新窗口标题
+        if hasattr(self.color_extract_interface, '_pending_image_path'):
+            from pathlib import Path
+            file_path = self.color_extract_interface._pending_image_path
+            if file_path:
+                file_name = Path(file_path).stem
+                self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
 
     def sync_clear_to_luminance(self):
         """同步清除明度提取面板"""
@@ -211,6 +382,26 @@ class MainWindow(FluentWindow):
         """重置窗口标题"""
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
 
+    def refresh_favorites(self):
+        """刷新收藏面板"""
+        if hasattr(self, 'favorites_interface'):
+            self.favorites_interface._load_favorites()
+
+    def _setup_fullscreen_shortcut(self):
+        """设置 F11 快捷键切换全屏"""
+        self.fullscreen_shortcut = QShortcut(QKeySequence("F11"), self)
+        self.fullscreen_shortcut.activated.connect(self._toggle_fullscreen)
+
+    def _toggle_fullscreen(self):
+        """切换全屏/窗口模式"""
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
+        # 更新标题栏按钮图标
+        if hasattr(self, 'titleBar') and hasattr(self.titleBar, '_update_fullscreen_icon'):
+            self.titleBar._update_fullscreen_icon()
+
     def _setup_settings_connections(self):
         """连接设置界面的信号"""
         # 连接16进制显示开关信号到色卡面板
@@ -223,6 +414,16 @@ class MainWindow(FluentWindow):
             self.color_extract_interface.color_card_panel.set_color_modes
         )
 
+        # 连接16进制显示开关信号到配色方案面板
+        self.settings_interface.hex_display_changed.connect(
+            self.color_scheme_interface.update_display_settings
+        )
+
+        # 连接色彩模式改变信号到配色方案面板
+        self.settings_interface.color_modes_changed.connect(
+            lambda modes: self.color_scheme_interface.update_display_settings(color_modes=modes)
+        )
+
         # 连接色彩提取采样点数改变信号
         self.settings_interface.color_sample_count_changed.connect(
             self._on_color_sample_count_changed
@@ -231,6 +432,31 @@ class MainWindow(FluentWindow):
         # 连接明度提取采样点数改变信号
         self.settings_interface.luminance_sample_count_changed.connect(
             self._on_luminance_sample_count_changed
+        )
+
+        # 连接直方图缩放模式改变信号
+        self.settings_interface.histogram_scaling_mode_changed.connect(
+            self._on_histogram_scaling_mode_changed
+        )
+
+        # 连接色轮模式改变信号到配色方案界面
+        self.settings_interface.color_wheel_mode_changed.connect(
+            self.color_scheme_interface.set_color_wheel_mode
+        )
+
+        # 连接直方图模式改变信号到色彩提取界面
+        self.settings_interface.histogram_mode_changed.connect(
+            self._on_histogram_mode_changed
+        )
+
+        # 连接16进制显示开关信号到收藏界面
+        self.settings_interface.hex_display_changed.connect(
+            lambda visible: self.favorites_interface.update_display_settings(hex_visible=visible)
+        )
+
+        # 连接色彩模式改变信号到收藏界面
+        self.settings_interface.color_modes_changed.connect(
+            lambda modes: self.favorites_interface.update_display_settings(color_modes=modes)
         )
 
         # 应用加载的配置到色卡面板
@@ -250,6 +476,20 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.luminance_canvas.set_picker_count(luminance_sample_count)
         self.luminance_extract_interface.histogram_widget.clear()
 
+        # 应用加载的直方图缩放模式配置
+        histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
+        self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        self.color_extract_interface.hue_histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        self.luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
+
+        # 应用加载的色轮模式配置到配色方案界面
+        color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
+        self.color_scheme_interface.set_color_wheel_mode(color_wheel_mode)
+
+        # 应用加载的直方图模式配置
+        histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
+        self.color_extract_interface.set_histogram_mode(histogram_mode)
+
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
         self.color_extract_interface.image_canvas.set_picker_count(count)
@@ -265,3 +505,13 @@ class MainWindow(FluentWindow):
         image = self.luminance_extract_interface.luminance_canvas.get_image()
         if image and not image.isNull():
             self.luminance_extract_interface.histogram_widget.set_image(image)
+
+    def _on_histogram_scaling_mode_changed(self, mode):
+        """直方图缩放模式改变"""
+        self.color_extract_interface.rgb_histogram_widget.set_scaling_mode(mode)
+        self.color_extract_interface.hue_histogram_widget.set_scaling_mode(mode)
+        self.luminance_extract_interface.histogram_widget.set_scaling_mode(mode)
+
+    def _on_histogram_mode_changed(self, mode):
+        """直方图显示模式改变"""
+        self.color_extract_interface.set_histogram_mode(mode)

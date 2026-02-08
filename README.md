@@ -15,11 +15,18 @@
 ### 核心功能特色
 
 - **可视化色彩提取**：通过直观的可拖动取色点，实时提取图片任意位置的颜色，支持5个取色点同时工作
+- **智能配色方案**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择和明度调整
+- **配色方案收藏**：支持收藏和管理配色方案，可自定义名称，方便后续快速查看和使用
+- **批量导入导出**：支持将收藏的配色方案导出为JSON文件，或从文件批量导入，便于备份和分享
 - **多色彩空间支持**：同时显示 HSB、LAB、HSL、CMYK、RGB 等多种色彩模式，满足不同场景的需求
 - **专业明度分析**：将图片按明度分为9个区域，提供直方图可视化，帮助理解图片的明度分布
 - **现代化界面**：基于 Fluent Design 设计语言，支持自动深色/浅色主题切换，提供流畅的用户体验
+  - 标题栏集成主题切换按钮，一键切换深色/浅色模式
+  - 所有界面元素自动适配主题颜色，确保在任何主题下都清晰可见
+  - 使用主题颜色管理系统，统一维护所有颜色值
 - **高精度显示**：使用原始图片实时缩放，保证显示清晰度，取色点位置使用相对坐标系统，图片缩放时保持不变
-- **双面板同步**：色彩提取和明度分析面板数据实时同步，切换面板时自动更新
+- **四面板同步**：色彩提取、明度分析、配色方案和收藏面板数据实时同步，切换面板时自动更新
+- **统一配置管理**：16进制颜色值显示和色彩模式设置全局统一，所有界面实时响应设置变更
 
 ### 适用场景
 
@@ -87,16 +94,9 @@
 ### 基本操作
 
 1. **启动应用**：运行 `main.py` 或 exe
-2. **导入图片**：点击「打开图片」按钮或使用快捷键 `Ctrl+O`，支持拖拽导入
+2. **导入图片**：点击「打开图片」按钮，支持拖拽导入
 3. **色彩提取**：在「色彩提取」标签页，拖动图片上的5个圆形取色点到任意位置，下方色卡会实时显示对应颜色的 HSB、LAB、HSL、CMYK、RGB 值
 4. **明度分析**：切换到「明度提取」标签页，查看图片的明度分布直方图，双击图片区域自动提取对应明度的像素
-
-### 常用快捷键
-
-| 快捷键 | 功能描述 |
-|:---|:---|
-| Ctrl + O | 打开图片 |
-| Ctrl + Q | 退出程序 |
 
 ### 功能详解
 
@@ -110,10 +110,31 @@
 
 #### 明度提取
 
-- **9个明度区域**：将图片按明度分为9个区域（极暗、暗、中暗、次中暗、中灰、次中亮、中亮、亮、极亮）
+- **5个明度区域（Adobe标准）**：将图片按明度分为5个标准区域
+  - 黑色（Blacks）：0%–10%（黑点区域）
+  - 阴影（Shadows）：10%–30%（阴影区域）
+  - 中间调（Midtones）：30%–70%（中间亮度区域，由 Exposure/Contrast 负责）
+  - 高光（Highlights）：70%–90%（高光区域）
+  - 白色（Whites）：90%–100%（白点区域）
 - **明度直方图**：实时显示图片明度分布直方图，支持区域选择和高亮
 - **区域高亮显示**：选中区域在直方图上高亮显示，方便查看特定明度范围的像素分布
 - **双击提取**：双击图片任意区域，自动提取该明度对应的像素，并在色卡中显示
+
+#### 配色方案
+
+- **配色方案**
+  - **5种专业配色方案**：同色系、邻近色、互补色、分离补色、双补色
+  - **可交互色环**：支持鼠标拖动选择基准色，实时显示配色方案在色环上的分布
+  - **明度调整滑块**：调整配色方案的明度，色环和色块实时响应
+  - **动态卡片数量**：根据配色方案类型自动调整色块数量（3-5个）
+  - **统一显示设置**：使用与色彩提取相同的显示设置（16进制值、色彩模式）
+
+- **收藏管理**
+  - **一键收藏**：在色彩提取和配色方案面板均可快速收藏当前颜色方案
+  - **自定义名称**：为收藏的配色方案设置自定义名称，便于识别
+  - **列表展示**：以卡片形式展示所有收藏的配色方案，支持滚动浏览
+  - **删除管理**：支持单个删除或一键清空所有收藏
+  - **批量导入导出**：支持JSON格式的导入导出，便于备份和分享配色方案
 
 ---
 
@@ -148,18 +169,21 @@ color_card/
 ├── 开发规范.md              # 开发规范文档
 ├── core/                   # 核心功能模块目录
 │   ├── __init__.py
-│   ├── color.py           # 颜色处理模块（颜色转换、明度计算、直方图计算）
-│   └── config.py          # 配置管理模块
+│   ├── color.py           # 颜色处理模块（颜色转换、明度计算、配色方案算法、直方图计算）
+│   └── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
 ├── ui/                     # UI模块目录（扁平化结构）
 │   ├── __init__.py        # 统一导出接口
 │   ├── main_window.py     # 主窗口类
 │   ├── canvases.py        # 画布模块（BaseCanvas、ImageCanvas、LuminanceCanvas）
-│   ├── cards.py           # 卡片组件模块（ColorCard、LuminanceCard）
+│   ├── cards.py           # 卡片组件模块（ColorCard、LuminanceCard及基类）
 │   ├── histograms.py      # 直方图组件模块（LuminanceHistogramWidget、RGBHistogramWidget）
 │   ├── color_picker.py    # 颜色选择器模块
-│   ├── color_wheel.py     # 颜色轮模块
+│   ├── color_wheel.py     # 颜色轮模块（HSBColorWheel、InteractiveColorWheel）
+│   ├── scheme_widgets.py  # 配色方案组件模块（SchemeColorInfoCard、SchemeColorPanel）
+│   ├── favorite_widgets.py # 收藏功能组件模块（FavoriteColorCard、FavoriteSchemeCard、FavoriteSchemeList）
 │   ├── zoom_viewer.py     # 缩放查看器模块
-│   └── interfaces.py      # 界面面板模块
+│   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、FavoritesInterface）
+│   └── theme_colors.py    # 主题颜色管理模块（统一颜色管理、主题感知颜色获取）
 ├── dialogs/               # 对话框模块目录
 │   ├── __init__.py
 │   ├── about_dialog.py    # 关于对话框
@@ -177,6 +201,7 @@ color_card/
 负责所有与颜色相关的计算和转换：
 
 - **颜色空间转换**：RGB ↔ HSB、RGB ↔ LAB、RGB ↔ HSL、RGB ↔ CMYK，支持多种色彩空间
+- **配色方案算法**：实现5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），基于色彩理论生成和谐配色
 - **明度计算**：使用 Rec. 709 标准计算亮度值，包含 sRGB Gamma 校正，与 Lightroom、Photoshop 等专业软件使用相同标准
 - **直方图计算**：计算图片的明度分布和 RGB 通道分布，支持采样优化
 
@@ -198,21 +223,50 @@ color_card/
   - 区域选择和高亮显示
   - 双击提取像素功能
 
-#### 3. 卡片模块 (ui/cards.py)
+#### 3. 卡片模块 (ui/cards.py、ui/scheme_widgets.py 和 ui/favorite_widgets.py)
 
 提供颜色信息展示功能：
 
 - **BaseCard / BaseCardPanel**：卡片基类，提供统一的卡片接口
   - setup_ui：设置界面
   - clear：清空卡片
+  - set_card_count：动态调整卡片数量
 - **ColorCard / ColorCardPanel**：色彩卡片，显示多种色彩空间值
   - 支持 HSB、LAB、HSL、CMYK、RGB 显示
   - 一键复制颜色值
+  - 支持16进制颜色值显示开关
 - **LuminanceCard / LuminanceCardPanel**：明度卡片，显示明度区域信息
   - 显示区域名称和明度范围
   - 显示像素数量
+- **SchemeColorInfoCard / SchemeColorPanel**（ui/scheme_widgets.py）：配色方案卡片
+  - 与ColorCard保持一致的显示样式
+  - 支持动态卡片数量（根据配色方案类型自动调整）
+  - 复用ColorModeContainer组件，统一显示逻辑
+- **FavoriteColorCard / FavoriteSchemeCard / FavoriteSchemeList**（ui/favorite_widgets.py）：收藏功能卡片
+  - FavoriteColorCard：单个颜色显示卡片，与ColorCard样式一致
+  - FavoriteSchemeCard：收藏项卡片，包含名称、颜色列表、删除按钮
+  - FavoriteSchemeList：收藏列表容器，管理多个FavoriteSchemeCard
+  - 动态色卡数量：根据收藏的颜色数量动态创建色卡
 
-#### 4. 直方图模块 (ui/histograms.py)
+#### 4. 主题颜色管理模块 (ui/theme_colors.py)
+
+统一管理系统中所有颜色值，支持深色/浅色主题自动切换：
+
+- **颜色分类管理**：背景色、文本色、边框色、控件特定颜色、Zone分区颜色等
+- **主题感知**：所有颜色函数根据当前主题（深色/浅色）自动返回对应颜色值
+- **硬编码消除**：集中管理颜色值，避免散落在各组件中的硬编码颜色
+- **使用示例**：
+  ```python
+  from ui.theme_colors import get_text_color, get_canvas_background_color
+  
+  # 获取主题文本颜色
+  text_color = get_text_color()
+  
+  # 获取画布背景色（固定灰黑色 #2a2a2a）
+  bg_color = get_canvas_background_color()
+  ```
+
+#### 5. 直方图模块 (ui/histograms.py)
 
 提供数据可视化功能：
 
@@ -240,7 +294,11 @@ color_card/
 - **高 DPI 支持**：自动适配不同屏幕分辨率和缩放比例，保证显示清晰
 - **平滑动画**：添加了窗口过渡、控件交互等平滑动画效果，提升用户体验
 - **响应式设计**：适配不同屏幕尺寸和布局，保证内容完整显示
-- **主题切换**：支持浅色和深色两种主题模式，深色模式使用纯黑色背景，减少眼部疲劳
+- **主题切换系统**：
+  - 集成系统级深色/浅色主题切换，标题栏一键切换
+  - 所有组件自动响应主题变化，实时更新颜色
+  - 集中式颜色管理，通过 `theme_colors.py` 统一维护
+  - 使用 `qconfig.themeChangedFinished` 信号实现组件级主题响应
 
 ### 2. 高效的事件处理机制
 
@@ -360,6 +418,8 @@ Color Card 采用 **GNU General Public License v3.0 (GPL 3.0)** 许可证发布�
 | PySide6 | LGPL-3.0 |
 | PySide6-Fluent-Widgets | GPL-3.0 |
 | Pillow | MIT License |
+| requests | Apache-2.0 |
+| numpy | BSD-3-Clause |
 
 ---
 
