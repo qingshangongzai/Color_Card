@@ -244,8 +244,8 @@ class HSBColorWheel(QWidget):
 
     def _draw_title(self, painter):
         """绘制标题"""
-        colors = self._get_theme_colors()
-        painter.setPen(colors['text'])
+        from .theme_colors import get_wheel_text_color
+        painter.setPen(get_wheel_text_color())
 
         font = QFont()
         font.setPointSize(9)

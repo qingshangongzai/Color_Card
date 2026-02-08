@@ -591,8 +591,8 @@ class RGBHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        from .theme_colors import get_text_color
-        painter.setPen(get_text_color())
+        from .theme_colors import get_wheel_text_color
+        painter.setPen(get_wheel_text_color())
         font = QFont()
         font.setPointSize(9)
         painter.setFont(font)
@@ -729,8 +729,8 @@ class HueHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        from .theme_colors import get_text_color
-        painter.setPen(get_text_color())
+        from .theme_colors import get_wheel_text_color
+        painter.setPen(get_wheel_text_color())
         font = QFont()
         font.setPointSize(9)
         painter.setFont(font)

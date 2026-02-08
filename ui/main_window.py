@@ -328,8 +328,9 @@ class MainWindow(FluentWindow):
         # 同步图片数据到色彩提取面板（emit_sync=False 防止双向同步循环）
         self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
 
-        # 更新RGB直方图
+        # 更新RGB直方图和色相直方图
         self.color_extract_interface.rgb_histogram_widget.set_image(image)
+        self.color_extract_interface.hue_histogram_widget.set_image(image)
 
         # 更新窗口标题
         from pathlib import Path
