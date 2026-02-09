@@ -1641,6 +1641,7 @@ COLORBREWER_DATA = {
     "brewer_blues": {
         "name": "布鲁斯蓝",
         "name_en": "Blues",
+        "type": "sequential",
         "colors": {
             0: "#f7fbff",
             1: "#deebf7",
@@ -1656,6 +1657,7 @@ COLORBREWER_DATA = {
     "brewer_greens": {
         "name": "格林绿",
         "name_en": "Greens",
+        "type": "sequential",
         "colors": {
             0: "#f7fcf5",
             1: "#e5f5e0",
@@ -1671,6 +1673,7 @@ COLORBREWER_DATA = {
     "brewer_greys": {
         "name": "格雷灰",
         "name_en": "Greys",
+        "type": "sequential",
         "colors": {
             0: "#ffffff",
             1: "#f0f0f0",
@@ -1686,6 +1689,7 @@ COLORBREWER_DATA = {
     "brewer_oranges": {
         "name": "奥兰治橙",
         "name_en": "Oranges",
+        "type": "sequential",
         "colors": {
             0: "#fff5eb",
             1: "#fee6ce",
@@ -1701,6 +1705,7 @@ COLORBREWER_DATA = {
     "brewer_purples": {
         "name": "珀尔普紫",
         "name_en": "Purples",
+        "type": "sequential",
         "colors": {
             0: "#fcfbfd",
             1: "#efedf5",
@@ -1716,6 +1721,7 @@ COLORBREWER_DATA = {
     "brewer_reds": {
         "name": "雷兹红",
         "name_en": "Reds",
+        "type": "sequential",
         "colors": {
             0: "#fff5f0",
             1: "#fee0d2",
@@ -1732,6 +1738,7 @@ COLORBREWER_DATA = {
     "brewer_bugn": {
         "name": "蓝绿渐变",
         "name_en": "BuGn",
+        "type": "sequential",
         "colors": {
             0: "#f7fcfd",
             1: "#e5f5f9",
@@ -1747,6 +1754,7 @@ COLORBREWER_DATA = {
     "brewer_bupu": {
         "name": "蓝紫渐变",
         "name_en": "BuPu",
+        "type": "sequential",
         "colors": {
             0: "#f7fcfd",
             1: "#e0ecf4",
@@ -1762,6 +1770,7 @@ COLORBREWER_DATA = {
     "brewer_gnbu": {
         "name": "绿蓝渐变",
         "name_en": "GnBu",
+        "type": "sequential",
         "colors": {
             0: "#f7fcf0",
             1: "#e0f3db",
@@ -1777,6 +1786,7 @@ COLORBREWER_DATA = {
     "brewer_orrd": {
         "name": "橙红渐变",
         "name_en": "OrRd",
+        "type": "sequential",
         "colors": {
             0: "#fff7ec",
             1: "#fee8c8",
@@ -1792,6 +1802,7 @@ COLORBREWER_DATA = {
     "brewer_pubu": {
         "name": "紫蓝渐变",
         "name_en": "PuBu",
+        "type": "sequential",
         "colors": {
             0: "#fff7fb",
             1: "#ece7f2",
@@ -1807,6 +1818,7 @@ COLORBREWER_DATA = {
     "brewer_pubugn": {
         "name": "紫蓝绿渐变",
         "name_en": "PuBuGn",
+        "type": "sequential",
         "colors": {
             0: "#fff7fb",
             1: "#ece2f0",
@@ -1822,6 +1834,7 @@ COLORBREWER_DATA = {
     "brewer_purd": {
         "name": "紫红渐变",
         "name_en": "PuRd",
+        "type": "sequential",
         "colors": {
             0: "#f7f4f9",
             1: "#e7e1ef",
@@ -1837,6 +1850,7 @@ COLORBREWER_DATA = {
     "brewer_rdpu": {
         "name": "红紫渐变",
         "name_en": "RdPu",
+        "type": "sequential",
         "colors": {
             0: "#fff7f3",
             1: "#fde0dd",
@@ -1852,6 +1866,7 @@ COLORBREWER_DATA = {
     "brewer_ylgn": {
         "name": "黄绿渐变",
         "name_en": "YlGn",
+        "type": "sequential",
         "colors": {
             0: "#ffffe5",
             1: "#f7fcb9",
@@ -1867,6 +1882,7 @@ COLORBREWER_DATA = {
     "brewer_ylgnbu": {
         "name": "黄绿蓝渐变",
         "name_en": "YlGnBu",
+        "type": "sequential",
         "colors": {
             0: "#ffffd9",
             1: "#edf8b1",
@@ -1882,6 +1898,7 @@ COLORBREWER_DATA = {
     "brewer_ylorbr": {
         "name": "黄橙棕渐变",
         "name_en": "YlOrBr",
+        "type": "sequential",
         "colors": {
             0: "#ffffe5",
             1: "#fff7bc",
@@ -1897,6 +1914,7 @@ COLORBREWER_DATA = {
     "brewer_ylorrd": {
         "name": "黄橙红渐变",
         "name_en": "YlOrRd",
+        "type": "sequential",
         "colors": {
             0: "#ffffcc",
             1: "#ffeda0",
@@ -1913,6 +1931,7 @@ COLORBREWER_DATA = {
     "brewer_brbg": {
         "name": "棕青发散",
         "name_en": "BrBG",
+        "type": "diverging",
         "colors": {
             0: "#543005",
             1: "#8c510a",
@@ -1928,6 +1947,7 @@ COLORBREWER_DATA = {
     "brewer_piyg": {
         "name": "粉绿发散",
         "name_en": "PiYG",
+        "type": "diverging",
         "colors": {
             0: "#8e0152",
             1: "#c51b7d",
@@ -1943,6 +1963,7 @@ COLORBREWER_DATA = {
     "brewer_prgn": {
         "name": "紫绿发散",
         "name_en": "PRGn",
+        "type": "diverging",
         "colors": {
             0: "#40004b",
             1: "#762a83",
@@ -1958,6 +1979,7 @@ COLORBREWER_DATA = {
     "brewer_puor": {
         "name": "紫橙发散",
         "name_en": "PuOr",
+        "type": "diverging",
         "colors": {
             0: "#7f3b08",
             1: "#b35806",
@@ -1973,6 +1995,7 @@ COLORBREWER_DATA = {
     "brewer_rdbu": {
         "name": "红蓝发散",
         "name_en": "RdBu",
+        "type": "diverging",
         "colors": {
             0: "#67001f",
             1: "#b2182b",
@@ -1988,6 +2011,7 @@ COLORBREWER_DATA = {
     "brewer_rdgy": {
         "name": "红灰发散",
         "name_en": "RdGy",
+        "type": "diverging",
         "colors": {
             0: "#67001f",
             1: "#b2182b",
@@ -2003,6 +2027,7 @@ COLORBREWER_DATA = {
     "brewer_rdylbu": {
         "name": "红黄蓝发散",
         "name_en": "RdYlBu",
+        "type": "diverging",
         "colors": {
             0: "#a50026",
             1: "#d73027",
@@ -2018,6 +2043,7 @@ COLORBREWER_DATA = {
     "brewer_rdylgn": {
         "name": "红黄绿发散",
         "name_en": "RdYlGn",
+        "type": "diverging",
         "colors": {
             0: "#a50026",
             1: "#d73027",
@@ -2033,6 +2059,7 @@ COLORBREWER_DATA = {
     "brewer_spectral": {
         "name": "光谱色",
         "name_en": "Spectral",
+        "type": "diverging",
         "colors": {
             0: "#9e0142",
             1: "#d53e4f",
@@ -2049,6 +2076,7 @@ COLORBREWER_DATA = {
     "brewer_set1": {
         "name": "设置1",
         "name_en": "Set1",
+        "type": "qualitative",
         "colors": {
             0: "#e41a1c",
             1: "#377eb8",
@@ -2064,6 +2092,7 @@ COLORBREWER_DATA = {
     "brewer_set2": {
         "name": "设置2",
         "name_en": "Set2",
+        "type": "qualitative",
         "colors": {
             0: "#66c2a5",
             1: "#fc8d62",
@@ -2078,6 +2107,7 @@ COLORBREWER_DATA = {
     "brewer_set3": {
         "name": "设置3",
         "name_en": "Set3",
+        "type": "qualitative",
         "colors": {
             0: "#8dd3c7",
             1: "#ffffb3",
@@ -2093,6 +2123,7 @@ COLORBREWER_DATA = {
     "brewer_paired": {
         "name": "成对色",
         "name_en": "Paired",
+        "type": "qualitative",
         "colors": {
             0: "#a6cee3",
             1: "#1f78b4",
@@ -2108,6 +2139,7 @@ COLORBREWER_DATA = {
     "brewer_dark2": {
         "name": "深色2",
         "name_en": "Dark2",
+        "type": "qualitative",
         "colors": {
             0: "#1b9e77",
             1: "#d95f02",
@@ -2122,6 +2154,7 @@ COLORBREWER_DATA = {
     "brewer_accent": {
         "name": "强调色",
         "name_en": "Accent",
+        "type": "qualitative",
         "colors": {
             0: "#7fc97f",
             1: "#beaed4",
@@ -2136,6 +2169,7 @@ COLORBREWER_DATA = {
     "brewer_pastel1": {
         "name": "粉彩1",
         "name_en": "Pastel1",
+        "type": "qualitative",
         "colors": {
             0: "#fbb4ae",
             1: "#b3cde3",
@@ -2151,6 +2185,7 @@ COLORBREWER_DATA = {
     "brewer_pastel2": {
         "name": "粉彩2",
         "name_en": "Pastel2",
+        "type": "qualitative",
         "colors": {
             0: "#b3e2cd",
             1: "#fdcdac",
@@ -2234,6 +2269,21 @@ def get_colorbrewer_selected_shades(series_name):
 def get_colorbrewer_color_series_name_mapping():
     """获取 ColorBrewer 颜色系列名称的中英文映射"""
     return {key: value["name"] for key, value in COLORBREWER_DATA.items()}
+
+
+def get_colorbrewer_series_type(series_name):
+    """获取指定 ColorBrewer 颜色系列的类型
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        str: 配色类型 ('sequential', 'diverging', 'qualitative') 或 None
+    """
+    series = COLORBREWER_DATA.get(series_name)
+    if not series:
+        return None
+    return series.get("type", "sequential")  # 默认为顺序色
 
 
 # Radix Colors 颜色数据

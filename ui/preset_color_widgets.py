@@ -23,6 +23,7 @@ from core.color_data import (
     TAILWIND_COLOR_DATA, get_tailwind_color_series_names, get_tailwind_color_series,
     MATERIAL_COLOR_DATA, get_material_color_series_names, get_material_color_series,
     COLORBREWER_DATA, get_colorbrewer_series_names, get_colorbrewer_color_series,
+    get_colorbrewer_series_type,
     RADIX_COLOR_DATA, get_radix_color_series_names, get_radix_color_series
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
@@ -258,14 +259,24 @@ class PresetColorSchemeCard(CardWidget):
         self._series_data = series_data
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
-        self._shade_mode = 'light'  # 'light' 或 'dark'
+        self._shade_mode = 'light'  # 'light' 或 'dark'，对于非顺序色表示前半/后半
         self._color_cards = []
+        # 获取配色类型（仅ColorBrewer有，其他默认为sequential）
+        self._series_type = self._get_series_type()
         super().__init__(parent)
         self.setup_ui()
         self._load_color_data()
         self._update_styles()
         # 监听主题变化
         qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def _get_series_type(self) -> str:
+        """获取颜色系列的类型"""
+        # 检查是否是ColorBrewer系列
+        if self._series_key.startswith('brewer_'):
+            return get_colorbrewer_series_type(self._series_key) or 'sequential'
+        # 其他配色方案默认为顺序色
+        return 'sequential'
 
     def setup_ui(self):
         """设置界面"""
@@ -339,7 +350,7 @@ class PresetColorSchemeCard(CardWidget):
             """)
 
     def _on_toggle_shade_mode(self):
-        """切换浅色/深色组"""
+        """切换显示模式"""
         self._shade_mode = 'dark' if self._shade_mode == 'light' else 'light'
         self._load_color_data()
 
@@ -375,22 +386,58 @@ class PresetColorSchemeCard(CardWidget):
 
     def _load_color_data(self):
         """加载颜色数据"""
-        # 设置标题
-        series_name = self._series_data.get('name', '未命名')
-        shade_text = "浅色组" if self._shade_mode == 'light' else "深色组"
-        self.name_label.setText(f"{series_name} - {shade_text}")
-
         # 清空现有色卡
         self._clear_color_cards()
 
-        # 获取颜色数据 - 直接从 series_data 中获取，支持 Open Color 和 Tailwind Colors
+        # 获取颜色数据
         colors_dict = self._series_data.get('colors', {})
-        if self._shade_mode == 'light':
-            # 浅色组: 索引 0-4
-            colors = [colors_dict.get(i, '') for i in range(5)]
-        else:
-            # 深色组: 索引 5-9
-            colors = [colors_dict.get(i, '') for i in range(5, 10)]
+        total_colors = len(colors_dict)
+
+        # 根据配色类型决定显示逻辑
+        if self._series_type == 'sequential':
+            # 顺序色：浅色组/深色组
+            series_name = self._series_data.get('name', '未命名')
+            shade_text = "浅色组" if self._shade_mode == 'light' else "深色组"
+            self.name_label.setText(f"{series_name} - {shade_text}")
+
+            if self._shade_mode == 'light':
+                # 浅色组: 索引 0-4
+                colors = [colors_dict.get(i, '') for i in range(min(5, total_colors))]
+            else:
+                # 深色组: 索引 5-9
+                colors = [colors_dict.get(i, '') for i in range(5, min(10, total_colors))]
+
+        elif self._series_type == 'diverging':
+            # 发散色：左半部分/右半部分（以中间为界）
+            series_name = self._series_data.get('name', '未命名')
+            half_index = total_colors // 2
+
+            if self._shade_mode == 'light':
+                # 左半部分
+                shade_text = "左半"
+                colors = [colors_dict.get(i, '') for i in range(half_index)]
+            else:
+                # 右半部分
+                shade_text = "右半"
+                colors = [colors_dict.get(i, '') for i in range(half_index, total_colors)]
+
+            self.name_label.setText(f"{series_name} - {shade_text}")
+
+        else:  # qualitative
+            # 定性色：前半部分/后半部分（按索引平分）
+            series_name = self._series_data.get('name', '未命名')
+            half_index = total_colors // 2
+
+            if self._shade_mode == 'light':
+                # 前半部分
+                shade_text = "前半"
+                colors = [colors_dict.get(i, '') for i in range(half_index)]
+            else:
+                # 后半部分
+                shade_text = "后半"
+                colors = [colors_dict.get(i, '') for i in range(half_index, total_colors)]
+
+            self.name_label.setText(f"{series_name} - {shade_text}")
 
         # 创建色卡
         self._create_color_cards(colors)
