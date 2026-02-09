@@ -573,7 +573,7 @@ class PresetColorList(QWidget):
 
         self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("ScrollArea { border: none; }")
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
 
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
