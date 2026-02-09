@@ -184,9 +184,9 @@ color_card/
 │   ├── color_picker.py    # 颜色选择器模块
 │   ├── color_wheel.py     # 颜色轮模块（HSBColorWheel、InteractiveColorWheel）
 │   ├── scheme_widgets.py  # 配色方案组件模块（SchemeColorInfoCard、SchemeColorPanel）
-│   ├── favorite_widgets.py # 收藏功能组件模块（FavoriteColorCard、FavoriteSchemeCard、FavoriteSchemeList）
+│   ├── color_management_widgets.py # 色彩管理组件模块（ColorManagementColorCard、ColorManagementSchemeCard、ColorManagementSchemeList）
 │   ├── zoom_viewer.py     # 缩放查看器模块
-│   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、FavoritesInterface）
+│   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、ColorManagementInterface）
 │   └── theme_colors.py    # 主题颜色管理模块（统一颜色管理、主题感知颜色获取）
 ├── dialogs/               # 对话框模块目录
 │   ├── __init__.py
@@ -229,7 +229,7 @@ color_card/
   - 区域选择和高亮显示
   - 双击提取像素功能
 
-#### 3. 卡片模块 (ui/cards.py、ui/scheme_widgets.py 和 ui/favorite_widgets.py)
+#### 3. 卡片模块 (ui/cards.py、ui/scheme_widgets.py 和 ui/color_management_widgets.py)
 
 提供颜色信息展示功能：
 
@@ -248,11 +248,11 @@ color_card/
   - 与ColorCard保持一致的显示样式
   - 支持动态卡片数量（根据配色方案类型自动调整）
   - 复用ColorModeContainer组件，统一显示逻辑
-- **FavoriteColorCard / FavoriteSchemeCard / FavoriteSchemeList**（ui/favorite_widgets.py）：收藏功能卡片
-  - FavoriteColorCard：单个颜色显示卡片，与ColorCard样式一致
-  - FavoriteSchemeCard：收藏项卡片，包含名称、颜色列表、删除按钮
-  - FavoriteSchemeList：收藏列表容器，管理多个FavoriteSchemeCard
-  - 动态色卡数量：根据收藏的颜色数量动态创建色卡
+- **ColorManagementColorCard / ColorManagementSchemeCard / ColorManagementSchemeList**（ui/color_management_widgets.py）：色彩管理组件
+  - ColorManagementColorCard：单个颜色显示卡片，与ColorCard样式一致
+  - ColorManagementSchemeCard：配色方案卡片，包含名称、颜色列表、操作按钮
+  - ColorManagementSchemeList：配色方案列表容器，管理多个ColorManagementSchemeCard
+  - 动态色卡数量：根据保存的颜色数量动态创建色卡
 
 #### 4. 主题颜色管理模块 (ui/theme_colors.py)
 

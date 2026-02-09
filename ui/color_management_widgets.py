@@ -21,8 +21,8 @@ from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
 
 
-class FavoriteColorCard(QWidget):
-    """收藏中的单个色卡组件（与其他面板样式一致）"""
+class ColorManagementColorCard(QWidget):
+    """色彩管理中的单个色卡组件（与其他面板样式一致）"""
 
     color_changed = Signal(dict)  # 信号：颜色信息字典
 
@@ -363,8 +363,8 @@ class FavoriteColorCard(QWidget):
         self.mode_container_2.clear_values()
 
 
-class FavoriteSchemeCard(CardWidget):
-    """收藏配色方案卡片（水平排列色卡样式，动态数量）"""
+class ColorManagementSchemeCard(CardWidget):
+    """色彩管理配色方案卡片（水平排列色卡样式，动态数量）"""
 
     delete_requested = Signal(str)
     rename_requested = Signal(str, str)  # favorite_id, new_name
@@ -459,7 +459,7 @@ class FavoriteSchemeCard(CardWidget):
         # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
         if is_windows_10():
             self.setStyleSheet(f"""
-                FavoriteSchemeCard,
+                ColorManagementSchemeCard,
                 CardWidget {{
                     background-color: {card_bg.name()};
                     border: 1px solid {border_color.name()};
@@ -491,7 +491,7 @@ class FavoriteSchemeCard(CardWidget):
         """
         layout = self.cards_panel.layout()
         for i in range(count):
-            card = FavoriteColorCard()
+            card = ColorManagementColorCard()
             card.set_color_modes(self._color_modes)
             card.hex_container.setVisible(self._hex_visible)
             card.color_changed.connect(lambda color_info, idx=i: self._on_color_changed(idx, color_info))
@@ -578,8 +578,8 @@ class FavoriteSchemeCard(CardWidget):
             self.set_color_modes(color_modes)
 
 
-class FavoriteSchemeList(QWidget):
-    """收藏配色方案列表容器"""
+class ColorManagementSchemeList(QWidget):
+    """色彩管理配色方案列表容器"""
 
     favorite_deleted = Signal(str)
     favorite_renamed = Signal(str, str)  # favorite_id, current_name
@@ -670,7 +670,7 @@ class FavoriteSchemeList(QWidget):
             return
 
         for favorite in favorites:
-            card = FavoriteSchemeCard(favorite)
+            card = ColorManagementSchemeCard(favorite)
             card.set_hex_visible(self._hex_visible)
             card.set_color_modes(self._color_modes)
             card.delete_requested.connect(self.favorite_deleted)

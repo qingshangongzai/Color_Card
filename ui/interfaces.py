@@ -88,7 +88,7 @@ from .cards import ColorCardPanel
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget, HueHistogramWidget
 from .scheme_widgets import SchemeColorPanel
-from .favorite_widgets import FavoriteSchemeList
+from .color_management_widgets import ColorManagementSchemeList
 from .theme_colors import get_canvas_empty_bg_color, get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
 from utils.platform import is_windows_10
 
@@ -311,10 +311,10 @@ class ColorExtractInterface(QWidget):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新收藏面板
+        # 刷新色彩管理面板
         window = self.window()
-        if window and hasattr(window, 'refresh_favorites'):
-            window.refresh_favorites()
+        if window and hasattr(window, 'refresh_color_management'):
+            window.refresh_color_management()
 
         InfoBar.success(
             title="收藏成功",
@@ -1475,10 +1475,10 @@ class ColorSchemeInterface(QWidget):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新收藏面板
+        # 刷新色彩管理面板
         window = self.window()
-        if window and hasattr(window, 'refresh_favorites'):
-            window.refresh_favorites()
+        if window and hasattr(window, 'refresh_color_management'):
+            window.refresh_color_management()
 
         InfoBar.success(
             title="收藏成功",
@@ -1491,12 +1491,12 @@ class ColorSchemeInterface(QWidget):
         )
 
 
-class FavoritesInterface(QWidget):
-    """色卡收藏界面"""
+class ColorManagementInterface(QWidget):
+    """色彩管理界面"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setObjectName('favoritesInterface')
+        self.setObjectName('colorManagementInterface')
         self._config_manager = get_config_manager()
         self.setup_ui()
         self._load_favorites()
@@ -1513,7 +1513,7 @@ class FavoritesInterface(QWidget):
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.title_label = SubtitleLabel("色卡收藏")
+        self.title_label = SubtitleLabel("色彩管理")
         header_layout.addWidget(self.title_label)
 
         header_layout.addStretch()
@@ -1533,18 +1533,18 @@ class FavoritesInterface(QWidget):
 
         layout.addLayout(header_layout)
 
-        self.favorite_list = FavoriteSchemeList(self)
-        self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
-        self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
-        self.favorite_list.favorite_preview.connect(self._on_favorite_preview)
-        self.favorite_list.favorite_contrast.connect(self._on_favorite_contrast)
-        self.favorite_list.favorite_color_changed.connect(self._on_favorite_color_changed)
-        layout.addWidget(self.favorite_list, stretch=1)
+        self.color_management_list = ColorManagementSchemeList(self)
+        self.color_management_list.favorite_deleted.connect(self._on_favorite_deleted)
+        self.color_management_list.favorite_renamed.connect(self._on_favorite_renamed)
+        self.color_management_list.favorite_preview.connect(self._on_favorite_preview)
+        self.color_management_list.favorite_contrast.connect(self._on_favorite_contrast)
+        self.color_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
+        layout.addWidget(self.color_management_list, stretch=1)
 
     def _load_favorites(self):
         """加载收藏列表"""
         favorites = self._config_manager.get_favorites()
-        self.favorite_list.set_favorites(favorites)
+        self.color_management_list.set_favorites(favorites)
 
     def _on_clear_all_clicked(self):
         """清空所有按钮点击"""
@@ -1794,7 +1794,7 @@ class FavoritesInterface(QWidget):
             hex_visible: 是否显示16进制颜色值
             color_modes: 色彩模式列表
         """
-        self.favorite_list.update_display_settings(hex_visible, color_modes)
+        self.color_management_list.update_display_settings(hex_visible, color_modes)
 
     def _update_styles(self):
         """更新样式以适配主题"""
@@ -1809,7 +1809,7 @@ class FavoritesInterface(QWidget):
             text_color = get_text_color()
             
             self.setStyleSheet(f"""
-                FavoritesInterface {{
+                ColorManagementInterface {{
                     background-color: {bg_color.name()};
                 }}
                 ScrollArea {{
@@ -1819,7 +1819,7 @@ class FavoritesInterface(QWidget):
                 ScrollArea > QWidget > QWidget {{
                     background-color: transparent;
                 }}
-                FavoriteSchemeCard,
+                ColorManagementSchemeCard,
                 CardWidget {{
                     background-color: {card_bg.name()};
                     border: 1px solid {border_color.name()};
