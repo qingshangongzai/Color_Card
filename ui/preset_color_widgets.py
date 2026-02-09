@@ -28,7 +28,11 @@ from core.color_data import (
     get_nord_color_series_names, get_nord_color_series,
     get_nord_light_shades, get_nord_dark_shades,
     get_dracula_color_series_names, get_dracula_color_series,
-    get_dracula_light_shades, get_dracula_dark_shades
+    get_dracula_light_shades, get_dracula_dark_shades,
+    get_rose_pine_color_series_names, get_rose_pine_color_series,
+    get_solarized_color_series_names, get_solarized_color_series,
+    get_catppuccin_color_series_names, get_catppuccin_color_series,
+    get_gruvbox_color_series_names, get_gruvbox_color_series
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
@@ -276,13 +280,19 @@ class PresetColorSchemeCard(CardWidget):
 
     def _get_series_type(self) -> str:
         """获取颜色系列的类型"""
-        # 检查是否是ColorBrewer系列
+        # ColorBrewer 系列根据数据中的 type 字段确定
         if self._series_key.startswith('brewer_'):
             return get_colorbrewer_series_type(self._series_key) or 'sequential'
-        # Nord 和 Dracula 使用单组模式（不区分浅色/深色组）
+        # Nord 和 Dracula 颜色数量较少，使用单组模式直接显示
         if self._series_key.startswith(('nord', 'dracula')):
             return 'single'
-        # 其他配色方案默认为顺序色
+        # Catppuccin 和 Gruvbox 颜色数量较多，使用四段式显示（第一段/第二段/第三段/第四段）
+        if self._series_key.startswith(('catppuccin', 'gruvbox')):
+            return 'quad'
+        # Rose Pine 和 Solarized 使用三段式显示（前半/中间/后半）
+        if self._series_key.startswith(('rose_pine', 'solarized')):
+            return 'triple'
+        # 其他配色方案默认为顺序色（浅色组/深色组）
         return 'sequential'
 
     def setup_ui(self):
@@ -361,7 +371,27 @@ class PresetColorSchemeCard(CardWidget):
 
     def _on_toggle_shade_mode(self):
         """切换显示模式"""
-        self._shade_mode = 'dark' if self._shade_mode == 'light' else 'light'
+        if self._series_type == 'quad':
+            # 四段式：light -> medium -> dark -> ultra_dark -> light
+            if self._shade_mode == 'light':
+                self._shade_mode = 'medium'
+            elif self._shade_mode == 'medium':
+                self._shade_mode = 'dark'
+            elif self._shade_mode == 'dark':
+                self._shade_mode = 'ultra_dark'
+            else:
+                self._shade_mode = 'light'
+        elif self._series_type == 'triple':
+            # 三段式：light -> medium -> dark -> light
+            if self._shade_mode == 'light':
+                self._shade_mode = 'medium'
+            elif self._shade_mode == 'medium':
+                self._shade_mode = 'dark'
+            else:
+                self._shade_mode = 'light'
+        else:
+            # 两段式：light -> dark -> light
+            self._shade_mode = 'dark' if self._shade_mode == 'light' else 'light'
         self._load_color_data()
 
     def _clear_color_cards(self):
@@ -416,12 +446,15 @@ class PresetColorSchemeCard(CardWidget):
             shade_text = "浅色组" if self._shade_mode == 'light' else "深色组"
             self.name_label.setText(f"{series_name} - {shade_text}")
 
+            # 根据总颜色数决定每段显示数量，尽量平均分配
+            half_count = total_colors // 2
+
             if self._shade_mode == 'light':
-                # 浅色组: 索引 0-4
-                colors = [colors_dict.get(i, '') for i in range(min(5, total_colors))]
+                # 浅色组: 索引 0 到 half_count-1
+                colors = [colors_dict.get(i, '') for i in range(min(half_count, total_colors))]
             else:
-                # 深色组: 索引 5-9
-                colors = [colors_dict.get(i, '') for i in range(5, min(10, total_colors))]
+                # 深色组: 索引 half_count 到末尾
+                colors = [colors_dict.get(i, '') for i in range(half_count, total_colors)]
 
         elif self._series_type == 'diverging':
             # 发散色：左半部分/右半部分（以中间为界）
@@ -436,6 +469,53 @@ class PresetColorSchemeCard(CardWidget):
                 # 右半部分
                 shade_text = "右半"
                 colors = [colors_dict.get(i, '') for i in range(half_index, total_colors)]
+
+            self.name_label.setText(f"{series_name} - {shade_text}")
+
+        elif self._series_type == 'quad':
+            # 四段式：第一段/第二段/第三段/第四段（每段6个颜色）
+            series_name = self._series_data.get('name', '未命名')
+
+            if self._shade_mode == 'light':
+                # 第一段：索引 0-5
+                shade_text = "第一段"
+                colors = [colors_dict.get(i, '') for i in range(0, 6)]
+            elif self._shade_mode == 'medium':
+                # 第二段：索引 6-11
+                shade_text = "第二段"
+                colors = [colors_dict.get(i, '') for i in range(6, 12)]
+            elif self._shade_mode == 'dark':
+                # 第三段：索引 12-17
+                shade_text = "第三段"
+                colors = [colors_dict.get(i, '') for i in range(12, 18)]
+            else:  # ultra_dark
+                # 第四段：索引 18-23
+                shade_text = "第四段"
+                colors = [colors_dict.get(i, '') for i in range(18, 24)]
+
+            self.name_label.setText(f"{series_name} - {shade_text}")
+
+        elif self._series_type == 'triple':
+            # 三段式：前半/中间/后半（每行最多显示5个颜色）
+            series_name = self._series_data.get('name', '未命名')
+
+            # 计算三段的分割点，尽量平均分配
+            segment_size = total_colors // 3
+            first_end = segment_size
+            second_end = segment_size * 2
+
+            if self._shade_mode == 'light':
+                # 前半部分
+                shade_text = "前半"
+                colors = [colors_dict.get(i, '') for i in range(first_end)]
+            elif self._shade_mode == 'medium':
+                # 中间部分
+                shade_text = "中间"
+                colors = [colors_dict.get(i, '') for i in range(first_end, second_end)]
+            else:  # dark
+                # 后半部分
+                shade_text = "后半"
+                colors = [colors_dict.get(i, '') for i in range(second_end, total_colors)]
 
             self.name_label.setText(f"{series_name} - {shade_text}")
 
@@ -786,6 +866,34 @@ class PresetColorList(QWidget):
                 self._load_dracula_series(all_series)
             else:
                 self._load_dracula_series(data)
+        elif source == 'rose_pine':
+            if data is None:
+                # 默认加载所有 Rose Pine 颜色系列
+                all_series = get_rose_pine_color_series_names()
+                self._load_rose_pine_series(all_series)
+            else:
+                self._load_rose_pine_series(data)
+        elif source == 'solarized':
+            if data is None:
+                # 默认加载所有 Solarized 颜色系列
+                all_series = get_solarized_color_series_names()
+                self._load_solarized_series(all_series)
+            else:
+                self._load_solarized_series(data)
+        elif source == 'catppuccin':
+            if data is None:
+                # 默认加载所有 Catppuccin 颜色系列
+                all_series = get_catppuccin_color_series_names()
+                self._load_catppuccin_series(all_series)
+            else:
+                self._load_catppuccin_series(data)
+        elif source == 'gruvbox':
+            if data is None:
+                # 默认加载所有 Gruvbox 颜色系列
+                all_series = get_gruvbox_color_series_names()
+                self._load_gruvbox_series(all_series)
+            else:
+                self._load_gruvbox_series(data)
 
     def _load_open_color_groups(self, series_keys: list):
         """加载指定分组的 Open Color 颜色系列
@@ -918,6 +1026,86 @@ class PresetColorList(QWidget):
 
         for series_key in series_keys:
             series_data = get_dracula_color_series(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_rose_pine_series(self, series_keys: list):
+        """加载指定分组的 Rose Pine 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'rose_pine'
+
+        for series_key in series_keys:
+            series_data = get_rose_pine_color_series(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_solarized_series(self, series_keys: list):
+        """加载指定分组的 Solarized 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'solarized'
+
+        for series_key in series_keys:
+            series_data = get_solarized_color_series(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_catppuccin_series(self, series_keys: list):
+        """加载指定分组的 Catppuccin 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'catppuccin'
+
+        for series_key in series_keys:
+            series_data = get_catppuccin_color_series(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_gruvbox_series(self, series_keys: list):
+        """加载指定分组的 Gruvbox 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'gruvbox'
+
+        for series_key in series_keys:
+            series_data = get_gruvbox_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)

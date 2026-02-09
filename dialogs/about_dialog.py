@@ -269,6 +269,26 @@ class AboutDialog(QDialog):
     许可证：MIT License
     项目地址：https://draculatheme.com/
 
+  • 本程序内置色彩使用 Rosé Pine 配色方案
+    版权所有：Rosé Pine 团队
+    许可证：MIT License
+    项目地址：https://github.com/rose-pine/rose-pine-theme
+
+  • 本程序内置色彩使用 Solarized 配色方案
+    版权所有：Ethan Schoonover
+    许可证：MIT License
+    项目地址：https://github.com/altercation/solarized
+
+  • 本程序内置色彩使用 Catppuccin 配色方案
+    版权所有：Catppuccin 团队
+    许可证：MIT License
+    项目地址：https://github.com/catppuccin/catppuccin
+
+  • 本程序内置色彩使用 Gruvbox 配色方案
+    版权所有：Pavel Pertsev
+    许可证：MIT License
+    项目地址：https://github.com/morhetz/gruvbox
+
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt
