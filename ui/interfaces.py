@@ -1881,6 +1881,17 @@ class PresetColorInterface(QWidget):
         (["brown", "grey", "blue_grey"], "棕/灰组"),
     ]
 
+    # ColorBrewer 分组定义
+    COLORBREWER_GROUPS = [
+        (["brewer_blues", "brewer_greens", "brewer_greys", "brewer_oranges", "brewer_purples", "brewer_reds"], "顺序色-单色系"),
+        (["brewer_bugn", "brewer_bupu", "brewer_gnbu", "brewer_orrd", "brewer_pubu", "brewer_pubugn"], "顺序色-蓝绿紫"),
+        (["brewer_purd", "brewer_rdpu", "brewer_ylgn", "brewer_ylgnbu", "brewer_ylorbr", "brewer_ylorrd"], "顺序色-暖色系"),
+        (["brewer_brbg", "brewer_piyg", "brewer_prgn", "brewer_puor", "brewer_rdbu"], "发散色-对比"),
+        (["brewer_rdgy", "brewer_rdylbu", "brewer_rdylgn", "brewer_spectral"], "发散色-光谱"),
+        (["brewer_set1", "brewer_set2", "brewer_set3", "brewer_paired", "brewer_dark2", "brewer_accent"], "定性色-分类"),
+        (["brewer_pastel1", "brewer_pastel2"], "定性色-粉彩"),
+    ]
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('presetColorInterface')
@@ -1929,6 +1940,8 @@ class PresetColorInterface(QWidget):
         self.source_combo.setItemData(2, "material")
         self.source_combo.addItem("Nice Palettes 配色")
         self.source_combo.setItemData(3, "nice_palette")
+        self.source_combo.addItem("ColorBrewer 配色")
+        self.source_combo.setItemData(4, "colorbrewer")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
@@ -1984,6 +1997,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.addItem(name)
             self.group_combo.setItemData(i, i)
 
+    def _setup_colorbrewer_group_combo(self):
+        """设置 ColorBrewer 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.COLORBREWER_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
     def _on_source_changed(self, index):
         """数据源切换回调"""
         source = self.source_combo.currentData()
@@ -2017,6 +2037,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.setCurrentIndex(0)
             series_keys = self.MATERIAL_GROUPS[0][0]
             self.preset_color_list.set_data_source('material', series_keys)
+        elif source == 'colorbrewer':
+            self.desc_label.setText("基于 ColorBrewer 专业配色方案")
+            self._setup_colorbrewer_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.COLORBREWER_GROUPS[0][0]
+            self.preset_color_list.set_data_source('colorbrewer', series_keys)
 
     def _on_group_changed(self, index):
         """分组切换回调"""
@@ -2040,6 +2067,10 @@ class PresetColorInterface(QWidget):
             if 0 <= index < len(self.MATERIAL_GROUPS):
                 series_keys = self.MATERIAL_GROUPS[index][0]
                 self.preset_color_list.set_data_source('material', series_keys)
+        elif self._current_source == 'colorbrewer':
+            if 0 <= index < len(self.COLORBREWER_GROUPS):
+                series_keys = self.COLORBREWER_GROUPS[index][0]
+                self.preset_color_list.set_data_source('colorbrewer', series_keys)
 
     def _load_settings(self):
         """加载显示设置"""

@@ -1175,6 +1175,18 @@ You may add Your own copyright statement to Your modifications and may provide a
 END OF TERMS AND CONDITIONS
 
 ================================================================================
+10. ColorBrewer (Apache License 2.0)
+--------------------------------------------------------------------------------
+版权所有：Cynthia Brewer
+项目地址：https://colorbrewer2.org/
+许可证：Apache License 2.0
+用途：内置色彩配色方案
+
+说明：
+ColorBrewer 使用 Apache License 2.0 许可证。完整的许可证文本请参考
+Material Design Colors 章节中的 "Apache License Version 2.0" 部分。
+
+================================================================================
 开发工具链许可证
 --------------------------------------------------------------------------------
 本项目在开发过程中使用了以下工具：
