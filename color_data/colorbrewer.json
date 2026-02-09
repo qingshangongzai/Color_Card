@@ -1,0 +1,564 @@
+{
+  "version": "1.0",
+  "source": "ColorBrewer",
+  "url": "https://colorbrewer2.org/",
+  "license": "Apache-2.0",
+  "colors": {
+    "brewer_blues": {
+      "name": "布鲁斯蓝",
+      "name_en": "Blues",
+      "type": "sequential",
+      "colors": {
+        "0": "#f7fbff",
+        "1": "#deebf7",
+        "2": "#c6dbef",
+        "3": "#9ecae1",
+        "4": "#6baed6",
+        "5": "#4292c6",
+        "6": "#2171b5",
+        "7": "#08519c",
+        "8": "#08306b"
+      }
+    },
+    "brewer_greens": {
+      "name": "格林绿",
+      "name_en": "Greens",
+      "type": "sequential",
+      "colors": {
+        "0": "#f7fcf5",
+        "1": "#e5f5e0",
+        "2": "#c7e9c0",
+        "3": "#a1d99b",
+        "4": "#74c476",
+        "5": "#41ab5d",
+        "6": "#238b45",
+        "7": "#006d2c",
+        "8": "#00441b"
+      }
+    },
+    "brewer_greys": {
+      "name": "格雷灰",
+      "name_en": "Greys",
+      "type": "sequential",
+      "colors": {
+        "0": "#ffffff",
+        "1": "#f0f0f0",
+        "2": "#d9d9d9",
+        "3": "#bdbdbd",
+        "4": "#969696",
+        "5": "#737373",
+        "6": "#525252",
+        "7": "#252525",
+        "8": "#000000"
+      }
+    },
+    "brewer_oranges": {
+      "name": "奥兰治橙",
+      "name_en": "Oranges",
+      "type": "sequential",
+      "colors": {
+        "0": "#fff5eb",
+        "1": "#fee6ce",
+        "2": "#fdd0a2",
+        "3": "#fdae6b",
+        "4": "#fd8d3c",
+        "5": "#f16913",
+        "6": "#d94801",
+        "7": "#a63603",
+        "8": "#7f2704"
+      }
+    },
+    "brewer_purples": {
+      "name": "珀尔普紫",
+      "name_en": "Purples",
+      "type": "sequential",
+      "colors": {
+        "0": "#fcfbfd",
+        "1": "#efedf5",
+        "2": "#dadaeb",
+        "3": "#bcbddc",
+        "4": "#9e9ac8",
+        "5": "#807dba",
+        "6": "#6a51a3",
+        "7": "#54278f",
+        "8": "#3f007d"
+      }
+    },
+    "brewer_reds": {
+      "name": "雷兹红",
+      "name_en": "Reds",
+      "type": "sequential",
+      "colors": {
+        "0": "#fff5f0",
+        "1": "#fee0d2",
+        "2": "#fcbba1",
+        "3": "#fc9272",
+        "4": "#fb6a4a",
+        "5": "#ef3b2c",
+        "6": "#cb181d",
+        "7": "#a50f15",
+        "8": "#67000d"
+      }
+    },
+    "brewer_bugn": {
+      "name": "蓝绿渐变",
+      "name_en": "BuGn",
+      "type": "sequential",
+      "colors": {
+        "0": "#f7fcfd",
+        "1": "#e5f5f9",
+        "2": "#ccece6",
+        "3": "#99d8c9",
+        "4": "#66c2a4",
+        "5": "#41ae76",
+        "6": "#238b45",
+        "7": "#006d2c",
+        "8": "#00441b"
+      }
+    },
+    "brewer_bupu": {
+      "name": "蓝紫渐变",
+      "name_en": "BuPu",
+      "type": "sequential",
+      "colors": {
+        "0": "#f7fcfd",
+        "1": "#e0ecf4",
+        "2": "#bfd3e6",
+        "3": "#9ebcda",
+        "4": "#8c96c6",
+        "5": "#8c6bb1",
+        "6": "#88419d",
+        "7": "#810f7c",
+        "8": "#4d004b"
+      }
+    },
+    "brewer_gnbu": {
+      "name": "绿蓝渐变",
+      "name_en": "GnBu",
+      "type": "sequential",
+      "colors": {
+        "0": "#f7fcf0",
+        "1": "#e0f3db",
+        "2": "#ccebc5",
+        "3": "#a8ddb5",
+        "4": "#7bccc4",
+        "5": "#4eb3d3",
+        "6": "#2b8cbe",
+        "7": "#0868ac",
+        "8": "#084081"
+      }
+    },
+    "brewer_orrd": {
+      "name": "橙红渐变",
+      "name_en": "OrRd",
+      "type": "sequential",
+      "colors": {
+        "0": "#fff7ec",
+        "1": "#fee8c8",
+        "2": "#fdd49e",
+        "3": "#fdbb84",
+        "4": "#fc8d59",
+        "5": "#ef6548",
+        "6": "#d7301f",
+        "7": "#b30000",
+        "8": "#7f0000"
+      }
+    },
+    "brewer_pubu": {
+      "name": "紫蓝渐变",
+      "name_en": "PuBu",
+      "type": "sequential",
+      "colors": {
+        "0": "#fff7fb",
+        "1": "#ece7f2",
+        "2": "#d0d1e6",
+        "3": "#a6bddb",
+        "4": "#74a9cf",
+        "5": "#3690c0",
+        "6": "#0570b0",
+        "7": "#045a8d",
+        "8": "#023858"
+      }
+    },
+    "brewer_pubugn": {
+      "name": "紫蓝绿渐变",
+      "name_en": "PuBuGn",
+      "type": "sequential",
+      "colors": {
+        "0": "#fff7fb",
+        "1": "#ece2f0",
+        "2": "#d0d1e6",
+        "3": "#a6bddb",
+        "4": "#67a9cf",
+        "5": "#3690c0",
+        "6": "#02818a",
+        "7": "#016c59",
+        "8": "#014636"
+      }
+    },
+    "brewer_purd": {
+      "name": "紫红渐变",
+      "name_en": "PuRd",
+      "type": "sequential",
+      "colors": {
+        "0": "#f7f4f9",
+        "1": "#e7e1ef",
+        "2": "#d4b9da",
+        "3": "#c994c7",
+        "4": "#df65b0",
+        "5": "#e7298a",
+        "6": "#ce1256",
+        "7": "#980043",
+        "8": "#67001f"
+      }
+    },
+    "brewer_rdpu": {
+      "name": "红紫渐变",
+      "name_en": "RdPu",
+      "type": "sequential",
+      "colors": {
+        "0": "#fff7f3",
+        "1": "#fde0dd",
+        "2": "#fcc5c0",
+        "3": "#fa9fb5",
+        "4": "#f768a1",
+        "5": "#dd3497",
+        "6": "#ae017e",
+        "7": "#7a0177",
+        "8": "#49006a"
+      }
+    },
+    "brewer_ylgn": {
+      "name": "黄绿渐变",
+      "name_en": "YlGn",
+      "type": "sequential",
+      "colors": {
+        "0": "#ffffe5",
+        "1": "#f7fcb9",
+        "2": "#d9f0a3",
+        "3": "#addd8e",
+        "4": "#78c679",
+        "5": "#41ab5d",
+        "6": "#238443",
+        "7": "#006837",
+        "8": "#004529"
+      }
+    },
+    "brewer_ylgnbu": {
+      "name": "黄绿蓝渐变",
+      "name_en": "YlGnBu",
+      "type": "sequential",
+      "colors": {
+        "0": "#ffffd9",
+        "1": "#edf8b1",
+        "2": "#c7e9b4",
+        "3": "#7fcdbb",
+        "4": "#41b6c4",
+        "5": "#1d91c0",
+        "6": "#225ea8",
+        "7": "#253494",
+        "8": "#081d58"
+      }
+    },
+    "brewer_ylorbr": {
+      "name": "黄橙棕渐变",
+      "name_en": "YlOrBr",
+      "type": "sequential",
+      "colors": {
+        "0": "#ffffe5",
+        "1": "#fff7bc",
+        "2": "#fee391",
+        "3": "#fec44f",
+        "4": "#fe9929",
+        "5": "#ec7014",
+        "6": "#cc4c02",
+        "7": "#993404",
+        "8": "#662506"
+      }
+    },
+    "brewer_ylorrd": {
+      "name": "黄橙红渐变",
+      "name_en": "YlOrRd",
+      "type": "sequential",
+      "colors": {
+        "0": "#ffffcc",
+        "1": "#ffeda0",
+        "2": "#fed976",
+        "3": "#feb24c",
+        "4": "#fd8d3c",
+        "5": "#fc4e2a",
+        "6": "#e31a1c",
+        "7": "#bd0026",
+        "8": "#800026"
+      }
+    },
+    "brewer_brbg": {
+      "name": "棕青发散",
+      "name_en": "BrBG",
+      "type": "diverging",
+      "colors": {
+        "0": "#543005",
+        "1": "#8c510a",
+        "2": "#bf812d",
+        "3": "#dfc27d",
+        "4": "#f6e8c3",
+        "5": "#c7eae5",
+        "6": "#80cdc1",
+        "7": "#35978f",
+        "8": "#01665e"
+      }
+    },
+    "brewer_piyg": {
+      "name": "粉绿发散",
+      "name_en": "PiYG",
+      "type": "diverging",
+      "colors": {
+        "0": "#8e0152",
+        "1": "#c51b7d",
+        "2": "#de77ae",
+        "3": "#f1b6da",
+        "4": "#fde0ef",
+        "5": "#e6f5d0",
+        "6": "#b8e186",
+        "7": "#7fbc41",
+        "8": "#4d9221"
+      }
+    },
+    "brewer_prgn": {
+      "name": "紫绿发散",
+      "name_en": "PRGn",
+      "type": "diverging",
+      "colors": {
+        "0": "#40004b",
+        "1": "#762a83",
+        "2": "#9970ab",
+        "3": "#c2a5cf",
+        "4": "#e7d4e8",
+        "5": "#d9f0d3",
+        "6": "#a6dba0",
+        "7": "#5aae61",
+        "8": "#1b7837"
+      }
+    },
+    "brewer_puor": {
+      "name": "紫橙发散",
+      "name_en": "PuOr",
+      "type": "diverging",
+      "colors": {
+        "0": "#7f3b08",
+        "1": "#b35806",
+        "2": "#e08214",
+        "3": "#fdb863",
+        "4": "#fee0b6",
+        "5": "#d8daeb",
+        "6": "#b2abd2",
+        "7": "#8073ac",
+        "8": "#542788"
+      }
+    },
+    "brewer_rdbu": {
+      "name": "红蓝发散",
+      "name_en": "RdBu",
+      "type": "diverging",
+      "colors": {
+        "0": "#67001f",
+        "1": "#b2182b",
+        "2": "#d6604d",
+        "3": "#f4a582",
+        "4": "#fddbc7",
+        "5": "#d1e5f0",
+        "6": "#92c5de",
+        "7": "#4393c3",
+        "8": "#2166ac"
+      }
+    },
+    "brewer_rdgy": {
+      "name": "红灰发散",
+      "name_en": "RdGy",
+      "type": "diverging",
+      "colors": {
+        "0": "#67001f",
+        "1": "#b2182b",
+        "2": "#d6604d",
+        "3": "#f4a582",
+        "4": "#fddbc7",
+        "5": "#e0e0e0",
+        "6": "#bababa",
+        "7": "#878787",
+        "8": "#4d4d4d"
+      }
+    },
+    "brewer_rdylbu": {
+      "name": "红黄蓝发散",
+      "name_en": "RdYlBu",
+      "type": "diverging",
+      "colors": {
+        "0": "#a50026",
+        "1": "#d73027",
+        "2": "#f46d43",
+        "3": "#fdae61",
+        "4": "#fee090",
+        "5": "#e0f3f8",
+        "6": "#abd9e9",
+        "7": "#74add1",
+        "8": "#4575b4"
+      }
+    },
+    "brewer_rdylgn": {
+      "name": "红黄绿发散",
+      "name_en": "RdYlGn",
+      "type": "diverging",
+      "colors": {
+        "0": "#a50026",
+        "1": "#d73027",
+        "2": "#f46d43",
+        "3": "#fdae61",
+        "4": "#fee08b",
+        "5": "#d9ef8b",
+        "6": "#a6d96a",
+        "7": "#66bd63",
+        "8": "#1a9850"
+      }
+    },
+    "brewer_spectral": {
+      "name": "光谱色",
+      "name_en": "Spectral",
+      "type": "diverging",
+      "colors": {
+        "0": "#9e0142",
+        "1": "#d53e4f",
+        "2": "#f46d43",
+        "3": "#fdae61",
+        "4": "#fee08b",
+        "5": "#e6f598",
+        "6": "#abdda4",
+        "7": "#66c2a5",
+        "8": "#3288bd"
+      }
+    },
+    "brewer_set1": {
+      "name": "设置1",
+      "name_en": "Set1",
+      "type": "qualitative",
+      "colors": {
+        "0": "#e41a1c",
+        "1": "#377eb8",
+        "2": "#4daf4a",
+        "3": "#984ea3",
+        "4": "#ff7f00",
+        "5": "#ffff33",
+        "6": "#a65628",
+        "7": "#f781bf",
+        "8": "#999999"
+      }
+    },
+    "brewer_set2": {
+      "name": "设置2",
+      "name_en": "Set2",
+      "type": "qualitative",
+      "colors": {
+        "0": "#66c2a5",
+        "1": "#fc8d62",
+        "2": "#8da0cb",
+        "3": "#e78ac3",
+        "4": "#a6d854",
+        "5": "#ffd92f",
+        "6": "#e5c494",
+        "7": "#b3b3b3"
+      }
+    },
+    "brewer_set3": {
+      "name": "设置3",
+      "name_en": "Set3",
+      "type": "qualitative",
+      "colors": {
+        "0": "#8dd3c7",
+        "1": "#ffffb3",
+        "2": "#bebada",
+        "3": "#fb8072",
+        "4": "#80b1d3",
+        "5": "#fdb462",
+        "6": "#b3de69",
+        "7": "#fccde5",
+        "8": "#d9d9d9"
+      }
+    },
+    "brewer_paired": {
+      "name": "成对色",
+      "name_en": "Paired",
+      "type": "qualitative",
+      "colors": {
+        "0": "#a6cee3",
+        "1": "#1f78b4",
+        "2": "#b2df8a",
+        "3": "#33a02c",
+        "4": "#fb9a99",
+        "5": "#e31a1c",
+        "6": "#fdbf6f",
+        "7": "#ff7f00",
+        "8": "#cab2d6"
+      }
+    },
+    "brewer_dark2": {
+      "name": "深色2",
+      "name_en": "Dark2",
+      "type": "qualitative",
+      "colors": {
+        "0": "#1b9e77",
+        "1": "#d95f02",
+        "2": "#7570b3",
+        "3": "#e7298a",
+        "4": "#66a61e",
+        "5": "#e6ab02",
+        "6": "#a6761d",
+        "7": "#666666"
+      }
+    },
+    "brewer_accent": {
+      "name": "强调色",
+      "name_en": "Accent",
+      "type": "qualitative",
+      "colors": {
+        "0": "#7fc97f",
+        "1": "#beaed4",
+        "2": "#fdc086",
+        "3": "#ffff99",
+        "4": "#386cb0",
+        "5": "#f0027f",
+        "6": "#bf5b17",
+        "7": "#666666"
+      }
+    },
+    "brewer_pastel1": {
+      "name": "粉彩1",
+      "name_en": "Pastel1",
+      "type": "qualitative",
+      "colors": {
+        "0": "#fbb4ae",
+        "1": "#b3cde3",
+        "2": "#ccebc5",
+        "3": "#decbe4",
+        "4": "#fed9a6",
+        "5": "#ffffcc",
+        "6": "#e5d8bd",
+        "7": "#fddaec",
+        "8": "#f2f2f2"
+      }
+    },
+    "brewer_pastel2": {
+      "name": "粉彩2",
+      "name_en": "Pastel2",
+      "type": "qualitative",
+      "colors": {
+        "0": "#b3e2cd",
+        "1": "#fdcdac",
+        "2": "#cbd5e8",
+        "3": "#f4cae4",
+        "4": "#e6f5c9",
+        "5": "#fff2ae",
+        "6": "#f1e2cc",
+        "7": "#cccccc"
+      }
+    }
+  }
+}

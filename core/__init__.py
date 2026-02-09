@@ -39,8 +39,6 @@ from .config import ConfigManager, get_config_manager
 
 # 颜色数据模块
 from .color_data import (
-    OPEN_COLOR_DATA,
-    NICE_COLOR_PALETTES_DATA,
     get_color_series_names,
     get_color_series,
     get_light_shades,
@@ -92,8 +90,6 @@ __all__ = [
     'ConfigManager',
     'get_config_manager',
     # 颜色数据
-    'OPEN_COLOR_DATA',
-    'NICE_COLOR_PALETTES_DATA',
     'get_color_series_names',
     'get_color_series',
     'get_light_shades',

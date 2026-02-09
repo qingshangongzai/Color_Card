@@ -16,18 +16,18 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
 from core.color_data import (
-    OPEN_COLOR_DATA, get_color_series_names,
+    get_color_series_names, get_color_series,
     get_light_shades, get_dark_shades, get_color_series_name_mapping,
     get_nice_palette_count, get_nice_palette, get_random_nice_palette,
     get_nice_palettes_batch,
-    TAILWIND_COLOR_DATA, get_tailwind_color_series_names, get_tailwind_color_series,
-    MATERIAL_COLOR_DATA, get_material_color_series_names, get_material_color_series,
-    COLORBREWER_DATA, get_colorbrewer_series_names, get_colorbrewer_color_series,
+    get_tailwind_color_series_names, get_tailwind_color_series,
+    get_material_color_series_names, get_material_color_series,
+    get_colorbrewer_series_names, get_colorbrewer_color_series,
     get_colorbrewer_series_type,
-    RADIX_COLOR_DATA, get_radix_color_series_names, get_radix_color_series,
-    NORD_COLOR_DATA, get_nord_color_series_names, get_nord_color_series,
+    get_radix_color_series_names, get_radix_color_series,
+    get_nord_color_series_names, get_nord_color_series,
     get_nord_light_shades, get_nord_dark_shades,
-    DRACULA_COLOR_DATA, get_dracula_color_series_names, get_dracula_color_series,
+    get_dracula_color_series_names, get_dracula_color_series,
     get_dracula_light_shades, get_dracula_dark_shades
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
@@ -677,7 +677,7 @@ class PresetColorList(QWidget):
         series_names = get_color_series_names()
 
         for series_key in series_names:
-            series_data = OPEN_COLOR_DATA.get(series_key)
+            series_data = get_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -797,7 +797,7 @@ class PresetColorList(QWidget):
         self._current_source = 'open_color'
 
         for series_key in series_keys:
-            series_data = OPEN_COLOR_DATA.get(series_key)
+            series_data = get_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -817,7 +817,7 @@ class PresetColorList(QWidget):
         self._current_source = 'tailwind'
 
         for series_key in series_keys:
-            series_data = TAILWIND_COLOR_DATA.get(series_key)
+            series_data = get_tailwind_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -837,7 +837,7 @@ class PresetColorList(QWidget):
         self._current_source = 'material'
 
         for series_key in series_keys:
-            series_data = MATERIAL_COLOR_DATA.get(series_key)
+            series_data = get_material_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -857,7 +857,7 @@ class PresetColorList(QWidget):
         self._current_source = 'colorbrewer'
 
         for series_key in series_keys:
-            series_data = COLORBREWER_DATA.get(series_key)
+            series_data = get_colorbrewer_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -877,7 +877,7 @@ class PresetColorList(QWidget):
         self._current_source = 'radix'
 
         for series_key in series_keys:
-            series_data = RADIX_COLOR_DATA.get(series_key)
+            series_data = get_radix_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -897,7 +897,7 @@ class PresetColorList(QWidget):
         self._current_source = 'nord'
 
         for series_key in series_keys:
-            series_data = NORD_COLOR_DATA.get(series_key)
+            series_data = get_nord_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
@@ -917,7 +917,7 @@ class PresetColorList(QWidget):
         self._current_source = 'dracula'
 
         for series_key in series_keys:
-            series_data = DRACULA_COLOR_DATA.get(series_key)
+            series_data = get_dracula_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
