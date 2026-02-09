@@ -406,6 +406,19 @@ class MainWindow(FluentWindow):
         if hasattr(self, 'color_management_interface'):
             self.color_management_interface._load_favorites()
 
+    def _on_preset_color_favorite(self, favorite_data: dict):
+        """处理内置色彩界面的收藏请求
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
+        # 保存到配置
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新色彩管理界面
+        self.refresh_color_management()
+
     def _setup_fullscreen_shortcut(self):
         """设置 F11 快捷键切换全屏"""
         self.fullscreen_shortcut = QShortcut(QKeySequence("F11"), self)
@@ -487,6 +500,9 @@ class MainWindow(FluentWindow):
         self.settings_interface.color_modes_changed.connect(
             lambda modes: self.preset_color_interface.update_display_settings(color_modes=modes)
         )
+
+        # 连接内置色彩界面的收藏信号
+        self.preset_color_interface.favorite_requested.connect(self._on_preset_color_favorite)
 
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)

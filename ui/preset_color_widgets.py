@@ -1,4 +1,5 @@
 # 标准库导入
+import uuid
 from datetime import datetime
 
 # 第三方库导入
@@ -262,6 +263,8 @@ class PresetColorCard(QWidget):
 class PresetColorSchemeCard(CardWidget):
     """预设色彩方案卡片（展示一个颜色系列的色阶）"""
 
+    favorite_requested = Signal(dict)  # 信号：收藏数据字典
+
     def __init__(self, series_key: str, series_data: dict, parent=None):
         self._series_key = series_key
         self._series_data = series_data
@@ -323,6 +326,12 @@ class PresetColorSchemeCard(CardWidget):
             self.shade_toggle_btn.setVisible(False)
         header_layout.addWidget(self.shade_toggle_btn)
 
+        # 收藏按钮
+        self.favorite_btn = ToolButton(FluentIcon.HEART)
+        self.favorite_btn.setFixedSize(28, 28)
+        self.favorite_btn.clicked.connect(self._on_favorite_clicked)
+        header_layout.addWidget(self.favorite_btn)
+
         layout.addLayout(header_layout)
 
         # 色卡面板（水平布局容器）
@@ -360,6 +369,10 @@ class PresetColorSchemeCard(CardWidget):
                     background-color: rgba(128, 128, 128, 30);
                     border-radius: 4px;
                 }}
+                ToolButton:checked {{
+                    background-color: rgba(255, 100, 100, 50);
+                    border-radius: 4px;
+                }}
                 QToolTip {{
                     background-color: {card_bg.name()};
                     color: {name_color.name()};
@@ -368,6 +381,40 @@ class PresetColorSchemeCard(CardWidget):
                     padding: 4px 8px;
                 }}
             """)
+
+    def _on_favorite_clicked(self):
+        """收藏按钮点击处理"""
+        # 收集当前显示的所有颜色数据
+        colors = []
+        for card in self._color_cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            return
+
+        # 构建收藏数据
+        favorite_data = {
+            "id": str(uuid.uuid4()),
+            "name": self.name_label.text(),
+            "colors": colors,
+            "created_at": datetime.now().isoformat(),
+            "source": "preset_color"
+        }
+
+        # 发射信号通知主窗口处理收藏
+        self.favorite_requested.emit(favorite_data)
+
+        # 显示成功提示
+        InfoBar.success(
+            title="已收藏",
+            content=f"配色方案 '{favorite_data['name']}' 已添加到色彩管理",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
 
     def _on_toggle_shade_mode(self):
         """切换显示模式"""
@@ -693,6 +740,8 @@ class NicePaletteCard(CardWidget):
 class PresetColorList(QWidget):
     """预设色彩列表容器"""
 
+    favorite_requested = Signal(dict)  # 信号：收藏数据字典
+
     def __init__(self, parent=None):
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
@@ -762,6 +811,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -910,6 +960,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -930,6 +981,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -950,6 +1002,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -970,6 +1023,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -990,6 +1044,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1010,6 +1065,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1030,6 +1086,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1050,6 +1107,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1070,6 +1128,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1090,6 +1149,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1110,6 +1170,7 @@ class PresetColorList(QWidget):
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 

@@ -1853,6 +1853,8 @@ class ColorManagementInterface(QWidget):
 class PresetColorInterface(QWidget):
     """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors、Material Design、ColorBrewer 和 Radix Colors）"""
 
+    favorite_requested = Signal(dict)  # 信号：收藏数据字典
+
     # 每组显示的配色方案数量
     PALETTES_PER_GROUP = 50
 
@@ -2021,6 +2023,7 @@ class PresetColorInterface(QWidget):
 
         # 预设色彩列表
         self.preset_color_list = PresetColorList(self)
+        self.preset_color_list.favorite_requested.connect(self.favorite_requested)
         layout.addWidget(self.preset_color_list, stretch=1)
 
         # 初始化分组下拉列表
