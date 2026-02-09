@@ -101,7 +101,6 @@ class ColorManagementColorCard(QWidget):
         hex_layout.addWidget(self.copy_button)
 
         layout.addWidget(self.hex_container)
-        layout.addStretch()
 
     def _update_placeholder_style(self):
         """更新占位符样式"""
