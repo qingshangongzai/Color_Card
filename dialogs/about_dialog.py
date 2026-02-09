@@ -244,6 +244,11 @@ class AboutDialog(QDialog):
     许可证：MIT License
     项目地址：https://github.com/tailwindlabs/tailwindcss
 
+  • 本程序内置色彩使用 Material Design Colors 配色方案
+    版权所有：Google LLC
+    许可证：Apache License 2.0
+    项目地址：https://m3.material.io/styles/color/system/overview
+
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt

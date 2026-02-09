@@ -1254,3 +1254,384 @@ def get_tailwind_selected_shades(series_name):
 def get_tailwind_color_series_name_mapping():
     """获取 Tailwind 颜色系列名称的中英文映射"""
     return {key: value["name"] for key, value in TAILWIND_COLOR_DATA.items()}
+
+
+# Material Design Colors 颜色数据
+# 基于 Google Material Design 配色方案
+# 许可证: Apache 2.0
+MATERIAL_COLOR_DATA = {
+    "red": {
+        "name": "红色",
+        "name_en": "Red",
+        "colors": {
+            0: "#ffebee",   # 50
+            1: "#ffcdd2",   # 100
+            2: "#ef9a9a",   # 200
+            3: "#e57373",   # 300
+            4: "#ef5350",   # 400
+            5: "#f44336",   # 500
+            6: "#e53935",   # 600
+            7: "#d32f2f",   # 700
+            8: "#c62828",   # 800
+            9: "#b71c1c",   # 900
+        }
+    },
+    "pink": {
+        "name": "粉色",
+        "name_en": "Pink",
+        "colors": {
+            0: "#fce4ec",
+            1: "#f8bbd9",
+            2: "#f48fb1",
+            3: "#f06292",
+            4: "#ec407a",
+            5: "#e91e63",
+            6: "#d81b60",
+            7: "#c2185b",
+            8: "#ad1457",
+            9: "#880e4f",
+        }
+    },
+    "purple": {
+        "name": "紫色",
+        "name_en": "Purple",
+        "colors": {
+            0: "#f3e5f5",
+            1: "#e1bee7",
+            2: "#ce93d8",
+            3: "#ba68c8",
+            4: "#ab47bc",
+            5: "#9c27b0",
+            6: "#8e24aa",
+            7: "#7b1fa2",
+            8: "#6a1b9a",
+            9: "#4a148c",
+        }
+    },
+    "deep_purple": {
+        "name": "深紫色",
+        "name_en": "Deep Purple",
+        "colors": {
+            0: "#ede7f6",
+            1: "#d1c4e9",
+            2: "#b39ddb",
+            3: "#9575cd",
+            4: "#7e57c2",
+            5: "#673ab7",
+            6: "#5e35b1",
+            7: "#512da8",
+            8: "#4527a0",
+            9: "#311b92",
+        }
+    },
+    "indigo": {
+        "name": "靛蓝色",
+        "name_en": "Indigo",
+        "colors": {
+            0: "#e8eaf6",
+            1: "#c5cae9",
+            2: "#9fa8da",
+            3: "#7986cb",
+            4: "#5c6bc0",
+            5: "#3f51b5",
+            6: "#3949ab",
+            7: "#303f9f",
+            8: "#283593",
+            9: "#1a237e",
+        }
+    },
+    "blue": {
+        "name": "蓝色",
+        "name_en": "Blue",
+        "colors": {
+            0: "#e3f2fd",
+            1: "#bbdefb",
+            2: "#90caf9",
+            3: "#64b5f6",
+            4: "#42a5f5",
+            5: "#2196f3",
+            6: "#1e88e5",
+            7: "#1976d2",
+            8: "#1565c0",
+            9: "#0d47a1",
+        }
+    },
+    "light_blue": {
+        "name": "浅蓝色",
+        "name_en": "Light Blue",
+        "colors": {
+            0: "#e1f5fe",
+            1: "#b3e5fc",
+            2: "#81d4fa",
+            3: "#4fc3f7",
+            4: "#29b6f6",
+            5: "#03a9f4",
+            6: "#039be5",
+            7: "#0288d1",
+            8: "#0277bd",
+            9: "#01579b",
+        }
+    },
+    "cyan": {
+        "name": "青色",
+        "name_en": "Cyan",
+        "colors": {
+            0: "#e0f7fa",
+            1: "#b2ebf2",
+            2: "#80deea",
+            3: "#4dd0e1",
+            4: "#26c6da",
+            5: "#00bcd4",
+            6: "#00acc1",
+            7: "#0097a7",
+            8: "#00838f",
+            9: "#006064",
+        }
+    },
+    "teal": {
+        "name": "蓝绿色",
+        "name_en": "Teal",
+        "colors": {
+            0: "#e0f2f1",
+            1: "#b2dfdb",
+            2: "#80cbc4",
+            3: "#4db6ac",
+            4: "#26a69a",
+            5: "#009688",
+            6: "#00897b",
+            7: "#00796b",
+            8: "#00695c",
+            9: "#004d40",
+        }
+    },
+    "green": {
+        "name": "绿色",
+        "name_en": "Green",
+        "colors": {
+            0: "#e8f5e9",
+            1: "#c8e6c9",
+            2: "#a5d6a7",
+            3: "#81c784",
+            4: "#66bb6a",
+            5: "#4caf50",
+            6: "#43a047",
+            7: "#388e3c",
+            8: "#2e7d32",
+            9: "#1b5e20",
+        }
+    },
+    "light_green": {
+        "name": "浅绿色",
+        "name_en": "Light Green",
+        "colors": {
+            0: "#f1f8e9",
+            1: "#dcedc8",
+            2: "#c5e1a5",
+            3: "#aed581",
+            4: "#9ccc65",
+            5: "#8bc34a",
+            6: "#7cb342",
+            7: "#689f38",
+            8: "#558b2f",
+            9: "#33691e",
+        }
+    },
+    "lime": {
+        "name": "柠檬绿",
+        "name_en": "Lime",
+        "colors": {
+            0: "#f9fbe7",
+            1: "#f0f4c3",
+            2: "#e6ee9c",
+            3: "#dce775",
+            4: "#d4e157",
+            5: "#cddc39",
+            6: "#c0ca33",
+            7: "#afb42b",
+            8: "#9e9d24",
+            9: "#827717",
+        }
+    },
+    "yellow": {
+        "name": "黄色",
+        "name_en": "Yellow",
+        "colors": {
+            0: "#fffde7",
+            1: "#fff9c4",
+            2: "#fff59d",
+            3: "#fff176",
+            4: "#ffee58",
+            5: "#ffeb3b",
+            6: "#fdd835",
+            7: "#fbc02d",
+            8: "#f9a825",
+            9: "#f57f17",
+        }
+    },
+    "amber": {
+        "name": "琥珀色",
+        "name_en": "Amber",
+        "colors": {
+            0: "#fff8e1",
+            1: "#ffecb3",
+            2: "#ffe082",
+            3: "#ffd54f",
+            4: "#ffca28",
+            5: "#ffc107",
+            6: "#ffb300",
+            7: "#ffa000",
+            8: "#ff8f00",
+            9: "#ff6f00",
+        }
+    },
+    "orange": {
+        "name": "橙色",
+        "name_en": "Orange",
+        "colors": {
+            0: "#fff3e0",
+            1: "#ffe0b2",
+            2: "#ffcc80",
+            3: "#ffb74d",
+            4: "#ffa726",
+            5: "#ff9800",
+            6: "#fb8c00",
+            7: "#f57c00",
+            8: "#ef6c00",
+            9: "#e65100",
+        }
+    },
+    "deep_orange": {
+        "name": "深橙色",
+        "name_en": "Deep Orange",
+        "colors": {
+            0: "#fbe9e7",
+            1: "#ffccbc",
+            2: "#ffab91",
+            3: "#ff8a65",
+            4: "#ff7043",
+            5: "#ff5722",
+            6: "#f4511e",
+            7: "#e64a19",
+            8: "#d84315",
+            9: "#bf360c",
+        }
+    },
+    "brown": {
+        "name": "棕色",
+        "name_en": "Brown",
+        "colors": {
+            0: "#efebe9",
+            1: "#d7ccc8",
+            2: "#bcaaa4",
+            3: "#a1887f",
+            4: "#8d6e63",
+            5: "#795548",
+            6: "#6d4c41",
+            7: "#5d4037",
+            8: "#4e342e",
+            9: "#3e2723",
+        }
+    },
+    "grey": {
+        "name": "灰色",
+        "name_en": "Grey",
+        "colors": {
+            0: "#fafafa",
+            1: "#f5f5f5",
+            2: "#eeeeee",
+            3: "#e0e0e0",
+            4: "#bdbdbd",
+            5: "#9e9e9e",
+            6: "#757575",
+            7: "#616161",
+            8: "#424242",
+            9: "#212121",
+        }
+    },
+    "blue_grey": {
+        "name": "蓝灰色",
+        "name_en": "Blue Grey",
+        "colors": {
+            0: "#eceff1",
+            1: "#cfd8dc",
+            2: "#b0bec5",
+            3: "#90a4ae",
+            4: "#78909c",
+            5: "#607d8b",
+            6: "#546e7a",
+            7: "#455a64",
+            8: "#37474f",
+            9: "#263238",
+        }
+    },
+}
+
+
+# ===== Material Design Colors 相关函数 =====
+
+def get_material_color_series_names():
+    """获取所有 Material Design 颜色系列名称列表"""
+    return list(MATERIAL_COLOR_DATA.keys())
+
+
+def get_material_color_series(series_name):
+    """获取指定 Material Design 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'blue', 'red' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return MATERIAL_COLOR_DATA.get(series_name, None)
+
+
+def get_material_light_shades(series_name):
+    """获取指定 Material Design 颜色系列的浅色组 (0-4)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 5个浅色色值列表
+    """
+    series = MATERIAL_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(5)]
+
+
+def get_material_dark_shades(series_name):
+    """获取指定 Material Design 颜色系列的深色组 (5-9)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 5个深色色值列表
+    """
+    series = MATERIAL_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(5, 10)]
+
+
+def get_material_selected_shades(series_name):
+    """获取指定 Material Design 颜色系列的精选5色 (0, 2, 4, 6, 9)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 5个精选色值列表
+    """
+    series = MATERIAL_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    selected_indices = [0, 2, 4, 6, 9]
+    return [series["colors"][i] for i in selected_indices]
+
+
+def get_material_color_series_name_mapping():
+    """获取 Material Design 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in MATERIAL_COLOR_DATA.items()}

@@ -1851,7 +1851,7 @@ class ColorManagementInterface(QWidget):
 
 
 class PresetColorInterface(QWidget):
-    """内置色彩界面（支持 Open Color、Nice Color Palettes 和 Tailwind Colors）"""
+    """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors 和 Material Design）"""
 
     # 每组显示的配色方案数量
     PALETTES_PER_GROUP = 50
@@ -1870,6 +1870,15 @@ class PresetColorInterface(QWidget):
         (["lime", "green", "emerald", "teal"], "绿色系"),
         (["cyan", "sky", "blue", "indigo"], "青蓝色系"),
         (["violet", "purple", "fuchsia", "pink", "rose"], "紫色系"),
+    ]
+
+    # Material Design Colors 分组定义
+    MATERIAL_GROUPS = [
+        (["red", "pink", "purple", "deep_purple"], "红/粉/紫组"),
+        (["indigo", "blue", "light_blue", "cyan"], "蓝/青组"),
+        (["teal", "green", "light_green", "lime"], "绿色系"),
+        (["yellow", "amber", "orange", "deep_orange"], "黄/橙组"),
+        (["brown", "grey", "blue_grey"], "棕/灰组"),
     ]
 
     def __init__(self, parent=None):
@@ -1916,8 +1925,10 @@ class PresetColorInterface(QWidget):
         self.source_combo.setItemData(0, "open_color")
         self.source_combo.addItem("Tailwind Colors 配色")
         self.source_combo.setItemData(1, "tailwind")
+        self.source_combo.addItem("Material Design 配色")
+        self.source_combo.setItemData(2, "material")
         self.source_combo.addItem("Nice Palettes 配色")
-        self.source_combo.setItemData(2, "nice_palette")
+        self.source_combo.setItemData(3, "nice_palette")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
@@ -1966,6 +1977,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.addItem(name)
             self.group_combo.setItemData(i, i)
 
+    def _setup_material_group_combo(self):
+        """设置 Material Design Colors 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.MATERIAL_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
     def _on_source_changed(self, index):
         """数据源切换回调"""
         source = self.source_combo.currentData()
@@ -1992,6 +2010,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.setCurrentIndex(0)
             series_keys = self.TAILWIND_GROUPS[0][0]
             self.preset_color_list.set_data_source('tailwind', series_keys)
+        elif source == 'material':
+            self.desc_label.setText("基于 Google Material Design 配色方案")
+            self._setup_material_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.MATERIAL_GROUPS[0][0]
+            self.preset_color_list.set_data_source('material', series_keys)
 
     def _on_group_changed(self, index):
         """分组切换回调"""
@@ -2011,6 +2036,10 @@ class PresetColorInterface(QWidget):
             if 0 <= index < len(self.TAILWIND_GROUPS):
                 series_keys = self.TAILWIND_GROUPS[index][0]
                 self.preset_color_list.set_data_source('tailwind', series_keys)
+        elif self._current_source == 'material':
+            if 0 <= index < len(self.MATERIAL_GROUPS):
+                series_keys = self.MATERIAL_GROUPS[index][0]
+                self.preset_color_list.set_data_source('material', series_keys)
 
     def _load_settings(self):
         """加载显示设置"""
