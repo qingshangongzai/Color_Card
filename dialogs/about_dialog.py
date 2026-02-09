@@ -259,6 +259,16 @@ class AboutDialog(QDialog):
     许可证：MIT License
     项目地址：https://www.radix-ui.com/colors
 
+  • 本程序内置色彩使用 Nord 配色方案
+    版权所有：Sven Greb
+    许可证：MIT License
+    项目地址：https://github.com/arcticicestudio/nord
+
+  • 本程序内置色彩使用 Dracula 配色方案
+    版权所有：Dracula Theme contributors
+    许可证：MIT License
+    项目地址：https://draculatheme.com/
+
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt

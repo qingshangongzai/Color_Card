@@ -24,7 +24,11 @@ from core.color_data import (
     MATERIAL_COLOR_DATA, get_material_color_series_names, get_material_color_series,
     COLORBREWER_DATA, get_colorbrewer_series_names, get_colorbrewer_color_series,
     get_colorbrewer_series_type,
-    RADIX_COLOR_DATA, get_radix_color_series_names, get_radix_color_series
+    RADIX_COLOR_DATA, get_radix_color_series_names, get_radix_color_series,
+    NORD_COLOR_DATA, get_nord_color_series_names, get_nord_color_series,
+    get_nord_light_shades, get_nord_dark_shades,
+    DRACULA_COLOR_DATA, get_dracula_color_series_names, get_dracula_color_series,
+    get_dracula_light_shades, get_dracula_dark_shades
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
@@ -275,6 +279,9 @@ class PresetColorSchemeCard(CardWidget):
         # 检查是否是ColorBrewer系列
         if self._series_key.startswith('brewer_'):
             return get_colorbrewer_series_type(self._series_key) or 'sequential'
+        # Nord 和 Dracula 使用单组模式（不区分浅色/深色组）
+        if self._series_key.startswith(('nord', 'dracula')):
+            return 'single'
         # 其他配色方案默认为顺序色
         return 'sequential'
 
@@ -297,10 +304,13 @@ class PresetColorSchemeCard(CardWidget):
 
         header_layout.addStretch()
 
-        # 色阶切换按钮
+        # 色阶切换按钮（单组模式不显示）
         self.shade_toggle_btn = ToolButton(FluentIcon.CONNECT)
         self.shade_toggle_btn.setFixedSize(28, 28)
         self.shade_toggle_btn.clicked.connect(self._on_toggle_shade_mode)
+        # 单组模式隐藏切换按钮
+        if self._series_type == 'single':
+            self.shade_toggle_btn.setVisible(False)
         header_layout.addWidget(self.shade_toggle_btn)
 
         layout.addLayout(header_layout)
@@ -394,7 +404,13 @@ class PresetColorSchemeCard(CardWidget):
         total_colors = len(colors_dict)
 
         # 根据配色类型决定显示逻辑
-        if self._series_type == 'sequential':
+        if self._series_type == 'single':
+            # 单组模式：直接显示所有颜色（用于 Nord、Dracula 等）
+            series_name = self._series_data.get('name', '未命名')
+            self.name_label.setText(series_name)
+            # 显示所有颜色
+            colors = [colors_dict.get(i, '') for i in range(total_colors)]
+        elif self._series_type == 'sequential':
             # 顺序色：浅色组/深色组
             series_name = self._series_data.get('name', '未命名')
             shade_text = "浅色组" if self._shade_mode == 'light' else "深色组"
@@ -756,6 +772,20 @@ class PresetColorList(QWidget):
                 self._load_radix_series(all_series)
             else:
                 self._load_radix_series(data)
+        elif source == 'nord':
+            if data is None:
+                # 默认加载所有 Nord 颜色系列
+                all_series = get_nord_color_series_names()
+                self._load_nord_series(all_series)
+            else:
+                self._load_nord_series(data)
+        elif source == 'dracula':
+            if data is None:
+                # 默认加载所有 Dracula 颜色系列
+                all_series = get_dracula_color_series_names()
+                self._load_dracula_series(all_series)
+            else:
+                self._load_dracula_series(data)
 
     def _load_open_color_groups(self, series_keys: list):
         """加载指定分组的 Open Color 颜色系列
@@ -848,6 +878,46 @@ class PresetColorList(QWidget):
 
         for series_key in series_keys:
             series_data = RADIX_COLOR_DATA.get(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_nord_series(self, series_keys: list):
+        """加载指定分组的 Nord 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'nord'
+
+        for series_key in series_keys:
+            series_data = NORD_COLOR_DATA.get(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_dracula_series(self, series_keys: list):
+        """加载指定分组的 Dracula 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'dracula'
+
+        for series_key in series_keys:
+            series_data = DRACULA_COLOR_DATA.get(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)

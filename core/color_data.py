@@ -2919,3 +2919,379 @@ def get_radix_selected_shades(series_name):
 def get_radix_color_series_name_mapping():
     """获取 Radix Colors 颜色系列名称的中英文映射"""
     return {key: value["name"] for key, value in RADIX_COLOR_DATA.items()}
+
+# Nord 主题颜色数据
+NORD_COLOR_DATA = {
+    "nord0": {
+        "name": "北极黑",
+        "name_en": "Polar Night",
+        "colors": {
+            0: "#2E3440",
+            1: "#3B4252",
+            2: "#434C5E",
+            3: "#4C566A"
+        }
+    },
+    "nord1": {
+        "name": "雪暴",
+        "name_en": "Snow Storm",
+        "colors": {
+            0: "#D8DEE9",
+            1: "#E5E9F0",
+            2: "#ECEFF4",
+            3: "#D8DEE9"
+        }
+    },
+    "nord2": {
+        "name": "霜冻",
+        "name_en": "Frost",
+        "colors": {
+            0: "#A3BE8C",
+            1: "#94E2D5",
+            2: "#81A1C1",
+            3: "#8FBCBB"
+        }
+    },
+    "nord3": {
+        "name": "北极光",
+        "name_en": "Aurora",
+        "colors": {
+            0: "#88C0D0",
+            1: "#81A1C1",
+            2: "#5E81AC",
+            3: "#EBCB8B"
+        }
+    },
+    "nord4": {
+        "name": "北风",
+        "name_en": "Nord",
+        "colors": {
+            0: "#5E81AC",
+            1: "#81A1C1",
+            2: "#88C0D0",
+            3: "#8FBCBB"
+        }
+    },
+    "nord5": {
+        "name": "北极星",
+        "name_en": "Polar Star",
+        "colors": {
+            0: "#ECEFF4",
+            1: "#8FBCBB",
+            2: "#88C0D0",
+            3: "#81A1C1"
+        }
+    },
+    "nord6": {
+        "name": "冰川蓝",
+        "name_en": "Glacier Blue",
+        "colors": {
+            0: "#81A1C1",
+            1: "#88C0D0",
+            2: "#8FBCBB",
+            3: "#5E81AC"
+        }
+    },
+    "nord7": {
+        "name": "北极绿",
+        "name_en": "Arctic Green",
+        "colors": {
+            0: "#8FBCBB",
+            1: "#88C0D0",
+            2: "#81A1C1",
+            3: "#A3BE8C"
+        }
+    },
+    "nord8": {
+        "name": "极夜",
+        "name_en": "Night Owl",
+        "colors": {
+            0: "#4C566A",
+            1: "#434C5E",
+            2: "#3B4252",
+            3: "#2E3440"
+        }
+    },
+    "nord9": {
+        "name": "深海",
+        "name_en": "Deep Ocean",
+        "colors": {
+            0: "#434C5E",
+            1: "#3B4252",
+            2: "#2E3440",
+            3: "#242931"
+        }
+    },
+    "nord10": {
+        "name": "极光",
+        "name_en": "Aurora",
+        "colors": {
+            0: "#88C0D0",
+            1: "#81A1C1",
+            2: "#5E81AC",
+            3: "#EBCB8B"
+        }
+    },
+    "nord11": {
+        "name": "北极光",
+        "name_en": "Polar Light",
+        "colors": {
+            0: "#ECEFF4",
+            1: "#D8DEE9",
+            2: "#E5E9F0",
+            3: "#D8DEE9"
+        }
+    },
+    "nord12": {
+        "name": "冰河",
+        "name_en": "Ice River",
+        "colors": {
+            0: "#8FBCBB",
+            1: "#88C0D0",
+            2: "#81A1C1",
+            3: "#A3BE8C"
+        }
+    },
+    "nord13": {
+        "name": "北极蓝",
+        "name_en": "Arctic Blue",
+        "colors": {
+            0: "#5E81AC",
+            1: "#81A1C1",
+            2: "#88C0D0",
+            3: "#8FBCBB"
+        }
+    },
+    "nord14": {
+        "name": "霜白",
+        "name_en": "Frost White",
+        "colors": {
+            0: "#D8DEE9",
+            1: "#E5E9F0",
+            2: "#ECEFF4",
+            3: "#D8DEE9"
+        }
+    },
+    "nord15": {
+        "name": "北极白",
+        "name_en": "Arctic White",
+        "colors": {
+            0: "#ECEFF4",
+            1: "#D8DEE9",
+            2: "#E5E9F0",
+            3: "#D8DEE9"
+        }
+    }
+}
+
+# Dracula 主题颜色数据
+DRACULA_COLOR_DATA = {
+    "dracula_bg": {
+        "name": "背景色",
+        "name_en": "Background",
+        "colors": {
+            0: "#282a36",
+            1: "#282a36",
+            2: "#282a36",
+            3: "#282a36"
+        }
+    },
+    "dracula_current_line": {
+        "name": "当前行",
+        "name_en": "Current Line",
+        "colors": {
+            0: "#44475a",
+            1: "#44475a",
+            2: "#44475a",
+            3: "#44475a"
+        }
+    },
+    "dracula_foreground": {
+        "name": "前景色",
+        "name_en": "Foreground",
+        "colors": {
+            0: "#f8f8f2",
+            1: "#f8f8f2",
+            2: "#f8f8f2",
+            3: "#f8f8f2"
+        }
+    },
+    "dracula_comment": {
+        "name": "注释色",
+        "name_en": "Comment",
+        "colors": {
+            0: "#6272a4",
+            1: "#6272a4",
+            2: "#6272a4",
+            3: "#6272a4"
+        }
+    },
+    "dracula_cyan": {
+        "name": "青色",
+        "name_en": "Cyan",
+        "colors": {
+            0: "#8be9fd",
+            1: "#8be9fd",
+            2: "#8be9fd",
+            3: "#8be9fd"
+        }
+    },
+    "dracula_green": {
+        "name": "绿色",
+        "name_en": "Green",
+        "colors": {
+            0: "#50fa7b",
+            1: "#50fa7b",
+            2: "#50fa7b",
+            3: "#50fa7b"
+        }
+    },
+    "dracula_orange": {
+        "name": "橙色",
+        "name_en": "Orange",
+        "colors": {
+            0: "#ffb86c",
+            1: "#ffb86c",
+            2: "#ffb86c",
+            3: "#ffb86c"
+        }
+    },
+    "dracula_pink": {
+        "name": "粉色",
+        "name_en": "Pink",
+        "colors": {
+            0: "#ff79c6",
+            1: "#ff79c6",
+            2: "#ff79c6",
+            3: "#ff79c6"
+        }
+    },
+    "dracula_purple": {
+        "name": "紫色",
+        "name_en": "Purple",
+        "colors": {
+            0: "#bd93f9",
+            1: "#bd93f9",
+            2: "#bd93f9",
+            3: "#bd93f9"
+        }
+    },
+    "dracula_red": {
+        "name": "红色",
+        "name_en": "Red",
+        "colors": {
+            0: "#ff5555",
+            1: "#ff5555",
+            2: "#ff5555",
+            3: "#ff5555"
+        }
+    },
+    "dracula_yellow": {
+        "name": "黄色",
+        "name_en": "Yellow",
+        "colors": {
+            0: "#f1fa8c",
+            1: "#f1fa8c",
+            2: "#f1fa8c",
+            3: "#f1fa8c"
+        }
+    }
+}
+
+# ===== Nord 相关函数 =====
+
+def get_nord_color_series_names():
+    """获取所有 Nord 颜色系列名称列表"""
+    return list(NORD_COLOR_DATA.keys())
+
+def get_nord_color_series(series_name):
+    """获取指定 Nord 颜色系列的数据
+    
+    Args:
+        series_name: 颜色系列名称 (如 'nord0', 'nord1' 等)
+    
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return NORD_COLOR_DATA.get(series_name, None)
+
+def get_nord_light_shades(series_name):
+    """获取指定 Nord 颜色系列的浅色组 (0-1)
+    
+    Args:
+        series_name: 颜色系列名称
+    
+    Returns:
+        list: 2个浅色色值列表
+    """
+    series = NORD_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(2)]
+
+def get_nord_dark_shades(series_name):
+    """获取指定 Nord 颜色系列的深色组 (2-3)
+    
+    Args:
+        series_name: 颜色系列名称
+    
+    Returns:
+        list: 2个深色色值列表
+    """
+    series = NORD_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(2, 4)]
+
+def get_nord_color_series_name_mapping():
+    """获取 Nord 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in NORD_COLOR_DATA.items()}
+
+# ===== Dracula 相关函数 =====
+
+def get_dracula_color_series_names():
+    """获取所有 Dracula 颜色系列名称列表"""
+    return list(DRACULA_COLOR_DATA.keys())
+
+def get_dracula_color_series(series_name):
+    """获取指定 Dracula 颜色系列的数据
+    
+    Args:
+        series_name: 颜色系列名称 (如 'dracula_bg', 'dracula_cyan' 等)
+    
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return DRACULA_COLOR_DATA.get(series_name, None)
+
+def get_dracula_light_shades(series_name):
+    """获取指定 Dracula 颜色系列的浅色组 (0-1)
+    
+    Args:
+        series_name: 颜色系列名称
+    
+    Returns:
+        list: 2个浅色色值列表
+    """
+    series = DRACULA_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(2)]
+
+def get_dracula_dark_shades(series_name):
+    """获取指定 Dracula 颜色系列的深色组 (2-3)
+    
+    Args:
+        series_name: 颜色系列名称
+    
+    Returns:
+        list: 2个深色色值列表
+    """
+    series = DRACULA_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(2, 4)]
+
+def get_dracula_color_series_name_mapping():
+    """获取 Dracula 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in DRACULA_COLOR_DATA.items()}

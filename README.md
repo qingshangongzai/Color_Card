@@ -19,7 +19,7 @@
 - **可视化色彩提取**：通过直观的可拖动取色点，实时提取图片任意位置的颜色，支持5个取色点同时工作
 - **智能配色方案**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择和明度调整
 - **配色方案收藏**：支持收藏和管理配色方案，可自定义名称，方便后续快速查看和使用
-- **内置色彩库**：集成 Open Color、Tailwind Colors 和 Nice Color Palettes 开源配色方案，提供 13 种颜色系列 + 22 种 Tailwind 颜色系列 + 500 组精选配色，支持一键复制颜色值
+- **内置色彩库**：集成 Open Color、Tailwind Colors、Material Design Colors、ColorBrewer、Radix Colors 和 Nice Color Palettes 六大开源配色方案，提供 13 + 22 + 19 + 35 + 24 种颜色系列 + 500 组精选配色，总计 613 组色卡，支持一键复制颜色值
 - **批量导入导出**：支持将收藏的配色方案导出为JSON文件，或从文件批量导入，便于备份和分享
 - **多色彩空间支持**：同时显示 HSB、LAB、HSL、CMYK、RGB 等多种色彩模式，满足不同场景的需求
 - **专业明度分析**：将图片按明度分为9个区域，提供直方图可视化，帮助理解图片的明度分布
@@ -429,6 +429,9 @@ Color Card 采用 **GNU General Public License v3.0 (GPL 3.0)** 许可证发布�
 | numpy | BSD-3-Clause |
 | Open Color | MIT License |
 | Tailwind CSS Colors | MIT License |
+| Material Design Colors | Apache-2.0 |
+| ColorBrewer | Apache-2.0 |
+| Radix Colors | MIT License |
 | Nice Color Palettes | MIT License |
 
 ---

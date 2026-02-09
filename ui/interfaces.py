@@ -1906,6 +1906,21 @@ class PresetColorInterface(QWidget):
         (["radix_lime"], "亮绿色系"),
     ]
 
+    # Nord 分组定义
+    NORD_GROUPS = [
+        (["nord0", "nord1", "nord2", "nord3"], "分组1"),
+        (["nord4", "nord5", "nord6", "nord7"], "分组2"),
+        (["nord8", "nord9", "nord10", "nord11"], "分组3"),
+        (["nord12", "nord13", "nord14", "nord15"], "分组4"),
+    ]
+
+    # Dracula 分组定义
+    DRACULA_GROUPS = [
+        (["dracula_bg", "dracula_current_line", "dracula_foreground", "dracula_comment"], "基础色系"),
+        (["dracula_cyan", "dracula_green", "dracula_orange", "dracula_pink"], "主题色-1"),
+        (["dracula_purple", "dracula_red", "dracula_yellow"], "主题色-2"),
+    ]
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('presetColorInterface')
@@ -1958,6 +1973,10 @@ class PresetColorInterface(QWidget):
         self.source_combo.setItemData(4, "colorbrewer")
         self.source_combo.addItem("Radix Colors 配色")
         self.source_combo.setItemData(5, "radix")
+        self.source_combo.addItem("Nord 配色")
+        self.source_combo.setItemData(6, "nord")
+        self.source_combo.addItem("Dracula 配色")
+        self.source_combo.setItemData(7, "dracula")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
@@ -2027,6 +2046,20 @@ class PresetColorInterface(QWidget):
             self.group_combo.addItem(name)
             self.group_combo.setItemData(i, i)
 
+    def _setup_nord_group_combo(self):
+        """设置 Nord 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.NORD_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_dracula_group_combo(self):
+        """设置 Dracula 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.DRACULA_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
     def _on_source_changed(self, index):
         """数据源切换回调"""
         source = self.source_combo.currentData()
@@ -2074,6 +2107,20 @@ class PresetColorInterface(QWidget):
             self.group_combo.setCurrentIndex(0)
             series_keys = self.RADIX_GROUPS[0][0]
             self.preset_color_list.set_data_source('radix', series_keys)
+        elif source == 'nord':
+            self.desc_label.setText("基于 Nord 北极配色方案")
+            self._setup_nord_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.NORD_GROUPS[0][0]
+            self.preset_color_list.set_data_source('nord', series_keys)
+        elif source == 'dracula':
+            self.desc_label.setText("基于 Dracula 暗色配色方案")
+            self._setup_dracula_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.DRACULA_GROUPS[0][0]
+            self.preset_color_list.set_data_source('dracula', series_keys)
 
     def _on_group_changed(self, index):
         """分组切换回调"""
@@ -2105,6 +2152,14 @@ class PresetColorInterface(QWidget):
             if 0 <= index < len(self.RADIX_GROUPS):
                 series_keys = self.RADIX_GROUPS[index][0]
                 self.preset_color_list.set_data_source('radix', series_keys)
+        elif self._current_source == 'nord':
+            if 0 <= index < len(self.NORD_GROUPS):
+                series_keys = self.NORD_GROUPS[index][0]
+                self.preset_color_list.set_data_source('nord', series_keys)
+        elif self._current_source == 'dracula':
+            if 0 <= index < len(self.DRACULA_GROUPS):
+                series_keys = self.DRACULA_GROUPS[index][0]
+                self.preset_color_list.set_data_source('dracula', series_keys)
 
     def _load_settings(self):
         """加载显示设置"""
