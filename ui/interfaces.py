@@ -1538,6 +1538,7 @@ class FavoritesInterface(QWidget):
         self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
         self.favorite_list.favorite_preview.connect(self._on_favorite_preview)
         self.favorite_list.favorite_contrast.connect(self._on_favorite_contrast)
+        self.favorite_list.favorite_color_changed.connect(self._on_favorite_color_changed)
         layout.addWidget(self.favorite_list, stretch=1)
 
     def _load_favorites(self):
@@ -1763,6 +1764,28 @@ class FavoritesInterface(QWidget):
             parent=self.window()
         )
         dialog.exec()
+
+    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: dict):
+        """收藏颜色变化回调
+
+        Args:
+            favorite_id: 收藏项ID
+            color_index: 颜色索引
+            color_info: 新的颜色信息
+        """
+        # 更新配置中的颜色数据
+        if self._config_manager.update_favorite_color(favorite_id, color_index, color_info):
+            self._config_manager.save()
+
+            InfoBar.success(
+                title="颜色已更新",
+                content=f"配色方案中的颜色已更新为 {color_info.get('hex', '#------')}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
 
     def update_display_settings(self, hex_visible=None, color_modes=None):
         """更新显示设置

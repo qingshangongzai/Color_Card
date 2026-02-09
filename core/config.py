@@ -369,6 +369,30 @@ class ConfigManager:
         except Exception as e:
             return False, 0, f"导入失败: {e}"
 
+    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: dict) -> bool:
+        """更新收藏中的颜色
+
+        Args:
+            favorite_id: 收藏ID
+            color_index: 颜色索引
+            color_info: 新的颜色信息
+
+        Returns:
+            bool: 是否更新成功
+        """
+        if "favorites" not in self._config:
+            return False
+
+        favorites = self._config["favorites"]
+        for fav in favorites:
+            if fav.get("id") == favorite_id:
+                colors = fav.get("colors", [])
+                if 0 <= color_index < len(colors):
+                    colors[color_index] = color_info
+                    return True
+
+        return False
+
 # 全局配置管理器实例
 _config_manager: Optional[ConfigManager] = None
 

@@ -101,6 +101,37 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
     return f"#{r:02X}{g:02X}{b:02X}"
 
 
+def hex_to_rgb(hex_value: str) -> Tuple[int, int, int]:
+    """将16进制颜色值转换为RGB
+
+    Args:
+        hex_value: 16进制颜色值，如 "#FF0000" 或 "FF0000"
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+
+    Raises:
+        ValueError: 当输入格式无效时
+    """
+    # 移除 # 前缀和空白字符
+    hex_value = hex_value.lstrip('#').strip().upper()
+
+    # 验证长度
+    if len(hex_value) != 6:
+        raise ValueError("无效的16进制颜色值，必须是6位十六进制数")
+
+    # 验证字符有效性
+    if not all(c in '0123456789ABCDEF' for c in hex_value):
+        raise ValueError("无效的16进制颜色值，包含非法字符")
+
+    # 转换为RGB
+    r = int(hex_value[0:2], 16)
+    g = int(hex_value[2:4], 16)
+    b = int(hex_value[4:6], 16)
+
+    return r, g, b
+
+
 def rgb_to_hsl(r: int, g: int, b: int) -> Tuple[float, float, float]:
     """将RGB转换为HSL (Hue, Saturation, Lightness)
 
