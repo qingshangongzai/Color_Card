@@ -402,7 +402,6 @@ class PresetColorSchemeCard(CardWidget):
         if self._shade_mode == 'light':
             colors = get_light_shades(self._series_key)
         else:
-            from core.open_color_data import get_dark_shades
             colors = get_dark_shades(self._series_key)
 
         # 创建色卡
