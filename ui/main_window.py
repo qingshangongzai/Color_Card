@@ -138,7 +138,7 @@ class MainWindow(FluentWindow):
 
         self._version = version_manager.get_version()
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
-        self.setMinimumSize(935, 550)
+        self.setMinimumSize(935, 600)
 
         # 加载配置
         self._config_manager = get_config_manager()
