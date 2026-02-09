@@ -23,6 +23,7 @@ from core.color_data import (
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
+from utils.platform import is_windows_10
 
 
 class PaletteLoaderThread(QThread):
