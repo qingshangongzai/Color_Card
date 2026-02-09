@@ -37,6 +37,22 @@ from .color import (
 
 from .config import ConfigManager, get_config_manager
 
+# 颜色数据模块
+from .color_data import (
+    OPEN_COLOR_DATA,
+    NICE_COLOR_PALETTES_DATA,
+    get_color_series_names,
+    get_color_series,
+    get_light_shades,
+    get_dark_shades,
+    get_selected_shades,
+    get_color_series_name_mapping,
+    get_nice_palette_count,
+    get_nice_palette,
+    get_random_nice_palette,
+    get_nice_palettes_batch,
+)
+
 __all__ = [
     # 颜色函数
     'rgb_to_hsb',
@@ -75,4 +91,17 @@ __all__ = [
     # 配置
     'ConfigManager',
     'get_config_manager',
+    # 颜色数据
+    'OPEN_COLOR_DATA',
+    'NICE_COLOR_PALETTES_DATA',
+    'get_color_series_names',
+    'get_color_series',
+    'get_light_shades',
+    'get_dark_shades',
+    'get_selected_shades',
+    'get_color_series_name_mapping',
+    'get_nice_palette_count',
+    'get_nice_palette',
+    'get_random_nice_palette',
+    'get_nice_palettes_batch',
 ]

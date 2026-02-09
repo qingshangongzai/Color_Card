@@ -2,25 +2,64 @@
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QThread
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel,
-    QSizePolicy, QApplication, QLineEdit, QScrollArea, QFrame
+    QSizePolicy, QApplication, QLineEdit, QFrame
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    CardWidget, ToolButton, FluentIcon,
-    InfoBar, InfoBarPosition, isDarkTheme, qconfig
+    CardWidget, ToolButton, FluentIcon, ComboBox, PrimaryPushButton,
+    InfoBar, InfoBarPosition, isDarkTheme, qconfig, ScrollArea
 )
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
-from core.open_color_data import (
+from core.color_data import (
     OPEN_COLOR_DATA, get_color_series_names,
-    get_light_shades, get_dark_shades, get_color_series_name_mapping
+    get_light_shades, get_dark_shades, get_color_series_name_mapping,
+    get_nice_palette_count, get_nice_palette, get_random_nice_palette,
+    get_nice_palettes_batch
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
+
+
+class PaletteLoaderThread(QThread):
+    """配色方案数据异步加载线程"""
+
+    data_ready = Signal(int, list)  # 信号：索引, 颜色列表
+    loading_finished = Signal()
+
+    def __init__(self, palettes_data, parent=None):
+        """初始化加载线程
+
+        Args:
+            palettes_data: 配色方案数据列表 [(index, colors), ...]
+            parent: 父对象
+        """
+        super().__init__(parent)
+        self._palettes_data = palettes_data
+        self._is_cancelled = False
+
+    def cancel(self):
+        """请求取消加载（线程安全）"""
+        self._is_cancelled = True
+
+    def _check_cancelled(self) -> bool:
+        """检查是否被取消"""
+        return self._is_cancelled
+
+    def run(self):
+        """在子线程中发送配色方案数据"""
+        for palette_index, colors in self._palettes_data:
+            if self._check_cancelled():
+                return
+
+            # 发射信号通知主线程创建卡片
+            self.data_ready.emit(palette_index, colors)
+
+        self.loading_finished.emit()
 
 
 class PresetColorCard(QWidget):
@@ -258,11 +297,11 @@ class PresetColorSchemeCard(CardWidget):
         layout.addLayout(header_layout)
 
         # 色卡面板（横向滚动区域）
-        self.scroll_area = QScrollArea()
+        self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
         self.scroll_area.setFixedHeight(200)
 
         # 内容容器
@@ -392,6 +431,148 @@ class PresetColorSchemeCard(CardWidget):
             self.set_color_modes(color_modes)
 
 
+class NicePaletteCard(CardWidget):
+    """Nice Color Palettes 配色方案卡片"""
+
+    def __init__(self, palette_index: int, colors: list, parent=None):
+        self._palette_index = palette_index
+        self._colors = colors
+        self._hex_visible = True
+        self._color_modes = ['HSB', 'LAB']
+        self._color_cards = []
+        super().__init__(parent)
+        self.setup_ui()
+        self._load_color_data()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setSpacing(10)
+
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        # 头部信息
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(10)
+
+        # 配色方案编号
+        self.name_label = QLabel()
+        self.name_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        header_layout.addWidget(self.name_label)
+
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
+
+        # 色卡面板（横向滚动区域）
+        self.scroll_area = ScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setFixedHeight(200)
+
+        # 内容容器
+        self.cards_container = QWidget()
+        self.cards_container.setStyleSheet("background: transparent;")
+        self.cards_layout = QHBoxLayout(self.cards_container)
+        self.cards_layout.setContentsMargins(0, 0, 0, 0)
+        self.cards_layout.setSpacing(10)
+        self.cards_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        self.scroll_area.setWidget(self.cards_container)
+        layout.addWidget(self.scroll_area)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        name_color = get_text_color(secondary=False)
+        card_bg = get_card_background_color()
+        border_color = get_border_color()
+
+        self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
+
+        from utils.platform import is_windows_10
+        if is_windows_10():
+            self.setStyleSheet(f"""
+                NicePaletteCard,
+                CardWidget {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+                QToolTip {{
+                    background-color: {card_bg.name()};
+                    color: {name_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                    padding: 4px 8px;
+                }}
+            """)
+
+    def _clear_color_cards(self):
+        """清空所有色卡"""
+        for card in self._color_cards:
+            self.cards_layout.removeWidget(card)
+            card.deleteLater()
+        self._color_cards.clear()
+
+    def _create_color_cards(self, colors: list):
+        """创建色卡
+
+        Args:
+            colors: 颜色值列表 (HEX格式)
+        """
+        for hex_color in colors:
+            if not hex_color:
+                continue
+            card = PresetColorCard()
+            card.set_color_modes(self._color_modes)
+            card.hex_container.setVisible(self._hex_visible)
+
+            try:
+                r, g, b = hex_to_rgb(hex_color)
+                color_info = get_color_info(r, g, b)
+                color_info['hex'] = hex_color
+                card.update_color(color_info)
+            except ValueError:
+                card.clear()
+
+            self._color_cards.append(card)
+            self.cards_layout.addWidget(card)
+
+        self.cards_layout.addStretch()
+
+    def _load_color_data(self):
+        """加载颜色数据"""
+        self.name_label.setText(f"配色方案 #{self._palette_index + 1}")
+        self._clear_color_cards()
+        self._create_color_cards(self._colors)
+
+    def set_hex_visible(self, visible):
+        """设置16进制显示区域的可见性"""
+        self._hex_visible = visible
+        for card in self._color_cards:
+            card.hex_container.setVisible(visible)
+
+    def set_color_modes(self, modes):
+        """设置显示的色彩模式"""
+        if len(modes) < 2:
+            return
+
+        self._color_modes = [modes[0], modes[1]]
+        for card in self._color_cards:
+            card.set_color_modes(modes)
+
+    def update_display(self, hex_visible=None, color_modes=None):
+        """更新显示设置"""
+        if hex_visible is not None:
+            self.set_hex_visible(hex_visible)
+        if color_modes is not None:
+            self.set_color_modes(color_modes)
+
+
 class PresetColorList(QWidget):
     """预设色彩列表容器"""
 
@@ -399,9 +580,23 @@ class PresetColorList(QWidget):
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
         self._scheme_cards = {}
+        self._current_source = 'open_color'
+        self._current_palette_index = 0
+        self._loader = None  # 异步加载线程
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def __del__(self):
+        """析构时确保线程已停止"""
+        self._cleanup_loader()
+
+    def _cleanup_loader(self):
+        """清理加载线程"""
+        if self._loader is not None:
+            self._loader.cancel()
+            self._loader.wait(1000)  # 等待最多1秒
+            self._loader = None
 
     def setup_ui(self):
         """设置界面"""
@@ -409,11 +604,10 @@ class PresetColorList(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        self.scroll_area = QScrollArea()
+        self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; }")
 
-        # 设置滚动条角落为透明
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
         self.scroll_area.setCornerWidget(corner_widget)
@@ -428,19 +622,21 @@ class PresetColorList(QWidget):
         self.scroll_area.setWidget(self.content_widget)
         layout.addWidget(self.scroll_area)
 
-        # 加载所有颜色系列
         self._load_all_series()
 
-    def _load_all_series(self):
-        """加载所有颜色系列"""
-        # 清空现有内容
+    def _clear_content(self):
+        """清空所有内容"""
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
         self._scheme_cards.clear()
 
-        # 获取所有颜色系列
+    def _load_all_series(self):
+        """加载所有颜色系列 (Open Color)"""
+        self._clear_content()
+        self._current_source = 'open_color'
+
         series_names = get_color_series_names()
 
         for series_key in series_names:
@@ -452,7 +648,84 @@ class PresetColorList(QWidget):
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
-        # 添加弹性空间
+        self.content_layout.addStretch()
+
+    def load_nice_palettes_batch(self, start_index=0, count=50):
+        """加载指定范围的 Nice Color Palettes 配色方案（异步加载）
+
+        Args:
+            start_index: 起始索引
+            count: 加载数量
+        """
+        # 清理旧线程
+        self._cleanup_loader()
+
+        self._clear_content()
+        self._current_source = 'nice_palette'
+        self._current_start_index = start_index
+
+        # 获取配色方案数据
+        palettes = get_nice_palettes_batch(start_index, count)
+
+        # 创建并启动异步加载线程
+        self._loader = PaletteLoaderThread(palettes, parent=self)
+        self._loader.data_ready.connect(self._on_palette_data_ready)
+        self._loader.loading_finished.connect(self._on_loading_finished)
+        self._loader.start()
+
+    def _on_palette_data_ready(self, palette_index, colors):
+        """处理接收到的配色方案数据，在主线程创建卡片
+
+        Args:
+            palette_index: 配色方案索引
+            colors: 颜色列表
+        """
+        # 在主线程中创建卡片
+        card = NicePaletteCard(palette_index, colors)
+        card.set_hex_visible(self._hex_visible)
+        card.set_color_modes(self._color_modes)
+        self.content_layout.addWidget(card)
+        self._scheme_cards[f'nice_{palette_index}'] = card
+
+    def _on_loading_finished(self):
+        """加载完成回调"""
+        # 清理线程引用
+        self._loader = None
+
+    def set_data_source(self, source: str, data=None):
+        """设置数据源
+
+        Args:
+            source: 'open_color' 或 'nice_palette'
+            data: Open Color时为系列名称列表，Nice Palettes时为起始索引
+        """
+        if source == 'open_color':
+            if data is None:
+                self._load_all_series()
+            else:
+                self._load_open_color_groups(data)
+        elif source == 'nice_palette':
+            start_index = data if data is not None else 0
+            self.load_nice_palettes_batch(start_index, 50)
+
+    def _load_open_color_groups(self, series_keys: list):
+        """加载指定分组的 Open Color 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'open_color'
+
+        for series_key in series_keys:
+            series_data = OPEN_COLOR_DATA.get(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
         self.content_layout.addStretch()
 
     def set_hex_visible(self, visible):
@@ -479,4 +752,4 @@ class PresetColorList(QWidget):
 
     def _update_styles(self):
         """更新样式以适配主题"""
-        pass  # 样式由子组件自己处理
+        pass

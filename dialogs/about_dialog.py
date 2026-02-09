@@ -233,6 +233,11 @@ class AboutDialog(QDialog):
     许可证：MIT License
     项目地址：https://github.com/yeun/open-color
 
+  • 本程序内置色彩使用 Nice Color Palettes 配色方案
+    版权所有：Sasha Koss
+    许可证：MIT License
+    项目地址：https://github.com/kossnocorp/nice-color-palettes
+
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt

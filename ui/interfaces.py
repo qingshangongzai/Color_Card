@@ -1851,12 +1851,24 @@ class ColorManagementInterface(QWidget):
 
 
 class PresetColorInterface(QWidget):
-    """内置色彩界面（Open Color 预设）"""
+    """内置色彩界面（支持 Open Color 和 Nice Color Palettes）"""
+
+    # 每组显示的配色方案数量
+    PALETTES_PER_GROUP = 50
+
+    # Open Color 分组定义
+    OPEN_COLOR_GROUPS = [
+        (["gray", "red", "pink", "grape"], "灰/红/粉/紫组"),
+        (["violet", "indigo", "blue", "cyan"], "紫/蓝/青组"),
+        (["teal", "green", "lime", "yellow", "orange"], "绿/黄/橙组"),
+    ]
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('presetColorInterface')
         self._config_manager = get_config_manager()
+        self._current_source = 'open_color'
+        self._current_group_index = 0
         self.setup_ui()
         self._load_settings()
         self._update_styles()
@@ -1883,19 +1895,98 @@ class PresetColorInterface(QWidget):
 
         header_layout.addStretch()
 
+        # 控件容器（用于对齐）
+        controls_container = QWidget()
+        controls_layout = QHBoxLayout(controls_container)
+        controls_layout.setSpacing(10)
+        controls_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 数据源切换下拉列表
+        self.source_combo = ComboBox(self)
+        self.source_combo.addItem("Open Color 配色")
+        self.source_combo.setItemData(0, "open_color")
+        self.source_combo.addItem("Nice Palettes 配色")
+        self.source_combo.setItemData(1, "nice_palette")
+        self.source_combo.setFixedWidth(180)
+        self.source_combo.currentIndexChanged.connect(self._on_source_changed)
+        controls_layout.addWidget(self.source_combo)
+
+        # 分组下拉列表
+        self.group_combo = ComboBox(self)
+        self.group_combo.setFixedWidth(150)
+        self.group_combo.currentIndexChanged.connect(self._on_group_changed)
+        controls_layout.addWidget(self.group_combo)
+
+        header_layout.addWidget(controls_container)
+
         layout.addLayout(header_layout)
 
         # 预设色彩列表
         self.preset_color_list = PresetColorList(self)
         layout.addWidget(self.preset_color_list, stretch=1)
 
+        # 初始化分组下拉列表
+        self._setup_open_color_group_combo()
+
+    def _setup_open_color_group_combo(self):
+        """设置 Open Color 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.OPEN_COLOR_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_nice_palette_group_combo(self):
+        """设置 Nice Palettes 分组下拉列表"""
+        from core.color_data import get_nice_palette_count
+        total_count = get_nice_palette_count()
+        group_count = (total_count + self.PALETTES_PER_GROUP - 1) // self.PALETTES_PER_GROUP
+
+        self.group_combo.clear()
+        for i in range(group_count):
+            start = i * self.PALETTES_PER_GROUP + 1
+            end = min((i + 1) * self.PALETTES_PER_GROUP, total_count)
+            self.group_combo.addItem(f"第 {start}-{end} 组")
+            self.group_combo.setItemData(i, i)
+
+    def _on_source_changed(self, index):
+        """数据源切换回调"""
+        source = self.source_combo.currentData()
+        self._current_source = source
+
+        if source == 'open_color':
+            self.desc_label.setText("基于 Open Color 开源配色方案")
+            self._setup_open_color_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.OPEN_COLOR_GROUPS[0][0]
+            self.preset_color_list.set_data_source('open_color', series_keys)
+        elif source == 'nice_palette':
+            self.desc_label.setText("基于 Nice Color Palettes 配色方案")
+            self._setup_nice_palette_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            start_index = self._current_group_index * self.PALETTES_PER_GROUP
+            self.preset_color_list.set_data_source('nice_palette', start_index)
+
+    def _on_group_changed(self, index):
+        """分组切换回调"""
+        if index < 0:
+            return
+
+        self._current_group_index = index
+
+        if self._current_source == 'open_color':
+            if 0 <= index < len(self.OPEN_COLOR_GROUPS):
+                series_keys = self.OPEN_COLOR_GROUPS[index][0]
+                self.preset_color_list.set_data_source('open_color', series_keys)
+        elif self._current_source == 'nice_palette':
+            start_index = self._current_group_index * self.PALETTES_PER_GROUP
+            self.preset_color_list.set_data_source('nice_palette', start_index)
+
     def _load_settings(self):
         """加载显示设置"""
-        # 从配置管理器读取设置
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
-
-        # 应用设置到预设色彩列表
         self.preset_color_list.update_display_settings(hex_visible, color_modes)
 
     def update_display_settings(self, hex_visible=None, color_modes=None):
@@ -1912,10 +2003,8 @@ class PresetColorInterface(QWidget):
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
 
-        # 只在 Win10 上应用强制样式
         if is_windows_10():
             bg_color = get_interface_background_color()
-
             self.setStyleSheet(f"""
                 PresetColorInterface {{
                     background-color: {bg_color.name()};
