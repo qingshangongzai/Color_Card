@@ -203,7 +203,7 @@ class AboutDialog(QDialog):
   • logo绘制：青山公仔
   • 联系邮箱：hxiao_studio@163.com
 
-【开源项目使用说明】
+【第三方开源库使用说明】
   • 本程序基于 PySide6 架构开发
     版权所有：The Qt Company
     许可证：LGPL v3
@@ -229,62 +229,63 @@ class AboutDialog(QDialog):
     许可证：BSD-3-Clause
     项目地址：https://github.com/numpy/numpy
 
-  • 本程序内置色彩使用 Open Color 配色方案
+【开源配色方案使用说明】
+  • Open Color 配色方案
     版权所有：heeyeun (Yeun)
     许可证：MIT License
     项目地址：https://github.com/yeun/open-color
 
-  • 本程序内置色彩使用 Nice Color Palettes 配色方案
+  • Nice Color Palettes 配色方案
     版权所有：Experience-Monks
     许可证：MIT License
     项目地址：https://github.com/Experience-Monks/nice-color-palettes
 
-  • 本程序内置色彩使用 Tailwind CSS Colors 配色方案
+  • Tailwind CSS Colors 配色方案
     版权所有：Tailwind Labs, Inc.
     许可证：MIT License
     项目地址：https://github.com/tailwindlabs/tailwindcss
 
-  • 本程序内置色彩使用 Material Design Colors 配色方案
+  • Material Design Colors 配色方案
     版权所有：Google LLC
     许可证：Apache License 2.0
     项目地址：https://m3.material.io/styles/color/system/overview
 
-  • 本程序内置色彩使用 ColorBrewer 配色方案
+  • ColorBrewer 配色方案
     版权所有：Cynthia Brewer
     许可证：Apache License 2.0
     项目地址：https://colorbrewer2.org/
 
-  • 本程序内置色彩使用 Radix UI Colors 配色方案
+  • Radix UI Colors 配色方案
     版权所有：WorkOS
     许可证：MIT License
     项目地址：https://www.radix-ui.com/colors
 
-  • 本程序内置色彩使用 Nord 配色方案
+  • Nord 配色方案
     版权所有：Sven Greb
     许可证：MIT License
     项目地址：https://github.com/arcticicestudio/nord
 
-  • 本程序内置色彩使用 Dracula 配色方案
+  • Dracula 配色方案
     版权所有：Dracula Theme contributors
     许可证：MIT License
     项目地址：https://draculatheme.com/
 
-  • 本程序内置色彩使用 Rosé Pine 配色方案
+  • Rosé Pine 配色方案
     版权所有：Rosé Pine 团队
     许可证：MIT License
     项目地址：https://github.com/rose-pine/rose-pine-theme
 
-  • 本程序内置色彩使用 Solarized 配色方案
+  • Solarized 配色方案
     版权所有：Ethan Schoonover
     许可证：MIT License
     项目地址：https://github.com/altercation/solarized
 
-  • 本程序内置色彩使用 Catppuccin 配色方案
+  • Catppuccin 配色方案
     版权所有：Catppuccin 团队
     许可证：MIT License
     项目地址：https://github.com/catppuccin/catppuccin
 
-  • 本程序内置色彩使用 Gruvbox 配色方案
+  • Gruvbox 配色方案
     版权所有：Pavel Pertsev
     许可证：MIT License
     项目地址：https://github.com/morhetz/gruvbox
