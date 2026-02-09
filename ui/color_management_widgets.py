@@ -35,7 +35,12 @@ class ColorManagementColorCard(QWidget):
         super().__init__(parent)
         self.setup_ui()
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_hex_input_style)
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        self._update_hex_input_style()
+        self._update_color_block_style()
 
     def setup_ui(self):
         """设置界面"""
@@ -108,6 +113,20 @@ class ColorManagementColorCard(QWidget):
         self.color_block.setStyleSheet(
             f"background-color: {placeholder_color.name()}; border-radius: 4px;"
         )
+
+    def _update_color_block_style(self):
+        """更新颜色块样式（主题切换时调用）"""
+        if self._current_color_info:
+            # 有颜色时更新边框
+            rgb = self._current_color_info.get('rgb', [0, 0, 0])
+            color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
+            border_color = get_border_color()
+            self.color_block.setStyleSheet(
+                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            )
+        else:
+            # 无颜色时更新占位符样式
+            self._update_placeholder_style()
 
     def _update_hex_input_style(self):
         """更新16进制输入框样式"""

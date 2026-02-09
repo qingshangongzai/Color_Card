@@ -5,7 +5,7 @@ from typing import List, Tuple
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QApplication
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
-from qfluentwidgets import CardWidget, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition
+from qfluentwidgets import CardWidget, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition, qconfig
 
 # 项目模块导入
 from core import get_color_info
@@ -23,6 +23,8 @@ class SchemeColorInfoCard(BaseCard):
         self._current_color_info = None
         self._hex_visible = True
         super().__init__(index, parent)
+        # 监听主题变化
+        qconfig.themeChangedFinished.connect(self._update_color_block_style)
 
     def setup_ui(self):
         """设置界面"""
@@ -94,6 +96,20 @@ class SchemeColorInfoCard(BaseCard):
         self.color_block.setStyleSheet(
             f"background-color: {placeholder_color.name()}; border-radius: 4px;"
         )
+
+    def _update_color_block_style(self):
+        """更新颜色块样式（主题切换时调用）"""
+        if self._current_color_info:
+            # 有颜色时更新边框
+            r, g, b = self._current_color_info['rgb']
+            color_str = f"rgb({r}, {g}, {b})"
+            border_color = get_border_color()
+            self.color_block.setStyleSheet(
+                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            )
+        else:
+            # 无颜色时更新占位符样式
+            self._update_placeholder_style()
 
     def _update_hex_button_style(self):
         """更新16进制按钮样式"""
