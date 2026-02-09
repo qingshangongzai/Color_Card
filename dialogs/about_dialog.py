@@ -239,10 +239,15 @@ class AboutDialog(QDialog):
     许可证：MIT License
     项目地址：https://github.com/Experience-Monks/nice-color-palettes
 
+  • 本程序内置色彩使用 Tailwind CSS Colors 配色方案
+    版权所有：Tailwind Labs, Inc.
+    许可证：MIT License
+    项目地址：https://github.com/tailwindlabs/tailwindcss
+
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt
-    许可证：GPL-3.0
+    许可证：MIT
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
   • 本程序使用 UPX 工具压缩可执行文件体积

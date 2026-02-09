@@ -19,7 +19,8 @@ from core.color_data import (
     OPEN_COLOR_DATA, get_color_series_names,
     get_light_shades, get_dark_shades, get_color_series_name_mapping,
     get_nice_palette_count, get_nice_palette, get_random_nice_palette,
-    get_nice_palettes_batch
+    get_nice_palettes_batch,
+    TAILWIND_COLOR_DATA, get_tailwind_color_series_names, get_tailwind_color_series
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
@@ -379,11 +380,14 @@ class PresetColorSchemeCard(CardWidget):
         # 清空现有色卡
         self._clear_color_cards()
 
-        # 获取颜色数据
+        # 获取颜色数据 - 直接从 series_data 中获取，支持 Open Color 和 Tailwind Colors
+        colors_dict = self._series_data.get('colors', {})
         if self._shade_mode == 'light':
-            colors = get_light_shades(self._series_key)
+            # 浅色组: 索引 0-4
+            colors = [colors_dict.get(i, '') for i in range(5)]
         else:
-            colors = get_dark_shades(self._series_key)
+            # 深色组: 索引 5-9
+            colors = [colors_dict.get(i, '') for i in range(5, 10)]
 
         # 创建色卡
         self._create_color_cards(colors)
@@ -663,8 +667,8 @@ class PresetColorList(QWidget):
         """设置数据源
 
         Args:
-            source: 'open_color' 或 'nice_palette'
-            data: Open Color时为系列名称列表，Nice Palettes时为起始索引
+            source: 'open_color'、'nice_palette' 或 'tailwind'
+            data: Open Color/Tailwind时为系列名称列表，Nice Palettes时为起始索引
         """
         if source == 'open_color':
             if data is None:
@@ -674,6 +678,13 @@ class PresetColorList(QWidget):
         elif source == 'nice_palette':
             start_index = data if data is not None else 0
             self.load_nice_palettes_batch(start_index, 50)
+        elif source == 'tailwind':
+            if data is None:
+                # 默认加载所有 Tailwind 颜色系列
+                all_series = get_tailwind_color_series_names()
+                self._load_tailwind_series(all_series)
+            else:
+                self._load_tailwind_series(data)
 
     def _load_open_color_groups(self, series_keys: list):
         """加载指定分组的 Open Color 颜色系列
@@ -686,6 +697,26 @@ class PresetColorList(QWidget):
 
         for series_key in series_keys:
             series_data = OPEN_COLOR_DATA.get(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_tailwind_series(self, series_keys: list):
+        """加载指定分组的 Tailwind Colors 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'tailwind'
+
+        for series_key in series_keys:
+            series_data = TAILWIND_COLOR_DATA.get(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)
