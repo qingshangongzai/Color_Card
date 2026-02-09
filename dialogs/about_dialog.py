@@ -199,7 +199,7 @@ class AboutDialog(QDialog):
 【开发团队】
   • 出品：浮晓 HXiao Studio
   • 开发：青山公仔
-  • 代码：Trae
+  • 代码：Trae、Qoder
   • logo绘制：青山公仔
   • 联系邮箱：hxiao_studio@163.com
 
@@ -235,9 +235,9 @@ class AboutDialog(QDialog):
     项目地址：https://github.com/yeun/open-color
 
   • 本程序内置色彩使用 Nice Color Palettes 配色方案
-    版权所有：Sasha Koss
+    版权所有：Experience-Monks
     许可证：MIT License
-    项目地址：https://github.com/kossnocorp/nice-color-palettes
+    项目地址：https://github.com/Experience-Monks/nice-color-palettes
 
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
