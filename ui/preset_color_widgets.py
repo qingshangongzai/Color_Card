@@ -5,11 +5,11 @@ from datetime import datetime
 from PySide6.QtCore import Qt, Signal, QThread
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel,
-    QSizePolicy, QApplication, QLineEdit, QFrame
+    QSizePolicy, QApplication, QFrame
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    CardWidget, ToolButton, FluentIcon, ComboBox, PrimaryPushButton,
+    CardWidget, ToolButton, FluentIcon, ComboBox, PrimaryPushButton, PushButton,
     InfoBar, InfoBarPosition, isDarkTheme, qconfig, ScrollArea
 )
 
@@ -68,7 +68,7 @@ class PresetColorCard(QWidget):
     color_changed = Signal(dict)  # 信号：颜色信息字典
 
     def __init__(self, parent=None):
-        self._hex_value = "#------"
+        self._hex_value = "--"
         self._color_modes = ['HSB', 'LAB']
         self._current_color_info = None
         super().__init__(parent)
@@ -78,7 +78,7 @@ class PresetColorCard(QWidget):
 
     def _update_styles(self):
         """更新样式以适配主题"""
-        self._update_hex_input_style()
+        self._update_hex_button_style()
         self._update_color_block_style()
 
     def setup_ui(self):
@@ -118,20 +118,17 @@ class PresetColorCard(QWidget):
 
         # 16进制颜色值显示区域
         self.hex_container = QWidget()
-        self.hex_container.setMinimumHeight(30)
-        self.hex_container.setMaximumHeight(40)
+        self.hex_container.setMinimumHeight(28)
+        self.hex_container.setMaximumHeight(35)
         hex_layout = QHBoxLayout(self.hex_container)
-        hex_layout.setContentsMargins(0, 5, 0, 0)
+        hex_layout.setContentsMargins(0, 0, 0, 0)
         hex_layout.setSpacing(5)
 
-        # 16进制值输入框（可编辑）
-        self.hex_input = QLineEdit()
-        self.hex_input.setFixedHeight(28)
-        self.hex_input.setEnabled(False)
-        self.hex_input.setMaxLength(7)  # #RRGGBB 格式
-        self.hex_input.setPlaceholderText("#RRGGBB")
-        self.hex_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._update_hex_input_style()
+        # 16进制值显示按钮
+        self.hex_button = PushButton("--")
+        self.hex_button.setFixedHeight(28)
+        self.hex_button.setEnabled(False)
+        self._update_hex_button_style()
 
         # 复制按钮
         self.copy_button = ToolButton(FluentIcon.COPY)
@@ -139,7 +136,7 @@ class PresetColorCard(QWidget):
         self.copy_button.setEnabled(False)
         self.copy_button.clicked.connect(self._copy_hex_to_clipboard)
 
-        hex_layout.addWidget(self.hex_input, stretch=1)
+        hex_layout.addWidget(self.hex_button, stretch=1)
         hex_layout.addWidget(self.copy_button)
 
         layout.addWidget(self.hex_container)
@@ -163,15 +160,13 @@ class PresetColorCard(QWidget):
         else:
             self._update_placeholder_style()
 
-    def _update_hex_input_style(self):
-        """更新16进制输入框样式"""
+    def _update_hex_button_style(self):
+        """更新16进制按钮样式"""
         primary_color = get_text_color(secondary=False)
-        secondary_color = get_text_color(secondary=True)
         border_color = get_border_color()
-
-        self.hex_input.setStyleSheet(
+        self.hex_button.setStyleSheet(
             f"""
-            QLineEdit {{
+            PushButton {{
                 font-size: 12px;
                 font-weight: bold;
                 color: {primary_color.name()};
@@ -180,10 +175,9 @@ class PresetColorCard(QWidget):
                 border-radius: 4px;
                 padding: 4px 8px;
             }}
-            QLineEdit:disabled {{
-                color: {secondary_color.name()};
+            PushButton:disabled {{
+                color: {get_text_color(secondary=True).name()};
                 background-color: transparent;
-                border: 1px solid {border_color.name()};
             }}
             """
         )
@@ -232,8 +226,8 @@ class PresetColorCard(QWidget):
         if hex_value != '--' and not hex_value.startswith('#'):
             hex_value = '#' + hex_value
         self._hex_value = hex_value
-        self.hex_input.setText(self._hex_value)
-        self.hex_input.setEnabled(True)
+        self.hex_button.setText(self._hex_value)
+        self.hex_button.setEnabled(True)
         self.copy_button.setEnabled(True)
 
         # 更新色彩模式值
@@ -243,10 +237,10 @@ class PresetColorCard(QWidget):
     def clear(self):
         """清空显示"""
         self._current_color_info = None
-        self._hex_value = "#------"
+        self._hex_value = "--"
         self._update_placeholder_style()
-        self.hex_input.setText("#------")
-        self.hex_input.setEnabled(False)
+        self.hex_button.setText("--")
+        self.hex_button.setEnabled(False)
         self.copy_button.setEnabled(False)
         self.mode_container_1.clear_values()
         self.mode_container_2.clear_values()
