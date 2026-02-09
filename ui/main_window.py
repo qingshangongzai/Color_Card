@@ -155,6 +155,7 @@ class MainWindow(FluentWindow):
         is_fullscreen = window_config.get('is_fullscreen', False)
         self.resize(width, height)
 
+        # 创建所有子界面（避免切换时闪烁），但耗时初始化已延迟
         self.create_sub_interface()
         self.setup_navigation()
 
@@ -188,7 +189,7 @@ class MainWindow(FluentWindow):
         event.accept()
 
     def create_sub_interface(self):
-        """创建子界面"""
+        """创建子界面（耗时初始化已延迟到各界面内部）"""
         # 色彩提取界面
         self.color_extract_interface = ColorExtractInterface(self)
         self.color_extract_interface.setObjectName('colorExtract')

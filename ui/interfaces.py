@@ -1163,6 +1163,7 @@ class ColorSchemeInterface(QWidget):
         self._brightness_value = 100  # 全局明度值 (10-100)，直接对应HSB的B值
         self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
         self._color_wheel_mode = 'RGB'  # 色轮模式：RGB 或 RYB
+        self._colors_generated = False  # 颜色是否已生成（延迟生成优化）
 
         self._config_manager = get_config_manager()
 
@@ -1171,10 +1172,19 @@ class ColorSchemeInterface(QWidget):
         self._load_settings()
         # 根据初始配色方案设置卡片数量
         self._update_card_count()
-        self._generate_scheme_colors()
+        # 延迟生成配色方案颜色，避免阻塞启动
+        # 颜色将在首次显示时生成
         self._update_styles()
         # 监听主题变化
         qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def showEvent(self, event):
+        """界面显示事件，延迟生成配色方案颜色"""
+        super().showEvent(event)
+        # 首次显示时生成配色方案颜色
+        if not self._colors_generated:
+            self._colors_generated = True
+            QTimer.singleShot(0, self._generate_scheme_colors)
 
     def setup_ui(self):
         """设置界面布局"""

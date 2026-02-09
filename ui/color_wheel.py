@@ -2,7 +2,7 @@
 import math
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QCursor
 from PySide6.QtWidgets import QSizePolicy, QWidget
 from qfluentwidgets import isDarkTheme
@@ -33,6 +33,7 @@ class HSBColorWheel(QWidget):
         self._wheel_cache = None  # 色环背景缓存
         self._cache_valid = False  # 缓存是否有效
         self._cached_theme = None  # 缓存时的主题
+        self._pending_generation = False  # 是否有待执行的缓存生成
 
     def set_sample_colors(self, colors):
         """设置采样点颜色
@@ -199,10 +200,14 @@ class HSBColorWheel(QWidget):
         # 检查是否需要重新生成缓存
         current_theme = isDarkTheme()
         if not self._cache_valid or self._cached_theme != current_theme:
-            self._generate_wheel_cache()
-
-        # 绘制缓存的色环背景
-        if self._wheel_cache:
+            # 延迟生成缓存，避免阻塞启动
+            if not self._pending_generation:
+                self._pending_generation = True
+                QTimer.singleShot(0, self._generate_wheel_cache_async)
+            # 绘制简单背景
+            painter.fillRect(self.rect(), self._get_theme_colors()['bg'])
+        elif self._wheel_cache:
+            # 绘制缓存的色环背景
             painter.drawPixmap(0, 0, self._wheel_cache)
 
         # 绘制采样点
@@ -210,6 +215,12 @@ class HSBColorWheel(QWidget):
 
         # 绘制标题
         self._draw_title(painter)
+
+    def _generate_wheel_cache_async(self):
+        """异步生成色轮缓存"""
+        self._pending_generation = False
+        self._generate_wheel_cache()
+        self.update()
 
     def _draw_sample_points(self, painter):
         """绘制采样点"""
@@ -295,6 +306,9 @@ class InteractiveColorWheel(QWidget):
         # 选中和拖动状态
         self._selected_point_index = -1
         self._dragging_point_index = -1
+
+        # 延迟生成标志
+        self._pending_generation = False  # 是否有待执行的缓存生成
 
     def set_base_color(self, h: float, s: float, b: float):
         """设置基准颜色
@@ -539,9 +553,13 @@ class InteractiveColorWheel(QWidget):
 
         current_theme = isDarkTheme()
         if not self._cache_valid or self._cached_theme != current_theme:
-            self._generate_wheel_cache()
-
-        if self._wheel_cache:
+            # 延迟生成缓存，避免阻塞启动
+            if not self._pending_generation:
+                self._pending_generation = True
+                QTimer.singleShot(0, self._generate_wheel_cache_async)
+            # 绘制简单背景
+            painter.fillRect(self.rect(), self._get_theme_colors()['bg'])
+        elif self._wheel_cache:
             painter.drawPixmap(0, 0, self._wheel_cache)
 
         # 先绘制配色方案颜色点
@@ -549,6 +567,12 @@ class InteractiveColorWheel(QWidget):
 
         # 最后绘制选择器（在最上层）
         self._draw_selector(painter)
+
+    def _generate_wheel_cache_async(self):
+        """异步生成色轮缓存"""
+        self._pending_generation = False
+        self._generate_wheel_cache()
+        self.update()
 
     def _draw_scheme_points(self, painter):
         """绘制配色方案颜色点及连线"""
