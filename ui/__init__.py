@@ -15,7 +15,7 @@ from .histograms import (
 from .color_picker import ColorPicker
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .zoom_viewer import ZoomViewer
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface, PresetColorInterface
 from .scheme_widgets import SchemeColorInfoCard, SchemeColorPanel
 from .color_management_widgets import ColorManagementSchemeCard, ColorManagementSchemeList
 
@@ -48,6 +48,7 @@ __all__ = [
     'SettingsInterface',
     'ColorSchemeInterface',
     'ColorManagementInterface',
+    'PresetColorInterface',
     # 配色方案组件
     'SchemeColorInfoCard',
     'SchemeColorPanel',

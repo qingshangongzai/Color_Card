@@ -10,7 +10,7 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface, PresetColorInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel
@@ -216,6 +216,11 @@ class MainWindow(FluentWindow):
         self.color_management_interface.setObjectName('colorManagement')
         self.stackedWidget.addWidget(self.color_management_interface)
 
+        # 内置色彩界面
+        self.preset_color_interface = PresetColorInterface(self)
+        self.preset_color_interface.setObjectName('presetColor')
+        self.stackedWidget.addWidget(self.preset_color_interface)
+
         # 设置界面
         self.settings_interface = SettingsInterface(self)
         self.settings_interface.setObjectName('settings')
@@ -266,6 +271,14 @@ class MainWindow(FluentWindow):
             self.color_management_interface,
             FluentIcon.HEART,
             "色彩管理",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 内置色彩
+        self.addSubInterface(
+            self.preset_color_interface,
+            FluentIcon.BOOK_SHELF,
+            "内置色彩",
             position=NavigationItemPosition.TOP
         )
 
@@ -463,6 +476,16 @@ class MainWindow(FluentWindow):
         # 连接色彩模式改变信号到色彩管理界面
         self.settings_interface.color_modes_changed.connect(
             lambda modes: self.color_management_interface.update_display_settings(color_modes=modes)
+        )
+
+        # 连接16进制显示开关信号到内置色彩界面
+        self.settings_interface.hex_display_changed.connect(
+            lambda visible: self.preset_color_interface.update_display_settings(hex_visible=visible)
+        )
+
+        # 连接色彩模式改变信号到内置色彩界面
+        self.settings_interface.color_modes_changed.connect(
+            lambda modes: self.preset_color_interface.update_display_settings(color_modes=modes)
         )
 
         # 应用加载的配置到色卡面板

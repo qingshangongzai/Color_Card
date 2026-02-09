@@ -1850,5 +1850,79 @@ class ColorManagementInterface(QWidget):
             """)
 
 
+class PresetColorInterface(QWidget):
+    """内置色彩界面（Open Color 预设）"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('presetColorInterface')
+        self._config_manager = get_config_manager()
+        self.setup_ui()
+        self._load_settings()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        # 头部信息
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(15)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.title_label = SubtitleLabel("内置色彩")
+        header_layout.addWidget(self.title_label)
+
+        # 添加说明标签
+        self.desc_label = QLabel("基于 Open Color 开源配色方案")
+        self.desc_label.setStyleSheet("font-size: 12px; color: gray;")
+        header_layout.addWidget(self.desc_label)
+
+        header_layout.addStretch()
+
+        layout.addLayout(header_layout)
+
+        # 预设色彩列表
+        self.preset_color_list = PresetColorList(self)
+        layout.addWidget(self.preset_color_list, stretch=1)
+
+    def _load_settings(self):
+        """加载显示设置"""
+        # 从配置管理器读取设置
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+
+        # 应用设置到预设色彩列表
+        self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+
+        # 只在 Win10 上应用强制样式
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+
+            self.setStyleSheet(f"""
+                PresetColorInterface {{
+                    background-color: {bg_color.name()};
+                }}
+            """)
+
+
 # 导入需要在类定义之后导入的模块
 from qfluentwidgets import Slider
+from .preset_color_widgets import PresetColorList
