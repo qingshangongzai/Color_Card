@@ -87,10 +87,9 @@ class PresetColorCard(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(5)
 
-        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumHeight(160)
-        self.setMinimumWidth(120)
-        self.setMaximumWidth(150)
+        self.setMinimumWidth(100)
 
         # 颜色块
         self.color_block = QWidget()
@@ -290,24 +289,14 @@ class PresetColorSchemeCard(CardWidget):
 
         layout.addLayout(header_layout)
 
-        # 色卡面板（横向滚动区域）
-        self.scroll_area = ScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
-        self.scroll_area.setFixedHeight(200)
-
-        # 内容容器
+        # 色卡面板（水平布局容器）
         self.cards_container = QWidget()
         self.cards_container.setStyleSheet("background: transparent;")
         self.cards_layout = QHBoxLayout(self.cards_container)
         self.cards_layout.setContentsMargins(0, 0, 0, 0)
         self.cards_layout.setSpacing(10)
-        self.cards_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.scroll_area.setWidget(self.cards_container)
-        layout.addWidget(self.scroll_area)
+        layout.addWidget(self.cards_container, stretch=1)
 
     def _update_styles(self):
         """更新样式以适配主题"""
@@ -377,10 +366,7 @@ class PresetColorSchemeCard(CardWidget):
                 card.clear()
 
             self._color_cards.append(card)
-            self.cards_layout.addWidget(card)
-
-        # 添加弹性空间
-        self.cards_layout.addStretch()
+            self.cards_layout.addWidget(card, stretch=1)
 
     def _load_color_data(self):
         """加载颜色数据"""
@@ -459,24 +445,14 @@ class NicePaletteCard(CardWidget):
         header_layout.addStretch()
         layout.addLayout(header_layout)
 
-        # 色卡面板（横向滚动区域）
-        self.scroll_area = ScrollArea()
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
-        self.scroll_area.setFixedHeight(200)
-
-        # 内容容器
+        # 色卡面板（水平布局容器）
         self.cards_container = QWidget()
         self.cards_container.setStyleSheet("background: transparent;")
         self.cards_layout = QHBoxLayout(self.cards_container)
         self.cards_layout.setContentsMargins(0, 0, 0, 0)
         self.cards_layout.setSpacing(10)
-        self.cards_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
-        self.scroll_area.setWidget(self.cards_container)
-        layout.addWidget(self.scroll_area)
+        layout.addWidget(self.cards_container, stretch=1)
 
     def _update_styles(self):
         """更新样式以适配主题"""
@@ -486,7 +462,6 @@ class NicePaletteCard(CardWidget):
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
 
-        from utils.platform import is_windows_10
         if is_windows_10():
             self.setStyleSheet(f"""
                 NicePaletteCard,
@@ -533,9 +508,7 @@ class NicePaletteCard(CardWidget):
                 card.clear()
 
             self._color_cards.append(card)
-            self.cards_layout.addWidget(card)
-
-        self.cards_layout.addStretch()
+            self.cards_layout.addWidget(card, stretch=1)
 
     def _load_color_data(self):
         """加载颜色数据"""
