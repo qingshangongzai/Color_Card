@@ -254,6 +254,11 @@ class AboutDialog(QDialog):
     许可证：Apache License 2.0
     项目地址：https://colorbrewer2.org/
 
+  • 本程序内置色彩使用 Radix UI Colors 配色方案
+    版权所有：WorkOS
+    许可证：MIT License
+    项目地址：https://www.radix-ui.com/colors
+
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt

@@ -1257,8 +1257,6 @@ def get_tailwind_color_series_name_mapping():
 
 
 # Material Design Colors 颜色数据
-# 基于 Google Material Design 配色方案
-# 许可证: Apache 2.0
 MATERIAL_COLOR_DATA = {
     "red": {
         "name": "红色",
@@ -1638,9 +1636,6 @@ def get_material_color_series_name_mapping():
 
 
 # ColorBrewer 颜色数据
-# 基于 Cynthia Brewer 的 ColorBrewer 配色方案
-# 许可证: Apache License 2.0
-# 项目地址: https://colorbrewer2.org/
 COLORBREWER_DATA = {
     # Sequential (顺序色) - 单色系
     "brewer_blues": {
@@ -2239,3 +2234,638 @@ def get_colorbrewer_selected_shades(series_name):
 def get_colorbrewer_color_series_name_mapping():
     """获取 ColorBrewer 颜色系列名称的中英文映射"""
     return {key: value["name"] for key, value in COLORBREWER_DATA.items()}
+
+
+# Radix Colors 颜色数据
+RADIX_COLOR_DATA = {
+    # 中性色
+    "radix_gray": {
+        "name": "灰色",
+        "name_en": "Gray",
+        "colors": {
+            0: "#fcfcfc",
+            1: "#f8f8f8",
+            2: "#f3f3f3",
+            3: "#ededed",
+            4: "#e8e8e8",
+            5: "#e2e2e2",
+            6: "#dbdbdb",
+            7: "#cfcfcf",
+            8: "#b4b4b4",
+            9: "#8e8e8e",
+            10: "#858585",
+            11: "#6f6f6f",
+        }
+    },
+    "radix_mauve": {
+        "name": "莫芙灰",
+        "name_en": "Mauve",
+        "colors": {
+            0: "#fdfcfd",
+            1: "#faf9fb",
+            2: "#f5f3f7",
+            3: "#edebf0",
+            4: "#e5e2e9",
+            5: "#dddbe3",
+            6: "#d4d2db",
+            7: "#c8c5d0",
+            8: "#b0abb9",
+            9: "#8e8c99",
+            10: "#85838e",
+            11: "#6f6e77",
+        }
+    },
+    "radix_slate": {
+        "name": "石板灰",
+        "name_en": "Slate",
+        "colors": {
+            0: "#fcfcfd",
+            1: "#f9f9fb",
+            2: "#f3f3f6",
+            3: "#ececf0",
+            4: "#e5e7eb",
+            5: "#dde0e5",
+            6: "#d3d7de",
+            7: "#c5cbd3",
+            8: "#a9b0bc",
+            9: "#8b96a6",
+            10: "#808b9d",
+            11: "#697386",
+        }
+    },
+    "radix_sage": {
+        "name": "鼠尾草绿",
+        "name_en": "Sage",
+        "colors": {
+            0: "#fbfdfc",
+            1: "#f8faf9",
+            2: "#f1f4f2",
+            3: "#e9edeb",
+            4: "#e1e6e3",
+            5: "#d8deda",
+            6: "#cdd4d0",
+            7: "#bec5c1",
+            8: "#a3b0aa",
+            9: "#8a9a93",
+            10: "#7f8f88",
+            11: "#68736d",
+        }
+    },
+    "radix_olive": {
+        "name": "橄榄灰",
+        "name_en": "Olive",
+        "colors": {
+            0: "#fcfdfc",
+            1: "#f9faf9",
+            2: "#f2f3f2",
+            3: "#ebedeb",
+            4: "#e3e5e3",
+            5: "#dbdedb",
+            6: "#d1d5d1",
+            7: "#c2c7c2",
+            8: "#a7afa7",
+            9: "#8e968e",
+            10: "#848b84",
+            11: "#6d736d",
+        }
+    },
+    "radix_sand": {
+        "name": "沙色",
+        "name_en": "Sand",
+        "colors": {
+            0: "#fdfdfc",
+            1: "#fafaf9",
+            2: "#f5f5f4",
+            3: "#eeeeec",
+            4: "#e6e6e3",
+            5: "#dededb",
+            6: "#d4d4d0",
+            7: "#c5c5c0",
+            8: "#aaaaa4",
+            9: "#91918c",
+            10: "#868681",
+            11: "#70706b",
+        }
+    },
+    # 红色系
+    "radix_tomato": {
+        "name": "番茄红",
+        "name_en": "Tomato",
+        "colors": {
+            0: "#fffcfc",
+            1: "#fff8f7",
+            2: "#fff0ee",
+            3: "#ffe6e2",
+            4: "#fdd8d3",
+            5: "#facbc5",
+            6: "#f5bab1",
+            7: "#eba399",
+            8: "#e07e71",
+            9: "#e54d2e",
+            10: "#d93d1f",
+            11: "#c62a16",
+        }
+    },
+    "radix_red": {
+        "name": "红色",
+        "name_en": "Red",
+        "colors": {
+            0: "#fffcfc",
+            1: "#fff7f7",
+            2: "#ffefef",
+            3: "#ffe5e5",
+            4: "#fdd8d8",
+            5: "#f9c6c6",
+            6: "#f3aeaf",
+            7: "#eb8e90",
+            8: "#e5484d",
+            9: "#e5484d",
+            10: "#dc3d43",
+            11: "#cd2b31",
+        }
+    },
+    "radix_ruby": {
+        "name": "宝石红",
+        "name_en": "Ruby",
+        "colors": {
+            0: "#fffcfd",
+            1: "#fff7f9",
+            2: "#ffeff3",
+            3: "#ffe5eb",
+            4: "#fdd8e1",
+            5: "#f9c6d3",
+            6: "#f3afc0",
+            7: "#eb8fa4",
+            8: "#e54681",
+            9: "#e54681",
+            10: "#d93d77",
+            11: "#ca2c65",
+        }
+    },
+    "radix_crimson": {
+        "name": "深红",
+        "name_en": "Crimson",
+        "colors": {
+            0: "#fffcfd",
+            1: "#fff7fa",
+            2: "#ffeff5",
+            3: "#ffe5ed",
+            4: "#fdd8e4",
+            5: "#f9c6d8",
+            6: "#f3aec8",
+            7: "#eb8db0",
+            8: "#e5468e",
+            9: "#e5468e",
+            10: "#d93d85",
+            11: "#ca2c75",
+        }
+    },
+    "radix_pink": {
+        "name": "粉色",
+        "name_en": "Pink",
+        "colors": {
+            0: "#fffcfe",
+            1: "#fff7fc",
+            2: "#ffeff9",
+            3: "#ffe5f5",
+            4: "#fdd8ef",
+            5: "#f9c6e6",
+            6: "#f3aed9",
+            7: "#eb8dc7",
+            8: "#d6409f",
+            9: "#d6409f",
+            10: "#c93597",
+            11: "#b72887",
+        }
+    },
+    "radix_plum": {
+        "name": "梅红",
+        "name_en": "Plum",
+        "colors": {
+            0: "#fffcff",
+            1: "#fdf7fd",
+            2: "#fbebfb",
+            3: "#f5def5",
+            4: "#edceed",
+            5: "#e3bbe3",
+            6: "#d6a3d6",
+            7: "#c785c7",
+            8: "#ab4aba",
+            9: "#ab4aba",
+            10: "#a043af",
+            11: "#8f3aa0",
+        }
+    },
+    "radix_purple": {
+        "name": "紫色",
+        "name_en": "Purple",
+        "colors": {
+            0: "#fefcff",
+            1: "#fcf7fd",
+            2: "#f8eff9",
+            3: "#f3e5f5",
+            4: "#ebd9ed",
+            5: "#e0cae3",
+            6: "#d3b5d6",
+            7: "#c19cc5",
+            8: "#8e4ec6",
+            9: "#8e4ec6",
+            10: "#8445bc",
+            11: "#763aad",
+        }
+    },
+    "radix_violet": {
+        "name": "紫罗兰",
+        "name_en": "Violet",
+        "colors": {
+            0: "#fdfcfe",
+            1: "#faf8ff",
+            2: "#f4f0fe",
+            3: "#ebe4ff",
+            4: "#e1d8ff",
+            5: "#d5c8fd",
+            6: "#c4b4f7",
+            7: "#ae9bed",
+            8: "#654dc4",
+            9: "#654dc4",
+            10: "#5c43b7",
+            11: "#523aa8",
+        }
+    },
+    "radix_iris": {
+        "name": "鸢尾紫",
+        "name_en": "Iris",
+        "colors": {
+            0: "#fdfdff",
+            1: "#f8f8ff",
+            2: "#f0f1fe",
+            3: "#e6e7ff",
+            4: "#dadcff",
+            5: "#cbcdff",
+            6: "#b8baff",
+            7: "#9b9ef0",
+            8: "#5b5bd6",
+            9: "#5b5bd6",
+            10: "#5252c7",
+            11: "#4747b1",
+        }
+    },
+    "radix_indigo": {
+        "name": "靛蓝",
+        "name_en": "Indigo",
+        "colors": {
+            0: "#fdfdfe",
+            1: "#f8faff",
+            2: "#f0f4ff",
+            3: "#e6edff",
+            4: "#d9e2fc",
+            5: "#c6d4f9",
+            6: "#aec0f5",
+            7: "#8da4ef",
+            8: "#3e63dd",
+            9: "#3e63dd",
+            10: "#3657d3",
+            11: "#2f4dc2",
+        }
+    },
+    "radix_blue": {
+        "name": "蓝色",
+        "name_en": "Blue",
+        "colors": {
+            0: "#fbfdff",
+            1: "#f5faff",
+            2: "#edf6ff",
+            3: "#e1efff",
+            4: "#cee7fe",
+            5: "#b7d9f8",
+            6: "#96c7f2",
+            7: "#5eb0ef",
+            8: "#0090ff",
+            9: "#0090ff",
+            10: "#0081f1",
+            11: "#006adc",
+        }
+    },
+    "radix_cyan": {
+        "name": "青色",
+        "name_en": "Cyan",
+        "colors": {
+            0: "#fafdfe",
+            1: "#f2fcfd",
+            2: "#e7f9fb",
+            3: "#d8f3f6",
+            4: "#c4eaef",
+            5: "#aadee6",
+            6: "#84d0dc",
+            7: "#3dbccf",
+            8: "#05a2c2",
+            9: "#05a2c2",
+            10: "#0894b3",
+            11: "#0c829c",
+        }
+    },
+    "radix_teal": {
+        "name": "蓝绿",
+        "name_en": "Teal",
+        "colors": {
+            0: "#fafefd",
+            1: "#f1fcfa",
+            2: "#e7f9f5",
+            3: "#d9f3ec",
+            4: "#c7ebe2",
+            5: "#b0e0d3",
+            6: "#92d1c1",
+            7: "#5cbfa8",
+            8: "#12a594",
+            9: "#12a594",
+            10: "#0d9b8a",
+            11: "#058376",
+        }
+    },
+    "radix_jade": {
+        "name": "翡翠绿",
+        "name_en": "Jade",
+        "colors": {
+            0: "#fbfefd",
+            1: "#f1fcf7",
+            2: "#e6f9f0",
+            3: "#d7f4e6",
+            4: "#c3ebd9",
+            5: "#abdec9",
+            6: "#8dceb7",
+            7: "#56bfa3",
+            8: "#29a383",
+            9: "#29a383",
+            10: "#26997b",
+            11: "#208368",
+        }
+    },
+    "radix_green": {
+        "name": "绿色",
+        "name_en": "Green",
+        "colors": {
+            0: "#fbfefc",
+            1: "#f2fcf5",
+            2: "#e9f9ee",
+            3: "#ddf3e4",
+            4: "#ccebd7",
+            5: "#b6dfc5",
+            6: "#97cfac",
+            7: "#65ba8a",
+            8: "#46a758",
+            9: "#46a758",
+            10: "#3d9a50",
+            11: "#2f7c3f",
+        }
+    },
+    "radix_grass": {
+        "name": "草绿",
+        "name_en": "Grass",
+        "colors": {
+            0: "#fbfefb",
+            1: "#f3fcf3",
+            2: "#e9f9e9",
+            3: "#daf3da",
+            4: "#c7ebc8",
+            5: "#b0deb3",
+            6: "#91ce97",
+            7: "#62ba6e",
+            8: "#46a758",
+            9: "#46a758",
+            10: "#3e9b4f",
+            11: "#307f3e",
+        }
+    },
+    "radix_brown": {
+        "name": "棕色",
+        "name_en": "Brown",
+        "colors": {
+            0: "#fefdfc",
+            1: "#fcf9f6",
+            2: "#f8f1ea",
+            3: "#f2e6dc",
+            4: "#ebd9cc",
+            5: "#e1cbb9",
+            6: "#d4b8a4",
+            7: "#c2a28d",
+            8: "#a17f6b",
+            9: "#a17f6b",
+            10: "#95745f",
+            11: "#816251",
+        }
+    },
+    "radix_bronze": {
+        "name": "青铜",
+        "name_en": "Bronze",
+        "colors": {
+            0: "#fdfcfb",
+            1: "#fcf8f5",
+            2: "#f8f1ea",
+            3: "#f2e6dc",
+            4: "#ebd9cc",
+            5: "#e1cbb9",
+            6: "#d4b8a4",
+            7: "#c2a28d",
+            8: "#a17f6b",
+            9: "#a17f6b",
+            10: "#95745f",
+            11: "#816251",
+        }
+    },
+    "radix_gold": {
+        "name": "金色",
+        "name_en": "Gold",
+        "colors": {
+            0: "#fdfcf9",
+            1: "#fcf9f1",
+            2: "#f8f3e5",
+            3: "#f1ebd4",
+            4: "#e7dfc2",
+            5: "#dbd0aa",
+            6: "#cbbf8f",
+            7: "#b6a56e",
+            8: "#978365",
+            9: "#978365",
+            10: "#8c795b",
+            11: "#77654e",
+        }
+    },
+    "radix_sky": {
+        "name": "天蓝",
+        "name_en": "Sky",
+        "colors": {
+            0: "#f9feff",
+            1: "#f1fcff",
+            2: "#e4f9ff",
+            3: "#d5f4fd",
+            4: "#c1ecf9",
+            5: "#a4e1f5",
+            6: "#79d2ef",
+            7: "#2ebde5",
+            8: "#68ddfd",
+            9: "#68ddfd",
+            10: "#5fd4f4",
+            11: "#00a2c7",
+        }
+    },
+    "radix_mint": {
+        "name": "薄荷",
+        "name_en": "Mint",
+        "colors": {
+            0: "#f9fefd",
+            1: "#f1fcf9",
+            2: "#e4f9f4",
+            3: "#d5f4ec",
+            4: "#c1ebe2",
+            5: "#a5ded3",
+            6: "#7dcdc0",
+            7: "#3db9a9",
+            8: "#86ead4",
+            9: "#86ead4",
+            10: "#7de0cb",
+            11: "#008573",
+        }
+    },
+    "radix_lime": {
+        "name": "柠檬绿",
+        "name_en": "Lime",
+        "colors": {
+            0: "#fcfdfa",
+            1: "#f7fcf0",
+            2: "#eefadc",
+            3: "#e4f5c7",
+            4: "#d7eeb0",
+            5: "#c6e394",
+            6: "#b0d477",
+            7: "#94c158",
+            8: "#bdee63",
+            9: "#bdee63",
+            10: "#b0e45c",
+            11: "#5c7c2f",
+        }
+    },
+    "radix_yellow": {
+        "name": "黄色",
+        "name_en": "Yellow",
+        "colors": {
+            0: "#fdfdf9",
+            1: "#fcfae9",
+            2: "#f9f5ce",
+            3: "#f4eeb0",
+            4: "#ede58f",
+            5: "#e1d668",
+            6: "#d1c23a",
+            7: "#bba316",
+            8: "#ffe629",
+            9: "#ffe629",
+            10: "#f5dc00",
+            11: "#9e6c00",
+        }
+    },
+    "radix_amber": {
+        "name": "琥珀",
+        "name_en": "Amber",
+        "colors": {
+            0: "#fefdfb",
+            1: "#fefbe9",
+            2: "#fff7c2",
+            3: "#ffee9c",
+            4: "#fbe577",
+            5: "#f3d673",
+            6: "#e9c162",
+            7: "#dbb54e",
+            8: "#ffc53d",
+            9: "#ffc53d",
+            10: "#ffba18",
+            11: "#915930",
+        }
+    },
+    "radix_orange": {
+        "name": "橙色",
+        "name_en": "Orange",
+        "colors": {
+            0: "#fefcfb",
+            1: "#fff7ed",
+            2: "#ffefd6",
+            3: "#ffe3c2",
+            4: "#ffd3a4",
+            5: "#ffc291",
+            6: "#ffaf78",
+            7: "#ff8f4d",
+            8: "#f76b15",
+            9: "#f76b15",
+            10: "#ef5f00",
+            11: "#cc4e00",
+        }
+    },
+}
+
+
+# ===== Radix Colors 相关函数 =====
+
+def get_radix_color_series_names():
+    """获取所有 Radix Colors 颜色系列名称列表"""
+    return list(RADIX_COLOR_DATA.keys())
+
+
+def get_radix_color_series(series_name):
+    """获取指定 Radix Colors 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'radix_blue', 'radix_red' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return RADIX_COLOR_DATA.get(series_name, None)
+
+
+def get_radix_light_shades(series_name):
+    """获取指定 Radix Colors 颜色系列的浅色组 (0-5)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 6个浅色色值列表
+    """
+    series = RADIX_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(6) if i in series["colors"]]
+
+
+def get_radix_dark_shades(series_name):
+    """获取指定 Radix Colors 颜色系列的深色组 (6-11)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 6个深色色值列表
+    """
+    series = RADIX_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(6, 12) if i in series["colors"]]
+
+
+def get_radix_selected_shades(series_name):
+    """获取指定 Radix Colors 颜色系列的精选5色 (0, 2, 4, 7, 9)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 5个精选色值列表
+    """
+    series = RADIX_COLOR_DATA.get(series_name)
+    if not series:
+        return []
+    selected_indices = [0, 2, 4, 7, 9]
+    return [series["colors"][i] for i in selected_indices if i in series["colors"]]
+
+
+def get_radix_color_series_name_mapping():
+    """获取 Radix Colors 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in RADIX_COLOR_DATA.items()}

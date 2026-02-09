@@ -1851,7 +1851,7 @@ class ColorManagementInterface(QWidget):
 
 
 class PresetColorInterface(QWidget):
-    """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors 和 Material Design）"""
+    """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors、Material Design、ColorBrewer 和 Radix Colors）"""
 
     # 每组显示的配色方案数量
     PALETTES_PER_GROUP = 50
@@ -1890,6 +1890,20 @@ class PresetColorInterface(QWidget):
         (["brewer_rdgy", "brewer_rdylbu", "brewer_rdylgn", "brewer_spectral"], "发散色-光谱"),
         (["brewer_set1", "brewer_set2", "brewer_set3", "brewer_paired", "brewer_dark2", "brewer_accent"], "定性色-分类"),
         (["brewer_pastel1", "brewer_pastel2"], "定性色-粉彩"),
+    ]
+
+    # Radix Colors 分组定义
+    RADIX_GROUPS = [
+        (["radix_gray", "radix_mauve", "radix_slate", "radix_sage", "radix_olive", "radix_sand"], "中性色系"),
+        (["radix_tomato", "radix_red", "radix_ruby", "radix_crimson"], "红色系"),
+        (["radix_pink", "radix_plum", "radix_purple"], "粉紫色系"),
+        (["radix_violet", "radix_iris", "radix_indigo"], "紫蓝色系"),
+        (["radix_blue", "radix_cyan", "radix_sky"], "蓝色系"),
+        (["radix_teal", "radix_jade", "radix_mint"], "青绿色系"),
+        (["radix_green", "radix_grass"], "绿色系"),
+        (["radix_brown", "radix_bronze", "radix_gold"], "金属色系"),
+        (["radix_yellow", "radix_amber", "radix_orange"], "黄橙色系"),
+        (["radix_lime"], "亮绿色系"),
     ]
 
     def __init__(self, parent=None):
@@ -1942,6 +1956,8 @@ class PresetColorInterface(QWidget):
         self.source_combo.setItemData(3, "nice_palette")
         self.source_combo.addItem("ColorBrewer 配色")
         self.source_combo.setItemData(4, "colorbrewer")
+        self.source_combo.addItem("Radix Colors 配色")
+        self.source_combo.setItemData(5, "radix")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
@@ -2004,6 +2020,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.addItem(name)
             self.group_combo.setItemData(i, i)
 
+    def _setup_radix_group_combo(self):
+        """设置 Radix Colors 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.RADIX_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
     def _on_source_changed(self, index):
         """数据源切换回调"""
         source = self.source_combo.currentData()
@@ -2044,6 +2067,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.setCurrentIndex(0)
             series_keys = self.COLORBREWER_GROUPS[0][0]
             self.preset_color_list.set_data_source('colorbrewer', series_keys)
+        elif source == 'radix':
+            self.desc_label.setText("基于 Radix UI Colors 配色方案")
+            self._setup_radix_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.RADIX_GROUPS[0][0]
+            self.preset_color_list.set_data_source('radix', series_keys)
 
     def _on_group_changed(self, index):
         """分组切换回调"""
@@ -2071,6 +2101,10 @@ class PresetColorInterface(QWidget):
             if 0 <= index < len(self.COLORBREWER_GROUPS):
                 series_keys = self.COLORBREWER_GROUPS[index][0]
                 self.preset_color_list.set_data_source('colorbrewer', series_keys)
+        elif self._current_source == 'radix':
+            if 0 <= index < len(self.RADIX_GROUPS):
+                series_keys = self.RADIX_GROUPS[index][0]
+                self.preset_color_list.set_data_source('radix', series_keys)
 
     def _load_settings(self):
         """加载显示设置"""
