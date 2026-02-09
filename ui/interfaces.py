@@ -1921,6 +1921,26 @@ class PresetColorInterface(QWidget):
         (["dracula_purple", "dracula_red", "dracula_yellow"], "主题色-2"),
     ]
 
+    # Rose Pine 分组定义
+    ROSE_PINE_GROUPS = [
+        (["rose_pine_main", "rose_pine_moon", "rose_pine_dawn"], "全部系列"),
+    ]
+
+    # Solarized 分组定义
+    SOLARIZED_GROUPS = [
+        (["solarized_dark", "solarized_light"], "全部系列"),
+    ]
+
+    # Catppuccin 分组定义
+    CATPPUCCIN_GROUPS = [
+        (["catppuccin_latte", "catppuccin_frappe", "catppuccin_macchiato", "catppuccin_mocha"], "全部系列"),
+    ]
+
+    # Gruvbox 分组定义
+    GRUVBOX_GROUPS = [
+        (["gruvbox_dark", "gruvbox_light"], "全部系列"),
+    ]
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('presetColorInterface')
@@ -1977,6 +1997,14 @@ class PresetColorInterface(QWidget):
         self.source_combo.setItemData(6, "nord")
         self.source_combo.addItem("Dracula 配色")
         self.source_combo.setItemData(7, "dracula")
+        self.source_combo.addItem("Rosé Pine 配色")
+        self.source_combo.setItemData(8, "rose_pine")
+        self.source_combo.addItem("Solarized 配色")
+        self.source_combo.setItemData(9, "solarized")
+        self.source_combo.addItem("Catppuccin 配色")
+        self.source_combo.setItemData(10, "catppuccin")
+        self.source_combo.addItem("Gruvbox 配色")
+        self.source_combo.setItemData(11, "gruvbox")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
@@ -2060,6 +2088,34 @@ class PresetColorInterface(QWidget):
             self.group_combo.addItem(name)
             self.group_combo.setItemData(i, i)
 
+    def _setup_rose_pine_group_combo(self):
+        """设置 Rose Pine 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.ROSE_PINE_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_solarized_group_combo(self):
+        """设置 Solarized 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.SOLARIZED_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_catppuccin_group_combo(self):
+        """设置 Catppuccin 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.CATPPUCCIN_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_gruvbox_group_combo(self):
+        """设置 Gruvbox 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.GRUVBOX_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
     def _on_source_changed(self, index):
         """数据源切换回调"""
         source = self.source_combo.currentData()
@@ -2121,6 +2177,34 @@ class PresetColorInterface(QWidget):
             self.group_combo.setCurrentIndex(0)
             series_keys = self.DRACULA_GROUPS[0][0]
             self.preset_color_list.set_data_source('dracula', series_keys)
+        elif source == 'rose_pine':
+            self.desc_label.setText("基于 Rosé Pine 自然灵感配色方案")
+            self._setup_rose_pine_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.ROSE_PINE_GROUPS[0][0]
+            self.preset_color_list.set_data_source('rose_pine', series_keys)
+        elif source == 'solarized':
+            self.desc_label.setText("基于 Solarized 精准科学配色方案")
+            self._setup_solarized_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.SOLARIZED_GROUPS[0][0]
+            self.preset_color_list.set_data_source('solarized', series_keys)
+        elif source == 'catppuccin':
+            self.desc_label.setText("基于 Catppuccin 舒缓配色方案")
+            self._setup_catppuccin_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.CATPPUCCIN_GROUPS[0][0]
+            self.preset_color_list.set_data_source('catppuccin', series_keys)
+        elif source == 'gruvbox':
+            self.desc_label.setText("基于 Gruvbox 复古风格配色方案")
+            self._setup_gruvbox_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.GRUVBOX_GROUPS[0][0]
+            self.preset_color_list.set_data_source('gruvbox', series_keys)
 
     def _on_group_changed(self, index):
         """分组切换回调"""
@@ -2160,6 +2244,22 @@ class PresetColorInterface(QWidget):
             if 0 <= index < len(self.DRACULA_GROUPS):
                 series_keys = self.DRACULA_GROUPS[index][0]
                 self.preset_color_list.set_data_source('dracula', series_keys)
+        elif self._current_source == 'rose_pine':
+            if 0 <= index < len(self.ROSE_PINE_GROUPS):
+                series_keys = self.ROSE_PINE_GROUPS[index][0]
+                self.preset_color_list.set_data_source('rose_pine', series_keys)
+        elif self._current_source == 'solarized':
+            if 0 <= index < len(self.SOLARIZED_GROUPS):
+                series_keys = self.SOLARIZED_GROUPS[index][0]
+                self.preset_color_list.set_data_source('solarized', series_keys)
+        elif self._current_source == 'catppuccin':
+            if 0 <= index < len(self.CATPPUCCIN_GROUPS):
+                series_keys = self.CATPPUCCIN_GROUPS[index][0]
+                self.preset_color_list.set_data_source('catppuccin', series_keys)
+        elif self._current_source == 'gruvbox':
+            if 0 <= index < len(self.GRUVBOX_GROUPS):
+                series_keys = self.GRUVBOX_GROUPS[index][0]
+                self.preset_color_list.set_data_source('gruvbox', series_keys)
 
     def _load_settings(self):
         """加载显示设置"""

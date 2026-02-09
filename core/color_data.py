@@ -839,3 +839,379 @@ def get_radix_selected_shades(series_name):
 def get_radix_color_series_name_mapping():
     """获取 Radix Colors 颜色系列名称的中英文映射"""
     return {key: value["name"] for key, value in _get_radix_data().items()}
+
+
+# ===== Rose Pine 延迟加载 =====
+_ROSE_PINE_COLOR_DATA = None
+
+
+def _load_rose_pine_data():
+    """从 JSON 文件加载 Rose Pine 颜色数据
+
+    Returns:
+        dict: Rose Pine 颜色数据字典
+    """
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        json_path = os.path.join(project_root, 'color_data', 'rose_pine.json')
+
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # 将字符串键转换为整数键
+            colors_data = data.get('colors', {})
+            for series in colors_data.values():
+                if 'colors' in series:
+                    series['colors'] = {int(k): v for k, v in series['colors'].items()}
+            return colors_data
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"加载 Rose Pine 颜色数据失败: {e}")
+        return {}
+
+
+def _get_rose_pine_data():
+    """获取 Rose Pine 颜色数据（延迟加载）
+
+    Returns:
+        dict: Rose Pine 颜色数据字典
+    """
+    global _ROSE_PINE_COLOR_DATA
+    if _ROSE_PINE_COLOR_DATA is None:
+        _ROSE_PINE_COLOR_DATA = _load_rose_pine_data()
+    return _ROSE_PINE_COLOR_DATA
+
+
+# ===== Solarized 延迟加载 =====
+_SOLARIZED_COLOR_DATA = None
+
+
+def _load_solarized_data():
+    """从 JSON 文件加载 Solarized 颜色数据
+
+    Returns:
+        dict: Solarized 颜色数据字典
+    """
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        json_path = os.path.join(project_root, 'color_data', 'solarized.json')
+
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # 将字符串键转换为整数键
+            colors_data = data.get('colors', {})
+            for series in colors_data.values():
+                if 'colors' in series:
+                    series['colors'] = {int(k): v for k, v in series['colors'].items()}
+            return colors_data
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"加载 Solarized 颜色数据失败: {e}")
+        return {}
+
+
+def _get_solarized_data():
+    """获取 Solarized 颜色数据（延迟加载）
+
+    Returns:
+        dict: Solarized 颜色数据字典
+    """
+    global _SOLARIZED_COLOR_DATA
+    if _SOLARIZED_COLOR_DATA is None:
+        _SOLARIZED_COLOR_DATA = _load_solarized_data()
+    return _SOLARIZED_COLOR_DATA
+
+
+# ===== Rose Pine 相关函数 =====
+
+def get_rose_pine_color_series_names():
+    """获取所有 Rose Pine 颜色系列名称列表"""
+    return list(_get_rose_pine_data().keys())
+
+
+def get_rose_pine_color_series(series_name):
+    """获取指定 Rose Pine 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'rose_pine_main', 'rose_pine_moon' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return _get_rose_pine_data().get(series_name, None)
+
+
+def get_rose_pine_light_shades(series_name):
+    """获取指定 Rose Pine 颜色系列的浅色组 (0-5)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 6个浅色色值列表
+    """
+    series = _get_rose_pine_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(6) if i in series["colors"]]
+
+
+def get_rose_pine_dark_shades(series_name):
+    """获取指定 Rose Pine 颜色系列的深色组 (6-11)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 6个深色色值列表
+    """
+    series = _get_rose_pine_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(6, 12) if i in series["colors"]]
+
+
+def get_rose_pine_color_series_name_mapping():
+    """获取 Rose Pine 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in _get_rose_pine_data().items()}
+
+
+# ===== Solarized 相关函数 =====
+
+def get_solarized_color_series_names():
+    """获取所有 Solarized 颜色系列名称列表"""
+    return list(_get_solarized_data().keys())
+
+
+def get_solarized_color_series(series_name):
+    """获取指定 Solarized 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'solarized_dark', 'solarized_light' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return _get_solarized_data().get(series_name, None)
+
+
+def get_solarized_light_shades(series_name):
+    """获取指定 Solarized 颜色系列的浅色组 (0-7)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 8个浅色色值列表
+    """
+    series = _get_solarized_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(8) if i in series["colors"]]
+
+
+def get_solarized_dark_shades(series_name):
+    """获取指定 Solarized 颜色系列的深色组 (8-15)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 8个深色色值列表
+    """
+    series = _get_solarized_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(8, 16) if i in series["colors"]]
+
+
+def get_solarized_color_series_name_mapping():
+    """获取 Solarized 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in _get_solarized_data().items()}
+
+
+# ===== Catppuccin 延迟加载 =====
+_CATPPUCCIN_COLOR_DATA = None
+
+
+def _load_catppuccin_data():
+    """从 JSON 文件加载 Catppuccin 颜色数据
+
+    Returns:
+        dict: Catppuccin 颜色数据字典
+    """
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        json_path = os.path.join(project_root, 'color_data', 'catppuccin.json')
+
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # 将字符串键转换为整数键
+            colors_data = data.get('colors', {})
+            for series in colors_data.values():
+                if 'colors' in series:
+                    series['colors'] = {int(k): v for k, v in series['colors'].items()}
+            return colors_data
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"加载 Catppuccin 颜色数据失败: {e}")
+        return {}
+
+
+def _get_catppuccin_data():
+    """获取 Catppuccin 颜色数据（延迟加载）
+
+    Returns:
+        dict: Catppuccin 颜色数据字典
+    """
+    global _CATPPUCCIN_COLOR_DATA
+    if _CATPPUCCIN_COLOR_DATA is None:
+        _CATPPUCCIN_COLOR_DATA = _load_catppuccin_data()
+    return _CATPPUCCIN_COLOR_DATA
+
+
+# ===== Gruvbox 延迟加载 =====
+_GRUVBOX_COLOR_DATA = None
+
+
+def _load_gruvbox_data():
+    """从 JSON 文件加载 Gruvbox 颜色数据
+
+    Returns:
+        dict: Gruvbox 颜色数据字典
+    """
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        json_path = os.path.join(project_root, 'color_data', 'gruvbox.json')
+
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # 将字符串键转换为整数键
+            colors_data = data.get('colors', {})
+            for series in colors_data.values():
+                if 'colors' in series:
+                    series['colors'] = {int(k): v for k, v in series['colors'].items()}
+            return colors_data
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"加载 Gruvbox 颜色数据失败: {e}")
+        return {}
+
+
+def _get_gruvbox_data():
+    """获取 Gruvbox 颜色数据（延迟加载）
+
+    Returns:
+        dict: Gruvbox 颜色数据字典
+    """
+    global _GRUVBOX_COLOR_DATA
+    if _GRUVBOX_COLOR_DATA is None:
+        _GRUVBOX_COLOR_DATA = _load_gruvbox_data()
+    return _GRUVBOX_COLOR_DATA
+
+
+# ===== Catppuccin 相关函数 =====
+
+def get_catppuccin_color_series_names():
+    """获取所有 Catppuccin 颜色系列名称列表"""
+    return list(_get_catppuccin_data().keys())
+
+
+def get_catppuccin_color_series(series_name):
+    """获取指定 Catppuccin 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'catppuccin_latte', 'catppuccin_mocha' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return _get_catppuccin_data().get(series_name, None)
+
+
+def get_catppuccin_light_shades(series_name):
+    """获取指定 Catppuccin 颜色系列的浅色组 (0-11)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 12个浅色色值列表
+    """
+    series = _get_catppuccin_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(12) if i in series["colors"]]
+
+
+def get_catppuccin_dark_shades(series_name):
+    """获取指定 Catppuccin 颜色系列的深色组 (12-23)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 12个深色色值列表
+    """
+    series = _get_catppuccin_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(12, 24) if i in series["colors"]]
+
+
+def get_catppuccin_color_series_name_mapping():
+    """获取 Catppuccin 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in _get_catppuccin_data().items()}
+
+
+# ===== Gruvbox 相关函数 =====
+
+def get_gruvbox_color_series_names():
+    """获取所有 Gruvbox 颜色系列名称列表"""
+    return list(_get_gruvbox_data().keys())
+
+
+def get_gruvbox_color_series(series_name):
+    """获取指定 Gruvbox 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'gruvbox_dark', 'gruvbox_light' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return _get_gruvbox_data().get(series_name, None)
+
+
+def get_gruvbox_light_shades(series_name):
+    """获取指定 Gruvbox 颜色系列的浅色组 (0-11)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 12个浅色色值列表
+    """
+    series = _get_gruvbox_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(12) if i in series["colors"]]
+
+
+def get_gruvbox_dark_shades(series_name):
+    """获取指定 Gruvbox 颜色系列的深色组 (12-23)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 12个深色色值列表
+    """
+    series = _get_gruvbox_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(12, 24) if i in series["colors"]]
+
+
+def get_gruvbox_color_series_name_mapping():
+    """获取 Gruvbox 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in _get_gruvbox_data().items()}
