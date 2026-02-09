@@ -197,10 +197,11 @@ class AboutDialog(QDialog):
         return f"""　　取色卡（Color Card）是一款专为摄影师开发的图片分析小工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，辅助后期调色和色彩管理。
 
 【开发团队】
-  • 出品：{app_info['company']}
-  • 开发：{app_info['developer']}
+  • 出品：浮晓 HXiao Studio
+  • 开发：青山公仔
   • 代码：Trae
-  • 联系邮箱：{app_info['email']}
+  • logo绘制：青山公仔
+  • 联系邮箱：hxiao_studio@163.com
 
 【开源项目使用说明】
   • 本程序基于 PySide6 架构开发
