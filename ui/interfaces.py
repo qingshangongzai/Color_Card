@@ -2352,6 +2352,7 @@ class ColorPreviewInterface(QWidget):
         self._current_colors = []
         self._current_scene = "custom"  # 默认使用自定义场景
         self._current_svg_path = ""  # 当前加载的 SVG 文件路径
+        self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.setup_ui()
         self._load_favorites()
         self._update_styles()
@@ -2367,8 +2368,10 @@ class ColorPreviewInterface(QWidget):
         self.toolbar = PreviewToolbar(self)
         self.toolbar.scene_changed.connect(self._on_scene_changed)
         self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
+        self.toolbar.get_dot_bar().color_deleted.connect(self._on_color_deleted)
         self.toolbar.import_svg_requested.connect(self._on_import_svg)
         self.toolbar.export_svg_requested.connect(self._on_export_svg)
+        self.toolbar.set_hex_visible(self._hex_visible)
         layout.addWidget(self.toolbar)
 
         # 预览区域
@@ -2435,6 +2438,20 @@ class ColorPreviewInterface(QWidget):
         """颜色顺序变化回调"""
         self._current_colors = colors
         self.preview_panel.set_colors(colors)
+
+    def _on_color_deleted(self, colors: List[str]):
+        """颜色删除回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def set_hex_visible(self, visible: bool):
+        """设置HEX值显示开关
+
+        Args:
+            visible: 是否显示HEX值
+        """
+        self._hex_visible = visible
+        self.toolbar.set_hex_visible(visible)
 
     def _on_import_svg(self):
         """导入 SVG 文件"""

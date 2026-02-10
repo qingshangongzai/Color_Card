@@ -534,6 +534,11 @@ class MainWindow(FluentWindow):
             lambda modes: self.preset_color_interface.update_display_settings(color_modes=modes)
         )
 
+        # 连接16进制显示开关信号到配色预览界面
+        self.settings_interface.hex_display_changed.connect(
+            self.color_preview_interface.set_hex_visible
+        )
+
         # 连接内置色彩界面的收藏信号
         self.preset_color_interface.favorite_requested.connect(self._on_preset_color_favorite)
 

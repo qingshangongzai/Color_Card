@@ -5,7 +5,7 @@ import math
 # 第三方库导入
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QSplitter, QSizePolicy, QFileDialog
+    QLabel, QSplitter, QSizePolicy, QFileDialog, QApplication
 )
 from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData
 from PySide6.QtGui import (
@@ -15,7 +15,7 @@ from PySide6.QtGui import (
 from PySide6.QtSvg import QSvgRenderer
 from qfluentwidgets import (
     ToolButton, ComboBox, PushButton, SubtitleLabel,
-    FluentIcon, isDarkTheme, qconfig
+    FluentIcon, isDarkTheme, qconfig, RoundMenu, Action
 )
 
 # 项目模块导入
@@ -26,11 +26,13 @@ class DraggableColorDot(QWidget):
     """可拖拽的颜色圆点组件"""
 
     clicked = Signal(int)                # 点击信号：索引
+    delete_requested = Signal(int)       # 删除请求信号：索引
 
     def __init__(self, color: str, index: int, parent=None):
         self._color = color
         self._index = index
         self._drag_start_pos = QPoint()
+        self._hex_visible = True             # HEX值显示开关
         super().__init__(parent)
         self.setFixedSize(36, 36)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
@@ -109,17 +111,47 @@ class DraggableColorDot(QWidget):
     def mouseDoubleClickEvent(self, event):
         self.clicked.emit(self._index)
 
+    def set_hex_visible(self, visible: bool):
+        """设置HEX值显示开关"""
+        self._hex_visible = visible
+
+    def contextMenuEvent(self, event):
+        """右键菜单事件"""
+        menu = RoundMenu("", self)
+
+        # 如果开启HEX显示，添加HEX值和复制按钮
+        if self._hex_visible:
+            # HEX值显示和复制
+            hex_value = self._color.upper()
+            copy_action = Action(FluentIcon.COPY, f"{hex_value}")
+            copy_action.triggered.connect(self._copy_hex_to_clipboard)
+            menu.addAction(copy_action)
+            menu.addSeparator()
+
+        # 删除选项
+        delete_action = Action(FluentIcon.DELETE, "删除")
+        delete_action.triggered.connect(lambda: self.delete_requested.emit(self._index))
+        menu.addAction(delete_action)
+        menu.exec(event.globalPos())
+
+    def _copy_hex_to_clipboard(self):
+        """复制HEX值到剪贴板"""
+        clipboard = QApplication.clipboard()
+        clipboard.setText(self._color.upper())
+
 
 class ColorDotBar(QWidget):
     """颜色圆点工具栏，支持拖拽排序"""
 
     order_changed = Signal(list)         # 颜色顺序变化信号：新的颜色列表
     color_clicked = Signal(int)          # 颜色点击信号：索引
+    color_deleted = Signal(list)         # 颜色删除信号：新的颜色列表
 
     def __init__(self, parent=None):
         self._colors: List[str] = []
         self._dots: List[DraggableColorDot] = []
         self._insert_indicator_pos = -1    # 插入指示器位置（-1表示不显示）
+        self._hex_visible = True             # HEX值显示开关
         super().__init__(parent)
         self.setup_ui()
         self.setAcceptDrops(True)
@@ -149,12 +181,39 @@ class ColorDotBar(QWidget):
         for i, color in enumerate(self._colors):
             dot = DraggableColorDot(color, i)
             dot.clicked.connect(self._on_dot_clicked)
+            dot.delete_requested.connect(self._on_dot_delete_requested)
+            dot.set_hex_visible(self._hex_visible)
             self._dots.append(dot)
             layout.insertWidget(layout.count() - 1, dot)
+
+    def set_hex_visible(self, visible: bool):
+        """设置HEX值显示开关
+
+        Args:
+            visible: 是否显示HEX值
+        """
+        self._hex_visible = visible
+        for dot in self._dots:
+            dot.set_hex_visible(visible)
 
     def _on_dot_clicked(self, index: int):
         """处理圆点点击"""
         self.color_clicked.emit(index)
+
+    def _on_dot_delete_requested(self, index: int):
+        """处理圆点删除请求"""
+        self.delete_color(index)
+
+    def delete_color(self, index: int):
+        """删除指定索引的颜色
+
+        Args:
+            index: 要删除的颜色索引
+        """
+        if 0 <= index < len(self._colors):
+            self._colors.pop(index)
+            self._rebuild_dots()
+            self.color_deleted.emit(self._colors.copy())
 
     def paintEvent(self, event):
         """绘制插入指示器"""
@@ -739,6 +798,14 @@ class PreviewToolbar(QWidget):
     def set_colors(self, colors: List[str]):
         """设置颜色"""
         self._dot_bar.set_colors(colors)
+
+    def set_hex_visible(self, visible: bool):
+        """设置HEX值显示开关
+
+        Args:
+            visible: 是否显示HEX值
+        """
+        self._dot_bar.set_hex_visible(visible)
 
     def get_dot_bar(self) -> ColorDotBar:
         """获取圆点栏（用于连接信号）"""
