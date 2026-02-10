@@ -1,5 +1,5 @@
 # 标准库导入
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import math
 
 # 第三方库导入
@@ -1055,13 +1055,20 @@ class PreviewToolbar(QWidget):
 
 
 class SVGPreviewWidget(QWidget):
-    """SVG 预览组件 - 加载和显示 SVG 文件，支持配色应用"""
+    """SVG 预览组件 - 加载和显示 SVG 文件，支持智能配色应用"""
+
+    # 映射模式
+    MODE_SEQUENTIAL = "sequential"      # 顺序映射（兼容旧版）
+    MODE_INTELLIGENT = "intelligent"    # 智能映射
+    MODE_MANUAL = "manual"              # 手动映射
 
     def __init__(self, parent=None):
         self._colors: List[str] = []
         self._svg_renderer: Optional[QSvgRenderer] = None
         self._svg_content: str = ""
         self._original_svg_content: str = ""
+        self._color_mapper: Optional[Any] = None  # SVGColorMapper 实例
+        self._mapping_mode: str = self.MODE_INTELLIGENT  # 默认智能映射
         super().__init__(parent)
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -1076,8 +1083,14 @@ class SVGPreviewWidget(QWidget):
             bool: 是否加载成功
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                self._original_svg_content = f.read()
+            # 使用新的 SVGColorMapper
+            from core import SVGColorMapper
+            self._color_mapper = SVGColorMapper()
+
+            if not self._color_mapper.load_svg(file_path):
+                return False
+
+            self._original_svg_content = self._color_mapper.get_original_content()
 
             # 应用当前配色
             self._apply_colors_to_svg()
@@ -1090,6 +1103,37 @@ class SVGPreviewWidget(QWidget):
             return True
         except Exception as e:
             print(f"加载 SVG 文件失败: {e}")
+            return False
+
+    def load_svg_from_string(self, content: str) -> bool:
+        """从字符串加载 SVG
+
+        Args:
+            content: SVG 内容字符串
+
+        Returns:
+            bool: 是否加载成功
+        """
+        try:
+            from core import SVGColorMapper
+            self._color_mapper = SVGColorMapper()
+
+            if not self._color_mapper.load_svg_from_string(content):
+                return False
+
+            self._original_svg_content = content
+
+            # 应用当前配色
+            self._apply_colors_to_svg()
+
+            # 创建渲染器
+            self._svg_renderer = QSvgRenderer()
+            self._svg_renderer.load(self._svg_content.encode('utf-8'))
+
+            self.update()
+            return True
+        except Exception as e:
+            print(f"加载 SVG 字符串失败: {e}")
             return False
 
     def set_colors(self, colors: List[str]):
@@ -1113,44 +1157,75 @@ class SVGPreviewWidget(QWidget):
                 self._svg_renderer.load(self._svg_content.encode('utf-8'))
             self.update()
 
-    def _apply_colors_to_svg(self):
-        """将配色应用到 SVG 内容
+    def set_mapping_mode(self, mode: str):
+        """设置映射模式
 
-        策略：
-        1. 查找 SVG 中的 fill="..." 和 stroke="..." 属性
-        2. 按顺序替换为当前配色
-        3. 保留原始 SVG 结构
+        Args:
+            mode: 映射模式（MODE_SEQUENTIAL, MODE_INTELLIGENT, MODE_MANUAL）
         """
-        import re
+        if mode in [self.MODE_SEQUENTIAL, self.MODE_INTELLIGENT, self.MODE_MANUAL]:
+            self._mapping_mode = mode
+            # 重新应用配色
+            if self._original_svg_content:
+                self._apply_colors_to_svg()
+                if self._svg_renderer:
+                    self._svg_renderer.load(self._svg_content.encode('utf-8'))
+                self.update()
 
-        if not self._original_svg_content:
+    def get_mapping_mode(self) -> str:
+        """获取当前映射模式"""
+        return self._mapping_mode
+
+    def _apply_colors_to_svg(self):
+        """将配色应用到 SVG 内容"""
+        if not self._original_svg_content or not self._colors:
             return
 
-        content = self._original_svg_content
+        # 根据映射模式选择应用方式
+        if self._mapping_mode == self.MODE_SEQUENTIAL:
+            # 顺序映射（兼容旧版）
+            if self._color_mapper:
+                self._svg_content = self._color_mapper.apply_sequential_mapping(self._colors)
+            else:
+                self._svg_content = self._apply_sequential_colors(self._original_svg_content, self._colors)
+        elif self._mapping_mode == self.MODE_INTELLIGENT:
+            # 智能映射
+            if self._color_mapper:
+                self._svg_content = self._color_mapper.apply_intelligent_mapping(self._colors)
+            else:
+                self._svg_content = self._apply_sequential_colors(self._original_svg_content, self._colors)
+        else:
+            # 手动映射（使用 color_mapper 的当前状态）
+            if self._color_mapper:
+                self._svg_content = self._color_mapper.get_modified_content()
+            else:
+                self._svg_content = self._original_svg_content
+
+    def _apply_sequential_colors(self, content: str, colors: List[str]) -> str:
+        """顺序应用配色（兼容旧版行为）"""
+        import re
+
+        if not content or not colors:
+            return content
+
         color_index = 0
 
-        # 匹配 fill 属性（排除 none、transparent 等）
         def replace_fill(match):
             nonlocal color_index
             attr = match.group(1)
             value = match.group(2)
 
-            # 跳过透明和无填充
             if value.lower() in ('none', 'transparent', 'inherit'):
                 return match.group(0)
 
-            # 替换为当前配色
-            new_color = self._colors[color_index % len(self._colors)]
+            new_color = colors[color_index % len(colors)]
             color_index += 1
             return f'{attr}="{new_color}"'
 
-        # 替换 fill 属性
         content = re.sub(r'(fill)="([^"]*)"', replace_fill, content)
 
-        # 重置索引用于 stroke
         color_index = 0
 
-        # 替换 stroke 属性
         def replace_stroke(match):
             nonlocal color_index
             attr = match.group(1)
@@ -1159,13 +1234,29 @@ class SVGPreviewWidget(QWidget):
             if value.lower() in ('none', 'transparent', 'inherit'):
                 return match.group(0)
 
-            new_color = self._colors[color_index % len(self._colors)]
+            new_color = colors[color_index % len(colors)]
             color_index += 1
             return f'{attr}="{new_color}"'
 
-        content = re.sub(r'(stroke)="([^"]*)"', replace_stroke, content)
+        return re.sub(r'(stroke)="([^"]*)"', replace_stroke, content)
 
-        self._svg_content = content
+    def get_svg_elements(self) -> List[Any]:
+        """获取 SVG 元素列表（用于手动映射）"""
+        if self._color_mapper:
+            return self._color_mapper.get_elements()
+        return []
+
+    def set_element_type(self, element_id: str, element_type: Any) -> bool:
+        """设置元素类型（用于手动映射）"""
+        if self._color_mapper:
+            return self._color_mapper.set_element_type(element_id, element_type)
+        return False
+
+    def get_element_statistics(self) -> Dict[str, int]:
+        """获取元素统计信息"""
+        if self._color_mapper:
+            return self._color_mapper.get_statistics()
+        return {}
 
     def paintEvent(self, event):
         """绘制 SVG"""
