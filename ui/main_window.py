@@ -10,7 +10,7 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface, PresetColorInterface, ColorPreviewInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel
@@ -206,15 +206,15 @@ class MainWindow(FluentWindow):
             self.on_luminance_image_imported
         )
 
-        # 配色方案界面
-        self.color_scheme_interface = ColorSchemeInterface(self)
-        self.color_scheme_interface.setObjectName('colorScheme')
-        self.stackedWidget.addWidget(self.color_scheme_interface)
+        # 配色生成界面
+        self.color_generation_interface = ColorGenerationInterface(self)
+        self.color_generation_interface.setObjectName('colorGeneration')
+        self.stackedWidget.addWidget(self.color_generation_interface)
 
-        # 色彩管理界面
-        self.color_management_interface = ColorManagementInterface(self)
-        self.color_management_interface.setObjectName('colorManagement')
-        self.stackedWidget.addWidget(self.color_management_interface)
+        # 配色管理界面
+        self.palette_management_interface = PaletteManagementInterface(self)
+        self.palette_management_interface.setObjectName('paletteManagement')
+        self.stackedWidget.addWidget(self.palette_management_interface)
 
         # 内置色彩界面
         self.preset_color_interface = PresetColorInterface(self)
@@ -263,19 +263,19 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.TOP
         )
 
-        # 配色方案
+        # 配色生成
         self.addSubInterface(
-            self.color_scheme_interface,
+            self.color_generation_interface,
             FluentIcon.PALETTE,
-            "配色方案",
+            "配色生成",
             position=NavigationItemPosition.TOP
         )
 
-        # 色彩管理
+        # 配色管理
         self.addSubInterface(
-            self.color_management_interface,
+            self.palette_management_interface,
             FluentIcon.HEART,
-            "色彩管理",
+            "配色管理",
             position=NavigationItemPosition.TOP
         )
 
@@ -414,10 +414,10 @@ class MainWindow(FluentWindow):
         """重置窗口标题"""
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
 
-    def refresh_color_management(self):
-        """刷新色彩管理面板"""
-        if hasattr(self, 'color_management_interface'):
-            self.color_management_interface._load_favorites()
+    def refresh_palette_management(self):
+        """刷新配色管理面板"""
+        if hasattr(self, 'palette_management_interface'):
+            self.palette_management_interface._load_favorites()
 
     def refresh_color_preview(self):
         """刷新配色预览面板"""
@@ -448,8 +448,8 @@ class MainWindow(FluentWindow):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新色彩管理界面和配色预览界面
-        self.refresh_color_management()
+        # 刷新配色管理界面和配色预览界面
+        self.refresh_palette_management()
         self.refresh_color_preview()
 
     def _setup_fullscreen_shortcut(self):
@@ -479,14 +479,14 @@ class MainWindow(FluentWindow):
             self.color_extract_interface.color_card_panel.set_color_modes
         )
 
-        # 连接16进制显示开关信号到配色方案面板
+        # 连接16进制显示开关信号到配色生成面板
         self.settings_interface.hex_display_changed.connect(
-            self.color_scheme_interface.update_display_settings
+            self.color_generation_interface.update_display_settings
         )
 
-        # 连接色彩模式改变信号到配色方案面板
+        # 连接色彩模式改变信号到配色生成面板
         self.settings_interface.color_modes_changed.connect(
-            lambda modes: self.color_scheme_interface.update_display_settings(color_modes=modes)
+            lambda modes: self.color_generation_interface.update_display_settings(color_modes=modes)
         )
 
         # 连接色彩提取采样点数改变信号
@@ -504,9 +504,9 @@ class MainWindow(FluentWindow):
             self._on_histogram_scaling_mode_changed
         )
 
-        # 连接色轮模式改变信号到配色方案界面
+        # 连接色轮模式改变信号到配色生成界面
         self.settings_interface.color_wheel_mode_changed.connect(
-            self.color_scheme_interface.set_color_wheel_mode
+            self.color_generation_interface.set_color_wheel_mode
         )
 
         # 连接直方图模式改变信号到色彩提取界面
@@ -514,14 +514,14 @@ class MainWindow(FluentWindow):
             self._on_histogram_mode_changed
         )
 
-        # 连接16进制显示开关信号到色彩管理界面
+        # 连接16进制显示开关信号到配色管理界面
         self.settings_interface.hex_display_changed.connect(
-            lambda visible: self.color_management_interface.update_display_settings(hex_visible=visible)
+            lambda visible: self.palette_management_interface.update_display_settings(hex_visible=visible)
         )
 
-        # 连接色彩模式改变信号到色彩管理界面
+        # 连接色彩模式改变信号到配色管理界面
         self.settings_interface.color_modes_changed.connect(
-            lambda modes: self.color_management_interface.update_display_settings(color_modes=modes)
+            lambda modes: self.palette_management_interface.update_display_settings(color_modes=modes)
         )
 
         # 连接16进制显示开关信号到内置色彩界面
@@ -565,9 +565,9 @@ class MainWindow(FluentWindow):
         self.color_extract_interface.hue_histogram_widget.set_scaling_mode(histogram_scaling_mode)
         self.luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
 
-        # 应用加载的色轮模式配置到配色方案界面
+        # 应用加载的色轮模式配置到配色生成界面
         color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
-        self.color_scheme_interface.set_color_wheel_mode(color_wheel_mode)
+        self.color_generation_interface.set_color_wheel_mode(color_wheel_mode)
 
         # 应用加载的直方图模式配置
         histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')

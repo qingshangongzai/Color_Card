@@ -12,8 +12,8 @@ from core import get_color_info
 from .cards import BaseCard, BaseCardPanel, COLOR_MODE_CONFIG, ColorModeContainer, get_text_color, get_placeholder_color, get_border_color
 
 
-class SchemeColorInfoCard(BaseCard):
-    """配色方案颜色信息卡片（与ColorCard样式一致）"""
+class GenerationColorInfoCard(BaseCard):
+    """配色生成颜色信息卡片（与ColorCard样式一致）"""
 
     clicked = Signal(int)
 
@@ -222,8 +222,8 @@ class SchemeColorInfoCard(BaseCard):
         super().mousePressEvent(event)
 
 
-class SchemeColorPanel(BaseCardPanel):
-    """配色方案色块面板（支持动态卡片数量）"""
+class GenerationColorPanel(BaseCardPanel):
+    """配色生成色块面板（支持动态卡片数量）"""
 
     color_clicked = Signal(int)
 
@@ -234,7 +234,7 @@ class SchemeColorPanel(BaseCardPanel):
 
     def _create_card(self, index):
         """创建色卡实例"""
-        card = SchemeColorInfoCard(index)
+        card = GenerationColorInfoCard(index)
         card.set_color_modes(self._color_modes)
         card.set_hex_visible(self._hex_visible)
         card.clicked.connect(self.on_card_clicked)

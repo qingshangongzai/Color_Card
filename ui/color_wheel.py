@@ -263,7 +263,7 @@ class HSBColorWheel(QWidget):
 
 
 class InteractiveColorWheel(QWidget):
-    """可交互的HSB色环组件 - 支持拖动选择基准色并显示配色方案点"""
+    """可交互的HSB色环组件 - 支持拖动选择基准色并显示配色点"""
 
     base_color_changed = Signal(float, float, float)
     scheme_color_changed = Signal(int, float, float, float)
@@ -287,7 +287,7 @@ class InteractiveColorWheel(QWidget):
         self._cache_valid = False
         self._cached_theme = None
 
-        # 配色方案颜色点列表 [(h, s, b), ...]
+        # 配色颜色点列表 [(h, s, b), ...]
         self._scheme_colors = []
 
         # 全局明度值 (10-100)，直接对应HSB的B值百分比
@@ -319,7 +319,7 @@ class InteractiveColorWheel(QWidget):
         return self._base_hue, self._base_saturation, self._base_brightness
 
     def set_scheme_colors(self, colors: list):
-        """设置配色方案颜色点
+        """设置配色颜色点
 
         Args:
             colors: HSB颜色列表 [(h, s, b), ...]
@@ -328,7 +328,7 @@ class InteractiveColorWheel(QWidget):
         self.update()
 
     def clear_scheme_colors(self):
-        """清除配色方案颜色点"""
+        """清除配色颜色点"""
         self._scheme_colors = []
         self.update()
 
@@ -546,14 +546,14 @@ class InteractiveColorWheel(QWidget):
         if self._wheel_cache:
             painter.drawPixmap(0, 0, self._wheel_cache)
 
-        # 先绘制配色方案颜色点
+        # 先绘制配色颜色点
         self._draw_scheme_points(painter)
 
         # 最后绘制选择器（在最上层）
         self._draw_selector(painter)
 
     def _draw_scheme_points(self, painter):
-        """绘制配色方案颜色点及连线"""
+        """绘制配色颜色点及连线"""
         if not self._scheme_colors:
             return
 
@@ -568,7 +568,7 @@ class InteractiveColorWheel(QWidget):
             if i == 0:
                 continue
 
-            # 使用统一的全局明度值，忽略原始配色方案中的B值
+            # 使用统一的全局明度值，忽略原始配色中的B值
             adjusted_b = global_brightness_value
 
             # 使用调整后的明度计算位置（明度越低越靠近中心）

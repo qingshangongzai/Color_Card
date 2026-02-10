@@ -21,8 +21,8 @@ from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
 
 
-class ColorManagementColorCard(QWidget):
-    """色彩管理中的单个色卡组件（与其他面板样式一致）"""
+class PaletteManagementColorCard(QWidget):
+    """配色管理中的单个色卡组件（与其他面板样式一致）"""
 
     color_changed = Signal(dict)  # 信号：颜色信息字典
 
@@ -381,8 +381,8 @@ class ColorManagementColorCard(QWidget):
         self.mode_container_2.clear_values()
 
 
-class ColorManagementSchemeCard(CardWidget):
-    """色彩管理配色方案卡片（水平排列色卡样式，动态数量）"""
+class PaletteManagementCard(CardWidget):
+    """配色管理卡片（水平排列色卡样式，动态数量）"""
 
     delete_requested = Signal(str)
     rename_requested = Signal(str, str)  # favorite_id, new_name
@@ -487,7 +487,7 @@ class ColorManagementSchemeCard(CardWidget):
         # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
         if is_windows_10():
             self.setStyleSheet(f"""
-                ColorManagementSchemeCard,
+                PaletteManagementCard,
                 CardWidget {{
                     background-color: {card_bg.name()};
                     border: 1px solid {border_color.name()};
@@ -519,7 +519,7 @@ class ColorManagementSchemeCard(CardWidget):
         """
         layout = self.cards_panel.layout()
         for i in range(count):
-            card = ColorManagementColorCard()
+            card = PaletteManagementColorCard()
             card.set_color_modes(self._color_modes)
             card.hex_container.setVisible(self._hex_visible)
             card.color_changed.connect(lambda color_info, idx=i: self._on_color_changed(idx, color_info))
@@ -610,8 +610,8 @@ class ColorManagementSchemeCard(CardWidget):
             self.set_color_modes(color_modes)
 
 
-class ColorManagementSchemeList(QWidget):
-    """色彩管理配色方案列表容器"""
+class PaletteManagementList(QWidget):
+    """配色管理列表容器"""
 
     favorite_deleted = Signal(str)
     favorite_renamed = Signal(str, str)  # favorite_id, current_name
@@ -673,12 +673,12 @@ class ColorManagementSchemeList(QWidget):
         self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._icon_label)
 
-        self._text_label = QLabel("还没有收藏的配色方案")
+        self._text_label = QLabel("还没有收藏的配色")
         self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
         self._text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._text_label)
 
-        self._hint_label = QLabel("在色彩提取或配色方案面板点击收藏按钮")
+        self._hint_label = QLabel("在色彩提取或配色生成面板点击收藏按钮")
         self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
         self._hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._hint_label)
@@ -703,7 +703,7 @@ class ColorManagementSchemeList(QWidget):
             return
 
         for favorite in favorites:
-            card = ColorManagementSchemeCard(favorite)
+            card = PaletteManagementCard(favorite)
             card.set_hex_visible(self._hex_visible)
             card.set_color_modes(self._color_modes)
             card.delete_requested.connect(self.favorite_deleted)

@@ -41,7 +41,7 @@ from utils.platform import is_windows_10
 
 
 class PaletteLoaderThread(QThread):
-    """配色方案数据异步加载线程"""
+    """配色数据异步加载线程"""
 
     data_ready = Signal(int, list)  # 信号：索引, 颜色列表
     loading_finished = Signal()
@@ -50,7 +50,7 @@ class PaletteLoaderThread(QThread):
         """初始化加载线程
 
         Args:
-            palettes_data: 配色方案数据列表 [(index, colors), ...]
+            palettes_data: 配色数据列表 [(index, colors), ...]
             parent: 父对象
         """
         super().__init__(parent)
@@ -66,7 +66,7 @@ class PaletteLoaderThread(QThread):
         return self._is_cancelled
 
     def run(self):
-        """在子线程中发送配色方案数据"""
+        """在子线程中发送配色数据"""
         for palette_index, colors in self._palettes_data:
             if self._check_cancelled():
                 return
@@ -295,7 +295,7 @@ class PresetColorSchemeCard(CardWidget):
         # Rose Pine 和 Solarized 使用三段式显示（前半/中间/后半）
         if self._series_key.startswith(('rose_pine', 'solarized')):
             return 'triple'
-        # 其他配色方案默认为顺序色（浅色组/深色组）
+        # 其他配色默认为顺序色（浅色组/深色组）
         return 'sequential'
 
     def setup_ui(self):
@@ -408,7 +408,7 @@ class PresetColorSchemeCard(CardWidget):
         # 显示成功提示
         InfoBar.success(
             title="已收藏",
-            content=f"配色方案 '{favorite_data['name']}' 已添加到色彩管理",
+            content=f"配色 '{favorite_data['name']}' 已添加到配色管理",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -609,7 +609,7 @@ class PresetColorSchemeCard(CardWidget):
 
 
 class NicePaletteCard(CardWidget):
-    """Nice Color Palettes 配色方案卡片"""
+    """Nice Color Palettes 配色卡片"""
 
     def __init__(self, palette_index: int, colors: list, parent=None):
         self._palette_index = palette_index
@@ -635,7 +635,7 @@ class NicePaletteCard(CardWidget):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(10)
 
-        # 配色方案编号
+        # 配色编号
         self.name_label = QLabel()
         self.name_label.setStyleSheet("font-size: 14px; font-weight: bold;")
         header_layout.addWidget(self.name_label)
@@ -710,7 +710,7 @@ class NicePaletteCard(CardWidget):
 
     def _load_color_data(self):
         """加载颜色数据"""
-        self.name_label.setText(f"配色方案 #{self._palette_index + 1}")
+        self.name_label.setText(f"配色 #{self._palette_index + 1}")
         self._clear_color_cards()
         self._create_color_cards(self._colors)
 
@@ -818,7 +818,7 @@ class PresetColorList(QWidget):
         self.content_layout.addStretch()
 
     def load_nice_palettes_batch(self, start_index=0, count=50):
-        """加载指定范围的 Nice Color Palettes 配色方案（异步加载）
+        """加载指定范围的 Nice Color Palettes 配色（异步加载）
 
         Args:
             start_index: 起始索引
@@ -831,7 +831,7 @@ class PresetColorList(QWidget):
         self._current_source = 'nice_palette'
         self._current_start_index = start_index
 
-        # 获取配色方案数据
+        # 获取配色数据
         palettes = get_nice_palettes_batch(start_index, count)
 
         # 创建并启动异步加载线程
@@ -841,10 +841,10 @@ class PresetColorList(QWidget):
         self._loader.start()
 
     def _on_palette_data_ready(self, palette_index, colors):
-        """处理接收到的配色方案数据，在主线程创建卡片
+        """处理接收到的配色数据，在主线程创建卡片
 
         Args:
-            palette_index: 配色方案索引
+            palette_index: 配色索引
             colors: 颜色列表
         """
         # 在主线程中创建卡片
