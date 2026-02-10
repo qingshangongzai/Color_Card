@@ -611,6 +611,8 @@ class PresetColorSchemeCard(CardWidget):
 class NicePaletteCard(CardWidget):
     """Nice Color Palettes 配色卡片"""
 
+    favorite_requested = Signal(dict)  # 信号：收藏数据字典
+
     def __init__(self, palette_index: int, colors: list, parent=None):
         self._palette_index = palette_index
         self._colors = colors
@@ -641,6 +643,13 @@ class NicePaletteCard(CardWidget):
         header_layout.addWidget(self.name_label)
 
         header_layout.addStretch()
+
+        # 收藏按钮
+        self.favorite_btn = ToolButton(FluentIcon.HEART)
+        self.favorite_btn.setFixedSize(28, 28)
+        self.favorite_btn.clicked.connect(self._on_favorite_clicked)
+        header_layout.addWidget(self.favorite_btn)
+
         layout.addLayout(header_layout)
 
         # 色卡面板（水平布局容器）
@@ -707,6 +716,40 @@ class NicePaletteCard(CardWidget):
 
             self._color_cards.append(card)
             self.cards_layout.addWidget(card, stretch=1)
+
+    def _on_favorite_clicked(self):
+        """收藏按钮点击处理"""
+        # 收集当前显示的所有颜色数据
+        colors = []
+        for card in self._color_cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            return
+
+        # 构建收藏数据
+        favorite_data = {
+            "id": str(uuid.uuid4()),
+            "name": self.name_label.text(),
+            "colors": colors,
+            "created_at": datetime.now().isoformat(),
+            "source": "nice_palette"
+        }
+
+        # 发射信号通知主窗口处理收藏
+        self.favorite_requested.emit(favorite_data)
+
+        # 显示成功提示
+        InfoBar.success(
+            title="已收藏",
+            content=f"配色 '{favorite_data['name']}' 已添加到配色管理",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
 
     def _load_color_data(self):
         """加载颜色数据"""
@@ -851,6 +894,7 @@ class PresetColorList(QWidget):
         card = NicePaletteCard(palette_index, colors)
         card.set_hex_visible(self._hex_visible)
         card.set_color_modes(self._color_modes)
+        card.favorite_requested.connect(self.favorite_requested)
         self.content_layout.addWidget(card)
         self._scheme_cards[f'nice_{palette_index}'] = card
 
