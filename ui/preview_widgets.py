@@ -165,7 +165,7 @@ class ColorDotBar(QWidget):
 
     def set_colors(self, colors: List[str]):
         """设置颜色列表"""
-        self._colors = colors.copy()
+        self._colors = colors.copy() if colors else []
         self._rebuild_dots()
 
     def _rebuild_dots(self):
@@ -484,7 +484,7 @@ class IllustrationPreview(QWidget):
     """插画风格配色预览 - 绘制植物风格矢量插画"""
 
     def __init__(self, parent=None):
-        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        self._colors: List[str] = []
         self._seed = 0  # 随机种子，用于生成不同的植物形态
         super().__init__(parent)
         self.setMinimumSize(120, 120)
@@ -498,6 +498,8 @@ class IllustrationPreview(QWidget):
             while len(self._colors) < 5:
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
+        else:
+            self._colors = []
         self.update()
 
     def set_seed(self, seed: int):
@@ -512,6 +514,11 @@ class IllustrationPreview(QWidget):
         width = self.width()
         height = self.height()
 
+        # 如果没有配色，显示提示信息
+        if not self._colors:
+            self._draw_empty_hint(painter, width, height)
+            return
+
         # 1. 绘制背景
         bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
@@ -521,6 +528,23 @@ class IllustrationPreview(QWidget):
 
         # 3. 绘制植物线条
         self._draw_plant(painter, width, height)
+
+    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
+        """绘制空配色提示"""
+        from ui.theme_colors import get_text_color
+
+        # 绘制背景
+        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
+        painter.fillRect(self.rect(), bg_color)
+
+        # 绘制提示文字
+        text_color = get_text_color()
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        hint_text = "请从配色管理面板导入配色"
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
     def _draw_decorative_circles(self, painter: QPainter, width: int, height: int):
         """绘制装饰性圆形色块"""
@@ -611,7 +635,7 @@ class TypographyPreview(QWidget):
     """排版风格配色预览 - 展示文字排版效果"""
 
     def __init__(self, parent=None):
-        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        self._colors: List[str] = []
         self._text_content = "All\nBodies\nAre\nGood\nBodies"
         super().__init__(parent)
         self.setMinimumSize(200, 200)
@@ -624,6 +648,8 @@ class TypographyPreview(QWidget):
             while len(self._colors) < 5:
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
+        else:
+            self._colors = []
         self.update()
 
     def set_text(self, text: str):
@@ -638,6 +664,11 @@ class TypographyPreview(QWidget):
         width = self.width()
         height = self.height()
 
+        # 如果没有配色，显示提示信息
+        if not self._colors:
+            self._draw_empty_hint(painter, width, height)
+            return
+
         # 绘制背景
         bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
@@ -647,6 +678,23 @@ class TypographyPreview(QWidget):
 
         # 绘制文字
         self._draw_text(painter, width, height)
+
+    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
+        """绘制空配色提示"""
+        from ui.theme_colors import get_text_color
+
+        # 绘制背景
+        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
+        painter.fillRect(self.rect(), bg_color)
+
+        # 绘制提示文字
+        text_color = get_text_color()
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        hint_text = "请从配色管理面板导入配色"
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
     def _draw_decorations(self, painter: QPainter, width: int, height: int):
         """绘制装饰元素"""
@@ -857,13 +905,13 @@ class MixedPreviewPanel(QWidget):
 
     def set_colors(self, colors: List[str]):
         """设置配色"""
-        self._colors = colors
+        self._colors = colors if colors else []
         for preview in self._small_previews:
-            preview.set_colors(colors)
-        self._large_preview.set_colors(colors)
-        self._svg_preview.set_colors(colors)
-        self._mobile_preview.set_colors(colors)
-        self._web_preview.set_colors(colors)
+            preview.set_colors(self._colors)
+        self._large_preview.set_colors(self._colors)
+        self._svg_preview.set_colors(self._colors)
+        self._mobile_preview.set_colors(self._colors)
+        self._web_preview.set_colors(self._colors)
 
     def get_svg_preview(self) -> SVGPreviewWidget:
         """获取 SVG 预览组件"""
@@ -1010,7 +1058,7 @@ class SVGPreviewWidget(QWidget):
     """SVG 预览组件 - 加载和显示 SVG 文件，支持配色应用"""
 
     def __init__(self, parent=None):
-        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        self._colors: List[str] = []
         self._svg_renderer: Optional[QSvgRenderer] = None
         self._svg_content: str = ""
         self._original_svg_content: str = ""
@@ -1055,6 +1103,8 @@ class SVGPreviewWidget(QWidget):
             while len(self._colors) < 5:
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
+        else:
+            self._colors = []
 
         # 如果有已加载的 SVG，重新应用配色
         if self._original_svg_content:
@@ -1122,6 +1172,11 @@ class SVGPreviewWidget(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
+        # 如果没有配色，显示提示信息
+        if not self._colors:
+            self._draw_empty_hint(painter)
+            return
+
         # 绘制背景
         bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
@@ -1161,12 +1216,29 @@ class SVGPreviewWidget(QWidget):
         """是否已加载 SVG"""
         return self._svg_renderer is not None and self._svg_renderer.isValid()
 
+    def _draw_empty_hint(self, painter: QPainter):
+        """绘制空配色提示"""
+        from ui.theme_colors import get_text_color
+
+        # 绘制背景
+        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
+        painter.fillRect(self.rect(), bg_color)
+
+        # 绘制提示文字
+        text_color = get_text_color()
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        hint_text = "请从配色管理面板导入配色"
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
+
 
 class MobileUIPreview(QWidget):
     """手机UI场景预览 - 模拟移动应用界面"""
 
     def __init__(self, parent=None):
-        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        self._colors: List[str] = []
         super().__init__(parent)
         self.setMinimumSize(200, 350)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -1178,6 +1250,8 @@ class MobileUIPreview(QWidget):
             while len(self._colors) < 5:
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
+        else:
+            self._colors = []
         self.update()
 
     def paintEvent(self, event):
@@ -1186,6 +1260,11 @@ class MobileUIPreview(QWidget):
 
         width = self.width()
         height = self.height()
+
+        # 如果没有配色，显示提示信息
+        if not self._colors:
+            self._draw_empty_hint(painter, width, height)
+            return
 
         # 计算手机外框尺寸（保持宽高比）
         phone_width = min(width * 0.6, height * 0.5)
@@ -1218,6 +1297,23 @@ class MobileUIPreview(QWidget):
         # 绘制底部导航栏（在屏幕区域内）
         nav_y = screen_y + screen_height - nav_bar_height
         self._draw_bottom_nav(painter, screen_x, nav_y, screen_width, nav_bar_height)
+
+    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
+        """绘制空配色提示"""
+        from ui.theme_colors import get_text_color
+
+        # 绘制背景
+        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
+        painter.fillRect(self.rect(), bg_color)
+
+        # 绘制提示文字
+        text_color = get_text_color()
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        hint_text = "请从配色管理面板导入配色"
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
     def _draw_phone_frame(self, painter: QPainter, x: float, y: float, width: float, height: float):
         """绘制手机外框"""
@@ -1357,7 +1453,7 @@ class WebPreview(QWidget):
     """Web网页场景预览 - 模拟网页布局"""
 
     def __init__(self, parent=None):
-        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        self._colors: List[str] = []
         super().__init__(parent)
         self.setMinimumSize(300, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -1369,6 +1465,8 @@ class WebPreview(QWidget):
             while len(self._colors) < 5:
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
+        else:
+            self._colors = []
         self.update()
 
     def paintEvent(self, event):
@@ -1377,6 +1475,11 @@ class WebPreview(QWidget):
 
         width = self.width()
         height = self.height()
+
+        # 如果没有配色，显示提示信息
+        if not self._colors:
+            self._draw_empty_hint(painter, width, height)
+            return
 
         # 绘制页面背景
         bg_color = QColor(self._colors[0])
@@ -1393,6 +1496,23 @@ class WebPreview(QWidget):
 
         # 绘制页脚
         self._draw_footer(painter, width, height)
+
+    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
+        """绘制空配色提示"""
+        from ui.theme_colors import get_text_color
+
+        # 绘制背景
+        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
+        painter.fillRect(self.rect(), bg_color)
+
+        # 绘制提示文字
+        text_color = get_text_color()
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        hint_text = "请从配色管理面板导入配色"
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
     def _draw_navbar(self, painter: QPainter, width: int):
         """绘制顶部导航栏"""

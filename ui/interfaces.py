@@ -2383,15 +2383,11 @@ class ColorPreviewInterface(QWidget):
         layout.addWidget(self.preview_panel, stretch=1)
 
     def _load_favorites(self):
-        """加载收藏的配色"""
+        """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
         self._favorites = self._config_manager.get_favorites()
-        if self._favorites:
-            self._current_index = 0
-            self._load_current_scheme()
-        else:
-            # 没有收藏时使用默认配色
-            self._current_colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"]
-            self._update_preview()
+        # 默认不加载任何配色，提示用户从配色管理面板导入
+        self._current_colors = []
+        self._update_preview()
 
     def _load_current_scheme(self):
         """加载当前配色"""
@@ -2427,8 +2423,6 @@ class ColorPreviewInterface(QWidget):
             colors: 颜色值列表（HEX格式）
         """
         self._current_colors = colors.copy() if colors else []
-        if not self._current_colors:
-            self._current_colors = ["#E8E8E8"]
         self._update_preview()
 
     def _on_scene_changed(self, scene: str):
