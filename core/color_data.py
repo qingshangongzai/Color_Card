@@ -410,18 +410,6 @@ def get_nice_palette(index):
     return []
 
 
-def get_random_nice_palette():
-    """随机获取一组配色方案
-
-    Returns:
-        tuple: (index, palette) 索引和配色方案列表
-    """
-    import random
-    data = _get_nice_palettes_data()
-    index = random.randint(0, len(data) - 1)
-    return index, data[index]
-
-
 def get_nice_palettes_batch(start_index=0, count=10):
     """批量获取配色方案
 

@@ -19,8 +19,7 @@ from core import get_color_info, hex_to_rgb
 from core.color_data import (
     get_color_series_names, get_color_series,
     get_light_shades, get_dark_shades, get_color_series_name_mapping,
-    get_nice_palette_count, get_nice_palette, get_random_nice_palette,
-    get_nice_palettes_batch,
+    get_nice_palette_count, get_nice_palette, get_nice_palettes_batch,
     get_tailwind_color_series_names, get_tailwind_color_series,
     get_material_color_series_names, get_material_color_series,
     get_colorbrewer_series_names, get_colorbrewer_color_series,

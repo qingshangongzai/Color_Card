@@ -58,7 +58,6 @@ from .color_data import (
     get_color_series_name_mapping,
     get_nice_palette_count,
     get_nice_palette,
-    get_random_nice_palette,
     get_nice_palettes_batch,
 )
 
@@ -119,6 +118,5 @@ __all__ = [
     'get_color_series_name_mapping',
     'get_nice_palette_count',
     'get_nice_palette',
-    'get_random_nice_palette',
     'get_nice_palettes_batch',
 ]
