@@ -480,6 +480,978 @@ class PreviewSceneFactory:
         return list(cls._registry.keys())
 
 
+class SceneRenderer:
+    """通用场景渲染器 - 根据配置绘制各种场景元素"""
+
+    @staticmethod
+    def draw_empty_hint(painter: QPainter, width: int, height: int, hint_text: str = None):
+        """绘制空配色提示
+
+        Args:
+            painter: 绘制器
+            width: 宽度
+            height: 高度
+            hint_text: 提示文本，如果为None则使用默认文本
+        """
+        from ui.theme_colors import get_text_color
+
+        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        text_color = get_text_color()
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        if hint_text is None:
+            hint_text = "请从配色管理面板导入配色"
+        painter.drawText(0, 0, width, height, Qt.AlignmentFlag.AlignCenter, hint_text)
+
+    @staticmethod
+    def get_color_by_index(colors: List[str], index: int) -> QColor:
+        """根据索引获取颜色
+
+        Args:
+            colors: 颜色列表
+            index: 颜色索引
+
+        Returns:
+            QColor: 颜色对象
+        """
+        if not colors:
+            return QColor(200, 200, 200)
+        return QColor(colors[index % len(colors)])
+
+    @staticmethod
+    def get_contrast_text_color(bg_color: QColor) -> QColor:
+        """根据背景色获取对比文本色
+
+        Args:
+            bg_color: 背景色
+
+        Returns:
+            QColor: 对比文本色
+        """
+        luminance = (0.299 * bg_color.red() + 0.587 * bg_color.green() + 0.114 * bg_color.blue()) / 255
+        return QColor(255, 255, 255) if luminance < 0.5 else QColor(40, 40, 40)
+
+    @staticmethod
+    def draw_rect(painter: QPainter, x: float, y: float, width: float, height: float,
+                  color: QColor, border_radius: int = 0):
+        """绘制矩形
+
+        Args:
+            painter: 绘制器
+            x: X坐标
+            y: Y坐标
+            width: 宽度
+            height: 高度
+            color: 颜色
+            border_radius: 圆角半径
+        """
+        painter.setBrush(QBrush(color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        if border_radius > 0:
+            painter.drawRoundedRect(int(x), int(y), int(width), int(height), border_radius, border_radius)
+        else:
+            painter.drawRect(int(x), int(y), int(width), int(height))
+
+    @staticmethod
+    def draw_circle(painter: QPainter, x: float, y: float, radius: float, color: QColor):
+        """绘制圆形
+
+        Args:
+            painter: 绘制器
+            x: 圆心X坐标
+            y: 圆心Y坐标
+            radius: 半径
+            color: 颜色
+        """
+        painter.setBrush(QBrush(color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(QPoint(int(x), int(y)), int(radius), int(radius))
+
+    @staticmethod
+    def draw_line(painter: QPainter, x1: float, y1: float, x2: float, y2: float,
+                 color: QColor, width: int = 1):
+        """绘制线条
+
+        Args:
+            painter: 绘制器
+            x1: 起点X坐标
+            y1: 起点Y坐标
+            x2: 终点X坐标
+            y2: 终点Y坐标
+            color: 颜色
+            width: 线宽
+        """
+        painter.setPen(QPen(color, width))
+        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
+
+    @staticmethod
+    def draw_text(painter: QPainter, text: str, x: float, y: float, width: float, height: float,
+                  color: QColor, font_size: int = 12, font_weight: QFont.Weight = QFont.Weight.Normal,
+                  alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignCenter):
+        """绘制文字
+
+        Args:
+            painter: 绘制器
+            text: 文字内容
+            x: X坐标
+            y: Y坐标
+            width: 宽度
+            height: 高度
+            color: 颜色
+            font_size: 字体大小
+            font_weight: 字体粗细
+            alignment: 对齐方式
+        """
+        painter.setPen(QPen(color))
+        font = QFont("Arial", font_size, font_weight)
+        painter.setFont(font)
+        painter.drawText(int(x), int(y), int(width), int(height), alignment, text)
+
+
+class ConfigurablePreviewScene(BasePreviewScene):
+    """配置化预览场景 - 从配置加载场景定义并渲染"""
+
+    def __init__(self, scene_config: dict, parent=None):
+        """初始化配置化场景
+
+        Args:
+            scene_config: 场景配置字典
+            parent: 父控件
+        """
+        super().__init__(scene_config, parent)
+        self._renderer = SceneRenderer()
+
+    def paintEvent(self, event):
+        """绘制场景"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        width = self.width()
+        height = self.height()
+
+        if not self._colors:
+            self._renderer.draw_empty_hint(painter, width, height)
+            return
+
+        scene_id = self.get_scene_id()
+
+        if scene_id == "ui":
+            self._draw_ui_scene(painter, width, height)
+        elif scene_id == "web":
+            self._draw_web_scene(painter, width, height)
+        elif scene_id == "illustration":
+            self._draw_illustration_scene(painter, width, height)
+        elif scene_id == "typography":
+            self._draw_typography_scene(painter, width, height)
+        elif scene_id == "brand":
+            self._draw_brand_scene(painter, width, height)
+        elif scene_id == "poster":
+            self._draw_poster_scene(painter, width, height)
+        elif scene_id == "pattern":
+            self._draw_pattern_scene(painter, width, height)
+        elif scene_id == "magazine":
+            self._draw_magazine_scene(painter, width, height)
+        else:
+            self._renderer.draw_empty_hint(painter, width, height)
+
+    def _draw_ui_scene(self, painter: QPainter, width: int, height: int):
+        """绘制UI场景"""
+        config = self._config.get("config", {})
+
+        frame_config = config.get("frame", {})
+        screen_config = config.get("screen", {})
+        status_bar_config = config.get("status_bar", {})
+        content_config = config.get("content", {})
+        bottom_nav_config = config.get("bottom_nav", {})
+
+        phone_width = min(width * frame_config.get("width_ratio", 0.6), height * frame_config.get("height_ratio", 0.5))
+        phone_height = phone_width * 2.0
+
+        x = (width - phone_width) / 2
+        y = (height - phone_height) / 2
+
+        screen_margin = screen_config.get("margin", 6)
+        screen_x = x + screen_margin
+        screen_y = y + screen_margin
+        screen_width = phone_width - screen_margin * 2
+        screen_height = phone_height - screen_margin * 2
+
+        self._draw_phone_frame(painter, x, y, phone_width, phone_height, frame_config, screen_config)
+
+        status_bar_height = status_bar_config.get("height", 30)
+        nav_bar_height = bottom_nav_config.get("height", 50)
+        content_y = screen_y + status_bar_height
+        content_height = screen_height - status_bar_height - nav_bar_height
+
+        self._draw_status_bar(painter, screen_x, screen_y, screen_width, status_bar_height, status_bar_config)
+        self._draw_content(painter, screen_x, content_y, screen_width, content_height, content_config)
+        self._draw_bottom_nav(painter, screen_x, screen_y + screen_height - nav_bar_height, screen_width, nav_bar_height, bottom_nav_config)
+
+    def _draw_phone_frame(self, painter: QPainter, x: float, y: float, width: float, height: float,
+                         frame_config: dict, screen_config: dict):
+        """绘制手机外框"""
+        border_radius = frame_config.get("border_radius", 20)
+        screen_margin = screen_config.get("margin", 6)
+        screen_border_radius = screen_config.get("border_radius", 16)
+
+        shadow_rect = QRect(int(x) + 3, int(y) + 3, int(width), int(height))
+        shadow_color = QColor(0, 0, 0, 40)
+        self._renderer.draw_rect(painter, shadow_rect.x(), shadow_rect.y(), shadow_rect.width(), shadow_rect.height(), shadow_color, border_radius)
+
+        frame_color = QColor(30, 30, 30) if not isDarkTheme() else QColor(20, 20, 20)
+        self._renderer.draw_rect(painter, x, y, width, height, frame_color, border_radius)
+
+        screen_rect = QRect(int(x) + screen_margin, int(y) + screen_margin, int(width) - screen_margin * 2, int(height) - screen_margin * 2)
+        screen_color = self._renderer.get_color_by_index(self._colors, 0)
+        self._renderer.draw_rect(painter, screen_rect.x(), screen_rect.y(), screen_rect.width(), screen_rect.height(), screen_color, screen_border_radius)
+
+    def _draw_status_bar(self, painter: QPainter, x: float, y: float, width: float, height: float, config: dict):
+        """绘制状态栏"""
+        border_radius = config.get("border_radius", 12)
+        color_idx = config.get("color_idx", 1)
+        text = config.get("text", "9:41")
+
+        status_color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, x, y, width, height, status_color, border_radius)
+
+        text_color = self._renderer.get_contrast_text_color(status_color)
+        self._renderer.draw_text(painter, text, x, y, width, height, text_color, 10, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_content(self, painter: QPainter, x: float, y: float, width: float, height: float, config: dict):
+        """绘制内容区域"""
+        margin = config.get("margin", 12)
+        card_height = config.get("card_height", 60)
+        spacing = config.get("spacing", 10)
+        texts_config = config.get("texts", {})
+
+        title_rect = QRect(int(x) + margin, int(y) + margin, int(width) - margin * 2, card_height)
+        title_color = self._renderer.get_color_by_index(self._colors, 2)
+        self._renderer.draw_rect(painter, title_rect.x(), title_rect.y(), title_rect.width(), title_rect.height(), title_color, 12)
+
+        text_color = self._renderer.get_contrast_text_color(title_color)
+        title_card_text = texts_config.get("title_card", "首页")
+        self._renderer.draw_text(painter, title_card_text, title_rect.x(), title_rect.y(), title_rect.width(), title_rect.height(), text_color, 14, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+        list_y = y + margin + card_height + spacing
+        list_item_prefix = texts_config.get("list_item_prefix", "项目")
+        list_item_count = texts_config.get("list_item_count", 3)
+        for i in range(list_item_count):
+            item_rect = QRect(int(x) + margin, int(list_y) + i * (45 + spacing), int(width) - margin * 2, 45)
+            color_idx = 3 if i % 2 == 0 else 4
+            item_color = self._renderer.get_color_by_index(self._colors, color_idx)
+            self._renderer.draw_rect(painter, item_rect.x(), item_rect.y(), item_rect.width(), item_rect.height(), item_color, 8)
+
+            text_color = self._renderer.get_contrast_text_color(item_color)
+            item_text = f"  {list_item_prefix} {i + 1}"
+            self._renderer.draw_text(painter, item_text, item_rect.x(), item_rect.y(), item_rect.width(), item_rect.height(), text_color, 11, QFont.Weight.Normal, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+
+        fab_size = 50
+        fab_x = x + width - margin - fab_size - 5
+        fab_y = y + height - fab_size - 20
+        fab_color = self._renderer.get_color_by_index(self._colors, 1)
+        self._renderer.draw_circle(painter, fab_x + fab_size / 2, fab_y + fab_size / 2, fab_size / 2, fab_color)
+
+        text_color = self._renderer.get_contrast_text_color(fab_color)
+        center_x = int(fab_x + fab_size / 2)
+        center_y = int(fab_y + fab_size / 2)
+        self._renderer.draw_line(painter, center_x, center_y - 8, center_x, center_y + 8, text_color, 2)
+        self._renderer.draw_line(painter, center_x - 8, center_y, center_x + 8, center_y, text_color, 2)
+
+    def _draw_bottom_nav(self, painter: QPainter, x: float, y: float, width: float, height: float, config: dict):
+        """绘制底部导航栏"""
+        border_radius = config.get("border_radius", 10)
+        color_idx = config.get("color_idx", 1)
+        icon_count = config.get("icon_count", 4)
+
+        nav_color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, x, y, width, height, nav_color, border_radius)
+
+        icon_spacing = width / (icon_count + 1)
+        icon_y = y + height / 2
+
+        for i in range(icon_count):
+            icon_x = x + icon_spacing * (i + 1)
+            icon_color_idx = 2 if i == 0 else 3
+            icon_color = self._renderer.get_color_by_index(self._colors, icon_color_idx)
+            self._renderer.draw_circle(painter, icon_x, icon_y, 6, icon_color)
+
+    def _draw_web_scene(self, painter: QPainter, width: int, height: int):
+        """绘制Web场景"""
+        config = self._config.get("config", {})
+
+        bg_color = self._renderer.get_color_by_index(self._colors, 0)
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        navbar_config = config.get("navbar", {})
+        hero_config = config.get("hero", {})
+        card_grid_config = config.get("card_grid", {})
+        footer_config = config.get("footer", {})
+
+        card_texts_config = card_grid_config.get("texts", {})
+        self._draw_navbar(painter, width, navbar_config, card_texts_config)
+        self._draw_hero(painter, width, height, hero_config)
+        self._draw_card_grid(painter, width, height, card_grid_config)
+        self._draw_footer(painter, width, height, footer_config)
+
+    def _draw_navbar(self, painter: QPainter, width: int, config: dict, texts_config: dict = None):
+        """绘制导航栏"""
+        nav_height = config.get("height", 50)
+        color_idx = config.get("color_idx", 1)
+        logo_width = config.get("logo_width", 80)
+        logo_height = config.get("logo_height", 20)
+        logo_color_idx = config.get("logo_color_idx", 2)
+
+        nav_color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, 0, 0, width, nav_height, nav_color, 0)
+
+        logo_rect = QRect(20, 15, logo_width, logo_height)
+        logo_color = self._renderer.get_color_by_index(self._colors, logo_color_idx)
+        self._renderer.draw_rect(painter, logo_rect.x(), logo_rect.y(), logo_rect.width(), logo_rect.height(), logo_color, 4)
+
+        menu_items = texts_config.get("menu_items", ["首页", "产品", "关于"]) if texts_config else ["首页", "产品", "关于"]
+        item_x = width - 150
+        text_color = self._renderer.get_contrast_text_color(nav_color)
+
+        for i, item in enumerate(menu_items):
+            item_rect = QRect(int(item_x) + i * 50, 15, 45, 20)
+            self._renderer.draw_text(painter, item, item_rect.x(), item_rect.y(), item_rect.width(), item_rect.height(), text_color, 11, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_hero(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制Hero区域"""
+        height_ratio = config.get("height_ratio", 0.35)
+        color_idx = config.get("color_idx", 2)
+        title = config.get("title", "欢迎来到我们的网站")
+        subtitle = config.get("subtitle", "探索无限可能，创造美好未来")
+        button_config = config.get("button", {})
+
+        hero_height = int(height * height_ratio)
+        hero_color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, 0, 50, width, hero_height, hero_color, 0)
+
+        text_color = self._renderer.get_contrast_text_color(hero_color)
+        self._renderer.draw_text(painter, title, 0, 80, width, 40, text_color, 24, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+        self._renderer.draw_text(painter, subtitle, 0, 130, width, 25, text_color, 12, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
+
+        button_width = button_config.get("width", 120)
+        button_height = button_config.get("height", 35)
+        button_text = button_config.get("text", "立即开始")
+        button_color_idx = button_config.get("color_idx", 3)
+        button_border_radius = button_config.get("border_radius", 6)
+
+        button_x = (width - button_width) / 2
+        button_y = 170
+        button_color = self._renderer.get_color_by_index(self._colors, button_color_idx)
+        self._renderer.draw_rect(painter, button_x, button_y, button_width, button_height, button_color, button_border_radius)
+
+        btn_text_color = self._renderer.get_contrast_text_color(button_color)
+        self._renderer.draw_text(painter, button_text, button_x, button_y, button_width, button_height, btn_text_color, 11, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_card_grid(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制卡片网格"""
+        columns = config.get("columns", 3)
+        height_ratio = config.get("height_ratio", 0.25)
+        card_spacing = config.get("card_spacing", 20)
+        icon_size = config.get("icon_size", 40)
+        color_idx_1 = config.get("color_idx_1", 3)
+        color_idx_2 = config.get("color_idx_2", 4)
+        icon_color_idx = config.get("icon_color_idx", 1)
+        texts_config = config.get("texts", {})
+
+        card_y = 50 + int(height * height_ratio) + 20
+        card_width = (width - 80) / 3
+        card_height = int(height * height_ratio)
+
+        card_title_prefix = texts_config.get("card_title_prefix", "功能")
+        card_description = texts_config.get("card_description", "这里是功能描述文本")
+
+        for i in range(3):
+            card_x = 20 + i * (card_width + card_spacing)
+            card_color_idx = color_idx_1 if i % 2 == 0 else color_idx_2
+            card_color = self._renderer.get_color_by_index(self._colors, card_color_idx)
+            self._renderer.draw_rect(painter, card_x, card_y, card_width, card_height, card_color, 8)
+
+            icon_x = card_x + (card_width - icon_size) / 2
+            icon_y = card_y + 20
+            icon_color = self._renderer.get_color_by_index(self._colors, icon_color_idx)
+            self._renderer.draw_circle(painter, icon_x + icon_size / 2, icon_y + icon_size / 2, icon_size / 2, icon_color)
+
+            text_color = self._renderer.get_contrast_text_color(card_color)
+            title_rect = QRect(int(card_x), int(icon_y) + icon_size + 10, int(card_width), 20)
+            card_title = f"{card_title_prefix} {i + 1}"
+            self._renderer.draw_text(painter, card_title, title_rect.x(), title_rect.y(), title_rect.width(), title_rect.height(), text_color, 12, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+            desc_rect = QRect(int(card_x) + 10, int(icon_y) + icon_size + 35, int(card_width) - 20, 40)
+            self._renderer.draw_text(painter, card_description, desc_rect.x(), desc_rect.y(), desc_rect.width(), desc_rect.height(), text_color, 10, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap)
+
+    def _draw_footer(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制页脚"""
+        footer_height = config.get("height", 40)
+        color_idx = config.get("color_idx", 1)
+        text = config.get("text", "© 2026 Color Card. All rights reserved.")
+
+        footer_y = height - footer_height
+        footer_color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, 0, footer_y, width, footer_height, footer_color, 0)
+
+        text_color = self._renderer.get_contrast_text_color(footer_color)
+        self._renderer.draw_text(painter, text, 0, footer_y, width, footer_height, text_color, 10, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_illustration_scene(self, painter: QPainter, width: int, height: int):
+        """绘制插画场景"""
+        config = self._config.get("config", {})
+
+        bg_color = self._renderer.get_color_by_index(self._colors, 0)
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        circles_config = config.get("circles", [])
+        for circle in circles_config:
+            x = int(circle["x"] * width)
+            y = int(circle["y"] * height)
+            r = int(circle["r"] * min(width, height))
+            color_idx = circle.get("color_idx", 1)
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+            color.setAlpha(180)
+            self._renderer.draw_circle(painter, x, y, r, color)
+
+        plant_config = config.get("plant", {})
+        stem_segments = plant_config.get("stem_segments", 8)
+        leaf_positions = plant_config.get("leaf_positions", [0.3, 0.5, 0.7])
+
+        line_color = QColor(40, 40, 40) if not isDarkTheme() else QColor(220, 220, 220)
+        painter.setPen(QPen(line_color, 1.5))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+
+        stem_x = int(width * 0.5)
+        stem_bottom = int(height * 0.85)
+        stem_top = int(height * 0.25)
+
+        path_points = []
+        for i in range(stem_segments + 1):
+            t = i / stem_segments
+            x = stem_x + int(math.sin(t * 3) * width * 0.08)
+            y = stem_bottom - int(t * (stem_bottom - stem_top))
+            path_points.append(QPoint(x, y))
+
+        for i in range(len(path_points) - 1):
+            painter.drawLine(path_points[i], path_points[i + 1])
+
+        for pos in leaf_positions:
+            idx = int(pos * (len(path_points) - 1))
+            if idx < len(path_points):
+                leaf_size = 25
+                angle = 0.3
+                left_leaf = QPoint(path_points[idx].x() - int(leaf_size * math.cos(angle)), path_points[idx].y() - int(leaf_size * math.sin(angle)))
+                right_leaf = QPoint(path_points[idx].x() + int(leaf_size * math.cos(angle)), path_points[idx].y() - int(leaf_size * math.sin(angle)))
+                painter.drawLine(path_points[idx], left_leaf)
+                painter.drawLine(path_points[idx], right_leaf)
+
+    def _draw_typography_scene(self, painter: QPainter, width: int, height: int):
+        """绘制排版场景"""
+        config = self._config.get("config", {})
+
+        bg_color = self._renderer.get_color_by_index(self._colors, 0)
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        decorations_config = config.get("decorations", {})
+        top_line_config = decorations_config.get("top_line", {})
+        bottom_line_config = decorations_config.get("bottom_line", {})
+        side_block_config = decorations_config.get("side_block", {})
+
+        top_line_color = self._renderer.get_color_by_index(self._colors, top_line_config.get("color_idx", 1))
+        self._renderer.draw_line(painter, 20, top_line_config.get("y", 30), width - 20, top_line_config.get("y", 30), top_line_color, top_line_config.get("width", 3))
+
+        bottom_line_color = self._renderer.get_color_by_index(self._colors, bottom_line_config.get("color_idx", 2))
+        self._renderer.draw_line(painter, 20, height - bottom_line_config.get("y_offset", 30), width - 20, height - bottom_line_config.get("y_offset", 30), bottom_line_color, bottom_line_config.get("width", 2))
+
+        side_block_height = height * side_block_config.get("height_ratio", 0.33)
+        side_block_color = self._renderer.get_color_by_index(self._colors, side_block_config.get("color_idx", 3))
+        self._renderer.draw_rect(painter, side_block_config.get("x", 10), height // 3, side_block_config.get("width", 8), side_block_height, side_block_color, 0)
+
+        text = config.get("text", "All\nBodies\nAre\nGood\nBodies")
+        text_colors = config.get("text_colors", [1, 2, 3, 4])
+        lines = text.split('\n')
+
+        available_height = height * 0.6
+        font_size = int(available_height / len(lines) * 0.8)
+        font_size = min(font_size, 48)
+
+        total_text_height = font_size * len(lines) * 1.2
+        start_y = (height - total_text_height) // 2 + font_size
+
+        for i, line in enumerate(lines):
+            color_idx = text_colors[i % len(text_colors)]
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+            painter.setPen(color)
+            font = QFont("Arial", font_size, QFont.Weight.Bold)
+            painter.setFont(font)
+
+            metrics = QFontMetrics(font)
+            text_width = metrics.horizontalAdvance(line)
+            x = (width - text_width) // 2
+            y = int(start_y + i * font_size * 1.2)
+
+            painter.drawText(x, y, line)
+
+    def _draw_brand_scene(self, painter: QPainter, width: int, height: int):
+        """绘制品牌场景"""
+        config = self._config.get("config", {})
+
+        bg_color = self._renderer.get_color_by_index(self._colors, 0)
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        logo_config = config.get("logo_section", {})
+        card_config = config.get("business_card", {})
+        strip_config = config.get("color_strip", {})
+
+        self._draw_logo_section(painter, width, height, logo_config)
+        self._draw_business_card(painter, width, height, card_config)
+        self._draw_color_strip(painter, width, height, strip_config)
+
+    def _draw_logo_section(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制Logo区域"""
+        y_offset = int(height * config.get("y_offset", 0.08))
+        circle_size = config.get("circle_size", 80)
+        circle_color_idx = config.get("circle_color_idx", 1)
+        icon_color_idx = config.get("icon_color_idx", 2)
+        brand_name = config.get("brand_name", "BRAND")
+        brand_name_color_idx = config.get("brand_name_color_idx", 1)
+        tagline = config.get("tagline", "Your Tagline Here")
+        tagline_color_idx = config.get("tagline_color_idx", 3)
+
+        center_x = width // 2
+        circle_y = y_offset + circle_size // 2
+
+        circle_color = self._renderer.get_color_by_index(self._colors, circle_color_idx)
+        self._renderer.draw_circle(painter, center_x, circle_y, circle_size // 2, circle_color)
+
+        icon_color = self._renderer.get_color_by_index(self._colors, icon_color_idx)
+        icon_size = circle_size // 3
+        self._renderer.draw_rect(painter, center_x - icon_size // 2, circle_y - icon_size // 2, icon_size, icon_size, icon_color, 4)
+
+        brand_color = self._renderer.get_color_by_index(self._colors, brand_name_color_idx)
+        self._renderer.draw_text(painter, brand_name, 0, y_offset + circle_size + 10, width, 30, brand_color, 20, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+        tagline_color = self._renderer.get_color_by_index(self._colors, tagline_color_idx)
+        self._renderer.draw_text(painter, tagline, 0, y_offset + circle_size + 45, width, 20, tagline_color, 12, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_business_card(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制名片"""
+        y_offset = int(height * config.get("y_offset", 0.45))
+        card_width = int(width * config.get("width_ratio", 0.85))
+        card_height = config.get("height", 100)
+        border_radius = config.get("border_radius", 8)
+        bg_color_idx = config.get("bg_color_idx", 0)
+        left_bar_width = config.get("left_bar_width", 12)
+        left_bar_color_idx = config.get("left_bar_color_idx", 1)
+        name = config.get("name", "John Doe")
+        name_color_idx = config.get("name_color_idx", 1)
+        title = config.get("title", "Creative Director")
+        title_color_idx = config.get("title_color_idx", 3)
+        contact = config.get("contact", "hello@brand.com")
+        contact_color_idx = config.get("contact_color_idx", 2)
+
+        card_x = (width - card_width) // 2
+        card_y = y_offset
+
+        shadow_color = QColor(0, 0, 0, 30)
+        self._renderer.draw_rect(painter, card_x + 2, card_y + 2, card_width, card_height, shadow_color, border_radius)
+
+        card_bg_color = self._renderer.get_color_by_index(self._colors, bg_color_idx)
+        self._renderer.draw_rect(painter, card_x, card_y, card_width, card_height, card_bg_color, border_radius)
+
+        left_bar_color = self._renderer.get_color_by_index(self._colors, left_bar_color_idx)
+        self._renderer.draw_rect(painter, card_x, card_y, left_bar_width, card_height, left_bar_color, border_radius)
+
+        name_color = self._renderer.get_color_by_index(self._colors, name_color_idx)
+        self._renderer.draw_text(painter, name, card_x + left_bar_width + 15, card_y + 20, card_width - left_bar_width - 30, 25, name_color, 16, QFont.Weight.Bold, Qt.AlignmentFlag.AlignLeft)
+
+        title_color = self._renderer.get_color_by_index(self._colors, title_color_idx)
+        self._renderer.draw_text(painter, title, card_x + left_bar_width + 15, card_y + 48, card_width - left_bar_width - 30, 18, title_color, 12, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft)
+
+        contact_color = self._renderer.get_color_by_index(self._colors, contact_color_idx)
+        self._renderer.draw_text(painter, contact, card_x + left_bar_width + 15, card_y + 70, card_width - left_bar_width - 30, 16, contact_color, 11, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft)
+
+    def _draw_color_strip(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制品牌色带"""
+        y_offset = int(height * config.get("y_offset", 0.82))
+        strip_height = config.get("height", 40)
+        strip_count = config.get("strip_count", 5)
+        strip_spacing = config.get("strip_spacing", 4)
+
+        total_spacing = (strip_count - 1) * strip_spacing
+        strip_width = (width - 40 - total_spacing) // strip_count
+        start_x = 20
+
+        for i in range(strip_count):
+            color_idx = (i % len(self._colors)) if self._colors else 0
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+            x = start_x + i * (strip_width + strip_spacing)
+            self._renderer.draw_rect(painter, x, y_offset, strip_width, strip_height, color, 4)
+
+    def _draw_poster_scene(self, painter: QPainter, width: int, height: int):
+        """绘制海报场景"""
+        config = self._config.get("config", {})
+
+        bg_config = config.get("background", {})
+        bg_color = self._renderer.get_color_by_index(self._colors, bg_config.get("color_idx", 0))
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        self._draw_poster_decorations(painter, width, height, config.get("top_decorations", {}))
+        self._draw_poster_title(painter, width, height, config.get("main_title", {}))
+        self._draw_poster_subtitle(painter, width, height, config.get("subtitle", {}))
+        self._draw_poster_decoration_line(painter, width, height, config.get("decoration_line", {}))
+        self._draw_poster_info(painter, width, height, config.get("info_section", {}))
+        self._draw_poster_bottom_shapes(painter, width, height, config.get("bottom_shapes", []))
+
+    def _draw_poster_decorations(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制海报顶部装饰"""
+        shapes = config.get("shapes", [])
+        for shape in shapes:
+            shape_type = shape.get("type", "circle")
+            x = int(shape.get("x", 0) * width)
+            y = int(shape.get("y", 0) * height)
+            color_idx = shape.get("color_idx", 1)
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+
+            if shape_type == "circle":
+                size = int(shape.get("size", 0.05) * min(width, height))
+                self._renderer.draw_circle(painter, x, y, size, color)
+            elif shape_type == "rect":
+                w = int(shape.get("width", 0.1) * width)
+                h = int(shape.get("height", 0.05) * height)
+                border_radius = shape.get("border_radius", 0)
+                self._renderer.draw_rect(painter, x - w // 2, y - h // 2, w, h, color, border_radius)
+
+    def _draw_poster_title(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制海报主标题"""
+        text = config.get("text", "DESIGN")
+        y_offset = int(height * config.get("y_offset", 0.28))
+        font_size = config.get("font_size", 48)
+        color_idx = config.get("color_idx", 1)
+        letter_spacing = config.get("letter_spacing", 8)
+
+        color = self._renderer.get_color_by_index(self._colors, color_idx)
+        painter.setPen(color)
+        font = QFont("Arial", font_size, QFont.Weight.Bold)
+        painter.setFont(font)
+
+        spaced_text = text
+        if letter_spacing > 0:
+            spaced_text = (" " * (letter_spacing // 4)).join(text)
+
+        metrics = QFontMetrics(font)
+        text_width = metrics.horizontalAdvance(spaced_text)
+        x = (width - text_width) // 2
+
+        painter.drawText(x, y_offset, spaced_text)
+
+    def _draw_poster_subtitle(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制海报副标题"""
+        text = config.get("text", "")
+        y_offset = int(height * config.get("y_offset", 0.42))
+        font_size = config.get("font_size", 18)
+        color_idx = config.get("color_idx", 2)
+
+        color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_text(painter, text, 0, y_offset, width, 30, color, font_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_poster_decoration_line(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制海报装饰线"""
+        y_offset = int(height * config.get("y_offset", 0.52))
+        line_width = int(width * config.get("width_ratio", 0.6))
+        line_height = config.get("height", 3)
+        color_idx = config.get("color_idx", 3)
+
+        color = self._renderer.get_color_by_index(self._colors, color_idx)
+        x = (width - line_width) // 2
+        self._renderer.draw_rect(painter, x, y_offset, line_width, line_height, color, 0)
+
+    def _draw_poster_info(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制海报信息区域"""
+        y_offset = int(height * config.get("y_offset", 0.62))
+        date_text = config.get("date", "")
+        date_color_idx = config.get("date_color_idx", 1)
+        location_text = config.get("location", "")
+        location_color_idx = config.get("location_color_idx", 2)
+        font_size = config.get("font_size", 12)
+
+        date_color = self._renderer.get_color_by_index(self._colors, date_color_idx)
+        location_color = self._renderer.get_color_by_index(self._colors, location_color_idx)
+
+        self._renderer.draw_text(painter, date_text, 0, y_offset, width // 2, 20, date_color, font_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        self._renderer.draw_text(painter, location_text, width // 2, y_offset, width // 2, 20, location_color, font_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+    def _draw_poster_bottom_shapes(self, painter: QPainter, width: int, height: int, shapes: list):
+        """绘制海报底部装饰形状"""
+        for shape in shapes:
+            shape_type = shape.get("type", "rect")
+            x = int(shape.get("x", 0) * width)
+            y = int(shape.get("y", 0) * height)
+            color_idx = shape.get("color_idx", 1)
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+
+            if shape_type == "circle":
+                size = int(shape.get("size", 0.05) * min(width, height))
+                self._renderer.draw_circle(painter, x, y, size, color)
+            elif shape_type == "rect":
+                w = int(shape.get("width", 0.2) * width)
+                h = int(shape.get("height", 0.06) * height)
+                border_radius = shape.get("border_radius", 0)
+                self._renderer.draw_rect(painter, x, y, w, h, color, border_radius)
+
+    def _draw_pattern_scene(self, painter: QPainter, width: int, height: int):
+        """绘制图案场景"""
+        config = self._config.get("config", {})
+
+        bg_config = config.get("background", {})
+        bg_color = self._renderer.get_color_by_index(self._colors, bg_config.get("color_idx", 0))
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        self._draw_geometric_pattern(painter, width, height, config.get("geometric_pattern", {}))
+        self._draw_wave_pattern(painter, width, height, config.get("wave_pattern", {}))
+        self._draw_grid_overlay(painter, width, height, config.get("grid_overlay", {}))
+
+    def _draw_geometric_pattern(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制几何图案"""
+        rows = config.get("rows", 4)
+        cols = config.get("cols", 6)
+        shape_size = int(min(width, height) * config.get("shape_size", 0.08))
+        spacing = int(min(width, height) * config.get("spacing", 0.02))
+        shapes = config.get("shapes", [])
+
+        total_width = cols * shape_size + (cols - 1) * spacing
+        total_height = rows * shape_size + (rows - 1) * spacing
+        start_x = (width - total_width) // 2
+        start_y = int(height * 0.1)
+
+        for row in range(rows):
+            for col in range(cols):
+                shape_idx = (row * cols + col) % len(shapes) if shapes else 0
+                shape_config = shapes[shape_idx] if shapes else {"type": "circle", "color_idx": 1}
+                shape_type = shape_config.get("type", "circle")
+                color_idx = shape_config.get("color_idx", 1)
+                color = self._renderer.get_color_by_index(self._colors, color_idx)
+
+                x = start_x + col * (shape_size + spacing)
+                y = start_y + row * (shape_size + spacing)
+                center_x = x + shape_size // 2
+                center_y = y + shape_size // 2
+
+                if shape_type == "circle":
+                    self._renderer.draw_circle(painter, center_x, center_y, shape_size // 2, color)
+                elif shape_type == "square":
+                    self._renderer.draw_rect(painter, x, y, shape_size, shape_size, color, 0)
+                elif shape_type == "diamond":
+                    self._draw_diamond(painter, center_x, center_y, shape_size // 2, color)
+                elif shape_type == "triangle":
+                    self._draw_triangle(painter, center_x, center_y, shape_size // 2, color)
+
+    def _draw_diamond(self, painter: QPainter, x: int, y: int, size: int, color: QColor):
+        """绘制菱形"""
+        from PySide6.QtGui import QPolygon
+        points = [
+            QPoint(x, y - size),
+            QPoint(x + size, y),
+            QPoint(x, y + size),
+            QPoint(x - size, y)
+        ]
+        painter.setBrush(QBrush(color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawPolygon(QPolygon(points))
+
+    def _draw_triangle(self, painter: QPainter, x: int, y: int, size: int, color: QColor):
+        """绘制三角形"""
+        from PySide6.QtGui import QPolygon
+        points = [
+            QPoint(x, y - size),
+            QPoint(x + size, y + size),
+            QPoint(x - size, y + size)
+        ]
+        painter.setBrush(QBrush(color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawPolygon(QPolygon(points))
+
+    def _draw_wave_pattern(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制波浪图案"""
+        y_start = int(height * config.get("y_start", 0.55))
+        wave_count = config.get("wave_count", 3)
+        amplitude = int(height * config.get("amplitude", 0.06))
+        frequency = config.get("frequency", 2)
+        line_width = config.get("line_width", 3)
+        colors = config.get("colors", [1, 2, 3])
+
+        for i in range(wave_count):
+            color_idx = colors[i % len(colors)] if colors else 1
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+            y_offset = y_start + i * (amplitude + 10)
+
+            painter.setPen(QPen(color, line_width))
+            points = []
+            for x in range(0, width, 5):
+                t = x / width * frequency * 3.14159 * 2
+                y = y_offset + int(math.sin(t + i) * amplitude)
+                points.append(QPoint(x, y))
+
+            for j in range(len(points) - 1):
+                painter.drawLine(points[j], points[j + 1])
+
+    def _draw_grid_overlay(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制网格覆盖层"""
+        if not config.get("enabled", True):
+            return
+
+        line_width = config.get("line_width", 1)
+        color_idx = config.get("color_idx", 4)
+        opacity = config.get("opacity", 0.3)
+
+        color = self._renderer.get_color_by_index(self._colors, color_idx)
+        color.setAlpha(int(255 * opacity))
+        painter.setPen(QPen(color, line_width))
+
+        grid_size = 40
+        for x in range(0, width, grid_size):
+            painter.drawLine(x, 0, x, height)
+        for y in range(0, height, grid_size):
+            painter.drawLine(0, y, width, y)
+
+    def _draw_magazine_scene(self, painter: QPainter, width: int, height: int):
+        """绘制杂志排版场景"""
+        config = self._config.get("config", {})
+
+        bg_config = config.get("background", {})
+        bg_color = self._renderer.get_color_by_index(self._colors, bg_config.get("color_idx", 0))
+        painter.fillRect(0, 0, width, height, bg_color)
+
+        self._draw_magazine_header(painter, width, height, config.get("header", {}))
+        self._draw_magazine_title(painter, width, height, config.get("main_title", {}))
+        self._draw_magazine_feature_box(painter, width, height, config.get("feature_box", {}))
+        self._draw_magazine_content(painter, width, height, config.get("article_content", {}))
+        self._draw_magazine_quote(painter, width, height, config.get("quote_block", {}))
+        self._draw_magazine_footer(painter, width, height, config.get("footer", {}))
+
+    def _draw_magazine_header(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制杂志页眉"""
+        header_height = config.get("height", 30)
+        color_idx = config.get("color_idx", 1)
+        text = config.get("text", "")
+        text_color_idx = config.get("text_color_idx", 0)
+
+        color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, 0, 0, width, header_height, color, 0)
+
+        if text:
+            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
+            self._renderer.draw_text(painter, text, 0, 5, width, header_height - 10, text_color, 12, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_magazine_title(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制杂志主标题"""
+        title = config.get("text", "")
+        subtitle = config.get("subtitle", "")
+        y_offset = int(height * config.get("y_offset", 0.15))
+        title_color_idx = config.get("title_color_idx", 1)
+        subtitle_color_idx = config.get("subtitle_color_idx", 2)
+        title_size = config.get("title_size", 36)
+        subtitle_size = config.get("subtitle_size", 48)
+
+        title_color = self._renderer.get_color_by_index(self._colors, title_color_idx)
+        painter.setPen(title_color)
+        font = QFont("Arial", title_size, QFont.Weight.Normal)
+        painter.setFont(font)
+
+        metrics = QFontMetrics(font)
+        title_width = metrics.horizontalAdvance(title)
+        x = (width - title_width) // 2
+        painter.drawText(x, y_offset, title)
+
+        subtitle_color = self._renderer.get_color_by_index(self._colors, subtitle_color_idx)
+        painter.setPen(subtitle_color)
+        font = QFont("Arial", subtitle_size, QFont.Weight.Bold)
+        painter.setFont(font)
+
+        metrics = QFontMetrics(font)
+        subtitle_width = metrics.horizontalAdvance(subtitle)
+        x = (width - subtitle_width) // 2
+        painter.drawText(x, y_offset + title_size + 10, subtitle)
+
+    def _draw_magazine_feature_box(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制杂志特色框"""
+        x = int(width * config.get("x", 0.05))
+        y_offset = int(height * config.get("y_offset", 0.45))
+        box_width = int(width * config.get("width", 0.25))
+        box_height = int(height * config.get("height", 0.35))
+        color_idx = config.get("color_idx", 3)
+        text = config.get("text", "")
+        text_color_idx = config.get("text_color_idx", 0)
+        text_size = config.get("text_size", 14)
+
+        color = self._renderer.get_color_by_index(self._colors, color_idx)
+        self._renderer.draw_rect(painter, x, y_offset, box_width, box_height, color, 0)
+
+        if text:
+            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
+            self._renderer.draw_text(painter, text, x, y_offset + box_height // 2 - 10, box_width, 30, text_color, text_size, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
+
+    def _draw_magazine_content(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制杂志文章内容"""
+        x = int(width * config.get("x", 0.35))
+        y_offset = int(height * config.get("y_offset", 0.45))
+        content_width = int(width * config.get("width", 0.6))
+        headline = config.get("headline", "")
+        headline_color_idx = config.get("headline_color_idx", 1)
+        headline_size = config.get("headline_size", 16)
+        paragraphs = config.get("paragraphs", [])
+        paragraph_size = config.get("paragraph_size", 11)
+        line_height = config.get("line_height", 1.6)
+
+        current_y = y_offset
+
+        if headline:
+            headline_color = self._renderer.get_color_by_index(self._colors, headline_color_idx)
+            self._renderer.draw_text(painter, headline, x, current_y, content_width, 25, headline_color, headline_size, QFont.Weight.Bold, Qt.AlignmentFlag.AlignLeft)
+            current_y += 35
+
+        for para in paragraphs:
+            text = para.get("text", "")
+            color_idx = para.get("color_idx", 2)
+            color = self._renderer.get_color_by_index(self._colors, color_idx)
+
+            if text:
+                self._renderer.draw_text(painter, text, x, current_y, content_width, int(paragraph_size * line_height * 2), color, paragraph_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap)
+                current_y += int(paragraph_size * line_height * 2.5)
+
+    def _draw_magazine_quote(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制杂志引用块"""
+        y_offset = int(height * config.get("y_offset", 0.78))
+        quote_height = int(height * config.get("height", 0.15))
+        bar_width = config.get("bar_width", 4)
+        bar_color_idx = config.get("bar_color_idx", 2)
+        text = config.get("text", "")
+        text_color_idx = config.get("text_color_idx", 1)
+        text_size = config.get("text_size", 12)
+
+        bar_color = self._renderer.get_color_by_index(self._colors, bar_color_idx)
+        self._renderer.draw_rect(painter, 20, y_offset, bar_width, quote_height, bar_color, 0)
+
+        if text:
+            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
+            self._renderer.draw_text(painter, text, 30 + bar_width, y_offset + 10, width - 50 - bar_width, quote_height - 20, text_color, text_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap)
+
+    def _draw_magazine_footer(self, painter: QPainter, width: int, height: int, config: dict):
+        """绘制杂志页脚"""
+        y_offset = int(height * config.get("y_offset", 0.95))
+        text = config.get("text", "")
+        text_color_idx = config.get("text_color_idx", 4)
+        text_size = config.get("text_size", 10)
+
+        if text:
+            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
+            self._renderer.draw_text(painter, text, 0, y_offset, width, 20, text_color, text_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
+
+
 class IllustrationPreview(QWidget):
     """插画风格配色预览 - 绘制植物风格矢量插画"""
 
@@ -826,6 +1798,7 @@ class MixedPreviewPanel(QWidget):
     def __init__(self, parent=None):
         self._colors: List[str] = []
         self._current_scene = "mixed"
+        self._configurable_scenes: Dict[str, BasePreviewScene] = {}
         super().__init__(parent)
         self.setup_ui()
 
@@ -849,7 +1822,7 @@ class MixedPreviewPanel(QWidget):
         self._small_previews: List[IllustrationPreview] = []
         for i in range(4):
             preview = IllustrationPreview()
-            preview.set_seed(i)  # 不同的种子产生不同形态
+            preview.set_seed(i)
             self._small_previews.append(preview)
             row = i // 2
             col = i % 2
@@ -868,16 +1841,6 @@ class MixedPreviewPanel(QWidget):
         self._main_layout.addWidget(self._svg_preview)
         self._svg_preview.setVisible(False)
 
-        # 创建手机UI预览面板（默认隐藏）
-        self._mobile_preview = MobileUIPreview()
-        self._main_layout.addWidget(self._mobile_preview)
-        self._mobile_preview.setVisible(False)
-
-        # 创建Web预览面板（默认隐藏）
-        self._web_preview = WebPreview()
-        self._main_layout.addWidget(self._web_preview)
-        self._web_preview.setVisible(False)
-
     def set_scene(self, scene: str):
         """切换预览场景
 
@@ -889,19 +1852,51 @@ class MixedPreviewPanel(QWidget):
         # 隐藏所有场景
         self._mixed_widget.setVisible(False)
         self._svg_preview.setVisible(False)
-        self._mobile_preview.setVisible(False)
-        self._web_preview.setVisible(False)
+
+        # 隐藏所有配置化场景
+        for scene_widget in self._configurable_scenes.values():
+            scene_widget.setVisible(False)
 
         # 显示对应场景
         if scene == "custom":
             self._svg_preview.setVisible(True)
-        elif scene == "ui":
-            self._mobile_preview.setVisible(True)
-        elif scene == "web":
-            self._web_preview.setVisible(True)
+        elif scene in ["ui", "web", "illustration", "typography", "brand", "poster", "pattern", "magazine"]:
+            # 使用配置化场景
+            self._show_configurable_scene(scene)
         else:
             # mixed 和其他场景显示 Mixed 预览
             self._mixed_widget.setVisible(True)
+
+    def _show_configurable_scene(self, scene_id: str):
+        """显示配置化场景
+
+        Args:
+            scene_id: 场景ID
+        """
+        # 如果场景已创建，直接显示
+        if scene_id in self._configurable_scenes:
+            self._configurable_scenes[scene_id].setVisible(True)
+            return
+
+        # 从配置管理器获取场景配置
+        try:
+            from core import get_scene_config_manager
+            scene_manager = get_scene_config_manager()
+            scene_config = scene_manager.get_scene_by_id(scene_id)
+
+            if scene_config is None:
+                print(f"未找到场景配置: {scene_id}")
+                return
+
+            # 使用工厂创建场景实例
+            scene_widget = PreviewSceneFactory.create(scene_config, self)
+            scene_widget.set_colors(self._colors)
+            self._configurable_scenes[scene_id] = scene_widget
+            self._main_layout.addWidget(scene_widget)
+            scene_widget.setVisible(True)
+
+        except Exception as e:
+            print(f"创建配置化场景失败: {e}")
 
     def set_colors(self, colors: List[str]):
         """设置配色"""
@@ -910,8 +1905,10 @@ class MixedPreviewPanel(QWidget):
             preview.set_colors(self._colors)
         self._large_preview.set_colors(self._colors)
         self._svg_preview.set_colors(self._colors)
-        self._mobile_preview.set_colors(self._colors)
-        self._web_preview.set_colors(self._colors)
+
+        # 更新配置化场景
+        for scene_widget in self._configurable_scenes.values():
+            scene_widget.set_colors(self._colors)
 
     def get_svg_preview(self) -> SVGPreviewWidget:
         """获取 SVG 预览组件"""
@@ -1325,410 +2322,12 @@ class SVGPreviewWidget(QWidget):
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
 
-class MobileUIPreview(QWidget):
-    """手机UI场景预览 - 模拟移动应用界面"""
+def register_preview_scenes():
+    """注册所有预览场景类型到工厂"""
+    PreviewSceneFactory.register("configurable", ConfigurablePreviewScene)
 
-    def __init__(self, parent=None):
-        self._colors: List[str] = []
-        super().__init__(parent)
-        self.setMinimumSize(200, 350)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def set_colors(self, colors: List[str]):
-        """设置配色"""
-        if colors:
-            self._colors = colors.copy()
-            while len(self._colors) < 5:
-                self._colors.extend(colors)
-            self._colors = self._colors[:5]
-        else:
-            self._colors = []
-        self.update()
+register_preview_scenes()
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        width = self.width()
-        height = self.height()
 
-        # 如果没有配色，显示提示信息
-        if not self._colors:
-            self._draw_empty_hint(painter, width, height)
-            return
-
-        # 计算手机外框尺寸（保持宽高比）
-        phone_width = min(width * 0.6, height * 0.5)
-        phone_height = phone_width * 2.0
-
-        # 居中位置
-        x = (width - phone_width) / 2
-        y = (height - phone_height) / 2
-
-        # 屏幕边距（与外框中的 screen_margin 一致）
-        screen_margin = 6
-        screen_x = x + screen_margin
-        screen_y = y + screen_margin
-        screen_width = phone_width - screen_margin * 2
-        screen_height = phone_height - screen_margin * 2
-
-        # 绘制手机外框背景
-        self._draw_phone_frame(painter, x, y, phone_width, phone_height)
-
-        # 绘制状态栏（在屏幕区域内）
-        self._draw_status_bar(painter, screen_x, screen_y, screen_width)
-
-        # 绘制内容区域（在屏幕区域内，留出状态栏和导航栏空间）
-        status_bar_height = 30
-        nav_bar_height = 50
-        content_y = screen_y + status_bar_height
-        content_height = screen_height - status_bar_height - nav_bar_height
-        self._draw_content(painter, screen_x, content_y, screen_width, content_height)
-
-        # 绘制底部导航栏（在屏幕区域内）
-        nav_y = screen_y + screen_height - nav_bar_height
-        self._draw_bottom_nav(painter, screen_x, nav_y, screen_width, nav_bar_height)
-
-    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
-        """绘制空配色提示"""
-        from ui.theme_colors import get_text_color
-
-        # 绘制背景
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(self.rect(), bg_color)
-
-        # 绘制提示文字
-        text_color = get_text_color()
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 11)
-        painter.setFont(font)
-
-        hint_text = "请从配色管理面板导入配色"
-        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
-
-    def _draw_phone_frame(self, painter: QPainter, x: float, y: float, width: float, height: float):
-        """绘制手机外框"""
-        # 外框阴影
-        shadow_rect = QRect(int(x) + 3, int(y) + 3, int(width), int(height))
-        shadow_color = QColor(0, 0, 0, 40)
-        painter.setBrush(QBrush(shadow_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(shadow_rect, 20, 20)
-
-        # 外框主体
-        frame_rect = QRect(int(x), int(y), int(width), int(height))
-        frame_color = QColor(30, 30, 30) if not isDarkTheme() else QColor(20, 20, 20)
-        painter.setBrush(QBrush(frame_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(frame_rect, 20, 20)
-
-        # 屏幕区域
-        screen_margin = 6
-        screen_rect = QRect(
-            int(x) + screen_margin,
-            int(y) + screen_margin,
-            int(width) - screen_margin * 2,
-            int(height) - screen_margin * 2
-        )
-        screen_color = QColor(self._colors[0])
-        painter.setBrush(QBrush(screen_color))
-        painter.drawRoundedRect(screen_rect, 16, 16)
-
-    def _draw_status_bar(self, painter: QPainter, x: float, y: float, width: float):
-        """绘制状态栏"""
-        status_height = 30
-        status_rect = QRect(int(x), int(y), int(width), status_height)
-
-        # 状态栏背景（使用配色中的颜色1）
-        status_color = QColor(self._colors[1])
-        painter.setBrush(QBrush(status_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(status_rect, 12, 12)
-
-        # 绘制时间
-        text_color = self._get_contrast_text_color(status_color)
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 10, QFont.Weight.Bold)
-        painter.setFont(font)
-        painter.drawText(status_rect, Qt.AlignmentFlag.AlignCenter, "9:41")
-
-    def _draw_content(self, painter: QPainter, x: float, y: float, width: float, height: float):
-        """绘制内容区域"""
-        content_margin = 12
-        card_height = 60
-        spacing = 10
-
-        # 绘制标题卡片
-        title_rect = QRect(
-            int(x) + content_margin,
-            int(y) + content_margin,
-            int(width) - content_margin * 2,
-            card_height
-        )
-        title_color = QColor(self._colors[2])
-        painter.setBrush(QBrush(title_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(title_rect, 12, 12)
-
-        # 标题文字
-        text_color = self._get_contrast_text_color(title_color)
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 14, QFont.Weight.Bold)
-        painter.setFont(font)
-        painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, "首页")
-
-        # 绘制列表项
-        list_y = y + content_margin + card_height + spacing
-        for i in range(3):
-            item_rect = QRect(
-                int(x) + content_margin,
-                int(list_y) + i * (45 + spacing),
-                int(width) - content_margin * 2,
-                45
-            )
-            item_color = QColor(self._colors[3] if i % 2 == 0 else self._colors[4])
-            painter.setBrush(QBrush(item_color))
-            painter.drawRoundedRect(item_rect, 8, 8)
-
-            # 列表项文字
-            text_color = self._get_contrast_text_color(item_color)
-            painter.setPen(QPen(text_color))
-            font = QFont("Arial", 11)
-            painter.setFont(font)
-            painter.drawText(item_rect, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, f"  项目 {i + 1}")
-
-        # 绘制浮动按钮
-        fab_size = 50
-        fab_x = x + width - content_margin - fab_size - 5
-        fab_y = y + height - fab_size - 20
-        fab_rect = QRect(int(fab_x), int(fab_y), fab_size, fab_size)
-        fab_color = QColor(self._colors[1])
-        painter.setBrush(QBrush(fab_color))
-        painter.drawEllipse(fab_rect)
-
-        # 按钮加号
-        text_color = self._get_contrast_text_color(fab_color)
-        painter.setPen(QPen(text_color, 2))
-        center_x = int(fab_x + fab_size / 2)
-        center_y = int(fab_y + fab_size / 2)
-        painter.drawLine(center_x, center_y - 8, center_x, center_y + 8)
-        painter.drawLine(center_x - 8, center_y, center_x + 8, center_y)
-
-    def _draw_bottom_nav(self, painter: QPainter, x: float, y: float, width: float, height: float):
-        """绘制底部导航栏"""
-        nav_rect = QRect(int(x), int(y), int(width), int(height))
-        nav_color = QColor(self._colors[1])
-        painter.setBrush(QBrush(nav_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(nav_rect, 10, 10)
-
-        # 绘制导航图标（简化为圆点）
-        icon_count = 4
-        icon_spacing = width / (icon_count + 1)
-        icon_y = y + height / 2
-
-        for i in range(icon_count):
-            icon_x = x + icon_spacing * (i + 1)
-            icon_rect = QRect(int(icon_x) - 6, int(icon_y) - 6, 12, 12)
-            icon_color = QColor(self._colors[2] if i == 0 else self._colors[3])
-            painter.setBrush(QBrush(icon_color))
-            painter.drawEllipse(icon_rect)
-
-    def _get_contrast_text_color(self, bg_color: QColor) -> QColor:
-        """根据背景色获取对比文本色"""
-        luminance = (0.299 * bg_color.red() + 0.587 * bg_color.green() + 0.114 * bg_color.blue()) / 255
-        return QColor(255, 255, 255) if luminance < 0.5 else QColor(40, 40, 40)
-
-
-class WebPreview(QWidget):
-    """Web网页场景预览 - 模拟网页布局"""
-
-    def __init__(self, parent=None):
-        self._colors: List[str] = []
-        super().__init__(parent)
-        self.setMinimumSize(300, 200)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-    def set_colors(self, colors: List[str]):
-        """设置配色"""
-        if colors:
-            self._colors = colors.copy()
-            while len(self._colors) < 5:
-                self._colors.extend(colors)
-            self._colors = self._colors[:5]
-        else:
-            self._colors = []
-        self.update()
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        width = self.width()
-        height = self.height()
-
-        # 如果没有配色，显示提示信息
-        if not self._colors:
-            self._draw_empty_hint(painter, width, height)
-            return
-
-        # 绘制页面背景
-        bg_color = QColor(self._colors[0])
-        painter.fillRect(self.rect(), bg_color)
-
-        # 绘制顶部导航栏
-        self._draw_navbar(painter, width)
-
-        # 绘制Hero区域
-        self._draw_hero(painter, width, height)
-
-        # 绘制内容卡片网格
-        self._draw_card_grid(painter, width, height)
-
-        # 绘制页脚
-        self._draw_footer(painter, width, height)
-
-    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
-        """绘制空配色提示"""
-        from ui.theme_colors import get_text_color
-
-        # 绘制背景
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(self.rect(), bg_color)
-
-        # 绘制提示文字
-        text_color = get_text_color()
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 11)
-        painter.setFont(font)
-
-        hint_text = "请从配色管理面板导入配色"
-        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
-
-    def _draw_navbar(self, painter: QPainter, width: int):
-        """绘制顶部导航栏"""
-        nav_height = 50
-        nav_rect = QRect(0, 0, width, nav_height)
-        nav_color = QColor(self._colors[1])
-        painter.setBrush(QBrush(nav_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRect(nav_rect)
-
-        # Logo区域
-        logo_rect = QRect(20, 15, 80, 20)
-        logo_color = QColor(self._colors[2])
-        painter.setBrush(QBrush(logo_color))
-        painter.drawRoundedRect(logo_rect, 4, 4)
-
-        # 导航菜单项
-        menu_items = ["首页", "产品", "关于"]
-        item_x = width - 150
-        text_color = self._get_contrast_text_color(nav_color)
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 11)
-        painter.setFont(font)
-
-        for i, item in enumerate(menu_items):
-            item_rect = QRect(int(item_x) + i * 50, 15, 45, 20)
-            painter.drawText(item_rect, Qt.AlignmentFlag.AlignCenter, item)
-
-    def _draw_hero(self, painter: QPainter, width: int, height: int):
-        """绘制Hero区域"""
-        hero_height = int(height * 0.35)
-        hero_rect = QRect(0, 50, width, hero_height)
-        hero_color = QColor(self._colors[2])
-        painter.setBrush(QBrush(hero_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRect(hero_rect)
-
-        # 主标题
-        text_color = self._get_contrast_text_color(hero_color)
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 24, QFont.Weight.Bold)
-        painter.setFont(font)
-        title_rect = QRect(0, 80, width, 40)
-        painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, "欢迎来到我们的网站")
-
-        # 副标题
-        font = QFont("Arial", 12)
-        painter.setFont(font)
-        subtitle_rect = QRect(0, 130, width, 25)
-        painter.drawText(subtitle_rect, Qt.AlignmentFlag.AlignCenter, "探索无限可能，创造美好未来")
-
-        # CTA按钮
-        button_width = 120
-        button_height = 35
-        button_x = (width - button_width) / 2
-        button_y = 170
-        button_rect = QRect(int(button_x), int(button_y), button_width, button_height)
-        button_color = QColor(self._colors[3])
-        painter.setBrush(QBrush(button_color))
-        painter.drawRoundedRect(button_rect, 6, 6)
-
-        # 按钮文字
-        btn_text_color = self._get_contrast_text_color(button_color)
-        painter.setPen(QPen(btn_text_color))
-        font = QFont("Arial", 11, QFont.Weight.Bold)
-        painter.setFont(font)
-        painter.drawText(button_rect, Qt.AlignmentFlag.AlignCenter, "立即开始")
-
-    def _draw_card_grid(self, painter: QPainter, width: int, height: int):
-        """绘制内容卡片网格"""
-        card_y = 50 + int(height * 0.35) + 20
-        card_width = (width - 80) / 3
-        card_height = int(height * 0.25)
-
-        for i in range(3):
-            card_x = 20 + i * (card_width + 20)
-            card_rect = QRect(int(card_x), int(card_y), int(card_width), int(card_height))
-
-            # 卡片背景
-            card_color = QColor(self._colors[3] if i % 2 == 0 else self._colors[4])
-            painter.setBrush(QBrush(card_color))
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawRoundedRect(card_rect, 8, 8)
-
-            # 卡片图标（圆形）
-            icon_size = 40
-            icon_x = card_x + (card_width - icon_size) / 2
-            icon_y = card_y + 20
-            icon_rect = QRect(int(icon_x), int(icon_y), icon_size, icon_size)
-            icon_color = QColor(self._colors[1])
-            painter.setBrush(QBrush(icon_color))
-            painter.drawEllipse(icon_rect)
-
-            # 卡片标题
-            text_color = self._get_contrast_text_color(card_color)
-            painter.setPen(QPen(text_color))
-            font = QFont("Arial", 12, QFont.Weight.Bold)
-            painter.setFont(font)
-            title_rect = QRect(int(card_x), int(icon_y) + icon_size + 10, int(card_width), 20)
-            painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, f"功能 {i + 1}")
-
-            # 卡片描述
-            font = QFont("Arial", 10)
-            painter.setFont(font)
-            desc_rect = QRect(int(card_x) + 10, int(icon_y) + icon_size + 35, int(card_width) - 20, 40)
-            painter.drawText(desc_rect, Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap, "这里是功能描述文本")
-
-    def _draw_footer(self, painter: QPainter, width: int, height: int):
-        """绘制页脚"""
-        footer_height = 40
-        footer_y = height - footer_height
-        footer_rect = QRect(0, int(footer_y), width, footer_height)
-        footer_color = QColor(self._colors[1])
-        painter.setBrush(QBrush(footer_color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRect(footer_rect)
-
-        # 版权文字
-        text_color = self._get_contrast_text_color(footer_color)
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 10)
-        painter.setFont(font)
-        painter.drawText(footer_rect, Qt.AlignmentFlag.AlignCenter, "© 2026 Color Card. All rights reserved.")
-
-    def _get_contrast_text_color(self, bg_color: QColor) -> QColor:
-        """根据背景色获取对比文本色"""
-        luminance = (0.299 * bg_color.red() + 0.587 * bg_color.green() + 0.114 * bg_color.blue()) / 255
-        return QColor(255, 255, 255) if luminance < 0.5 else QColor(40, 40, 40)
