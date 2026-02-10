@@ -22,7 +22,8 @@
 - **智能配色方案**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择和明度调整
 - **配色方案收藏**：支持收藏和管理配色方案，可自定义名称，方便后续快速查看和使用
 - **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design、Nord、Dracula、Solarized、Gruvbox、Catppuccin、ColorBrewer、Radix Colors、Rose Pine 和 Nice Color Palettes 十二大开源配色方案，提供 13 + 22 + 19 + 16 + 11 + 2 + 2 + 4 + 35 + 31 + 3 种颜色系列 + 500 组精选配色，总计 658 组色卡，支持一键复制颜色值
-- **配色预览**：支持在多种场景下预览收藏的配色效果，包括插画风格、排版设计、UI组件等，支持拖拽调整颜色顺序
+- **配色预览**：支持在多种场景下预览收藏的配色效果，包括插画风格、排版设计、UI组件、网页布局等，支持拖拽调整颜色顺序
+- **场景配置化**：支持通过 JSON 配置文件定义和扩展预览场景，支持场景的导入导出和分享
 - **批量导入导出**：支持将收藏的配色导出为JSON文件，或从文件批量导入，便于备份和分享
 - **多色彩空间支持**：同时显示 HSB、LAB、HSL、CMYK、RGB 等多种色彩模式，满足不同场景的需求
 - **专业明度分析**：将图片按明度分为9个区域，提供直方图可视化，帮助理解图片的明度分布
@@ -159,8 +160,11 @@
 - **多场景预览**：支持在多种场景下预览收藏的配色效果
   - **插画风格**：使用 QPainter 绘制植物风格矢量插画，展示配色在插画中的应用
   - **排版设计**：展示配色在文字排版中的层次效果
+  - **手机UI设计**：模拟手机应用界面，展示配色在移动端UI中的应用
+  - **网页布局**：模拟网页设计，展示配色在Web设计中的应用
   - **Mixed 模式**：左侧 2x2 插画小图 + 右侧排版大图，综合展示配色效果
-  - **场景切换**：支持 Mixed、UI Design、Web、Brand、Illustration、Typography、Poster、Pattern 等多种场景（部分场景待完善）
+  - **场景切换**：支持自定义、混合、UI设计、网页、品牌、插画、排版、海报、图案等多种场景
+  - **场景配置化**：通过 JSON 配置文件定义场景，支持导入导出和分享自定义场景
 
 - **颜色管理**
   - **可拖拽排序**：顶部显示当前配色的圆点，支持拖拽调整颜色顺序
@@ -206,8 +210,12 @@ color_card/
 │   ├── __init__.py
 │   ├── color.py           # 颜色处理模块（颜色转换、明度计算、配色生成算法、直方图计算）
 │   ├── colorblind.py      # 色盲模拟模块（色盲类型定义、LMS色彩空间转换、色盲模拟算法）
-│   ├── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
+│   ├── color_data.py      # 颜色数据管理模块（延迟加载各颜色库数据）
+│   ├── config.py          # 配置管理模块（收藏数据管理、场景配置管理、导入导出功能）
 │   └── contrast.py        # 对比度检查模块（WCAG对比度计算、等级判断）
+├── preview_scenes/        # 场景配置目录
+│   ├── scenes.json        # 内置场景配置文件
+│   └── user_scenes/       # 用户自定义场景目录
 ├── ui/                     # UI模块目录
 │   ├── __init__.py        # 统一导出接口
 │   ├── main_window.py     # 主窗口类
@@ -219,7 +227,7 @@ color_card/
 │   ├── scheme_widgets.py  # 配色方案组件模块（SchemeColorInfoCard、SchemeColorPanel）
 │   ├── color_management_widgets.py # 色彩管理组件模块（ColorManagementColorCard、ColorManagementSchemeCard、ColorManagementSchemeList）
 │   ├── preset_color_widgets.py # 内置色彩组件模块（PresetColorCard、PresetColorSchemeCard、PresetColorList）
-│   ├── preview_widgets.py # 配色预览组件模块（DraggableColorDot、ColorDotBar、IllustrationPreview、TypographyPreview、PreviewToolbar、MixedPreviewPanel）
+│   ├── preview_widgets.py # 配色预览组件模块（DraggableColorDot、ColorDotBar、BasePreviewScene、PreviewSceneFactory、IllustrationPreview、TypographyPreview、MobileUIPreview、WebPreview、SVGPreviewWidget、PreviewSceneSelector、PreviewToolbar、MixedPreviewPanel）
 │   ├── zoom_viewer.py     # 缩放查看器模块
 │   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、ColorManagementInterface、PresetColorInterface、ColorPreviewInterface）
 │   └── theme_colors.py    # 主题颜色管理模块（统一颜色管理、主题感知颜色获取）
@@ -329,6 +337,56 @@ color_card/
 - **RGBHistogramWidget**：RGB通道直方图
   - R、G、B 三通道显示
   - 叠例显示
+
+#### 6. 场景配置管理模块 (core/config.py - SceneConfigManager)
+
+管理配色预览场景的配置，支持动态加载和扩展：
+
+- **SceneConfigManager**：场景配置管理器
+  - 加载内置场景配置（`preview_scenes/scenes.json`）
+  - 加载用户自定义场景（`preview_scenes/user_scenes/*.json`）
+  - 场景的导入导出功能
+  - 用户自定义场景的增删改查
+- **配置格式**：JSON 格式定义场景属性（id、name、type、description、config 等）
+- **场景类型**：支持 svg、composite、mobile、web 等多种类型
+- **使用示例**：
+  ```python
+  from core import get_scene_config_manager
+  
+  scene_manager = get_scene_config_manager()
+  
+  # 获取所有场景
+  all_scenes = scene_manager.get_all_scenes()
+  
+  # 导出场景配置
+  success, message = scene_manager.export_scene("ui", "ui_config.json")
+  
+  # 导入场景配置
+  success, message = scene_manager.import_scene("my_scene.json")
+  ```
+
+#### 7. 预览场景组件模块 (ui/preview_widgets.py)
+
+提供配色预览的多种场景实现：
+
+- **BasePreviewScene**：场景基类，所有预览场景必须继承
+  - 统一的配色设置接口
+  - 配置驱动的初始化
+- **PreviewSceneFactory**：场景工厂，动态创建场景实例
+  - 注册场景类型
+  - 根据配置创建对应场景
+- **MobileUIPreview**：手机UI场景预览
+  - 模拟手机应用界面（状态栏、内容区、导航栏）
+  - 使用配色填充不同UI元素
+- **WebPreview**：网页布局场景预览
+  - 模拟网页设计（导航栏、Hero区、内容卡片、页脚）
+  - 展示配色在Web设计中的应用
+- **SVGPreviewWidget**：SVG自定义预览
+  - 加载和显示SVG文件
+  - 将配色应用到SVG元素
+- **PreviewSceneSelector**：场景选择器
+  - 从配置动态加载场景列表
+  - 支持场景切换
 
 ---
 

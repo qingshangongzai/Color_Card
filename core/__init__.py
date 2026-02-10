@@ -35,7 +35,7 @@ from .color import (
     find_dominant_color_positions,
 )
 
-from .config import ConfigManager, get_config_manager
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager
 
 # 颜色数据模块
 from .color_data import (
@@ -89,6 +89,8 @@ __all__ = [
     # 配置
     'ConfigManager',
     'get_config_manager',
+    'SceneConfigManager',
+    'get_scene_config_manager',
     # 颜色数据
     'get_color_series_names',
     'get_color_series',

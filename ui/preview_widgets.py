@@ -361,6 +361,125 @@ class ColorDotBar(QWidget):
         return len(self._dots)
 
 
+class BasePreviewScene(QWidget):
+    """预览场景基类 - 所有预览场景必须继承此类"""
+
+    def __init__(self, scene_config: dict, parent=None):
+        """初始化基类
+
+        Args:
+            scene_config: 场景配置字典
+            parent: 父控件
+        """
+        self._config = scene_config
+        self._colors: List[str] = []
+        self._scene_id = scene_config.get("id", "unknown")
+        self._scene_type = scene_config.get("type", "unknown")
+        super().__init__(parent)
+        self.setMinimumSize(200, 200)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+    def set_colors(self, colors: List[str]):
+        """设置配色 - 子类必须重写此方法
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
+        if colors:
+            self._colors = colors.copy()
+            while len(self._colors) < 5:
+                self._colors.extend(colors)
+            self._colors = self._colors[:5]
+        self.update()
+
+    def get_scene_id(self) -> str:
+        """获取场景ID"""
+        return self._scene_id
+
+    def get_scene_type(self) -> str:
+        """获取场景类型"""
+        return self._scene_type
+
+    def get_scene_config(self) -> dict:
+        """获取场景配置"""
+        return self._config.copy()
+
+    @classmethod
+    def from_config(cls, config: dict, parent=None):
+        """从配置创建实例 - 工厂方法
+
+        Args:
+            config: 场景配置字典
+            parent: 父控件
+
+        Returns:
+            BasePreviewScene: 场景实例
+        """
+        return cls(config, parent)
+
+
+class PreviewSceneFactory:
+    """预览场景工厂 - 根据配置动态创建场景实例"""
+
+    _registry: dict = {}
+
+    @classmethod
+    def register(cls, scene_type: str, scene_class: type):
+        """注册场景类型
+
+        Args:
+            scene_type: 场景类型标识
+            scene_class: 场景类（必须继承 BasePreviewScene）
+        """
+        if not issubclass(scene_class, BasePreviewScene):
+            raise ValueError(f"场景类必须继承 BasePreviewScene: {scene_class}")
+        cls._registry[scene_type] = scene_class
+        print(f"已注册场景类型: {scene_type} -> {scene_class.__name__}")
+
+    @classmethod
+    def create(cls, scene_config: dict, parent=None) -> BasePreviewScene:
+        """根据配置创建场景实例
+
+        Args:
+            scene_config: 场景配置字典
+            parent: 父控件
+
+        Returns:
+            BasePreviewScene: 场景实例
+
+        Raises:
+            ValueError: 如果场景类型未注册
+        """
+        scene_type = scene_config.get("type", "unknown")
+        scene_class = cls._registry.get(scene_type)
+
+        if scene_class is None:
+            raise ValueError(f"未知的场景类型: {scene_type}，请先注册")
+
+        return scene_class.from_config(scene_config, parent)
+
+    @classmethod
+    def is_registered(cls, scene_type: str) -> bool:
+        """检查场景类型是否已注册
+
+        Args:
+            scene_type: 场景类型标识
+
+        Returns:
+            bool: 是否已注册
+        """
+        return scene_type in cls._registry
+
+    @classmethod
+    def get_registered_types(cls) -> List[str]:
+        """获取所有已注册的场景类型
+
+        Returns:
+            List[str]: 场景类型列表
+        """
+        return list(cls._registry.keys())
+
+
 class IllustrationPreview(QWidget):
     """插画风格配色预览 - 绘制植物风格矢量插画"""
 
@@ -583,34 +702,44 @@ class TypographyPreview(QWidget):
 
 
 class PreviewSceneSelector(ComboBox):
-    """预览场景选择器"""
+    """预览场景选择器 - 从配置加载场景列表"""
 
     scene_changed = Signal(str)  # 场景变化信号
 
-    SCENES = {
-        "custom": "Custom - 自定义",
-        "mixed": "Mixed - 混合",
-        "ui": "UI Design - UI设计",
-        "web": "Web - 网页",
-        "brand": "Brand - 品牌",
-        "illustration": "Illustration - 插画",
-        "typography": "Typography - 排版",
-        "poster": "Poster - 海报",
-        "pattern": "Pattern - 图案"
-    }
-
     def __init__(self, parent=None):
+        self._scenes: List[dict] = []
         super().__init__(parent)
+        self._load_scenes_from_config()
         self._setup_items()
-        # 默认选择第一个选项（自定义）
-        self.setCurrentIndex(0)
+        # 默认选择第一个选项
+        if self.count() > 0:
+            self.setCurrentIndex(0)
         self.currentTextChanged.connect(self._on_selection_changed)
+
+    def _load_scenes_from_config(self):
+        """从配置加载场景列表"""
+        try:
+            from core import get_scene_config_manager
+            scene_manager = get_scene_config_manager()
+            self._scenes = scene_manager.get_all_scenes()
+        except Exception as e:
+            print(f"加载场景配置失败: {e}")
+            # 使用默认场景列表
+            self._scenes = [
+                {"id": "custom", "name": "Custom - 自定义"},
+                {"id": "mixed", "name": "Mixed - 混合"},
+                {"id": "ui", "name": "UI Design - UI设计"},
+                {"id": "web", "name": "Web - 网页"},
+            ]
 
     def _setup_items(self):
         """设置选项"""
-        for key, text in self.SCENES.items():
-            self.addItem(text)
-            self.setItemData(self.count() - 1, key)
+        self.clear()
+        for scene in self._scenes:
+            scene_id = scene.get("id", "")
+            scene_name = scene.get("name", scene_id)
+            self.addItem(scene_name)
+            self.setItemData(self.count() - 1, scene_id)
 
     def _on_selection_changed(self, text: str):
         """处理选择变化"""
@@ -623,9 +752,28 @@ class PreviewSceneSelector(ComboBox):
         """获取当前场景key"""
         return self.itemData(self.currentIndex()) or "mixed"
 
+    def reload_scenes(self):
+        """重新加载场景列表"""
+        self._load_scenes_from_config()
+        self._setup_items()
+
+    def get_scene_config(self, scene_id: str) -> Optional[dict]:
+        """获取场景配置
+
+        Args:
+            scene_id: 场景ID
+
+        Returns:
+            Optional[dict]: 场景配置，如果不存在则返回None
+        """
+        for scene in self._scenes:
+            if scene.get("id") == scene_id:
+                return scene.copy()
+        return None
+
 
 class MixedPreviewPanel(QWidget):
-    """Mixed场景预览面板 - 2x2小图 + 右侧大图，支持自定义SVG预览"""
+    """Mixed场景预览面板 - 2x2小图 + 右侧大图，支持自定义SVG预览、手机UI和Web预览"""
 
     def __init__(self, parent=None):
         self._colors: List[str] = []
@@ -672,6 +820,16 @@ class MixedPreviewPanel(QWidget):
         self._main_layout.addWidget(self._svg_preview)
         self._svg_preview.setVisible(False)
 
+        # 创建手机UI预览面板（默认隐藏）
+        self._mobile_preview = MobileUIPreview()
+        self._main_layout.addWidget(self._mobile_preview)
+        self._mobile_preview.setVisible(False)
+
+        # 创建Web预览面板（默认隐藏）
+        self._web_preview = WebPreview()
+        self._main_layout.addWidget(self._web_preview)
+        self._web_preview.setVisible(False)
+
     def set_scene(self, scene: str):
         """切换预览场景
 
@@ -680,14 +838,22 @@ class MixedPreviewPanel(QWidget):
         """
         self._current_scene = scene
 
+        # 隐藏所有场景
+        self._mixed_widget.setVisible(False)
+        self._svg_preview.setVisible(False)
+        self._mobile_preview.setVisible(False)
+        self._web_preview.setVisible(False)
+
+        # 显示对应场景
         if scene == "custom":
-            # 显示 SVG 预览，隐藏 Mixed 预览
-            self._mixed_widget.setVisible(False)
             self._svg_preview.setVisible(True)
+        elif scene == "ui":
+            self._mobile_preview.setVisible(True)
+        elif scene == "web":
+            self._web_preview.setVisible(True)
         else:
-            # 显示 Mixed 预览，隐藏 SVG 预览
+            # mixed 和其他场景显示 Mixed 预览
             self._mixed_widget.setVisible(True)
-            self._svg_preview.setVisible(False)
 
     def set_colors(self, colors: List[str]):
         """设置配色"""
@@ -696,6 +862,8 @@ class MixedPreviewPanel(QWidget):
             preview.set_colors(colors)
         self._large_preview.set_colors(colors)
         self._svg_preview.set_colors(colors)
+        self._mobile_preview.set_colors(colors)
+        self._web_preview.set_colors(colors)
 
     def get_svg_preview(self) -> SVGPreviewWidget:
         """获取 SVG 预览组件"""
@@ -705,11 +873,14 @@ class MixedPreviewPanel(QWidget):
 class PreviewToolbar(QWidget):
     """预览工具栏 - 包含圆点栏、场景选择、导入导出按钮"""
 
-    scene_changed = Signal(str)      # 场景变化
-    import_svg_requested = Signal()  # 导入SVG请求
-    export_svg_requested = Signal()  # 导出SVG请求
+    scene_changed = Signal(str)              # 场景变化
+    import_svg_requested = Signal()          # 导入SVG请求（custom场景）
+    export_svg_requested = Signal()          # 导出SVG请求（custom场景）
+    import_config_requested = Signal()       # 导入配置请求（所有场景）
+    export_config_requested = Signal()       # 导出配置请求（所有场景）
 
     def __init__(self, parent=None):
+        self._current_scene = "custom"
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
@@ -733,30 +904,29 @@ class PreviewToolbar(QWidget):
 
         top_layout.addStretch()  # 弹性空间，使右侧内容右对齐
 
-        # 导入导出按钮容器（默认隐藏）
-        self._svg_buttons_container = QWidget()
-        svg_buttons_layout = QHBoxLayout(self._svg_buttons_container)
-        svg_buttons_layout.setContentsMargins(0, 0, 0, 0)
-        svg_buttons_layout.setSpacing(8)
+        # 导入导出按钮容器（对所有场景可见）
+        self._buttons_container = QWidget()
+        buttons_layout = QHBoxLayout(self._buttons_container)
+        buttons_layout.setContentsMargins(0, 0, 0, 0)
+        buttons_layout.setSpacing(8)
 
         # 导入按钮
         self._import_button = PushButton(FluentIcon.DOWNLOAD, "导入")
         self._import_button.setFixedHeight(32)
-        self._import_button.clicked.connect(self.import_svg_requested.emit)
-        svg_buttons_layout.addWidget(self._import_button)
+        self._import_button.clicked.connect(self._on_import_clicked)
+        buttons_layout.addWidget(self._import_button)
 
         # 导出按钮
         self._export_button = PushButton(FluentIcon.UP, "导出")
         self._export_button.setFixedHeight(32)
-        self._export_button.clicked.connect(self.export_svg_requested.emit)
-        svg_buttons_layout.addWidget(self._export_button)
+        self._export_button.clicked.connect(self._on_export_clicked)
+        buttons_layout.addWidget(self._export_button)
 
-        top_layout.addWidget(self._svg_buttons_container)
-        self._svg_buttons_container.setVisible(False)
+        top_layout.addWidget(self._buttons_container)
 
         # 场景选择器
         self._scene_selector = PreviewSceneSelector()
-        self._scene_selector.setFixedWidth(180)
+        self._scene_selector.setFixedWidth(100)
         self._scene_selector.scene_changed.connect(self._on_scene_changed)
         top_layout.addWidget(self._scene_selector)
 
@@ -778,17 +948,33 @@ class PreviewToolbar(QWidget):
 
         self.setFixedHeight(100)  # 增加高度以容纳两行
 
-        # 初始化时同步按钮显示状态（默认选中自定义，需要显示导入导出按钮）
+        # 初始化时同步按钮显示状态
         current_scene = self._scene_selector.get_current_scene()
         self._on_scene_changed(current_scene)
 
     def _on_scene_changed(self, scene: str):
         """处理场景变化"""
-        # 只在自定义场景显示导入导出按钮
-        is_custom = (scene == "custom")
-        self._svg_buttons_container.setVisible(is_custom)
+        self._current_scene = scene
         # 转发信号
         self.scene_changed.emit(scene)
+
+    def _on_import_clicked(self):
+        """处理导入按钮点击"""
+        if self._current_scene == "custom":
+            # Custom场景：可以选择导入SVG或JSON配置
+            self.import_svg_requested.emit()
+        else:
+            # 其他场景：导入JSON配置
+            self.import_config_requested.emit()
+
+    def _on_export_clicked(self):
+        """处理导出按钮点击"""
+        if self._current_scene == "custom":
+            # Custom场景：导出SVG
+            self.export_svg_requested.emit()
+        else:
+            # 其他场景：导出JSON配置
+            self.export_config_requested.emit()
 
     def _update_styles(self):
         """更新样式以适配主题"""
@@ -810,6 +996,10 @@ class PreviewToolbar(QWidget):
     def get_dot_bar(self) -> ColorDotBar:
         """获取圆点栏（用于连接信号）"""
         return self._dot_bar
+
+    def get_scene_selector(self) -> PreviewSceneSelector:
+        """获取场景选择器"""
+        return self._scene_selector
 
     def get_current_scene(self) -> str:
         """获取当前场景"""
@@ -970,3 +1160,364 @@ class SVGPreviewWidget(QWidget):
     def has_svg(self) -> bool:
         """是否已加载 SVG"""
         return self._svg_renderer is not None and self._svg_renderer.isValid()
+
+
+class MobileUIPreview(QWidget):
+    """手机UI场景预览 - 模拟移动应用界面"""
+
+    def __init__(self, parent=None):
+        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        super().__init__(parent)
+        self.setMinimumSize(200, 350)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+    def set_colors(self, colors: List[str]):
+        """设置配色"""
+        if colors:
+            self._colors = colors.copy()
+            while len(self._colors) < 5:
+                self._colors.extend(colors)
+            self._colors = self._colors[:5]
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        width = self.width()
+        height = self.height()
+
+        # 计算手机外框尺寸（保持宽高比）
+        phone_width = min(width * 0.6, height * 0.5)
+        phone_height = phone_width * 2.0
+
+        # 居中位置
+        x = (width - phone_width) / 2
+        y = (height - phone_height) / 2
+
+        # 屏幕边距（与外框中的 screen_margin 一致）
+        screen_margin = 6
+        screen_x = x + screen_margin
+        screen_y = y + screen_margin
+        screen_width = phone_width - screen_margin * 2
+        screen_height = phone_height - screen_margin * 2
+
+        # 绘制手机外框背景
+        self._draw_phone_frame(painter, x, y, phone_width, phone_height)
+
+        # 绘制状态栏（在屏幕区域内）
+        self._draw_status_bar(painter, screen_x, screen_y, screen_width)
+
+        # 绘制内容区域（在屏幕区域内，留出状态栏和导航栏空间）
+        status_bar_height = 30
+        nav_bar_height = 50
+        content_y = screen_y + status_bar_height
+        content_height = screen_height - status_bar_height - nav_bar_height
+        self._draw_content(painter, screen_x, content_y, screen_width, content_height)
+
+        # 绘制底部导航栏（在屏幕区域内）
+        nav_y = screen_y + screen_height - nav_bar_height
+        self._draw_bottom_nav(painter, screen_x, nav_y, screen_width, nav_bar_height)
+
+    def _draw_phone_frame(self, painter: QPainter, x: float, y: float, width: float, height: float):
+        """绘制手机外框"""
+        # 外框阴影
+        shadow_rect = QRect(int(x) + 3, int(y) + 3, int(width), int(height))
+        shadow_color = QColor(0, 0, 0, 40)
+        painter.setBrush(QBrush(shadow_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(shadow_rect, 20, 20)
+
+        # 外框主体
+        frame_rect = QRect(int(x), int(y), int(width), int(height))
+        frame_color = QColor(30, 30, 30) if not isDarkTheme() else QColor(20, 20, 20)
+        painter.setBrush(QBrush(frame_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(frame_rect, 20, 20)
+
+        # 屏幕区域
+        screen_margin = 6
+        screen_rect = QRect(
+            int(x) + screen_margin,
+            int(y) + screen_margin,
+            int(width) - screen_margin * 2,
+            int(height) - screen_margin * 2
+        )
+        screen_color = QColor(self._colors[0])
+        painter.setBrush(QBrush(screen_color))
+        painter.drawRoundedRect(screen_rect, 16, 16)
+
+    def _draw_status_bar(self, painter: QPainter, x: float, y: float, width: float):
+        """绘制状态栏"""
+        status_height = 30
+        status_rect = QRect(int(x), int(y), int(width), status_height)
+
+        # 状态栏背景（使用配色中的颜色1）
+        status_color = QColor(self._colors[1])
+        painter.setBrush(QBrush(status_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(status_rect, 12, 12)
+
+        # 绘制时间
+        text_color = self._get_contrast_text_color(status_color)
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 10, QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.drawText(status_rect, Qt.AlignmentFlag.AlignCenter, "9:41")
+
+    def _draw_content(self, painter: QPainter, x: float, y: float, width: float, height: float):
+        """绘制内容区域"""
+        content_margin = 12
+        card_height = 60
+        spacing = 10
+
+        # 绘制标题卡片
+        title_rect = QRect(
+            int(x) + content_margin,
+            int(y) + content_margin,
+            int(width) - content_margin * 2,
+            card_height
+        )
+        title_color = QColor(self._colors[2])
+        painter.setBrush(QBrush(title_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(title_rect, 12, 12)
+
+        # 标题文字
+        text_color = self._get_contrast_text_color(title_color)
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 14, QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, "首页")
+
+        # 绘制列表项
+        list_y = y + content_margin + card_height + spacing
+        for i in range(3):
+            item_rect = QRect(
+                int(x) + content_margin,
+                int(list_y) + i * (45 + spacing),
+                int(width) - content_margin * 2,
+                45
+            )
+            item_color = QColor(self._colors[3] if i % 2 == 0 else self._colors[4])
+            painter.setBrush(QBrush(item_color))
+            painter.drawRoundedRect(item_rect, 8, 8)
+
+            # 列表项文字
+            text_color = self._get_contrast_text_color(item_color)
+            painter.setPen(QPen(text_color))
+            font = QFont("Arial", 11)
+            painter.setFont(font)
+            painter.drawText(item_rect, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, f"  项目 {i + 1}")
+
+        # 绘制浮动按钮
+        fab_size = 50
+        fab_x = x + width - content_margin - fab_size - 5
+        fab_y = y + height - fab_size - 20
+        fab_rect = QRect(int(fab_x), int(fab_y), fab_size, fab_size)
+        fab_color = QColor(self._colors[1])
+        painter.setBrush(QBrush(fab_color))
+        painter.drawEllipse(fab_rect)
+
+        # 按钮加号
+        text_color = self._get_contrast_text_color(fab_color)
+        painter.setPen(QPen(text_color, 2))
+        center_x = int(fab_x + fab_size / 2)
+        center_y = int(fab_y + fab_size / 2)
+        painter.drawLine(center_x, center_y - 8, center_x, center_y + 8)
+        painter.drawLine(center_x - 8, center_y, center_x + 8, center_y)
+
+    def _draw_bottom_nav(self, painter: QPainter, x: float, y: float, width: float, height: float):
+        """绘制底部导航栏"""
+        nav_rect = QRect(int(x), int(y), int(width), int(height))
+        nav_color = QColor(self._colors[1])
+        painter.setBrush(QBrush(nav_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRoundedRect(nav_rect, 10, 10)
+
+        # 绘制导航图标（简化为圆点）
+        icon_count = 4
+        icon_spacing = width / (icon_count + 1)
+        icon_y = y + height / 2
+
+        for i in range(icon_count):
+            icon_x = x + icon_spacing * (i + 1)
+            icon_rect = QRect(int(icon_x) - 6, int(icon_y) - 6, 12, 12)
+            icon_color = QColor(self._colors[2] if i == 0 else self._colors[3])
+            painter.setBrush(QBrush(icon_color))
+            painter.drawEllipse(icon_rect)
+
+    def _get_contrast_text_color(self, bg_color: QColor) -> QColor:
+        """根据背景色获取对比文本色"""
+        luminance = (0.299 * bg_color.red() + 0.587 * bg_color.green() + 0.114 * bg_color.blue()) / 255
+        return QColor(255, 255, 255) if luminance < 0.5 else QColor(40, 40, 40)
+
+
+class WebPreview(QWidget):
+    """Web网页场景预览 - 模拟网页布局"""
+
+    def __init__(self, parent=None):
+        self._colors: List[str] = ["#E8E8E8", "#D0D0D0", "#B8B8B8", "#A0A0A0", "#888888"]
+        super().__init__(parent)
+        self.setMinimumSize(300, 200)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+    def set_colors(self, colors: List[str]):
+        """设置配色"""
+        if colors:
+            self._colors = colors.copy()
+            while len(self._colors) < 5:
+                self._colors.extend(colors)
+            self._colors = self._colors[:5]
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        width = self.width()
+        height = self.height()
+
+        # 绘制页面背景
+        bg_color = QColor(self._colors[0])
+        painter.fillRect(self.rect(), bg_color)
+
+        # 绘制顶部导航栏
+        self._draw_navbar(painter, width)
+
+        # 绘制Hero区域
+        self._draw_hero(painter, width, height)
+
+        # 绘制内容卡片网格
+        self._draw_card_grid(painter, width, height)
+
+        # 绘制页脚
+        self._draw_footer(painter, width, height)
+
+    def _draw_navbar(self, painter: QPainter, width: int):
+        """绘制顶部导航栏"""
+        nav_height = 50
+        nav_rect = QRect(0, 0, width, nav_height)
+        nav_color = QColor(self._colors[1])
+        painter.setBrush(QBrush(nav_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRect(nav_rect)
+
+        # Logo区域
+        logo_rect = QRect(20, 15, 80, 20)
+        logo_color = QColor(self._colors[2])
+        painter.setBrush(QBrush(logo_color))
+        painter.drawRoundedRect(logo_rect, 4, 4)
+
+        # 导航菜单项
+        menu_items = ["首页", "产品", "关于"]
+        item_x = width - 150
+        text_color = self._get_contrast_text_color(nav_color)
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 11)
+        painter.setFont(font)
+
+        for i, item in enumerate(menu_items):
+            item_rect = QRect(int(item_x) + i * 50, 15, 45, 20)
+            painter.drawText(item_rect, Qt.AlignmentFlag.AlignCenter, item)
+
+    def _draw_hero(self, painter: QPainter, width: int, height: int):
+        """绘制Hero区域"""
+        hero_height = int(height * 0.35)
+        hero_rect = QRect(0, 50, width, hero_height)
+        hero_color = QColor(self._colors[2])
+        painter.setBrush(QBrush(hero_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRect(hero_rect)
+
+        # 主标题
+        text_color = self._get_contrast_text_color(hero_color)
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 24, QFont.Weight.Bold)
+        painter.setFont(font)
+        title_rect = QRect(0, 80, width, 40)
+        painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, "欢迎来到我们的网站")
+
+        # 副标题
+        font = QFont("Arial", 12)
+        painter.setFont(font)
+        subtitle_rect = QRect(0, 130, width, 25)
+        painter.drawText(subtitle_rect, Qt.AlignmentFlag.AlignCenter, "探索无限可能，创造美好未来")
+
+        # CTA按钮
+        button_width = 120
+        button_height = 35
+        button_x = (width - button_width) / 2
+        button_y = 170
+        button_rect = QRect(int(button_x), int(button_y), button_width, button_height)
+        button_color = QColor(self._colors[3])
+        painter.setBrush(QBrush(button_color))
+        painter.drawRoundedRect(button_rect, 6, 6)
+
+        # 按钮文字
+        btn_text_color = self._get_contrast_text_color(button_color)
+        painter.setPen(QPen(btn_text_color))
+        font = QFont("Arial", 11, QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.drawText(button_rect, Qt.AlignmentFlag.AlignCenter, "立即开始")
+
+    def _draw_card_grid(self, painter: QPainter, width: int, height: int):
+        """绘制内容卡片网格"""
+        card_y = 50 + int(height * 0.35) + 20
+        card_width = (width - 80) / 3
+        card_height = int(height * 0.25)
+
+        for i in range(3):
+            card_x = 20 + i * (card_width + 20)
+            card_rect = QRect(int(card_x), int(card_y), int(card_width), int(card_height))
+
+            # 卡片背景
+            card_color = QColor(self._colors[3] if i % 2 == 0 else self._colors[4])
+            painter.setBrush(QBrush(card_color))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRoundedRect(card_rect, 8, 8)
+
+            # 卡片图标（圆形）
+            icon_size = 40
+            icon_x = card_x + (card_width - icon_size) / 2
+            icon_y = card_y + 20
+            icon_rect = QRect(int(icon_x), int(icon_y), icon_size, icon_size)
+            icon_color = QColor(self._colors[1])
+            painter.setBrush(QBrush(icon_color))
+            painter.drawEllipse(icon_rect)
+
+            # 卡片标题
+            text_color = self._get_contrast_text_color(card_color)
+            painter.setPen(QPen(text_color))
+            font = QFont("Arial", 12, QFont.Weight.Bold)
+            painter.setFont(font)
+            title_rect = QRect(int(card_x), int(icon_y) + icon_size + 10, int(card_width), 20)
+            painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, f"功能 {i + 1}")
+
+            # 卡片描述
+            font = QFont("Arial", 10)
+            painter.setFont(font)
+            desc_rect = QRect(int(card_x) + 10, int(icon_y) + icon_size + 35, int(card_width) - 20, 40)
+            painter.drawText(desc_rect, Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap, "这里是功能描述文本")
+
+    def _draw_footer(self, painter: QPainter, width: int, height: int):
+        """绘制页脚"""
+        footer_height = 40
+        footer_y = height - footer_height
+        footer_rect = QRect(0, int(footer_y), width, footer_height)
+        footer_color = QColor(self._colors[1])
+        painter.setBrush(QBrush(footer_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawRect(footer_rect)
+
+        # 版权文字
+        text_color = self._get_contrast_text_color(footer_color)
+        painter.setPen(QPen(text_color))
+        font = QFont("Arial", 10)
+        painter.setFont(font)
+        painter.drawText(footer_rect, Qt.AlignmentFlag.AlignCenter, "© 2026 Color Card. All rights reserved.")
+
+    def _get_contrast_text_color(self, bg_color: QColor) -> QColor:
+        """根据背景色获取对比文本色"""
+        luminance = (0.299 * bg_color.red() + 0.587 * bg_color.green() + 0.114 * bg_color.blue()) / 255
+        return QColor(255, 255, 255) if luminance < 0.5 else QColor(40, 40, 40)

@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-02-10",
+  "scenes": [
+    {
+      "id": "custom",
+      "name": "自定义",
+      "type": "svg",
+      "description": "自定义SVG预览，支持导入导出SVG文件",
+      "icon": "svg",
+      "builtin": true,
+      "config": {
+        "supports_import": true,
+        "supports_export": true
+      }
+    },
+    {
+      "id": "mixed",
+      "name": "混合",
+      "type": "composite",
+      "description": "2x2插画小图 + 右侧排版大图",
+      "icon": "layout",
+      "builtin": true,
+      "config": {
+        "layout": "2x2_grid",
+        "components": ["illustration", "typography"]
+      }
+    },
+    {
+      "id": "ui",
+      "name": "UI设计",
+      "type": "mobile",
+      "description": "手机应用界面预览，包含状态栏、内容区和导航栏",
+      "icon": "phone",
+      "builtin": true,
+      "config": {
+        "device": "phone",
+        "show_status_bar": true,
+        "show_nav_bar": true,
+        "card_count": 3,
+        "aspect_ratio": 0.5
+      }
+    },
+    {
+      "id": "web",
+      "name": "网页",
+      "type": "web",
+      "description": "网页布局预览，包含导航栏、Hero区域、内容卡片和页脚",
+      "icon": "web",
+      "builtin": true,
+      "config": {
+        "layout": "landing",
+        "sections": ["navbar", "hero", "cards", "footer"],
+        "card_columns": 3
+      }
+    },
+    {
+      "id": "brand",
+      "name": "品牌",
+      "type": "placeholder",
+      "description": "品牌设计预览（待实现）",
+      "icon": "tag",
+      "builtin": true,
+      "config": {}
+    },
+    {
+      "id": "illustration",
+      "name": "插画",
+      "type": "placeholder",
+      "description": "完整插画预览（待实现）",
+      "icon": "brush",
+      "builtin": true,
+      "config": {}
+    },
+    {
+      "id": "typography",
+      "name": "排版",
+      "type": "placeholder",
+      "description": "文字排版预览（待实现）",
+      "icon": "font",
+      "builtin": true,
+      "config": {}
+    },
+    {
+      "id": "poster",
+      "name": "海报",
+      "type": "placeholder",
+      "description": "海报设计预览（待实现）",
+      "icon": "image",
+      "builtin": true,
+      "config": {}
+    },
+    {
+      "id": "pattern",
+      "name": "图案",
+      "type": "placeholder",
+      "description": "图案纹理预览（待实现）",
+      "icon": "grid",
+      "builtin": true,
+      "config": {}
+    }
+  ]
+}

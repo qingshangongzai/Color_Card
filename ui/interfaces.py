@@ -2371,6 +2371,8 @@ class ColorPreviewInterface(QWidget):
         self.toolbar.get_dot_bar().color_deleted.connect(self._on_color_deleted)
         self.toolbar.import_svg_requested.connect(self._on_import_svg)
         self.toolbar.export_svg_requested.connect(self._on_export_svg)
+        self.toolbar.import_config_requested.connect(self._on_import_config)
+        self.toolbar.export_config_requested.connect(self._on_export_config)
         self.toolbar.set_hex_visible(self._hex_visible)
         layout.addWidget(self.toolbar)
 
@@ -2542,6 +2544,108 @@ class ColorPreviewInterface(QWidget):
             InfoBar.error(
                 title="导出失败",
                 content=f"保存文件时发生错误: {str(e)}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def _on_import_config(self):
+        """导入场景配置"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入场景配置",
+            "",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        from core import get_scene_config_manager
+        scene_manager = get_scene_config_manager()
+
+        success, message = scene_manager.import_scene(file_path)
+
+        if success:
+            # 重新加载场景列表
+            self.toolbar.get_scene_selector().reload_scenes()
+
+            InfoBar.success(
+                title="导入成功",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def _on_export_config(self):
+        """导出当前场景配置"""
+        current_scene = self._current_scene
+
+        from core import get_scene_config_manager
+        scene_manager = get_scene_config_manager()
+
+        # 获取场景配置
+        scene_config = scene_manager.get_scene_by_id(current_scene)
+        if not scene_config:
+            InfoBar.warning(
+                title="无法导出",
+                content="当前场景配置不存在",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 生成默认文件名
+        default_name = f"{current_scene}_config.json"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出场景配置",
+            default_name,
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .json
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        success, message = scene_manager.export_scene(current_scene, file_path)
+
+        if success:
+            InfoBar.success(
+                title="导出成功",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导出失败",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
