@@ -2350,6 +2350,8 @@ class ColorPreviewInterface(QWidget):
         self._favorites = []
         self._current_index = 0
         self._current_colors = []
+        self._current_scene = "custom"  # 默认使用自定义场景
+        self._current_svg_path = ""  # 当前加载的 SVG 文件路径
         self.setup_ui()
         self._load_favorites()
         self._update_styles()
@@ -2361,14 +2363,18 @@ class ColorPreviewInterface(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
-        # 顶部工具栏
+        # 顶部工具栏（包含标题、导入导出按钮、场景选择器、颜色圆点栏）
         self.toolbar = PreviewToolbar(self)
         self.toolbar.scene_changed.connect(self._on_scene_changed)
         self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
+        self.toolbar.import_svg_requested.connect(self._on_import_svg)
+        self.toolbar.export_svg_requested.connect(self._on_export_svg)
         layout.addWidget(self.toolbar)
 
         # 预览区域
         self.preview_panel = MixedPreviewPanel(self)
+        # 默认显示自定义场景
+        self.preview_panel.set_scene("custom")
         layout.addWidget(self.preview_panel, stretch=1)
 
     def _load_favorites(self):
@@ -2422,13 +2428,109 @@ class ColorPreviewInterface(QWidget):
 
     def _on_scene_changed(self, scene: str):
         """场景切换回调"""
-        # TODO: 根据场景切换不同的预览面板
-        pass
+        self._current_scene = scene
+        self.preview_panel.set_scene(scene)
 
     def _on_color_order_changed(self, colors: List[str]):
         """颜色顺序变化回调"""
         self._current_colors = colors
         self.preview_panel.set_colors(colors)
+
+    def _on_import_svg(self):
+        """导入 SVG 文件"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入 SVG 文件",
+            "",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 加载 SVG 文件
+        svg_preview = self.preview_panel.get_svg_preview()
+        if svg_preview.load_svg(file_path):
+            self._current_svg_path = file_path
+            # 应用当前配色
+            svg_preview.set_colors(self._current_colors)
+
+            InfoBar.success(
+                title="导入成功",
+                content=f"已加载 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content="无法加载 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+
+    def _on_export_svg(self):
+        """导出 SVG 文件"""
+        svg_preview = self.preview_panel.get_svg_preview()
+
+        if not svg_preview.has_svg():
+            InfoBar.warning(
+                title="无法导出",
+                content="请先导入 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出 SVG 文件",
+            "colored_preview.svg",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .svg
+        if not file_path.endswith('.svg'):
+            file_path += '.svg'
+
+        try:
+            # 获取应用配色后的 SVG 内容
+            svg_content = svg_preview.get_svg_content()
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+
+            InfoBar.success(
+                title="导出成功",
+                content=f"已保存到: {file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        except Exception as e:
+            InfoBar.error(
+                title="导出失败",
+                content=f"保存文件时发生错误: {str(e)}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
 
     def refresh_favorites(self):
         """刷新收藏列表（由主窗口调用）"""
