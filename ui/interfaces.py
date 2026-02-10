@@ -1549,6 +1549,7 @@ class ColorManagementInterface(QWidget):
         self.color_management_list.favorite_preview.connect(self._on_favorite_preview)
         self.color_management_list.favorite_contrast.connect(self._on_favorite_contrast)
         self.color_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
+        self.color_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
         layout.addWidget(self.color_management_list, stretch=1)
 
     def _load_favorites(self):
@@ -1745,6 +1746,52 @@ class ColorManagementInterface(QWidget):
             parent=self.window()
         )
         dialog.exec()
+
+    def _on_favorite_preview_in_panel(self, favorite_data):
+        """在配色预览面板中预览回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色方案没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 提取颜色值
+        color_values = []
+        for color_info in colors:
+            hex_value = color_info.get('hex', '')
+            if hex_value:
+                if not hex_value.startswith('#'):
+                    hex_value = '#' + hex_value
+                color_values.append(hex_value)
+
+        if not color_values:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色方案没有有效的颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 调用主窗口跳转到配色预览页面
+        window = self.window()
+        if window and hasattr(window, 'show_color_preview'):
+            window.show_color_preview(color_values)
 
     def _on_favorite_contrast(self, favorite_data):
         """收藏对比度检查回调
@@ -2293,6 +2340,106 @@ class PresetColorInterface(QWidget):
             """)
 
 
+class ColorPreviewInterface(QWidget):
+    """配色预览界面 - 预览收藏的配色方案在不同场景下的效果"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('colorPreviewInterface')
+        self._config_manager = get_config_manager()
+        self._favorites = []
+        self._current_index = 0
+        self._current_colors = []
+        self.setup_ui()
+        self._load_favorites()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        # 顶部工具栏
+        self.toolbar = PreviewToolbar(self)
+        self.toolbar.scene_changed.connect(self._on_scene_changed)
+        self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
+        layout.addWidget(self.toolbar)
+
+        # 预览区域
+        self.preview_panel = MixedPreviewPanel(self)
+        layout.addWidget(self.preview_panel, stretch=1)
+
+    def _load_favorites(self):
+        """加载收藏的配色方案"""
+        self._favorites = self._config_manager.get_favorites()
+        if self._favorites:
+            self._current_index = 0
+            self._load_current_scheme()
+        else:
+            # 没有收藏时使用默认配色
+            self._current_colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8"]
+            self._update_preview()
+
+    def _load_current_scheme(self):
+        """加载当前配色方案"""
+        if not self._favorites or self._current_index >= len(self._favorites):
+            return
+
+        favorite = self._favorites[self._current_index]
+        colors_data = favorite.get('colors', [])
+
+        # 提取颜色值
+        self._current_colors = []
+        for color_info in colors_data:
+            hex_value = color_info.get('hex', '')
+            if hex_value:
+                if not hex_value.startswith('#'):
+                    hex_value = '#' + hex_value
+                self._current_colors.append(hex_value)
+
+        if not self._current_colors:
+            self._current_colors = ["#E8E8E8"]
+
+        self._update_preview()
+
+    def _update_preview(self):
+        """更新预览显示"""
+        self.toolbar.set_colors(self._current_colors)
+        self.preview_panel.set_colors(self._current_colors)
+
+    def set_colors(self, colors: List[str]):
+        """设置要预览的配色（由外部调用）
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
+        self._current_colors = colors.copy() if colors else []
+        if not self._current_colors:
+            self._current_colors = ["#E8E8E8"]
+        self._update_preview()
+
+    def _on_scene_changed(self, scene: str):
+        """场景切换回调"""
+        # TODO: 根据场景切换不同的预览面板
+        pass
+
+    def _on_color_order_changed(self, colors: List[str]):
+        """颜色顺序变化回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def refresh_favorites(self):
+        """刷新收藏列表（由主窗口调用）"""
+        self._load_favorites()
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        pass
+
+
 # 导入需要在类定义之后导入的模块
 from qfluentwidgets import Slider
 from .preset_color_widgets import PresetColorList
+from .preview_widgets import PreviewToolbar, MixedPreviewPanel

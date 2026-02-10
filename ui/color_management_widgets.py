@@ -386,9 +386,10 @@ class ColorManagementSchemeCard(CardWidget):
 
     delete_requested = Signal(str)
     rename_requested = Signal(str, str)  # favorite_id, new_name
-    preview_requested = Signal(dict)  # favorite_data
+    preview_requested = Signal(dict)  # favorite_data (色盲模拟预览)
     contrast_requested = Signal(dict)  # favorite_data
     color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
+    preview_in_panel_requested = Signal(dict)  # favorite_data (在配色预览面板中预览)
 
     def __init__(self, favorite_data: dict, parent=None):
         self._favorite_data = favorite_data
@@ -438,15 +439,24 @@ class ColorManagementSchemeCard(CardWidget):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
+        # 在配色预览面板中预览按钮
+        self.preview_panel_button = ToolButton(FluentIcon.PALETTE)
+        self.preview_panel_button.setFixedSize(28, 28)
+        self.preview_panel_button.setToolTip("在配色预览面板中预览")
+        self.preview_panel_button.clicked.connect(self._on_preview_in_panel_clicked)
+        button_layout.addWidget(self.preview_panel_button)
+
         # 对比度检查按钮
         self.contrast_button = ToolButton(FluentIcon.ZOOM_IN)
         self.contrast_button.setFixedSize(28, 28)
+        self.contrast_button.setToolTip("对比度检查")
         self.contrast_button.clicked.connect(self._on_contrast_clicked)
         button_layout.addWidget(self.contrast_button)
 
         # 预览按钮（色盲模拟）
         self.preview_button = ToolButton(FluentIcon.VIEW)
         self.preview_button.setFixedSize(28, 28)
+        self.preview_button.setToolTip("色盲模拟预览")
         self.preview_button.clicked.connect(self._on_preview_clicked)
         button_layout.addWidget(self.preview_button)
 
@@ -569,6 +579,10 @@ class ColorManagementSchemeCard(CardWidget):
         """预览按钮点击（色盲模拟）"""
         self.preview_requested.emit(self._favorite_data)
 
+    def _on_preview_in_panel_clicked(self):
+        """在配色预览面板中预览按钮点击"""
+        self.preview_in_panel_requested.emit(self._favorite_data)
+
     def _on_contrast_clicked(self):
         """对比度检查按钮点击"""
         self.contrast_requested.emit(self._favorite_data)
@@ -601,9 +615,10 @@ class ColorManagementSchemeList(QWidget):
 
     favorite_deleted = Signal(str)
     favorite_renamed = Signal(str, str)  # favorite_id, current_name
-    favorite_preview = Signal(dict)  # favorite_data
+    favorite_preview = Signal(dict)  # favorite_data (色盲模拟预览)
     favorite_contrast = Signal(dict)  # favorite_data
     favorite_color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
+    favorite_preview_in_panel = Signal(dict)  # favorite_data (在配色预览面板中预览)
 
     def __init__(self, parent=None):
         self._favorites = []
@@ -696,6 +711,7 @@ class ColorManagementSchemeList(QWidget):
             card.preview_requested.connect(self._on_preview_requested)
             card.contrast_requested.connect(self._on_contrast_requested)
             card.color_changed.connect(self._on_color_changed)
+            card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
 
@@ -717,6 +733,14 @@ class ColorManagementSchemeList(QWidget):
             favorite_data: 收藏项数据
         """
         self.favorite_preview.emit(favorite_data)
+
+    def _on_preview_in_panel_requested(self, favorite_data):
+        """在配色预览面板中预览请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_preview_in_panel.emit(favorite_data)
 
     def _on_contrast_requested(self, favorite_data):
         """对比度检查请求处理

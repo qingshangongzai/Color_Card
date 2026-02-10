@@ -20,6 +20,7 @@
 - **智能配色方案**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择和明度调整
 - **配色方案收藏**：支持收藏和管理配色方案，可自定义名称，方便后续快速查看和使用
 - **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design、Nord、Dracula、Solarized、Gruvbox、Catppuccin、ColorBrewer、Radix Colors、Rose Pine 和 Nice Color Palettes 十二大开源配色方案，提供 13 + 22 + 19 + 16 + 11 + 2 + 2 + 4 + 35 + 31 + 3 种颜色系列 + 500 组精选配色，总计 658 组色卡，支持一键复制颜色值
+- **配色预览**：支持在多种场景下预览收藏的配色方案效果，包括插画风格、排版设计、UI组件等，支持拖拽调整颜色顺序
 - **批量导入导出**：支持将收藏的配色方案导出为JSON文件，或从文件批量导入，便于备份和分享
 - **多色彩空间支持**：同时显示 HSB、LAB、HSL、CMYK、RGB 等多种色彩模式，满足不同场景的需求
 - **专业明度分析**：将图片按明度分为9个区域，提供直方图可视化，帮助理解图片的明度分布
@@ -139,6 +140,23 @@
   - **删除管理**：支持单个删除或一键清空所有收藏
   - **批量导入导出**：支持JSON格式的导入导出，便于备份和分享配色方案
 
+#### 配色预览
+
+- **多场景预览**：支持在多种场景下预览收藏的配色方案效果
+  - **插画风格**：使用 QPainter 绘制植物风格矢量插画，展示配色在插画中的应用
+  - **排版设计**：展示配色在文字排版中的层次效果
+  - **Mixed 模式**：左侧 2x2 插画小图 + 右侧排版大图，综合展示配色效果
+  - **场景切换**：支持 Mixed、UI Design、Web、Brand、Illustration、Typography、Poster、Pattern 等多种场景（部分场景待完善）
+
+- **颜色管理**
+  - **可拖拽排序**：顶部显示当前配色的圆点，支持拖拽调整颜色顺序
+  - **实时预览**：颜色顺序调整后，预览区域实时更新
+  - **场景选择器**：下拉菜单选择不同的预览场景
+
+- **联动功能**
+  - **从色彩管理跳转**：在色彩管理页面点击"预览"按钮，自动跳转到配色预览页面并加载对应配色
+  - **实时刷新**：收藏列表更新后，配色预览页面自动同步
+
 ---
 
 ## 技术架构与设计理念
@@ -176,7 +194,7 @@ color_card/
 │   ├── colorblind.py      # 色盲模拟模块（色盲类型定义、LMS色彩空间转换、色盲模拟算法）
 │   ├── config.py          # 配置管理模块（收藏数据管理、导入导出功能）
 │   └── contrast.py        # 对比度检查模块（WCAG对比度计算、等级判断）
-├── ui/                     # UI模块目录（扁平化结构）
+├── ui/                     # UI模块目录
 │   ├── __init__.py        # 统一导出接口
 │   ├── main_window.py     # 主窗口类
 │   ├── canvases.py        # 画布模块（BaseCanvas、ImageCanvas、LuminanceCanvas）
@@ -186,8 +204,10 @@ color_card/
 │   ├── color_wheel.py     # 颜色轮模块（HSBColorWheel、InteractiveColorWheel）
 │   ├── scheme_widgets.py  # 配色方案组件模块（SchemeColorInfoCard、SchemeColorPanel）
 │   ├── color_management_widgets.py # 色彩管理组件模块（ColorManagementColorCard、ColorManagementSchemeCard、ColorManagementSchemeList）
+│   ├── preset_color_widgets.py # 内置色彩组件模块（PresetColorCard、PresetColorSchemeCard、PresetColorList）
+│   ├── preview_widgets.py # 配色预览组件模块（DraggableColorDot、ColorDotBar、IllustrationPreview、TypographyPreview、PreviewToolbar、MixedPreviewPanel）
 │   ├── zoom_viewer.py     # 缩放查看器模块
-│   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、ColorManagementInterface）
+│   ├── interfaces.py      # 界面面板模块（ColorExtractInterface、LuminanceExtractInterface、SettingsInterface、ColorSchemeInterface、ColorManagementInterface、PresetColorInterface、ColorPreviewInterface）
 │   └── theme_colors.py    # 主题颜色管理模块（统一颜色管理、主题感知颜色获取）
 ├── dialogs/               # 对话框模块目录
 │   ├── __init__.py
@@ -254,6 +274,13 @@ color_card/
   - ColorManagementSchemeCard：配色方案卡片，包含名称、颜色列表、操作按钮
   - ColorManagementSchemeList：配色方案列表容器，管理多个ColorManagementSchemeCard
   - 动态色卡数量：根据保存的颜色数量动态创建色卡
+- **DraggableColorDot / ColorDotBar / IllustrationPreview / TypographyPreview / PreviewToolbar / MixedPreviewPanel**（ui/preview_widgets.py）：配色预览组件
+  - DraggableColorDot：可拖拽的颜色圆点组件，支持拖拽排序
+  - ColorDotBar：颜色圆点工具栏，管理多个颜色圆点并处理拖拽排序逻辑
+  - IllustrationPreview：插画风格预览，使用 QPainter 绘制植物风格矢量插画
+  - TypographyPreview：排版风格预览，展示配色在文字排版中的层次效果
+  - PreviewToolbar：预览工具栏，包含颜色圆点栏和场景选择器
+  - MixedPreviewPanel：Mixed 场景预览面板，左侧 2x2 插画小图 + 右侧排版大图
 
 #### 4. 主题颜色管理模块 (ui/theme_colors.py)
 

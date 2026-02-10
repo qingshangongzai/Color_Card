@@ -10,7 +10,7 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface, PresetColorInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, ColorManagementInterface, PresetColorInterface, ColorPreviewInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel
@@ -221,6 +221,11 @@ class MainWindow(FluentWindow):
         self.preset_color_interface.setObjectName('presetColor')
         self.stackedWidget.addWidget(self.preset_color_interface)
 
+        # 配色预览界面
+        self.color_preview_interface = ColorPreviewInterface(self)
+        self.color_preview_interface.setObjectName('colorPreview')
+        self.stackedWidget.addWidget(self.color_preview_interface)
+
         # 设置界面
         self.settings_interface = SettingsInterface(self)
         self.settings_interface.setObjectName('settings')
@@ -279,6 +284,14 @@ class MainWindow(FluentWindow):
             self.preset_color_interface,
             FluentIcon.BOOK_SHELF,
             "内置色彩",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 配色预览
+        self.addSubInterface(
+            self.color_preview_interface,
+            FluentIcon.VIEW,
+            "配色预览",
             position=NavigationItemPosition.TOP
         )
 
@@ -406,6 +419,25 @@ class MainWindow(FluentWindow):
         if hasattr(self, 'color_management_interface'):
             self.color_management_interface._load_favorites()
 
+    def refresh_color_preview(self):
+        """刷新配色预览面板"""
+        if hasattr(self, 'color_preview_interface'):
+            self.color_preview_interface.refresh_favorites()
+
+    def show_color_preview(self, colors: list):
+        """跳转到配色预览页面并显示指定配色
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
+        # 设置配色到预览界面
+        if hasattr(self, 'color_preview_interface'):
+            self.color_preview_interface.set_colors(colors)
+
+        # 切换到配色预览页面
+        self.navigationInterface.setCurrentItem(self.color_preview_interface.objectName())
+        self.stackedWidget.setCurrentWidget(self.color_preview_interface)
+
     def _on_preset_color_favorite(self, favorite_data: dict):
         """处理内置色彩界面的收藏请求
 
@@ -416,8 +448,9 @@ class MainWindow(FluentWindow):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新色彩管理界面
+        # 刷新色彩管理界面和配色预览界面
         self.refresh_color_management()
+        self.refresh_color_preview()
 
     def _setup_fullscreen_shortcut(self):
         """设置 F11 快捷键切换全屏"""
