@@ -25,14 +25,11 @@ from ui.theme_colors import get_border_color, get_text_color
 class DraggableColorDot(QWidget):
     """可拖拽的颜色圆点组件"""
 
-    drag_started = Signal(int)           # 开始拖拽信号：索引
-    drag_ended = Signal(int, QPoint)     # 结束拖拽信号：索引, 结束位置
     clicked = Signal(int)                # 点击信号：索引
 
     def __init__(self, color: str, index: int, parent=None):
         self._color = color
         self._index = index
-        self._dragging = False
         self._drag_start_pos = QPoint()
         super().__init__(parent)
         self.setFixedSize(36, 36)
@@ -71,21 +68,13 @@ class DraggableColorDot(QWidget):
         rect = self.rect().adjusted(2, 2, -2, -2)
         painter.drawEllipse(rect)
 
-        # 如果是拖拽状态，绘制高亮效果
-        if self._dragging:
-            painter.setPen(QPen(QColor(255, 255, 255), 2))
-            painter.drawEllipse(rect.adjusted(2, 2, -2, -2))
-
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self._dragging = True
             self._drag_start_pos = event.pos()
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
-            self.drag_started.emit(self._index)
-            self.update()
 
     def mouseMoveEvent(self, event):
-        if not self._dragging:
+        if not (event.buttons() & Qt.MouseButton.LeftButton):
             return
 
         # 检查移动距离是否超过拖拽阈值
@@ -102,17 +91,20 @@ class DraggableColorDot(QWidget):
         pixmap = QPixmap(self.size())
         self.render(pixmap)
         drag.setPixmap(pixmap)
-        drag.setHotSpot(event.pos())
+        drag.setHotSpot(QPoint(self.width() // 2, self.height() // 2))
 
         # 执行拖拽
         drag.exec(Qt.DropAction.MoveAction)
 
+        # 拖拽结束后恢复光标
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self._dragging = False
             self.setCursor(Qt.CursorShape.OpenHandCursor)
-            self.drag_ended.emit(self._index, event.pos())
-            self.update()
+            # 检查是否是点击（没有发生拖拽）
+            if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
+                self.clicked.emit(self._index)
 
     def mouseDoubleClickEvent(self, event):
         self.clicked.emit(self._index)
@@ -127,7 +119,7 @@ class ColorDotBar(QWidget):
     def __init__(self, parent=None):
         self._colors: List[str] = []
         self._dots: List[DraggableColorDot] = []
-        self._dragging_index = -1
+        self._insert_indicator_pos = -1    # 插入指示器位置（-1表示不显示）
         super().__init__(parent)
         self.setup_ui()
         self.setAcceptDrops(True)
@@ -156,65 +148,158 @@ class ColorDotBar(QWidget):
         # 创建新圆点
         for i, color in enumerate(self._colors):
             dot = DraggableColorDot(color, i)
-            dot.drag_started.connect(self._on_drag_started)
-            dot.drag_ended.connect(self._on_drag_ended)
             dot.clicked.connect(self._on_dot_clicked)
             self._dots.append(dot)
             layout.insertWidget(layout.count() - 1, dot)
-
-    def _on_drag_started(self, index: int):
-        """处理拖拽开始"""
-        self._dragging_index = index
-
-    def _on_drag_ended(self, index: int, end_pos: QPoint):
-        """处理拖拽结束"""
-        if self._dragging_index < 0:
-            return
-
-        # 计算新位置
-        new_index = self._calculate_new_index(end_pos)
-
-        if new_index != self._dragging_index and new_index >= 0:
-            # 移动颜色
-            color = self._colors.pop(self._dragging_index)
-            self._colors.insert(new_index, color)
-            # 重建圆点
-            self._rebuild_dots()
-            # 发射信号
-            self.order_changed.emit(self._colors.copy())
-
-        self._dragging_index = -1
-
-    def _calculate_new_index(self, pos: QPoint) -> int:
-        """计算拖拽位置对应的新索引"""
-        layout = self.layout()
-        for i in range(layout.count() - 1):  # 排除最后的 stretch
-            item = layout.itemAt(i)
-            if item and item.widget():
-                widget = item.widget()
-                widget_rect = widget.geometry()
-                # 检查位置是否在该 widget 的区域内
-                if widget_rect.left() <= pos.x() <= widget_rect.right():
-                    # 如果在左半边，插入到当前位置；右半边，插入到下一个位置
-                    mid = widget_rect.center().x()
-                    if pos.x() < mid:
-                        return i
-                    else:
-                        return min(i + 1, len(self._dots) - 1)
-        return len(self._dots) - 1
 
     def _on_dot_clicked(self, index: int):
         """处理圆点点击"""
         self.color_clicked.emit(index)
 
+    def paintEvent(self, event):
+        """绘制插入指示器"""
+        super().paintEvent(event)
+
+        if self._insert_indicator_pos >= 0 and self._dots:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+            # 计算指示线位置
+            if self._insert_indicator_pos < len(self._dots):
+                target_widget = self._dots[self._insert_indicator_pos]
+                x = target_widget.geometry().left() - 4
+            else:
+                target_widget = self._dots[-1]
+                x = target_widget.geometry().right() + 4
+
+            x = max(10, min(x, self.width() - 10))
+
+            # 定义颜色和尺寸
+            indicator_color = QColor(0, 120, 215) if not isDarkTheme() else QColor(0, 150, 255)
+            dot_radius = 4
+            line_width = 2
+            y_center = self.height() // 2
+
+            # 绘制发光效果（外圈）
+            glow_color = QColor(indicator_color)
+            glow_color.setAlpha(60)
+            painter.setBrush(QBrush(glow_color))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawEllipse(QPoint(x, y_center), dot_radius + 3, dot_radius + 3)
+
+            # 绘制中心圆点
+            painter.setBrush(QBrush(indicator_color))
+            painter.drawEllipse(QPoint(x, y_center), dot_radius, dot_radius)
+
+            # 绘制上下延伸的细线
+            painter.setPen(QPen(indicator_color, line_width))
+            line_length = (self.height() - 20) // 2 - dot_radius - 2
+            if line_length > 0:
+                painter.drawLine(x, y_center - dot_radius - 2, x, y_center - dot_radius - 2 - line_length)
+                painter.drawLine(x, y_center + dot_radius + 2, x, y_center + dot_radius + 2 + line_length)
+
     def dragEnterEvent(self, event):
         """接受拖拽进入"""
         if event.mimeData().hasText():
             event.acceptProposedAction()
+            self._insert_indicator_pos = -1
+            self.update()
+
+    def dragMoveEvent(self, event):
+        """处理拖拽移动，更新插入指示器位置"""
+        if not event.mimeData().hasText():
+            return
+
+        event.acceptProposedAction()
+
+        # 计算插入位置
+        drop_pos = event.position().toPoint()
+        target_index = self._calculate_insert_index(drop_pos)
+
+        # 更新指示器位置
+        if target_index != self._insert_indicator_pos:
+            self._insert_indicator_pos = target_index
+            self.update()
+
+    def dragLeaveEvent(self, event):
+        """拖拽离开，隐藏指示器"""
+        self._insert_indicator_pos = -1
+        self.update()
 
     def dropEvent(self, event):
-        """处理放置"""
+        """处理放置，完成排序"""
         event.acceptProposedAction()
+
+        # 隐藏指示器
+        self._insert_indicator_pos = -1
+        self.update()
+
+        # 获取拖拽的源索引
+        mime_data = event.mimeData()
+        if not mime_data.hasText():
+            return
+
+        try:
+            source_index = int(mime_data.text())
+        except ValueError:
+            return
+
+        # 计算放置的目标位置
+        drop_pos = event.position().toPoint()
+        target_index = self._calculate_insert_index(drop_pos)
+
+        print(f"拖拽排序: 源索引={source_index}, 目标索引={target_index}, 颜色数={len(self._colors)}")
+
+        # 执行排序
+        if target_index != source_index and 0 <= target_index <= len(self._colors):
+            # 移动颜色
+            color = self._colors.pop(source_index)
+
+            # 调整目标索引（如果源在目标之前，pop后索引会变化）
+            if source_index < target_index:
+                target_index -= 1
+
+            self._colors.insert(target_index, color)
+            print(f"排序完成: 新顺序索引={target_index}")
+
+            # 重建圆点
+            self._rebuild_dots()
+            # 发射信号
+            self.order_changed.emit(self._colors.copy())
+
+    def _calculate_insert_index(self, pos: QPoint) -> int:
+        """计算插入位置索引
+
+        Args:
+            pos: 放置位置（相对于 ColorDotBar 的局部坐标）
+
+        Returns:
+            int: 插入位置索引（0 到 len(self._dots)）
+        """
+        if not self._dots:
+            return 0
+
+        # 获取布局的边距
+        layout = self.layout()
+        left_margin = layout.contentsMargins().left()
+        spacing = layout.spacing()
+
+        # 计算每个圆点的中心位置
+        dot_width = self._dots[0].width()
+
+        # 遍历所有圆点，找到最近的插入位置
+        for i, dot in enumerate(self._dots):
+            dot_rect = dot.geometry()
+            dot_left = dot_rect.left()
+            dot_right = dot_rect.right()
+            dot_center = dot_rect.center().x()
+
+            # 如果位置在当前圆点的左半部分，插入到当前位置
+            if pos.x() < dot_center:
+                return i
+
+        # 如果位置在所有圆点右侧，插入到最后
+        return len(self._dots)
 
 
 class IllustrationPreview(QWidget):
