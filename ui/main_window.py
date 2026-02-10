@@ -250,7 +250,7 @@ class MainWindow(FluentWindow):
         # 色彩提取
         self.addSubInterface(
             self.color_extract_interface,
-            FluentIcon.PALETTE,
+            FluentIcon.PHOTO,
             "色彩提取",
             position=NavigationItemPosition.TOP
         )

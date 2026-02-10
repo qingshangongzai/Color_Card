@@ -90,6 +90,7 @@ class PaletteManagementColorCard(QWidget):
         self.hex_input.setMaxLength(7)  # #RRGGBB 格式
         self.hex_input.setPlaceholderText("#RRGGBB")
         self.hex_input.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 文本居中
+        self.hex_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)  # 禁用右键菜单
         self._update_hex_input_style()
         self.hex_input.textChanged.connect(self._on_hex_text_changed)
         self.hex_input.editingFinished.connect(self._on_hex_editing_finished)
@@ -440,23 +441,20 @@ class PaletteManagementCard(CardWidget):
         button_layout.addStretch()
 
         # 在配色预览面板中预览按钮
-        self.preview_panel_button = ToolButton(FluentIcon.PALETTE)
+        self.preview_panel_button = ToolButton(FluentIcon.VIEW)
         self.preview_panel_button.setFixedSize(28, 28)
-        self.preview_panel_button.setToolTip("在配色预览面板中预览")
         self.preview_panel_button.clicked.connect(self._on_preview_in_panel_clicked)
         button_layout.addWidget(self.preview_panel_button)
 
         # 对比度检查按钮
         self.contrast_button = ToolButton(FluentIcon.ZOOM_IN)
         self.contrast_button.setFixedSize(28, 28)
-        self.contrast_button.setToolTip("对比度检查")
         self.contrast_button.clicked.connect(self._on_contrast_clicked)
         button_layout.addWidget(self.contrast_button)
 
         # 预览按钮（色盲模拟）
-        self.preview_button = ToolButton(FluentIcon.VIEW)
+        self.preview_button = ToolButton(FluentIcon.BRIGHTNESS)
         self.preview_button.setFixedSize(28, 28)
-        self.preview_button.setToolTip("色盲模拟预览")
         self.preview_button.clicked.connect(self._on_preview_clicked)
         button_layout.addWidget(self.preview_button)
 
