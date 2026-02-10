@@ -185,6 +185,20 @@ class ColorExtractInterface(QWidget):
         self.extract_dominant_button.clicked.connect(self._on_extract_dominant_clicked)
         favorite_toolbar_layout.addWidget(self.extract_dominant_button)
 
+        # 高饱和度区域显示按钮
+        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, "显示高饱和区域", self)
+        self.high_saturation_button.setFixedHeight(32)
+        self.high_saturation_button.pressed.connect(self._on_high_saturation_pressed)
+        self.high_saturation_button.released.connect(self._on_high_saturation_released)
+        favorite_toolbar_layout.addWidget(self.high_saturation_button)
+
+        # 高明度区域显示按钮
+        self.high_brightness_button = PushButton(FluentIcon.VIEW, "显示高明度区域", self)
+        self.high_brightness_button.setFixedHeight(32)
+        self.high_brightness_button.pressed.connect(self._on_high_brightness_pressed)
+        self.high_brightness_button.released.connect(self._on_high_brightness_released)
+        favorite_toolbar_layout.addWidget(self.high_brightness_button)
+
         favorite_toolbar_layout.addStretch()
 
         main_splitter.addWidget(favorite_toolbar)
@@ -425,6 +439,72 @@ class ColorExtractInterface(QWidget):
             self._extractor.deleteLater()
             self._extractor = None
 
+    def _on_high_saturation_pressed(self):
+        """高饱和度区域按钮按下回调"""
+        # 检查是否有图片
+        image = self.image_canvas.get_image()
+        if not image or image.isNull():
+            # 如果没有图片，显示提示
+            InfoBar.warning(
+                title="无法显示",
+                content="请先导入图片",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示高饱和度区域
+        self.image_canvas.toggle_high_saturation_highlight(True)
+
+    def _on_high_saturation_released(self):
+        """高饱和度区域按钮释放回调"""
+        # 隐藏高饱和度区域
+        self.image_canvas.toggle_high_saturation_highlight(False)
+
+    def _on_high_brightness_pressed(self):
+        """高明度区域按钮按下回调"""
+        # 检查是否有图片
+        image = self.image_canvas.get_image()
+        if not image or image.isNull():
+            # 如果没有图片，显示提示
+            InfoBar.warning(
+                title="无法显示",
+                content="请先导入图片",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示高明度区域
+        self.image_canvas.toggle_high_brightness_highlight(True)
+
+    def _on_high_brightness_released(self):
+        """高明度区域按钮释放回调"""
+        # 隐藏高明度区域
+        self.image_canvas.toggle_high_brightness_highlight(False)
+
+    def set_saturation_threshold(self, value: int):
+        """设置饱和度阈值
+
+        Args:
+            value: 阈值百分比 (0-100)
+        """
+        self.image_canvas.set_saturation_threshold(value)
+
+    def set_brightness_threshold(self, value: int):
+        """设置明度阈值
+
+        Args:
+            value: 阈值百分比 (0-100)
+        """
+        self.image_canvas.set_brightness_threshold(value)
+
 
 class LuminanceExtractInterface(QWidget):
     """明度提取界面"""
@@ -624,6 +704,10 @@ class SettingsInterface(QWidget):
     color_wheel_mode_changed = Signal(str)
     # 信号：直方图模式改变
     histogram_mode_changed = Signal(str)
+    # 信号：饱和度阈值改变
+    saturation_threshold_changed = Signal(int)
+    # 信号：明度阈值改变
+    brightness_threshold_changed = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -636,6 +720,8 @@ class SettingsInterface(QWidget):
         self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
         self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
+        self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
+        self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
         self.setup_ui()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -718,6 +804,31 @@ class SettingsInterface(QWidget):
         self.histogram_group.addSettingCard(self.histogram_mode_card)
 
         layout.addWidget(self.histogram_group)
+
+        # 区域高亮设置分组
+        self.highlight_group = SettingCardGroup("区域高亮设置", self.content_widget)
+
+        # 高饱和度阈值卡片
+        self.saturation_threshold_card = self._create_threshold_card(
+            FluentIcon.BRIGHTNESS,
+            "高饱和度阈值",
+            "设置高饱和度区域的饱和度阈值",
+            self._saturation_threshold,
+            self._on_saturation_threshold_changed
+        )
+        self.highlight_group.addSettingCard(self.saturation_threshold_card)
+
+        # 高明度阈值卡片
+        self.brightness_threshold_card = self._create_threshold_card(
+            FluentIcon.VIEW,
+            "高明度阈值",
+            "设置高明度区域的明度阈值",
+            self._brightness_threshold,
+            self._on_brightness_threshold_changed
+        )
+        self.highlight_group.addSettingCard(self.brightness_threshold_card)
+
+        layout.addWidget(self.highlight_group)
 
         # 配色方案设置分组
         self.color_scheme_group = SettingCardGroup("配色方案设置", self.content_widget)
@@ -804,6 +915,36 @@ class SettingsInterface(QWidget):
         combo_box.setCurrentText(str(initial_value))
         combo_box.setFixedWidth(80)
         combo_box.currentTextChanged.connect(lambda text: callback(int(text)))
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _create_threshold_card(self, icon, title, content, initial_value, callback):
+        """创建阈值选择卡片（粗略档位：60%, 70%, 80%）"""
+        card = PushSettingCard("", icon, title, content, self.content_widget)
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        # 添加粗略档位选项
+        combo_box.addItem("60%")
+        combo_box.addItem("70%")
+        combo_box.addItem("80%")
+        # 设置默认值
+        if initial_value == 60:
+            combo_box.setCurrentIndex(0)
+        elif initial_value == 80:
+            combo_box.setCurrentIndex(2)
+        else:
+            combo_box.setCurrentIndex(1)  # 默认70%
+        combo_box.setFixedWidth(80)
+        combo_box.currentTextChanged.connect(lambda text: callback(int(text.replace('%', ''))))
 
         # 将ComboBox添加到卡片布局
         card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
@@ -1082,6 +1223,20 @@ class SettingsInterface(QWidget):
         """显示关于对话框"""
         dialog = AboutDialog(self)
         dialog.exec()
+
+    def _on_saturation_threshold_changed(self, value):
+        """饱和度阈值改变"""
+        self._saturation_threshold = value
+        self._config_manager.set('settings.saturation_threshold', value)
+        self._config_manager.save()
+        self.saturation_threshold_changed.emit(value)
+
+    def _on_brightness_threshold_changed(self, value):
+        """明度阈值改变"""
+        self._brightness_threshold = value
+        self._config_manager.set('settings.brightness_threshold', value)
+        self._config_manager.save()
+        self.brightness_threshold_changed.emit(value)
 
     def _update_styles(self):
         """更新样式以适配主题"""

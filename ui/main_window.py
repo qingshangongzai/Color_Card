@@ -514,6 +514,16 @@ class MainWindow(FluentWindow):
             self._on_histogram_mode_changed
         )
 
+        # 连接饱和度阈值改变信号到色彩提取界面
+        self.settings_interface.saturation_threshold_changed.connect(
+            self._on_saturation_threshold_changed
+        )
+
+        # 连接明度阈值改变信号到色彩提取界面
+        self.settings_interface.brightness_threshold_changed.connect(
+            self._on_brightness_threshold_changed
+        )
+
         # 连接16进制显示开关信号到配色管理界面
         self.settings_interface.hex_display_changed.connect(
             lambda visible: self.palette_management_interface.update_display_settings(hex_visible=visible)
@@ -573,6 +583,13 @@ class MainWindow(FluentWindow):
         histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self.color_extract_interface.set_histogram_mode(histogram_mode)
 
+        # 应用加载的阈值配置
+        saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
+        self.color_extract_interface.set_saturation_threshold(saturation_threshold)
+
+        brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
+        self.color_extract_interface.set_brightness_threshold(brightness_threshold)
+
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
         # 先更新色卡数量，确保新色卡已创建
@@ -600,3 +617,11 @@ class MainWindow(FluentWindow):
     def _on_histogram_mode_changed(self, mode):
         """直方图显示模式改变"""
         self.color_extract_interface.set_histogram_mode(mode)
+
+    def _on_saturation_threshold_changed(self, value):
+        """饱和度阈值改变"""
+        self.color_extract_interface.set_saturation_threshold(value)
+
+    def _on_brightness_threshold_changed(self, value):
+        """明度阈值改变"""
+        self.color_extract_interface.set_brightness_threshold(value)

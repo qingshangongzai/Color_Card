@@ -255,3 +255,24 @@ def get_zone_text_color():
 def get_favorite_icon_color():
     """获取收藏界面图标颜色"""
     return QColor(153, 153, 153)
+
+
+# ========== 高饱和度区域高亮颜色 ==========
+def get_high_saturation_highlight_color():
+    """获取高饱和度区域高亮颜色 - 半透明品红色"""
+    return QColor(255, 0, 128, 80)
+
+
+def get_high_saturation_border_color():
+    """获取高饱和度区域边框颜色"""
+    return QColor(255, 0, 128, 150)
+
+
+def get_high_brightness_highlight_color():
+    """获取高明度区域高亮颜色 - 半透明青色"""
+    return QColor(0, 200, 255, 80)
+
+
+def get_high_brightness_border_color():
+    """获取高明度区域边框颜色"""
+    return QColor(0, 200, 255, 150)
