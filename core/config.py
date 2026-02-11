@@ -50,7 +50,8 @@ class ConfigManager:
                 "luminance_sample_count": 5,
                 "histogram_scaling_mode": "adaptive",
                 "color_wheel_mode": "RGB",
-                "theme": "auto"
+                "theme": "auto",
+                "svg_mapping_mode": "intelligent"
             },
             "scheme": {
                 "default_scheme": "monochromatic",

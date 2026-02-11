@@ -324,12 +324,12 @@ class SVGColorMapper:
             # 计算面积（简化版）
             area = self._calculate_element_area(elem)
 
-            # 创建元素信息
+            # 创建元素信息 - 修复：只有当确实有颜色时才记录，不使用默认值
             elem_info = SVGElementInfo(
                 element_id=elem_id,
                 tag=tag,
                 element_class=elem.get('class'),
-                fill_color=fill if has_explicit_fill else ("#000000" if tag in colorable_tags else None),
+                fill_color=fill if has_explicit_fill else None,
                 stroke_color=stroke if has_explicit_stroke else None,
                 area=area,
                 attributes=dict(elem.attrib)
@@ -436,64 +436,69 @@ class SVGColorMapper:
         self._modified_content = self._element_tree_to_string(root)
         return self._modified_content
 
-    def apply_sequential_mapping(self, colors: List[str]) -> str:
-        """按顺序应用配色（兼容旧版行为）
-
-        Args:
-            colors: 颜色列表
+    def _get_svg_canvas_size(self) -> Tuple[float, float]:
+        """获取 SVG 画布大小
 
         Returns:
-            str: 修改后的 SVG 内容
+            (width, height): 画布宽度和高度
         """
-        if not self._original_content or not colors:
-            return self._original_content
+        try:
+            root = ET.fromstring(self._original_content)
+            # 获取 viewBox
+            viewbox = root.get('viewBox', '')
+            if viewbox:
+                parts = viewbox.split()
+                if len(parts) >= 4:
+                    width = float(parts[2])
+                    height = float(parts[3])
+                    return (width, height)
 
-        content = self._original_content
-        color_index = 0
+            # 如果没有 viewBox，尝试 width 和 height 属性
+            width = root.get('width', '0')
+            height = root.get('height', '0')
 
-        # 替换 fill 属性
-        def replace_fill(match):
-            nonlocal color_index
-            attr = match.group(1)
-            value = match.group(2)
+            # 移除可能的单位（如 px）
+            width = re.sub(r'[^\d.]', '', width)
+            height = re.sub(r'[^\d.]', '', height)
 
-            if value.lower() in ('none', 'transparent', 'inherit'):
-                return match.group(0)
+            return (float(width), float(height))
+        except Exception:
+            return (0.0, 0.0)
 
-            new_color = colors[color_index % len(colors)]
-            color_index += 1
-            return f'{attr}="{new_color}"'
+    def _has_background_element(self) -> bool:
+        """检测 SVG 是否有背景元素
 
-        content = re.sub(r'(fill)="([^"]*)"', replace_fill, content)
+        判断标准：是否有 fill 元素面积超过画布面积的 50%
 
-        # 重置索引用于 stroke
-        color_index = 0
+        Returns:
+            是否有背景元素
+        """
+        canvas_width, canvas_height = self._get_svg_canvas_size()
+        if canvas_width <= 0 or canvas_height <= 0:
+            return False
 
-        def replace_stroke(match):
-            nonlocal color_index
-            attr = match.group(1)
-            value = match.group(2)
+        canvas_area = canvas_width * canvas_height
+        if canvas_area <= 0:
+            return False
 
-            if value.lower() in ('none', 'transparent', 'inherit'):
-                return match.group(0)
+        # 检查每个 fill 元素的面积
+        for elem_info in self._elements:
+            if elem_info.fill_color and elem_info.area > canvas_area * 0.5:
+                print(f"检测到背景元素: {elem_info.element_id}, 面积: {elem_info.area}, 画布面积: {canvas_area}")
+                return True
 
-            new_color = colors[color_index % len(colors)]
-            color_index += 1
-            return f'{attr}="{new_color}"'
-
-        content = re.sub(r'(stroke)="([^"]*)"', replace_stroke, content)
-
-        self._modified_content = content
-        return content
+        return False
 
     def apply_intelligent_mapping(self, colors: List[str]) -> str:
         """智能映射配色
 
         策略：
-        1. 识别 SVG 中使用的所有原始颜色
-        2. 按面积排序原始颜色（面积最大的作为背景）
-        3. 将新配色按顺序映射到原始颜色
-        4. 应用映射到所有元素
+        1. 分别收集 fill 和 stroke 的原始颜色
+        2. 检测 SVG 是否有背景元素
+        3. 如果有背景：背景映射到新配色[0]，主体元素映射到新配色[1..n]
+        4. 如果没有背景（透明）：所有元素映射到新配色[1..n]
+        5. stroke 颜色保持原色（不替换）
+        6. 应用映射到所有元素
 
         Args:
             colors: 颜色列表
@@ -504,31 +509,105 @@ class SVGColorMapper:
         if not colors or not self._original_content:
             return self._original_content
 
-        # 1. 收集所有原始颜色及其面积
-        color_areas: Dict[str, float] = {}
-        for elem_info in self._elements:
-            if elem_info.fill_color:
-                color_areas[elem_info.fill_color] = color_areas.get(elem_info.fill_color, 0) + elem_info.area
+        # 1. 分别收集 fill 和 stroke 颜色及其面积
+        fill_color_areas: Dict[str, float] = {}
+        stroke_color_areas: Dict[str, float] = {}
 
-        # 2. 按面积排序（从大到小）
-        sorted_original_colors = sorted(color_areas.keys(), key=lambda c: color_areas[c], reverse=True)
-        
-        print(f"原始颜色（按面积排序）: {sorted_original_colors}")
+        for elem_info in self._elements:
+            # 收集 fill 颜色
+            if elem_info.fill_color:
+                normalized_color = self._normalize_color(elem_info.fill_color)
+                if normalized_color:
+                    fill_color_areas[normalized_color] = fill_color_areas.get(normalized_color, 0) + elem_info.area
+            # 收集 stroke 颜色
+            if elem_info.stroke_color:
+                normalized_color = self._normalize_color(elem_info.stroke_color)
+                if normalized_color:
+                    stroke_color_areas[normalized_color] = stroke_color_areas.get(normalized_color, 0) + elem_info.area
+
+        if not fill_color_areas and not stroke_color_areas:
+            print("未找到任何可替换的颜色")
+            return self._original_content
+
+        # 2. 检测是否有背景元素
+        has_background = self._has_background_element()
+        print(f"SVG 是否有背景元素: {has_background}")
+
+        # 3. 创建 fill 颜色映射表
+        fill_color_map: Dict[str, str] = {}
+
+        # 按面积排序 fill 颜色
+        sorted_fill_colors = sorted(fill_color_areas.keys(), key=lambda c: fill_color_areas[c], reverse=True)
+
+        print(f"原始 fill 颜色（按面积排序）: {sorted_fill_colors}")
         print(f"新配色: {colors}")
 
-        # 3. 创建颜色映射表（原始颜色 -> 新颜色）
-        color_map: Dict[str, str] = {}
-        for i, orig_color in enumerate(sorted_original_colors):
-            if i < len(colors):
-                color_map[orig_color] = colors[i]
+        if len(sorted_fill_colors) > 0 and len(colors) > 0:
+            if has_background and len(colors) > 1:
+                # 有背景元素：背景映射到新配色[0]，其他映射到新配色[1..n]
+                background_color = sorted_fill_colors[0]
+                fill_color_map[background_color] = colors[0]
+                print(f"背景色 {background_color} -> {colors[0]}")
+
+                # 其他颜色是主体色，映射到新配色[1..n]
+                other_colors = sorted_fill_colors[1:]
+                for i, orig_color in enumerate(other_colors):
+                    # 使用新配色[1..n]，如果不够则循环使用
+                    color_index = (i % (len(colors) - 1)) + 1
+                    fill_color_map[orig_color] = colors[color_index]
+                    print(f"主体色 {orig_color} -> {colors[color_index]}")
             else:
-                # 如果新配色不够，循环使用
-                color_map[orig_color] = colors[i % len(colors)]
+                # 无背景元素（透明背景）：所有元素映射到新配色[1..n]
+                # 如果只有一个颜色，则所有元素都映射到该颜色
+                start_index = 1 if len(colors) > 1 else 0
+                for i, orig_color in enumerate(sorted_fill_colors):
+                    if len(colors) > 1:
+                        color_index = (i % (len(colors) - 1)) + 1
+                    else:
+                        color_index = 0
+                    fill_color_map[orig_color] = colors[color_index]
+                    print(f"元素色 {orig_color} -> {colors[color_index]}")
 
-        print(f"颜色映射: {color_map}")
+        # 4. 创建 stroke 颜色映射表（保持原色，不替换）
+        stroke_color_map: Dict[str, str] = {}
+        # stroke 颜色保持原色，不参与映射
 
-        # 4. 应用映射
+        print(f"fill 颜色映射: {fill_color_map}")
+        print(f"stroke 颜色保持原色: {list(stroke_color_areas.keys())}")
+
+        # 5. 合并映射表并应用
+        color_map = {**fill_color_map, **stroke_color_map}
         return self._apply_color_map(color_map)
+
+    def _normalize_color(self, color: str) -> Optional[str]:
+        """标准化颜色值
+
+        Args:
+            color: 原始颜色值
+
+        Returns:
+            标准化后的颜色值，如果不是有效颜色则返回 None
+        """
+        if not color:
+            return None
+
+        color = color.strip().lower()
+
+        # 跳过特殊值
+        if color in ('none', 'transparent', 'inherit', 'currentcolor'):
+            return None
+
+        # 标准化十六进制颜色
+        if color.startswith('#'):
+            # 确保格式统一（小写）
+            return color
+
+        # 处理 rgb() 格式
+        if color.startswith('rgb'):
+            return color
+
+        # 处理颜色名称（如 "black", "white" 等）
+        return color
 
     def _apply_color_map(self, color_map: Dict[str, str]) -> str:
         """应用颜色映射表
@@ -545,25 +624,133 @@ class SVGColorMapper:
         # 解析 XML
         root = ET.fromstring(self._original_content)
 
-        # 应用映射
+        # 创建大小写不敏感的颜色映射查找表
+        # color_map 的键已经是小写的（由 _normalize_color 处理）
+        # 但 elem_info 中的颜色可能是原始大小写
+        color_map_lower = {k.lower(): v for k, v in color_map.items()}
+
+        # 应用映射到元素
+        mapped_count = 0
         for elem_info in self._elements:
             elem = self._find_element_by_id(root, elem_info.element_id)
             if elem is None:
                 continue
 
             # 应用 fill 颜色映射
-            if elem_info.fill_color and elem_info.fill_color in color_map:
-                new_color = color_map[elem_info.fill_color]
-                elem.set('fill', new_color)
+            if elem_info.fill_color:
+                fill_lower = elem_info.fill_color.lower()
+                if fill_lower in color_map_lower:
+                    new_color = color_map_lower[fill_lower]
+                    # 检查颜色是否来自 style 属性
+                    style_attr = elem.get('style', '')
+                    if style_attr and self._color_in_style(style_attr, elem_info.fill_color):
+                        # 替换 style 属性中的颜色
+                        new_style = self._replace_color_in_style(style_attr, elem_info.fill_color, new_color)
+                        elem.set('style', new_style)
+                    else:
+                        # 设置 fill 属性
+                        elem.set('fill', new_color)
+                    mapped_count += 1
 
             # 应用 stroke 颜色映射
-            if elem_info.stroke_color and elem_info.stroke_color in color_map:
-                new_color = color_map[elem_info.stroke_color]
-                elem.set('stroke', new_color)
+            if elem_info.stroke_color:
+                stroke_lower = elem_info.stroke_color.lower()
+                if stroke_lower in color_map_lower:
+                    new_color = color_map_lower[stroke_lower]
+                    # 检查颜色是否来自 style 属性
+                    style_attr = elem.get('style', '')
+                    if style_attr and self._color_in_style(style_attr, elem_info.stroke_color):
+                        # 替换 style 属性中的颜色
+                        new_style = self._replace_color_in_style(style_attr, elem_info.stroke_color, new_color)
+                        elem.set('style', new_style)
+                    else:
+                        # 设置 stroke 属性
+                        elem.set('stroke', new_color)
+                    mapped_count += 1
+
+        # 同时修改 CSS 样式定义（如果存在）
+        self._update_css_styles(root, color_map)
 
         # 转换回字符串
         self._modified_content = self._element_tree_to_string(root)
+        print(f"成功映射 {mapped_count} 个元素的颜色")
         return self._modified_content
+
+    def _color_in_style(self, style_attr: str, color: str) -> bool:
+        """检查颜色是否存在于 style 属性中
+
+        Args:
+            style_attr: style 属性值
+            color: 颜色值
+
+        Returns:
+            是否存在
+        """
+        import re
+        color_lower = color.lower()
+        # 匹配 fill:color 或 stroke:color (可能有空格)
+        pattern = rf'(fill|stroke)\s*:\s*({re.escape(color_lower)}|{re.escape(color)})'
+        return bool(re.search(pattern, style_attr, re.IGNORECASE))
+
+    def _replace_color_in_style(self, style_attr: str, old_color: str, new_color: str) -> str:
+        """替换 style 属性中的颜色值
+
+        Args:
+            style_attr: 原始 style 属性值
+            old_color: 旧颜色
+            new_color: 新颜色
+
+        Returns:
+            替换后的 style 属性值
+        """
+        import re
+
+        result = style_attr
+        old_color_lower = old_color.lower()
+
+        # 使用正则表达式匹配 fill 和 stroke 属性
+        # 匹配模式: fill:#color 或 fill: #color (可能有空格)
+        fill_pattern = rf'(fill\s*:\s*)({re.escape(old_color_lower)}|{re.escape(old_color)})'
+        stroke_pattern = rf'(stroke\s*:\s*)({re.escape(old_color_lower)}|{re.escape(old_color)})'
+
+        # 替换 fill 颜色
+        result = re.sub(fill_pattern, rf'\g<1>{new_color}', result, flags=re.IGNORECASE)
+
+        # 替换 stroke 颜色
+        result = re.sub(stroke_pattern, rf'\g<1>{new_color}', result, flags=re.IGNORECASE)
+
+        return result
+
+    def _update_css_styles(self, root: ET.Element, color_map: Dict[str, str]):
+        """更新 CSS 样式定义中的颜色
+
+        Args:
+            root: SVG 根元素
+            color_map: 颜色映射表
+        """
+        for style_elem in root.iter():
+            tag = style_elem.tag.split('}')[-1] if '}' in style_elem.tag else style_elem.tag
+            if tag == 'style' and style_elem.text:
+                css_text = style_elem.text
+                modified_css = css_text
+
+                # 替换 CSS 中的颜色值
+                for old_color, new_color in color_map.items():
+                    # 匹配 fill:color 和 stroke:color 模式
+                    patterns = [
+                        (rf'(fill:\s*)({re.escape(old_color)})', rf'\1{new_color}'),
+                        (rf'(stroke:\s*)({re.escape(old_color)})', rf'\1{new_color}'),
+                        # 也匹配没有空格的版本
+                        (rf'(fill:)({re.escape(old_color)})', rf'\1{new_color}'),
+                        (rf'(stroke:)({re.escape(old_color)})', rf'\1{new_color}'),
+                    ]
+
+                    for pattern, replacement in patterns:
+                        modified_css = re.sub(pattern, replacement, modified_css, flags=re.IGNORECASE)
+
+                if modified_css != css_text:
+                    style_elem.text = modified_css
+                    print(f"已更新 CSS 样式中的颜色映射")
 
     def set_element_color(self, element_id: str, color: str, color_type: str = 'fill') -> bool:
         """设置单个元素的颜色
