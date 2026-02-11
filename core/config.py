@@ -410,7 +410,7 @@ class SceneConfigManager:
         self._user_scenes_dir: Path = self._scenes_dir / self.USER_SCENES_DIR_NAME
         self._builtin_scenes: List[Dict[str, Any]] = []
         self._user_scenes: List[Dict[str, Any]] = []
-        self._load_all_scenes()
+        self._loaded: bool = False  # 延迟加载标志
 
     def _get_scenes_dir(self) -> Path:
         """获取场景配置目录路径
@@ -426,6 +426,12 @@ class SceneConfigManager:
     def _ensure_user_scenes_dir(self) -> None:
         """确保用户场景目录存在"""
         self._user_scenes_dir.mkdir(parents=True, exist_ok=True)
+
+    def _ensure_loaded(self) -> None:
+        """确保场景数据已加载（延迟加载）"""
+        if not self._loaded:
+            self._load_all_scenes()
+            self._loaded = True
 
     def _load_all_scenes(self) -> None:
         """加载所有场景配置（内置 + 用户自定义）"""
@@ -492,6 +498,7 @@ class SceneConfigManager:
         Returns:
             List[Dict[str, Any]]: 所有场景配置列表
         """
+        self._ensure_loaded()
         # 合并内置场景和用户场景
         all_scenes = self._builtin_scenes.copy()
 
@@ -511,6 +518,7 @@ class SceneConfigManager:
         Returns:
             List[Dict[str, Any]]: 内置场景配置列表
         """
+        self._ensure_loaded()
         return self._builtin_scenes.copy()
 
     def get_user_scenes(self) -> List[Dict[str, Any]]:
@@ -519,6 +527,7 @@ class SceneConfigManager:
         Returns:
             List[Dict[str, Any]]: 用户场景配置列表
         """
+        self._ensure_loaded()
         return self._user_scenes.copy()
 
     def get_scene_by_id(self, scene_id: str) -> Optional[Dict[str, Any]]:
@@ -530,6 +539,7 @@ class SceneConfigManager:
         Returns:
             Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
         """
+        self._ensure_loaded()
         # 先在内置场景中查找
         for scene in self._builtin_scenes:
             if scene["id"] == scene_id:
@@ -551,6 +561,7 @@ class SceneConfigManager:
         Returns:
             Tuple[bool, str]: (是否成功, 错误信息或成功消息)
         """
+        self._ensure_loaded()
         try:
             source_path = Path(file_path)
             if not source_path.exists():
@@ -641,6 +652,7 @@ class SceneConfigManager:
         Returns:
             Tuple[bool, str]: (是否成功, 错误信息或成功消息)
         """
+        self._ensure_loaded()
         # 验证配置格式
         if not self._validate_scene_config(scene_config):
             return False, "场景配置格式无效，必须包含 id, name, type 字段"
@@ -685,6 +697,7 @@ class SceneConfigManager:
         Returns:
             bool: 是否删除成功
         """
+        self._ensure_loaded()
         # 检查是否为内置场景
         for builtin_scene in self._builtin_scenes:
             if builtin_scene["id"] == scene_id:
@@ -708,6 +721,7 @@ class SceneConfigManager:
 
     def reload_scenes(self) -> None:
         """重新加载所有场景配置"""
+        self._loaded = True  # 强制设置为已加载状态
         self._load_all_scenes()
         print(f"场景配置已重新加载，共 {len(self.get_all_scenes())} 个场景")
 

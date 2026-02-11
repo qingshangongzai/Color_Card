@@ -447,13 +447,13 @@ class PaletteManagementCard(CardWidget):
         button_layout.addWidget(self.preview_panel_button)
 
         # 对比度检查按钮
-        self.contrast_button = ToolButton(FluentIcon.ZOOM_IN)
+        self.contrast_button = ToolButton(FluentIcon.BRIGHTNESS)
         self.contrast_button.setFixedSize(28, 28)
         self.contrast_button.clicked.connect(self._on_contrast_clicked)
         button_layout.addWidget(self.contrast_button)
 
         # 预览按钮（色盲模拟）
-        self.preview_button = ToolButton(FluentIcon.BRIGHTNESS)
+        self.preview_button = ToolButton(FluentIcon.ZOOM_IN)
         self.preview_button.setFixedSize(28, 28)
         self.preview_button.clicked.connect(self._on_preview_clicked)
         button_layout.addWidget(self.preview_button)

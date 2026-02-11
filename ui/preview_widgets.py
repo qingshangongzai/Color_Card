@@ -1947,6 +1947,11 @@ class PreviewToolbar(QWidget):
         self._title_label = SubtitleLabel("配色预览")
         top_layout.addWidget(self._title_label)
 
+        # 添加说明标签
+        self._desc_label = QLabel("还在持续完善中")
+        self._desc_label.setStyleSheet("font-size: 12px; color: gray;")
+        top_layout.addWidget(self._desc_label)
+
         top_layout.addStretch()  # 弹性空间，使右侧内容右对齐
 
         # 导入导出按钮容器（对所有场景可见）
@@ -1956,7 +1961,7 @@ class PreviewToolbar(QWidget):
         buttons_layout.setSpacing(8)
 
         # 导入按钮
-        self._import_button = PushButton(FluentIcon.DOWNLOAD, "导入")
+        self._import_button = PushButton(FluentIcon.DOWN, "导入")
         self._import_button.setFixedHeight(32)
         self._import_button.clicked.connect(self._on_import_clicked)
         buttons_layout.addWidget(self._import_button)
