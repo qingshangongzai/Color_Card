@@ -5,7 +5,7 @@ from datetime import datetime
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal, QThread
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QLabel,
+    QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel,
     QSizePolicy, QApplication, QFrame
 )
 from PySide6.QtGui import QColor
@@ -18,17 +18,14 @@ from qfluentwidgets import (
 from core import get_color_info, hex_to_rgb
 from core.color_data import (
     get_color_series_names, get_color_series,
-    get_light_shades, get_dark_shades, get_color_series_name_mapping,
+    get_color_series_name_mapping,
     get_nice_palette_count, get_nice_palette, get_nice_palettes_batch,
     get_tailwind_color_series_names, get_tailwind_color_series,
     get_material_color_series_names, get_material_color_series,
     get_colorbrewer_series_names, get_colorbrewer_color_series,
-    get_colorbrewer_series_type,
     get_radix_color_series_names, get_radix_color_series,
     get_nord_color_series_names, get_nord_color_series,
-    get_nord_light_shades, get_nord_dark_shades,
     get_dracula_color_series_names, get_dracula_color_series,
-    get_dracula_light_shades, get_dracula_dark_shades,
     get_rose_pine_color_series_names, get_rose_pine_color_series,
     get_solarized_color_series_names, get_solarized_color_series,
     get_catppuccin_color_series_names, get_catppuccin_color_series,
@@ -263,39 +260,20 @@ class PresetColorSchemeCard(CardWidget):
     """预设色彩方案卡片（展示一个颜色系列的色阶）"""
 
     favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
 
     def __init__(self, series_key: str, series_data: dict, parent=None):
         self._series_key = series_key
         self._series_data = series_data
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
-        self._shade_mode = 'light'  # 'light' 或 'dark'，对于非顺序色表示前半/后半
         self._color_cards = []
-        # 获取配色类型（仅ColorBrewer有，其他默认为sequential）
-        self._series_type = self._get_series_type()
         super().__init__(parent)
         self.setup_ui()
         self._load_color_data()
         self._update_styles()
         # 监听主题变化
         qconfig.themeChangedFinished.connect(self._update_styles)
-
-    def _get_series_type(self) -> str:
-        """获取颜色系列的类型"""
-        # ColorBrewer 系列根据数据中的 type 字段确定
-        if self._series_key.startswith('brewer_'):
-            return get_colorbrewer_series_type(self._series_key) or 'sequential'
-        # Nord 和 Dracula 颜色数量较少，使用单组模式直接显示
-        if self._series_key.startswith(('nord', 'dracula')):
-            return 'single'
-        # Catppuccin 和 Gruvbox 颜色数量较多，使用四段式显示（第一段/第二段/第三段/第四段）
-        if self._series_key.startswith(('catppuccin', 'gruvbox')):
-            return 'quad'
-        # Rose Pine 和 Solarized 使用三段式显示（前半/中间/后半）
-        if self._series_key.startswith(('rose_pine', 'solarized')):
-            return 'triple'
-        # 其他配色默认为顺序色（浅色组/深色组）
-        return 'sequential'
 
     def setup_ui(self):
         """设置界面"""
@@ -316,15 +294,6 @@ class PresetColorSchemeCard(CardWidget):
 
         header_layout.addStretch()
 
-        # 色阶切换按钮（单组模式不显示）
-        self.shade_toggle_btn = ToolButton(FluentIcon.CONNECT)
-        self.shade_toggle_btn.setFixedSize(28, 28)
-        self.shade_toggle_btn.clicked.connect(self._on_toggle_shade_mode)
-        # 单组模式隐藏切换按钮
-        if self._series_type == 'single':
-            self.shade_toggle_btn.setVisible(False)
-        header_layout.addWidget(self.shade_toggle_btn)
-
         # 收藏按钮
         self.favorite_btn = ToolButton(FluentIcon.HEART)
         self.favorite_btn.setFixedSize(28, 28)
@@ -333,10 +302,10 @@ class PresetColorSchemeCard(CardWidget):
 
         layout.addLayout(header_layout)
 
-        # 色卡面板（水平布局容器）
+        # 色卡面板（垂直布局容器，每行使用水平布局）
         self.cards_container = QWidget()
         self.cards_container.setStyleSheet("background: transparent;")
-        self.cards_layout = QHBoxLayout(self.cards_container)
+        self.cards_layout = QVBoxLayout(self.cards_container)
         self.cards_layout.setContentsMargins(0, 0, 0, 0)
         self.cards_layout.setSpacing(10)
 
@@ -415,37 +384,56 @@ class PresetColorSchemeCard(CardWidget):
             parent=self.window()
         )
 
-    def _on_toggle_shade_mode(self):
-        """切换显示模式"""
-        if self._series_type == 'quad':
-            # 四段式：light -> medium -> dark -> ultra_dark -> light
-            if self._shade_mode == 'light':
-                self._shade_mode = 'medium'
-            elif self._shade_mode == 'medium':
-                self._shade_mode = 'dark'
-            elif self._shade_mode == 'dark':
-                self._shade_mode = 'ultra_dark'
-            else:
-                self._shade_mode = 'light'
-        elif self._series_type == 'triple':
-            # 三段式：light -> medium -> dark -> light
-            if self._shade_mode == 'light':
-                self._shade_mode = 'medium'
-            elif self._shade_mode == 'medium':
-                self._shade_mode = 'dark'
-            else:
-                self._shade_mode = 'light'
-        else:
-            # 两段式：light -> dark -> light
-            self._shade_mode = 'dark' if self._shade_mode == 'light' else 'light'
-        self._load_color_data()
-
     def _clear_color_cards(self):
         """清空所有色卡"""
+        # 清空色卡列表
         for card in self._color_cards:
-            self.cards_layout.removeWidget(card)
             card.deleteLater()
         self._color_cards.clear()
+
+        # 清空所有行布局
+        while self.cards_layout.count():
+            item = self.cards_layout.takeAt(0)
+            if item.layout():
+                # 删除行布局中的所有色卡
+                while item.layout().count():
+                    child = item.layout().takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+
+    @staticmethod
+    def _calculate_columns(color_count: int) -> int:
+        """计算每行显示的列数
+
+        规则：
+        - 能被5整除 → 每行5个
+        - 能被6整除 → 每行6个
+        - 其他情况 → 根据数量选择最接近的
+
+        Args:
+            color_count: 颜色数量
+
+        Returns:
+            int: 每行列数
+        """
+        if color_count <= 0:
+            return 1
+
+        # 能被5整除 → 每行5个
+        if color_count % 5 == 0:
+            return 5
+
+        # 能被6整除 → 每行6个
+        if color_count % 6 == 0:
+            return 6
+
+        # 其他情况：根据数量选择
+        if color_count <= 5:
+            return color_count
+        elif color_count <= 10:
+            return 5
+        else:
+            return 6
 
     def _create_color_cards(self, colors: list):
         """创建色卡
@@ -453,7 +441,20 @@ class PresetColorSchemeCard(CardWidget):
         Args:
             colors: 颜色值列表 (HEX格式)
         """
-        for hex_color in colors:
+        # 计算每行显示的列数
+        color_count = len(colors)
+        columns = self._calculate_columns(color_count)
+
+        # 按行创建色卡
+        current_row_layout = None
+        for i, hex_color in enumerate(colors):
+            # 每行开始时创建新的水平布局
+            if i % columns == 0:
+                current_row_layout = QHBoxLayout()
+                current_row_layout.setContentsMargins(0, 0, 0, 0)
+                current_row_layout.setSpacing(10)
+                self.cards_layout.addLayout(current_row_layout)
+
             card = PresetColorCard()
             card.set_color_modes(self._color_modes)
             card.hex_container.setVisible(self._hex_visible)
@@ -468,7 +469,9 @@ class PresetColorSchemeCard(CardWidget):
                 card.clear()
 
             self._color_cards.append(card)
-            self.cards_layout.addWidget(card, stretch=1)
+
+            # 添加到当前行的水平布局，设置stretch=1使色卡均匀分布
+            current_row_layout.addWidget(card, stretch=1)
 
     def _load_color_data(self):
         """加载颜色数据"""
@@ -479,107 +482,10 @@ class PresetColorSchemeCard(CardWidget):
         colors_dict = self._series_data.get('colors', {})
         total_colors = len(colors_dict)
 
-        # 根据配色类型决定显示逻辑
-        if self._series_type == 'single':
-            # 单组模式：直接显示所有颜色（用于 Nord、Dracula 等）
-            series_name = self._series_data.get('name', '未命名')
-            self.name_label.setText(series_name)
-            # 显示所有颜色
-            colors = [colors_dict.get(i, '') for i in range(total_colors)]
-        elif self._series_type == 'sequential':
-            # 顺序色：浅色组/深色组
-            series_name = self._series_data.get('name', '未命名')
-            shade_text = "浅色组" if self._shade_mode == 'light' else "深色组"
-            self.name_label.setText(f"{series_name} - {shade_text}")
-
-            # 根据总颜色数决定每段显示数量，尽量平均分配
-            half_count = total_colors // 2
-
-            if self._shade_mode == 'light':
-                # 浅色组: 索引 0 到 half_count-1
-                colors = [colors_dict.get(i, '') for i in range(min(half_count, total_colors))]
-            else:
-                # 深色组: 索引 half_count 到末尾
-                colors = [colors_dict.get(i, '') for i in range(half_count, total_colors)]
-
-        elif self._series_type == 'diverging':
-            # 发散色：左半部分/右半部分（以中间为界）
-            series_name = self._series_data.get('name', '未命名')
-            half_index = total_colors // 2
-
-            if self._shade_mode == 'light':
-                # 左半部分
-                shade_text = "左半"
-                colors = [colors_dict.get(i, '') for i in range(half_index)]
-            else:
-                # 右半部分
-                shade_text = "右半"
-                colors = [colors_dict.get(i, '') for i in range(half_index, total_colors)]
-
-            self.name_label.setText(f"{series_name} - {shade_text}")
-
-        elif self._series_type == 'quad':
-            # 四段式：第一段/第二段/第三段/第四段（每段6个颜色）
-            series_name = self._series_data.get('name', '未命名')
-
-            if self._shade_mode == 'light':
-                # 第一段：索引 0-5
-                shade_text = "第一段"
-                colors = [colors_dict.get(i, '') for i in range(0, 6)]
-            elif self._shade_mode == 'medium':
-                # 第二段：索引 6-11
-                shade_text = "第二段"
-                colors = [colors_dict.get(i, '') for i in range(6, 12)]
-            elif self._shade_mode == 'dark':
-                # 第三段：索引 12-17
-                shade_text = "第三段"
-                colors = [colors_dict.get(i, '') for i in range(12, 18)]
-            else:  # ultra_dark
-                # 第四段：索引 18-23
-                shade_text = "第四段"
-                colors = [colors_dict.get(i, '') for i in range(18, 24)]
-
-            self.name_label.setText(f"{series_name} - {shade_text}")
-
-        elif self._series_type == 'triple':
-            # 三段式：前半/中间/后半（每行最多显示5个颜色）
-            series_name = self._series_data.get('name', '未命名')
-
-            # 计算三段的分割点，尽量平均分配
-            segment_size = total_colors // 3
-            first_end = segment_size
-            second_end = segment_size * 2
-
-            if self._shade_mode == 'light':
-                # 前半部分
-                shade_text = "前半"
-                colors = [colors_dict.get(i, '') for i in range(first_end)]
-            elif self._shade_mode == 'medium':
-                # 中间部分
-                shade_text = "中间"
-                colors = [colors_dict.get(i, '') for i in range(first_end, second_end)]
-            else:  # dark
-                # 后半部分
-                shade_text = "后半"
-                colors = [colors_dict.get(i, '') for i in range(second_end, total_colors)]
-
-            self.name_label.setText(f"{series_name} - {shade_text}")
-
-        else:  # qualitative
-            # 定性色：前半部分/后半部分（按索引平分）
-            series_name = self._series_data.get('name', '未命名')
-            half_index = total_colors // 2
-
-            if self._shade_mode == 'light':
-                # 前半部分
-                shade_text = "前半"
-                colors = [colors_dict.get(i, '') for i in range(half_index)]
-            else:
-                # 后半部分
-                shade_text = "后半"
-                colors = [colors_dict.get(i, '') for i in range(half_index, total_colors)]
-
-            self.name_label.setText(f"{series_name} - {shade_text}")
+        # 直接显示所有颜色
+        series_name = self._series_data.get('name', '未命名')
+        self.name_label.setText(series_name)
+        colors = [colors_dict.get(i, '') for i in range(total_colors)]
 
         # 创建色卡
         self._create_color_cards(colors)
@@ -611,6 +517,7 @@ class NicePaletteCard(CardWidget):
     """Nice Color Palettes 配色卡片"""
 
     favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
 
     def __init__(self, palette_index: int, colors: list, parent=None):
         self._palette_index = palette_index
@@ -651,10 +558,10 @@ class NicePaletteCard(CardWidget):
 
         layout.addLayout(header_layout)
 
-        # 色卡面板（水平布局容器）
+        # 色卡面板（垂直布局容器，每行使用水平布局）
         self.cards_container = QWidget()
         self.cards_container.setStyleSheet("background: transparent;")
-        self.cards_layout = QHBoxLayout(self.cards_container)
+        self.cards_layout = QVBoxLayout(self.cards_container)
         self.cards_layout.setContentsMargins(0, 0, 0, 0)
         self.cards_layout.setSpacing(10)
 
@@ -687,10 +594,54 @@ class NicePaletteCard(CardWidget):
 
     def _clear_color_cards(self):
         """清空所有色卡"""
+        # 清空色卡列表
         for card in self._color_cards:
-            self.cards_layout.removeWidget(card)
             card.deleteLater()
         self._color_cards.clear()
+
+        # 清空所有行布局
+        while self.cards_layout.count():
+            item = self.cards_layout.takeAt(0)
+            if item.layout():
+                # 删除行布局中的所有色卡
+                while item.layout().count():
+                    child = item.layout().takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+
+    @staticmethod
+    def _calculate_columns(color_count: int) -> int:
+        """计算每行显示的列数
+
+        规则：
+        - 能被5整除 → 每行5个
+        - 能被6整除 → 每行6个
+        - 其他情况 → 根据数量选择最接近的
+
+        Args:
+            color_count: 颜色数量
+
+        Returns:
+            int: 每行列数
+        """
+        if color_count <= 0:
+            return 1
+
+        # 能被5整除 → 每行5个
+        if color_count % 5 == 0:
+            return 5
+
+        # 能被6整除 → 每行6个
+        if color_count % 6 == 0:
+            return 6
+
+        # 其他情况：根据数量选择
+        if color_count <= 5:
+            return color_count
+        elif color_count <= 10:
+            return 5
+        else:
+            return 6
 
     def _create_color_cards(self, colors: list):
         """创建色卡
@@ -698,9 +649,21 @@ class NicePaletteCard(CardWidget):
         Args:
             colors: 颜色值列表 (HEX格式)
         """
-        for hex_color in colors:
-            if not hex_color:
-                continue
+        # 计算每行显示的列数
+        valid_colors = [c for c in colors if c]
+        color_count = len(valid_colors)
+        columns = self._calculate_columns(color_count)
+
+        # 按行创建色卡
+        current_row_layout = None
+        for i, hex_color in enumerate(valid_colors):
+            # 每行开始时创建新的水平布局
+            if i % columns == 0:
+                current_row_layout = QHBoxLayout()
+                current_row_layout.setContentsMargins(0, 0, 0, 0)
+                current_row_layout.setSpacing(10)
+                self.cards_layout.addLayout(current_row_layout)
+
             card = PresetColorCard()
             card.set_color_modes(self._color_modes)
             card.hex_container.setVisible(self._hex_visible)
@@ -714,7 +677,9 @@ class NicePaletteCard(CardWidget):
                 card.clear()
 
             self._color_cards.append(card)
-            self.cards_layout.addWidget(card, stretch=1)
+
+            # 添加到当前行的水平布局，设置stretch=1使色卡均匀分布
+            current_row_layout.addWidget(card, stretch=1)
 
     def _on_favorite_clicked(self):
         """收藏按钮点击处理"""

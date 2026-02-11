@@ -5,7 +5,7 @@ from datetime import datetime
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QWidget, QLabel,
+    QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel,
     QSizePolicy, QApplication, QLineEdit
 )
 from PySide6.QtGui import QColor
@@ -383,7 +383,7 @@ class PaletteManagementColorCard(QWidget):
 
 
 class PaletteManagementCard(CardWidget):
-    """配色管理卡片（水平排列色卡样式，动态数量）"""
+    """配色管理卡片（网格排列色卡样式，动态数量）"""
 
     delete_requested = Signal(str)
     rename_requested = Signal(str, str)  # favorite_id, new_name
@@ -391,6 +391,7 @@ class PaletteManagementCard(CardWidget):
     contrast_requested = Signal(dict)  # favorite_data
     color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
     preview_in_panel_requested = Signal(dict)  # favorite_data (在配色预览面板中预览)
+    MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
 
     def __init__(self, favorite_data: dict, parent=None):
         self._favorite_data = favorite_data
@@ -428,9 +429,9 @@ class PaletteManagementCard(CardWidget):
 
         layout.addLayout(header_layout)
 
-        # 色卡面板（水平排列）
+        # 色卡面板（垂直布局容器，每行使用水平布局）
         self.cards_panel = QWidget()
-        cards_layout = QHBoxLayout(self.cards_panel)
+        cards_layout = QVBoxLayout(self.cards_panel)
         cards_layout.setContentsMargins(0, 0, 0, 0)
         cards_layout.setSpacing(15)
 
@@ -503,11 +504,55 @@ class PaletteManagementCard(CardWidget):
 
     def _clear_color_cards(self):
         """清空所有色卡"""
-        layout = self.cards_panel.layout()
+        # 清空色卡列表
         for card in self._color_cards:
-            layout.removeWidget(card)
             card.deleteLater()
         self._color_cards.clear()
+
+        # 清空所有行布局
+        layout = self.cards_panel.layout()
+        while layout.count():
+            item = layout.takeAt(0)
+            if item.layout():
+                # 删除行布局中的所有色卡
+                while item.layout().count():
+                    child = item.layout().takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+
+    @staticmethod
+    def _calculate_columns(color_count: int) -> int:
+        """计算每行显示的列数
+
+        规则：
+        - 能被5整除 → 每行5个
+        - 能被6整除 → 每行6个
+        - 其他情况 → 根据数量选择最接近的
+
+        Args:
+            color_count: 颜色数量
+
+        Returns:
+            int: 每行列数
+        """
+        if color_count <= 0:
+            return 1
+
+        # 能被5整除 → 每行5个
+        if color_count % 5 == 0:
+            return 5
+
+        # 能被6整除 → 每行6个
+        if color_count % 6 == 0:
+            return 6
+
+        # 其他情况：根据数量选择
+        if color_count <= 5:
+            return color_count
+        elif color_count <= 10:
+            return 5
+        else:
+            return 6
 
     def _create_color_cards(self, count):
         """创建指定数量的色卡
@@ -516,13 +561,27 @@ class PaletteManagementCard(CardWidget):
             count: 色卡数量
         """
         layout = self.cards_panel.layout()
+        # 计算每行显示的列数
+        columns = self._calculate_columns(count)
+
+        # 按行创建色卡
+        current_row_layout = None
         for i in range(count):
+            # 每行开始时创建新的水平布局
+            if i % columns == 0:
+                current_row_layout = QHBoxLayout()
+                current_row_layout.setContentsMargins(0, 0, 0, 0)
+                current_row_layout.setSpacing(15)
+                layout.addLayout(current_row_layout)
+
             card = PaletteManagementColorCard()
             card.set_color_modes(self._color_modes)
             card.hex_container.setVisible(self._hex_visible)
             card.color_changed.connect(lambda color_info, idx=i: self._on_color_changed(idx, color_info))
             self._color_cards.append(card)
-            layout.addWidget(card)
+
+            # 添加到当前行的水平布局，设置stretch=1使色卡均匀分布
+            current_row_layout.addWidget(card, stretch=1)
 
     def _on_color_changed(self, color_index: int, color_info: dict):
         """颜色变化处理
