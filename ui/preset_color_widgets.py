@@ -30,6 +30,7 @@ from core.color_data import (
     get_solarized_color_series_names, get_solarized_color_series,
     get_catppuccin_color_series_names, get_catppuccin_color_series,
     get_gruvbox_color_series_names, get_gruvbox_color_series,
+    get_tokyo_night_color_series_names, get_tokyo_night_color_series,
     get_random_palettes
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
@@ -953,6 +954,13 @@ class PresetColorList(QWidget):
                 self._load_gruvbox_series(all_series)
             else:
                 self._load_gruvbox_series(data)
+        elif source == 'tokyo_night':
+            if data is None:
+                # 默认加载所有 Tokyo Night 颜色系列
+                all_series = get_tokyo_night_color_series_names()
+                self._load_tokyo_night_series(all_series)
+            else:
+                self._load_tokyo_night_series(data)
         elif source == 'random':
             # 随机配色模式
             count = data if isinstance(data, int) else 10
@@ -1209,6 +1217,27 @@ class PresetColorList(QWidget):
 
         for series_key in series_keys:
             series_data = get_gruvbox_color_series(series_key)
+            if series_data:
+                card = PresetColorSchemeCard(series_key, series_data)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[series_key] = card
+
+        self.content_layout.addStretch()
+
+    def _load_tokyo_night_series(self, series_keys: list):
+        """加载指定分组的 Tokyo Night 颜色系列
+
+        Args:
+            series_keys: 颜色系列名称列表
+        """
+        self._clear_content()
+        self._current_source = 'tokyo_night'
+
+        for series_key in series_keys:
+            series_data = get_tokyo_night_color_series(series_key)
             if series_data:
                 card = PresetColorSchemeCard(series_key, series_data)
                 card.set_hex_visible(self._hex_visible)

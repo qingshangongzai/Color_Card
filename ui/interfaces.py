@@ -2145,6 +2145,11 @@ class PresetColorInterface(QWidget):
         (["gruvbox_dark", "gruvbox_light"], "全部系列"),
     ]
 
+    # Tokyo Night 分组定义
+    TOKYO_NIGHT_GROUPS = [
+        (["tokyo_night", "tokyo_storm", "tokyo_day"], "全部系列"),
+    ]
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setObjectName('presetColorInterface')
@@ -2211,6 +2216,8 @@ class PresetColorInterface(QWidget):
         self.source_combo.setItemData(11, "catppuccin")
         self.source_combo.addItem("Gruvbox 配色")
         self.source_combo.setItemData(12, "gruvbox")
+        self.source_combo.addItem("Tokyo Night 配色")
+        self.source_combo.setItemData(13, "tokyo_night")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
@@ -2342,6 +2349,13 @@ class PresetColorInterface(QWidget):
             self.group_combo.addItem(name)
             self.group_combo.setItemData(i, i)
 
+    def _setup_tokyo_night_group_combo(self):
+        """设置 Tokyo Night 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.TOKYO_NIGHT_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
     def _on_source_changed(self, index):
         """数据源切换回调"""
         source = self.source_combo.currentData()
@@ -2461,6 +2475,15 @@ class PresetColorInterface(QWidget):
             self.group_combo.setCurrentIndex(0)
             series_keys = self.GRUVBOX_GROUPS[0][0]
             self.preset_color_list.set_data_source('gruvbox', series_keys)
+        elif source == 'tokyo_night':
+            self.desc_label.setText("基于 Tokyo Night VS Code 主题配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_tokyo_night_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.TOKYO_NIGHT_GROUPS[0][0]
+            self.preset_color_list.set_data_source('tokyo_night', series_keys)
 
     def _on_random_palette_clicked(self):
         """随机配色按钮点击回调"""
@@ -2520,6 +2543,10 @@ class PresetColorInterface(QWidget):
             if 0 <= index < len(self.GRUVBOX_GROUPS):
                 series_keys = self.GRUVBOX_GROUPS[index][0]
                 self.preset_color_list.set_data_source('gruvbox', series_keys)
+        elif self._current_source == 'tokyo_night':
+            if 0 <= index < len(self.TOKYO_NIGHT_GROUPS):
+                series_keys = self.TOKYO_NIGHT_GROUPS[index][0]
+                self.preset_color_list.set_data_source('tokyo_night', series_keys)
 
     def _load_settings(self):
         """加载显示设置"""

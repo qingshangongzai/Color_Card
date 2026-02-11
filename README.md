@@ -21,7 +21,7 @@
 - **可视化色彩提取**：通过直观的可拖动取色点，实时提取图片任意位置的颜色，支持5个取色点同时工作
 - **智能配色方案**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择和明度调整
 - **配色方案收藏**：支持收藏和管理配色方案，可自定义名称，方便后续快速查看和使用
-- **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design、Nord、Dracula、Solarized、Gruvbox、Catppuccin、ColorBrewer、Radix Colors、Rose Pine 和 Nice Color Palettes 十二大开源配色方案，提供 13 + 22 + 19 + 16 + 11 + 2 + 2 + 4 + 35 + 31 + 3 种颜色系列 + 500 组精选配色，总计 658 组色卡，支持一键复制颜色值
+- **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design、Nord、Dracula、Solarized、Gruvbox、Catppuccin、ColorBrewer、Radix Colors、Rose Pine、Tokyo Night 和 Nice Color Palettes 十三大开源配色方案，提供 13 + 22 + 19 + 16 + 11 + 2 + 2 + 4 + 35 + 31 + 3 + 3 种颜色系列 + 500 组精选配色，总计 661 组色卡，支持一键复制颜色值
 - **配色预览**：支持在多种场景下预览收藏的配色效果，包括插画风格、排版设计、UI组件、网页布局、SVG自定义预览等，支持拖拽调整颜色顺序
 - **SVG智能配色映射**：支持导入Illustrator导出的SVG文件，智能识别配色区域（背景、主体、装饰、文字等），支持顺序映射、智能映射（基于面积）、手动映射三种模式
 - **场景配置化**：支持通过 JSON 配置文件定义和扩展预览场景，支持场景的导入导出和分享
@@ -570,6 +570,7 @@ Color Card 采用 **GNU General Public License v3.0 (GPL 3.0)** 许可证发布�
 | Gruvbox | MIT License |
 | Catppuccin | MIT License |
 | Rose Pine | MIT License |
+| Tokyo Night | MIT License |
 | Nice Color Palettes | MIT License |
 
 ---

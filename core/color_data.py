@@ -1205,6 +1205,100 @@ def get_gruvbox_color_series_name_mapping():
     return {key: value["name"] for key, value in _get_gruvbox_data().items()}
 
 
+# ===== Tokyo Night 延迟加载 =====
+_TOKYO_NIGHT_COLOR_DATA = None
+
+
+def _load_tokyo_night_data():
+    """从 JSON 文件加载 Tokyo Night 颜色数据
+
+    Returns:
+        dict: Tokyo Night 颜色数据字典
+    """
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        json_path = os.path.join(project_root, 'color_data', 'tokyo_night.json')
+
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            # 将字符串键转换为整数键
+            colors_data = data.get('colors', {})
+            for series in colors_data.values():
+                if 'colors' in series:
+                    series['colors'] = {int(k): v for k, v in series['colors'].items()}
+            return colors_data
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"加载 Tokyo Night 颜色数据失败: {e}")
+        return {}
+
+
+def _get_tokyo_night_data():
+    """获取 Tokyo Night 颜色数据（延迟加载）
+
+    Returns:
+        dict: Tokyo Night 颜色数据字典
+    """
+    global _TOKYO_NIGHT_COLOR_DATA
+    if _TOKYO_NIGHT_COLOR_DATA is None:
+        _TOKYO_NIGHT_COLOR_DATA = _load_tokyo_night_data()
+    return _TOKYO_NIGHT_COLOR_DATA
+
+
+# ===== Tokyo Night 相关函数 =====
+
+def get_tokyo_night_color_series_names():
+    """获取所有 Tokyo Night 颜色系列名称列表"""
+    return list(_get_tokyo_night_data().keys())
+
+
+def get_tokyo_night_color_series(series_name):
+    """获取指定 Tokyo Night 颜色系列的数据
+
+    Args:
+        series_name: 颜色系列名称 (如 'tokyo_night', 'tokyo_storm', 'tokyo_day' 等)
+
+    Returns:
+        dict: 颜色系列数据，包含 name, name_en, colors
+    """
+    return _get_tokyo_night_data().get(series_name, None)
+
+
+def get_tokyo_night_light_shades(series_name):
+    """获取指定 Tokyo Night 颜色系列的浅色组 (0-9)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 10个浅色色值列表
+    """
+    series = _get_tokyo_night_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(10) if i in series["colors"]]
+
+
+def get_tokyo_night_dark_shades(series_name):
+    """获取指定 Tokyo Night 颜色系列的深色组 (10-18)
+
+    Args:
+        series_name: 颜色系列名称
+
+    Returns:
+        list: 9个深色色值列表
+    """
+    series = _get_tokyo_night_data().get(series_name)
+    if not series:
+        return []
+    return [series["colors"][i] for i in range(10, 19) if i in series["colors"]]
+
+
+def get_tokyo_night_color_series_name_mapping():
+    """获取 Tokyo Night 颜色系列名称的中英文映射"""
+    return {key: value["name"] for key, value in _get_tokyo_night_data().items()}
+
+
 # ===== 统一配色组数据接口 =====
 
 def get_all_palettes():
@@ -1409,6 +1503,22 @@ def get_all_palettes():
                     "id": f"gruvbox_{series_key}",
                     "name": series_data.get("name", series_key),
                     "source": "gruvbox",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 13. Tokyo Night (3个变体，每组19色)
+    tokyo_night_data = _get_tokyo_night_data()
+    for series_key, series_data in tokyo_night_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"tokyonight_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "tokyo_night",
                     "colors": colors,
                     "color_count": len(colors)
                 })
