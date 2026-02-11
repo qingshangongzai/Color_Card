@@ -6,7 +6,7 @@
 
 **开发理念**：在摄影后期处理和设计创作中，色彩分析是一个重要环节。取色卡旨在为摄影师和设计师提供一个简单、直观、专业的一站式色彩工具，从图片中提取颜色、分析明度分布、生成和谐配色、管理配色、预览配色效果，满足从色彩分析到配色应用的全流程需求。不同于通用的取色工具，取色卡专注于摄影和设计场景的实际需求，提供专业级的色彩空间转换、明度分析和配色生成功能。
 
-**关于本项目**：取色卡是借助 AI 编程工具（如 Trae 等）辅助开发的**非商业开源项目**。项目功能设计参考了 [Adobe Color](https://color.adobe.com/)、[Canva Palette Generator](https://www.canva.com/colors/color-palette-generator/) 等优秀的在线配色工具，旨在为中文用户提供一个**无需联网、无需注册、隐私安全**的本地替代品。所有代码均为独立实现，与 Adobe、Canva 等公司无任何关联。
+**关于本项目**：取色卡是借助 AI 编程工具（如 Trae 等）辅助开发的**非商业开源项目**。项目功能设计借鉴参考了 [Adobe Color](https://color.adobe.com/)、[色采](https://www.wxsecai.com/) 、[palettemakel](https://palettemaker.com/)、[Canva Palette Generator](https://www.canva.com/colors/color-palette-generator/) 等优秀的在线配色工具，旨在为中文用户提供一个**无需联网、无需注册、隐私安全、一步即达**的本地替代品。所有代码均为独立实现，与 Adobe、Canva 等公司无任何关联。
 
 **开源协议**：本项目采用 **GNU General Public License v3.0 (GPL 3.0)** 开源协议，所有代码和文档均遵循该协议的条款和条件。
 
