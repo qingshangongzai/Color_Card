@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # 项目模块导入
 from version import version_manager
+from core.color import hex_to_rgb, get_color_info
 
 
 class ConfigManager:
@@ -311,10 +312,34 @@ class ConfigManager:
         """
         try:
             favorites = self.get_favorites()
+            now = datetime.now()
+            palette_id = f"user_palettes_{now.strftime('%Y%m%d_%H%M%S')}"
+            palettes = []
+            for fav in favorites:
+                colors = fav.get("colors", [])
+                hex_colors = []
+                for color_info in colors:
+                    if isinstance(color_info, dict):
+                        hex_color = color_info.get("hex", "")
+                        if hex_color:
+                            hex_colors.append(hex_color)
+                    elif isinstance(color_info, str):
+                        hex_colors.append(color_info)
+                if hex_colors:
+                    palettes.append({
+                        "name": fav.get("name", "未命名"),
+                        "colors": hex_colors
+                    })
             export_data = {
                 "version": "1.0",
-                "export_time": datetime.now().isoformat(),
-                "favorites": favorites
+                "id": palette_id,
+                "name": "",
+                "name_zh": "",
+                "description": "",
+                "author": "",
+                "created_at": now.isoformat(),
+                "category": "user_palette",
+                "palettes": palettes
             }
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(export_data, f, ensure_ascii=False, indent=4)
@@ -337,26 +362,48 @@ class ConfigManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 import_data = json.load(f)
 
-            # 验证文件格式
             if not isinstance(import_data, dict):
                 return False, 0, "文件格式错误：根对象必须是字典"
 
-            imported_favorites = import_data.get("favorites", [])
-            if not isinstance(imported_favorites, list):
-                return False, 0, "文件格式错误：favorites 必须是列表"
+            palettes = import_data.get("palettes", [])
+            if not isinstance(palettes, list):
+                return False, 0, "文件格式错误：palettes 必须是列表"
 
-            # 验证每个收藏项的格式
+            if not palettes:
+                return False, 0, "文件中没有配色数据"
+
             valid_favorites = []
-            for fav in imported_favorites:
-                if isinstance(fav, dict) and "colors" in fav:
-                    # 确保有 id
-                    if "id" not in fav:
-                        fav["id"] = str(uuid.uuid4())
-                    valid_favorites.append(fav)
+            for palette in palettes:
+                if not isinstance(palette, dict):
+                    continue
+                colors_data = palette.get("colors", [])
+                if not isinstance(colors_data, list) or not colors_data:
+                    continue
+                colors = []
+                for hex_color in colors_data:
+                    if isinstance(hex_color, str) and hex_color.startswith('#'):
+                        try:
+                            r, g, b = hex_to_rgb(hex_color)
+                            color_info = get_color_info(r, g, b)
+                            colors.append(color_info)
+                        except Exception:
+                            colors.append({"hex": hex_color, "rgb": (0, 0, 0)})
+                if colors:
+                    favorite_data = {
+                        "id": str(uuid.uuid4()),
+                        "name": palette.get("name", "未命名"),
+                        "colors": colors,
+                        "created_at": datetime.now().isoformat(),
+                        "source": "import"
+                    }
+                    valid_favorites.append(favorite_data)
+
+            if not valid_favorites:
+                return False, 0, "没有有效的配色数据"
 
             if mode == 'replace':
                 self._config["favorites"] = valid_favorites
-            else:  # append
+            else:
                 existing_ids = {f.get("id") for f in self._config.get("favorites", [])}
                 for fav in valid_favorites:
                     if fav.get("id") not in existing_ids:
