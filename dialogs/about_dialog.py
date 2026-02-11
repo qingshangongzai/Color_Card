@@ -196,7 +196,7 @@ class AboutDialog(QDialog):
 
         return f"""　　取色卡（Color Card）是一款专为摄影师和设计师开发的图片分析及配色工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，并提供一站式的本地配色解决方案。
 
-        项目功能设计借鉴参考了Adobe Color、色采、palettemakel、Canva Palette Generator等优秀的在线配色工具。
+        项目功能设计借鉴参考了Adobe Color、色采、palettemakel等优秀的在线配色工具。
 
 【开发团队】
   • 出品：浮晓 HXiao Studio
