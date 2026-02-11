@@ -2149,7 +2149,7 @@ class PresetColorInterface(QWidget):
         super().__init__(parent)
         self.setObjectName('presetColorInterface')
         self._config_manager = get_config_manager()
-        self._current_source = 'open_color'
+        self._current_source = 'random'
         self._current_group_index = 0
         self.setup_ui()
         self._load_settings()
@@ -2185,39 +2185,56 @@ class PresetColorInterface(QWidget):
 
         # 数据源切换下拉列表
         self.source_combo = ComboBox(self)
+        self.source_combo.addItem("随机配色")
+        self.source_combo.setItemData(0, "random")
         self.source_combo.addItem("Open Color 配色")
-        self.source_combo.setItemData(0, "open_color")
+        self.source_combo.setItemData(1, "open_color")
         self.source_combo.addItem("Tailwind Colors 配色")
-        self.source_combo.setItemData(1, "tailwind")
+        self.source_combo.setItemData(2, "tailwind")
         self.source_combo.addItem("Material Design 配色")
-        self.source_combo.setItemData(2, "material")
+        self.source_combo.setItemData(3, "material")
         self.source_combo.addItem("Nice Palettes 配色")
-        self.source_combo.setItemData(3, "nice_palette")
+        self.source_combo.setItemData(4, "nice_palette")
         self.source_combo.addItem("ColorBrewer 配色")
-        self.source_combo.setItemData(4, "colorbrewer")
+        self.source_combo.setItemData(5, "colorbrewer")
         self.source_combo.addItem("Radix Colors 配色")
-        self.source_combo.setItemData(5, "radix")
+        self.source_combo.setItemData(6, "radix")
         self.source_combo.addItem("Nord 配色")
-        self.source_combo.setItemData(6, "nord")
+        self.source_combo.setItemData(7, "nord")
         self.source_combo.addItem("Dracula 配色")
-        self.source_combo.setItemData(7, "dracula")
+        self.source_combo.setItemData(8, "dracula")
         self.source_combo.addItem("Rosé Pine 配色")
-        self.source_combo.setItemData(8, "rose_pine")
+        self.source_combo.setItemData(9, "rose_pine")
         self.source_combo.addItem("Solarized 配色")
-        self.source_combo.setItemData(9, "solarized")
+        self.source_combo.setItemData(10, "solarized")
         self.source_combo.addItem("Catppuccin 配色")
-        self.source_combo.setItemData(10, "catppuccin")
+        self.source_combo.setItemData(11, "catppuccin")
         self.source_combo.addItem("Gruvbox 配色")
-        self.source_combo.setItemData(11, "gruvbox")
+        self.source_combo.setItemData(12, "gruvbox")
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
+
+        # 分组控制容器（随机模式下显示按钮，其他模式显示下拉列表）
+        self.group_control_container = QWidget(self)
+        self.group_control_layout = QHBoxLayout(self.group_control_container)
+        self.group_control_layout.setContentsMargins(0, 0, 0, 0)
+        self.group_control_layout.setSpacing(0)
 
         # 分组下拉列表
         self.group_combo = ComboBox(self)
         self.group_combo.setFixedWidth(150)
         self.group_combo.currentIndexChanged.connect(self._on_group_changed)
-        controls_layout.addWidget(self.group_combo)
+        self.group_control_layout.addWidget(self.group_combo)
+
+        # 随机按钮（仅在随机模式下显示）
+        self.random_btn = PushButton("随机", self)
+        self.random_btn.setFixedWidth(150)
+        self.random_btn.clicked.connect(self._on_random_palette_clicked)
+        self.random_btn.setVisible(False)
+        self.group_control_layout.addWidget(self.random_btn)
+
+        controls_layout.addWidget(self.group_control_container)
 
         header_layout.addWidget(controls_container)
 
@@ -2228,8 +2245,12 @@ class PresetColorInterface(QWidget):
         self.preset_color_list.favorite_requested.connect(self.favorite_requested)
         layout.addWidget(self.preset_color_list, stretch=1)
 
-        # 初始化分组下拉列表
-        self._setup_open_color_group_combo()
+        # 初始化默认为随机配色模式
+        self.source_combo.setCurrentIndex(0)  # 选中"随机配色"
+        self.desc_label.setText("从全部配色方案中随机筛选")
+        self.group_combo.setVisible(False)
+        self.random_btn.setVisible(True)
+        self.preset_color_list.set_data_source('random', 10)
 
     def _setup_open_color_group_combo(self):
         """设置 Open Color 分组下拉列表"""
@@ -2326,8 +2347,17 @@ class PresetColorInterface(QWidget):
         source = self.source_combo.currentData()
         self._current_source = source
 
-        if source == 'open_color':
+        if source == 'random':
+            self.desc_label.setText("从全部配色方案中随机筛选")
+            # 显示随机按钮，隐藏分组下拉列表
+            self.group_combo.setVisible(False)
+            self.random_btn.setVisible(True)
+            self.preset_color_list.set_data_source('random', 10)
+        elif source == 'open_color':
             self.desc_label.setText("基于 Open Color 开源配色")
+            # 显示分组下拉列表，隐藏随机按钮
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_open_color_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2335,6 +2365,9 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('open_color', series_keys)
         elif source == 'nice_palette':
             self.desc_label.setText("基于 Nice Color Palettes 配色")
+            # 显示分组下拉列表，隐藏随机按钮
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_nice_palette_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2349,6 +2382,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('tailwind', series_keys)
         elif source == 'material':
             self.desc_label.setText("基于 Google Material Design 配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_material_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2356,6 +2391,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('material', series_keys)
         elif source == 'colorbrewer':
             self.desc_label.setText("基于 ColorBrewer 专业配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_colorbrewer_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2363,6 +2400,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('colorbrewer', series_keys)
         elif source == 'radix':
             self.desc_label.setText("基于 Radix UI Colors 配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_radix_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2370,6 +2409,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('radix', series_keys)
         elif source == 'nord':
             self.desc_label.setText("基于 Nord 北极配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_nord_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2377,6 +2418,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('nord', series_keys)
         elif source == 'dracula':
             self.desc_label.setText("基于 Dracula 暗色配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_dracula_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2384,6 +2427,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('dracula', series_keys)
         elif source == 'rose_pine':
             self.desc_label.setText("基于 Rosé Pine 自然灵感配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_rose_pine_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2391,6 +2436,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('rose_pine', series_keys)
         elif source == 'solarized':
             self.desc_label.setText("基于 Solarized 精准科学配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_solarized_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2398,6 +2445,8 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('solarized', series_keys)
         elif source == 'catppuccin':
             self.desc_label.setText("基于 Catppuccin 舒缓配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_catppuccin_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
@@ -2405,11 +2454,17 @@ class PresetColorInterface(QWidget):
             self.preset_color_list.set_data_source('catppuccin', series_keys)
         elif source == 'gruvbox':
             self.desc_label.setText("基于 Gruvbox 复古风格配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
             self._setup_gruvbox_group_combo()
             self._current_group_index = 0
             self.group_combo.setCurrentIndex(0)
             series_keys = self.GRUVBOX_GROUPS[0][0]
             self.preset_color_list.set_data_source('gruvbox', series_keys)
+
+    def _on_random_palette_clicked(self):
+        """随机配色按钮点击回调"""
+        self.preset_color_list.set_data_source('random', 10)
 
     def _on_group_changed(self, index):
         """分组切换回调"""

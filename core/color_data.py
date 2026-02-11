@@ -1203,3 +1203,239 @@ def get_gruvbox_dark_shades(series_name):
 def get_gruvbox_color_series_name_mapping():
     """获取 Gruvbox 颜色系列名称的中英文映射"""
     return {key: value["name"] for key, value in _get_gruvbox_data().items()}
+
+
+# ===== 统一配色组数据接口 =====
+
+def get_all_palettes():
+    """获取所有配色方案（统一格式）
+
+    将所有配色源（nice_palettes、open_color、tailwind、material等）
+    转换为统一的配色组格式，便于随机选择和展示。
+
+    Returns:
+        list: 配色组列表，每个元素为字典：
+            {
+                "id": 唯一标识,
+                "name": 显示名称,
+                "source": 来源（nice_palette/open_color/tailwind等）,
+                "colors": 颜色值列表,
+                "color_count": 颜色数量
+            }
+    """
+    all_palettes = []
+
+    # 1. Nice Color Palettes (500组，每组5色)
+    nice_data = _get_nice_palettes_data()
+    for index, colors in enumerate(nice_data):
+        if colors:
+            all_palettes.append({
+                "id": f"nice_{index}",
+                "name": f"配色 #{index + 1}",
+                "source": "nice_palette",
+                "colors": colors,
+                "color_count": len(colors)
+            })
+
+    # 2. Open Color (13个系列，每组10色)
+    open_color_data = _get_open_color_data()
+    for series_key, series_data in open_color_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in range(len(colors_dict))]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"open_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "open_color",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 3. Tailwind Colors (22个系列，每组10色)
+    tailwind_data = _get_tailwind_data()
+    for series_key, series_data in tailwind_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in range(len(colors_dict))]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"tailwind_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "tailwind",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 4. Material Design (19个系列，每组10色)
+    material_data = _get_material_data()
+    for series_key, series_data in material_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in range(len(colors_dict))]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"material_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "material",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 5. ColorBrewer (~35个系列，每组3-9色)
+    colorbrewer_data = _get_colorbrewer_data()
+    for series_key, series_data in colorbrewer_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"brewer_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "colorbrewer",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 6. Radix Colors (~30个系列，每组12色)
+    radix_data = _get_radix_data()
+    for series_key, series_data in radix_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"radix_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "radix",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 7. Nord (4个系列，每组4色)
+    nord_data = _get_nord_data()
+    for series_key, series_data in nord_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"nord_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "nord",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 8. Dracula (14个系列，每组4色)
+    dracula_data = _get_dracula_data()
+    for series_key, series_data in dracula_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"dracula_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "dracula",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 9. Rose Pine (3个变体，每组12色)
+    rose_pine_data = _get_rose_pine_data()
+    for series_key, series_data in rose_pine_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"rosepine_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "rose_pine",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 10. Solarized (2个变体，每组16色)
+    solarized_data = _get_solarized_data()
+    for series_key, series_data in solarized_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"solarized_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "solarized",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 11. Catppuccin (4个变体，每组24色)
+    catppuccin_data = _get_catppuccin_data()
+    for series_key, series_data in catppuccin_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"catppuccin_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "catppuccin",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    # 12. Gruvbox (2个变体，每组24色)
+    gruvbox_data = _get_gruvbox_data()
+    for series_key, series_data in gruvbox_data.items():
+        colors_dict = series_data.get("colors", {})
+        if colors_dict:
+            colors = [colors_dict.get(i, "") for i in sorted(colors_dict.keys())]
+            colors = [c for c in colors if c]
+            if colors:
+                all_palettes.append({
+                    "id": f"gruvbox_{series_key}",
+                    "name": series_data.get("name", series_key),
+                    "source": "gruvbox",
+                    "colors": colors,
+                    "color_count": len(colors)
+                })
+
+    return all_palettes
+
+
+def get_random_palettes(count=10):
+    """随机获取指定数量的配色方案
+
+    Args:
+        count: 需要返回的配色组数量（默认10）
+
+    Returns:
+        list: 随机选择的配色组列表
+    """
+    import random
+
+    all_palettes = get_all_palettes()
+    total = len(all_palettes)
+
+    if total == 0:
+        return []
+
+    # 如果请求数量大于总数，返回全部
+    if count >= total:
+        return all_palettes
+
+    # 随机选择指定数量
+    return random.sample(all_palettes, count)

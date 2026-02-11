@@ -29,7 +29,8 @@ from core.color_data import (
     get_rose_pine_color_series_names, get_rose_pine_color_series,
     get_solarized_color_series_names, get_solarized_color_series,
     get_catppuccin_color_series_names, get_catppuccin_color_series,
-    get_gruvbox_color_series_names, get_gruvbox_color_series
+    get_gruvbox_color_series_names, get_gruvbox_color_series,
+    get_random_palettes
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
@@ -952,6 +953,40 @@ class PresetColorList(QWidget):
                 self._load_gruvbox_series(all_series)
             else:
                 self._load_gruvbox_series(data)
+        elif source == 'random':
+            # 随机配色模式
+            count = data if isinstance(data, int) else 10
+            self.load_random_palettes(count)
+
+    def load_random_palettes(self, count=10):
+        """加载随机配色方案
+
+        Args:
+            count: 加载的配色组数量（默认10）
+        """
+        self._cleanup_loader()
+        self._clear_content()
+        self._current_source = 'random'
+
+        # 获取随机配色数据
+        random_palettes = get_random_palettes(count)
+
+        # 创建配色卡片
+        for palette_data in random_palettes:
+            palette_id = palette_data.get('id', '')
+            colors = palette_data.get('colors', [])
+            name = palette_data.get('name', '未命名')
+
+            if colors:
+                card = NicePaletteCard(0, colors)
+                card.name_label.setText(name)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[palette_id] = card
+
+        self.content_layout.addStretch()
 
     def _load_open_color_groups(self, series_keys: list):
         """加载指定分组的 Open Color 颜色系列
