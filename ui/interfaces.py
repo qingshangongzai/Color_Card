@@ -150,7 +150,7 @@ class ColorExtractInterface(QWidget):
         self.histogram_stack.setMaximumHeight(150)
         self.histogram_stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        # RGB直方图
+        # RGB直方图（按钮已内置在组件内部）
         self.rgb_histogram_widget = RGBHistogramWidget()
         self.histogram_stack.addWidget(self.rgb_histogram_widget)
 
