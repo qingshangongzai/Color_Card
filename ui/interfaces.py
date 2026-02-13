@@ -2120,6 +2120,7 @@ class PresetColorInterface(QWidget):
     """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors、Material Design、ColorBrewer 和 Radix Colors）"""
 
     favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    preview_in_panel_requested = Signal(dict)  # 信号：在预览面板中预览
 
     # 每组显示的配色数量
     PALETTES_PER_GROUP = 50
@@ -2314,6 +2315,9 @@ class PresetColorInterface(QWidget):
         # 预设色彩列表
         self.preset_color_list = PresetColorList(self)
         self.preset_color_list.favorite_requested.connect(self.favorite_requested)
+        self.preset_color_list.preview_in_panel_requested.connect(
+            self._on_preview_in_panel_requested
+        )
         layout.addWidget(self.preset_color_list, stretch=1)
 
         # 初始化默认为随机配色模式
@@ -2617,6 +2621,15 @@ class PresetColorInterface(QWidget):
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def _on_preview_in_panel_requested(self, preview_data: dict):
+        """处理在预览面板中预览的请求
+
+        Args:
+            preview_data: 包含配色名称、颜色列表和来源的字典
+        """
+        # 发射信号通知主窗口处理预览
+        self.preview_in_panel_requested.emit(preview_data)
 
     def update_display_settings(self, hex_visible=None, color_modes=None):
         """更新显示设置

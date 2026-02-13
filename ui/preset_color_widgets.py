@@ -262,6 +262,7 @@ class PresetColorSchemeCard(CardWidget):
     """预设色彩方案卡片（展示一个颜色系列的色阶）"""
 
     favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    preview_in_panel_requested = Signal(dict)  # 信号：在预览面板中预览
     MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
 
     def __init__(self, series_key: str, series_data: dict, parent=None):
@@ -295,6 +296,12 @@ class PresetColorSchemeCard(CardWidget):
         header_layout.addWidget(self.name_label)
 
         header_layout.addStretch()
+
+        # 预览按钮
+        self.preview_btn = ToolButton(FluentIcon.VIEW)
+        self.preview_btn.setFixedSize(28, 28)
+        self.preview_btn.clicked.connect(self._on_preview_in_panel_clicked)
+        header_layout.addWidget(self.preview_btn)
 
         # 收藏按钮
         self.favorite_btn = ToolButton(FluentIcon.HEART)
@@ -351,6 +358,27 @@ class PresetColorSchemeCard(CardWidget):
                     padding: 4px 8px;
                 }}
             """)
+
+    def _on_preview_in_panel_clicked(self):
+        """预览按钮点击处理"""
+        # 收集当前显示的所有颜色数据
+        colors = []
+        for card in self._color_cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            return
+
+        # 构建预览数据
+        preview_data = {
+            "name": self.name_label.text(),
+            "colors": colors,
+            "source": "preset_color"
+        }
+
+        # 发射信号通知主窗口处理预览
+        self.preview_in_panel_requested.emit(preview_data)
 
     def _on_favorite_clicked(self):
         """收藏按钮点击处理"""
@@ -519,6 +547,7 @@ class NicePaletteCard(CardWidget):
     """Nice Color Palettes 配色卡片"""
 
     favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    preview_in_panel_requested = Signal(dict)  # 信号：在预览面板中预览
     MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
 
     def __init__(self, palette_index: int, colors: list, parent=None):
@@ -551,6 +580,12 @@ class NicePaletteCard(CardWidget):
         header_layout.addWidget(self.name_label)
 
         header_layout.addStretch()
+
+        # 预览按钮
+        self.preview_btn = ToolButton(FluentIcon.VIEW)
+        self.preview_btn.setFixedSize(28, 28)
+        self.preview_btn.clicked.connect(self._on_preview_in_panel_clicked)
+        header_layout.addWidget(self.preview_btn)
 
         # 收藏按钮
         self.favorite_btn = ToolButton(FluentIcon.HEART)
@@ -683,6 +718,27 @@ class NicePaletteCard(CardWidget):
             # 添加到当前行的水平布局，设置stretch=1使色卡均匀分布
             current_row_layout.addWidget(card, stretch=1)
 
+    def _on_preview_in_panel_clicked(self):
+        """预览按钮点击处理"""
+        # 收集当前显示的所有颜色数据
+        colors = []
+        for card in self._color_cards:
+            if card._current_color_info:
+                colors.append(card._current_color_info)
+
+        if not colors:
+            return
+
+        # 构建预览数据
+        preview_data = {
+            "name": self.name_label.text(),
+            "colors": colors,
+            "source": "nice_palette"
+        }
+
+        # 发射信号通知主窗口处理预览
+        self.preview_in_panel_requested.emit(preview_data)
+
     def _on_favorite_clicked(self):
         """收藏按钮点击处理"""
         # 收集当前显示的所有颜色数据
@@ -750,6 +806,7 @@ class PresetColorList(QWidget):
     """预设色彩列表容器"""
 
     favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    preview_in_panel_requested = Signal(dict)  # 信号：在预览面板中预览
 
     def __init__(self, parent=None):
         self._hex_visible = True
@@ -821,6 +878,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -861,6 +919,7 @@ class PresetColorList(QWidget):
         card.set_hex_visible(self._hex_visible)
         card.set_color_modes(self._color_modes)
         card.favorite_requested.connect(self.favorite_requested)
+        card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
         self.content_layout.addWidget(card)
         self._scheme_cards[f'nice_{palette_index}'] = card
 
@@ -991,6 +1050,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[palette_id] = card
 
@@ -1012,6 +1072,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1033,6 +1094,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1054,6 +1116,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1075,6 +1138,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1096,6 +1160,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1117,6 +1182,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1138,6 +1204,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1159,6 +1226,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1180,6 +1248,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1201,6 +1270,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1222,6 +1292,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 
@@ -1243,6 +1314,7 @@ class PresetColorList(QWidget):
                 card.set_hex_visible(self._hex_visible)
                 card.set_color_modes(self._color_modes)
                 card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[series_key] = card
 

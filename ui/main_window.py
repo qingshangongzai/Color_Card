@@ -456,6 +456,23 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
+    def _on_preset_color_preview(self, preview_data: dict):
+        """处理内置色彩界面的预览请求
+
+        Args:
+            preview_data: 预览数据字典，包含 name、colors、source
+        """
+        # 提取颜色值列表（HEX格式）
+        colors = []
+        for color_info in preview_data.get('colors', []):
+            hex_color = color_info.get('hex', '')
+            if hex_color:
+                colors.append(hex_color)
+
+        if colors:
+            # 跳转到配色预览页面并显示配色
+            self.show_color_preview(colors)
+
     def _setup_fullscreen_shortcut(self):
         """设置 F11 快捷键切换全屏"""
         self.fullscreen_shortcut = QShortcut(QKeySequence("F11"), self)
@@ -555,6 +572,11 @@ class MainWindow(FluentWindow):
 
         # 连接内置色彩界面的收藏信号
         self.preset_color_interface.favorite_requested.connect(self._on_preset_color_favorite)
+
+        # 连接内置色彩界面的预览信号
+        self.preset_color_interface.preview_in_panel_requested.connect(
+            self._on_preset_color_preview
+        )
 
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)
