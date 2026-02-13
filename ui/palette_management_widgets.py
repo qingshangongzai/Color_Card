@@ -386,7 +386,6 @@ class PaletteManagementCard(CardWidget):
     """配色管理卡片（网格排列色卡样式，动态数量）"""
 
     delete_requested = Signal(str)
-    rename_requested = Signal(str, str)  # favorite_id, new_name
     preview_requested = Signal(dict)  # favorite_data (色盲模拟预览)
     contrast_requested = Signal(dict)  # favorite_data
     color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
@@ -461,16 +460,10 @@ class PaletteManagementCard(CardWidget):
         button_layout.addWidget(self.preview_button)
 
         # 管理按钮（编辑配色）
-        self.edit_button = ToolButton(FluentIcon.SETTING)
+        self.edit_button = ToolButton(FluentIcon.EDIT)
         self.edit_button.setFixedSize(28, 28)
         self.edit_button.clicked.connect(self._on_edit_clicked)
         button_layout.addWidget(self.edit_button)
-
-        # 重命名按钮
-        self.rename_button = ToolButton(FluentIcon.EDIT)
-        self.rename_button.setFixedSize(28, 28)
-        self.rename_button.clicked.connect(self._on_rename_clicked)
-        button_layout.addWidget(self.rename_button)
 
         # 删除按钮
         self.delete_button = ToolButton(FluentIcon.DELETE)
@@ -632,13 +625,6 @@ class PaletteManagementCard(CardWidget):
         if favorite_id:
             self.delete_requested.emit(favorite_id)
 
-    def _on_rename_clicked(self):
-        """重命名按钮点击"""
-        favorite_id = self._favorite_data.get('id', '')
-        current_name = self._favorite_data.get('name', '')
-        if favorite_id:
-            self.rename_requested.emit(favorite_id, current_name)
-
     def _on_preview_clicked(self):
         """预览按钮点击（色盲模拟）"""
         self.preview_requested.emit(self._favorite_data)
@@ -682,7 +668,6 @@ class PaletteManagementList(QWidget):
     """配色管理列表容器"""
 
     favorite_deleted = Signal(str)
-    favorite_renamed = Signal(str, str)  # favorite_id, current_name
     favorite_preview = Signal(dict)  # favorite_data (色盲模拟预览)
     favorite_contrast = Signal(dict)  # favorite_data
     favorite_color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
@@ -776,7 +761,6 @@ class PaletteManagementList(QWidget):
             card.set_hex_visible(self._hex_visible)
             card.set_color_modes(self._color_modes)
             card.delete_requested.connect(self.favorite_deleted)
-            card.rename_requested.connect(self._on_rename_requested)
             card.preview_requested.connect(self._on_preview_requested)
             card.contrast_requested.connect(self._on_contrast_requested)
             card.color_changed.connect(self._on_color_changed)
@@ -786,15 +770,6 @@ class PaletteManagementList(QWidget):
             self._favorite_cards[favorite.get('id', '')] = card
 
         self.content_layout.addStretch()
-
-    def _on_rename_requested(self, favorite_id, current_name):
-        """重命名请求处理
-
-        Args:
-            favorite_id: 收藏项ID
-            current_name: 当前名称
-        """
-        self.favorite_renamed.emit(favorite_id, current_name)
 
     def _on_preview_requested(self, favorite_data):
         """预览请求处理（色盲模拟）

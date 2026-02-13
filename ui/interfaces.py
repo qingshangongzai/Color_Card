@@ -81,7 +81,7 @@ class DominantColorExtractor(QThread):
                 self.extraction_error.emit(str(e))
 
 
-from dialogs import AboutDialog, ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog, NameDialog, UpdateAvailableDialog
+from dialogs import AboutDialog, ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
@@ -301,23 +301,32 @@ class ColorExtractInterface(QWidget):
             )
             return
 
-        # 弹出命名对话框
+        # 弹出编辑配色对话框
         default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
-        dialog = NameDialog(
-            title="命名配色",
+
+        # 构造配色数据
+        palette_data = {
+            "name": default_name,
+            "colors": colors
+        }
+
+        dialog = EditPaletteDialog(
             default_name=default_name,
+            palette_data=palette_data,
             parent=self.window()
         )
 
-        if dialog.exec() != NameDialog.DialogCode.Accepted:
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
             return
 
-        favorite_name = dialog.get_name()
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
 
         favorite_data = {
             "id": str(uuid.uuid4()),
-            "name": favorite_name,
-            "colors": colors,
+            "name": new_palette_data['name'],
+            "colors": new_palette_data['colors'],
             "created_at": datetime.now().isoformat(),
             "source": "color_extract"
         }
@@ -332,7 +341,7 @@ class ColorExtractInterface(QWidget):
 
         InfoBar.success(
             title="收藏成功",
-            content=f"已收藏配色：{favorite_name}",
+            content=f"已收藏配色：{favorite_data['name']}",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1616,23 +1625,32 @@ class ColorGenerationInterface(QWidget):
             )
             return
 
-        # 弹出命名对话框
+        # 弹出编辑配色对话框
         default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
-        dialog = NameDialog(
-            title="命名配色",
+
+        # 构造配色数据
+        palette_data = {
+            "name": default_name,
+            "colors": colors
+        }
+
+        dialog = EditPaletteDialog(
             default_name=default_name,
+            palette_data=palette_data,
             parent=self.window()
         )
 
-        if dialog.exec() != NameDialog.DialogCode.Accepted:
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
             return
 
-        favorite_name = dialog.get_name()
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
 
         favorite_data = {
             "id": str(uuid.uuid4()),
-            "name": favorite_name,
-            "colors": colors,
+            "name": new_palette_data['name'],
+            "colors": new_palette_data['colors'],
             "created_at": datetime.now().isoformat(),
             "source": "color_scheme"
         }
@@ -1647,7 +1665,7 @@ class ColorGenerationInterface(QWidget):
 
         InfoBar.success(
             title="收藏成功",
-            content=f"已收藏配色：{favorite_name}",
+            content=f"已收藏配色：{favorite_data['name']}",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1705,7 +1723,6 @@ class PaletteManagementInterface(QWidget):
 
         self.palette_management_list = PaletteManagementList(self)
         self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
-        self.palette_management_list.favorite_renamed.connect(self._on_favorite_renamed)
         self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
         self.palette_management_list.favorite_contrast.connect(self._on_favorite_contrast)
         self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
@@ -1739,49 +1756,6 @@ class PaletteManagementInterface(QWidget):
         self._config_manager.delete_favorite(favorite_id)
         self._config_manager.save()
         self._load_favorites()
-
-    def _on_favorite_renamed(self, favorite_id, current_name):
-        """收藏重命名回调
-
-        Args:
-            favorite_id: 收藏项ID
-            current_name: 当前名称
-        """
-        dialog = NameDialog(
-            title="重命名配色",
-            default_name=current_name,
-            parent=self.window()
-        )
-
-        if dialog.exec() != NameDialog.DialogCode.Accepted:
-            return
-
-        new_name = dialog.get_name()
-
-        # 更新收藏名称
-        if self._config_manager.rename_favorite(favorite_id, new_name):
-            self._config_manager.save()
-            self._load_favorites()
-
-            InfoBar.success(
-                title="重命名成功",
-                content=f"已重命名为：{new_name}",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
-        else:
-            InfoBar.error(
-                title="重命名失败",
-                content="无法找到该配色",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self.window()
-            )
 
     def _on_import_clicked(self):
         """导入按钮点击"""
