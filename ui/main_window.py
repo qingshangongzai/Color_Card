@@ -311,8 +311,12 @@ class MainWindow(FluentWindow):
         logo_label = QLabel(self.navigationInterface.panel)
         logo_label.setObjectName('logoLabel')
 
-        # 加载 Logo 图标
-        logo_path = 'd:\\青山公仔\\应用\\Py测试\\color_card\\logo\\Color Card_logo.ico'
+        # 加载 Logo 图标 - 使用工具函数获取路径，支持开发和打包环境
+        from utils.icon import get_icon_path
+        logo_path = get_icon_path()
+
+        if not logo_path:
+            return  # 找不到图标时不显示
 
         # 使用 QIcon 加载 ICO 文件以获取最佳分辨率
         from PySide6.QtCore import QSize
