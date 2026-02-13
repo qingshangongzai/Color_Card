@@ -28,7 +28,7 @@
     },
     {
       "id": "ui",
-      "name": "UI设计",
+      "name": "手机UI",
       "type": "configurable",
       "description": "手机应用界面预览，包含状态栏、内容区和导航栏",
       "icon": "phone",
