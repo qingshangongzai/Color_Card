@@ -368,11 +368,6 @@ class MainWindow(FluentWindow):
         self.color_extract_interface.rgb_histogram_widget.set_image(image)
         self.color_extract_interface.hue_histogram_widget.set_image(image)
 
-        # 更新窗口标题
-        from pathlib import Path
-        file_name = Path(file_path).stem
-        self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
-
     def sync_image_to_luminance(self, image_path):
         """同步图片路径到明度提取面板（保留用于兼容）"""
         if image_path:
@@ -382,13 +377,6 @@ class MainWindow(FluentWindow):
         """同步图片数据到明度提取面板（避免重复加载）"""
         # emit_sync=False 防止双向同步循环
         self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
-        # 更新窗口标题
-        if hasattr(self.color_extract_interface, '_pending_image_path'):
-            from pathlib import Path
-            file_path = self.color_extract_interface._pending_image_path
-            if file_path:
-                file_name = Path(file_path).stem
-                self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
 
     def sync_clear_to_luminance(self):
         """同步清除明度提取面板"""
@@ -398,7 +386,6 @@ class MainWindow(FluentWindow):
         try:
             self.luminance_extract_interface.luminance_canvas.clear_image()
             self.luminance_extract_interface.histogram_widget.clear()
-            self._reset_window_title()
         finally:
             self._is_clearing = False
 
@@ -410,13 +397,8 @@ class MainWindow(FluentWindow):
         try:
             self.color_extract_interface.image_canvas.clear_image()
             self.color_extract_interface.color_card_panel.clear_all()
-            self._reset_window_title()
         finally:
             self._is_clearing = False
-
-    def _reset_window_title(self):
-        """重置窗口标题"""
-        self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
 
     def refresh_palette_management(self):
         """刷新配色管理面板"""
