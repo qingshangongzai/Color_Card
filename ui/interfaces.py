@@ -81,7 +81,7 @@ class DominantColorExtractor(QThread):
                 self.extraction_error.emit(str(e))
 
 
-from dialogs import AboutDialog, ColorblindPreviewDialog, ContrastCheckDialog, NameDialog, UpdateAvailableDialog
+from dialogs import AboutDialog, ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog, NameDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
@@ -1683,6 +1683,11 @@ class PaletteManagementInterface(QWidget):
 
         header_layout.addStretch()
 
+        # 添加配色按钮
+        self.add_button = PushButton(FluentIcon.ADD, "添加", self)
+        self.add_button.clicked.connect(self._on_add_clicked)
+        header_layout.addWidget(self.add_button)
+
         self.import_button = PushButton(FluentIcon.DOWN, "导入", self)
         self.import_button.clicked.connect(self._on_import_clicked)
         header_layout.addWidget(self.import_button)
@@ -1705,6 +1710,7 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_contrast.connect(self._on_favorite_contrast)
         self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
         self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
+        self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
         layout.addWidget(self.palette_management_list, stretch=1)
 
     def _load_favorites(self):
@@ -1948,6 +1954,89 @@ class PaletteManagementInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'show_color_preview'):
             window.show_color_preview(color_values)
+
+    def _on_add_clicked(self):
+        """添加配色按钮点击"""
+        # 生成默认名称
+        favorites = self._config_manager.get_favorites()
+        default_name = f"配色 {len(favorites) + 1}"
+
+        # 显示添加对话框
+        dialog = EditPaletteDialog(default_name=default_name, parent=self.window())
+
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            return
+
+        # 获取配色数据
+        palette_data = dialog.get_palette_data()
+        if not palette_data:
+            return
+
+        # 添加到收藏
+        self._config_manager.add_favorite(palette_data)
+        self._config_manager.save()
+
+        # 刷新列表
+        self._load_favorites()
+
+        InfoBar.success(
+            title="添加成功",
+            content=f"配色「{palette_data['name']}」已添加",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+    def _on_favorite_edit(self, favorite_data):
+        """收藏编辑回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        favorite_id = favorite_data.get('id', '')
+        default_name = favorite_data.get('name', '')
+
+        # 显示编辑对话框
+        dialog = EditPaletteDialog(
+            default_name=default_name,
+            palette_data=favorite_data,
+            parent=self.window()
+        )
+
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            return
+
+        # 获取编辑后的数据
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
+
+        # 更新收藏数据
+        if self._config_manager.update_favorite(favorite_id, new_palette_data):
+            self._config_manager.save()
+            self._load_favorites()
+
+            InfoBar.success(
+                title="更新成功",
+                content=f"配色「{new_palette_data['name']}」已更新",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="更新失败",
+                content="无法找到该配色",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
 
     def _on_favorite_contrast(self, favorite_data):
         """收藏对比度检查回调

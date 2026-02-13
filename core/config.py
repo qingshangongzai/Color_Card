@@ -443,6 +443,29 @@ class ConfigManager:
 
         return False
 
+    def update_favorite(self, favorite_id: str, palette_data: dict) -> bool:
+        """更新整个收藏配色
+
+        Args:
+            favorite_id: 收藏ID
+            palette_data: 新的配色数据
+
+        Returns:
+            bool: 是否更新成功
+        """
+        if "favorites" not in self._config:
+            return False
+
+        favorites = self._config["favorites"]
+        for fav in favorites:
+            if fav.get("id") == favorite_id:
+                # 更新名称和颜色，保留ID和创建时间
+                fav['name'] = palette_data.get('name', fav.get('name', ''))
+                fav['colors'] = palette_data.get('colors', fav.get('colors', []))
+                return True
+
+        return False
+
 
 class SceneConfigManager:
     """场景配置管理器，处理预览场景配置的加载、保存和导入导出"""

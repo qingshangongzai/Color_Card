@@ -240,6 +240,7 @@ color_card/
 │   ├── about_dialog.py    # 关于对话框
 │   ├── colorblind_dialog.py # 色盲模拟预览对话框
 │   ├── contrast_dialog.py # 对比度检查对话框
+│   ├── edit_palette.py    # 编辑配色对话框（添加/编辑配色）
 │   └── update_dialog.py   # 更新检查对话框
 └── utils/                 # 工具函数模块目录
     ├── __init__.py

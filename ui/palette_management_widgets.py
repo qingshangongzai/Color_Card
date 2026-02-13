@@ -391,6 +391,7 @@ class PaletteManagementCard(CardWidget):
     contrast_requested = Signal(dict)  # favorite_data
     color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
     preview_in_panel_requested = Signal(dict)  # favorite_data (在配色预览面板中预览)
+    edit_requested = Signal(dict)  # favorite_data (编辑配色)
     MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
 
     def __init__(self, favorite_data: dict, parent=None):
@@ -458,6 +459,12 @@ class PaletteManagementCard(CardWidget):
         self.preview_button.setFixedSize(28, 28)
         self.preview_button.clicked.connect(self._on_preview_clicked)
         button_layout.addWidget(self.preview_button)
+
+        # 管理按钮（编辑配色）
+        self.edit_button = ToolButton(FluentIcon.SETTING)
+        self.edit_button.setFixedSize(28, 28)
+        self.edit_button.clicked.connect(self._on_edit_clicked)
+        button_layout.addWidget(self.edit_button)
 
         # 重命名按钮
         self.rename_button = ToolButton(FluentIcon.EDIT)
@@ -644,6 +651,10 @@ class PaletteManagementCard(CardWidget):
         """对比度检查按钮点击"""
         self.contrast_requested.emit(self._favorite_data)
 
+    def _on_edit_clicked(self):
+        """管理按钮点击（编辑配色）"""
+        self.edit_requested.emit(self._favorite_data)
+
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
         self._hex_visible = visible
@@ -676,6 +687,7 @@ class PaletteManagementList(QWidget):
     favorite_contrast = Signal(dict)  # favorite_data
     favorite_color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
     favorite_preview_in_panel = Signal(dict)  # favorite_data (在配色预览面板中预览)
+    favorite_edit = Signal(dict)  # favorite_data (编辑配色)
 
     def __init__(self, parent=None):
         self._favorites = []
@@ -769,6 +781,7 @@ class PaletteManagementList(QWidget):
             card.contrast_requested.connect(self._on_contrast_requested)
             card.color_changed.connect(self._on_color_changed)
             card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
+            card.edit_requested.connect(self._on_edit_requested)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
 
@@ -816,6 +829,14 @@ class PaletteManagementList(QWidget):
             color_info: 新的颜色信息
         """
         self.favorite_color_changed.emit(favorite_id, color_index, color_info)
+
+    def _on_edit_requested(self, favorite_data):
+        """编辑请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_edit.emit(favorite_data)
 
     def set_hex_visible(self, visible):
         """设置是否显示16进制颜色值"""
