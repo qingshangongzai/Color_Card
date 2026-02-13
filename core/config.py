@@ -326,8 +326,10 @@ class ConfigManager:
                     elif isinstance(color_info, str):
                         hex_colors.append(color_info)
                 if hex_colors:
+                    # 使用时间戳格式生成唯一配色名称
+                    palette_timestamp = now.strftime('%Y-%m-%d %H:%M')
                     palettes.append({
-                        "name": fav.get("name", "未命名"),
+                        "name": f"配色 {palette_timestamp}",
                         "colors": hex_colors
                     })
             export_data = {
