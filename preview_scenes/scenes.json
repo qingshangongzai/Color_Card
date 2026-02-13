@@ -317,7 +317,7 @@
     },
     {
       "id": "magazine",
-      "name": "杂志排版",
+      "name": "杂志",
       "type": "configurable",
       "description": "杂志风格排版预览，包含大标题、副标题、正文段落和引用块",
       "icon": "book",
