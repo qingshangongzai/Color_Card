@@ -1836,10 +1836,11 @@ class PaletteManagementInterface(QWidget):
 
     def _on_export_clicked(self):
         """导出按钮点击"""
+        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "导出收藏",
-            "color_card_favorites.json",
+            default_name,
             "JSON 文件 (*.json);;所有文件 (*)"
         )
 
