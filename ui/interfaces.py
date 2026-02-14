@@ -1561,6 +1561,8 @@ class ColorGenerationInterface(QWidget):
 
         # 计算色相变化量
         delta_h = h - self._base_hue
+        # 计算饱和度变化量
+        delta_s = s - self._base_saturation
 
         # 更新基准点
         self._base_hue = h
@@ -1572,6 +1574,11 @@ class ColorGenerationInterface(QWidget):
                 old_h, old_s, old_b = self._scheme_colors[i]
                 new_h = (old_h + delta_h) % 360
                 self._scheme_colors[i] = (new_h, old_s, old_b)
+
+        # 饱和度变化：更新 _scheme_colors[0]（基准点）
+        if delta_s != 0 and self._scheme_colors:
+            old_h, old_s, old_b = self._scheme_colors[0]
+            self._scheme_colors[0] = (old_h, s, old_b)
 
         # 更新色轮显示
         self.color_wheel.set_base_color(self._base_hue, self._base_saturation, self._base_brightness)
