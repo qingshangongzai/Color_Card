@@ -717,6 +717,8 @@ class SettingsInterface(QWidget):
     saturation_threshold_changed = Signal(int)
     # 信号：明度阈值改变
     brightness_threshold_changed = Signal(int)
+    # 信号：色环标签显示开关状态改变
+    color_wheel_labels_visible_changed = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -731,6 +733,7 @@ class SettingsInterface(QWidget):
         self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
         self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
+        self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
         self.setup_ui()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -839,8 +842,25 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.highlight_group)
 
-        # 配色方案设置分组
-        self.color_scheme_group = SettingCardGroup("配色方案设置", self.content_widget)
+        # 色环显示设置分组
+        self.color_wheel_group = SettingCardGroup("色环显示设置", self.content_widget)
+
+        # 色环标签显示开关卡片
+        self.color_wheel_labels_card = self._create_switch_card(
+            FluentIcon.PALETTE,
+            "显示色环标签",
+            "在色环周围显示色相名称标签",
+            self._color_wheel_labels_visible
+        )
+        self.color_wheel_labels_card.switch_button.checkedChanged.connect(
+            self._on_color_wheel_labels_visible_changed
+        )
+        self.color_wheel_group.addSettingCard(self.color_wheel_labels_card)
+
+        layout.addWidget(self.color_wheel_group)
+
+        # 配色生成方案设置分组
+        self.color_scheme_group = SettingCardGroup("配色生成方案", self.content_widget)
 
         # 色轮模式卡片
         self.color_wheel_mode_card = self._create_color_wheel_mode_card()
@@ -1246,6 +1266,13 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.brightness_threshold', value)
         self._config_manager.save()
         self.brightness_threshold_changed.emit(value)
+
+    def _on_color_wheel_labels_visible_changed(self, checked):
+        """色环标签显示开关状态改变"""
+        self._color_wheel_labels_visible = checked
+        self._config_manager.set('settings.color_wheel_labels_visible', checked)
+        self._config_manager.save()
+        self.color_wheel_labels_visible_changed.emit(checked)
 
     def _update_styles(self):
         """更新样式以适配主题"""

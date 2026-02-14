@@ -12,12 +12,14 @@ from core import rgb_to_hsb
 from .theme_colors import (
     get_wheel_bg_color, get_wheel_border_color, get_wheel_text_color,
     get_wheel_selector_border_color, get_wheel_selector_inner_color,
-    get_wheel_line_color
+    get_wheel_line_color, get_wheel_label_color
 )
 
 
 class HSBColorWheel(QWidget):
     """HSB色环组件 - 显示采样点在HSB色彩空间中的位置（不可编辑）"""
+
+    _labels_visible = True  # 类变量，控制标签显示
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,6 +35,15 @@ class HSBColorWheel(QWidget):
         self._wheel_cache = None  # 色环背景缓存
         self._cache_valid = False  # 缓存是否有效
         self._cached_theme = None  # 缓存时的主题
+
+    @classmethod
+    def set_labels_visible(cls, visible: bool):
+        """设置标签显示状态
+
+        Args:
+            visible: 是否显示标签
+        """
+        cls._labels_visible = visible
 
     def set_sample_colors(self, colors):
         """设置采样点颜色
@@ -212,6 +223,9 @@ class HSBColorWheel(QWidget):
         # 绘制标题
         self._draw_title(painter)
 
+        # 绘制色相标签
+        self._draw_hue_labels(painter)
+
     def _draw_sample_points(self, painter):
         """绘制采样点"""
         if not self._sample_colors:
@@ -255,6 +269,56 @@ class HSBColorWheel(QWidget):
         title = "HSB色环"
         painter.drawText(10, 20, title)
 
+    def _draw_hue_labels(self, painter):
+        """绘制色相标签（每隔30度一个）"""
+        if not self._labels_visible:
+            return
+
+        # 色相名称映射（12个，每隔30度）
+        hue_labels = [
+            (0, "红"),
+            (30, "橙红"),
+            (60, "黄"),
+            (90, "黄绿"),
+            (120, "绿"),
+            (150, "青绿"),
+            (180, "青"),
+            (210, "青蓝"),
+            (240, "蓝"),
+            (270, "紫"),
+            (300, "品红"),
+            (330, "紫红"),
+        ]
+
+        # 设置字体和颜色
+        font = QFont()
+        font.setPointSize(5)
+        painter.setFont(font)
+        painter.setPen(get_wheel_label_color())
+
+        # 标签距离色环边缘的边距
+        label_margin = 8
+        label_radius = self._wheel_radius + label_margin
+
+        for angle, label in hue_labels:
+            # 计算标签位置（注意Y轴翻转）
+            rad = math.radians(angle)
+            x = self._center_x + label_radius * math.cos(rad)
+            y = self._center_y - label_radius * math.sin(rad)
+
+            # 计算文本尺寸
+            text_rect = painter.fontMetrics().boundingRect(label)
+            text_width = text_rect.width()
+            text_height = text_rect.height()
+
+            # 调整坐标使文本中心对准圆周上的点
+            text_x = int(x - text_width / 2)
+            text_y = int(y - text_height / 2)
+
+            # 绘制文本
+            painter.drawText(text_x, text_y, text_width, text_height,
+                           Qt.AlignmentFlag.AlignCenter, label)
+
     def resizeEvent(self, event):
         """窗口大小改变时重新计算几何参数"""
         super().resizeEvent(event)
@@ -267,6 +331,8 @@ class InteractiveColorWheel(QWidget):
 
     base_color_changed = Signal(float, float, float)
     scheme_color_changed = Signal(int, float, float, float)
+
+    _labels_visible = True  # 类变量，控制标签显示
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -296,6 +362,15 @@ class InteractiveColorWheel(QWidget):
         # 选中和拖动状态
         self._selected_point_index = -1
         self._dragging_point_index = -1
+
+    @classmethod
+    def set_labels_visible(cls, visible: bool):
+        """设置标签显示状态
+
+        Args:
+            visible: 是否显示标签
+        """
+        cls._labels_visible = visible
 
     def set_base_color(self, h: float, s: float, b: float):
         """设置基准颜色
@@ -357,8 +432,8 @@ class InteractiveColorWheel(QWidget):
 
     def _calculate_wheel_geometry(self):
         """计算色环几何参数"""
-        # 使用较小的边距，让色轮占据更多空间
-        margin = 10
+        # 预留足够边距容纳标签（标签在色环外8px，再加5px缓冲）
+        margin = 20
         available_size = min(self.width(), self.height()) - margin * 2
         # 确保半径至少为10，避免负数或零
         self._wheel_radius = max(10, available_size // 2)
@@ -551,6 +626,59 @@ class InteractiveColorWheel(QWidget):
 
         # 最后绘制选择器（在最上层）
         self._draw_selector(painter)
+
+        # 绘制色相标签
+        self._draw_hue_labels(painter)
+
+    def _draw_hue_labels(self, painter):
+        """绘制色相标签（每隔30度一个）"""
+        if not self._labels_visible:
+            return
+
+        # 色相名称映射（12个，每隔30度）
+        hue_labels = [
+            (0, "红"),
+            (30, "橙红"),
+            (60, "黄"),
+            (90, "黄绿"),
+            (120, "绿"),
+            (150, "青绿"),
+            (180, "青"),
+            (210, "青蓝"),
+            (240, "蓝"),
+            (270, "紫"),
+            (300, "品红"),
+            (330, "紫红"),
+        ]
+
+        # 设置字体和颜色
+        font = QFont()
+        font.setPointSize(5)
+        painter.setFont(font)
+        painter.setPen(get_wheel_label_color())
+
+        # 标签距离色环边缘的边距
+        label_margin = 8
+        label_radius = self._wheel_radius + label_margin
+
+        for angle, label in hue_labels:
+            # 计算标签位置（注意Y轴翻转）
+            rad = math.radians(angle)
+            x = self._center_x + label_radius * math.cos(rad)
+            y = self._center_y - label_radius * math.sin(rad)
+
+            # 计算文本尺寸
+            text_rect = painter.fontMetrics().boundingRect(label)
+            text_width = text_rect.width()
+            text_height = text_rect.height()
+
+            # 调整坐标使文本中心对准圆周上的点
+            text_x = int(x - text_width / 2)
+            text_y = int(y - text_height / 2)
+
+            # 绘制文本
+            painter.drawText(text_x, text_y, text_width, text_height,
+                           Qt.AlignmentFlag.AlignCenter, label)
 
     def _draw_scheme_points(self, painter):
         """绘制配色颜色点及连线"""

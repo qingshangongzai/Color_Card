@@ -104,6 +104,11 @@ def get_wheel_line_color(selected=False):
     return QColor(255, 255, 255, 200) if selected else QColor(255, 255, 255, 128)
 
 
+def get_wheel_label_color():
+    """获取色轮标签颜色 - 固定灰色 #969696"""
+    return QColor(150, 150, 150)
+
+
 # ========== 直方图颜色 ==========
 def get_histogram_grid_color():
     """获取直方图网格颜色"""

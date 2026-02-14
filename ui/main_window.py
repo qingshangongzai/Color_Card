@@ -13,7 +13,7 @@ from version import version_manager
 from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
-from .color_wheel import HSBColorWheel
+from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .canvases import ImageCanvas, LuminanceCanvas
 
 
@@ -525,6 +525,14 @@ class MainWindow(FluentWindow):
         # 连接明度阈值改变信号到色彩提取界面
         self.settings_interface.brightness_threshold_changed.connect(
             self._on_brightness_threshold_changed
+        )
+
+        # 连接色环标签显示开关信号
+        self.settings_interface.color_wheel_labels_visible_changed.connect(
+            lambda visible: HSBColorWheel.set_labels_visible(visible)
+        )
+        self.settings_interface.color_wheel_labels_visible_changed.connect(
+            lambda visible: InteractiveColorWheel.set_labels_visible(visible)
         )
 
         # 连接16进制显示开关信号到配色管理界面
