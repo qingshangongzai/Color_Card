@@ -38,8 +38,9 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(cat version.txt | tr -d '[:space:]')
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        VERSION=$(head -n 1 version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        echo "Debug: version content is: '$VERSION'"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
     
     - name: Build Mac App with PyInstaller
       run: |
