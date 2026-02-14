@@ -1525,10 +1525,34 @@ class ColorGenerationInterface(QWidget):
         self._generate_scheme_colors()
 
     def on_base_color_changed(self, h, s, b):
-        """基准颜色改变回调"""
+        """基准颜色改变回调
+
+        色相变化时，所有采样点跟随旋转；
+        饱和度变化时，仅基准点变化，其他采样点保持原位。
+        """
+        from core import hsb_to_rgb
+
+        # 计算色相变化量
+        delta_h = h - self._base_hue
+
+        # 更新基准点
         self._base_hue = h
         self._base_saturation = s
-        self._generate_scheme_colors()
+
+        # 色相变化：所有采样点跟着旋转
+        if delta_h != 0 and self._scheme_colors:
+            for i in range(len(self._scheme_colors)):
+                old_h, old_s, old_b = self._scheme_colors[i]
+                new_h = (old_h + delta_h) % 360
+                self._scheme_colors[i] = (new_h, old_s, old_b)
+
+        # 更新色轮显示
+        self.color_wheel.set_base_color(self._base_hue, self._base_saturation, self._base_brightness)
+        self.color_wheel.set_scheme_colors(self._scheme_colors)
+
+        # 更新色块面板
+        colors = [hsb_to_rgb(h_val, s_val, b_val) for h_val, s_val, b_val in self._scheme_colors]
+        self.color_panel.set_colors(colors)
 
     def on_scheme_color_changed(self, index, h, s, b):
         """配色采样点颜色改变回调
