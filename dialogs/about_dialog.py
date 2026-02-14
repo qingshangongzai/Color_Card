@@ -208,8 +208,8 @@ class AboutDialog(QDialog):
 【第三方开源库使用说明】
   • 本程序基于 PySide6 架构开发
     版权所有：The Qt Company
+    Qt官网：https://www.qt.io/
     许可证：LGPL v3
-    项目地址：https://www.qt.io/
 
   • 本程序 UI 组件使用 PySide6-Fluent-Widgets
     版权所有：zhiyiYo
@@ -223,19 +223,22 @@ class AboutDialog(QDialog):
 
   • 本程序使用 Pillow 库处理图像
     版权所有：Python Imaging Library Team
-    许可证：MIT
+    许可证：MIT-CMU License
     项目地址：https://github.com/python-pillow/Pillow
+    官网：https://python-pillow.github.io/
 
   • 本程序使用 numpy 库进行数值计算
     版权所有：NumPy Developers
     许可证：BSD-3-Clause
     项目地址：https://github.com/numpy/numpy
+    官网：https://numpy.org/
 
 【开源配色方案使用说明】
   • Open Color 配色方案
     版权所有：heeyeun (Yeun)
     许可证：MIT License
     项目地址：https://github.com/yeun/open-color
+    官网：https://yeun.github.io/open-color/
 
   • Nice Color Palettes 配色方案
     版权所有：Experience-Monks
@@ -246,6 +249,7 @@ class AboutDialog(QDialog):
     版权所有：Tailwind Labs, Inc.
     许可证：MIT License
     项目地址：https://github.com/tailwindlabs/tailwindcss
+    官网：https://tailwindcss.com
 
   • Material Design Colors 配色方案
     版权所有：Google LLC
@@ -256,6 +260,7 @@ class AboutDialog(QDialog):
     版权所有：Cynthia Brewer
     许可证：Apache License 2.0
     项目地址：https://colorbrewer2.org/
+    官网：https://colorbrewer2.org/
 
   • Radix UI Colors 配色方案
     版权所有：WorkOS
@@ -286,6 +291,7 @@ class AboutDialog(QDialog):
     版权所有：Catppuccin 团队
     许可证：MIT License
     项目地址：https://github.com/catppuccin/catppuccin
+    官网：https://catppuccin.com/
 
   • Gruvbox 配色方案
     版权所有：Pavel Pertsev
@@ -304,13 +310,14 @@ class AboutDialog(QDialog):
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
   • 本程序使用 UPX 工具压缩可执行文件体积
-    版权所有：UPX Team
-    许可证：GPL-2.0+
+    版权所有：Markus Oberhumer, Laszlo Molnar, John Reiser
+    许可证：GPL-2.0+ with special exceptions
+    项目地址：https://github.com/upx/upx
     官网：https://upx.github.io/
 
   • 本程序使用 Inno Setup 工具将独立的可执行文件打包为安装程序
     版权所有：Jordan Russell
-    许可证：基于修改的 BSD 许可证
+    许可证：Modified BSD
     官网：https://jrsoftware.org/isinfo.php
 
 【特别鸣谢】
