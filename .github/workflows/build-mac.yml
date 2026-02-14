@@ -48,13 +48,19 @@ jobs:
           --name "ColorCard" \
           --windowed \
           --onefile \
-          --icon logo/ColorCard_logo.ico \
           --add-data "color_data:color_data" \
           --add-data "preview_scenes:preview_scenes" \
           --add-data "logo:logo" \
           --osx-bundle-identifier "com.hxiaostudio.colorcard" \
           --clean \
           main.py
+    
+    - name: Check build output
+      run: |
+        echo "Checking dist directory..."
+        ls -la dist/
+        echo "Checking if ColorCard exists..."
+        ls -la dist/ColorCard || echo "ColorCard not found"
     
     - name: Create DMG
       run: |
@@ -66,7 +72,7 @@ jobs:
         cp dist/ColorCard dist/dmg/ColorCard.app/Contents/MacOS/
         
         # 创建 Info.plist
-        cat > dist/dmg/ColorCard.app/Contents/Info.plist << 'EOF'
+        cat > dist/dmg/ColorCard.app/Contents/Info.plist << EOF
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
