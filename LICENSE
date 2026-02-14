@@ -1054,7 +1054,37 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-7. Tailwind CSS Colors
+7. Nice Color Palettes
+--------------------------------------------------------------------------------
+版权所有：Jam3
+项目地址：https://github.com/Experience-Monks/nice-color-palettes
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+The MIT License (MIT)
+Copyright (c) 2016 Jam3
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+8. Tailwind CSS Colors
 --------------------------------------------------------------------------------
 版权所有：Tailwind Labs, Inc.
 项目地址：https://github.com/tailwindlabs/tailwindcss
@@ -1084,36 +1114,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-================================================================================
-8. Nice Color Palettes
---------------------------------------------------------------------------------
-版权所有：Jam3
-项目地址：https://github.com/Experience-Monks/nice-color-palettes
-许可证：MIT License
-用途：内置色彩配色方案
-
---------------------------------------------------------------------------------
-The MIT License (MIT)
-Copyright (c) 2016 Jam3
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
 9. Material Design Colors (Apache License 2.0)
@@ -1205,7 +1205,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-14. Dracula
+13. Dracula
 ---------------------------------------------------------------------------------
 版权所有：Dracula Theme contributors
 官网：https://draculatheme.com/
@@ -1236,7 +1236,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
-15. Rosé Pine
+14. Rosé Pine
 ---------------------------------------------------------------------------------
 版权所有：Rosé Pine 团队
 项目地址：https://github.com/rose-pine/rose-pine-theme
@@ -1268,7 +1268,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-16. Solarized
+15. Solarized
 --------------------------------------------------------------------------------
 版权所有：Ethan Schoonover
 项目地址：https://github.com/altercation/solarized
@@ -1361,7 +1361,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
-19. Tokyo Night
+18. Tokyo Night
 --------------------------------------------------------------------------------
 版权所有：enkia
 项目地址：https://github.com/enkia/tokyo-night-vscode-theme
