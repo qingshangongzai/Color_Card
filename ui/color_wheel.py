@@ -12,12 +12,14 @@ from core import rgb_to_hsb
 from .theme_colors import (
     get_wheel_bg_color, get_wheel_border_color, get_wheel_text_color,
     get_wheel_selector_border_color, get_wheel_selector_inner_color,
-    get_wheel_line_color
+    get_wheel_line_color, get_wheel_label_color
 )
 
 
 class HSBColorWheel(QWidget):
     """HSB色环组件 - 显示采样点在HSB色彩空间中的位置（不可编辑）"""
+
+    _labels_visible = True  # 类变量，控制标签显示
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,6 +35,15 @@ class HSBColorWheel(QWidget):
         self._wheel_cache = None  # 色环背景缓存
         self._cache_valid = False  # 缓存是否有效
         self._cached_theme = None  # 缓存时的主题
+
+    @classmethod
+    def set_labels_visible(cls, visible: bool):
+        """设置标签显示状态
+
+        Args:
+            visible: 是否显示标签
+        """
+        cls._labels_visible = visible
 
     def set_sample_colors(self, colors):
         """设置采样点颜色
@@ -199,10 +210,11 @@ class HSBColorWheel(QWidget):
         # 检查是否需要重新生成缓存
         current_theme = isDarkTheme()
         if not self._cache_valid or self._cached_theme != current_theme:
+            # 同步生成缓存，避免闪烁
             self._generate_wheel_cache()
 
-        # 绘制缓存的色环背景
         if self._wheel_cache:
+            # 绘制缓存的色环背景
             painter.drawPixmap(0, 0, self._wheel_cache)
 
         # 绘制采样点
@@ -210,6 +222,9 @@ class HSBColorWheel(QWidget):
 
         # 绘制标题
         self._draw_title(painter)
+
+        # 绘制色相标签
+        self._draw_hue_labels(painter)
 
     def _draw_sample_points(self, painter):
         """绘制采样点"""
@@ -254,6 +269,56 @@ class HSBColorWheel(QWidget):
         title = "HSB色环"
         painter.drawText(10, 20, title)
 
+    def _draw_hue_labels(self, painter):
+        """绘制色相标签（每隔30度一个）"""
+        if not self._labels_visible:
+            return
+
+        # 色相名称映射（12个，每隔30度）
+        hue_labels = [
+            (0, "红"),
+            (30, "橙红"),
+            (60, "黄"),
+            (90, "黄绿"),
+            (120, "绿"),
+            (150, "青绿"),
+            (180, "青"),
+            (210, "青蓝"),
+            (240, "蓝"),
+            (270, "紫"),
+            (300, "品红"),
+            (330, "紫红"),
+        ]
+
+        # 设置字体和颜色
+        font = QFont()
+        font.setPointSize(5)
+        painter.setFont(font)
+        painter.setPen(get_wheel_label_color())
+
+        # 标签距离色环边缘的边距
+        label_margin = 8
+        label_radius = self._wheel_radius + label_margin
+
+        for angle, label in hue_labels:
+            # 计算标签位置（注意Y轴翻转）
+            rad = math.radians(angle)
+            x = self._center_x + label_radius * math.cos(rad)
+            y = self._center_y - label_radius * math.sin(rad)
+
+            # 计算文本尺寸
+            text_rect = painter.fontMetrics().boundingRect(label)
+            text_width = text_rect.width()
+            text_height = text_rect.height()
+
+            # 调整坐标使文本中心对准圆周上的点
+            text_x = int(x - text_width / 2)
+            text_y = int(y - text_height / 2)
+
+            # 绘制文本
+            painter.drawText(text_x, text_y, text_width, text_height,
+                           Qt.AlignmentFlag.AlignCenter, label)
+
     def resizeEvent(self, event):
         """窗口大小改变时重新计算几何参数"""
         super().resizeEvent(event)
@@ -262,10 +327,12 @@ class HSBColorWheel(QWidget):
 
 
 class InteractiveColorWheel(QWidget):
-    """可交互的HSB色环组件 - 支持拖动选择基准色并显示配色方案点"""
+    """可交互的HSB色环组件 - 支持拖动选择基准色并显示配色点"""
 
     base_color_changed = Signal(float, float, float)
     scheme_color_changed = Signal(int, float, float, float)
+
+    _labels_visible = True  # 类变量，控制标签显示
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -286,15 +353,24 @@ class InteractiveColorWheel(QWidget):
         self._cache_valid = False
         self._cached_theme = None
 
-        # 配色方案颜色点列表 [(h, s, b), ...]
+        # 配色颜色点列表 [(h, s, b), ...]
         self._scheme_colors = []
 
-        # 全局明度调整值 (-100 到 +100)
-        self._global_brightness = 0
+        # 全局明度值 (10-100)，直接对应HSB的B值百分比
+        self._global_brightness = 100
 
         # 选中和拖动状态
         self._selected_point_index = -1
         self._dragging_point_index = -1
+
+    @classmethod
+    def set_labels_visible(cls, visible: bool):
+        """设置标签显示状态
+
+        Args:
+            visible: 是否显示标签
+        """
+        cls._labels_visible = visible
 
     def set_base_color(self, h: float, s: float, b: float):
         """设置基准颜色
@@ -318,7 +394,7 @@ class InteractiveColorWheel(QWidget):
         return self._base_hue, self._base_saturation, self._base_brightness
 
     def set_scheme_colors(self, colors: list):
-        """设置配色方案颜色点
+        """设置配色颜色点
 
         Args:
             colors: HSB颜色列表 [(h, s, b), ...]
@@ -327,17 +403,17 @@ class InteractiveColorWheel(QWidget):
         self.update()
 
     def clear_scheme_colors(self):
-        """清除配色方案颜色点"""
+        """清除配色颜色点"""
         self._scheme_colors = []
         self.update()
 
     def set_global_brightness(self, brightness: int):
-        """设置全局明度调整值
+        """设置全局明度值
 
         Args:
-            brightness: 明度调整值 (-100 到 +100)
+            brightness: 明度值 (10-100)，直接对应HSB的B值百分比
         """
-        self._global_brightness = max(-100, min(100, brightness))
+        self._global_brightness = max(10, min(100, brightness))
         self._invalidate_cache()  # 使缓存失效，重新生成色轮
         self.update()
 
@@ -356,8 +432,8 @@ class InteractiveColorWheel(QWidget):
 
     def _calculate_wheel_geometry(self):
         """计算色环几何参数"""
-        # 使用较小的边距，让色轮占据更多空间
-        margin = 10
+        # 预留足够边距容纳标签（标签在色环外8px，再加5px缓冲）
+        margin = 20
         available_size = min(self.width(), self.height()) - margin * 2
         # 确保半径至少为10，避免负数或零
         self._wheel_radius = max(10, available_size // 2)
@@ -497,8 +573,8 @@ class InteractiveColorWheel(QWidget):
         image = QImage(width, height, QImage.Format.Format_ARGB32)
         image.fill(self._get_theme_colors()['bg'].rgb())
 
-        # 计算全局明度因子 (0.1 到 1.0)
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+        # 全局明度值直接作为HSB的B值 (0.1-1.0)
+        brightness_value = self._global_brightness / 100.0
 
         for y in range(height):
             for x in range(width):
@@ -510,8 +586,8 @@ class InteractiveColorWheel(QWidget):
                     angle = math.atan2(-dy, dx)
                     hue = (angle / (2 * math.pi)) % 1.0
                     saturation = min(distance / self._wheel_radius, 1.0)
-                    # 应用全局明度调整
-                    value = brightness_factor
+                    # 使用全局明度值
+                    value = brightness_value
 
                     color = QColor.fromHsvF(hue, saturation, value)
                     image.setPixelColor(x, y, color)
@@ -539,35 +615,89 @@ class InteractiveColorWheel(QWidget):
 
         current_theme = isDarkTheme()
         if not self._cache_valid or self._cached_theme != current_theme:
+            # 同步生成缓存，避免闪烁
             self._generate_wheel_cache()
 
         if self._wheel_cache:
             painter.drawPixmap(0, 0, self._wheel_cache)
 
-        # 先绘制配色方案颜色点
+        # 先绘制配色颜色点
         self._draw_scheme_points(painter)
 
         # 最后绘制选择器（在最上层）
         self._draw_selector(painter)
 
+        # 绘制色相标签
+        self._draw_hue_labels(painter)
+
+    def _draw_hue_labels(self, painter):
+        """绘制色相标签（每隔30度一个）"""
+        if not self._labels_visible:
+            return
+
+        # 色相名称映射（12个，每隔30度）
+        hue_labels = [
+            (0, "红"),
+            (30, "橙红"),
+            (60, "黄"),
+            (90, "黄绿"),
+            (120, "绿"),
+            (150, "青绿"),
+            (180, "青"),
+            (210, "青蓝"),
+            (240, "蓝"),
+            (270, "紫"),
+            (300, "品红"),
+            (330, "紫红"),
+        ]
+
+        # 设置字体和颜色
+        font = QFont()
+        font.setPointSize(5)
+        painter.setFont(font)
+        painter.setPen(get_wheel_label_color())
+
+        # 标签距离色环边缘的边距
+        label_margin = 8
+        label_radius = self._wheel_radius + label_margin
+
+        for angle, label in hue_labels:
+            # 计算标签位置（注意Y轴翻转）
+            rad = math.radians(angle)
+            x = self._center_x + label_radius * math.cos(rad)
+            y = self._center_y - label_radius * math.sin(rad)
+
+            # 计算文本尺寸
+            text_rect = painter.fontMetrics().boundingRect(label)
+            text_width = text_rect.width()
+            text_height = text_rect.height()
+
+            # 调整坐标使文本中心对准圆周上的点
+            text_x = int(x - text_width / 2)
+            text_y = int(y - text_height / 2)
+
+            # 绘制文本
+            painter.drawText(text_x, text_y, text_width, text_height,
+                           Qt.AlignmentFlag.AlignCenter, label)
+
     def _draw_scheme_points(self, painter):
-        """绘制配色方案颜色点及连线"""
+        """绘制配色颜色点及连线"""
         if not self._scheme_colors:
             return
 
         colors = self._get_theme_colors()
         base_point_radius = 8
 
-        # 计算全局明度因子
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
+        # 全局明度值直接作为HSB的B值
+        global_brightness_value = self._global_brightness
 
         for i, (h, s, b) in enumerate(self._scheme_colors):
             # 跳过基准色（第一个点），因为选择器会显示它
             if i == 0:
                 continue
 
-            # 应用全局明度调整
-            adjusted_b = max(10, min(100, b * brightness_factor))
+            # 使用统一的全局明度值，忽略原始配色中的B值
+            adjusted_b = global_brightness_value
 
             # 使用调整后的明度计算位置（明度越低越靠近中心）
             x, y = self._hsb_to_position(h, s, adjusted_b)
@@ -587,7 +717,7 @@ class InteractiveColorWheel(QWidget):
             painter.drawEllipse(x - point_radius, y - point_radius,
                               point_radius * 2, point_radius * 2)
 
-            # 绘制内部颜色（使用调整后的明度）
+            # 绘制内部颜色（使用统一的全局明度）
             from core import hsb_to_rgb
             rgb = hsb_to_rgb(h, s, adjusted_b)
             painter.setPen(Qt.PenStyle.NoPen)
@@ -599,9 +729,8 @@ class InteractiveColorWheel(QWidget):
         """绘制选择器（基准色）及连线"""
         colors = self._get_theme_colors()
 
-        # 计算全局明度因子
-        brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
-        adjusted_brightness = max(10, min(100, self._base_brightness * brightness_factor))
+        # 全局明度值直接作为HSB的B值
+        adjusted_brightness = self._global_brightness
 
         # 使用调整后的明度计算位置
         x, y = self._hsb_to_position(self._base_hue, self._base_saturation, adjusted_brightness)

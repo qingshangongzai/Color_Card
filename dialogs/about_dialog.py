@@ -194,19 +194,22 @@ class AboutDialog(QDialog):
         app_info = version_manager.get_app_info()
         version = version_manager.get_version()
 
-        return f"""　　取色卡（Color Card）是一款专为摄影师开发的图片分析小工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，辅助后期调色和色彩管理。
+        return f"""　　取色卡（Color Card）是一款专为摄影师和设计师开发的图片分析及配色工具，旨在帮助摄影爱好者和专业人士快速分析图像的色彩分布、亮度信息等关键数据，并提供一站式的本地配色解决方案。
+
+        项目功能设计借鉴参考了Adobe Color、色采、palettemakel等优秀的在线配色工具。
 
 【开发团队】
-  • 出品：{app_info['company']}
-  • 开发：{app_info['developer']}
-  • 代码：Trae
-  • 联系邮箱：{app_info['email']}
+  • 出品：浮晓 HXiao Studio
+  • 开发：青山公仔
+  • 代码：Trae、Qoder
+  • logo绘制：青山公仔
+  • 联系邮箱：hxiao_studio@163.com
 
-【开源项目使用说明】
+【第三方开源库使用说明】
   • 本程序基于 PySide6 架构开发
     版权所有：The Qt Company
+    Qt官网：https://www.qt.io/
     许可证：LGPL v3
-    项目地址：https://www.qt.io/
 
   • 本程序 UI 组件使用 PySide6-Fluent-Widgets
     版权所有：zhiyiYo
@@ -220,28 +223,101 @@ class AboutDialog(QDialog):
 
   • 本程序使用 Pillow 库处理图像
     版权所有：Python Imaging Library Team
-    许可证：MIT
+    许可证：MIT-CMU License
     项目地址：https://github.com/python-pillow/Pillow
+    官网：https://python-pillow.github.io/
 
   • 本程序使用 numpy 库进行数值计算
     版权所有：NumPy Developers
     许可证：BSD-3-Clause
     项目地址：https://github.com/numpy/numpy
+    官网：https://numpy.org/
+
+【开源配色方案使用说明】
+  • Open Color 配色方案
+    版权所有：heeyeun (Yeun)
+    许可证：MIT License
+    项目地址：https://github.com/yeun/open-color
+    官网：https://yeun.github.io/open-color/
+
+  • Nice Color Palettes 配色方案
+    版权所有：Jam3
+    许可证：MIT License
+    项目地址：https://github.com/Experience-Monks/nice-color-palettes
+
+  • Tailwind CSS Colors 配色方案
+    版权所有：Tailwind Labs, Inc.
+    许可证：MIT License
+    项目地址：https://github.com/tailwindlabs/tailwindcss
+    官网：https://tailwindcss.com
+
+  • Material Design Colors 配色方案
+    版权所有：Google LLC
+    许可证：Apache License 2.0
+    项目地址：https://m3.material.io/styles/color/system/overview
+
+  • ColorBrewer 配色方案
+    版权所有：Cynthia Brewer
+    许可证：Apache License 2.0
+    项目地址：https://colorbrewer2.org/
+    官网：https://colorbrewer2.org/
+
+  • Radix UI Colors 配色方案
+    版权所有：WorkOS
+    许可证：MIT License
+    项目地址：https://www.radix-ui.com/colors
+
+  • Nord 配色方案
+    版权所有：Sven Greb
+    许可证：MIT License
+    项目地址：https://github.com/arcticicestudio/nord
+
+  • Dracula 配色方案
+    版权所有：Dracula Theme contributors
+    许可证：MIT License
+    项目地址：https://draculatheme.com/
+
+  • Rosé Pine 配色方案
+    版权所有：Rosé Pine 团队
+    许可证：MIT License
+    项目地址：https://github.com/rose-pine/rose-pine-theme
+
+  • Solarized 配色方案
+    版权所有：Ethan Schoonover
+    许可证：MIT License
+    项目地址：https://github.com/altercation/solarized
+
+  • Catppuccin 配色方案
+    版权所有：Catppuccin 团队
+    许可证：MIT License
+    项目地址：https://github.com/catppuccin/catppuccin
+    官网：https://catppuccin.com/
+
+  • Gruvbox 配色方案
+    版权所有：Pavel Pertsev
+    许可证：MIT License
+    项目地址：https://github.com/morhetz/gruvbox
+
+  • Tokyo Night 配色方案
+    版权所有：enkia
+    许可证：MIT License
+    项目地址：https://github.com/enkia/tokyo-night-vscode-theme
 
 【开发工具链】
   • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
     版权所有：Brent Vollebregt
-    许可证：GPL-3.0
+    许可证：MIT
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
   • 本程序使用 UPX 工具压缩可执行文件体积
-    版权所有：UPX Team
-    许可证：GPL-2.0+
+    版权所有：Markus Oberhumer, Laszlo Molnar, John Reiser
+    许可证：GPL-2.0+ with special exceptions
+    项目地址：https://github.com/upx/upx
     官网：https://upx.github.io/
 
   • 本程序使用 Inno Setup 工具将独立的可执行文件打包为安装程序
     版权所有：Jordan Russell
-    许可证：基于修改的 BSD 许可证
+    许可证：Modified BSD
     官网：https://jrsoftware.org/isinfo.php
 
 【特别鸣谢】

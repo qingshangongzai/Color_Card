@@ -10,10 +10,10 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 from core import get_color_info
 from core import get_config_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, FavoritesInterface
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
-from .color_wheel import HSBColorWheel
+from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .canvases import ImageCanvas, LuminanceCanvas
 
 
@@ -138,7 +138,7 @@ class MainWindow(FluentWindow):
 
         self._version = version_manager.get_version()
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
-        self.setMinimumSize(800, 550)
+        self.setMinimumSize(935, 600)
 
         # 加载配置
         self._config_manager = get_config_manager()
@@ -152,13 +152,17 @@ class MainWindow(FluentWindow):
         width = window_config.get('width', 940)
         height = window_config.get('height', 660)
         is_maximized = window_config.get('is_maximized', False)
+        is_fullscreen = window_config.get('is_fullscreen', False)
         self.resize(width, height)
 
+        # 创建所有子界面（避免切换时闪烁），但耗时初始化已延迟
         self.create_sub_interface()
         self.setup_navigation()
 
-        # 如果之前是最大化状态，恢复最大化
-        if is_maximized:
+        # 恢复窗口状态（全屏优先于最大化）
+        if is_fullscreen:
+            self.showFullScreen()
+        elif is_maximized:
             self.showMaximized()
 
         # 设置 F11 快捷键切换全屏
@@ -166,12 +170,14 @@ class MainWindow(FluentWindow):
 
     def closeEvent(self, event):
         """窗口关闭事件，保存配置"""
-        # 保存窗口最大化状态
+        # 保存窗口状态（全屏和最大化需要区分保存）
+        is_fullscreen = self.isFullScreen()
         is_maximized = self.isMaximized()
+        self._config_manager.set('window.is_fullscreen', is_fullscreen)
         self._config_manager.set('window.is_maximized', is_maximized)
 
-        # 保存窗口大小（如果最大化，保存正常尺寸而非最大化尺寸）
-        if is_maximized:
+        # 保存窗口大小（如果最大化或全屏，保存正常尺寸而非当前尺寸）
+        if is_maximized or is_fullscreen:
             normal_geometry = self.normalGeometry()
             self._config_manager.set('window.width', normal_geometry.width())
             self._config_manager.set('window.height', normal_geometry.height())
@@ -183,7 +189,7 @@ class MainWindow(FluentWindow):
         event.accept()
 
     def create_sub_interface(self):
-        """创建子界面"""
+        """创建子界面（耗时初始化已延迟到各界面内部）"""
         # 色彩提取界面
         self.color_extract_interface = ColorExtractInterface(self)
         self.color_extract_interface.setObjectName('colorExtract')
@@ -200,15 +206,25 @@ class MainWindow(FluentWindow):
             self.on_luminance_image_imported
         )
 
-        # 配色方案界面
-        self.color_scheme_interface = ColorSchemeInterface(self)
-        self.color_scheme_interface.setObjectName('colorScheme')
-        self.stackedWidget.addWidget(self.color_scheme_interface)
+        # 配色生成界面
+        self.color_generation_interface = ColorGenerationInterface(self)
+        self.color_generation_interface.setObjectName('colorGeneration')
+        self.stackedWidget.addWidget(self.color_generation_interface)
 
-        # 色卡收藏界面
-        self.favorites_interface = FavoritesInterface(self)
-        self.favorites_interface.setObjectName('favorites')
-        self.stackedWidget.addWidget(self.favorites_interface)
+        # 配色管理界面
+        self.palette_management_interface = PaletteManagementInterface(self)
+        self.palette_management_interface.setObjectName('paletteManagement')
+        self.stackedWidget.addWidget(self.palette_management_interface)
+
+        # 内置色彩界面
+        self.preset_color_interface = PresetColorInterface(self)
+        self.preset_color_interface.setObjectName('presetColor')
+        self.stackedWidget.addWidget(self.preset_color_interface)
+
+        # 配色预览界面
+        self.color_preview_interface = ColorPreviewInterface(self)
+        self.color_preview_interface.setObjectName('colorPreview')
+        self.stackedWidget.addWidget(self.color_preview_interface)
 
         # 设置界面
         self.settings_interface = SettingsInterface(self)
@@ -234,7 +250,7 @@ class MainWindow(FluentWindow):
         # 色彩提取
         self.addSubInterface(
             self.color_extract_interface,
-            FluentIcon.PALETTE,
+            FluentIcon.PHOTO,
             "色彩提取",
             position=NavigationItemPosition.TOP
         )
@@ -247,19 +263,35 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.TOP
         )
 
-        # 配色方案
+        # 配色生成
         self.addSubInterface(
-            self.color_scheme_interface,
+            self.color_generation_interface,
             FluentIcon.PALETTE,
-            "配色方案",
+            "配色生成",
             position=NavigationItemPosition.TOP
         )
 
-        # 色卡收藏
+        # 配色管理
         self.addSubInterface(
-            self.favorites_interface,
+            self.palette_management_interface,
             FluentIcon.HEART,
-            "色卡收藏",
+            "配色管理",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 内置色彩
+        self.addSubInterface(
+            self.preset_color_interface,
+            FluentIcon.BOOK_SHELF,
+            "内置色彩",
+            position=NavigationItemPosition.TOP
+        )
+
+        # 配色预览
+        self.addSubInterface(
+            self.color_preview_interface,
+            FluentIcon.VIEW,
+            "配色预览",
             position=NavigationItemPosition.TOP
         )
 
@@ -279,8 +311,12 @@ class MainWindow(FluentWindow):
         logo_label = QLabel(self.navigationInterface.panel)
         logo_label.setObjectName('logoLabel')
 
-        # 加载 Logo 图标
-        logo_path = 'd:\\青山公仔\\应用\\Py测试\\color_card\\logo\\Color Card_logo.ico'
+        # 加载 Logo 图标 - 使用工具函数获取路径，支持开发和打包环境
+        from utils.icon import get_icon_path
+        logo_path = get_icon_path()
+
+        if not logo_path:
+            return  # 找不到图标时不显示
 
         # 使用 QIcon 加载 ICO 文件以获取最佳分辨率
         from PySide6.QtCore import QSize
@@ -332,11 +368,6 @@ class MainWindow(FluentWindow):
         self.color_extract_interface.rgb_histogram_widget.set_image(image)
         self.color_extract_interface.hue_histogram_widget.set_image(image)
 
-        # 更新窗口标题
-        from pathlib import Path
-        file_name = Path(file_path).stem
-        self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
-
     def sync_image_to_luminance(self, image_path):
         """同步图片路径到明度提取面板（保留用于兼容）"""
         if image_path:
@@ -346,13 +377,6 @@ class MainWindow(FluentWindow):
         """同步图片数据到明度提取面板（避免重复加载）"""
         # emit_sync=False 防止双向同步循环
         self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
-        # 更新窗口标题
-        if hasattr(self.color_extract_interface, '_pending_image_path'):
-            from pathlib import Path
-            file_path = self.color_extract_interface._pending_image_path
-            if file_path:
-                file_name = Path(file_path).stem
-                self.setWindowTitle(f"取色卡 · Color Card · {self._version} · {file_name}")
 
     def sync_clear_to_luminance(self):
         """同步清除明度提取面板"""
@@ -362,7 +386,6 @@ class MainWindow(FluentWindow):
         try:
             self.luminance_extract_interface.luminance_canvas.clear_image()
             self.luminance_extract_interface.histogram_widget.clear()
-            self._reset_window_title()
         finally:
             self._is_clearing = False
 
@@ -374,18 +397,63 @@ class MainWindow(FluentWindow):
         try:
             self.color_extract_interface.image_canvas.clear_image()
             self.color_extract_interface.color_card_panel.clear_all()
-            self._reset_window_title()
         finally:
             self._is_clearing = False
 
-    def _reset_window_title(self):
-        """重置窗口标题"""
-        self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
+    def refresh_palette_management(self):
+        """刷新配色管理面板"""
+        if hasattr(self, 'palette_management_interface'):
+            self.palette_management_interface._load_favorites()
 
-    def refresh_favorites(self):
-        """刷新收藏面板"""
-        if hasattr(self, 'favorites_interface'):
-            self.favorites_interface._load_favorites()
+    def refresh_color_preview(self):
+        """刷新配色预览面板"""
+        if hasattr(self, 'color_preview_interface'):
+            self.color_preview_interface.refresh_favorites()
+
+    def show_color_preview(self, colors: list):
+        """跳转到配色预览页面并显示指定配色
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
+        # 设置配色到预览界面
+        if hasattr(self, 'color_preview_interface'):
+            self.color_preview_interface.set_colors(colors)
+
+        # 切换到配色预览页面
+        self.navigationInterface.setCurrentItem(self.color_preview_interface.objectName())
+        self.stackedWidget.setCurrentWidget(self.color_preview_interface)
+
+    def _on_preset_color_favorite(self, favorite_data: dict):
+        """处理内置色彩界面的收藏请求
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
+        # 保存到配置
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新配色管理界面和配色预览界面
+        self.refresh_palette_management()
+        self.refresh_color_preview()
+
+    def _on_preset_color_preview(self, preview_data: dict):
+        """处理内置色彩界面的预览请求
+
+        Args:
+            preview_data: 预览数据字典，包含 name、colors、source
+        """
+        # 提取颜色值列表（HEX格式）
+        colors = []
+        for color_info in preview_data.get('colors', []):
+            hex_color = color_info.get('hex', '')
+            if hex_color:
+                colors.append(hex_color)
+
+        if colors:
+            # 跳转到配色预览页面并显示配色
+            self.show_color_preview(colors)
 
     def _setup_fullscreen_shortcut(self):
         """设置 F11 快捷键切换全屏"""
@@ -414,14 +482,14 @@ class MainWindow(FluentWindow):
             self.color_extract_interface.color_card_panel.set_color_modes
         )
 
-        # 连接16进制显示开关信号到配色方案面板
+        # 连接16进制显示开关信号到配色生成面板
         self.settings_interface.hex_display_changed.connect(
-            self.color_scheme_interface.update_display_settings
+            self.color_generation_interface.update_display_settings
         )
 
-        # 连接色彩模式改变信号到配色方案面板
+        # 连接色彩模式改变信号到配色生成面板
         self.settings_interface.color_modes_changed.connect(
-            lambda modes: self.color_scheme_interface.update_display_settings(color_modes=modes)
+            lambda modes: self.color_generation_interface.update_display_settings(color_modes=modes)
         )
 
         # 连接色彩提取采样点数改变信号
@@ -439,9 +507,9 @@ class MainWindow(FluentWindow):
             self._on_histogram_scaling_mode_changed
         )
 
-        # 连接色轮模式改变信号到配色方案界面
+        # 连接色轮模式改变信号到配色生成界面
         self.settings_interface.color_wheel_mode_changed.connect(
-            self.color_scheme_interface.set_color_wheel_mode
+            self.color_generation_interface.set_color_wheel_mode
         )
 
         # 连接直方图模式改变信号到色彩提取界面
@@ -449,14 +517,55 @@ class MainWindow(FluentWindow):
             self._on_histogram_mode_changed
         )
 
-        # 连接16进制显示开关信号到收藏界面
-        self.settings_interface.hex_display_changed.connect(
-            lambda visible: self.favorites_interface.update_display_settings(hex_visible=visible)
+        # 连接饱和度阈值改变信号到色彩提取界面
+        self.settings_interface.saturation_threshold_changed.connect(
+            self._on_saturation_threshold_changed
         )
 
-        # 连接色彩模式改变信号到收藏界面
+        # 连接明度阈值改变信号到色彩提取界面
+        self.settings_interface.brightness_threshold_changed.connect(
+            self._on_brightness_threshold_changed
+        )
+
+        # 连接色环标签显示开关信号
+        self.settings_interface.color_wheel_labels_visible_changed.connect(
+            lambda visible: HSBColorWheel.set_labels_visible(visible)
+        )
+        self.settings_interface.color_wheel_labels_visible_changed.connect(
+            lambda visible: InteractiveColorWheel.set_labels_visible(visible)
+        )
+
+        # 连接16进制显示开关信号到配色管理界面
+        self.settings_interface.hex_display_changed.connect(
+            lambda visible: self.palette_management_interface.update_display_settings(hex_visible=visible)
+        )
+
+        # 连接色彩模式改变信号到配色管理界面
         self.settings_interface.color_modes_changed.connect(
-            lambda modes: self.favorites_interface.update_display_settings(color_modes=modes)
+            lambda modes: self.palette_management_interface.update_display_settings(color_modes=modes)
+        )
+
+        # 连接16进制显示开关信号到内置色彩界面
+        self.settings_interface.hex_display_changed.connect(
+            lambda visible: self.preset_color_interface.update_display_settings(hex_visible=visible)
+        )
+
+        # 连接色彩模式改变信号到内置色彩界面
+        self.settings_interface.color_modes_changed.connect(
+            lambda modes: self.preset_color_interface.update_display_settings(color_modes=modes)
+        )
+
+        # 连接16进制显示开关信号到配色预览界面
+        self.settings_interface.hex_display_changed.connect(
+            self.color_preview_interface.set_hex_visible
+        )
+
+        # 连接内置色彩界面的收藏信号
+        self.preset_color_interface.favorite_requested.connect(self._on_preset_color_favorite)
+
+        # 连接内置色彩界面的预览信号
+        self.preset_color_interface.preview_in_panel_requested.connect(
+            self._on_preset_color_preview
         )
 
         # 应用加载的配置到色卡面板
@@ -482,18 +591,27 @@ class MainWindow(FluentWindow):
         self.color_extract_interface.hue_histogram_widget.set_scaling_mode(histogram_scaling_mode)
         self.luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
 
-        # 应用加载的色轮模式配置到配色方案界面
+        # 应用加载的色轮模式配置到配色生成界面
         color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
-        self.color_scheme_interface.set_color_wheel_mode(color_wheel_mode)
+        self.color_generation_interface.set_color_wheel_mode(color_wheel_mode)
 
         # 应用加载的直方图模式配置
         histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self.color_extract_interface.set_histogram_mode(histogram_mode)
 
+        # 应用加载的阈值配置
+        saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
+        self.color_extract_interface.set_saturation_threshold(saturation_threshold)
+
+        brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
+        self.color_extract_interface.set_brightness_threshold(brightness_threshold)
+
     def _on_color_sample_count_changed(self, count):
         """色彩提取采样点数改变"""
-        self.color_extract_interface.image_canvas.set_picker_count(count)
+        # 先更新色卡数量，确保新色卡已创建
         self.color_extract_interface.color_card_panel.set_card_count(count)
+        # 再更新取色点数量（这会触发 extract_all，发射 color_picked 信号）
+        self.color_extract_interface.image_canvas.set_picker_count(count)
         # 更新HSB色环的采样点数量
         self.color_extract_interface.hsb_color_wheel.set_sample_count(count)
 
@@ -515,3 +633,11 @@ class MainWindow(FluentWindow):
     def _on_histogram_mode_changed(self, mode):
         """直方图显示模式改变"""
         self.color_extract_interface.set_histogram_mode(mode)
+
+    def _on_saturation_threshold_changed(self, value):
+        """饱和度阈值改变"""
+        self.color_extract_interface.set_saturation_threshold(value)
+
+    def _on_brightness_threshold_changed(self, value):
+        """明度阈值改变"""
+        self.color_extract_interface.set_brightness_threshold(value)

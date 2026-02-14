@@ -5,7 +5,7 @@ import colorsys
 import math
 from typing import List, Optional
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen
+from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen, QMouseEvent
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
@@ -460,7 +460,17 @@ class LuminanceHistogramWidget(BaseHistogram):
 
 
 class RGBHistogramWidget(BaseHistogram):
-    """RGB直方图组件 - 显示图片的RGB三通道分布"""
+    """RGB直方图组件 - 显示图片的RGB三通道分布
+
+    支持RGB通道切换功能，可以单独显示红色、绿色或蓝色通道，
+    也可以同时显示三个通道。
+
+    信号：
+        display_mode_changed: 显示模式改变时发射，参数为新的模式字符串
+    """
+
+    # 显示模式改变信号
+    display_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -472,9 +482,18 @@ class RGBHistogramWidget(BaseHistogram):
         self._histogram_g = [0] * 256
         self._histogram_b = [0] * 256
 
+        # 显示模式："rgb"-显示全部通道, "r"-仅红色, "g"-仅绿色, "b"-仅蓝色
+        self._display_mode = "rgb"
+
         # 调整边距以适应标题和图例
         self._margin_top = 25  # 顶部留空间给标题
         self._margin_right = 10
+
+        # 通道按钮参数
+        self._btn_size = 12  # 按钮尺寸 12x12
+        self._btn_spacing = 4  # 按钮间距
+        self._btn_margin_right = 10  # 距离右边距
+        self._btn_margin_top = 5  # 距离顶部边距
 
     def set_image(self, image):
         """设置图片并计算RGB直方图
@@ -498,8 +517,29 @@ class RGBHistogramWidget(BaseHistogram):
         self._histogram_b = [0] * 256
         super().clear()
 
+    def set_display_mode(self, mode: str):
+        """设置RGB直方图的显示模式
+
+        Args:
+            mode: 显示模式，可选值为：
+                - "rgb": 显示R、G、B三个通道（默认）
+                - "r": 只显示红色通道
+                - "g": 只显示绿色通道
+                - "b": 只显示蓝色通道
+        """
+        if mode in ("rgb", "r", "g", "b") and mode != self._display_mode:
+            self._display_mode = mode
+            self.display_mode_changed.emit(mode)
+            self.update()
+
     def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制RGB直方图
+
+        根据当前显示模式绘制通道：
+        - "rgb": 绘制R、G、B三个通道
+        - "r": 只绘制红色通道
+        - "g": 只绘制绿色通道
+        - "b": 只绘制蓝色通道
 
         三条曲线叠加显示：R（红色）、G（绿色）、B（蓝色）
         """
@@ -509,12 +549,25 @@ class RGBHistogramWidget(BaseHistogram):
         # 每个亮度值对应的宽度
         bar_width = width / 256.0
 
-        # 绘制三个通道的直方图（从后往前绘制，确保重叠区域可见）
-        channels = [
-            (self._histogram_b, get_histogram_blue_color(180)),   # 蓝色通道（最底层）
-            (self._histogram_g, get_histogram_green_color(180)),  # 绿色通道
-            (self._histogram_r, get_histogram_red_color(180)),    # 红色通道（最顶层）
-        ]
+        # 根据显示模式筛选要绘制的通道
+        # 通道按顺序从后往前绘制，确保重叠区域可见
+        channels = []
+        if self._display_mode == "rgb":
+            # 显示全部三个通道
+            channels = [
+                (self._histogram_b, get_histogram_blue_color(180)),   # 蓝色通道（最底层）
+                (self._histogram_g, get_histogram_green_color(180)),  # 绿色通道
+                (self._histogram_r, get_histogram_red_color(180)),    # 红色通道（最顶层）
+            ]
+        elif self._display_mode == "r":
+            # 只显示红色通道
+            channels = [(self._histogram_r, get_histogram_red_color(180))]
+        elif self._display_mode == "g":
+            # 只显示绿色通道
+            channels = [(self._histogram_g, get_histogram_green_color(180))]
+        elif self._display_mode == "b":
+            # 只显示蓝色通道
+            channels = [(self._histogram_b, get_histogram_blue_color(180))]
 
         for histogram, color in channels:
             painter.setPen(Qt.PenStyle.NoPen)
@@ -540,19 +593,113 @@ class RGBHistogramWidget(BaseHistogram):
                     painter.drawRect(int(bar_x), int(bar_y), current_bar_width, int(bar_height))
 
     def _draw_custom_overlay(self, painter: QPainter, x: int, y: int, width: int, height: int):
-        """绘制图例（R、G、B标识）"""
-        legend_y = y - 5
-        legend_items = [
-            ("R", get_histogram_red_color()),
-            ("G", get_histogram_green_color()),
-            ("B", get_histogram_blue_color())
-        ]
+        """绘制通道切换按钮"""
+        self._draw_channel_buttons(painter)
 
-        legend_x = x + width - 60
-        for text, color in legend_items:
-            painter.setPen(color)
-            painter.drawText(legend_x, legend_y, text)
-            legend_x += 20
+    def _draw_channel_buttons(self, painter: QPainter):
+        """绘制RGB通道切换按钮
+
+        在直方图右上角绘制三个圆形按钮：
+        - R：红色按钮
+        - G：绿色按钮
+        - B：蓝色按钮
+        """
+        # 获取颜色
+        r_color = get_histogram_red_color()
+        g_color = get_histogram_green_color()
+        b_color = get_histogram_blue_color()
+
+        # 计算按钮位置（从右往左排列）
+        btn_y = self._btn_margin_top
+        start_x = self.width() - self._btn_margin_right - self._btn_size
+
+        # 绘制B按钮（最右边）
+        btn_x_b = start_x
+        self._draw_channel_button(painter, btn_x_b, btn_y, self._btn_size, b_color,
+                                   self._display_mode == "b", "b")
+
+        # 绘制G按钮（中间）
+        btn_x_g = start_x - self._btn_size - self._btn_spacing
+        self._draw_channel_button(painter, btn_x_g, btn_y, self._btn_size, g_color,
+                                   self._display_mode == "g", "g")
+
+        # 绘制R按钮（最左边）
+        btn_x_r = start_x - 2 * (self._btn_size + self._btn_spacing)
+        self._draw_channel_button(painter, btn_x_r, btn_y, self._btn_size, r_color,
+                                   self._display_mode == "r", "r")
+
+    def _draw_channel_button(self, painter: QPainter, x: int, y: int, size: int,
+                              color: QColor, is_checked: bool, channel: str):
+        """绘制单个通道按钮
+
+        Args:
+            painter: QPainter对象
+            x: 按钮左上角X坐标
+            y: 按钮左上角Y坐标
+            size: 按钮尺寸
+            color: 按钮颜色
+            is_checked: 是否选中
+            channel: 通道标识（"r"/"g"/"b"）
+        """
+        # 保存按钮位置用于点击检测
+        if not hasattr(self, '_btn_rects'):
+            self._btn_rects = {}
+        self._btn_rects[channel] = (x, y, size, size)
+
+        # 绘制圆形按钮
+        center_x = x + size // 2
+        center_y = y + size // 2
+        radius = size // 2
+
+        if is_checked:
+            # 选中状态：实心圆
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(color)
+            painter.drawEllipse(center_x - radius, center_y - radius,
+                               size, size)
+        else:
+            # 未选中状态：空心圆
+            pen = QPen(color, 1.5)
+            painter.setPen(pen)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(center_x - radius, center_y - radius,
+                               size, size)
+
+    def mousePressEvent(self, event: QMouseEvent):
+        """鼠标按下事件 - 检测按钮点击"""
+        if not hasattr(self, '_btn_rects'):
+            super().mousePressEvent(event)
+            return
+
+        pos = event.pos()
+        clicked_channel = None
+
+        # 检测点击了哪个按钮
+        for channel, (x, y, w, h) in self._btn_rects.items():
+            if x <= pos.x() <= x + w and y <= pos.y() <= y + h:
+                clicked_channel = channel
+                break
+
+        if clicked_channel:
+            # 处理按钮点击
+            self._handle_channel_button_click(clicked_channel)
+            event.accept()
+        else:
+            # 点击非按钮区域，传递给父类
+            super().mousePressEvent(event)
+
+    def _handle_channel_button_click(self, channel: str):
+        """处理通道按钮点击
+
+        Args:
+            channel: 点击的通道（"r"/"g"/"b"）
+        """
+        # 如果点击的是当前选中的通道，则取消选中（恢复全通道）
+        if self._display_mode == channel:
+            self.set_display_mode("rgb")
+        else:
+            # 切换到点击的通道
+            self.set_display_mode(channel)
 
     def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制刻度标签 - Zone 0-8 风格"""
