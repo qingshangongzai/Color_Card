@@ -241,7 +241,7 @@ class AboutDialog(QDialog):
     官网：https://yeun.github.io/open-color/
 
   • Nice Color Palettes 配色方案
-    版权所有：Experience-Monks
+    版权所有：Jam3
     许可证：MIT License
     项目地址：https://github.com/Experience-Monks/nice-color-palettes
 
