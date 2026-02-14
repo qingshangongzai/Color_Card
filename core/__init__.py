@@ -4,6 +4,7 @@ from .color import (
     rgb_to_hsb,
     rgb_to_lab,
     rgb_to_hex,
+    hex_to_rgb,
     rgb_to_hsl,
     rgb_to_cmyk,
     hsb_to_rgb,
@@ -34,13 +35,38 @@ from .color import (
     find_dominant_color_positions,
 )
 
-from .config import ConfigManager, get_config_manager
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager
+
+# SVG 配色映射模块
+from .svg_color_mapper import (
+    ElementType,
+    SVGElementInfo,
+    ColorMappingConfig,
+    SVGElementClassifier,
+    SVGColorMapper,
+    create_mapping_from_palette,
+    suggest_mapping_strategy,
+)
+
+# 颜色数据模块
+from .color_data import (
+    get_color_series_names,
+    get_color_series,
+    get_light_shades,
+    get_dark_shades,
+    get_selected_shades,
+    get_color_series_name_mapping,
+    get_nice_palette_count,
+    get_nice_palette,
+    get_nice_palettes_batch,
+)
 
 __all__ = [
     # 颜色函数
     'rgb_to_hsb',
     'rgb_to_lab',
     'rgb_to_hex',
+    'hex_to_rgb',
     'rgb_to_hsl',
     'rgb_to_cmyk',
     'hsb_to_rgb',
@@ -73,4 +99,24 @@ __all__ = [
     # 配置
     'ConfigManager',
     'get_config_manager',
+    'SceneConfigManager',
+    'get_scene_config_manager',
+    # SVG 配色映射
+    'ElementType',
+    'SVGElementInfo',
+    'ColorMappingConfig',
+    'SVGElementClassifier',
+    'SVGColorMapper',
+    'create_mapping_from_palette',
+    'suggest_mapping_strategy',
+    # 颜色数据
+    'get_color_series_names',
+    'get_color_series',
+    'get_light_shades',
+    'get_dark_shades',
+    'get_selected_shades',
+    'get_color_series_name_mapping',
+    'get_nice_palette_count',
+    'get_nice_palette',
+    'get_nice_palettes_batch',
 ]

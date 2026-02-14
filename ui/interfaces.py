@@ -81,15 +81,16 @@ class DominantColorExtractor(QThread):
                 self.extraction_error.emit(str(e))
 
 
-from dialogs import AboutDialog, NameDialog, UpdateAvailableDialog
+from dialogs import AboutDialog, ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog, UpdateAvailableDialog
 from version import version_manager
 from .canvases import ImageCanvas, LuminanceCanvas
 from .cards import ColorCardPanel
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget, HueHistogramWidget
-from .scheme_widgets import SchemeColorPanel
-from .favorite_widgets import FavoriteSchemeList
-from .theme_colors import get_canvas_empty_bg_color, get_title_color
+from .generation_widgets import GenerationColorPanel
+from .palette_management_widgets import PaletteManagementList
+from .theme_colors import get_canvas_empty_bg_color, get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
+from utils.platform import is_windows_10
 
 
 # 可选的色彩模式列表
@@ -149,7 +150,7 @@ class ColorExtractInterface(QWidget):
         self.histogram_stack.setMaximumHeight(150)
         self.histogram_stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        # RGB直方图
+        # RGB直方图（按钮已内置在组件内部）
         self.rgb_histogram_widget = RGBHistogramWidget()
         self.histogram_stack.addWidget(self.rgb_histogram_widget)
 
@@ -183,6 +184,20 @@ class ColorExtractInterface(QWidget):
         self.extract_dominant_button.setFixedHeight(32)
         self.extract_dominant_button.clicked.connect(self._on_extract_dominant_clicked)
         favorite_toolbar_layout.addWidget(self.extract_dominant_button)
+
+        # 高饱和度区域显示按钮
+        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, "显示高饱和区域", self)
+        self.high_saturation_button.setFixedHeight(32)
+        self.high_saturation_button.pressed.connect(self._on_high_saturation_pressed)
+        self.high_saturation_button.released.connect(self._on_high_saturation_released)
+        favorite_toolbar_layout.addWidget(self.high_saturation_button)
+
+        # 高明度区域显示按钮
+        self.high_brightness_button = PushButton(FluentIcon.VIEW, "显示高明度区域", self)
+        self.high_brightness_button.setFixedHeight(32)
+        self.high_brightness_button.pressed.connect(self._on_high_brightness_pressed)
+        self.high_brightness_button.released.connect(self._on_high_brightness_released)
+        favorite_toolbar_layout.addWidget(self.high_brightness_button)
 
         favorite_toolbar_layout.addStretch()
 
@@ -286,23 +301,32 @@ class ColorExtractInterface(QWidget):
             )
             return
 
-        # 弹出命名对话框
-        default_name = f"配色方案 {len(self._config_manager.get_favorites()) + 1}"
-        dialog = NameDialog(
-            title="命名配色方案",
+        # 弹出编辑配色对话框
+        default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
+
+        # 构造配色数据
+        palette_data = {
+            "name": default_name,
+            "colors": colors
+        }
+
+        dialog = EditPaletteDialog(
             default_name=default_name,
+            palette_data=palette_data,
             parent=self.window()
         )
 
-        if dialog.exec() != NameDialog.DialogCode.Accepted:
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
             return
 
-        favorite_name = dialog.get_name()
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
 
         favorite_data = {
             "id": str(uuid.uuid4()),
-            "name": favorite_name,
-            "colors": colors,
+            "name": new_palette_data['name'],
+            "colors": new_palette_data['colors'],
             "created_at": datetime.now().isoformat(),
             "source": "color_extract"
         }
@@ -310,14 +334,14 @@ class ColorExtractInterface(QWidget):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新收藏面板
+        # 刷新配色管理面板
         window = self.window()
-        if window and hasattr(window, 'refresh_favorites'):
-            window.refresh_favorites()
+        if window and hasattr(window, 'refresh_palette_management'):
+            window.refresh_palette_management()
 
         InfoBar.success(
             title="收藏成功",
-            content=f"已收藏配色方案：{favorite_name}",
+            content=f"已收藏配色：{favorite_data['name']}",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -423,6 +447,72 @@ class ColorExtractInterface(QWidget):
         if self._extractor is not None:
             self._extractor.deleteLater()
             self._extractor = None
+
+    def _on_high_saturation_pressed(self):
+        """高饱和度区域按钮按下回调"""
+        # 检查是否有图片
+        image = self.image_canvas.get_image()
+        if not image or image.isNull():
+            # 如果没有图片，显示提示
+            InfoBar.warning(
+                title="无法显示",
+                content="请先导入图片",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示高饱和度区域
+        self.image_canvas.toggle_high_saturation_highlight(True)
+
+    def _on_high_saturation_released(self):
+        """高饱和度区域按钮释放回调"""
+        # 隐藏高饱和度区域
+        self.image_canvas.toggle_high_saturation_highlight(False)
+
+    def _on_high_brightness_pressed(self):
+        """高明度区域按钮按下回调"""
+        # 检查是否有图片
+        image = self.image_canvas.get_image()
+        if not image or image.isNull():
+            # 如果没有图片，显示提示
+            InfoBar.warning(
+                title="无法显示",
+                content="请先导入图片",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示高明度区域
+        self.image_canvas.toggle_high_brightness_highlight(True)
+
+    def _on_high_brightness_released(self):
+        """高明度区域按钮释放回调"""
+        # 隐藏高明度区域
+        self.image_canvas.toggle_high_brightness_highlight(False)
+
+    def set_saturation_threshold(self, value: int):
+        """设置饱和度阈值
+
+        Args:
+            value: 阈值百分比 (0-100)
+        """
+        self.image_canvas.set_saturation_threshold(value)
+
+    def set_brightness_threshold(self, value: int):
+        """设置明度阈值
+
+        Args:
+            value: 阈值百分比 (0-100)
+        """
+        self.image_canvas.set_brightness_threshold(value)
 
 
 class LuminanceExtractInterface(QWidget):
@@ -623,6 +713,12 @@ class SettingsInterface(QWidget):
     color_wheel_mode_changed = Signal(str)
     # 信号：直方图模式改变
     histogram_mode_changed = Signal(str)
+    # 信号：饱和度阈值改变
+    saturation_threshold_changed = Signal(int)
+    # 信号：明度阈值改变
+    brightness_threshold_changed = Signal(int)
+    # 信号：色环标签显示开关状态改变
+    color_wheel_labels_visible_changed = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -635,7 +731,12 @@ class SettingsInterface(QWidget):
         self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
         self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
+        self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
+        self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
+        self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
         self.setup_ui()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -653,8 +754,8 @@ class SettingsInterface(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # 标题
-        title_label = SubtitleLabel("设置")
-        layout.addWidget(title_label)
+        self.title_label = SubtitleLabel("设置")
+        layout.addWidget(self.title_label)
 
         # 色卡显示设置分组
         self.card_display_group = SettingCardGroup("色卡显示设置", self.content_widget)
@@ -716,8 +817,50 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.histogram_group)
 
-        # 配色方案设置分组
-        self.color_scheme_group = SettingCardGroup("配色方案设置", self.content_widget)
+        # 区域高亮设置分组
+        self.highlight_group = SettingCardGroup("区域高亮设置", self.content_widget)
+
+        # 高饱和度阈值卡片
+        self.saturation_threshold_card = self._create_threshold_card(
+            FluentIcon.BRIGHTNESS,
+            "高饱和度阈值",
+            "设置高饱和度区域的饱和度阈值",
+            self._saturation_threshold,
+            self._on_saturation_threshold_changed
+        )
+        self.highlight_group.addSettingCard(self.saturation_threshold_card)
+
+        # 高明度阈值卡片
+        self.brightness_threshold_card = self._create_threshold_card(
+            FluentIcon.VIEW,
+            "高明度阈值",
+            "设置高明度区域的明度阈值",
+            self._brightness_threshold,
+            self._on_brightness_threshold_changed
+        )
+        self.highlight_group.addSettingCard(self.brightness_threshold_card)
+
+        layout.addWidget(self.highlight_group)
+
+        # 色环显示设置分组
+        self.color_wheel_group = SettingCardGroup("色环显示设置", self.content_widget)
+
+        # 色环标签显示开关卡片
+        self.color_wheel_labels_card = self._create_switch_card(
+            FluentIcon.PALETTE,
+            "显示色环标签",
+            "在色环周围显示色相名称标签",
+            self._color_wheel_labels_visible
+        )
+        self.color_wheel_labels_card.switch_button.checkedChanged.connect(
+            self._on_color_wheel_labels_visible_changed
+        )
+        self.color_wheel_group.addSettingCard(self.color_wheel_labels_card)
+
+        layout.addWidget(self.color_wheel_group)
+
+        # 配色生成方案设置分组
+        self.color_scheme_group = SettingCardGroup("配色生成方案", self.content_widget)
 
         # 色轮模式卡片
         self.color_wheel_mode_card = self._create_color_wheel_mode_card()
@@ -801,6 +944,36 @@ class SettingsInterface(QWidget):
         combo_box.setCurrentText(str(initial_value))
         combo_box.setFixedWidth(80)
         combo_box.currentTextChanged.connect(lambda text: callback(int(text)))
+
+        # 将ComboBox添加到卡片布局
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        # 保存ComboBox引用
+        card.combo_box = combo_box
+
+        return card
+
+    def _create_threshold_card(self, icon, title, content, initial_value, callback):
+        """创建阈值选择卡片（粗略档位：60%, 70%, 80%）"""
+        card = PushSettingCard("", icon, title, content, self.content_widget)
+        card.button.setVisible(False)
+
+        # 创建ComboBox控件
+        combo_box = ComboBox(self.content_widget)
+        # 添加粗略档位选项
+        combo_box.addItem("60%")
+        combo_box.addItem("70%")
+        combo_box.addItem("80%")
+        # 设置默认值
+        if initial_value == 60:
+            combo_box.setCurrentIndex(0)
+        elif initial_value == 80:
+            combo_box.setCurrentIndex(2)
+        else:
+            combo_box.setCurrentIndex(1)  # 默认70%
+        combo_box.setFixedWidth(80)
+        combo_box.currentTextChanged.connect(lambda text: callback(int(text.replace('%', ''))))
 
         # 将ComboBox添加到卡片布局
         card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
@@ -1080,32 +1253,129 @@ class SettingsInterface(QWidget):
         dialog = AboutDialog(self)
         dialog.exec()
 
+    def _on_saturation_threshold_changed(self, value):
+        """饱和度阈值改变"""
+        self._saturation_threshold = value
+        self._config_manager.set('settings.saturation_threshold', value)
+        self._config_manager.save()
+        self.saturation_threshold_changed.emit(value)
 
-class ColorSchemeInterface(QWidget):
-    """配色方案界面"""
+    def _on_brightness_threshold_changed(self, value):
+        """明度阈值改变"""
+        self._brightness_threshold = value
+        self._config_manager.set('settings.brightness_threshold', value)
+        self._config_manager.save()
+        self.brightness_threshold_changed.emit(value)
+
+    def _on_color_wheel_labels_visible_changed(self, checked):
+        """色环标签显示开关状态改变"""
+        self._color_wheel_labels_visible = checked
+        self._config_manager.set('settings.color_wheel_labels_visible', checked)
+        self._config_manager.save()
+        self.color_wheel_labels_visible_changed.emit(checked)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+        
+        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            card_bg = get_card_background_color()
+            border_color = get_border_color()
+            text_color = get_text_color()
+            secondary_text = get_text_color(secondary=True)
+            
+            self.setStyleSheet(f"""
+                SettingsInterface {{
+                    background-color: transparent;
+                }}
+                ScrollArea {{
+                    background-color: transparent;
+                    border: none;
+                }}
+                ScrollArea > QWidget > QWidget {{
+                    background-color: transparent;
+                }}
+                SettingCardGroup {{
+                    background-color: {card_bg.name()};
+                    border: none;
+                }}
+                SettingCardGroup::title {{
+                    color: {text_color.name()};
+                    font-size: 14px;
+                    font-weight: bold;
+                }}
+                PushSettingCard {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+                PushSettingCard:hover {{
+                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
+                }}
+                PushSettingCard QLabel#titleLabel {{
+                    color: {text_color.name()};
+                    font-size: 13px;
+                }}
+                PushSettingCard QLabel#contentLabel {{
+                    color: {secondary_text.name()};
+                    font-size: 11px;
+                }}
+                ComboBox {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+                SwitchButton {{
+                    background-color: transparent;
+                }}
+                SpinBox {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+            """)
+
+
+class ColorGenerationInterface(QWidget):
+    """配色生成界面"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setObjectName('colorSchemeInterface')
+        self.setObjectName('colorGenerationInterface')
         self._current_scheme = 'monochromatic'
         self._base_hue = 0.0
         self._base_saturation = 100.0
         self._base_brightness = 100.0
-        self._brightness_adjustment = 0
-        self._scheme_colors = []  # 配色方案颜色列表 [(h, s, b), ...]
+        self._brightness_value = 100  # 全局明度值 (10-100)，直接对应HSB的B值
+        self._scheme_colors = []  # 配色颜色列表 [(h, s, b), ...]
         self._color_wheel_mode = 'RGB'  # 色轮模式：RGB 或 RYB
+        self._colors_generated = False  # 颜色是否已生成（延迟生成优化）
 
         self._config_manager = get_config_manager()
 
         self.setup_ui()
         self.setup_connections()
         self._load_settings()
-        # 根据初始配色方案设置卡片数量
+        # 根据初始配色设置卡片数量
         self._update_card_count()
-        self._generate_scheme_colors()
+        # 延迟生成配色颜色，避免阻塞启动
+        # 颜色将在首次显示时生成
         self._update_styles()
         # 监听主题变化
         qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def showEvent(self, event):
+        """界面显示事件，延迟生成配色颜色"""
+        super().showEvent(event)
+        # 首次显示时生成配色颜色
+        if not self._colors_generated:
+            self._colors_generated = True
+            QTimer.singleShot(0, self._generate_scheme_colors)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1119,8 +1389,8 @@ class ColorSchemeInterface(QWidget):
         top_layout.setSpacing(15)
         top_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 配色方案选择下拉框
-        self.scheme_label = QLabel("配色方案:")
+        # 配色选择下拉框
+        self.scheme_label = QLabel("配色生成:")
         top_layout.addWidget(self.scheme_label)
 
         self.scheme_combo = ComboBox(self)
@@ -1188,13 +1458,13 @@ class ColorSchemeInterface(QWidget):
         brightness_layout.addWidget(self.brightness_label)
 
         self.brightness_slider = Slider(Qt.Orientation.Horizontal, brightness_container)
-        self.brightness_slider.setRange(-50, 50)
-        self.brightness_slider.setValue(0)
+        self.brightness_slider.setRange(10, 100)
+        self.brightness_slider.setValue(100)
         self.brightness_slider.setFixedWidth(200)
         brightness_layout.addWidget(self.brightness_slider)
 
-        self.brightness_value_label = QLabel("0")
-        self.brightness_value_label.setFixedWidth(25)
+        self.brightness_value_label = QLabel("100")
+        self.brightness_value_label.setFixedWidth(30)
         brightness_layout.addWidget(self.brightness_value_label)
 
         upper_layout.addWidget(brightness_container, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -1202,7 +1472,7 @@ class ColorSchemeInterface(QWidget):
         splitter.addWidget(upper_widget)
 
         # 下方：色块面板
-        self.color_panel = SchemeColorPanel(self)
+        self.color_panel = GenerationColorPanel(self)
         self.color_panel.setMinimumHeight(150)
         splitter.addWidget(self.color_panel)
 
@@ -1240,7 +1510,7 @@ class ColorSchemeInterface(QWidget):
         self.color_panel.update_settings(hex_visible, color_modes)
 
     def _update_card_count(self):
-        """根据当前配色方案更新卡片数量"""
+        """根据当前配色更新卡片数量"""
         scheme_counts = {
             'monochromatic': 4,      # 同色系：4个
             'analogous': 4,          # 邻近色：4个
@@ -1265,10 +1535,10 @@ class ColorSchemeInterface(QWidget):
             self.color_panel.set_color_modes(color_modes)
 
     def on_scheme_changed(self, index):
-        """配色方案改变回调"""
+        """配色生成改变回调"""
         self._current_scheme = self.scheme_combo.currentData()
 
-        # 根据配色方案类型调整卡片数量
+        # 根据配色类型调整卡片数量
         self._update_card_count()
 
         self._generate_scheme_colors()
@@ -1282,13 +1552,44 @@ class ColorSchemeInterface(QWidget):
         self._generate_scheme_colors()
 
     def on_base_color_changed(self, h, s, b):
-        """基准颜色改变回调"""
+        """基准颜色改变回调
+
+        色相变化时，所有采样点跟随旋转；
+        饱和度变化时，仅基准点变化，其他采样点保持原位。
+        """
+        from core import hsb_to_rgb
+
+        # 计算色相变化量
+        delta_h = h - self._base_hue
+        # 计算饱和度变化量
+        delta_s = s - self._base_saturation
+
+        # 更新基准点
         self._base_hue = h
         self._base_saturation = s
-        self._generate_scheme_colors()
+
+        # 色相变化：所有采样点跟着旋转
+        if delta_h != 0 and self._scheme_colors:
+            for i in range(len(self._scheme_colors)):
+                old_h, old_s, old_b = self._scheme_colors[i]
+                new_h = (old_h + delta_h) % 360
+                self._scheme_colors[i] = (new_h, old_s, old_b)
+
+        # 饱和度变化：更新 _scheme_colors[0]（基准点）
+        if delta_s != 0 and self._scheme_colors:
+            old_h, old_s, old_b = self._scheme_colors[0]
+            self._scheme_colors[0] = (old_h, s, old_b)
+
+        # 更新色轮显示
+        self.color_wheel.set_base_color(self._base_hue, self._base_saturation, self._base_brightness)
+        self.color_wheel.set_scheme_colors(self._scheme_colors)
+
+        # 更新色块面板
+        colors = [hsb_to_rgb(h_val, s_val, b_val) for h_val, s_val, b_val in self._scheme_colors]
+        self.color_panel.set_colors(colors)
 
     def on_scheme_color_changed(self, index, h, s, b):
-        """配色方案采样点颜色改变回调
+        """配色采样点颜色改变回调
 
         Args:
             index: 采样点索引
@@ -1298,7 +1599,7 @@ class ColorSchemeInterface(QWidget):
         """
         from core import hsb_to_rgb
 
-        # 更新配色方案数据
+        # 更新配色数据
         if 0 <= index < len(self._scheme_colors):
             self._scheme_colors[index] = (h, s, b)
 
@@ -1308,7 +1609,7 @@ class ColorSchemeInterface(QWidget):
 
     def on_brightness_changed(self, value):
         """明度调整回调"""
-        self._brightness_adjustment = value
+        self._brightness_value = value
         self.brightness_value_label.setText(str(value))
         # 更新色轮的全局明度
         self.color_wheel.set_global_brightness(value)
@@ -1325,13 +1626,13 @@ class ColorSchemeInterface(QWidget):
             self._generate_scheme_colors()
 
     def _generate_scheme_colors(self):
-        """生成配色方案颜色"""
+        """生成配色颜色"""
         from core import (
             get_scheme_preview_colors, get_scheme_preview_colors_ryb,
             adjust_brightness, hsb_to_rgb, rgb_to_hsb
         )
 
-        # 根据配色方案类型确定颜色数量
+        # 根据配色类型确定颜色数量
         scheme_counts = {
             'monochromatic': 4,      # 同色系：4个
             'analogous': 4,          # 邻近色：4个
@@ -1341,31 +1642,26 @@ class ColorSchemeInterface(QWidget):
         }
         count = scheme_counts.get(self._current_scheme, 5)
 
-        # 根据色轮模式选择对应的配色生成函数
+        # 根据色轮模式选择对应的配色生成函数，传入基准饱和度
         if self._color_wheel_mode == 'RYB':
-            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count)
+            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count, self._base_saturation)
         else:
-            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count)
+            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count, self._base_saturation)
 
-        # 转换为HSB并应用明度调整
+        # 转换为HSB并应用全局明度值
         self._scheme_colors = []
         for i, rgb in enumerate(colors):
             h, s, b = rgb_to_hsb(*rgb)
-            # 第一个颜色是基准色，使用用户设置的饱和度
-            if i == 0:
-                s = self._base_saturation
-            self._scheme_colors.append((h, s, b))
+            # 使用全局明度值，忽略原始配色中的B值
+            self._scheme_colors.append((h, s, self._brightness_value))
 
-        if self._brightness_adjustment != 0:
-            self._scheme_colors = adjust_brightness(self._scheme_colors, self._brightness_adjustment)
-            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
-        else:
-            colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
+        # 转换为RGB颜色用于显示
+        colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
 
         # 更新色块面板
         self.color_panel.set_colors(colors)
 
-        # 更新色环上的配色方案点
+        # 更新色环上的配色点
         self.color_wheel.set_scheme_colors(self._scheme_colors)
 
     def _on_favorite_clicked(self):
@@ -1378,7 +1674,7 @@ class ColorSchemeInterface(QWidget):
         if not colors:
             InfoBar.warning(
                 title="无法收藏",
-                content="没有可收藏的配色方案",
+                content="没有可收藏的配色",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1387,23 +1683,32 @@ class ColorSchemeInterface(QWidget):
             )
             return
 
-        # 弹出命名对话框
-        default_name = f"配色方案 {len(self._config_manager.get_favorites()) + 1}"
-        dialog = NameDialog(
-            title="命名配色方案",
+        # 弹出编辑配色对话框
+        default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
+
+        # 构造配色数据
+        palette_data = {
+            "name": default_name,
+            "colors": colors
+        }
+
+        dialog = EditPaletteDialog(
             default_name=default_name,
+            palette_data=palette_data,
             parent=self.window()
         )
 
-        if dialog.exec() != NameDialog.DialogCode.Accepted:
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
             return
 
-        favorite_name = dialog.get_name()
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
 
         favorite_data = {
             "id": str(uuid.uuid4()),
-            "name": favorite_name,
-            "colors": colors,
+            "name": new_palette_data['name'],
+            "colors": new_palette_data['colors'],
             "created_at": datetime.now().isoformat(),
             "source": "color_scheme"
         }
@@ -1411,14 +1716,14 @@ class ColorSchemeInterface(QWidget):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新收藏面板
+        # 刷新配色管理面板
         window = self.window()
-        if window and hasattr(window, 'refresh_favorites'):
-            window.refresh_favorites()
+        if window and hasattr(window, 'refresh_palette_management'):
+            window.refresh_palette_management()
 
         InfoBar.success(
             title="收藏成功",
-            content=f"已收藏配色方案：{favorite_name}",
+            content=f"已收藏配色：{favorite_data['name']}",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1427,15 +1732,17 @@ class ColorSchemeInterface(QWidget):
         )
 
 
-class FavoritesInterface(QWidget):
-    """色卡收藏界面"""
+class PaletteManagementInterface(QWidget):
+    """配色管理界面"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setObjectName('favoritesInterface')
+        self.setObjectName('paletteManagementInterface')
         self._config_manager = get_config_manager()
         self.setup_ui()
         self._load_favorites()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1447,10 +1754,15 @@ class FavoritesInterface(QWidget):
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        title_label = SubtitleLabel("色卡收藏")
-        header_layout.addWidget(title_label)
+        self.title_label = SubtitleLabel("配色管理")
+        header_layout.addWidget(self.title_label)
 
         header_layout.addStretch()
+
+        # 添加配色按钮
+        self.add_button = PushButton(FluentIcon.ADD, "添加", self)
+        self.add_button.clicked.connect(self._on_add_clicked)
+        header_layout.addWidget(self.add_button)
 
         self.import_button = PushButton(FluentIcon.DOWN, "导入", self)
         self.import_button.clicked.connect(self._on_import_clicked)
@@ -1467,15 +1779,19 @@ class FavoritesInterface(QWidget):
 
         layout.addLayout(header_layout)
 
-        self.favorite_list = FavoriteSchemeList(self)
-        self.favorite_list.favorite_deleted.connect(self._on_favorite_deleted)
-        self.favorite_list.favorite_renamed.connect(self._on_favorite_renamed)
-        layout.addWidget(self.favorite_list, stretch=1)
+        self.palette_management_list = PaletteManagementList(self)
+        self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
+        self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
+        self.palette_management_list.favorite_contrast.connect(self._on_favorite_contrast)
+        self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
+        self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
+        self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
+        layout.addWidget(self.palette_management_list, stretch=1)
 
     def _load_favorites(self):
         """加载收藏列表"""
         favorites = self._config_manager.get_favorites()
-        self.favorite_list.set_favorites(favorites)
+        self.palette_management_list.set_favorites(favorites)
 
     def _on_clear_all_clicked(self):
         """清空所有按钮点击"""
@@ -1483,7 +1799,7 @@ class FavoritesInterface(QWidget):
 
         msg_box = MessageBox(
             "确认清空",
-            "确定要清空所有收藏的配色方案吗？此操作不可撤销。",
+            "确定要清空所有收藏的配色吗？此操作不可撤销。",
             self
         )
         msg_box.yesButton.setText("确定")
@@ -1498,49 +1814,6 @@ class FavoritesInterface(QWidget):
         self._config_manager.delete_favorite(favorite_id)
         self._config_manager.save()
         self._load_favorites()
-
-    def _on_favorite_renamed(self, favorite_id, current_name):
-        """收藏重命名回调
-
-        Args:
-            favorite_id: 收藏项ID
-            current_name: 当前名称
-        """
-        dialog = NameDialog(
-            title="重命名配色方案",
-            default_name=current_name,
-            parent=self.window()
-        )
-
-        if dialog.exec() != NameDialog.DialogCode.Accepted:
-            return
-
-        new_name = dialog.get_name()
-
-        # 更新收藏名称
-        if self._config_manager.rename_favorite(favorite_id, new_name):
-            self._config_manager.save()
-            self._load_favorites()
-
-            InfoBar.success(
-                title="重命名成功",
-                content=f"已重命名为：{new_name}",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
-        else:
-            InfoBar.error(
-                title="重命名失败",
-                content="无法找到该配色方案",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self.window()
-            )
 
     def _on_import_clicked(self):
         """导入按钮点击"""
@@ -1581,7 +1854,7 @@ class FavoritesInterface(QWidget):
             self._load_favorites()
             InfoBar.success(
                 title="导入成功",
-                content=f"成功导入 {count} 个配色方案",
+                content=f"成功导入 {count} 个配色",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1601,10 +1874,11 @@ class FavoritesInterface(QWidget):
 
     def _on_export_clicked(self):
         """导出按钮点击"""
+        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "导出收藏",
-            "color_card_favorites.json",
+            default_name,
             "JSON 文件 (*.json);;所有文件 (*)"
         )
 
@@ -1638,6 +1912,215 @@ class FavoritesInterface(QWidget):
                 parent=self
             )
 
+    def _on_favorite_preview(self, favorite_data):
+        """收藏预览回调（色盲模拟）
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', '未命名')
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示色盲模拟预览对话框
+        dialog = ColorblindPreviewDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=self.window()
+        )
+        dialog.exec()
+
+    def _on_favorite_preview_in_panel(self, favorite_data):
+        """在配色预览面板中预览回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 提取颜色值
+        color_values = []
+        for color_info in colors:
+            hex_value = color_info.get('hex', '')
+            if hex_value:
+                if not hex_value.startswith('#'):
+                    hex_value = '#' + hex_value
+                color_values.append(hex_value)
+
+        if not color_values:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色没有有效的颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 调用主窗口跳转到配色预览页面
+        window = self.window()
+        if window and hasattr(window, 'show_color_preview'):
+            window.show_color_preview(color_values)
+
+    def _on_add_clicked(self):
+        """添加配色按钮点击"""
+        # 生成默认名称
+        favorites = self._config_manager.get_favorites()
+        default_name = f"配色 {len(favorites) + 1}"
+
+        # 显示添加对话框
+        dialog = EditPaletteDialog(default_name=default_name, parent=self.window())
+
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            return
+
+        # 获取配色数据
+        palette_data = dialog.get_palette_data()
+        if not palette_data:
+            return
+
+        # 添加到收藏
+        self._config_manager.add_favorite(palette_data)
+        self._config_manager.save()
+
+        # 刷新列表
+        self._load_favorites()
+
+        InfoBar.success(
+            title="添加成功",
+            content=f"配色「{palette_data['name']}」已添加",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+    def _on_favorite_edit(self, favorite_data):
+        """收藏编辑回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        favorite_id = favorite_data.get('id', '')
+        default_name = favorite_data.get('name', '')
+
+        # 显示编辑对话框
+        dialog = EditPaletteDialog(
+            default_name=default_name,
+            palette_data=favorite_data,
+            parent=self.window()
+        )
+
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            return
+
+        # 获取编辑后的数据
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
+
+        # 更新收藏数据
+        if self._config_manager.update_favorite(favorite_id, new_palette_data):
+            self._config_manager.save()
+            self._load_favorites()
+
+            InfoBar.success(
+                title="更新成功",
+                content=f"配色「{new_palette_data['name']}」已更新",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="更新失败",
+                content="无法找到该配色",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+
+    def _on_favorite_contrast(self, favorite_data):
+        """收藏对比度检查回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', '未命名')
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法检查",
+                content="该配色没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示对比度检查对话框
+        dialog = ContrastCheckDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=self.window()
+        )
+        dialog.exec()
+
+    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: dict):
+        """收藏颜色变化回调
+
+        Args:
+            favorite_id: 收藏项ID
+            color_index: 颜色索引
+            color_info: 新的颜色信息
+        """
+        # 更新配置中的颜色数据
+        if self._config_manager.update_favorite_color(favorite_id, color_index, color_info):
+            self._config_manager.save()
+
+            InfoBar.success(
+                title="颜色已更新",
+                content=f"配色中的颜色已更新为 {color_info.get('hex', '#------')}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+
     def update_display_settings(self, hex_visible=None, color_modes=None):
         """更新显示设置
 
@@ -1645,8 +2128,907 @@ class FavoritesInterface(QWidget):
             hex_visible: 是否显示16进制颜色值
             color_modes: 色彩模式列表
         """
-        self.favorite_list.update_display_settings(hex_visible, color_modes)
+        self.palette_management_list.update_display_settings(hex_visible, color_modes)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+        
+        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            card_bg = get_card_background_color()
+            border_color = get_border_color()
+            text_color = get_text_color()
+            
+            self.setStyleSheet(f"""
+                PaletteManagementInterface {{
+                    background-color: {bg_color.name()};
+                }}
+                ScrollArea {{
+                    background-color: transparent;
+                    border: none;
+                }}
+                ScrollArea > QWidget > QWidget {{
+                    background-color: transparent;
+                }}
+                PaletteManagementSchemeCard,
+                CardWidget {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+                PushButton {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+                PushButton:hover {{
+                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
+                }}
+                QLabel {{
+                    color: {text_color.name()};
+                }}
+            """)
+
+
+class PresetColorInterface(QWidget):
+    """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors、Material Design、ColorBrewer 和 Radix Colors）"""
+
+    favorite_requested = Signal(dict)  # 信号：收藏数据字典
+    preview_in_panel_requested = Signal(dict)  # 信号：在预览面板中预览
+
+    # 每组显示的配色数量
+    PALETTES_PER_GROUP = 50
+
+    # Open Color 分组定义
+    OPEN_COLOR_GROUPS = [
+        (["gray", "red", "pink", "grape"], "灰/红/粉/紫组"),
+        (["violet", "indigo", "blue", "cyan"], "紫/蓝/青组"),
+        (["teal", "green", "lime", "yellow", "orange"], "绿/黄/橙组"),
+    ]
+
+    # Tailwind Colors 分组定义
+    TAILWIND_GROUPS = [
+        (["slate", "gray", "zinc", "neutral", "stone"], "灰色系"),
+        (["red", "orange", "amber", "yellow"], "暖色系"),
+        (["lime", "green", "emerald", "teal"], "绿色系"),
+        (["cyan", "sky", "blue", "indigo"], "青蓝色系"),
+        (["violet", "purple", "fuchsia", "pink", "rose"], "紫色系"),
+    ]
+
+    # Material Design Colors 分组定义
+    MATERIAL_GROUPS = [
+        (["red", "pink", "purple", "deep_purple"], "红/粉/紫组"),
+        (["indigo", "blue", "light_blue", "cyan"], "蓝/青组"),
+        (["teal", "green", "light_green", "lime"], "绿色系"),
+        (["yellow", "amber", "orange", "deep_orange"], "黄/橙组"),
+        (["brown", "grey", "blue_grey"], "棕/灰组"),
+    ]
+
+    # ColorBrewer 分组定义
+    COLORBREWER_GROUPS = [
+        (["brewer_blues", "brewer_greens", "brewer_greys", "brewer_oranges", "brewer_purples", "brewer_reds"], "顺序色-单色系"),
+        (["brewer_bugn", "brewer_bupu", "brewer_gnbu", "brewer_orrd", "brewer_pubu", "brewer_pubugn"], "顺序色-蓝绿紫"),
+        (["brewer_purd", "brewer_rdpu", "brewer_ylgn", "brewer_ylgnbu", "brewer_ylorbr", "brewer_ylorrd"], "顺序色-暖色系"),
+        (["brewer_brbg", "brewer_piyg", "brewer_prgn", "brewer_puor", "brewer_rdbu"], "发散色-对比"),
+        (["brewer_rdgy", "brewer_rdylbu", "brewer_rdylgn", "brewer_spectral"], "发散色-光谱"),
+        (["brewer_set1", "brewer_set2", "brewer_set3", "brewer_paired", "brewer_dark2", "brewer_accent"], "定性色-分类"),
+        (["brewer_pastel1", "brewer_pastel2"], "定性色-粉彩"),
+    ]
+
+    # Radix Colors 分组定义
+    RADIX_GROUPS = [
+        (["radix_gray", "radix_mauve", "radix_slate", "radix_sage", "radix_olive", "radix_sand"], "中性色系"),
+        (["radix_tomato", "radix_red", "radix_ruby", "radix_crimson"], "红色系"),
+        (["radix_pink", "radix_plum", "radix_purple"], "粉紫色系"),
+        (["radix_violet", "radix_iris", "radix_indigo"], "紫蓝色系"),
+        (["radix_blue", "radix_cyan", "radix_sky"], "蓝色系"),
+        (["radix_teal", "radix_jade", "radix_mint"], "青绿色系"),
+        (["radix_green", "radix_grass"], "绿色系"),
+        (["radix_brown", "radix_bronze", "radix_gold"], "金属色系"),
+        (["radix_yellow", "radix_amber", "radix_orange"], "黄橙色系"),
+        (["radix_lime"], "亮绿色系"),
+    ]
+
+    # Nord 分组定义
+    NORD_GROUPS = [
+        (["nord0", "nord1", "nord2", "nord3"], "分组1"),
+        (["nord4", "nord5", "nord6", "nord7"], "分组2"),
+        (["nord8", "nord9", "nord10", "nord11"], "分组3"),
+        (["nord12", "nord13", "nord14", "nord15"], "分组4"),
+    ]
+
+    # Dracula 分组定义
+    DRACULA_GROUPS = [
+        (["dracula_bg", "dracula_current_line", "dracula_foreground", "dracula_comment"], "基础色系"),
+        (["dracula_cyan", "dracula_green", "dracula_orange", "dracula_pink"], "主题色-1"),
+        (["dracula_purple", "dracula_red", "dracula_yellow"], "主题色-2"),
+    ]
+
+    # Rose Pine 分组定义
+    ROSE_PINE_GROUPS = [
+        (["rose_pine_main", "rose_pine_moon", "rose_pine_dawn"], "全部系列"),
+    ]
+
+    # Solarized 分组定义
+    SOLARIZED_GROUPS = [
+        (["solarized_dark", "solarized_light"], "全部系列"),
+    ]
+
+    # Catppuccin 分组定义
+    CATPPUCCIN_GROUPS = [
+        (["catppuccin_latte", "catppuccin_frappe", "catppuccin_macchiato", "catppuccin_mocha"], "全部系列"),
+    ]
+
+    # Gruvbox 分组定义
+    GRUVBOX_GROUPS = [
+        (["gruvbox_dark", "gruvbox_light"], "全部系列"),
+    ]
+
+    # Tokyo Night 分组定义
+    TOKYO_NIGHT_GROUPS = [
+        (["tokyo_night", "tokyo_storm", "tokyo_day"], "全部系列"),
+    ]
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('presetColorInterface')
+        self._config_manager = get_config_manager()
+        self._current_source = 'random'
+        self._current_group_index = 0
+        self.setup_ui()
+        self._load_settings()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        # 头部信息
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(15)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.title_label = SubtitleLabel("内置色彩")
+        header_layout.addWidget(self.title_label)
+
+        # 添加说明标签
+        self.desc_label = QLabel("基于 Open Color 开源配色")
+        self.desc_label.setStyleSheet("font-size: 12px; color: gray;")
+        header_layout.addWidget(self.desc_label)
+
+        header_layout.addStretch()
+
+        # 控件容器（用于对齐）
+        controls_container = QWidget()
+        controls_layout = QHBoxLayout(controls_container)
+        controls_layout.setSpacing(10)
+        controls_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 数据源切换下拉列表
+        self.source_combo = ComboBox(self)
+        self.source_combo.addItem("随机配色")
+        self.source_combo.setItemData(0, "random")
+        self.source_combo.addItem("Open Color 配色")
+        self.source_combo.setItemData(1, "open_color")
+        self.source_combo.addItem("Tailwind Colors 配色")
+        self.source_combo.setItemData(2, "tailwind")
+        self.source_combo.addItem("Material Design 配色")
+        self.source_combo.setItemData(3, "material")
+        self.source_combo.addItem("Nice Palettes 配色")
+        self.source_combo.setItemData(4, "nice_palette")
+        self.source_combo.addItem("ColorBrewer 配色")
+        self.source_combo.setItemData(5, "colorbrewer")
+        self.source_combo.addItem("Radix Colors 配色")
+        self.source_combo.setItemData(6, "radix")
+        self.source_combo.addItem("Nord 配色")
+        self.source_combo.setItemData(7, "nord")
+        self.source_combo.addItem("Dracula 配色")
+        self.source_combo.setItemData(8, "dracula")
+        self.source_combo.addItem("Rosé Pine 配色")
+        self.source_combo.setItemData(9, "rose_pine")
+        self.source_combo.addItem("Solarized 配色")
+        self.source_combo.setItemData(10, "solarized")
+        self.source_combo.addItem("Catppuccin 配色")
+        self.source_combo.setItemData(11, "catppuccin")
+        self.source_combo.addItem("Gruvbox 配色")
+        self.source_combo.setItemData(12, "gruvbox")
+        self.source_combo.addItem("Tokyo Night 配色")
+        self.source_combo.setItemData(13, "tokyo_night")
+        self.source_combo.setFixedWidth(180)
+        self.source_combo.currentIndexChanged.connect(self._on_source_changed)
+        controls_layout.addWidget(self.source_combo)
+
+        # 分组控制容器（随机模式下显示按钮，其他模式显示下拉列表）
+        self.group_control_container = QWidget(self)
+        self.group_control_layout = QHBoxLayout(self.group_control_container)
+        self.group_control_layout.setContentsMargins(0, 0, 0, 0)
+        self.group_control_layout.setSpacing(0)
+
+        # 分组下拉列表
+        self.group_combo = ComboBox(self)
+        self.group_combo.setFixedWidth(150)
+        self.group_combo.currentIndexChanged.connect(self._on_group_changed)
+        self.group_control_layout.addWidget(self.group_combo)
+
+        # 随机按钮（仅在随机模式下显示）
+        self.random_btn = PushButton("随机", self)
+        self.random_btn.setFixedWidth(150)
+        self.random_btn.clicked.connect(self._on_random_palette_clicked)
+        self.random_btn.setVisible(False)
+        self.group_control_layout.addWidget(self.random_btn)
+
+        controls_layout.addWidget(self.group_control_container)
+
+        header_layout.addWidget(controls_container)
+
+        layout.addLayout(header_layout)
+
+        # 预设色彩列表
+        self.preset_color_list = PresetColorList(self)
+        self.preset_color_list.favorite_requested.connect(self.favorite_requested)
+        self.preset_color_list.preview_in_panel_requested.connect(
+            self._on_preview_in_panel_requested
+        )
+        layout.addWidget(self.preset_color_list, stretch=1)
+
+        # 初始化默认为随机配色模式
+        self.source_combo.setCurrentIndex(0)  # 选中"随机配色"
+        self.desc_label.setText("从全部配色方案中随机筛选")
+        self.group_combo.setVisible(False)
+        self.random_btn.setVisible(True)
+        self.preset_color_list.set_data_source('random', 10)
+
+    def _setup_open_color_group_combo(self):
+        """设置 Open Color 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.OPEN_COLOR_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_nice_palette_group_combo(self):
+        """设置 Nice Palettes 分组下拉列表"""
+        from core.color_data import get_nice_palette_count
+        total_count = get_nice_palette_count()
+        group_count = (total_count + self.PALETTES_PER_GROUP - 1) // self.PALETTES_PER_GROUP
+
+        self.group_combo.clear()
+        for i in range(group_count):
+            start = i * self.PALETTES_PER_GROUP + 1
+            end = min((i + 1) * self.PALETTES_PER_GROUP, total_count)
+            self.group_combo.addItem(f"第 {start}-{end} 组")
+            self.group_combo.setItemData(i, i)
+
+    def _setup_tailwind_group_combo(self):
+        """设置 Tailwind Colors 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.TAILWIND_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_material_group_combo(self):
+        """设置 Material Design Colors 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.MATERIAL_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_colorbrewer_group_combo(self):
+        """设置 ColorBrewer 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.COLORBREWER_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_radix_group_combo(self):
+        """设置 Radix Colors 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.RADIX_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_nord_group_combo(self):
+        """设置 Nord 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.NORD_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_dracula_group_combo(self):
+        """设置 Dracula 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.DRACULA_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_rose_pine_group_combo(self):
+        """设置 Rose Pine 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.ROSE_PINE_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_solarized_group_combo(self):
+        """设置 Solarized 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.SOLARIZED_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_catppuccin_group_combo(self):
+        """设置 Catppuccin 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.CATPPUCCIN_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_gruvbox_group_combo(self):
+        """设置 Gruvbox 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.GRUVBOX_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _setup_tokyo_night_group_combo(self):
+        """设置 Tokyo Night 分组下拉列表"""
+        self.group_combo.clear()
+        for i, (_, name) in enumerate(self.TOKYO_NIGHT_GROUPS):
+            self.group_combo.addItem(name)
+            self.group_combo.setItemData(i, i)
+
+    def _on_source_changed(self, index):
+        """数据源切换回调"""
+        source = self.source_combo.currentData()
+        self._current_source = source
+
+        if source == 'random':
+            self.desc_label.setText("从全部配色方案中随机筛选")
+            # 显示随机按钮，隐藏分组下拉列表
+            self.group_combo.setVisible(False)
+            self.random_btn.setVisible(True)
+            self.preset_color_list.set_data_source('random', 10)
+        elif source == 'open_color':
+            self.desc_label.setText("基于 Open Color 开源配色")
+            # 显示分组下拉列表，隐藏随机按钮
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_open_color_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.OPEN_COLOR_GROUPS[0][0]
+            self.preset_color_list.set_data_source('open_color', series_keys)
+        elif source == 'nice_palette':
+            self.desc_label.setText("基于 Nice Color Palettes 配色")
+            # 显示分组下拉列表，隐藏随机按钮
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_nice_palette_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            start_index = self._current_group_index * self.PALETTES_PER_GROUP
+            self.preset_color_list.set_data_source('nice_palette', start_index)
+        elif source == 'tailwind':
+            self.desc_label.setText("基于 Tailwind CSS Colors 配色")
+            self._setup_tailwind_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.TAILWIND_GROUPS[0][0]
+            self.preset_color_list.set_data_source('tailwind', series_keys)
+        elif source == 'material':
+            self.desc_label.setText("基于 Google Material Design 配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_material_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.MATERIAL_GROUPS[0][0]
+            self.preset_color_list.set_data_source('material', series_keys)
+        elif source == 'colorbrewer':
+            self.desc_label.setText("基于 ColorBrewer 专业配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_colorbrewer_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.COLORBREWER_GROUPS[0][0]
+            self.preset_color_list.set_data_source('colorbrewer', series_keys)
+        elif source == 'radix':
+            self.desc_label.setText("基于 Radix UI Colors 配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_radix_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.RADIX_GROUPS[0][0]
+            self.preset_color_list.set_data_source('radix', series_keys)
+        elif source == 'nord':
+            self.desc_label.setText("基于 Nord 北极配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_nord_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.NORD_GROUPS[0][0]
+            self.preset_color_list.set_data_source('nord', series_keys)
+        elif source == 'dracula':
+            self.desc_label.setText("基于 Dracula 暗色配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_dracula_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.DRACULA_GROUPS[0][0]
+            self.preset_color_list.set_data_source('dracula', series_keys)
+        elif source == 'rose_pine':
+            self.desc_label.setText("基于 Rosé Pine 自然灵感配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_rose_pine_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.ROSE_PINE_GROUPS[0][0]
+            self.preset_color_list.set_data_source('rose_pine', series_keys)
+        elif source == 'solarized':
+            self.desc_label.setText("基于 Solarized 精准科学配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_solarized_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.SOLARIZED_GROUPS[0][0]
+            self.preset_color_list.set_data_source('solarized', series_keys)
+        elif source == 'catppuccin':
+            self.desc_label.setText("基于 Catppuccin 舒缓配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_catppuccin_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.CATPPUCCIN_GROUPS[0][0]
+            self.preset_color_list.set_data_source('catppuccin', series_keys)
+        elif source == 'gruvbox':
+            self.desc_label.setText("基于 Gruvbox 复古风格配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_gruvbox_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.GRUVBOX_GROUPS[0][0]
+            self.preset_color_list.set_data_source('gruvbox', series_keys)
+        elif source == 'tokyo_night':
+            self.desc_label.setText("基于 Tokyo Night VS Code 主题配色")
+            self.group_combo.setVisible(True)
+            self.random_btn.setVisible(False)
+            self._setup_tokyo_night_group_combo()
+            self._current_group_index = 0
+            self.group_combo.setCurrentIndex(0)
+            series_keys = self.TOKYO_NIGHT_GROUPS[0][0]
+            self.preset_color_list.set_data_source('tokyo_night', series_keys)
+
+    def _on_random_palette_clicked(self):
+        """随机配色按钮点击回调"""
+        self.preset_color_list.set_data_source('random', 10)
+
+    def _on_group_changed(self, index):
+        """分组切换回调"""
+        if index < 0:
+            return
+
+        self._current_group_index = index
+
+        if self._current_source == 'open_color':
+            if 0 <= index < len(self.OPEN_COLOR_GROUPS):
+                series_keys = self.OPEN_COLOR_GROUPS[index][0]
+                self.preset_color_list.set_data_source('open_color', series_keys)
+        elif self._current_source == 'nice_palette':
+            start_index = self._current_group_index * self.PALETTES_PER_GROUP
+            self.preset_color_list.set_data_source('nice_palette', start_index)
+        elif self._current_source == 'tailwind':
+            if 0 <= index < len(self.TAILWIND_GROUPS):
+                series_keys = self.TAILWIND_GROUPS[index][0]
+                self.preset_color_list.set_data_source('tailwind', series_keys)
+        elif self._current_source == 'material':
+            if 0 <= index < len(self.MATERIAL_GROUPS):
+                series_keys = self.MATERIAL_GROUPS[index][0]
+                self.preset_color_list.set_data_source('material', series_keys)
+        elif self._current_source == 'colorbrewer':
+            if 0 <= index < len(self.COLORBREWER_GROUPS):
+                series_keys = self.COLORBREWER_GROUPS[index][0]
+                self.preset_color_list.set_data_source('colorbrewer', series_keys)
+        elif self._current_source == 'radix':
+            if 0 <= index < len(self.RADIX_GROUPS):
+                series_keys = self.RADIX_GROUPS[index][0]
+                self.preset_color_list.set_data_source('radix', series_keys)
+        elif self._current_source == 'nord':
+            if 0 <= index < len(self.NORD_GROUPS):
+                series_keys = self.NORD_GROUPS[index][0]
+                self.preset_color_list.set_data_source('nord', series_keys)
+        elif self._current_source == 'dracula':
+            if 0 <= index < len(self.DRACULA_GROUPS):
+                series_keys = self.DRACULA_GROUPS[index][0]
+                self.preset_color_list.set_data_source('dracula', series_keys)
+        elif self._current_source == 'rose_pine':
+            if 0 <= index < len(self.ROSE_PINE_GROUPS):
+                series_keys = self.ROSE_PINE_GROUPS[index][0]
+                self.preset_color_list.set_data_source('rose_pine', series_keys)
+        elif self._current_source == 'solarized':
+            if 0 <= index < len(self.SOLARIZED_GROUPS):
+                series_keys = self.SOLARIZED_GROUPS[index][0]
+                self.preset_color_list.set_data_source('solarized', series_keys)
+        elif self._current_source == 'catppuccin':
+            if 0 <= index < len(self.CATPPUCCIN_GROUPS):
+                series_keys = self.CATPPUCCIN_GROUPS[index][0]
+                self.preset_color_list.set_data_source('catppuccin', series_keys)
+        elif self._current_source == 'gruvbox':
+            if 0 <= index < len(self.GRUVBOX_GROUPS):
+                series_keys = self.GRUVBOX_GROUPS[index][0]
+                self.preset_color_list.set_data_source('gruvbox', series_keys)
+        elif self._current_source == 'tokyo_night':
+            if 0 <= index < len(self.TOKYO_NIGHT_GROUPS):
+                series_keys = self.TOKYO_NIGHT_GROUPS[index][0]
+                self.preset_color_list.set_data_source('tokyo_night', series_keys)
+
+    def _load_settings(self):
+        """加载显示设置"""
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def _on_preview_in_panel_requested(self, preview_data: dict):
+        """处理在预览面板中预览的请求
+
+        Args:
+            preview_data: 包含配色名称、颜色列表和来源的字典
+        """
+        # 发射信号通知主窗口处理预览
+        self.preview_in_panel_requested.emit(preview_data)
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            self.setStyleSheet(f"""
+                PresetColorInterface {{
+                    background-color: {bg_color.name()};
+                }}
+            """)
+
+
+class ColorPreviewInterface(QWidget):
+    """配色预览界面 - 预览收藏的配色在不同场景下的效果"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('colorPreviewInterface')
+        self._config_manager = get_config_manager()
+        self._favorites = []
+        self._current_index = 0
+        self._current_colors = []
+        self._current_scene = "custom"  # 默认使用自定义场景
+        self._current_svg_path = ""  # 当前加载的 SVG 文件路径
+        self._hex_visible = self._config_manager.get('settings.hex_visible', True)
+        self.setup_ui()
+        self._load_favorites()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        # 顶部工具栏（包含标题、导入导出按钮、场景选择器、颜色圆点栏）
+        self.toolbar = PreviewToolbar(self)
+        self.toolbar.scene_changed.connect(self._on_scene_changed)
+        self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
+        self.toolbar.get_dot_bar().color_deleted.connect(self._on_color_deleted)
+        self.toolbar.import_svg_requested.connect(self._on_import_svg)
+        self.toolbar.export_svg_requested.connect(self._on_export_svg)
+        self.toolbar.import_config_requested.connect(self._on_import_config)
+        self.toolbar.export_config_requested.connect(self._on_export_config)
+        self.toolbar.set_hex_visible(self._hex_visible)
+        layout.addWidget(self.toolbar)
+
+        # 预览区域
+        self.preview_panel = MixedPreviewPanel(self)
+        # 默认显示自定义场景
+        self.preview_panel.set_scene("custom")
+        layout.addWidget(self.preview_panel, stretch=1)
+
+    def _load_favorites(self):
+        """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
+        self._favorites = self._config_manager.get_favorites()
+        # 默认不加载任何配色，提示用户从配色管理面板导入
+        self._current_colors = []
+        self._update_preview()
+
+    def _load_current_scheme(self):
+        """加载当前配色"""
+        if not self._favorites or self._current_index >= len(self._favorites):
+            return
+
+        favorite = self._favorites[self._current_index]
+        colors_data = favorite.get('colors', [])
+
+        # 提取颜色值
+        self._current_colors = []
+        for color_info in colors_data:
+            hex_value = color_info.get('hex', '')
+            if hex_value:
+                if not hex_value.startswith('#'):
+                    hex_value = '#' + hex_value
+                self._current_colors.append(hex_value)
+
+        if not self._current_colors:
+            self._current_colors = ["#E8E8E8"]
+
+        self._update_preview()
+
+    def _update_preview(self):
+        """更新预览显示"""
+        self.toolbar.set_colors(self._current_colors)
+        self.preview_panel.set_colors(self._current_colors)
+
+    def set_colors(self, colors: List[str]):
+        """设置要预览的配色（由外部调用）
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
+        self._current_colors = colors.copy() if colors else []
+        self._update_preview()
+
+    def _on_scene_changed(self, scene: str):
+        """场景切换回调"""
+        self._current_scene = scene
+        self.preview_panel.set_scene(scene)
+
+    def _on_color_order_changed(self, colors: List[str]):
+        """颜色顺序变化回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def _on_color_deleted(self, colors: List[str]):
+        """颜色删除回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def set_hex_visible(self, visible: bool):
+        """设置HEX值显示开关
+
+        Args:
+            visible: 是否显示HEX值
+        """
+        self._hex_visible = visible
+        self.toolbar.set_hex_visible(visible)
+
+    def _on_import_svg(self):
+        """导入 SVG 文件"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入 SVG 文件",
+            "",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 加载 SVG 文件
+        svg_preview = self.preview_panel.get_svg_preview()
+        if svg_preview.load_svg(file_path):
+            self._current_svg_path = file_path
+            # 应用当前配色
+            svg_preview.set_colors(self._current_colors)
+
+            InfoBar.success(
+                title="导入成功",
+                content=f"已加载 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content="无法加载 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+
+    def _on_export_svg(self):
+        """导出 SVG 文件"""
+        svg_preview = self.preview_panel.get_svg_preview()
+
+        if not svg_preview.has_svg():
+            InfoBar.warning(
+                title="无法导出",
+                content="请先导入 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出 SVG 文件",
+            "colored_preview.svg",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .svg
+        if not file_path.endswith('.svg'):
+            file_path += '.svg'
+
+        try:
+            # 获取应用配色后的 SVG 内容
+            svg_content = svg_preview.get_svg_content()
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+
+            InfoBar.success(
+                title="导出成功",
+                content=f"已保存到: {file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        except Exception as e:
+            InfoBar.error(
+                title="导出失败",
+                content=f"保存文件时发生错误: {str(e)}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def _on_import_config(self):
+        """导入场景配置"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入场景配置",
+            "",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        from core import get_scene_config_manager
+        scene_manager = get_scene_config_manager()
+
+        success, message = scene_manager.import_scene(file_path)
+
+        if success:
+            # 重新加载场景列表
+            self.toolbar.get_scene_selector().reload_scenes()
+
+            InfoBar.success(
+                title="导入成功",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def _on_export_config(self):
+        """导出当前场景配置"""
+        current_scene = self._current_scene
+
+        from core import get_scene_config_manager
+        scene_manager = get_scene_config_manager()
+
+        # 获取场景配置
+        scene_config = scene_manager.get_scene_by_id(current_scene)
+        if not scene_config:
+            InfoBar.warning(
+                title="无法导出",
+                content="当前场景配置不存在",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 生成默认文件名
+        default_name = f"{current_scene}_config.json"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出场景配置",
+            default_name,
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .json
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        success, message = scene_manager.export_scene(current_scene, file_path)
+
+        if success:
+            InfoBar.success(
+                title="导出成功",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导出失败",
+                content=message,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def refresh_favorites(self):
+        """刷新收藏列表（由主窗口调用）"""
+        self._load_favorites()
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        pass
 
 
 # 导入需要在类定义之后导入的模块
 from qfluentwidgets import Slider
+from .preset_color_widgets import PresetColorList
+from .preview_widgets import PreviewToolbar, MixedPreviewPanel

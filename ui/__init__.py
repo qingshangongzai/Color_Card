@@ -15,9 +15,14 @@ from .histograms import (
 from .color_picker import ColorPicker
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .zoom_viewer import ZoomViewer
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorSchemeInterface, FavoritesInterface
-from .scheme_widgets import SchemeColorInfoCard, SchemeColorPanel
-from .favorite_widgets import FavoriteSchemeCard, FavoriteSchemeList
+from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
+from .generation_widgets import GenerationColorInfoCard, GenerationColorPanel
+from .palette_management_widgets import PaletteManagementCard, PaletteManagementList
+from .preview_widgets import (
+    DraggableColorDot, ColorDotBar,
+    IllustrationPreview, TypographyPreview,
+    PreviewToolbar, MixedPreviewPanel
+)
 
 __all__ = [
     # 主窗口
@@ -46,12 +51,21 @@ __all__ = [
     'ColorExtractInterface',
     'LuminanceExtractInterface',
     'SettingsInterface',
-    'ColorSchemeInterface',
-    'FavoritesInterface',
-    # 配色方案组件
-    'SchemeColorInfoCard',
-    'SchemeColorPanel',
-    # 收藏组件
-    'FavoriteSchemeCard',
-    'FavoriteSchemeList',
+    'ColorGenerationInterface',
+    'PaletteManagementInterface',
+    'PresetColorInterface',
+    'ColorPreviewInterface',
+    # 配色生成组件
+    'GenerationColorInfoCard',
+    'GenerationColorPanel',
+    # 配色管理组件
+    'PaletteManagementCard',
+    'PaletteManagementList',
+    # 配色预览组件
+    'DraggableColorDot',
+    'ColorDotBar',
+    'IllustrationPreview',
+    'TypographyPreview',
+    'PreviewToolbar',
+    'MixedPreviewPanel',
 ]

@@ -17,6 +17,11 @@ def get_card_background_color():
     return QColor(42, 42, 42) if isDarkTheme() else QColor(255, 255, 255)
 
 
+def get_interface_background_color():
+    """获取界面背景颜色（与FluentWindow一致）"""
+    return QColor(32, 32, 32) if isDarkTheme() else QColor(243, 243, 243)
+
+
 def get_histogram_background_color():
     """获取直方图背景颜色 - 固定灰黑色 #2a2a2a"""
     return QColor(42, 42, 42)
@@ -97,6 +102,11 @@ def get_wheel_selector_inner_color():
 def get_wheel_line_color(selected=False):
     """获取色轮连线颜色"""
     return QColor(255, 255, 255, 200) if selected else QColor(255, 255, 255, 128)
+
+
+def get_wheel_label_color():
+    """获取色轮标签颜色 - 固定灰色 #969696"""
+    return QColor(150, 150, 150)
 
 
 # ========== 直方图颜色 ==========
@@ -250,3 +260,24 @@ def get_zone_text_color():
 def get_favorite_icon_color():
     """获取收藏界面图标颜色"""
     return QColor(153, 153, 153)
+
+
+# ========== 高饱和度区域高亮颜色 ==========
+def get_high_saturation_highlight_color():
+    """获取高饱和度区域高亮颜色 - 半透明品红色"""
+    return QColor(255, 0, 128, 80)
+
+
+def get_high_saturation_border_color():
+    """获取高饱和度区域边框颜色"""
+    return QColor(255, 0, 128, 150)
+
+
+def get_high_brightness_highlight_color():
+    """获取高明度区域高亮颜色 - 半透明青色"""
+    return QColor(0, 200, 255, 80)
+
+
+def get_high_brightness_border_color():
+    """获取高明度区域边框颜色"""
+    return QColor(0, 200, 255, 150)

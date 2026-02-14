@@ -21,7 +21,6 @@
 ================================================================================
 ⚠️ 重要提示
 --------------------------------------------------------------------------------
-本项目使用 PySide6 (LGPLv3)，因此整个项目也必须以 GPLv3 开源！
 本项目主要包含以下许可证：
 1. 主项目许可证：GNU General Public License v3.0 (GPLv3)
 2. 第三方库许可证：包含LGPL-3.0、GPL-3.0、MIT等多种开源许可证，详细的第三方库许可证信息请查看后续章节或应用程序的"关于"窗口
@@ -612,10 +611,10 @@ of this License. But first, please read <https://www.gnu.org/licenses/why-not-lg
 本项目使用了以下第三方库，每个库都有其自己的开源许可证：
 
 ================================================================================
-1. PySide6 (LGPL-3.0)
+1. PySide6
 --------------------------------------------------------------------------------
 版权所有：The Qt Company
-项目地址：https://www.qt.io/
+Qt官网：https://www.qt.io/
 许可证：GNU Lesser General Public License v3.0
 
 --------------------------------------------------------------------------------
@@ -757,7 +756,7 @@ proxy's public statement of acceptance of any version is permanent authorization
 for you to choose that version for the Library.
 
 ================================================================================
-2. PySide6-Fluent-Widgets (GPL-3.0)
+2. PySide6-Fluent-Widgets
 --------------------------------------------------------------------------------
 版权所有：zhiyiYo
 项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
@@ -769,36 +768,49 @@ PySide6-Fluent-Widgets 使用 GPLv3 许可证。由于本项目主许可证也�
 Version 3" 章节。
 
 ================================================================================
-3. Pillow (MIT License)
+3. Pillow
 --------------------------------------------------------------------------------
 版权所有：Python Imaging Library Team
 项目地址：https://github.com/python-pillow/Pillow
-许可证：MIT License
+官网：python-pillow.github.io
+许可证：MIT-CMU License
 
 --------------------------------------------------------------------------------
 MIT License
 
-Copyright <YEAR> <COPYRIGHT HOLDER>
+The Python Imaging Library (PIL) is
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
+    Copyright © 1997-2011 by Secret Labs AB
+    Copyright © 1995-2011 by Fredrik Lundh and contributors
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Pillow is the friendly PIL fork. It is
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    Copyright © 2010 by Jeffrey A. Clark and contributors
+
+Like PIL, Pillow is licensed under the open source MIT-CMU License:
+
+By obtaining, using, and/or copying this software and/or its associated
+documentation, you agree that you have read, understood, and will comply
+with the following terms and conditions:
+
+Permission to use, copy, modify and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
+provided that the above copyright notice appears in all copies, and that
+both that copyright notice and this permission notice appear in supporting
+documentation, and that the name of Secret Labs AB or the author not be
+used in advertising or publicity pertaining to distribution of the software
+without specific, written prior permission.
+
+SECRET LABS AB AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS.
+IN NO EVENT SHALL SECRET LABS AB OR THE AUTHOR BE LIABLE FOR ANY SPECIAL,
+INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
 
 ================================================================================
-4. requests (Apache-2.0)
+4. requests
 --------------------------------------------------------------------------------
 版权所有：Kenneth Reitz
 项目地址：https://github.com/psf/requests
@@ -972,37 +984,414 @@ END OF TERMS AND CONDITIONS
 --------------------------------------------------------------------------------
 版权所有：NumPy Developers
 项目地址：https://github.com/numpy/numpy
+官网：https://numpy.org/
 许可证：BSD 3-Clause License
 
 --------------------------------------------------------------------------------
 BSD 3-Clause License
 
-Copyright <YEAR> <COPYRIGHT HOLDER>
+Copyright (c) 2005-2025, NumPy Developers.
+All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
 
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
 
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
+    * Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
 
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software without
-   specific prior written permission.
+    * Neither the name of the NumPy Developers nor the names of any
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+6. Open Color
+--------------------------------------------------------------------------------
+版权所有：heeyeun (Yeun)
+项目地址：https://github.com/yeun/open-color
+官网：yeun.github.io/open-color/
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2016 heeyeun
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+7. Nice Color Palettes
+--------------------------------------------------------------------------------
+版权所有：Jam3
+项目地址：https://github.com/Experience-Monks/nice-color-palettes
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+The MIT License (MIT)
+Copyright (c) 2016 Jam3
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+8. Tailwind CSS Colors
+--------------------------------------------------------------------------------
+版权所有：Tailwind Labs, Inc.
+项目地址：https://github.com/tailwindlabs/tailwindcss
+官网：tailwindcss.com
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) Tailwind Labs, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+9. Material Design Colors (Apache License 2.0)
+--------------------------------------------------------------------------------
+版权所有：Google LLC
+项目地址：https://m3.material.io/styles/color/system/overview
+许可证：Apache License 2.0
+用途：内置色彩配色方案
+
+说明：
+Material Design Colors 使用 Apache License 2.0 许可证。完整的许可证文本请参考
+requests 章节中的 "Apache License Version 2.0" 部分。
+
+================================================================================
+10. ColorBrewer (Apache License 2.0)
+--------------------------------------------------------------------------------
+版权所有：Cynthia Brewer
+官网：https://colorbrewer2.org/
+许可证：Apache License 2.0
+用途：内置色彩配色方案
+
+说明：
+ColorBrewer 使用 Apache License 2.0 许可证。完整的许可证文本请参考
+requests 章节中的 "Apache License Version 2.0" 部分。
+
+================================================================================
+11. Radix UI Colors
+--------------------------------------------------------------------------------
+版权所有：WorkOS
+项目地址：https://github.com/radix-ui/colors
+官网：https://www.radix-ui.com/colors
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2021-2022 Modulz
+Copyright (c) 2022-Present WorkOS
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+12. Nord
+--------------------------------------------------------------------------------
+版权所有：Sven Greb
+项目地址：https://github.com/arcticicestudio/nord
+官网：https://www.nordtheme.com/
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+MIT License (MIT)
+
+Copyright (c) 2016-present Sven Greb <development@svengreb.de> (https://www.svengreb.de)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+13. Dracula
+---------------------------------------------------------------------------------
+版权所有：Dracula Theme contributors
+官网：https://draculatheme.com/
+许可证：MIT License
+用途：内置色彩配色方案
+
+---------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) Dracula Theme contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+14. Rosé Pine
+---------------------------------------------------------------------------------
+版权所有：Rosé Pine 团队
+项目地址：https://github.com/rose-pine/rose-pine-theme
+官网：https://www.rosepine.com/
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2023 Rosé Pine
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+15. Solarized
+--------------------------------------------------------------------------------
+版权所有：Ethan Schoonover
+项目地址：https://github.com/altercation/solarized
+官网：https://ethanschoonover.com/solarized/
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+Copyright (c) 2011 Ethan Schoonover
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+================================================================================
+16. Catppuccin
+--------------------------------------------------------------------------------
+版权所有：Catppuccin 团队
+项目地址：https://github.com/catppuccin/catppuccin
+官网：https://catppuccin.com/
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2021 Catppuccin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+17. Gruvbox
+--------------------------------------------------------------------------------
+版权所有：Pavel Pertsev
+项目地址：https://github.com/morhetz/gruvbox
+许可证：MIT/X11 License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+
+Copyright (c) 2012 Pavel Pertsev
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+18. Tokyo Night
+--------------------------------------------------------------------------------
+版权所有：enkia
+项目地址：https://github.com/enkia/tokyo-night-vscode-theme
+许可证：MIT License
+用途：内置色彩配色方案
+
+--------------------------------------------------------------------------------
+
+The MIT License (MIT)
+
+Copyright (c) 2018-present Enkia
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
 开发工具链许可证
@@ -1014,21 +1403,98 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 版权所有：Brent Vollebregt
 项目地址：https://github.com/brentvollebregt/auto-py-to-exe
-许可证：GNU General Public License v3.0
+许可证：MIT License
 用途：将 Python 脚本打包为独立的可执行文件
 
-说明：
-auto-py-to-exe 使用 GPLv3 许可证。由于本项目主许可证也为 GPLv3，
-完整的 GPLv3 许可证文本请参考本文档前面的 "GNU GENERAL PUBLIC LICENSE
-Version 3" 章节。
+--------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2023 Brent Vollebregt
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ================================================================================
-2. UPX (GPL-2.0+)
+2. UPX (GPL-2.0+ with special exceptions)
 --------------------------------------------------------------------------------
-版权所有：UPX Team
+版权所有：Markus Oberhumer, Laszlo Molnar, John Reiser
+项目地址：https://github.com/upx/upx
 官网：https://upx.github.io/
-许可证：GNU General Public License v2.0 or later
+许可证：GNU General Public License v2.0 or later with special exceptions
 用途：压缩可执行文件体积
+
+说明：
+UPX 采用双重许可：
+1. 纯 GPL-2.0+ - 适用于修改 UPX 源代码的情况
+2. GPL-2.0+ with special exceptions - 允许自由使用 UPX 处理所有二进制文件，
+   包括商业程序，无需开源你的程序
+
+本项目仅使用 UPX 作为工具压缩可执行文件，适用第二种许可。
+
+--------------------------------------------------------------------------------
+SPECIAL EXCEPTION FOR COMPRESSED EXECUTABLES
+--------------------------------------------------------------------------------
+
+The stub which is imbedded in each UPX compressed program is part
+of UPX and UCL, and contains code that is under our copyright. The
+terms of the GNU General Public License still apply as compressing
+a program is a special form of linking with our stub.
+
+Hereby Markus F.X.J. Oberhumer and Laszlo Molnar grant you special
+permission to freely use and distribute all UPX compressed programs
+(including commercial ones), subject to the following restrictions:
+
+1. You must compress your program with a completely unmodified UPX
+   version; either with our precompiled version, or (at your option)
+   with a self compiled version of the unmodified UPX sources as
+   distributed by us.
+2. This also implies that the UPX stub must be completely unmodfied, i.e.
+   the stub imbedded in your compressed program must be byte-identical
+   to the stub that is produced by the official unmodified UPX version.
+3. The decompressor and any other code from the stub must exclusively get
+   used by the unmodified UPX stub for decompressing your program at
+   program startup. No portion of the stub may get read, copied,
+   called or otherwise get used or accessed by your program.
+
+
+ANNOTATIONS
+-----------
+
+- You can use a modified UPX version or modified UPX stub only for
+  programs that are compatible with the GNU General Public License.
+
+- We grant you special permission to freely use and distribute all UPX
+  compressed programs. But any modification of the UPX stub (such as,
+  but not limited to, removing our copyright string or making your
+  program non-decompressible) will immediately revoke your right to
+  use and distribute a UPX compressed program.
+
+- UPX is not a software protection tool; by requiring that you use
+  the unmodified UPX version for your proprietary programs we
+  make sure that any user can decompress your program. This protects
+  both you and your users as nobody can hide malicious code -
+  any program that cannot be decompressed is highly suspicious
+  by definition.
+
+- You can integrate all or part of UPX and UCL into projects that
+  are compatible with the GNU GPL, but obviously you cannot grant
+  any special exceptions beyond the GPL for our code in your project.
 
 --------------------------------------------------------------------------------
 GNU GENERAL PUBLIC LICENSE
@@ -1296,42 +1762,42 @@ NO WARRANTY
 END OF TERMS AND CONDITIONS
 
 ================================================================================
-3. Inno Setup (Modified BSD)
+3. Inno Setup
 --------------------------------------------------------------------------------
 版权所有：Jordan Russell
 官网：https://jrsoftware.org/isinfo.php
-许可证：基于修改的 BSD 许可证
+许可证：Modified BSD
 用途：将独立的可执行文件打包为安装程序
 
 --------------------------------------------------------------------------------
 Inno Setup License
 
-Except where otherwise noted, all of the documentation and software included in
-the Inno Setup package is copyrighted by Jordan Russell.
+
+Except where otherwise noted, all of the documentation and software included in the Inno
+Setup package is copyrighted by Jordan Russell.
 
 Copyright (C) 1997-2026 Jordan Russell. All rights reserved.
 Portions Copyright (C) 2000-2026 Martijn Laan. All rights reserved.
 
-This software is provided "as-is," without any express or implied warranty. In
-no event shall the author be held liable for any damages arising from the use
-of this software.
+This software is provided "as-is," without any express or implied warranty. In no event shall
+the author be held liable for any damages arising from the use of this software.
 
-Permission is granted to anyone to use this software for any purpose, including
-commercial applications, and to alter and redistribute it, provided that the
-following conditions are met:
+Permission is granted to anyone to use this software for any purpose, including commercial
+applications, and to alter and redistribute it, provided that the following conditions are met:
 
-1. All redistributions of source code files must retain all copyright notices
-   that are currently in place, and this list of conditions without
-   modification.
-2. All redistributions in binary form must retain all occurrences of the above
-   copyright notice and web site addresses that are currently in place (for
-   example, in the About boxes).
-3. The origin of this software must not be misrepresented; you must not claim
-   that you wrote the original software. If you use this software to distribute
-   a product, an acknowledgment in the product documentation would be
-   appreciated but is not required.
-4. Modified versions in source or binary form must be plainly marked as such,
-   and must not be misrepresented as being the original software.
+1. All redistributions of source code files must retain all copyright notices that are currently
+   in place, and this list of conditions without modification.
+
+2. All redistributions in binary form must retain all occurrences of the above copyright notice
+   and web site addresses that are currently in place (for example, in the About boxes).
+
+3. The origin of this software must not be misrepresented; you must not claim that you wrote
+   the original software. If you use this software to distribute a product, an acknowledgment
+   in the product documentation would be appreciated but is not required.
+
+4. Modified versions in source or binary form must be plainly marked as such, and must not
+   be misrepresented as being the original software.
+
 
 Jordan Russell
 jr-2020 AT jrsoftware.org

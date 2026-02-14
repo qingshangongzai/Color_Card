@@ -15,6 +15,28 @@ from .icon import get_icon_path
 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
 
 
+def is_windows_10() -> bool:
+    """检测是否为 Windows 10 系统
+
+    Returns:
+        bool: 是 Windows 10 返回 True，否则返回 False（包括 Win11 或非 Windows 系统）
+    """
+    if sys.platform != "win32":
+        return False
+
+    try:
+        # 使用 Windows 版本检测
+        # Windows 10: major=10, minor=0, build < 22000
+        # Windows 11: major=10, minor=0, build >= 22000
+        version = sys.getwindowsversion()
+        if version.major == 10 and version.minor == 0:
+            # build 22000 是 Windows 11 的第一个版本
+            return version.build < 22000
+        return False
+    except Exception:
+        return False
+
+
 def set_window_title_bar_theme(window, is_dark=False):
     """为窗口设置标题栏主题（Windows 10+ 深色/浅色模式）
 

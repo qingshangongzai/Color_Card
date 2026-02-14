@@ -1,0 +1,110 @@
+name: Build Mac App
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+    
+    - name: Read version
+      id: version
+      run: |
+        VERSION=$(cat version_info.txt)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Build Mac App with PyInstaller
+      run: |
+        pyinstaller \
+          --name "ColorCard" \
+          --windowed \
+          --onefile \
+          --icon logo/ColorCard_logo.ico \
+          --add-data "color_data:color_data" \
+          --add-data "preview_scenes:preview_scenes" \
+          --add-data "logo:logo" \
+          --clean \
+          main.py
+    
+    - name: Create DMG
+      run: |
+        # 创建临时目录结构
+        mkdir -p dist/dmg/ColorCard.app/Contents/MacOS
+        mkdir -p dist/dmg/ColorCard.app/Contents/Resources
+        
+        # 复制可执行文件
+        cp dist/ColorCard dist/dmg/ColorCard.app/Contents/MacOS/
+        
+        # 创建 Info.plist
+        cat > dist/dmg/ColorCard.app/Contents/Info.plist << 'EOF'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>ColorCard</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.hxiaostudio.colorcard</string>
+            <key>CFBundleName</key>
+            <string>ColorCard</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>${{ steps.version.outputs.version }}</string>
+            <key>CFBundleVersion</key>
+            <string>1</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>10.14</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+        </dict>
+        </plist>
+        EOF
+        
+        # 创建 DMG
+        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/ColorCard-${{ steps.version.outputs.version }}-macOS.dmg
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ColorCard-macOS
+        path: |
+          dist/ColorCard-*.dmg
+          dist/ColorCard
+    
+    - name: Upload Release Asset
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/ColorCard-*.dmg
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
