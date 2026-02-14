@@ -38,7 +38,7 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(cat version_info.txt)
+        VERSION=$(cat version_info.txt | tr -d '[:space:]')
         echo "version=$VERSION" >> $GITHUB_OUTPUT
     
     - name: Build Mac App with PyInstaller
