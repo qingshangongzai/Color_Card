@@ -52,6 +52,7 @@ jobs:
           --add-data "color_data:color_data" \
           --add-data "preview_scenes:preview_scenes" \
           --add-data "logo:logo" \
+          --osx-bundle-identifier "com.hxiaostudio.colorcard" \
           --clean \
           main.py
     
