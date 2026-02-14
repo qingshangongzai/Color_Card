@@ -30,6 +30,23 @@ from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
 
+def _get_base_path() -> str:
+    """获取应用程序基础路径
+
+    支持开发环境和 PyInstaller 打包后的环境
+
+    Returns:
+        str: 应用程序基础路径
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的环境
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
+        return os.path.dirname(sys.executable)
+    # 开发环境 - 返回当前文件所在目录
+    return os.path.dirname(os.path.abspath(__file__))
+
+
 def _create_splash_screen():
     """创建并显示启动画面
 
@@ -37,8 +54,14 @@ def _create_splash_screen():
         QSplashScreen: 启动画面对象，如果创建失败返回 None
     """
     try:
+        # 获取基础路径
+        base_path = _get_base_path()
+
+        # 构建 logo 路径
+        logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
+
         # 加载启动画面图片
-        splash_pixmap = QPixmap('logo/Color Card_logo.ico')
+        splash_pixmap = QPixmap(logo_path)
         if splash_pixmap.isNull():
             return None
 
