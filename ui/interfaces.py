@@ -2174,104 +2174,14 @@ class PaletteManagementInterface(QWidget):
             """)
 
 
+from core.color_data import get_all_color_sources, get_color_source
+
+
 class PresetColorInterface(QWidget):
-    """内置色彩界面（支持 Open Color、Nice Color Palettes、Tailwind Colors、Material Design、ColorBrewer 和 Radix Colors）"""
+    """内置色彩界面（从JSON动态加载配色源）"""
 
-    favorite_requested = Signal(dict)  # 信号：收藏数据字典
-    preview_in_panel_requested = Signal(dict)  # 信号：在预览面板中预览
-
-    # 每组显示的配色数量
-    PALETTES_PER_GROUP = 50
-
-    # Open Color 分组定义
-    OPEN_COLOR_GROUPS = [
-        (["gray", "red", "pink", "grape"], "灰/红/粉/紫组"),
-        (["violet", "indigo", "blue", "cyan"], "紫/蓝/青组"),
-        (["teal", "green", "lime", "yellow", "orange"], "绿/黄/橙组"),
-    ]
-
-    # Tailwind Colors 分组定义
-    TAILWIND_GROUPS = [
-        (["slate", "gray", "zinc", "neutral", "stone"], "灰色系"),
-        (["red", "orange", "amber", "yellow"], "暖色系"),
-        (["lime", "green", "emerald", "teal"], "绿色系"),
-        (["cyan", "sky", "blue", "indigo"], "青蓝色系"),
-        (["violet", "purple", "fuchsia", "pink", "rose"], "紫色系"),
-    ]
-
-    # Material Design Colors 分组定义
-    MATERIAL_GROUPS = [
-        (["red", "pink", "purple", "deep_purple"], "红/粉/紫组"),
-        (["indigo", "blue", "light_blue", "cyan"], "蓝/青组"),
-        (["teal", "green", "light_green", "lime"], "绿色系"),
-        (["yellow", "amber", "orange", "deep_orange"], "黄/橙组"),
-        (["brown", "grey", "blue_grey"], "棕/灰组"),
-    ]
-
-    # ColorBrewer 分组定义
-    COLORBREWER_GROUPS = [
-        (["brewer_blues", "brewer_greens", "brewer_greys", "brewer_oranges", "brewer_purples", "brewer_reds"], "顺序色-单色系"),
-        (["brewer_bugn", "brewer_bupu", "brewer_gnbu", "brewer_orrd", "brewer_pubu", "brewer_pubugn"], "顺序色-蓝绿紫"),
-        (["brewer_purd", "brewer_rdpu", "brewer_ylgn", "brewer_ylgnbu", "brewer_ylorbr", "brewer_ylorrd"], "顺序色-暖色系"),
-        (["brewer_brbg", "brewer_piyg", "brewer_prgn", "brewer_puor", "brewer_rdbu"], "发散色-对比"),
-        (["brewer_rdgy", "brewer_rdylbu", "brewer_rdylgn", "brewer_spectral"], "发散色-光谱"),
-        (["brewer_set1", "brewer_set2", "brewer_set3", "brewer_paired", "brewer_dark2", "brewer_accent"], "定性色-分类"),
-        (["brewer_pastel1", "brewer_pastel2"], "定性色-粉彩"),
-    ]
-
-    # Radix Colors 分组定义
-    RADIX_GROUPS = [
-        (["radix_gray", "radix_mauve", "radix_slate", "radix_sage", "radix_olive", "radix_sand"], "中性色系"),
-        (["radix_tomato", "radix_red", "radix_ruby", "radix_crimson"], "红色系"),
-        (["radix_pink", "radix_plum", "radix_purple"], "粉紫色系"),
-        (["radix_violet", "radix_iris", "radix_indigo"], "紫蓝色系"),
-        (["radix_blue", "radix_cyan", "radix_sky"], "蓝色系"),
-        (["radix_teal", "radix_jade", "radix_mint"], "青绿色系"),
-        (["radix_green", "radix_grass"], "绿色系"),
-        (["radix_brown", "radix_bronze", "radix_gold"], "金属色系"),
-        (["radix_yellow", "radix_amber", "radix_orange"], "黄橙色系"),
-        (["radix_lime"], "亮绿色系"),
-    ]
-
-    # Nord 分组定义
-    NORD_GROUPS = [
-        (["nord0", "nord1", "nord2", "nord3"], "分组1"),
-        (["nord4", "nord5", "nord6", "nord7"], "分组2"),
-        (["nord8", "nord9", "nord10", "nord11"], "分组3"),
-        (["nord12", "nord13", "nord14", "nord15"], "分组4"),
-    ]
-
-    # Dracula 分组定义
-    DRACULA_GROUPS = [
-        (["dracula_bg", "dracula_current_line", "dracula_foreground", "dracula_comment"], "基础色系"),
-        (["dracula_cyan", "dracula_green", "dracula_orange", "dracula_pink"], "主题色-1"),
-        (["dracula_purple", "dracula_red", "dracula_yellow"], "主题色-2"),
-    ]
-
-    # Rose Pine 分组定义
-    ROSE_PINE_GROUPS = [
-        (["rose_pine_main", "rose_pine_moon", "rose_pine_dawn"], "全部系列"),
-    ]
-
-    # Solarized 分组定义
-    SOLARIZED_GROUPS = [
-        (["solarized_dark", "solarized_light"], "全部系列"),
-    ]
-
-    # Catppuccin 分组定义
-    CATPPUCCIN_GROUPS = [
-        (["catppuccin_latte", "catppuccin_frappe", "catppuccin_macchiato", "catppuccin_mocha"], "全部系列"),
-    ]
-
-    # Gruvbox 分组定义
-    GRUVBOX_GROUPS = [
-        (["gruvbox_dark", "gruvbox_light"], "全部系列"),
-    ]
-
-    # Tokyo Night 分组定义
-    TOKYO_NIGHT_GROUPS = [
-        (["tokyo_night", "tokyo_storm", "tokyo_day"], "全部系列"),
-    ]
+    favorite_requested = Signal(dict)
+    preview_in_panel_requested = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -2279,18 +2189,17 @@ class PresetColorInterface(QWidget):
         self._config_manager = get_config_manager()
         self._current_source = 'random'
         self._current_group_index = 0
+        self._color_sources = {}
         self.setup_ui()
         self._load_settings()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
-        """设置界面布局"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
-        # 头部信息
         header_layout = QHBoxLayout()
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
@@ -2298,66 +2207,41 @@ class PresetColorInterface(QWidget):
         self.title_label = SubtitleLabel("内置色彩")
         header_layout.addWidget(self.title_label)
 
-        # 添加说明标签
-        self.desc_label = QLabel("基于 Open Color 开源配色")
+        self.desc_label = QLabel("从全部配色方案中随机筛选")
         self.desc_label.setStyleSheet("font-size: 12px; color: gray;")
         header_layout.addWidget(self.desc_label)
 
         header_layout.addStretch()
 
-        # 控件容器（用于对齐）
         controls_container = QWidget()
         controls_layout = QHBoxLayout(controls_container)
         controls_layout.setSpacing(10)
         controls_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 数据源切换下拉列表
         self.source_combo = ComboBox(self)
         self.source_combo.addItem("随机配色")
         self.source_combo.setItemData(0, "random")
-        self.source_combo.addItem("Open Color 配色")
-        self.source_combo.setItemData(1, "open_color")
-        self.source_combo.addItem("Tailwind Colors 配色")
-        self.source_combo.setItemData(2, "tailwind")
-        self.source_combo.addItem("Material Design 配色")
-        self.source_combo.setItemData(3, "material")
-        self.source_combo.addItem("Nice Palettes 配色")
-        self.source_combo.setItemData(4, "nice_palette")
-        self.source_combo.addItem("ColorBrewer 配色")
-        self.source_combo.setItemData(5, "colorbrewer")
-        self.source_combo.addItem("Radix Colors 配色")
-        self.source_combo.setItemData(6, "radix")
-        self.source_combo.addItem("Nord 配色")
-        self.source_combo.setItemData(7, "nord")
-        self.source_combo.addItem("Dracula 配色")
-        self.source_combo.setItemData(8, "dracula")
-        self.source_combo.addItem("Rosé Pine 配色")
-        self.source_combo.setItemData(9, "rose_pine")
-        self.source_combo.addItem("Solarized 配色")
-        self.source_combo.setItemData(10, "solarized")
-        self.source_combo.addItem("Catppuccin 配色")
-        self.source_combo.setItemData(11, "catppuccin")
-        self.source_combo.addItem("Gruvbox 配色")
-        self.source_combo.setItemData(12, "gruvbox")
-        self.source_combo.addItem("Tokyo Night 配色")
-        self.source_combo.setItemData(13, "tokyo_night")
+        
+        all_sources = get_all_color_sources()
+        for i, source in enumerate(all_sources):
+            self.source_combo.addItem(source.name)
+            self.source_combo.setItemData(i + 1, source.id)
+            self._color_sources[source.id] = source
+        
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
 
-        # 分组控制容器（随机模式下显示按钮，其他模式显示下拉列表）
         self.group_control_container = QWidget(self)
         self.group_control_layout = QHBoxLayout(self.group_control_container)
         self.group_control_layout.setContentsMargins(0, 0, 0, 0)
         self.group_control_layout.setSpacing(0)
 
-        # 分组下拉列表
         self.group_combo = ComboBox(self)
         self.group_combo.setFixedWidth(150)
         self.group_combo.currentIndexChanged.connect(self._on_group_changed)
         self.group_control_layout.addWidget(self.group_combo)
 
-        # 随机按钮（仅在随机模式下显示）
         self.random_btn = PushButton("随机", self)
         self.random_btn.setFixedWidth(150)
         self.random_btn.clicked.connect(self._on_random_palette_clicked)
@@ -2370,7 +2254,6 @@ class PresetColorInterface(QWidget):
 
         layout.addLayout(header_layout)
 
-        # 预设色彩列表
         self.preset_color_list = PresetColorList(self)
         self.preset_color_list.favorite_requested.connect(self.favorite_requested)
         self.preset_color_list.preview_in_panel_requested.connect(
@@ -2378,328 +2261,68 @@ class PresetColorInterface(QWidget):
         )
         layout.addWidget(self.preset_color_list, stretch=1)
 
-        # 初始化默认为随机配色模式
-        self.source_combo.setCurrentIndex(0)  # 选中"随机配色"
-        self.desc_label.setText("从全部配色方案中随机筛选")
+        self.source_combo.setCurrentIndex(0)
         self.group_combo.setVisible(False)
         self.random_btn.setVisible(True)
         self.preset_color_list.set_data_source('random', 10)
 
-    def _setup_open_color_group_combo(self):
-        """设置 Open Color 分组下拉列表"""
+    def _setup_group_combo(self, source):
         self.group_combo.clear()
-        for i, (_, name) in enumerate(self.OPEN_COLOR_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_nice_palette_group_combo(self):
-        """设置 Nice Palettes 分组下拉列表"""
-        from core.color_data import get_nice_palette_count
-        total_count = get_nice_palette_count()
-        group_count = (total_count + self.PALETTES_PER_GROUP - 1) // self.PALETTES_PER_GROUP
-
-        self.group_combo.clear()
-        for i in range(group_count):
-            start = i * self.PALETTES_PER_GROUP + 1
-            end = min((i + 1) * self.PALETTES_PER_GROUP, total_count)
-            self.group_combo.addItem(f"第 {start}-{end} 组")
-            self.group_combo.setItemData(i, i)
-
-    def _setup_tailwind_group_combo(self):
-        """设置 Tailwind Colors 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.TAILWIND_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_material_group_combo(self):
-        """设置 Material Design Colors 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.MATERIAL_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_colorbrewer_group_combo(self):
-        """设置 ColorBrewer 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.COLORBREWER_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_radix_group_combo(self):
-        """设置 Radix Colors 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.RADIX_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_nord_group_combo(self):
-        """设置 Nord 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.NORD_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_dracula_group_combo(self):
-        """设置 Dracula 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.DRACULA_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_rose_pine_group_combo(self):
-        """设置 Rose Pine 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.ROSE_PINE_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_solarized_group_combo(self):
-        """设置 Solarized 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.SOLARIZED_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_catppuccin_group_combo(self):
-        """设置 Catppuccin 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.CATPPUCCIN_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_gruvbox_group_combo(self):
-        """设置 Gruvbox 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.GRUVBOX_GROUPS):
-            self.group_combo.addItem(name)
-            self.group_combo.setItemData(i, i)
-
-    def _setup_tokyo_night_group_combo(self):
-        """设置 Tokyo Night 分组下拉列表"""
-        self.group_combo.clear()
-        for i, (_, name) in enumerate(self.TOKYO_NIGHT_GROUPS):
-            self.group_combo.addItem(name)
+        groups = source.get_groups()
+        for i, group in enumerate(groups):
+            self.group_combo.addItem(group["name"])
             self.group_combo.setItemData(i, i)
 
     def _on_source_changed(self, index):
-        """数据源切换回调"""
-        source = self.source_combo.currentData()
-        self._current_source = source
+        source_id = self.source_combo.currentData()
+        self._current_source = source_id
 
-        if source == 'random':
+        if source_id == 'random':
             self.desc_label.setText("从全部配色方案中随机筛选")
-            # 显示随机按钮，隐藏分组下拉列表
             self.group_combo.setVisible(False)
             self.random_btn.setVisible(True)
             self.preset_color_list.set_data_source('random', 10)
-        elif source == 'open_color':
-            self.desc_label.setText("基于 Open Color 开源配色")
-            # 显示分组下拉列表，隐藏随机按钮
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_open_color_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.OPEN_COLOR_GROUPS[0][0]
-            self.preset_color_list.set_data_source('open_color', series_keys)
-        elif source == 'nice_palette':
-            self.desc_label.setText("基于 Nice Color Palettes 配色")
-            # 显示分组下拉列表，隐藏随机按钮
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_nice_palette_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            start_index = self._current_group_index * self.PALETTES_PER_GROUP
-            self.preset_color_list.set_data_source('nice_palette', start_index)
-        elif source == 'tailwind':
-            self.desc_label.setText("基于 Tailwind CSS Colors 配色")
-            self._setup_tailwind_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.TAILWIND_GROUPS[0][0]
-            self.preset_color_list.set_data_source('tailwind', series_keys)
-        elif source == 'material':
-            self.desc_label.setText("基于 Google Material Design 配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_material_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.MATERIAL_GROUPS[0][0]
-            self.preset_color_list.set_data_source('material', series_keys)
-        elif source == 'colorbrewer':
-            self.desc_label.setText("基于 ColorBrewer 专业配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_colorbrewer_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.COLORBREWER_GROUPS[0][0]
-            self.preset_color_list.set_data_source('colorbrewer', series_keys)
-        elif source == 'radix':
-            self.desc_label.setText("基于 Radix UI Colors 配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_radix_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.RADIX_GROUPS[0][0]
-            self.preset_color_list.set_data_source('radix', series_keys)
-        elif source == 'nord':
-            self.desc_label.setText("基于 Nord 北极配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_nord_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.NORD_GROUPS[0][0]
-            self.preset_color_list.set_data_source('nord', series_keys)
-        elif source == 'dracula':
-            self.desc_label.setText("基于 Dracula 暗色配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_dracula_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.DRACULA_GROUPS[0][0]
-            self.preset_color_list.set_data_source('dracula', series_keys)
-        elif source == 'rose_pine':
-            self.desc_label.setText("基于 Rosé Pine 自然灵感配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_rose_pine_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.ROSE_PINE_GROUPS[0][0]
-            self.preset_color_list.set_data_source('rose_pine', series_keys)
-        elif source == 'solarized':
-            self.desc_label.setText("基于 Solarized 精准科学配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_solarized_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.SOLARIZED_GROUPS[0][0]
-            self.preset_color_list.set_data_source('solarized', series_keys)
-        elif source == 'catppuccin':
-            self.desc_label.setText("基于 Catppuccin 舒缓配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_catppuccin_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.CATPPUCCIN_GROUPS[0][0]
-            self.preset_color_list.set_data_source('catppuccin', series_keys)
-        elif source == 'gruvbox':
-            self.desc_label.setText("基于 Gruvbox 复古风格配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_gruvbox_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.GRUVBOX_GROUPS[0][0]
-            self.preset_color_list.set_data_source('gruvbox', series_keys)
-        elif source == 'tokyo_night':
-            self.desc_label.setText("基于 Tokyo Night VS Code 主题配色")
-            self.group_combo.setVisible(True)
-            self.random_btn.setVisible(False)
-            self._setup_tokyo_night_group_combo()
-            self._current_group_index = 0
-            self.group_combo.setCurrentIndex(0)
-            series_keys = self.TOKYO_NIGHT_GROUPS[0][0]
-            self.preset_color_list.set_data_source('tokyo_night', series_keys)
+        else:
+            source = self._color_sources.get(source_id)
+            if source:
+                self.desc_label.setText(f"基于 {source.name}")
+                self.group_combo.setVisible(source.has_groups)
+                self.random_btn.setVisible(False)
+                
+                if source.has_groups:
+                    self._setup_group_combo(source)
+                    self._current_group_index = 0
+                    self.group_combo.setCurrentIndex(0)
+                else:
+                    self.group_combo.clear()
+                    self.group_combo.setVisible(False)
+                
+                self.preset_color_list.set_data_source(source_id, 0)
 
     def _on_random_palette_clicked(self):
-        """随机配色按钮点击回调"""
         self.preset_color_list.set_data_source('random', 10)
 
     def _on_group_changed(self, index):
-        """分组切换回调"""
         if index < 0:
             return
 
         self._current_group_index = index
-
-        if self._current_source == 'open_color':
-            if 0 <= index < len(self.OPEN_COLOR_GROUPS):
-                series_keys = self.OPEN_COLOR_GROUPS[index][0]
-                self.preset_color_list.set_data_source('open_color', series_keys)
-        elif self._current_source == 'nice_palette':
-            start_index = self._current_group_index * self.PALETTES_PER_GROUP
-            self.preset_color_list.set_data_source('nice_palette', start_index)
-        elif self._current_source == 'tailwind':
-            if 0 <= index < len(self.TAILWIND_GROUPS):
-                series_keys = self.TAILWIND_GROUPS[index][0]
-                self.preset_color_list.set_data_source('tailwind', series_keys)
-        elif self._current_source == 'material':
-            if 0 <= index < len(self.MATERIAL_GROUPS):
-                series_keys = self.MATERIAL_GROUPS[index][0]
-                self.preset_color_list.set_data_source('material', series_keys)
-        elif self._current_source == 'colorbrewer':
-            if 0 <= index < len(self.COLORBREWER_GROUPS):
-                series_keys = self.COLORBREWER_GROUPS[index][0]
-                self.preset_color_list.set_data_source('colorbrewer', series_keys)
-        elif self._current_source == 'radix':
-            if 0 <= index < len(self.RADIX_GROUPS):
-                series_keys = self.RADIX_GROUPS[index][0]
-                self.preset_color_list.set_data_source('radix', series_keys)
-        elif self._current_source == 'nord':
-            if 0 <= index < len(self.NORD_GROUPS):
-                series_keys = self.NORD_GROUPS[index][0]
-                self.preset_color_list.set_data_source('nord', series_keys)
-        elif self._current_source == 'dracula':
-            if 0 <= index < len(self.DRACULA_GROUPS):
-                series_keys = self.DRACULA_GROUPS[index][0]
-                self.preset_color_list.set_data_source('dracula', series_keys)
-        elif self._current_source == 'rose_pine':
-            if 0 <= index < len(self.ROSE_PINE_GROUPS):
-                series_keys = self.ROSE_PINE_GROUPS[index][0]
-                self.preset_color_list.set_data_source('rose_pine', series_keys)
-        elif self._current_source == 'solarized':
-            if 0 <= index < len(self.SOLARIZED_GROUPS):
-                series_keys = self.SOLARIZED_GROUPS[index][0]
-                self.preset_color_list.set_data_source('solarized', series_keys)
-        elif self._current_source == 'catppuccin':
-            if 0 <= index < len(self.CATPPUCCIN_GROUPS):
-                series_keys = self.CATPPUCCIN_GROUPS[index][0]
-                self.preset_color_list.set_data_source('catppuccin', series_keys)
-        elif self._current_source == 'gruvbox':
-            if 0 <= index < len(self.GRUVBOX_GROUPS):
-                series_keys = self.GRUVBOX_GROUPS[index][0]
-                self.preset_color_list.set_data_source('gruvbox', series_keys)
-        elif self._current_source == 'tokyo_night':
-            if 0 <= index < len(self.TOKYO_NIGHT_GROUPS):
-                series_keys = self.TOKYO_NIGHT_GROUPS[index][0]
-                self.preset_color_list.set_data_source('tokyo_night', series_keys)
+        
+        if self._current_source and self._current_source != 'random':
+            self.preset_color_list.set_data_source(self._current_source, index)
 
     def _load_settings(self):
-        """加载显示设置"""
         hex_visible = self._config_manager.get('settings.hex_visible', True)
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self.preset_color_list.update_display_settings(hex_visible, color_modes)
 
     def _on_preview_in_panel_requested(self, preview_data: dict):
-        """处理在预览面板中预览的请求
-
-        Args:
-            preview_data: 包含配色名称、颜色列表和来源的字典
-        """
-        # 发射信号通知主窗口处理预览
         self.preview_in_panel_requested.emit(preview_data)
 
     def update_display_settings(self, hex_visible=None, color_modes=None):
-        """更新显示设置
-
-        Args:
-            hex_visible: 是否显示16进制颜色值
-            color_modes: 色彩模式列表
-        """
         self.preset_color_list.update_display_settings(hex_visible, color_modes)
 
     def _update_styles(self):
-        """更新样式以适配主题"""
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
 

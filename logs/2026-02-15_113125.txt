@@ -1,0 +1,46 @@
+DEBUG - initVar.py - 56 - 2026-02-15 11:31:25,361 - 日志记录器初始化完成
+DEBUG - initVar.py - 154 - 2026-02-15 11:31:25,564 - 当前系统编码为:utf-8
+DEBUG - initVar.py - 159 - 2026-02-15 11:31:25,564 - 寻找到一个Python路径:C:\Users\lenovo\AppData\Local\Microsoft\WindowsApps\python.exe
+DEBUG - initVar.py - 163 - 2026-02-15 11:31:25,887 - 当前Python路径C:\Users\lenovo\AppData\Local\Microsoft\WindowsApps\python.exe不可用
+DEBUG - initVar.py - 159 - 2026-02-15 11:31:25,887 - 寻找到一个Python路径:C:\Users\lenovo\AppData\Local\Python\bin\python.exe
+DEBUG - initVar.py - 165 - 2026-02-15 11:31:25,995 - 当前Python路径为:C:\Users\lenovo\AppData\Local\Python\bin\python.exe
+DEBUG - comment.py - 101 - 2026-02-15 11:31:26,073 - 正在测试源的响应速度...
+DEBUG - comment.py - 107 - 2026-02-15 11:31:26,458 - https://pypi.tuna.tsinghua.edu.cn/simple的响应时间为0.340888秒
+DEBUG - comment.py - 107 - 2026-02-15 11:31:26,458 - http://mirrors.aliyun.com/pypi/simple/的响应时间为0.170799秒
+DEBUG - comment.py - 107 - 2026-02-15 11:31:26,466 - https://pypi.mirrors.ustc.edu.cn/simple/的响应时间为0.265874秒
+DEBUG - comment.py - 107 - 2026-02-15 11:31:26,467 - http://pypi.douban.com/simple/的响应时间为inf秒
+DEBUG - comment.py - 107 - 2026-02-15 11:31:26,467 - http://pypi.mirrors.ustc.edu.cn/simple/的响应时间为0.219869秒
+DEBUG - initVar.py - 184 - 2026-02-15 11:31:26,467 - 设置默认pip源为http://mirrors.aliyun.com/pypi/simple/
+DEBUG - initVar.py - 68 - 2026-02-15 11:31:26,467 - 正在检查nuitka模块版本...
+DEBUG - comment.py - 20 - 2026-02-15 11:31:26,467 - 线程:Thread-5已启动,目标函数为:initModuleVersion,参数为:(),关键字参数为:{}
+DEBUG - comment.py - 20 - 2026-02-15 11:31:26,469 - 线程:Thread-6已启动,目标函数为:initWindowArgs,参数为:(),关键字参数为:{}
+DEBUG - initVar.py - 179 - 2026-02-15 11:31:26,475 - 初始化页面完成
+DEBUG - initVar.py - 188 - 2026-02-15 11:31:26,475 - 正在检查gcc可用性...
+DEBUG - initVar.py - 192 - 2026-02-15 11:31:26,486 - gcc不可用
+DEBUG - comment.py - 101 - 2026-02-15 11:31:26,487 - 正在测试源的响应速度...
+Exception in thread Thread-6:
+Traceback (most recent call last):
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\threading.py", line 954, in _bootstrap_inner
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\threading.py", line 892, in run
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\src\core\initVar.py", line 129, in initWindowArgs
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\src\core\initVar.py", line 104, in initPlugins
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\subprocess.py", line 420, in check_output
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\subprocess.py", line 524, in run
+subprocess.CalledProcessError: Command '['C:\\Users\\lenovo\\AppData\\Local\\Python\\bin\\python.exe', '-m', 'nuitka', '--plugin-list']' returned non-zero exit status 1.
+DEBUG - comment.py - 107 - 2026-02-15 11:31:27,058 - https://download.yzuu.cf/skeeto/w64devkit/releases/download/v1.20.0/w64devkit-1.20.0.zip的响应时间为inf秒
+DEBUG - comment.py - 148 - 2026-02-15 11:31:27,060 - 正在解压GCC压缩包...
+Traceback (most recent call last):
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\start.py", line 28, in <module>
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\src\core\initVar.py", line 47, in initWindow
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\src\core\initVar.py", line 195, in initGcc
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\src\utils\comment.py", line 150, in installGcc
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\src\customWidget\myProgressDialog.py", line 63, in extract
+  File "C:\Users\lenovo\AppData\Local\Temp\ONEFIL~1\zipfile.py", line 1239, in __init__
+PermissionError: [Errno 13] Permission denied: '.'
+DEBUG - initVar.py - 70 - 2026-02-15 11:31:27,266 - nuitka模块版本为
+INFO - initVar.py - 72 - 2026-02-15 11:31:27,267 - 未检测到nuitka模块,正在自动安装...
+INFO - initVar.py - 74 - 2026-02-15 11:31:29,595 - nuitka模块安装完成
+DEBUG - initVar.py - 85 - 2026-02-15 11:31:29,595 - 正在检查pipreqs模块版本...
+DEBUG - initVar.py - 87 - 2026-02-15 11:31:30,287 - pipreqs模块版本为
+INFO - initVar.py - 89 - 2026-02-15 11:31:30,287 - 未检测到pipreqs模块,正在自动安装...
+INFO - initVar.py - 91 - 2026-02-15 11:31:32,546 - pipreqs模块安装完成
