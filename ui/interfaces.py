@@ -1759,7 +1759,6 @@ class PaletteManagementInterface(QWidget):
 
         header_layout.addStretch()
 
-        # 添加配色按钮
         self.add_button = PushButton(FluentIcon.ADD, "添加", self)
         self.add_button.clicked.connect(self._on_add_clicked)
         header_layout.addWidget(self.add_button)
@@ -1777,6 +1776,11 @@ class PaletteManagementInterface(QWidget):
         self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
         header_layout.addWidget(self.clear_all_button)
 
+        self.group_combo = ComboBox(self)
+        self.group_combo.setFixedWidth(150)
+        self.group_combo.currentIndexChanged.connect(self._on_group_changed)
+        header_layout.addWidget(self.group_combo)
+
         layout.addLayout(header_layout)
 
         self.palette_management_list = PaletteManagementList(self)
@@ -1786,7 +1790,28 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
         self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
+        self.palette_management_list.groups_updated.connect(self._on_groups_updated)
         layout.addWidget(self.palette_management_list, stretch=1)
+
+    def _on_groups_updated(self, groups: list):
+        """分组列表更新回调
+        
+        Args:
+            groups: 分组配置列表
+        """
+        self.group_combo.clear()
+        for i, group in enumerate(groups):
+            self.group_combo.addItem(group["name"])
+            self.group_combo.setItemData(i, i)
+
+    def _on_group_changed(self, index: int):
+        """分组切换回调
+        
+        Args:
+            index: 分组索引
+        """
+        if index >= 0:
+            self.palette_management_list.set_current_group(index)
 
     def _load_favorites(self):
         """加载收藏列表"""

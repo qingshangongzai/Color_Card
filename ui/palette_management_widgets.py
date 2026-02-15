@@ -1,16 +1,17 @@
 # 标准库导入
+import math
 import uuid
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QThread
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel,
     QSizePolicy, QApplication, QLineEdit
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    CardWidget, ScrollArea, ToolButton, FluentIcon,
+    CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
     InfoBar, InfoBarPosition, isDarkTheme, qconfig
 )
 
@@ -19,6 +20,111 @@ from core import get_color_info, hex_to_rgb
 from .cards import COLOR_MODE_CONFIG, ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
+
+
+GROUPING_THRESHOLDS = {
+    "min_for_groups": 20,
+    "group_size": 20,
+    "batch_threshold": 50,
+    "batch_size": 10
+}
+
+
+def _generate_groups(total: int) -> list:
+    """生成分组配置（始终返回至少一个分组）
+    
+    Args:
+        total: 配色总数
+        
+    Returns:
+        list: 分组配置列表
+    """
+    group_size = GROUPING_THRESHOLDS["group_size"]
+    min_for_groups = GROUPING_THRESHOLDS["min_for_groups"]
+    
+    if total < min_for_groups:
+        return [{
+            "name": f"全部 ({total}组)",
+            "indices": list(range(total))
+        }]
+    
+    groups = []
+    num_groups = (total + group_size - 1) // group_size
+    
+    for i in range(num_groups):
+        start = i * group_size
+        end = min((i + 1) * group_size, total)
+        
+        groups.append({
+            "name": f"第 {start+1}-{end} 组",
+            "indices": list(range(start, end))
+        })
+    
+    return groups
+
+
+class FavoriteGroupLoaderThread(QThread):
+    """配色管理分组数据异步加载线程
+    
+    用于大数据量配色组的分批加载，避免阻塞UI主线程。
+    """
+    
+    data_ready = Signal(int, list)
+    batch_finished = Signal()
+    loading_finished = Signal()
+    
+    def __init__(self, favorites: list, group_indices: list, batch_size: int = 10, parent=None):
+        """初始化加载线程
+        
+        Args:
+            favorites: 完整的收藏列表
+            group_indices: 当前分组的索引列表
+            batch_size: 每批加载数量（默认10）
+            parent: 父对象
+        """
+        super().__init__(parent)
+        self._favorites = favorites
+        self._group_indices = group_indices
+        self._batch_size = batch_size
+        self._is_cancelled = False
+        self._total_items = len(group_indices)
+    
+    def cancel(self):
+        """请求取消加载"""
+        self._is_cancelled = True
+    
+    def run(self):
+        """分批加载数据"""
+        if self._total_items == 0:
+            self.loading_finished.emit()
+            return
+        
+        total_batches = math.ceil(self._total_items / self._batch_size)
+        
+        for batch_idx in range(total_batches):
+            if self._is_cancelled:
+                return
+            
+            start = batch_idx * self._batch_size
+            end = min(start + self._batch_size, self._total_items)
+            
+            batch_data = []
+            for i in range(start, end):
+                if self._is_cancelled:
+                    return
+                fav_idx = self._group_indices[i]
+                if 0 <= fav_idx < len(self._favorites):
+                    batch_data.append(self._favorites[fav_idx])
+            
+            if self._is_cancelled:
+                return
+            
+            self.data_ready.emit(batch_idx, batch_data)
+            self.batch_finished.emit()
+            
+            self.msleep(10)
+        
+        self.loading_finished.emit()
 
 
 class PaletteManagementColorCard(QWidget):
@@ -668,17 +774,25 @@ class PaletteManagementList(QWidget):
     """配色管理列表容器"""
 
     favorite_deleted = Signal(str)
-    favorite_preview = Signal(dict)  # favorite_data (色盲模拟预览)
-    favorite_contrast = Signal(dict)  # favorite_data
-    favorite_color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
-    favorite_preview_in_panel = Signal(dict)  # favorite_data (在配色预览面板中预览)
-    favorite_edit = Signal(dict)  # favorite_data (编辑配色)
+    favorite_preview = Signal(dict)
+    favorite_contrast = Signal(dict)
+    favorite_color_changed = Signal(str, int, dict)
+    favorite_preview_in_panel = Signal(dict)
+    favorite_edit = Signal(dict)
+    group_changed = Signal(int)
+    groups_updated = Signal(list)
+
+    BATCH_THRESHOLD = 50
+    BATCH_SIZE = 10
 
     def __init__(self, parent=None):
         self._favorites = []
         self._favorite_cards = {}
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
+        self._groups = []
+        self._current_group_index = 0
+        self._loader = None
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -741,22 +855,92 @@ class PaletteManagementList(QWidget):
 
     def _clear_cards(self):
         """清空所有卡片"""
+        self._cancel_loader()
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
         self._favorite_cards = {}
 
+    def _cancel_loader(self):
+        """取消加载线程"""
+        if self._loader is not None:
+            self._loader.cancel()
+            self._loader = None
+
     def set_favorites(self, favorites):
         """设置收藏列表"""
         self._favorites = favorites
-        self._clear_cards()
-
+        self._groups = _generate_groups(len(favorites))
+        self._current_group_index = 0
+        self.groups_updated.emit(self._groups)
+        
         if not favorites:
             self._show_empty_state()
             return
+        
+        self._load_current_group()
 
-        for favorite in favorites:
+    def _load_current_group(self):
+        """加载当前分组的数据"""
+        self._cancel_loader()
+        self._clear_cards()
+        
+        if not self._groups or self._current_group_index >= len(self._groups):
+            return
+        
+        current_group = self._groups[self._current_group_index]
+        group_indices = current_group.get("indices", [])
+        
+        if len(group_indices) > self.BATCH_THRESHOLD:
+            self._start_batch_loading(group_indices)
+        else:
+            self._load_group_directly(group_indices)
+
+    def _load_group_directly(self, group_indices: list):
+        """直接加载分组数据（小数据量）
+        
+        Args:
+            group_indices: 分组索引列表
+        """
+        for idx in group_indices:
+            if 0 <= idx < len(self._favorites):
+                favorite = self._favorites[idx]
+                card = PaletteManagementCard(favorite)
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                card.delete_requested.connect(self.favorite_deleted)
+                card.preview_requested.connect(self._on_preview_requested)
+                card.contrast_requested.connect(self._on_contrast_requested)
+                card.color_changed.connect(self._on_color_changed)
+                card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
+                card.edit_requested.connect(self._on_edit_requested)
+                self.content_layout.addWidget(card)
+                self._favorite_cards[favorite.get('id', '')] = card
+        
+        self.content_layout.addStretch()
+
+    def _start_batch_loading(self, group_indices: list):
+        """启动分批加载
+        
+        Args:
+            group_indices: 分组索引列表
+        """
+        self._loader = FavoriteGroupLoaderThread(
+            self._favorites, group_indices, self.BATCH_SIZE, parent=self
+        )
+        self._loader.data_ready.connect(self._on_batch_data_ready)
+        self._loader.loading_finished.connect(self._on_loading_finished)
+        self._loader.start()
+
+    def _on_batch_data_ready(self, batch_idx: int, batch_data: list):
+        """批次数据就绪回调
+        
+        Args:
+            batch_idx: 批次索引
+            batch_data: 批次数据列表
+        """
+        for favorite in batch_data:
             card = PaletteManagementCard(favorite)
             card.set_hex_visible(self._hex_visible)
             card.set_color_modes(self._color_modes)
@@ -768,8 +952,45 @@ class PaletteManagementList(QWidget):
             card.edit_requested.connect(self._on_edit_requested)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
+        
+        QApplication.processEvents()
 
+    def _on_loading_finished(self):
+        """加载完成回调"""
         self.content_layout.addStretch()
+        if self._loader is not None:
+            self._loader.deleteLater()
+            self._loader = None
+
+    def set_current_group(self, group_index: int):
+        """设置当前分组
+        
+        Args:
+            group_index: 分组索引
+        """
+        if group_index < 0 or group_index >= len(self._groups):
+            return
+        
+        if group_index != self._current_group_index:
+            self._current_group_index = group_index
+            self.group_changed.emit(group_index)
+            self._load_current_group()
+
+    def get_groups(self) -> list:
+        """获取分组列表
+        
+        Returns:
+            list: 分组配置列表
+        """
+        return self._groups
+
+    def get_current_group_index(self) -> int:
+        """获取当前分组索引
+        
+        Returns:
+            int: 当前分组索引
+        """
+        return self._current_group_index
 
     def _on_preview_requested(self, favorite_data):
         """预览请求处理（色盲模拟）
