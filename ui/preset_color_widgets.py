@@ -1,4 +1,5 @@
 # 标准库导入
+import math
 import uuid
 from datetime import datetime
 
@@ -16,11 +17,71 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
 from core.color_data import (
-    get_color_source, get_random_palettes
+    get_color_source, get_random_palettes, ColorSource
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
+
+
+class GroupLoaderThread(QThread):
+    """分组数据异步加载线程
+    
+    用于大数据量配色组的分批加载，避免阻塞UI主线程。
+    """
+    
+    data_ready = Signal(int, list)
+    batch_finished = Signal()
+    loading_finished = Signal()
+    
+    def __init__(self, source: ColorSource, group_index: int, batch_size: int = 10, parent=None):
+        """初始化加载线程
+        
+        Args:
+            source: 配色源对象
+            group_index: 分组索引
+            batch_size: 每批加载数量（默认10）
+            parent: 父对象
+        """
+        super().__init__(parent)
+        self._source = source
+        self._group_index = group_index
+        self._batch_size = batch_size
+        self._is_cancelled = False
+        
+        group_info = source.get_group_info(group_index)
+        self._total_items = group_info.get("total_items", 0)
+    
+    def cancel(self):
+        """请求取消加载"""
+        self._is_cancelled = True
+    
+    def run(self):
+        """分批加载数据"""
+        if self._total_items == 0:
+            self.loading_finished.emit()
+            return
+        
+        total_batches = math.ceil(self._total_items / self._batch_size)
+        
+        for batch_idx in range(total_batches):
+            if self._is_cancelled:
+                return
+            
+            start = batch_idx * self._batch_size
+            data = self._source.get_palettes_for_group_batch(
+                self._group_index, start, self._batch_size
+            )
+            
+            if self._is_cancelled:
+                return
+            
+            self.data_ready.emit(batch_idx, data)
+            self.batch_finished.emit()
+            
+            self.msleep(10)
+        
+        self.loading_finished.emit()
 
 
 class PresetColorCard(QWidget):
@@ -402,11 +463,17 @@ class PresetColorList(QWidget):
     favorite_requested = Signal(dict)
     preview_in_panel_requested = Signal(dict)
 
+    BATCH_THRESHOLD = 20
+    BATCH_SIZE = 10
+
     def __init__(self, parent=None):
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
         self._scheme_cards = {}
         self._current_source = None
+        self._current_color_source = None
+        self._loader = None
+        self._palette_counter = 0
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -435,11 +502,18 @@ class PresetColorList(QWidget):
         layout.addWidget(self.scroll_area)
 
     def _clear_content(self):
+        self._cancel_loader()
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
         self._scheme_cards.clear()
+        self._palette_counter = 0
+
+    def _cancel_loader(self):
+        if self._loader is not None:
+            self._loader.cancel()
+            self._loader = None
 
     def set_data_source(self, source: str, data=None):
         if source == 'random':
@@ -454,15 +528,52 @@ class PresetColorList(QWidget):
         if not color_source:
             return
 
+        self._cancel_loader()
         self._clear_content()
         self._current_source = source_id
+        self._current_color_source = color_source
 
-        if color_source.has_groups:
-            palettes = color_source.get_palettes_for_group(group_index)
+        group_info = color_source.get_group_info(group_index)
+        total_items = group_info.get("total_items", 0)
+
+        if total_items > self.BATCH_THRESHOLD:
+            self._start_batch_loading(color_source, group_index)
         else:
-            palettes = color_source.get_all_palettes()
+            if color_source.has_groups:
+                palettes = color_source.get_palettes_for_group(group_index)
+            else:
+                palettes = color_source.get_all_palettes()
+            self._load_palettes(palettes)
 
-        self._load_palettes(palettes)
+    def _start_batch_loading(self, source: ColorSource, group_index: int):
+        self._loader = GroupLoaderThread(
+            source, group_index, self.BATCH_SIZE, parent=self
+        )
+        self._loader.data_ready.connect(self._on_batch_data_ready)
+        self._loader.loading_finished.connect(self._on_loading_finished)
+        self._loader.start()
+
+    def _on_batch_data_ready(self, batch_idx: int, data: list):
+        for palette in data:
+            colors = palette.get("colors", [])
+            name = palette.get("name", f"配色 #{self._palette_counter + 1}")
+            if colors:
+                card = PaletteCard(self._palette_counter, {"name": name, "colors": colors})
+                card.set_hex_visible(self._hex_visible)
+                card.set_color_modes(self._color_modes)
+                card.favorite_requested.connect(self.favorite_requested)
+                card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
+                self.content_layout.addWidget(card)
+                self._scheme_cards[f'palette_{self._palette_counter}'] = card
+                self._palette_counter += 1
+
+        QApplication.processEvents()
+
+    def _on_loading_finished(self):
+        self.content_layout.addStretch()
+        if self._loader is not None:
+            self._loader.deleteLater()
+            self._loader = None
 
     def _load_palettes(self, palettes: list):
         for i, palette in enumerate(palettes):
@@ -480,8 +591,10 @@ class PresetColorList(QWidget):
         self.content_layout.addStretch()
 
     def load_random_palettes(self, count=10):
+        self._cancel_loader()
         self._clear_content()
         self._current_source = 'random'
+        self._current_color_source = None
 
         random_palettes = get_random_palettes(count)
 

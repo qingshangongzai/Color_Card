@@ -101,6 +101,26 @@ class ColorSource:
             "total_items": len(indices),
             "indices": indices,
         }
+    
+    def get_palettes_for_group_batch(self, group_index: int, start: int, count: int) -> list:
+        """分批获取指定分组下的配色
+        
+        Args:
+            group_index: 分组索引
+            start: 起始索引（在分组内的相对索引）
+            count: 获取数量
+        
+        Returns:
+            list: 配色列表
+        """
+        if group_index < 0 or group_index >= len(self._groups):
+            palettes = self._palettes
+        else:
+            indices = self._groups[group_index].get("indices", [])
+            palettes = [self._palettes[i] for i in indices if i < len(self._palettes)]
+        
+        end = min(start + count, len(palettes))
+        return palettes[start:end]
 
 
 class ColorSourceRegistry:
