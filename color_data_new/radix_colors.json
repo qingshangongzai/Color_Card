@@ -1,0 +1,652 @@
+{
+  "version": "1.0",
+  "id": "radix_colors",
+  "name": "Radix Colors",
+  "name_zh": "Radix Colors 配色",
+  "description": "Radix UI 官方配色系统",
+  "author": "Radix UI",
+  "category": "design_system",
+  "palettes": [
+    {
+      "name": "灰色",
+      "name_en": "Gray",
+      "colors": [
+        "#fcfcfc",
+        "#f8f8f8",
+        "#f3f3f3",
+        "#ededed",
+        "#e8e8e8",
+        "#e2e2e2",
+        "#dbdbdb",
+        "#cfcfcf",
+        "#b4b4b4",
+        "#8e8e8e",
+        "#858585",
+        "#6f6f6f"
+      ]
+    },
+    {
+      "name": "莫芙灰",
+      "name_en": "Mauve",
+      "colors": [
+        "#fdfcfd",
+        "#faf9fb",
+        "#f5f3f7",
+        "#edebf0",
+        "#e5e2e9",
+        "#dddbe3",
+        "#d4d2db",
+        "#c8c5d0",
+        "#b0abb9",
+        "#8e8c99",
+        "#85838e",
+        "#6f6e77"
+      ]
+    },
+    {
+      "name": "石板灰",
+      "name_en": "Slate",
+      "colors": [
+        "#fcfcfd",
+        "#f9f9fb",
+        "#f3f3f6",
+        "#ececf0",
+        "#e5e7eb",
+        "#dde0e5",
+        "#d3d7de",
+        "#c5cbd3",
+        "#a9b0bc",
+        "#8b96a6",
+        "#808b9d",
+        "#697386"
+      ]
+    },
+    {
+      "name": "鼠尾草绿",
+      "name_en": "Sage",
+      "colors": [
+        "#fbfdfc",
+        "#f8faf9",
+        "#f1f4f2",
+        "#e9edeb",
+        "#e1e6e3",
+        "#d8deda",
+        "#cdd4d0",
+        "#bec5c1",
+        "#a3b0aa",
+        "#8a9a93",
+        "#7f8f88",
+        "#68736d"
+      ]
+    },
+    {
+      "name": "橄榄灰",
+      "name_en": "Olive",
+      "colors": [
+        "#fcfdfc",
+        "#f9faf9",
+        "#f2f3f2",
+        "#ebedeb",
+        "#e3e5e3",
+        "#dbdedb",
+        "#d1d5d1",
+        "#c2c7c2",
+        "#a7afa7",
+        "#8e968e",
+        "#848b84",
+        "#6d736d"
+      ]
+    },
+    {
+      "name": "沙色",
+      "name_en": "Sand",
+      "colors": [
+        "#fdfdfc",
+        "#fafaf9",
+        "#f5f5f4",
+        "#eeeeec",
+        "#e6e6e3",
+        "#dededb",
+        "#d4d4d0",
+        "#c5c5c0",
+        "#aaaaa4",
+        "#91918c",
+        "#868681",
+        "#70706b"
+      ]
+    },
+    {
+      "name": "番茄红",
+      "name_en": "Tomato",
+      "colors": [
+        "#fffcfc",
+        "#fff8f7",
+        "#fff0ee",
+        "#ffe6e2",
+        "#fdd8d3",
+        "#facbc5",
+        "#f5bab1",
+        "#eba399",
+        "#e07e71",
+        "#e54d2e",
+        "#d93d1f",
+        "#c62a16"
+      ]
+    },
+    {
+      "name": "红色",
+      "name_en": "Red",
+      "colors": [
+        "#fffcfc",
+        "#fff7f7",
+        "#ffefef",
+        "#ffe5e5",
+        "#fdd8d8",
+        "#f9c6c6",
+        "#f3aeaf",
+        "#eb8e90",
+        "#e5484d",
+        "#e5484d",
+        "#dc3d43",
+        "#cd2b31"
+      ]
+    },
+    {
+      "name": "宝石红",
+      "name_en": "Ruby",
+      "colors": [
+        "#fffcfd",
+        "#fff7f9",
+        "#ffeff3",
+        "#ffe5eb",
+        "#fdd8e1",
+        "#f9c6d3",
+        "#f3afc0",
+        "#eb8fa4",
+        "#e54681",
+        "#e54681",
+        "#d93d77",
+        "#ca2c65"
+      ]
+    },
+    {
+      "name": "深红",
+      "name_en": "Crimson",
+      "colors": [
+        "#fffcfd",
+        "#fff7fa",
+        "#ffeff5",
+        "#ffe5ed",
+        "#fdd8e4",
+        "#f9c6d8",
+        "#f3aec8",
+        "#eb8db0",
+        "#e5468e",
+        "#e5468e",
+        "#d93d85",
+        "#ca2c75"
+      ]
+    },
+    {
+      "name": "粉色",
+      "name_en": "Pink",
+      "colors": [
+        "#fffcfe",
+        "#fff7fc",
+        "#ffeff9",
+        "#ffe5f5",
+        "#fdd8ef",
+        "#f9c6e6",
+        "#f3aed9",
+        "#eb8dc7",
+        "#d6409f",
+        "#d6409f",
+        "#c93597",
+        "#b72887"
+      ]
+    },
+    {
+      "name": "梅红",
+      "name_en": "Plum",
+      "colors": [
+        "#fffcff",
+        "#fdf7fd",
+        "#fbebfb",
+        "#f5def5",
+        "#edceed",
+        "#e3bbe3",
+        "#d6a3d6",
+        "#c785c7",
+        "#ab4aba",
+        "#ab4aba",
+        "#a043af",
+        "#8f3aa0"
+      ]
+    },
+    {
+      "name": "紫色",
+      "name_en": "Purple",
+      "colors": [
+        "#fefcff",
+        "#fcf7fd",
+        "#f8eff9",
+        "#f3e5f5",
+        "#ebd9ed",
+        "#e0cae3",
+        "#d3b5d6",
+        "#c19cc5",
+        "#8e4ec6",
+        "#8e4ec6",
+        "#8445bc",
+        "#763aad"
+      ]
+    },
+    {
+      "name": "紫罗兰",
+      "name_en": "Violet",
+      "colors": [
+        "#fdfcfe",
+        "#faf8ff",
+        "#f4f0fe",
+        "#ebe4ff",
+        "#e1d8ff",
+        "#d5c8fd",
+        "#c4b4f7",
+        "#ae9bed",
+        "#654dc4",
+        "#654dc4",
+        "#5c43b7",
+        "#523aa8"
+      ]
+    },
+    {
+      "name": "鸢尾紫",
+      "name_en": "Iris",
+      "colors": [
+        "#fdfdff",
+        "#f8f8ff",
+        "#f0f1fe",
+        "#e6e7ff",
+        "#dadcff",
+        "#cbcdff",
+        "#b8baff",
+        "#9b9ef0",
+        "#5b5bd6",
+        "#5b5bd6",
+        "#5252c7",
+        "#4747b1"
+      ]
+    },
+    {
+      "name": "靛蓝",
+      "name_en": "Indigo",
+      "colors": [
+        "#fdfdfe",
+        "#f8faff",
+        "#f0f4ff",
+        "#e6edff",
+        "#d9e2fc",
+        "#c6d4f9",
+        "#aec0f5",
+        "#8da4ef",
+        "#3e63dd",
+        "#3e63dd",
+        "#3657d3",
+        "#2f4dc2"
+      ]
+    },
+    {
+      "name": "蓝色",
+      "name_en": "Blue",
+      "colors": [
+        "#fbfdff",
+        "#f5faff",
+        "#edf6ff",
+        "#e1efff",
+        "#cee7fe",
+        "#b7d9f8",
+        "#96c7f2",
+        "#5eb0ef",
+        "#0090ff",
+        "#0090ff",
+        "#0081f1",
+        "#006adc"
+      ]
+    },
+    {
+      "name": "青色",
+      "name_en": "Cyan",
+      "colors": [
+        "#fafdfe",
+        "#f2fcfd",
+        "#e7f9fb",
+        "#d8f3f6",
+        "#c4eaef",
+        "#aadee6",
+        "#84d0dc",
+        "#3dbccf",
+        "#05a2c2",
+        "#05a2c2",
+        "#0894b3",
+        "#0c829c"
+      ]
+    },
+    {
+      "name": "蓝绿",
+      "name_en": "Teal",
+      "colors": [
+        "#fafefd",
+        "#f1fcfa",
+        "#e7f9f5",
+        "#d9f3ec",
+        "#c7ebe2",
+        "#b0e0d3",
+        "#92d1c1",
+        "#5cbfa8",
+        "#12a594",
+        "#12a594",
+        "#0d9b8a",
+        "#058376"
+      ]
+    },
+    {
+      "name": "翡翠绿",
+      "name_en": "Jade",
+      "colors": [
+        "#fbfefd",
+        "#f1fcf7",
+        "#e6f9f0",
+        "#d7f4e6",
+        "#c3ebd9",
+        "#abdec9",
+        "#8dceb7",
+        "#56bfa3",
+        "#29a383",
+        "#29a383",
+        "#26997b",
+        "#208368"
+      ]
+    },
+    {
+      "name": "绿色",
+      "name_en": "Green",
+      "colors": [
+        "#fbfefc",
+        "#f2fcf5",
+        "#e9f9ee",
+        "#ddf3e4",
+        "#ccebd7",
+        "#b6dfc5",
+        "#97cfac",
+        "#65ba8a",
+        "#46a758",
+        "#46a758",
+        "#3d9a50",
+        "#2f7c3f"
+      ]
+    },
+    {
+      "name": "草绿",
+      "name_en": "Grass",
+      "colors": [
+        "#fbfefb",
+        "#f3fcf3",
+        "#e9f9e9",
+        "#daf3da",
+        "#c7ebc8",
+        "#b0deb3",
+        "#91ce97",
+        "#62ba6e",
+        "#46a758",
+        "#46a758",
+        "#3e9b4f",
+        "#307f3e"
+      ]
+    },
+    {
+      "name": "棕色",
+      "name_en": "Brown",
+      "colors": [
+        "#fefdfc",
+        "#fcf9f6",
+        "#f8f1ea",
+        "#f2e6dc",
+        "#ebd9cc",
+        "#e1cbb9",
+        "#d4b8a4",
+        "#c2a28d",
+        "#a17f6b",
+        "#a17f6b",
+        "#95745f",
+        "#816251"
+      ]
+    },
+    {
+      "name": "青铜",
+      "name_en": "Bronze",
+      "colors": [
+        "#fdfcfb",
+        "#fcf8f5",
+        "#f8f1ea",
+        "#f2e6dc",
+        "#ebd9cc",
+        "#e1cbb9",
+        "#d4b8a4",
+        "#c2a28d",
+        "#a17f6b",
+        "#a17f6b",
+        "#95745f",
+        "#816251"
+      ]
+    },
+    {
+      "name": "金色",
+      "name_en": "Gold",
+      "colors": [
+        "#fdfcf9",
+        "#fcf9f1",
+        "#f8f3e5",
+        "#f1ebd4",
+        "#e7dfc2",
+        "#dbd0aa",
+        "#cbbf8f",
+        "#b6a56e",
+        "#978365",
+        "#978365",
+        "#8c795b",
+        "#77654e"
+      ]
+    },
+    {
+      "name": "天蓝",
+      "name_en": "Sky",
+      "colors": [
+        "#f9feff",
+        "#f1fcff",
+        "#e4f9ff",
+        "#d5f4fd",
+        "#c1ecf9",
+        "#a4e1f5",
+        "#79d2ef",
+        "#2ebde5",
+        "#68ddfd",
+        "#68ddfd",
+        "#5fd4f4",
+        "#00a2c7"
+      ]
+    },
+    {
+      "name": "薄荷",
+      "name_en": "Mint",
+      "colors": [
+        "#f9fefd",
+        "#f1fcf9",
+        "#e4f9f4",
+        "#d5f4ec",
+        "#c1ebe2",
+        "#a5ded3",
+        "#7dcdc0",
+        "#3db9a9",
+        "#86ead4",
+        "#86ead4",
+        "#7de0cb",
+        "#008573"
+      ]
+    },
+    {
+      "name": "柠檬绿",
+      "name_en": "Lime",
+      "colors": [
+        "#fcfdfa",
+        "#f7fcf0",
+        "#eefadc",
+        "#e4f5c7",
+        "#d7eeb0",
+        "#c6e394",
+        "#b0d477",
+        "#94c158",
+        "#bdee63",
+        "#bdee63",
+        "#b0e45c",
+        "#5c7c2f"
+      ]
+    },
+    {
+      "name": "黄色",
+      "name_en": "Yellow",
+      "colors": [
+        "#fdfdf9",
+        "#fcfae9",
+        "#f9f5ce",
+        "#f4eeb0",
+        "#ede58f",
+        "#e1d668",
+        "#d1c23a",
+        "#bba316",
+        "#ffe629",
+        "#ffe629",
+        "#f5dc00",
+        "#9e6c00"
+      ]
+    },
+    {
+      "name": "琥珀",
+      "name_en": "Amber",
+      "colors": [
+        "#fefdfb",
+        "#fefbe9",
+        "#fff7c2",
+        "#ffee9c",
+        "#fbe577",
+        "#f3d673",
+        "#e9c162",
+        "#dbb54e",
+        "#ffc53d",
+        "#ffc53d",
+        "#ffba18",
+        "#915930"
+      ]
+    },
+    {
+      "name": "橙色",
+      "name_en": "Orange",
+      "colors": [
+        "#fefcfb",
+        "#fff7ed",
+        "#ffefd6",
+        "#ffe3c2",
+        "#ffd3a4",
+        "#ffc291",
+        "#ffaf78",
+        "#ff8f4d",
+        "#f76b15",
+        "#f76b15",
+        "#ef5f00",
+        "#cc4e00"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "name": "中性色系",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "name": "红色系",
+      "indices": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "name": "粉紫色系",
+      "indices": [
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "name": "紫蓝色系",
+      "indices": [
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "name": "蓝色系",
+      "indices": [
+        16,
+        17,
+        25
+      ]
+    },
+    {
+      "name": "青绿色系",
+      "indices": [
+        18,
+        19,
+        26
+      ]
+    },
+    {
+      "name": "绿色系",
+      "indices": [
+        20,
+        21
+      ]
+    },
+    {
+      "name": "金属色系",
+      "indices": [
+        22,
+        23,
+        24
+      ]
+    },
+    {
+      "name": "黄橙色系",
+      "indices": [
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "name": "亮绿色系",
+      "indices": [
+        27
+      ]
+    }
+  ]
+}

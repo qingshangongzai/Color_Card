@@ -1,0 +1,149 @@
+{
+  "version": "1.0",
+  "id": "dracula",
+  "name": "Dracula",
+  "name_zh": "Dracula 主题",
+  "description": "暗色主题配色",
+  "author": "Dracula Theme",
+  "category": "theme",
+  "palettes": [
+    {
+      "name": "背景色",
+      "name_en": "Background",
+      "colors": [
+        "#282a36",
+        "#282a36",
+        "#282a36",
+        "#282a36"
+      ]
+    },
+    {
+      "name": "当前行",
+      "name_en": "Current Line",
+      "colors": [
+        "#44475a",
+        "#44475a",
+        "#44475a",
+        "#44475a"
+      ]
+    },
+    {
+      "name": "前景色",
+      "name_en": "Foreground",
+      "colors": [
+        "#f8f8f2",
+        "#f8f8f2",
+        "#f8f8f2",
+        "#f8f8f2"
+      ]
+    },
+    {
+      "name": "注释色",
+      "name_en": "Comment",
+      "colors": [
+        "#6272a4",
+        "#6272a4",
+        "#6272a4",
+        "#6272a4"
+      ]
+    },
+    {
+      "name": "青色",
+      "name_en": "Cyan",
+      "colors": [
+        "#8be9fd",
+        "#8be9fd",
+        "#8be9fd",
+        "#8be9fd"
+      ]
+    },
+    {
+      "name": "绿色",
+      "name_en": "Green",
+      "colors": [
+        "#50fa7b",
+        "#50fa7b",
+        "#50fa7b",
+        "#50fa7b"
+      ]
+    },
+    {
+      "name": "橙色",
+      "name_en": "Orange",
+      "colors": [
+        "#ffb86c",
+        "#ffb86c",
+        "#ffb86c",
+        "#ffb86c"
+      ]
+    },
+    {
+      "name": "粉色",
+      "name_en": "Pink",
+      "colors": [
+        "#ff79c6",
+        "#ff79c6",
+        "#ff79c6",
+        "#ff79c6"
+      ]
+    },
+    {
+      "name": "紫色",
+      "name_en": "Purple",
+      "colors": [
+        "#bd93f9",
+        "#bd93f9",
+        "#bd93f9",
+        "#bd93f9"
+      ]
+    },
+    {
+      "name": "红色",
+      "name_en": "Red",
+      "colors": [
+        "#ff5555",
+        "#ff5555",
+        "#ff5555",
+        "#ff5555"
+      ]
+    },
+    {
+      "name": "黄色",
+      "name_en": "Yellow",
+      "colors": [
+        "#f1fa8c",
+        "#f1fa8c",
+        "#f1fa8c",
+        "#f1fa8c"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "name": "基础色系",
+      "indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "主题色-1",
+      "indices": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "name": "主题色-2",
+      "indices": [
+        8,
+        9,
+        10
+      ]
+    }
+  ]
+}
