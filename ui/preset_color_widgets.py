@@ -565,9 +565,7 @@ class PresetColorList(QWidget):
                 card.preview_in_panel_requested.connect(self.preview_in_panel_requested)
                 self.content_layout.addWidget(card)
                 self._scheme_cards[f'palette_{self._palette_counter}'] = card
-                self._palette_counter += 1
-
-        QApplication.processEvents()
+            self._palette_counter += 1
 
     def _on_loading_finished(self):
         self.content_layout.addStretch()

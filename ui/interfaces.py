@@ -2239,6 +2239,7 @@ class PresetColorInterface(QWidget):
         header_layout.addStretch()
 
         controls_container = QWidget()
+        controls_container.setFixedWidth(340)
         controls_layout = QHBoxLayout(controls_container)
         controls_layout.setSpacing(10)
         controls_layout.setContentsMargins(0, 0, 0, 0)
@@ -2246,18 +2247,19 @@ class PresetColorInterface(QWidget):
         self.source_combo = ComboBox(self)
         self.source_combo.addItem("随机配色")
         self.source_combo.setItemData(0, "random")
-        
+
         all_sources = get_all_color_sources()
         for i, source in enumerate(all_sources):
             self.source_combo.addItem(source.name)
             self.source_combo.setItemData(i + 1, source.id)
             self._color_sources[source.id] = source
-        
+
         self.source_combo.setFixedWidth(180)
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         controls_layout.addWidget(self.source_combo)
 
         self.group_control_container = QWidget(self)
+        self.group_control_container.setFixedWidth(150)
         self.group_control_layout = QHBoxLayout(self.group_control_container)
         self.group_control_layout.setContentsMargins(0, 0, 0, 0)
         self.group_control_layout.setSpacing(0)
