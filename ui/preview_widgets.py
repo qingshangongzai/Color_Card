@@ -2055,14 +2055,6 @@ class PreviewToolbar(QWidget):
         """获取当前场景"""
         return self._scene_selector.get_current_scene()
 
-    def set_mapping_mode_visible(self, visible: bool):
-        """设置映射模式选择器可见性（已废弃，保留方法以兼容旧代码）
-
-        Args:
-            visible: 是否可见
-        """
-        self._mapping_mode_selector.setVisible(visible)
-
 
 class SVGPreviewWidget(QWidget):
     """SVG 预览组件 - 加载和显示 SVG 文件，支持智能配色应用"""

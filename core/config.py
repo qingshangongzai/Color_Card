@@ -93,7 +93,6 @@ class ConfigManager:
                 "histogram_scaling_mode": "adaptive",
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
-                "svg_mapping_mode": "intelligent",
                 "color_wheel_labels_visible": True
             },
             "scheme": {
