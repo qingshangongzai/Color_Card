@@ -20,8 +20,9 @@ from .generation_widgets import GenerationColorInfoCard, GenerationColorPanel
 from .palette_management_widgets import PaletteManagementCard, PaletteManagementList
 from .preview_widgets import (
     DraggableColorDot, ColorDotBar,
-    IllustrationPreview, TypographyPreview,
-    PreviewToolbar, MixedPreviewPanel
+    PreviewToolbar, MixedPreviewPanel,
+    BaseLayout, SingleLayout, ScrollVLayout,
+    ScrollHLayout, GridLayout, MixedLayout, LayoutFactory
 )
 
 __all__ = [
@@ -64,8 +65,14 @@ __all__ = [
     # 配色预览组件
     'DraggableColorDot',
     'ColorDotBar',
-    'IllustrationPreview',
-    'TypographyPreview',
     'PreviewToolbar',
     'MixedPreviewPanel',
+    # 布局系统
+    'BaseLayout',
+    'SingleLayout',
+    'ScrollVLayout',
+    'ScrollHLayout',
+    'GridLayout',
+    'MixedLayout',
+    'LayoutFactory',
 ]

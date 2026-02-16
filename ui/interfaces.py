@@ -2372,7 +2372,7 @@ class ColorPreviewInterface(QWidget):
         self._favorites = []
         self._current_index = 0
         self._current_colors = []
-        self._current_scene = "custom"  # 默认使用自定义场景
+        self._current_scene = "ui"  # 默认使用UI场景（有内置SVG模板）
         self._current_svg_path = ""  # 当前加载的 SVG 文件路径
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.setup_ui()
@@ -2400,8 +2400,8 @@ class ColorPreviewInterface(QWidget):
 
         # 预览区域
         self.preview_panel = MixedPreviewPanel(self)
-        # 默认显示自定义场景
-        self.preview_panel.set_scene("custom")
+        # 默认显示UI场景（有内置SVG模板）
+        self.preview_panel.set_scene("ui")
         layout.addWidget(self.preview_panel, stretch=1)
 
     def _load_favorites(self):
@@ -2485,8 +2485,22 @@ class ColorPreviewInterface(QWidget):
 
         # 加载 SVG 文件
         svg_preview = self.preview_panel.get_svg_preview()
+        if svg_preview is None:
+            InfoBar.warning(
+                title="无法导入",
+                content="当前场景不支持直接导入 SVG，请切换到自定义场景",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+            return
+
         if svg_preview.load_svg(file_path):
             self._current_svg_path = file_path
+            # 保存路径到预览面板，切换场景后可以恢复
+            self.preview_panel.set_custom_svg_path(file_path)
             # 应用当前配色
             svg_preview.set_colors(self._current_colors)
 
@@ -2513,6 +2527,18 @@ class ColorPreviewInterface(QWidget):
     def _on_export_svg(self):
         """导出 SVG 文件"""
         svg_preview = self.preview_panel.get_svg_preview()
+
+        if svg_preview is None:
+            InfoBar.warning(
+                title="无法导出",
+                content="当前场景不支持导出 SVG",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
 
         if not svg_preview.has_svg():
             InfoBar.warning(
@@ -2568,29 +2594,38 @@ class ColorPreviewInterface(QWidget):
             )
 
     def _on_import_config(self):
-        """导入场景配置"""
+        """导入用户SVG模板到当前场景类型"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "导入场景配置",
+            "导入 SVG 模板",
             "",
-            "JSON 文件 (*.json);;所有文件 (*)"
+            "SVG 文件 (*.svg);;所有文件 (*)"
         )
 
         if not file_path:
             return
 
-        from core import get_scene_config_manager
-        scene_manager = get_scene_config_manager()
+        from datetime import datetime
+        from pathlib import Path
 
-        success, message = scene_manager.import_scene(file_path)
+        # 添加到用户模板索引
+        template_data = {
+            "path": file_path,
+            "name": Path(file_path).stem,
+            "added_at": datetime.now().strftime("%Y-%m-%d")
+        }
+
+        success = self._config_manager.add_scene_template(self._current_scene, template_data)
+        self._config_manager.save()
 
         if success:
-            # 重新加载场景列表
-            self.toolbar.get_scene_selector().reload_scenes()
+            # 重新加载当前场景
+            self.preview_panel.set_scene(self._current_scene)
+            self.preview_panel.set_colors(self._current_colors)
 
             InfoBar.success(
                 title="导入成功",
-                content=message,
+                content=f"已添加模板到 {self._current_scene} 场景",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -2598,29 +2633,26 @@ class ColorPreviewInterface(QWidget):
                 parent=self.window()
             )
         else:
-            InfoBar.error(
+            InfoBar.warning(
                 title="导入失败",
-                content=message,
+                content="该模板已存在",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
-                duration=5000,
+                duration=2000,
                 parent=self.window()
             )
 
     def _on_export_config(self):
-        """导出当前场景配置"""
-        current_scene = self._current_scene
+        """导出当前配色下的SVG"""
+        from datetime import datetime
+        
+        svg_preview = self.preview_panel.get_svg_preview()
 
-        from core import get_scene_config_manager
-        scene_manager = get_scene_config_manager()
-
-        # 获取场景配置
-        scene_config = scene_manager.get_scene_by_id(current_scene)
-        if not scene_config:
+        if not svg_preview or not svg_preview.has_svg():
             InfoBar.warning(
                 title="无法导出",
-                content="当前场景配置不存在",
+                content="当前没有可导出的SVG",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -2629,39 +2661,42 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        # 生成默认文件名
-        default_name = f"{current_scene}_config.json"
+        # 生成默认文件名（与配色数据导出格式保持一致）
+        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "导出场景配置",
+            "导出 SVG",
             default_name,
-            "JSON 文件 (*.json);;所有文件 (*)"
+            "SVG 文件 (*.svg);;所有文件 (*)"
         )
 
         if not file_path:
             return
 
-        # 确保文件扩展名为 .json
-        if not file_path.endswith('.json'):
-            file_path += '.json'
+        # 确保文件扩展名为 .svg
+        if not file_path.endswith('.svg'):
+            file_path += '.svg'
 
-        success, message = scene_manager.export_scene(current_scene, file_path)
+        try:
+            svg_content = svg_preview.get_svg_content()
 
-        if success:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+
             InfoBar.success(
                 title="导出成功",
-                content=message,
+                content=f"已保存到: {file_path}",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=3000,
                 parent=self.window()
             )
-        else:
+        except Exception as e:
             InfoBar.error(
                 title="导出失败",
-                content=message,
+                content=f"保存文件时发生错误: {str(e)}",
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,

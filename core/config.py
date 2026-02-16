@@ -935,3 +935,156 @@ def get_scene_config_manager() -> SceneConfigManager:
     if _scene_config_manager is None:
         _scene_config_manager = SceneConfigManager()
     return _scene_config_manager
+
+
+class SceneTypeManager:
+    """场景类型管理器 - 从 scenes_data/ 目录加载场景配置和SVG模板"""
+
+    SCENES_DATA_DIR = "scenes_data"
+    SCENE_TYPES_FILE = "scene_types.json"
+
+    def __init__(self) -> None:
+        """初始化场景类型管理器"""
+        self._scenes_data_dir: Path = self._get_scenes_data_dir()
+        self._scene_types: List[Dict[str, Any]] = []
+        self._loaded: bool = False
+
+    def _get_scenes_data_dir(self) -> Path:
+        """获取 scenes_data 目录路径
+
+        Returns:
+            Path: scenes_data 目录的完整路径
+        """
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent
+        return project_root / self.SCENES_DATA_DIR
+
+    def _ensure_loaded(self) -> None:
+        """确保场景数据已加载（延迟加载）"""
+        if not self._loaded:
+            self._load_scene_types()
+            self._loaded = True
+
+    def _load_scene_types(self) -> None:
+        """从 scene_types.json 加载场景类型"""
+        scene_types_file = self._scenes_data_dir / self.SCENE_TYPES_FILE
+
+        if not scene_types_file.exists():
+            print(f"场景类型配置文件不存在: {scene_types_file}")
+            self._scene_types = []
+            return
+
+        try:
+            with open(scene_types_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            self._scene_types = data.get("scene_types", [])
+            print(f"已加载 {len(self._scene_types)} 个场景类型")
+        except (json.JSONDecodeError, IOError, OSError) as e:
+            print(f"加载场景类型配置失败: {e}")
+            self._scene_types = []
+
+    def get_all_scene_types(self) -> List[Dict[str, Any]]:
+        """获取所有场景类型配置
+
+        Returns:
+            List[Dict[str, Any]]: 场景类型配置列表
+        """
+        self._ensure_loaded()
+        return self._scene_types.copy()
+
+    def get_scene_type_by_id(self, scene_id: str) -> Optional[Dict[str, Any]]:
+        """根据ID获取场景类型配置
+
+        Args:
+            scene_id: 场景类型ID
+
+        Returns:
+            Optional[Dict[str, Any]]: 场景类型配置，如果不存在则返回None
+        """
+        self._ensure_loaded()
+        for scene_type in self._scene_types:
+            if scene_type.get("id") == scene_id:
+                return scene_type.copy()
+        return None
+
+    def get_builtin_svg_path(self, scene_type: str) -> Optional[str]:
+        """获取内置SVG模板路径
+
+        Args:
+            scene_type: 场景类型ID（如 'ui', 'web'）
+
+        Returns:
+            str: SVG文件路径，如果不存在则返回None
+        """
+        svg_path = self._scenes_data_dir / scene_type / "default.svg"
+        if svg_path.exists():
+            return str(svg_path)
+        return None
+
+    def get_layout_config(self, scene_type: str) -> Dict[str, Any]:
+        """加载场景的布局配置
+
+        Args:
+            scene_type: 场景类型ID
+
+        Returns:
+            dict: 布局配置字典
+        """
+        layout_file = self._scenes_data_dir / scene_type / "layout.json"
+
+        if not layout_file.exists():
+            return {}
+
+        try:
+            with open(layout_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError, OSError) as e:
+            print(f"加载布局配置失败: {e}")
+            return {}
+
+    def get_all_templates(self, scene_type: str) -> List[Dict[str, Any]]:
+        """获取场景类型的所有模板（内置 + 用户模板）
+
+        Args:
+            scene_type: 场景类型ID
+
+        Returns:
+            List[Dict[str, Any]]: 模板列表，每个模板包含 path, is_builtin 字段
+        """
+        templates = []
+
+        # 内置模板
+        builtin_svg = self.get_builtin_svg_path(scene_type)
+        if builtin_svg:
+            templates.append({
+                "path": builtin_svg,
+                "is_builtin": True
+            })
+
+        # 用户模板
+        config_manager = get_config_manager()
+        user_templates = config_manager.get_scene_templates_by_type(scene_type)
+        for template in user_templates:
+            template_path = template.get("path", "")
+            if template_path and Path(template_path).exists():
+                templates.append({
+                    "path": template_path,
+                    "is_builtin": False
+                })
+
+        return templates
+
+
+_scene_type_manager: Optional[SceneTypeManager] = None
+
+
+def get_scene_type_manager() -> SceneTypeManager:
+    """获取全局场景类型管理器实例
+
+    Returns:
+        SceneTypeManager: 场景类型管理器实例
+    """
+    global _scene_type_manager
+    if _scene_type_manager is None:
+        _scene_type_manager = SceneTypeManager()
+    return _scene_type_manager

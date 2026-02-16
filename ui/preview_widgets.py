@@ -1,26 +1,40 @@
+"""预览组件模块 - 重构版本
+
+提供配色预览相关的UI组件，包括：
+- 可拖拽颜色圆点
+- 颜色圆点工具栏
+- 预览场景基类和工厂
+- SVG预览组件
+- 布局系统（单图、滚动、网格、混合）
+- 预览场景选择器
+- 预览面板
+- 预览工具栏
+"""
 # 标准库导入
 from typing import List, Optional, Dict, Any
-import math
 
 # 第三方库导入
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QSplitter, QSizePolicy, QFileDialog, QApplication
+    QScrollArea, QSizePolicy, QPushButton, QLabel, QApplication
 )
 from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData
 from PySide6.QtGui import (
-    QPainter, QColor, QPen, QBrush, QFont,
-    QDrag, QPixmap, QFontMetrics
+    QPainter, QColor, QPen, QBrush, QFont, QDrag, QPixmap, QFontMetrics
 )
 from PySide6.QtSvg import QSvgRenderer
 from qfluentwidgets import (
-    ToolButton, ComboBox, PushButton, SubtitleLabel,
-    FluentIcon, isDarkTheme, qconfig, RoundMenu, Action
+    ComboBox, PushButton, SubtitleLabel, FluentIcon, isDarkTheme, qconfig,
+    RoundMenu, Action, InfoBar, InfoBarPosition
 )
 
 # 项目模块导入
 from ui.theme_colors import get_border_color, get_text_color
 
+
+# ============================================================================
+# 可拖拽颜色圆点组件
+# ============================================================================
 
 class DraggableColorDot(QWidget):
     """可拖拽的颜色圆点组件"""
@@ -29,6 +43,13 @@ class DraggableColorDot(QWidget):
     delete_requested = Signal(int)       # 删除请求信号：索引
 
     def __init__(self, color: str, index: int, parent=None):
+        """初始化颜色圆点
+
+        Args:
+            color: 颜色值（HEX格式）
+            index: 圆点索引
+            parent: 父控件
+        """
         self._color = color
         self._index = index
         self._drag_start_pos = QPoint()
@@ -39,22 +60,27 @@ class DraggableColorDot(QWidget):
 
     @property
     def color(self) -> str:
+        """获取颜色值"""
         return self._color
 
     @color.setter
     def color(self, value: str):
+        """设置颜色值"""
         self._color = value
         self.update()
 
     @property
     def index(self) -> int:
+        """获取索引"""
         return self._index
 
     @index.setter
     def index(self, value: int):
+        """设置索引"""
         self._index = value
 
     def paintEvent(self, event):
+        """绘制圆点"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
@@ -71,11 +97,13 @@ class DraggableColorDot(QWidget):
         painter.drawEllipse(rect)
 
     def mousePressEvent(self, event):
+        """鼠标按下事件"""
         if event.button() == Qt.MouseButton.LeftButton:
             self._drag_start_pos = event.pos()
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
 
     def mouseMoveEvent(self, event):
+        """鼠标移动事件 - 处理拖拽"""
         if not (event.buttons() & Qt.MouseButton.LeftButton):
             return
 
@@ -102,6 +130,7 @@ class DraggableColorDot(QWidget):
         self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
         if event.button() == Qt.MouseButton.LeftButton:
             self.setCursor(Qt.CursorShape.OpenHandCursor)
             # 检查是否是点击（没有发生拖拽）
@@ -109,10 +138,15 @@ class DraggableColorDot(QWidget):
                 self.clicked.emit(self._index)
 
     def mouseDoubleClickEvent(self, event):
+        """鼠标双击事件"""
         self.clicked.emit(self._index)
 
     def set_hex_visible(self, visible: bool):
-        """设置HEX值显示开关"""
+        """设置HEX值显示开关
+
+        Args:
+            visible: 是否显示HEX值
+        """
         self._hex_visible = visible
 
     def contextMenuEvent(self, event):
@@ -140,6 +174,10 @@ class DraggableColorDot(QWidget):
         clipboard.setText(self._color.upper())
 
 
+# ============================================================================
+# 颜色圆点工具栏
+# ============================================================================
+
 class ColorDotBar(QWidget):
     """颜色圆点工具栏，支持拖拽排序"""
 
@@ -148,6 +186,11 @@ class ColorDotBar(QWidget):
     color_deleted = Signal(list)         # 颜色删除信号：新的颜色列表
 
     def __init__(self, parent=None):
+        """初始化颜色圆点工具栏
+
+        Args:
+            parent: 父控件
+        """
         self._colors: List[str] = []
         self._dots: List[DraggableColorDot] = []
         self._insert_indicator_pos = -1    # 插入指示器位置（-1表示不显示）
@@ -157,6 +200,7 @@ class ColorDotBar(QWidget):
         self.setAcceptDrops(True)
 
     def setup_ui(self):
+        """创建UI"""
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 5, 10, 5)
         layout.setSpacing(8)
@@ -164,7 +208,11 @@ class ColorDotBar(QWidget):
         self.setFixedHeight(50)
 
     def set_colors(self, colors: List[str]):
-        """设置颜色列表"""
+        """设置颜色列表
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
         self._colors = colors.copy() if colors else []
         self._rebuild_dots()
 
@@ -307,8 +355,6 @@ class ColorDotBar(QWidget):
         drop_pos = event.position().toPoint()
         target_index = self._calculate_insert_index(drop_pos)
 
-        print(f"拖拽排序: 源索引={source_index}, 目标索引={target_index}, 颜色数={len(self._colors)}")
-
         # 执行排序
         if target_index != source_index and 0 <= target_index <= len(self._colors):
             # 移动颜色
@@ -319,7 +365,6 @@ class ColorDotBar(QWidget):
                 target_index -= 1
 
             self._colors.insert(target_index, color)
-            print(f"排序完成: 新顺序索引={target_index}")
 
             # 重建圆点
             self._rebuild_dots()
@@ -338,19 +383,9 @@ class ColorDotBar(QWidget):
         if not self._dots:
             return 0
 
-        # 获取布局的边距
-        layout = self.layout()
-        left_margin = layout.contentsMargins().left()
-        spacing = layout.spacing()
-
-        # 计算每个圆点的中心位置
-        dot_width = self._dots[0].width()
-
         # 遍历所有圆点，找到最近的插入位置
         for i, dot in enumerate(self._dots):
             dot_rect = dot.geometry()
-            dot_left = dot_rect.left()
-            dot_right = dot_rect.right()
             dot_center = dot_rect.center().x()
 
             # 如果位置在当前圆点的左半部分，插入到当前位置
@@ -360,6 +395,10 @@ class ColorDotBar(QWidget):
         # 如果位置在所有圆点右侧，插入到最后
         return len(self._dots)
 
+
+# ============================================================================
+# 预览场景基类
+# ============================================================================
 
 class BasePreviewScene(QWidget):
     """预览场景基类 - 所有预览场景必须继承此类"""
@@ -417,6 +456,10 @@ class BasePreviewScene(QWidget):
         """
         return cls(config, parent)
 
+
+# ============================================================================
+# 预览场景工厂
+# ============================================================================
 
 class PreviewSceneFactory:
     """预览场景工厂 - 根据配置动态创建场景实例"""
@@ -480,1031 +523,341 @@ class PreviewSceneFactory:
         return list(cls._registry.keys())
 
 
-class SceneRenderer:
-    """通用场景渲染器 - 根据配置绘制各种场景元素"""
+# ============================================================================
+# SVG预览组件（增强版）
+# ============================================================================
 
-    @staticmethod
-    def draw_empty_hint(painter: QPainter, width: int, height: int, hint_text: str = None):
-        """绘制空配色提示
+class SVGPreviewWidget(BasePreviewScene):
+    """SVG 预览组件 - 加载和显示 SVG 文件，支持智能配色应用
 
-        Args:
-            painter: 绘制器
-            width: 宽度
-            height: 高度
-            hint_text: 提示文本，如果为None则使用默认文本
-        """
-        from ui.theme_colors import get_text_color
+    增强功能：
+    - 支持从 scenes_data 加载内置SVG
+    - 支持模板模式
+    - 支持右键删除用户模板
+    """
 
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(0, 0, width, height, bg_color)
+    # 信号：删除模板请求
+    delete_requested = Signal(str)
 
-        text_color = get_text_color()
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 11)
-        painter.setFont(font)
-
-        if hint_text is None:
-            hint_text = "请从配色管理面板导入配色"
-        painter.drawText(0, 0, width, height, Qt.AlignmentFlag.AlignCenter, hint_text)
-
-    @staticmethod
-    def get_color_by_index(colors: List[str], index: int) -> QColor:
-        """根据索引获取颜色
+    def __init__(self, scene_config: dict = None, parent=None):
+        """初始化SVG预览组件
 
         Args:
-            colors: 颜色列表
-            index: 颜色索引
-
-        Returns:
-            QColor: 颜色对象
-        """
-        if not colors:
-            return QColor(200, 200, 200)
-        return QColor(colors[index % len(colors)])
-
-    @staticmethod
-    def get_contrast_text_color(bg_color: QColor) -> QColor:
-        """根据背景色获取对比文本色
-
-        Args:
-            bg_color: 背景色
-
-        Returns:
-            QColor: 对比文本色
-        """
-        luminance = (0.299 * bg_color.red() + 0.587 * bg_color.green() + 0.114 * bg_color.blue()) / 255
-        return QColor(255, 255, 255) if luminance < 0.5 else QColor(40, 40, 40)
-
-    @staticmethod
-    def draw_rect(painter: QPainter, x: float, y: float, width: float, height: float,
-                  color: QColor, border_radius: int = 0):
-        """绘制矩形
-
-        Args:
-            painter: 绘制器
-            x: X坐标
-            y: Y坐标
-            width: 宽度
-            height: 高度
-            color: 颜色
-            border_radius: 圆角半径
-        """
-        painter.setBrush(QBrush(color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        if border_radius > 0:
-            painter.drawRoundedRect(int(x), int(y), int(width), int(height), border_radius, border_radius)
-        else:
-            painter.drawRect(int(x), int(y), int(width), int(height))
-
-    @staticmethod
-    def draw_circle(painter: QPainter, x: float, y: float, radius: float, color: QColor):
-        """绘制圆形
-
-        Args:
-            painter: 绘制器
-            x: 圆心X坐标
-            y: 圆心Y坐标
-            radius: 半径
-            color: 颜色
-        """
-        painter.setBrush(QBrush(color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawEllipse(QPoint(int(x), int(y)), int(radius), int(radius))
-
-    @staticmethod
-    def draw_line(painter: QPainter, x1: float, y1: float, x2: float, y2: float,
-                 color: QColor, width: int = 1):
-        """绘制线条
-
-        Args:
-            painter: 绘制器
-            x1: 起点X坐标
-            y1: 起点Y坐标
-            x2: 终点X坐标
-            y2: 终点Y坐标
-            color: 颜色
-            width: 线宽
-        """
-        painter.setPen(QPen(color, width))
-        painter.drawLine(int(x1), int(y1), int(x2), int(y2))
-
-    @staticmethod
-    def draw_text(painter: QPainter, text: str, x: float, y: float, width: float, height: float,
-                  color: QColor, font_size: int = 12, font_weight: QFont.Weight = QFont.Weight.Normal,
-                  alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignCenter):
-        """绘制文字
-
-        Args:
-            painter: 绘制器
-            text: 文字内容
-            x: X坐标
-            y: Y坐标
-            width: 宽度
-            height: 高度
-            color: 颜色
-            font_size: 字体大小
-            font_weight: 字体粗细
-            alignment: 对齐方式
-        """
-        painter.setPen(QPen(color))
-        font = QFont("Arial", font_size, font_weight)
-        painter.setFont(font)
-        painter.drawText(int(x), int(y), int(width), int(height), alignment, text)
-
-
-class ConfigurablePreviewScene(BasePreviewScene):
-    """配置化预览场景 - 从配置加载场景定义并渲染"""
-
-    def __init__(self, scene_config: dict, parent=None):
-        """初始化配置化场景
-
-        Args:
-            scene_config: 场景配置字典
+            scene_config: 场景配置字典（可选）
             parent: 父控件
         """
+        # 如果没有传入配置，使用默认配置
+        if scene_config is None:
+            scene_config = {"id": "svg", "type": "svg", "name": "SVG预览"}
+
         super().__init__(scene_config, parent)
-        self._renderer = SceneRenderer()
-
-    def paintEvent(self, event):
-        """绘制场景"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        width = self.width()
-        height = self.height()
-
-        if not self._colors:
-            self._renderer.draw_empty_hint(painter, width, height)
-            return
-
-        scene_id = self.get_scene_id()
-
-        if scene_id == "ui":
-            self._draw_ui_scene(painter, width, height)
-        elif scene_id == "web":
-            self._draw_web_scene(painter, width, height)
-        elif scene_id == "illustration":
-            self._draw_illustration_scene(painter, width, height)
-        elif scene_id == "typography":
-            self._draw_typography_scene(painter, width, height)
-        elif scene_id == "brand":
-            self._draw_brand_scene(painter, width, height)
-        elif scene_id == "poster":
-            self._draw_poster_scene(painter, width, height)
-        elif scene_id == "pattern":
-            self._draw_pattern_scene(painter, width, height)
-        elif scene_id == "magazine":
-            self._draw_magazine_scene(painter, width, height)
-        else:
-            self._renderer.draw_empty_hint(painter, width, height)
-
-    def _draw_ui_scene(self, painter: QPainter, width: int, height: int):
-        """绘制UI场景"""
-        config = self._config.get("config", {})
-
-        frame_config = config.get("frame", {})
-        screen_config = config.get("screen", {})
-        status_bar_config = config.get("status_bar", {})
-        content_config = config.get("content", {})
-        bottom_nav_config = config.get("bottom_nav", {})
-
-        phone_width = min(width * frame_config.get("width_ratio", 0.6), height * frame_config.get("height_ratio", 0.5))
-        phone_height = phone_width * 2.0
-
-        x = (width - phone_width) / 2
-        y = (height - phone_height) / 2
-
-        screen_margin = screen_config.get("margin", 6)
-        screen_x = x + screen_margin
-        screen_y = y + screen_margin
-        screen_width = phone_width - screen_margin * 2
-        screen_height = phone_height - screen_margin * 2
-
-        self._draw_phone_frame(painter, x, y, phone_width, phone_height, frame_config, screen_config)
-
-        status_bar_height = status_bar_config.get("height", 30)
-        nav_bar_height = bottom_nav_config.get("height", 50)
-        content_y = screen_y + status_bar_height
-        content_height = screen_height - status_bar_height - nav_bar_height
-
-        self._draw_status_bar(painter, screen_x, screen_y, screen_width, status_bar_height, status_bar_config)
-        self._draw_content(painter, screen_x, content_y, screen_width, content_height, content_config)
-        self._draw_bottom_nav(painter, screen_x, screen_y + screen_height - nav_bar_height, screen_width, nav_bar_height, bottom_nav_config)
-
-    def _draw_phone_frame(self, painter: QPainter, x: float, y: float, width: float, height: float,
-                         frame_config: dict, screen_config: dict):
-        """绘制手机外框"""
-        border_radius = frame_config.get("border_radius", 20)
-        screen_margin = screen_config.get("margin", 6)
-        screen_border_radius = screen_config.get("border_radius", 16)
-
-        shadow_rect = QRect(int(x) + 3, int(y) + 3, int(width), int(height))
-        shadow_color = QColor(0, 0, 0, 40)
-        self._renderer.draw_rect(painter, shadow_rect.x(), shadow_rect.y(), shadow_rect.width(), shadow_rect.height(), shadow_color, border_radius)
-
-        frame_color = QColor(30, 30, 30) if not isDarkTheme() else QColor(20, 20, 20)
-        self._renderer.draw_rect(painter, x, y, width, height, frame_color, border_radius)
-
-        screen_rect = QRect(int(x) + screen_margin, int(y) + screen_margin, int(width) - screen_margin * 2, int(height) - screen_margin * 2)
-        screen_color = self._renderer.get_color_by_index(self._colors, 0)
-        self._renderer.draw_rect(painter, screen_rect.x(), screen_rect.y(), screen_rect.width(), screen_rect.height(), screen_color, screen_border_radius)
-
-    def _draw_status_bar(self, painter: QPainter, x: float, y: float, width: float, height: float, config: dict):
-        """绘制状态栏"""
-        border_radius = config.get("border_radius", 12)
-        color_idx = config.get("color_idx", 1)
-        text = config.get("text", "9:41")
-
-        status_color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, x, y, width, height, status_color, border_radius)
-
-        text_color = self._renderer.get_contrast_text_color(status_color)
-        self._renderer.draw_text(painter, text, x, y, width, height, text_color, 10, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_content(self, painter: QPainter, x: float, y: float, width: float, height: float, config: dict):
-        """绘制内容区域"""
-        margin = config.get("margin", 12)
-        card_height = config.get("card_height", 60)
-        spacing = config.get("spacing", 10)
-        texts_config = config.get("texts", {})
-
-        title_rect = QRect(int(x) + margin, int(y) + margin, int(width) - margin * 2, card_height)
-        title_color = self._renderer.get_color_by_index(self._colors, 2)
-        self._renderer.draw_rect(painter, title_rect.x(), title_rect.y(), title_rect.width(), title_rect.height(), title_color, 12)
-
-        text_color = self._renderer.get_contrast_text_color(title_color)
-        title_card_text = texts_config.get("title_card", "首页")
-        self._renderer.draw_text(painter, title_card_text, title_rect.x(), title_rect.y(), title_rect.width(), title_rect.height(), text_color, 14, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-        list_y = y + margin + card_height + spacing
-        list_item_prefix = texts_config.get("list_item_prefix", "项目")
-        list_item_count = texts_config.get("list_item_count", 3)
-        for i in range(list_item_count):
-            item_rect = QRect(int(x) + margin, int(list_y) + i * (45 + spacing), int(width) - margin * 2, 45)
-            color_idx = 3 if i % 2 == 0 else 4
-            item_color = self._renderer.get_color_by_index(self._colors, color_idx)
-            self._renderer.draw_rect(painter, item_rect.x(), item_rect.y(), item_rect.width(), item_rect.height(), item_color, 8)
-
-            text_color = self._renderer.get_contrast_text_color(item_color)
-            item_text = f"  {list_item_prefix} {i + 1}"
-            self._renderer.draw_text(painter, item_text, item_rect.x(), item_rect.y(), item_rect.width(), item_rect.height(), text_color, 11, QFont.Weight.Normal, Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
-
-        fab_size = 50
-        fab_x = x + width - margin - fab_size - 5
-        fab_y = y + height - fab_size - 20
-        fab_color = self._renderer.get_color_by_index(self._colors, 1)
-        self._renderer.draw_circle(painter, fab_x + fab_size / 2, fab_y + fab_size / 2, fab_size / 2, fab_color)
-
-        text_color = self._renderer.get_contrast_text_color(fab_color)
-        center_x = int(fab_x + fab_size / 2)
-        center_y = int(fab_y + fab_size / 2)
-        self._renderer.draw_line(painter, center_x, center_y - 8, center_x, center_y + 8, text_color, 2)
-        self._renderer.draw_line(painter, center_x - 8, center_y, center_x + 8, center_y, text_color, 2)
-
-    def _draw_bottom_nav(self, painter: QPainter, x: float, y: float, width: float, height: float, config: dict):
-        """绘制底部导航栏"""
-        border_radius = config.get("border_radius", 10)
-        color_idx = config.get("color_idx", 1)
-        icon_count = config.get("icon_count", 4)
-
-        nav_color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, x, y, width, height, nav_color, border_radius)
-
-        icon_spacing = width / (icon_count + 1)
-        icon_y = y + height / 2
-
-        for i in range(icon_count):
-            icon_x = x + icon_spacing * (i + 1)
-            icon_color_idx = 2 if i == 0 else 3
-            icon_color = self._renderer.get_color_by_index(self._colors, icon_color_idx)
-            self._renderer.draw_circle(painter, icon_x, icon_y, 6, icon_color)
-
-    def _draw_web_scene(self, painter: QPainter, width: int, height: int):
-        """绘制Web场景"""
-        config = self._config.get("config", {})
-
-        bg_color = self._renderer.get_color_by_index(self._colors, 0)
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        navbar_config = config.get("navbar", {})
-        hero_config = config.get("hero", {})
-        card_grid_config = config.get("card_grid", {})
-        footer_config = config.get("footer", {})
-
-        card_texts_config = card_grid_config.get("texts", {})
-        self._draw_navbar(painter, width, navbar_config, card_texts_config)
-        self._draw_hero(painter, width, height, hero_config)
-        self._draw_card_grid(painter, width, height, card_grid_config)
-        self._draw_footer(painter, width, height, footer_config)
-
-    def _draw_navbar(self, painter: QPainter, width: int, config: dict, texts_config: dict = None):
-        """绘制导航栏"""
-        nav_height = config.get("height", 50)
-        color_idx = config.get("color_idx", 1)
-        logo_width = config.get("logo_width", 80)
-        logo_height = config.get("logo_height", 20)
-        logo_color_idx = config.get("logo_color_idx", 2)
-
-        nav_color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, 0, 0, width, nav_height, nav_color, 0)
-
-        logo_rect = QRect(20, 15, logo_width, logo_height)
-        logo_color = self._renderer.get_color_by_index(self._colors, logo_color_idx)
-        self._renderer.draw_rect(painter, logo_rect.x(), logo_rect.y(), logo_rect.width(), logo_rect.height(), logo_color, 4)
-
-        menu_items = texts_config.get("menu_items", ["首页", "产品", "关于"]) if texts_config else ["首页", "产品", "关于"]
-        item_x = width - 150
-        text_color = self._renderer.get_contrast_text_color(nav_color)
-
-        for i, item in enumerate(menu_items):
-            item_rect = QRect(int(item_x) + i * 50, 15, 45, 20)
-            self._renderer.draw_text(painter, item, item_rect.x(), item_rect.y(), item_rect.width(), item_rect.height(), text_color, 11, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_hero(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制Hero区域"""
-        height_ratio = config.get("height_ratio", 0.35)
-        color_idx = config.get("color_idx", 2)
-        title = config.get("title", "欢迎来到我们的网站")
-        subtitle = config.get("subtitle", "探索无限可能，创造美好未来")
-        button_config = config.get("button", {})
-
-        hero_height = int(height * height_ratio)
-        hero_color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, 0, 50, width, hero_height, hero_color, 0)
-
-        text_color = self._renderer.get_contrast_text_color(hero_color)
-        self._renderer.draw_text(painter, title, 0, 80, width, 40, text_color, 24, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-        self._renderer.draw_text(painter, subtitle, 0, 130, width, 25, text_color, 12, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
-
-        button_width = button_config.get("width", 120)
-        button_height = button_config.get("height", 35)
-        button_text = button_config.get("text", "立即开始")
-        button_color_idx = button_config.get("color_idx", 3)
-        button_border_radius = button_config.get("border_radius", 6)
-
-        button_x = (width - button_width) / 2
-        button_y = 170
-        button_color = self._renderer.get_color_by_index(self._colors, button_color_idx)
-        self._renderer.draw_rect(painter, button_x, button_y, button_width, button_height, button_color, button_border_radius)
-
-        btn_text_color = self._renderer.get_contrast_text_color(button_color)
-        self._renderer.draw_text(painter, button_text, button_x, button_y, button_width, button_height, btn_text_color, 11, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_card_grid(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制卡片网格"""
-        columns = config.get("columns", 3)
-        height_ratio = config.get("height_ratio", 0.25)
-        card_spacing = config.get("card_spacing", 20)
-        icon_size = config.get("icon_size", 40)
-        color_idx_1 = config.get("color_idx_1", 3)
-        color_idx_2 = config.get("color_idx_2", 4)
-        icon_color_idx = config.get("icon_color_idx", 1)
-        texts_config = config.get("texts", {})
-
-        card_y = 50 + int(height * height_ratio) + 20
-        card_width = (width - 80) / 3
-        card_height = int(height * height_ratio)
-
-        card_title_prefix = texts_config.get("card_title_prefix", "功能")
-        card_description = texts_config.get("card_description", "这里是功能描述文本")
-
-        for i in range(3):
-            card_x = 20 + i * (card_width + card_spacing)
-            card_color_idx = color_idx_1 if i % 2 == 0 else color_idx_2
-            card_color = self._renderer.get_color_by_index(self._colors, card_color_idx)
-            self._renderer.draw_rect(painter, card_x, card_y, card_width, card_height, card_color, 8)
-
-            icon_x = card_x + (card_width - icon_size) / 2
-            icon_y = card_y + 20
-            icon_color = self._renderer.get_color_by_index(self._colors, icon_color_idx)
-            self._renderer.draw_circle(painter, icon_x + icon_size / 2, icon_y + icon_size / 2, icon_size / 2, icon_color)
-
-            text_color = self._renderer.get_contrast_text_color(card_color)
-            title_rect = QRect(int(card_x), int(icon_y) + icon_size + 10, int(card_width), 20)
-            card_title = f"{card_title_prefix} {i + 1}"
-            self._renderer.draw_text(painter, card_title, title_rect.x(), title_rect.y(), title_rect.width(), title_rect.height(), text_color, 12, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-            desc_rect = QRect(int(card_x) + 10, int(icon_y) + icon_size + 35, int(card_width) - 20, 40)
-            self._renderer.draw_text(painter, card_description, desc_rect.x(), desc_rect.y(), desc_rect.width(), desc_rect.height(), text_color, 10, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextWordWrap)
-
-    def _draw_footer(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制页脚"""
-        footer_height = config.get("height", 40)
-        color_idx = config.get("color_idx", 1)
-        text = config.get("text", "© 2026 Color Card. All rights reserved.")
-
-        footer_y = height - footer_height
-        footer_color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, 0, footer_y, width, footer_height, footer_color, 0)
-
-        text_color = self._renderer.get_contrast_text_color(footer_color)
-        self._renderer.draw_text(painter, text, 0, footer_y, width, footer_height, text_color, 10, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_illustration_scene(self, painter: QPainter, width: int, height: int):
-        """绘制插画场景"""
-        config = self._config.get("config", {})
-
-        bg_color = self._renderer.get_color_by_index(self._colors, 0)
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        circles_config = config.get("circles", [])
-        for circle in circles_config:
-            x = int(circle["x"] * width)
-            y = int(circle["y"] * height)
-            r = int(circle["r"] * min(width, height))
-            color_idx = circle.get("color_idx", 1)
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-            color.setAlpha(180)
-            self._renderer.draw_circle(painter, x, y, r, color)
-
-        plant_config = config.get("plant", {})
-        stem_segments = plant_config.get("stem_segments", 8)
-        leaf_positions = plant_config.get("leaf_positions", [0.3, 0.5, 0.7])
-
-        line_color = QColor(40, 40, 40) if not isDarkTheme() else QColor(220, 220, 220)
-        painter.setPen(QPen(line_color, 1.5))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-
-        stem_x = int(width * 0.5)
-        stem_bottom = int(height * 0.85)
-        stem_top = int(height * 0.25)
-
-        path_points = []
-        for i in range(stem_segments + 1):
-            t = i / stem_segments
-            x = stem_x + int(math.sin(t * 3) * width * 0.08)
-            y = stem_bottom - int(t * (stem_bottom - stem_top))
-            path_points.append(QPoint(x, y))
-
-        for i in range(len(path_points) - 1):
-            painter.drawLine(path_points[i], path_points[i + 1])
-
-        for pos in leaf_positions:
-            idx = int(pos * (len(path_points) - 1))
-            if idx < len(path_points):
-                leaf_size = 25
-                angle = 0.3
-                left_leaf = QPoint(path_points[idx].x() - int(leaf_size * math.cos(angle)), path_points[idx].y() - int(leaf_size * math.sin(angle)))
-                right_leaf = QPoint(path_points[idx].x() + int(leaf_size * math.cos(angle)), path_points[idx].y() - int(leaf_size * math.sin(angle)))
-                painter.drawLine(path_points[idx], left_leaf)
-                painter.drawLine(path_points[idx], right_leaf)
-
-    def _draw_typography_scene(self, painter: QPainter, width: int, height: int):
-        """绘制排版场景"""
-        config = self._config.get("config", {})
-
-        bg_color = self._renderer.get_color_by_index(self._colors, 0)
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        decorations_config = config.get("decorations", {})
-        top_line_config = decorations_config.get("top_line", {})
-        bottom_line_config = decorations_config.get("bottom_line", {})
-        side_block_config = decorations_config.get("side_block", {})
-
-        top_line_color = self._renderer.get_color_by_index(self._colors, top_line_config.get("color_idx", 1))
-        self._renderer.draw_line(painter, 20, top_line_config.get("y", 30), width - 20, top_line_config.get("y", 30), top_line_color, top_line_config.get("width", 3))
-
-        bottom_line_color = self._renderer.get_color_by_index(self._colors, bottom_line_config.get("color_idx", 2))
-        self._renderer.draw_line(painter, 20, height - bottom_line_config.get("y_offset", 30), width - 20, height - bottom_line_config.get("y_offset", 30), bottom_line_color, bottom_line_config.get("width", 2))
-
-        side_block_height = height * side_block_config.get("height_ratio", 0.33)
-        side_block_color = self._renderer.get_color_by_index(self._colors, side_block_config.get("color_idx", 3))
-        self._renderer.draw_rect(painter, side_block_config.get("x", 10), height // 3, side_block_config.get("width", 8), side_block_height, side_block_color, 0)
-
-        text = config.get("text", "All\nBodies\nAre\nGood\nBodies")
-        text_colors = config.get("text_colors", [1, 2, 3, 4])
-        lines = text.split('\n')
-
-        available_height = height * 0.6
-        font_size = int(available_height / len(lines) * 0.8)
-        font_size = min(font_size, 48)
-
-        total_text_height = font_size * len(lines) * 1.2
-        start_y = (height - total_text_height) // 2 + font_size
-
-        for i, line in enumerate(lines):
-            color_idx = text_colors[i % len(text_colors)]
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-            painter.setPen(color)
-            font = QFont("Arial", font_size, QFont.Weight.Bold)
-            painter.setFont(font)
-
-            metrics = QFontMetrics(font)
-            text_width = metrics.horizontalAdvance(line)
-            x = (width - text_width) // 2
-            y = int(start_y + i * font_size * 1.2)
-
-            painter.drawText(x, y, line)
-
-    def _draw_brand_scene(self, painter: QPainter, width: int, height: int):
-        """绘制品牌场景"""
-        config = self._config.get("config", {})
-
-        bg_color = self._renderer.get_color_by_index(self._colors, 0)
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        logo_config = config.get("logo_section", {})
-        card_config = config.get("business_card", {})
-        strip_config = config.get("color_strip", {})
-
-        self._draw_logo_section(painter, width, height, logo_config)
-        self._draw_business_card(painter, width, height, card_config)
-        self._draw_color_strip(painter, width, height, strip_config)
-
-    def _draw_logo_section(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制Logo区域"""
-        y_offset = int(height * config.get("y_offset", 0.08))
-        circle_size = config.get("circle_size", 80)
-        circle_color_idx = config.get("circle_color_idx", 1)
-        icon_color_idx = config.get("icon_color_idx", 2)
-        brand_name = config.get("brand_name", "BRAND")
-        brand_name_color_idx = config.get("brand_name_color_idx", 1)
-        tagline = config.get("tagline", "Your Tagline Here")
-        tagline_color_idx = config.get("tagline_color_idx", 3)
-
-        center_x = width // 2
-        circle_y = y_offset + circle_size // 2
-
-        circle_color = self._renderer.get_color_by_index(self._colors, circle_color_idx)
-        self._renderer.draw_circle(painter, center_x, circle_y, circle_size // 2, circle_color)
-
-        icon_color = self._renderer.get_color_by_index(self._colors, icon_color_idx)
-        icon_size = circle_size // 3
-        self._renderer.draw_rect(painter, center_x - icon_size // 2, circle_y - icon_size // 2, icon_size, icon_size, icon_color, 4)
-
-        brand_color = self._renderer.get_color_by_index(self._colors, brand_name_color_idx)
-        self._renderer.draw_text(painter, brand_name, 0, y_offset + circle_size + 10, width, 30, brand_color, 20, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-        tagline_color = self._renderer.get_color_by_index(self._colors, tagline_color_idx)
-        self._renderer.draw_text(painter, tagline, 0, y_offset + circle_size + 45, width, 20, tagline_color, 12, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_business_card(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制名片"""
-        y_offset = int(height * config.get("y_offset", 0.45))
-        card_width = int(width * config.get("width_ratio", 0.85))
-        card_height = config.get("height", 100)
-        border_radius = config.get("border_radius", 8)
-        bg_color_idx = config.get("bg_color_idx", 0)
-        left_bar_width = config.get("left_bar_width", 12)
-        left_bar_color_idx = config.get("left_bar_color_idx", 1)
-        name = config.get("name", "John Doe")
-        name_color_idx = config.get("name_color_idx", 1)
-        title = config.get("title", "Creative Director")
-        title_color_idx = config.get("title_color_idx", 3)
-        contact = config.get("contact", "hello@brand.com")
-        contact_color_idx = config.get("contact_color_idx", 2)
-
-        card_x = (width - card_width) // 2
-        card_y = y_offset
-
-        shadow_color = QColor(0, 0, 0, 30)
-        self._renderer.draw_rect(painter, card_x + 2, card_y + 2, card_width, card_height, shadow_color, border_radius)
-
-        card_bg_color = self._renderer.get_color_by_index(self._colors, bg_color_idx)
-        self._renderer.draw_rect(painter, card_x, card_y, card_width, card_height, card_bg_color, border_radius)
-
-        left_bar_color = self._renderer.get_color_by_index(self._colors, left_bar_color_idx)
-        self._renderer.draw_rect(painter, card_x, card_y, left_bar_width, card_height, left_bar_color, border_radius)
-
-        name_color = self._renderer.get_color_by_index(self._colors, name_color_idx)
-        self._renderer.draw_text(painter, name, card_x + left_bar_width + 15, card_y + 20, card_width - left_bar_width - 30, 25, name_color, 16, QFont.Weight.Bold, Qt.AlignmentFlag.AlignLeft)
-
-        title_color = self._renderer.get_color_by_index(self._colors, title_color_idx)
-        self._renderer.draw_text(painter, title, card_x + left_bar_width + 15, card_y + 48, card_width - left_bar_width - 30, 18, title_color, 12, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft)
-
-        contact_color = self._renderer.get_color_by_index(self._colors, contact_color_idx)
-        self._renderer.draw_text(painter, contact, card_x + left_bar_width + 15, card_y + 70, card_width - left_bar_width - 30, 16, contact_color, 11, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft)
-
-    def _draw_color_strip(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制品牌色带"""
-        y_offset = int(height * config.get("y_offset", 0.82))
-        strip_height = config.get("height", 40)
-        strip_count = config.get("strip_count", 5)
-        strip_spacing = config.get("strip_spacing", 4)
-
-        total_spacing = (strip_count - 1) * strip_spacing
-        strip_width = (width - 40 - total_spacing) // strip_count
-        start_x = 20
-
-        for i in range(strip_count):
-            color_idx = (i % len(self._colors)) if self._colors else 0
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-            x = start_x + i * (strip_width + strip_spacing)
-            self._renderer.draw_rect(painter, x, y_offset, strip_width, strip_height, color, 4)
-
-    def _draw_poster_scene(self, painter: QPainter, width: int, height: int):
-        """绘制海报场景"""
-        config = self._config.get("config", {})
-
-        bg_config = config.get("background", {})
-        bg_color = self._renderer.get_color_by_index(self._colors, bg_config.get("color_idx", 0))
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        self._draw_poster_decorations(painter, width, height, config.get("top_decorations", {}))
-        self._draw_poster_title(painter, width, height, config.get("main_title", {}))
-        self._draw_poster_subtitle(painter, width, height, config.get("subtitle", {}))
-        self._draw_poster_decoration_line(painter, width, height, config.get("decoration_line", {}))
-        self._draw_poster_info(painter, width, height, config.get("info_section", {}))
-        self._draw_poster_bottom_shapes(painter, width, height, config.get("bottom_shapes", []))
-
-    def _draw_poster_decorations(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制海报顶部装饰"""
-        shapes = config.get("shapes", [])
-        for shape in shapes:
-            shape_type = shape.get("type", "circle")
-            x = int(shape.get("x", 0) * width)
-            y = int(shape.get("y", 0) * height)
-            color_idx = shape.get("color_idx", 1)
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-
-            if shape_type == "circle":
-                size = int(shape.get("size", 0.05) * min(width, height))
-                self._renderer.draw_circle(painter, x, y, size, color)
-            elif shape_type == "rect":
-                w = int(shape.get("width", 0.1) * width)
-                h = int(shape.get("height", 0.05) * height)
-                border_radius = shape.get("border_radius", 0)
-                self._renderer.draw_rect(painter, x - w // 2, y - h // 2, w, h, color, border_radius)
-
-    def _draw_poster_title(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制海报主标题"""
-        text = config.get("text", "DESIGN")
-        y_offset = int(height * config.get("y_offset", 0.28))
-        font_size = config.get("font_size", 48)
-        color_idx = config.get("color_idx", 1)
-        letter_spacing = config.get("letter_spacing", 8)
-
-        color = self._renderer.get_color_by_index(self._colors, color_idx)
-        painter.setPen(color)
-        font = QFont("Arial", font_size, QFont.Weight.Bold)
-        painter.setFont(font)
-
-        spaced_text = text
-        if letter_spacing > 0:
-            spaced_text = (" " * (letter_spacing // 4)).join(text)
-
-        metrics = QFontMetrics(font)
-        text_width = metrics.horizontalAdvance(spaced_text)
-        x = (width - text_width) // 2
-
-        painter.drawText(x, y_offset, spaced_text)
-
-    def _draw_poster_subtitle(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制海报副标题"""
-        text = config.get("text", "")
-        y_offset = int(height * config.get("y_offset", 0.42))
-        font_size = config.get("font_size", 18)
-        color_idx = config.get("color_idx", 2)
-
-        color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_text(painter, text, 0, y_offset, width, 30, color, font_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_poster_decoration_line(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制海报装饰线"""
-        y_offset = int(height * config.get("y_offset", 0.52))
-        line_width = int(width * config.get("width_ratio", 0.6))
-        line_height = config.get("height", 3)
-        color_idx = config.get("color_idx", 3)
-
-        color = self._renderer.get_color_by_index(self._colors, color_idx)
-        x = (width - line_width) // 2
-        self._renderer.draw_rect(painter, x, y_offset, line_width, line_height, color, 0)
-
-    def _draw_poster_info(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制海报信息区域"""
-        y_offset = int(height * config.get("y_offset", 0.62))
-        date_text = config.get("date", "")
-        date_color_idx = config.get("date_color_idx", 1)
-        location_text = config.get("location", "")
-        location_color_idx = config.get("location_color_idx", 2)
-        font_size = config.get("font_size", 12)
-
-        date_color = self._renderer.get_color_by_index(self._colors, date_color_idx)
-        location_color = self._renderer.get_color_by_index(self._colors, location_color_idx)
-
-        self._renderer.draw_text(painter, date_text, 0, y_offset, width // 2, 20, date_color, font_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        self._renderer.draw_text(painter, location_text, width // 2, y_offset, width // 2, 20, location_color, font_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-
-    def _draw_poster_bottom_shapes(self, painter: QPainter, width: int, height: int, shapes: list):
-        """绘制海报底部装饰形状"""
-        for shape in shapes:
-            shape_type = shape.get("type", "rect")
-            x = int(shape.get("x", 0) * width)
-            y = int(shape.get("y", 0) * height)
-            color_idx = shape.get("color_idx", 1)
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-
-            if shape_type == "circle":
-                size = int(shape.get("size", 0.05) * min(width, height))
-                self._renderer.draw_circle(painter, x, y, size, color)
-            elif shape_type == "rect":
-                w = int(shape.get("width", 0.2) * width)
-                h = int(shape.get("height", 0.06) * height)
-                border_radius = shape.get("border_radius", 0)
-                self._renderer.draw_rect(painter, x, y, w, h, color, border_radius)
-
-    def _draw_pattern_scene(self, painter: QPainter, width: int, height: int):
-        """绘制图案场景"""
-        config = self._config.get("config", {})
-
-        bg_config = config.get("background", {})
-        bg_color = self._renderer.get_color_by_index(self._colors, bg_config.get("color_idx", 0))
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        self._draw_geometric_pattern(painter, width, height, config.get("geometric_pattern", {}))
-        self._draw_wave_pattern(painter, width, height, config.get("wave_pattern", {}))
-        self._draw_grid_overlay(painter, width, height, config.get("grid_overlay", {}))
-
-    def _draw_geometric_pattern(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制几何图案"""
-        rows = config.get("rows", 4)
-        cols = config.get("cols", 6)
-        shape_size = int(min(width, height) * config.get("shape_size", 0.08))
-        spacing = int(min(width, height) * config.get("spacing", 0.02))
-        shapes = config.get("shapes", [])
-
-        total_width = cols * shape_size + (cols - 1) * spacing
-        total_height = rows * shape_size + (rows - 1) * spacing
-        start_x = (width - total_width) // 2
-        start_y = int(height * 0.1)
-
-        for row in range(rows):
-            for col in range(cols):
-                shape_idx = (row * cols + col) % len(shapes) if shapes else 0
-                shape_config = shapes[shape_idx] if shapes else {"type": "circle", "color_idx": 1}
-                shape_type = shape_config.get("type", "circle")
-                color_idx = shape_config.get("color_idx", 1)
-                color = self._renderer.get_color_by_index(self._colors, color_idx)
-
-                x = start_x + col * (shape_size + spacing)
-                y = start_y + row * (shape_size + spacing)
-                center_x = x + shape_size // 2
-                center_y = y + shape_size // 2
-
-                if shape_type == "circle":
-                    self._renderer.draw_circle(painter, center_x, center_y, shape_size // 2, color)
-                elif shape_type == "square":
-                    self._renderer.draw_rect(painter, x, y, shape_size, shape_size, color, 0)
-                elif shape_type == "diamond":
-                    self._draw_diamond(painter, center_x, center_y, shape_size // 2, color)
-                elif shape_type == "triangle":
-                    self._draw_triangle(painter, center_x, center_y, shape_size // 2, color)
-
-    def _draw_diamond(self, painter: QPainter, x: int, y: int, size: int, color: QColor):
-        """绘制菱形"""
-        from PySide6.QtGui import QPolygon
-        points = [
-            QPoint(x, y - size),
-            QPoint(x + size, y),
-            QPoint(x, y + size),
-            QPoint(x - size, y)
-        ]
-        painter.setBrush(QBrush(color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawPolygon(QPolygon(points))
-
-    def _draw_triangle(self, painter: QPainter, x: int, y: int, size: int, color: QColor):
-        """绘制三角形"""
-        from PySide6.QtGui import QPolygon
-        points = [
-            QPoint(x, y - size),
-            QPoint(x + size, y + size),
-            QPoint(x - size, y + size)
-        ]
-        painter.setBrush(QBrush(color))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawPolygon(QPolygon(points))
-
-    def _draw_wave_pattern(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制波浪图案"""
-        y_start = int(height * config.get("y_start", 0.55))
-        wave_count = config.get("wave_count", 3)
-        amplitude = int(height * config.get("amplitude", 0.06))
-        frequency = config.get("frequency", 2)
-        line_width = config.get("line_width", 3)
-        colors = config.get("colors", [1, 2, 3])
-
-        for i in range(wave_count):
-            color_idx = colors[i % len(colors)] if colors else 1
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-            y_offset = y_start + i * (amplitude + 10)
-
-            painter.setPen(QPen(color, line_width))
-            points = []
-            for x in range(0, width, 5):
-                t = x / width * frequency * 3.14159 * 2
-                y = y_offset + int(math.sin(t + i) * amplitude)
-                points.append(QPoint(x, y))
-
-            for j in range(len(points) - 1):
-                painter.drawLine(points[j], points[j + 1])
-
-    def _draw_grid_overlay(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制网格覆盖层"""
-        if not config.get("enabled", True):
-            return
-
-        line_width = config.get("line_width", 1)
-        color_idx = config.get("color_idx", 4)
-        opacity = config.get("opacity", 0.3)
-
-        color = self._renderer.get_color_by_index(self._colors, color_idx)
-        color.setAlpha(int(255 * opacity))
-        painter.setPen(QPen(color, line_width))
-
-        grid_size = 40
-        for x in range(0, width, grid_size):
-            painter.drawLine(x, 0, x, height)
-        for y in range(0, height, grid_size):
-            painter.drawLine(0, y, width, y)
-
-    def _draw_magazine_scene(self, painter: QPainter, width: int, height: int):
-        """绘制杂志排版场景"""
-        config = self._config.get("config", {})
-
-        bg_config = config.get("background", {})
-        bg_color = self._renderer.get_color_by_index(self._colors, bg_config.get("color_idx", 0))
-        painter.fillRect(0, 0, width, height, bg_color)
-
-        self._draw_magazine_header(painter, width, height, config.get("header", {}))
-        self._draw_magazine_title(painter, width, height, config.get("main_title", {}))
-        self._draw_magazine_feature_box(painter, width, height, config.get("feature_box", {}))
-        self._draw_magazine_content(painter, width, height, config.get("article_content", {}))
-        self._draw_magazine_quote(painter, width, height, config.get("quote_block", {}))
-        self._draw_magazine_footer(painter, width, height, config.get("footer", {}))
-
-    def _draw_magazine_header(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制杂志页眉"""
-        header_height = config.get("height", 30)
-        color_idx = config.get("color_idx", 1)
-        text = config.get("text", "")
-        text_color_idx = config.get("text_color_idx", 0)
-
-        color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, 0, 0, width, header_height, color, 0)
-
-        if text:
-            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
-            self._renderer.draw_text(painter, text, 0, 5, width, header_height - 10, text_color, 12, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_magazine_title(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制杂志主标题"""
-        title = config.get("text", "")
-        subtitle = config.get("subtitle", "")
-        y_offset = int(height * config.get("y_offset", 0.15))
-        title_color_idx = config.get("title_color_idx", 1)
-        subtitle_color_idx = config.get("subtitle_color_idx", 2)
-        title_size = config.get("title_size", 36)
-        subtitle_size = config.get("subtitle_size", 48)
-
-        title_color = self._renderer.get_color_by_index(self._colors, title_color_idx)
-        painter.setPen(title_color)
-        font = QFont("Arial", title_size, QFont.Weight.Normal)
-        painter.setFont(font)
-
-        metrics = QFontMetrics(font)
-        title_width = metrics.horizontalAdvance(title)
-        x = (width - title_width) // 2
-        painter.drawText(x, y_offset, title)
-
-        subtitle_color = self._renderer.get_color_by_index(self._colors, subtitle_color_idx)
-        painter.setPen(subtitle_color)
-        font = QFont("Arial", subtitle_size, QFont.Weight.Bold)
-        painter.setFont(font)
-
-        metrics = QFontMetrics(font)
-        subtitle_width = metrics.horizontalAdvance(subtitle)
-        x = (width - subtitle_width) // 2
-        painter.drawText(x, y_offset + title_size + 10, subtitle)
-
-    def _draw_magazine_feature_box(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制杂志特色框"""
-        x = int(width * config.get("x", 0.05))
-        y_offset = int(height * config.get("y_offset", 0.45))
-        box_width = int(width * config.get("width", 0.25))
-        box_height = int(height * config.get("height", 0.35))
-        color_idx = config.get("color_idx", 3)
-        text = config.get("text", "")
-        text_color_idx = config.get("text_color_idx", 0)
-        text_size = config.get("text_size", 14)
-
-        color = self._renderer.get_color_by_index(self._colors, color_idx)
-        self._renderer.draw_rect(painter, x, y_offset, box_width, box_height, color, 0)
-
-        if text:
-            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
-            self._renderer.draw_text(painter, text, x, y_offset + box_height // 2 - 10, box_width, 30, text_color, text_size, QFont.Weight.Bold, Qt.AlignmentFlag.AlignCenter)
-
-    def _draw_magazine_content(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制杂志文章内容"""
-        x = int(width * config.get("x", 0.35))
-        y_offset = int(height * config.get("y_offset", 0.45))
-        content_width = int(width * config.get("width", 0.6))
-        headline = config.get("headline", "")
-        headline_color_idx = config.get("headline_color_idx", 1)
-        headline_size = config.get("headline_size", 16)
-        paragraphs = config.get("paragraphs", [])
-        paragraph_size = config.get("paragraph_size", 11)
-        line_height = config.get("line_height", 1.6)
-
-        current_y = y_offset
-
-        if headline:
-            headline_color = self._renderer.get_color_by_index(self._colors, headline_color_idx)
-            self._renderer.draw_text(painter, headline, x, current_y, content_width, 25, headline_color, headline_size, QFont.Weight.Bold, Qt.AlignmentFlag.AlignLeft)
-            current_y += 35
-
-        for para in paragraphs:
-            text = para.get("text", "")
-            color_idx = para.get("color_idx", 2)
-            color = self._renderer.get_color_by_index(self._colors, color_idx)
-
-            if text:
-                self._renderer.draw_text(painter, text, x, current_y, content_width, int(paragraph_size * line_height * 2), color, paragraph_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap)
-                current_y += int(paragraph_size * line_height * 2.5)
-
-    def _draw_magazine_quote(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制杂志引用块"""
-        y_offset = int(height * config.get("y_offset", 0.78))
-        quote_height = int(height * config.get("height", 0.15))
-        bar_width = config.get("bar_width", 4)
-        bar_color_idx = config.get("bar_color_idx", 2)
-        text = config.get("text", "")
-        text_color_idx = config.get("text_color_idx", 1)
-        text_size = config.get("text_size", 12)
-
-        bar_color = self._renderer.get_color_by_index(self._colors, bar_color_idx)
-        self._renderer.draw_rect(painter, 20, y_offset, bar_width, quote_height, bar_color, 0)
-
-        if text:
-            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
-            self._renderer.draw_text(painter, text, 30 + bar_width, y_offset + 10, width - 50 - bar_width, quote_height - 20, text_color, text_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextWordWrap)
-
-    def _draw_magazine_footer(self, painter: QPainter, width: int, height: int, config: dict):
-        """绘制杂志页脚"""
-        y_offset = int(height * config.get("y_offset", 0.95))
-        text = config.get("text", "")
-        text_color_idx = config.get("text_color_idx", 4)
-        text_size = config.get("text_size", 10)
-
-        if text:
-            text_color = self._renderer.get_color_by_index(self._colors, text_color_idx)
-            self._renderer.draw_text(painter, text, 0, y_offset, width, 20, text_color, text_size, QFont.Weight.Normal, Qt.AlignmentFlag.AlignCenter)
-
-
-class IllustrationPreview(QWidget):
-    """插画风格配色预览 - 绘制植物风格矢量插画"""
-
-    def __init__(self, parent=None):
-        self._colors: List[str] = []
-        self._seed = 0  # 随机种子，用于生成不同的植物形态
-        super().__init__(parent)
-        self.setMinimumSize(120, 120)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        self._svg_renderer: Optional[QSvgRenderer] = None
+        self._svg_content: str = ""
+        self._original_svg_content: str = ""
+        self._color_mapper: Optional[Any] = None  # SVGColorMapper 实例
+        self._template_mode: bool = False  # 模板模式标志
+
+        # 模板信息
+        self._is_builtin: bool = False  # 是否为内置模板
+        self._template_path: Optional[str] = None  # 模板路径
+
+    def set_template_info(self, is_builtin: bool, path: str = None):
+        """设置模板信息
+
+        Args:
+            is_builtin: 是否为内置模板
+            path: 模板路径
+        """
+        self._is_builtin = is_builtin
+        self._template_path = path
+
+    def contextMenuEvent(self, event):
+        """右键菜单事件"""
+        # 创建菜单（title="", parent=self）
+        menu = RoundMenu("", self)
+
+        # 统一显示"删除模板"
+        delete_action = Action(FluentIcon.DELETE, "删除模板")
+        delete_action.triggered.connect(self._on_delete_template)
+        menu.addAction(delete_action)
+
+        # 显示菜单
+        menu.exec(event.globalPos())
+
+        # 接受事件
+        event.accept()
+
+    def _on_delete_template(self):
+        """删除模板"""
+        if self._is_builtin:
+            # 内置模板，显示提示
+            InfoBar.warning(
+                title="无法删除",
+                content="内置场景，不可删除",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        elif self._template_path:
+            # 用户模板，发射删除信号
+            self.delete_requested.emit(self._template_path)
+
+    def load_svg(self, file_path: str) -> bool:
+        """加载 SVG 文件
+
+        Args:
+            file_path: SVG 文件路径
+
+        Returns:
+            bool: 是否加载成功
+        """
+        try:
+            # 使用新的 SVGColorMapper
+            from core import SVGColorMapper
+            self._color_mapper = SVGColorMapper()
+
+            if not self._color_mapper.load_svg(file_path):
+                return False
+
+            self._original_svg_content = self._color_mapper.get_original_content()
+
+            # 应用当前配色
+            self._apply_colors_to_svg()
+
+            # 创建渲染器
+            self._svg_renderer = QSvgRenderer()
+            self._svg_renderer.load(self._svg_content.encode('utf-8'))
+
+            self.update()
+            return True
+        except Exception as e:
+            print(f"加载 SVG 文件失败: {e}")
+            return False
+
+    def load_svg_from_string(self, content: str) -> bool:
+        """从字符串加载 SVG
+
+        Args:
+            content: SVG 内容字符串
+
+        Returns:
+            bool: 是否加载成功
+        """
+        try:
+            from core import SVGColorMapper
+            self._color_mapper = SVGColorMapper()
+
+            if not self._color_mapper.load_svg_from_string(content):
+                return False
+
+            self._original_svg_content = content
+
+            # 应用当前配色
+            self._apply_colors_to_svg()
+
+            # 创建渲染器
+            self._svg_renderer = QSvgRenderer()
+            self._svg_renderer.load(self._svg_content.encode('utf-8'))
+
+            self.update()
+            return True
+        except Exception as e:
+            print(f"加载 SVG 字符串失败: {e}")
+            return False
+
+    def load_svg_from_resource(self, scene_type: str) -> bool:
+        """从 scenes_data 加载内置SVG
+
+        Args:
+            scene_type: 场景类型ID（如 'ui', 'web'）
+
+        Returns:
+            bool: 是否加载成功
+        """
+        try:
+            from core import get_scene_type_manager
+
+            manager = get_scene_type_manager()
+            svg_path = manager.get_builtin_svg_path(scene_type)
+
+            if svg_path is None:
+                print(f"未找到内置SVG: {scene_type}")
+                return False
+
+            self._template_mode = True
+            return self.load_svg(svg_path)
+
+        except Exception as e:
+            print(f"加载内置SVG失败: {e}")
+            return False
 
     def set_colors(self, colors: List[str]):
-        """设置配色"""
+        """设置配色并应用到 SVG
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
         if colors:
             self._colors = colors.copy()
-            # 如果颜色不足5个，循环使用
             while len(self._colors) < 5:
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
         else:
             self._colors = []
-        self.update()
 
-    def set_seed(self, seed: int):
-        """设置随机种子，改变植物形态"""
-        self._seed = seed
-        self.update()
+        # 如果有已加载的 SVG，重新应用配色
+        if self._original_svg_content:
+            self._apply_colors_to_svg()
+            # 确保渲染器已创建并加载新内容
+            if not self._svg_renderer:
+                self._svg_renderer = QSvgRenderer()
+            self._svg_renderer.load(self._svg_content.encode('utf-8'))
+            self.update()
+
+    def _apply_colors_to_svg(self):
+        """将配色应用到 SVG 内容（使用智能映射）"""
+        if not self._original_svg_content or not self._colors:
+            return
+
+        # 使用智能映射
+        if self._color_mapper:
+            self._svg_content = self._color_mapper.apply_intelligent_mapping(self._colors)
+        else:
+            self._svg_content = self._original_svg_content
 
     def paintEvent(self, event):
+        """绘制 SVG"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        width = self.width()
-        height = self.height()
-
         # 如果没有配色，显示提示信息
         if not self._colors:
-            self._draw_empty_hint(painter, width, height)
+            self._draw_empty_hint(painter)
             return
 
-        # 1. 绘制背景
+        # 绘制背景
         bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
 
-        # 2. 绘制装饰色块（圆形/椭圆形）
-        self._draw_decorative_circles(painter, width, height)
+        # 如果有 SVG 渲染器，绘制 SVG
+        if self._svg_renderer and self._svg_renderer.isValid():
+            # 计算缩放比例，保持宽高比
+            view_box = self._svg_renderer.viewBox()
+            if view_box.isValid():
+                svg_width = view_box.width()
+                svg_height = view_box.height()
+            else:
+                svg_width = self._svg_renderer.defaultSize().width()
+                svg_height = self._svg_renderer.defaultSize().height()
 
-        # 3. 绘制植物线条
-        self._draw_plant(painter, width, height)
+            if svg_width > 0 and svg_height > 0:
+                # 计算缩放比例，保持宽高比完整显示
+                widget_rect = self.rect()
+                scale_x = widget_rect.width() / svg_width
+                scale_y = widget_rect.height() / svg_height
+                scale = min(scale_x, scale_y)  # 使用min保持完整显示
 
-    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
+                # 计算居中位置
+                new_width = svg_width * scale
+                new_height = svg_height * scale
+                x = (widget_rect.width() - new_width) / 2
+                y = (widget_rect.height() - new_height) / 2
+
+                target_rect = QRect(int(x), int(y), int(new_width), int(new_height))
+                self._svg_renderer.render(painter, target_rect)
+
+    def get_svg_content(self) -> str:
+        """获取当前 SVG 内容（用于导出）
+
+        如果 SVG 没有背景元素，会自动添加背景矩形
+        """
+        if not self._svg_content or not self._colors:
+            return self._svg_content
+
+        # 检查是否需要添加背景
+        if self._color_mapper and not self._color_mapper._has_background_element():
+            # 需要添加背景矩形
+            return self._add_background_to_svg(self._svg_content, self._colors[0])
+
+        return self._svg_content
+
+    def _add_background_to_svg(self, svg_content: str, bg_color: str) -> str:
+        """为 SVG 添加背景矩形
+
+        Args:
+            svg_content: 原始 SVG 内容
+            bg_color: 背景颜色
+
+        Returns:
+            添加背景后的 SVG 内容
+        """
+        try:
+            import xml.etree.ElementTree as ET
+            import re
+
+            root = ET.fromstring(svg_content)
+
+            # 获取 SVG 命名空间
+            svg_ns = 'http://www.w3.org/2000/svg'
+
+            # 检查根元素是否有命名空间
+            has_namespace = root.tag.startswith('{')
+
+            # 获取画布大小
+            viewbox = root.get('viewBox', '')
+            width = root.get('width', '0')
+            height = root.get('height', '0')
+
+            # 解析 viewBox 或 width/height
+            if viewbox:
+                parts = viewbox.split()
+                if len(parts) >= 4:
+                    x, y, w, h = parts[0], parts[1], parts[2], parts[3]
+                else:
+                    return svg_content
+            elif width and height:
+                # 移除单位
+                w = re.sub(r'[^\d.]', '', width)
+                h = re.sub(r'[^\d.]', '', height)
+                x, y = '0', '0'
+            else:
+                return svg_content
+
+            # 创建背景矩形元素（使用正确的命名空间）
+            if has_namespace:
+                bg_rect = ET.Element(f'{{{svg_ns}}}rect')
+            else:
+                bg_rect = ET.Element('rect')
+
+            bg_rect.set('x', x)
+            bg_rect.set('y', y)
+            bg_rect.set('width', w)
+            bg_rect.set('height', h)
+            bg_rect.set('fill', bg_color)
+
+            # 将背景矩形插入到第一个位置
+            root.insert(0, bg_rect)
+
+            # 转换回字符串
+            return ET.tostring(root, encoding='unicode')
+
+        except Exception as e:
+            print(f"添加背景失败: {e}")
+            return svg_content
+
+    def has_svg(self) -> bool:
+        """是否已加载 SVG"""
+        return self._svg_renderer is not None and self._svg_renderer.isValid()
+
+    def is_template_mode(self) -> bool:
+        """是否处于模板模式"""
+        return self._template_mode
+
+    def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""
-        from ui.theme_colors import get_text_color
-
         # 绘制背景
         bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
         painter.fillRect(self.rect(), bg_color)
@@ -1518,246 +871,514 @@ class IllustrationPreview(QWidget):
         hint_text = "请从配色管理面板导入配色"
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
-    def _draw_decorative_circles(self, painter: QPainter, width: int, height: int):
-        """绘制装饰性圆形色块"""
-        import random
-        random.seed(self._seed)
 
-        circles = [
-            {"x": 0.15, "y": 0.25, "r": 0.12, "color": 1},
-            {"x": 0.75, "y": 0.15, "r": 0.15, "color": 2},
-            {"x": 0.25, "y": 0.65, "r": 0.10, "color": 3},
-            {"x": 0.70, "y": 0.70, "r": 0.13, "color": 1},
-            {"x": 0.85, "y": 0.45, "r": 0.08, "color": 2},
-        ]
+# ============================================================================
+# 布局系统
+# ============================================================================
 
-        for circle in circles:
-            x = int(circle["x"] * width)
-            y = int(circle["y"] * height)
-            r = int(circle["r"] * min(width, height))
-            color_idx = circle["color"] % len(self._colors)
-            color = QColor(self._colors[color_idx])
+class BaseLayout(QWidget):
+    """布局基类 - 所有布局必须继承此类"""
 
-            # 设置半透明效果
-            color.setAlpha(180)
-            painter.setBrush(QBrush(color))
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(QPoint(x, y), r, r)
+    current_index_changed = Signal(int)
+    template_deleted = Signal(str)  # 模板删除信号，参数为模板路径
 
-    def _draw_plant(self, painter: QPainter, width: int, height: int):
-        """绘制植物线条"""
-        import random
-        random.seed(self._seed + 100)
-
-        # 使用深色绘制植物线条
-        line_color = QColor(40, 40, 40) if not isDarkTheme() else QColor(220, 220, 220)
-        painter.setPen(QPen(line_color, 1.5))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-
-        # 绘制主茎
-        stem_x = int(width * 0.5)
-        stem_bottom = int(height * 0.85)
-        stem_top = int(height * 0.25)
-
-        # 绘制弯曲的茎
-        path_points = []
-        segments = 8
-        for i in range(segments + 1):
-            t = i / segments
-            x = stem_x + int(math.sin(t * 3 + self._seed) * width * 0.08)
-            y = stem_bottom - int(t * (stem_bottom - stem_top))
-            path_points.append(QPoint(x, y))
-
-        for i in range(len(path_points) - 1):
-            painter.drawLine(path_points[i], path_points[i + 1])
-
-        # 绘制叶子
-        leaf_positions = [0.3, 0.5, 0.7]
-        for pos in leaf_positions:
-            idx = int(pos * (len(path_points) - 1))
-            if idx < len(path_points):
-                self._draw_leaf(painter, path_points[idx], pos)
-
-    def _draw_leaf(self, painter: QPainter, pos: QPoint, t: float):
-        """绘制单个叶子"""
-        import random
-        random.seed(self._seed + int(t * 100))
-
-        leaf_size = 25 + random.randint(-5, 5)
-        angle = random.uniform(-0.5, 0.5)
-
-        # 左侧叶子
-        left_leaf = QPoint(
-            pos.x() - int(leaf_size * math.cos(angle)),
-            pos.y() - int(leaf_size * math.sin(angle))
-        )
-
-        # 绘制叶子轮廓（简化为曲线）
-        painter.drawLine(pos, left_leaf)
-
-        # 右侧叶子
-        right_leaf = QPoint(
-            pos.x() + int(leaf_size * math.cos(angle)),
-            pos.y() - int(leaf_size * math.sin(angle))
-        )
-        painter.drawLine(pos, right_leaf)
-
-
-class TypographyPreview(QWidget):
-    """排版风格配色预览 - 展示文字排版效果"""
-
-    def __init__(self, parent=None):
-        self._colors: List[str] = []
-        self._text_content = "All\nBodies\nAre\nGood\nBodies"
+    def __init__(self, templates: list, config: dict, parent=None):
         super().__init__(parent)
+        self._templates: List[str] = templates if templates else []
+        self._config: Dict[str, Any] = config if config else {}
+        self._svg_widgets: List[Any] = []
+        self._colors: List[str] = []
+
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def set_colors(self, colors: List[str]):
-        """设置配色"""
-        if colors:
-            self._colors = colors.copy()
-            while len(self._colors) < 5:
-                self._colors.extend(colors)
-            self._colors = self._colors[:5]
-        else:
-            self._colors = []
-        self.update()
+    def set_colors(self, colors: list):
+        self._colors = colors.copy() if colors else []
+        for svg_widget in self._svg_widgets:
+            if svg_widget and hasattr(svg_widget, 'set_colors'):
+                svg_widget.set_colors(self._colors)
 
-    def set_text(self, text: str):
-        """设置显示文字"""
-        self._text_content = text
-        self.update()
+    def get_svg_widgets(self) -> list:
+        return self._svg_widgets
 
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    def clear(self):
+        for svg_widget in self._svg_widgets:
+            if svg_widget:
+                svg_widget.deleteLater()
+        self._svg_widgets.clear()
 
-        width = self.width()
-        height = self.height()
+    def load_templates(self):
+        raise NotImplementedError("子类必须重写 load_templates 方法")
 
-        # 如果没有配色，显示提示信息
-        if not self._colors:
-            self._draw_empty_hint(painter, width, height)
-            return
+    def _create_svg_widget(self, template_path: str = None, is_builtin: bool = False) -> Any:
+        """创建SVG预览组件
 
-        # 绘制背景
-        bg_color = QColor(self._colors[0])
-        painter.fillRect(self.rect(), bg_color)
+        Args:
+            template_path: 模板文件路径
+            is_builtin: 是否为内置模板
 
-        # 绘制装饰元素
-        self._draw_decorations(painter, width, height)
+        Returns:
+            SVGPreviewWidget: SVG预览组件实例
+        """
+        svg_widget = SVGPreviewWidget(parent=self)
 
-        # 绘制文字
-        self._draw_text(painter, width, height)
+        # 设置模板信息
+        svg_widget.set_template_info(is_builtin, template_path)
 
-    def _draw_empty_hint(self, painter: QPainter, width: int, height: int):
-        """绘制空配色提示"""
-        from ui.theme_colors import get_text_color
+        # 连接删除信号
+        svg_widget.delete_requested.connect(self._on_template_deleted)
 
-        # 绘制背景
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(self.rect(), bg_color)
+        if template_path:
+            svg_widget.load_svg(template_path)
 
-        # 绘制提示文字
+        if self._colors:
+            svg_widget.set_colors(self._colors)
+
+        return svg_widget
+
+    def _on_template_deleted(self, template_path: str):
+        """处理模板删除请求
+
+        Args:
+            template_path: 被删除的模板路径
+        """
+        # 转发删除信号到父组件
+        self.template_deleted.emit(template_path)
+
+
+class SingleLayout(BaseLayout):
+    """单图布局 - 一次显示一个SVG，支持左右切换"""
+
+    def __init__(self, templates: list, config: dict, parent=None):
+        super().__init__(templates, config, parent)
+        self._current_index: int = 0
+        self.setup_ui()
+        self.load_templates()
+
+    def setup_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(10)
+
+        self._svg_container = QWidget()
+        self._svg_layout = QVBoxLayout(self._svg_container)
+        self._svg_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(self._svg_container, stretch=1)
+
+        nav_widget = QWidget()
+        nav_layout = QHBoxLayout(nav_widget)
+        nav_layout.setContentsMargins(10, 5, 10, 5)
+        nav_layout.setSpacing(20)
+
+        self._prev_button = QPushButton("< 上一个")
+        self._prev_button.setFixedSize(100, 32)
+        self._prev_button.clicked.connect(self.prev_svg)
+        nav_layout.addWidget(self._prev_button)
+
+        self._index_label = QLabel("0 / 0")
+        self._index_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._index_label.setFixedHeight(32)
+        nav_layout.addWidget(self._index_label, stretch=1)
+
+        self._next_button = QPushButton("下一个 >")
+        self._next_button.setFixedSize(100, 32)
+        self._next_button.clicked.connect(self.next_svg)
+        nav_layout.addWidget(self._next_button)
+
+        main_layout.addWidget(nav_widget)
+        self.update_navigation()
+
+    def load_templates(self):
+        self.clear()
+
+        for template_info in self._templates:
+            if isinstance(template_info, dict):
+                path = template_info.get("path")
+                is_builtin = template_info.get("is_builtin", False)
+            else:
+                path = template_info
+                is_builtin = False
+
+            svg_widget = self._create_svg_widget(path, is_builtin)
+            self._svg_widgets.append(svg_widget)
+
+        self._show_current_svg()
+        self.update_navigation()
+
+    def _show_current_svg(self):
+        while self._svg_layout.count():
+            item = self._svg_layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+
+        if 0 <= self._current_index < len(self._svg_widgets):
+            svg_widget = self._svg_widgets[self._current_index]
+            self._svg_layout.addWidget(svg_widget)
+
+    def prev_svg(self):
+        if self._current_index > 0:
+            self._current_index -= 1
+            self._show_current_svg()
+            self.update_navigation()
+            self.current_index_changed.emit(self._current_index)
+
+    def next_svg(self):
+        if self._current_index < len(self._svg_widgets) - 1:
+            self._current_index += 1
+            self._show_current_svg()
+            self.update_navigation()
+            self.current_index_changed.emit(self._current_index)
+
+    def update_navigation(self):
+        total = len(self._svg_widgets)
+        current = self._current_index + 1 if total > 0 else 0
+
+        self._index_label.setText(f"{current} / {total}")
+
+        self._prev_button.setEnabled(self._current_index > 0)
+        self._next_button.setEnabled(self._current_index < total - 1)
+
+        self._update_button_styles()
+
+    def _update_button_styles(self):
         text_color = get_text_color()
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 11)
-        painter.setFont(font)
+        border_color = get_border_color()
 
-        hint_text = "请从配色管理面板导入配色"
-        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
+        style = f"""
+            QPushButton {{
+                background-color: transparent;
+                color: rgba({text_color.red()}, {text_color.green()}, {text_color.blue()}, 200);
+                border: 1px solid rgba({border_color.red()}, {border_color.green()}, {border_color.blue()}, 150);
+                border-radius: 4px;
+                padding: 5px 10px;
+            }}
+            QPushButton:hover {{
+                background-color: rgba({text_color.red()}, {text_color.green()}, {text_color.blue()}, 30);
+            }}
+            QPushButton:disabled {{
+                color: rgba({text_color.red()}, {text_color.green()}, {text_color.blue()}, 80);
+                border-color: rgba({border_color.red()}, {border_color.green()}, {border_color.blue()}, 50);
+            }}
+        """
+        self._prev_button.setStyleSheet(style)
+        self._next_button.setStyleSheet(style)
 
-    def _draw_decorations(self, painter: QPainter, width: int, height: int):
-        """绘制装饰元素"""
-        # 绘制一些装饰线条和形状
-        color1 = QColor(self._colors[1])
-        color2 = QColor(self._colors[2])
+        label_style = f"""
+            QLabel {{
+                color: rgba({text_color.red()}, {text_color.green()}, {text_color.blue()}, 200);
+                font-size: 13px;
+            }}
+        """
+        self._index_label.setStyleSheet(label_style)
 
-        # 顶部装饰线
-        painter.setPen(QPen(color1, 3))
-        painter.drawLine(20, 30, width - 20, 30)
+    def set_current_index(self, index: int):
+        if 0 <= index < len(self._svg_widgets):
+            self._current_index = index
+            self._show_current_svg()
+            self.update_navigation()
+            self.current_index_changed.emit(self._current_index)
 
-        # 底部装饰线
-        painter.setPen(QPen(color2, 2))
-        painter.drawLine(20, height - 30, width - 20, height - 30)
+    def get_current_index(self) -> int:
+        return self._current_index
 
-        # 侧边装饰块
-        painter.setBrush(QBrush(QColor(self._colors[3])))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRect(10, height // 3, 8, height // 3)
 
-    def _draw_text(self, painter: QPainter, width: int, height: int):
-        """绘制文字"""
-        lines = self._text_content.split('\n')
-        if not lines:
-            return
+class ScrollVLayout(BaseLayout):
+    """垂直滚动布局 - 多个SVG垂直排列，可滚动"""
 
-        # 计算字体大小
-        available_height = height * 0.6
-        font_size = int(available_height / len(lines) * 0.8)
-        font_size = min(font_size, 48)  # 最大48像素
+    def __init__(self, templates: list, config: dict, parent=None):
+        super().__init__(templates, config, parent)
+        self.setup_ui()
+        self.load_templates()
 
-        # 设置字体
-        font = QFont("Arial", font_size, QFont.Weight.Bold)
-        painter.setFont(font)
+    def setup_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 计算起始Y位置（垂直居中）
-        total_text_height = font_size * len(lines) * 1.2
-        start_y = (height - total_text_height) // 2 + font_size
+        self._scroll_area = QScrollArea()
+        self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._scroll_area.setFrameShape(QScrollArea.Shape.NoFrame)
 
-        # 绘制每一行文字，使用不同颜色
-        for i, line in enumerate(lines):
-            color_idx = (i % 4) + 1  # 使用 colors[1] 到 colors[4]
-            color = QColor(self._colors[color_idx])
-            painter.setPen(color)
+        self._content_widget = QWidget()
+        self._content_layout = QVBoxLayout(self._content_widget)
+        self._content_layout.setContentsMargins(10, 10, 10, 10)
+        self._content_layout.setSpacing(15)
+        self._content_layout.addStretch()
 
-            # 计算水平居中
-            metrics = QFontMetrics(font)
-            text_width = metrics.horizontalAdvance(line)
-            x = (width - text_width) // 2
-            y = int(start_y + i * font_size * 1.2)
+        self._scroll_area.setWidget(self._content_widget)
+        main_layout.addWidget(self._scroll_area)
 
-            painter.drawText(x, y, line)
+    def load_templates(self):
+        self.clear()
 
+        viewport_height = self._scroll_area.viewport().height()
+
+        for template_info in self._templates:
+            if isinstance(template_info, dict):
+                path = template_info.get("path")
+                is_builtin = template_info.get("is_builtin", False)
+            else:
+                path = template_info
+                is_builtin = False
+
+            svg_widget = self._create_svg_widget(path, is_builtin)
+            svg_widget.setMinimumHeight(viewport_height)
+            self._svg_widgets.append(svg_widget)
+            self._content_layout.insertWidget(self._content_layout.count() - 1, svg_widget)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, '_scroll_area'):
+            viewport_height = self._scroll_area.viewport().height()
+            for svg_widget in self._svg_widgets:
+                svg_widget.setMinimumHeight(viewport_height)
+                svg_widget.update()
+
+
+class ScrollHLayout(BaseLayout):
+    """水平滚动布局 - 多个SVG水平排列，可滚动"""
+
+    def __init__(self, templates: list, config: dict, parent=None):
+        super().__init__(templates, config, parent)
+        self.setup_ui()
+        self.load_templates()
+
+    def setup_ui(self):
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._scroll_area = QScrollArea()
+        self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll_area.setFrameShape(QScrollArea.Shape.NoFrame)
+
+        self._content_widget = QWidget()
+        self._content_layout = QHBoxLayout(self._content_widget)
+        self._content_layout.setContentsMargins(10, 10, 10, 10)
+        self._content_layout.setSpacing(15)
+        self._content_layout.addStretch()
+
+        self._scroll_area.setWidget(self._content_widget)
+        main_layout.addWidget(self._scroll_area)
+
+    def load_templates(self):
+        self.clear()
+
+        for template_info in self._templates:
+            if isinstance(template_info, dict):
+                path = template_info.get("path")
+                is_builtin = template_info.get("is_builtin", False)
+            else:
+                path = template_info
+                is_builtin = False
+
+            svg_widget = self._create_svg_widget(path, is_builtin)
+            svg_widget.setMinimumWidth(200)
+            self._svg_widgets.append(svg_widget)
+            self._content_layout.insertWidget(self._content_layout.count() - 1, svg_widget)
+
+
+class GridLayout(BaseLayout):
+    """网格布局 - 根据columns参数决定列数"""
+
+    def __init__(self, templates: list, config: dict, parent=None):
+        super().__init__(templates, config, parent)
+        self._columns: int = config.get('columns', 2)
+        self.setup_ui()
+        self.load_templates()
+
+    def setup_ui(self):
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._scroll_area = QScrollArea()
+        self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._scroll_area.setFrameShape(QScrollArea.Shape.NoFrame)
+
+        self._content_widget = QWidget()
+        self._content_layout = QGridLayout(self._content_widget)
+        self._content_layout.setContentsMargins(10, 10, 10, 10)
+        self._content_layout.setSpacing(15)
+
+        self._scroll_area.setWidget(self._content_widget)
+        main_layout.addWidget(self._scroll_area)
+
+    def load_templates(self):
+        self.clear()
+
+        for index, template_info in enumerate(self._templates):
+            if isinstance(template_info, dict):
+                path = template_info.get("path")
+                is_builtin = template_info.get("is_builtin", False)
+            else:
+                path = template_info
+                is_builtin = False
+
+            svg_widget = self._create_svg_widget(path, is_builtin)
+            svg_widget.setMinimumSize(150, 150)
+            self._svg_widgets.append(svg_widget)
+
+            row = index // self._columns
+            col = index % self._columns
+            self._content_layout.addWidget(svg_widget, row, col)
+
+        for col in range(self._columns):
+            self._content_layout.setColumnStretch(col, 1)
+
+
+class MixedLayout(BaseLayout):
+    """混合布局 - 左侧2x2网格 + 右侧大图"""
+
+    def __init__(self, templates: list, config: dict, parent=None):
+        super().__init__(templates, config, parent)
+        self.setup_ui()
+        self.load_templates()
+
+    def setup_ui(self):
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(15)
+
+        self._left_widget = QWidget()
+        self._left_layout = QGridLayout(self._left_widget)
+        self._left_layout.setContentsMargins(0, 0, 0, 0)
+        self._left_layout.setSpacing(10)
+
+        self._right_widget = QWidget()
+        self._right_layout = QVBoxLayout(self._right_widget)
+        self._right_layout.setContentsMargins(0, 0, 0, 0)
+
+        main_layout.addWidget(self._left_widget, stretch=1)
+        main_layout.addWidget(self._right_widget, stretch=1)
+
+    def load_templates(self):
+        self.clear()
+
+        def get_template_info(template_info):
+            if isinstance(template_info, dict):
+                return template_info.get("path"), template_info.get("is_builtin", False)
+            return template_info, False
+
+        grid_templates = self._templates[:4]
+        for index, template_info in enumerate(grid_templates):
+            path, is_builtin = get_template_info(template_info)
+            svg_widget = self._create_svg_widget(path, is_builtin)
+            self._svg_widgets.append(svg_widget)
+
+            row = index // 2
+            col = index % 2
+            self._left_layout.addWidget(svg_widget, row, col)
+
+        self._left_layout.setColumnStretch(0, 1)
+        self._left_layout.setColumnStretch(1, 1)
+        self._left_layout.setRowStretch(0, 1)
+        self._left_layout.setRowStretch(1, 1)
+
+        if len(self._templates) > 4:
+            right_template_info = self._templates[4]
+        elif self._templates:
+            right_template_info = self._templates[0]
+        else:
+            right_template_info = None
+
+        if right_template_info:
+            path, is_builtin = get_template_info(right_template_info)
+            svg_widget = self._create_svg_widget(path, is_builtin)
+            self._svg_widgets.append(svg_widget)
+            self._right_layout.addWidget(svg_widget)
+
+
+class LayoutFactory:
+    """布局工厂类 - 根据类型创建布局实例"""
+
+    _layout_registry: Dict[str, type] = {
+        'single': SingleLayout,
+        'scroll_v': ScrollVLayout,
+        'scroll_h': ScrollHLayout,
+        'grid_2x2': GridLayout,
+        'grid_3x2': GridLayout,
+        'mixed': MixedLayout,
+    }
+
+    @classmethod
+    def create(cls, layout_type: str, templates: list, config: dict, parent=None) -> Optional[BaseLayout]:
+        layout_class = cls._layout_registry.get(layout_type)
+
+        if layout_class is None:
+            print(f"未知的布局类型: {layout_type}")
+            return None
+
+        if layout_type == 'grid_2x2':
+            config = config.copy() if config else {}
+            config['columns'] = 2
+        elif layout_type == 'grid_3x2':
+            config = config.copy() if config else {}
+            config['columns'] = 3
+
+        return layout_class(templates, config, parent)
+
+    @classmethod
+    def register(cls, layout_type: str, layout_class: type):
+        if not issubclass(layout_class, BaseLayout):
+            raise ValueError(f"布局类必须继承 BaseLayout: {layout_class}")
+        cls._layout_registry[layout_type] = layout_class
+        print(f"已注册布局类型: {layout_type} -> {layout_class.__name__}")
+
+    @classmethod
+    def get_available_types(cls) -> List[str]:
+        return list(cls._layout_registry.keys())
+
+    @classmethod
+    def is_valid_type(cls, layout_type: str) -> bool:
+        return layout_type in cls._layout_registry
+
+
+# ============================================================================
+# 预览场景选择器
+# ============================================================================
 
 class PreviewSceneSelector(ComboBox):
-    """预览场景选择器 - 从配置加载场景列表"""
+    """预览场景选择器 - 从 scene_types.json 加载场景列表"""
 
     scene_changed = Signal(str)  # 场景变化信号
 
     def __init__(self, parent=None):
-        self._scenes: List[dict] = []
+        """初始化场景选择器
+
+        Args:
+            parent: 父控件
+        """
+        self._scene_types: List[dict] = []
         super().__init__(parent)
-        self._load_scenes_from_config()
+        self._load_scene_types()
         self._setup_items()
-        # 默认选择第一个选项
-        if self.count() > 0:
-            self.setCurrentIndex(0)
         self.currentTextChanged.connect(self._on_selection_changed)
 
-    def _load_scenes_from_config(self):
-        """从配置加载场景列表"""
+    def _load_scene_types(self):
+        """从 SceneTypeManager 加载场景类型"""
         try:
-            from core import get_scene_config_manager
-            scene_manager = get_scene_config_manager()
-            self._scenes = scene_manager.get_all_scenes()
+            from core import get_scene_type_manager
+            manager = get_scene_type_manager()
+            self._scene_types = manager.get_all_scene_types()
         except Exception as e:
-            print(f"加载场景配置失败: {e}")
+            print(f"加载场景类型失败: {e}")
             # 使用默认场景列表
-            self._scenes = [
-                {"id": "custom", "name": "Custom - 自定义"},
-                {"id": "mixed", "name": "Mixed - 混合"},
-                {"id": "ui", "name": "UI Design - UI设计"},
-                {"id": "web", "name": "Web - 网页"},
+            self._scene_types = [
+                {"id": "ui", "name": "手机UI"},
+                {"id": "web", "name": "网页"},
+                {"id": "custom", "name": "自定义"},
             ]
 
     def _setup_items(self):
         """设置选项"""
         self.clear()
-        for scene in self._scenes:
-            scene_id = scene.get("id", "")
-            scene_name = scene.get("name", scene_id)
+        for scene_type in self._scene_types:
+            scene_id = scene_type.get("id", "")
+            scene_name = scene_type.get("name", scene_id)
             self.addItem(scene_name)
             self.setItemData(self.count() - 1, scene_id)
 
@@ -1769,16 +1390,16 @@ class PreviewSceneSelector(ComboBox):
             self.scene_changed.emit(key)
 
     def get_current_scene(self) -> str:
-        """获取当前场景key"""
-        return self.itemData(self.currentIndex()) or "mixed"
+        """获取当前场景ID"""
+        return self.itemData(self.currentIndex()) or "ui"
 
     def reload_scenes(self):
         """重新加载场景列表"""
-        self._load_scenes_from_config()
+        self._load_scene_types()
         self._setup_items()
 
-    def get_scene_config(self, scene_id: str) -> Optional[dict]:
-        """获取场景配置
+    def get_scene_type_config(self, scene_id: str) -> Optional[dict]:
+        """获取场景类型配置
 
         Args:
             scene_id: 场景ID
@@ -1786,134 +1407,176 @@ class PreviewSceneSelector(ComboBox):
         Returns:
             Optional[dict]: 场景配置，如果不存在则返回None
         """
-        for scene in self._scenes:
-            if scene.get("id") == scene_id:
-                return scene.copy()
+        for scene_type in self._scene_types:
+            if scene_type.get("id") == scene_id:
+                return scene_type.copy()
         return None
 
 
+# ============================================================================
+# 预览面板
+# ============================================================================
+
 class MixedPreviewPanel(QWidget):
-    """Mixed场景预览面板 - 2x2小图 + 右侧大图，支持自定义SVG预览、手机UI和Web预览"""
+    """预览面板 - 使用布局工厂展示SVG预览"""
 
     def __init__(self, parent=None):
+        """初始化混合预览面板
+
+        Args:
+            parent: 父控件
+        """
         self._colors: List[str] = []
-        self._current_scene = "mixed"
-        self._configurable_scenes: Dict[str, BasePreviewScene] = {}
+        self._current_scene: str = "ui"
+        self._current_layout: Optional[BaseLayout] = None
+        self._svg_preview: Optional[SVGPreviewWidget] = None  # 用于 custom 场景
+        self._custom_svg_path: Optional[str] = None  # 保存 custom 场景导入的 SVG 路径
         super().__init__(parent)
         self.setup_ui()
 
     def setup_ui(self):
-        self._main_layout = QHBoxLayout(self)
+        """创建UI"""
+        self._main_layout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(0, 0, 0, 0)
-        self._main_layout.setSpacing(15)
-
-        # 创建 Mixed 场景面板
-        self._mixed_widget = QWidget()
-        mixed_layout = QHBoxLayout(self._mixed_widget)
-        mixed_layout.setContentsMargins(0, 0, 0, 0)
-        mixed_layout.setSpacing(15)
-
-        # 左侧：2x2 小预览网格
-        left_widget = QWidget()
-        grid_layout = QGridLayout(left_widget)
-        grid_layout.setContentsMargins(0, 0, 0, 0)
-        grid_layout.setSpacing(10)
-
-        self._small_previews: List[IllustrationPreview] = []
-        for i in range(4):
-            preview = IllustrationPreview()
-            preview.set_seed(i)
-            self._small_previews.append(preview)
-            row = i // 2
-            col = i % 2
-            grid_layout.addWidget(preview, row, col)
-
-        mixed_layout.addWidget(left_widget, stretch=1)
-
-        # 右侧：大预览
-        self._large_preview = TypographyPreview()
-        mixed_layout.addWidget(self._large_preview, stretch=1)
-
-        self._main_layout.addWidget(self._mixed_widget)
-
-        # 创建自定义SVG预览面板（默认隐藏）
-        self._svg_preview = SVGPreviewWidget()
-        self._main_layout.addWidget(self._svg_preview)
-        self._svg_preview.setVisible(False)
 
     def set_scene(self, scene: str):
         """切换预览场景
 
         Args:
-            scene: 场景名称
+            scene: 场景ID
         """
         self._current_scene = scene
 
-        # 隐藏所有场景
-        self._mixed_widget.setVisible(False)
-        self._svg_preview.setVisible(False)
+        # 清除现有布局
+        if self._current_layout:
+            self._current_layout.deleteLater()
+            self._current_layout = None
+        
+        # 清除 custom 场景的 SVG 预览
+        if self._svg_preview is not None:
+            self._svg_preview.deleteLater()
+            self._svg_preview = None
 
-        # 隐藏所有配置化场景
-        for scene_widget in self._configurable_scenes.values():
-            scene_widget.setVisible(False)
-
-        # 显示对应场景
-        if scene == "custom":
-            self._svg_preview.setVisible(True)
-        elif scene in ["ui", "web", "illustration", "typography", "brand", "poster", "pattern", "magazine"]:
-            # 使用配置化场景
-            self._show_configurable_scene(scene)
-        else:
-            # mixed 和其他场景显示 Mixed 预览
-            self._mixed_widget.setVisible(True)
-
-    def _show_configurable_scene(self, scene_id: str):
-        """显示配置化场景
-
-        Args:
-            scene_id: 场景ID
-        """
-        # 如果场景已创建，直接显示
-        if scene_id in self._configurable_scenes:
-            self._configurable_scenes[scene_id].setVisible(True)
-            return
-
-        # 从配置管理器获取场景配置
+        # 使用 SceneTypeManager 和 LayoutFactory 创建布局
         try:
-            from core import get_scene_config_manager
-            scene_manager = get_scene_config_manager()
-            scene_config = scene_manager.get_scene_by_id(scene_id)
+            from core import get_scene_type_manager
+
+            manager = get_scene_type_manager()
+            scene_config = manager.get_scene_type_by_id(scene)
 
             if scene_config is None:
-                print(f"未找到场景配置: {scene_id}")
+                print(f"未找到场景配置: {scene}")
                 return
 
-            # 使用工厂创建场景实例
-            scene_widget = PreviewSceneFactory.create(scene_config, self)
-            scene_widget.set_colors(self._colors)
-            self._configurable_scenes[scene_id] = scene_widget
-            self._main_layout.addWidget(scene_widget)
-            scene_widget.setVisible(True)
+            # 获取模板列表
+            templates = manager.get_all_templates(scene)
+
+            # 获取布局配置
+            layout_config = manager.get_layout_config(scene)
+            layout_type = layout_config.get("layout", {}).get("type", "scroll_v")
+
+            # custom 场景固定使用 single 布局
+            if scene == "custom":
+                layout_type = "single"
+
+            # 如果没有模板，创建一个空的SVG预览
+            if not templates:
+                self._create_empty_preview()
+                # 如果之前导入过 SVG，重新加载
+                if self._custom_svg_path and self._svg_preview:
+                    self._svg_preview.load_svg(self._custom_svg_path)
+                return
+
+            # 创建布局
+            self._current_layout = LayoutFactory.create(
+                layout_type, templates, layout_config.get("layout", {}), self
+            )
+
+            if self._current_layout:
+                self._main_layout.addWidget(self._current_layout)
+                self._current_layout.set_colors(self._colors)
+                # 连接删除信号
+                self._current_layout.template_deleted.connect(self._on_template_deleted)
+                # 延迟更新布局大小，确保视口高度正确
+                from PySide6.QtCore import QTimer
+                QTimer.singleShot(100, self._update_layout_sizes)
 
         except Exception as e:
-            print(f"创建配置化场景失败: {e}")
+            print(f"创建布局失败: {e}")
+            self._create_empty_preview()
+
+    def _on_template_deleted(self, template_path: str):
+        """处理模板删除
+
+        Args:
+            template_path: 被删除的模板路径
+        """
+        # 从 ConfigManager 中删除
+        from core import get_config_manager
+        config_manager = get_config_manager()
+        config_manager.remove_scene_template(self._current_scene, template_path)
+        config_manager.save()
+
+        # 重新加载当前场景
+        self.set_scene(self._current_scene)
+
+    def _create_empty_preview(self):
+        """创建空的SVG预览（用于 custom 场景）"""
+        self._svg_preview = SVGPreviewWidget(parent=self)
+        self._svg_preview.set_colors(self._colors)
+        self._main_layout.addWidget(self._svg_preview)
+        self._current_layout = None
+
+    def _update_layout_sizes(self):
+        """更新布局中所有SVG控件的大小"""
+        if self._current_layout and hasattr(self._current_layout, '_scroll_area'):
+            viewport_height = self._current_layout._scroll_area.viewport().height()
+            for svg_widget in self._current_layout.get_svg_widgets():
+                svg_widget.setMinimumHeight(viewport_height)
+                svg_widget.update()
 
     def set_colors(self, colors: List[str]):
-        """设置配色"""
+        """设置配色
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
         self._colors = colors if colors else []
-        for preview in self._small_previews:
-            preview.set_colors(self._colors)
-        self._large_preview.set_colors(self._colors)
-        self._svg_preview.set_colors(self._colors)
+        if self._current_layout:
+            self._current_layout.set_colors(self._colors)
+        # 更新 custom 场景的 SVG 预览
+        if self._svg_preview is not None:
+            self._svg_preview.set_colors(self._colors)
 
-        # 更新配置化场景
-        for scene_widget in self._configurable_scenes.values():
-            scene_widget.set_colors(self._colors)
+    def get_svg_preview(self) -> Optional[SVGPreviewWidget]:
+        """获取 SVG 预览组件（用于 custom 场景）
 
-    def get_svg_preview(self) -> SVGPreviewWidget:
-        """获取 SVG 预览组件"""
-        return self._svg_preview
+        Returns:
+            Optional[SVGPreviewWidget]: SVG预览组件，如果不存在则返回None
+        """
+        # 优先返回 custom 场景的 SVG 预览
+        if self._svg_preview is not None:
+            return self._svg_preview
+        
+        # 否则从当前布局中获取第一个
+        if self._current_layout:
+            widgets = self._current_layout.get_svg_widgets()
+            if widgets:
+                return widgets[0]
+        return None
 
+    def set_custom_svg_path(self, path: str):
+        """设置 custom 场景的 SVG 路径
+
+        Args:
+            path: SVG 文件路径
+        """
+        self._custom_svg_path = path
+
+
+# ============================================================================
+# 预览工具栏
+# ============================================================================
 
 class PreviewToolbar(QWidget):
     """预览工具栏 - 包含圆点栏、场景选择、导入导出按钮"""
@@ -1925,13 +1588,19 @@ class PreviewToolbar(QWidget):
     export_config_requested = Signal()       # 导出配置请求（所有场景）
 
     def __init__(self, parent=None):
-        self._current_scene = "custom"
+        """初始化预览工具栏
+
+        Args:
+            parent: 父控件
+        """
+        self._current_scene = "ui"
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
+        """创建UI"""
         # 使用垂直布局，两行
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -2032,7 +1701,11 @@ class PreviewToolbar(QWidget):
         self.setStyleSheet("background: transparent;")
 
     def set_colors(self, colors: List[str]):
-        """设置颜色"""
+        """设置颜色
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
         self._dot_bar.set_colors(colors)
 
     def set_hex_visible(self, visible: bool):
@@ -2044,277 +1717,39 @@ class PreviewToolbar(QWidget):
         self._dot_bar.set_hex_visible(visible)
 
     def get_dot_bar(self) -> ColorDotBar:
-        """获取圆点栏（用于连接信号）"""
+        """获取圆点栏（用于连接信号）
+
+        Returns:
+            ColorDotBar: 颜色圆点工具栏
+        """
         return self._dot_bar
 
     def get_scene_selector(self) -> PreviewSceneSelector:
-        """获取场景选择器"""
+        """获取场景选择器
+
+        Returns:
+            PreviewSceneSelector: 场景选择器
+        """
         return self._scene_selector
 
     def get_current_scene(self) -> str:
-        """获取当前场景"""
+        """获取当前场景
+
+        Returns:
+            str: 当前场景ID
+        """
         return self._scene_selector.get_current_scene()
 
 
-class SVGPreviewWidget(QWidget):
-    """SVG 预览组件 - 加载和显示 SVG 文件，支持智能配色应用"""
-
-    def __init__(self, parent=None):
-        self._colors: List[str] = []
-        self._svg_renderer: Optional[QSvgRenderer] = None
-        self._svg_content: str = ""
-        self._original_svg_content: str = ""
-        self._color_mapper: Optional[Any] = None  # SVGColorMapper 实例
-        super().__init__(parent)
-        self.setMinimumSize(200, 200)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-    def load_svg(self, file_path: str) -> bool:
-        """加载 SVG 文件
-
-        Args:
-            file_path: SVG 文件路径
-
-        Returns:
-            bool: 是否加载成功
-        """
-        try:
-            # 使用新的 SVGColorMapper
-            from core import SVGColorMapper
-            self._color_mapper = SVGColorMapper()
-
-            if not self._color_mapper.load_svg(file_path):
-                return False
-
-            self._original_svg_content = self._color_mapper.get_original_content()
-
-            # 应用当前配色
-            self._apply_colors_to_svg()
-
-            # 创建渲染器
-            self._svg_renderer = QSvgRenderer()
-            self._svg_renderer.load(self._svg_content.encode('utf-8'))
-
-            self.update()
-            return True
-        except Exception as e:
-            print(f"加载 SVG 文件失败: {e}")
-            return False
-
-    def load_svg_from_string(self, content: str) -> bool:
-        """从字符串加载 SVG
-
-        Args:
-            content: SVG 内容字符串
-
-        Returns:
-            bool: 是否加载成功
-        """
-        try:
-            from core import SVGColorMapper
-            self._color_mapper = SVGColorMapper()
-
-            if not self._color_mapper.load_svg_from_string(content):
-                return False
-
-            self._original_svg_content = content
-
-            # 应用当前配色
-            self._apply_colors_to_svg()
-
-            # 创建渲染器
-            self._svg_renderer = QSvgRenderer()
-            self._svg_renderer.load(self._svg_content.encode('utf-8'))
-
-            self.update()
-            return True
-        except Exception as e:
-            print(f"加载 SVG 字符串失败: {e}")
-            return False
-
-    def set_colors(self, colors: List[str]):
-        """设置配色并应用到 SVG
-
-        Args:
-            colors: 颜色值列表（HEX格式）
-        """
-        if colors:
-            self._colors = colors.copy()
-            while len(self._colors) < 5:
-                self._colors.extend(colors)
-            self._colors = self._colors[:5]
-        else:
-            self._colors = []
-
-        # 如果有已加载的 SVG，重新应用配色
-        if self._original_svg_content:
-            self._apply_colors_to_svg()
-            # 确保渲染器已创建并加载新内容
-            if not self._svg_renderer:
-                self._svg_renderer = QSvgRenderer()
-            self._svg_renderer.load(self._svg_content.encode('utf-8'))
-            self.update()
-
-    def _apply_colors_to_svg(self):
-        """将配色应用到 SVG 内容（使用智能映射）"""
-        if not self._original_svg_content or not self._colors:
-            return
-
-        # 使用智能映射
-        if self._color_mapper:
-            self._svg_content = self._color_mapper.apply_intelligent_mapping(self._colors)
-        else:
-            self._svg_content = self._original_svg_content
-
-    def paintEvent(self, event):
-        """绘制 SVG"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # 如果没有配色，显示提示信息
-        if not self._colors:
-            self._draw_empty_hint(painter)
-            return
-
-        # 绘制背景
-        bg_color = QColor(self._colors[0])
-        painter.fillRect(self.rect(), bg_color)
-
-        # 如果有 SVG 渲染器，绘制 SVG
-        if self._svg_renderer and self._svg_renderer.isValid():
-            # 计算缩放比例，保持宽高比
-            view_box = self._svg_renderer.viewBox()
-            if view_box.isValid():
-                svg_width = view_box.width()
-                svg_height = view_box.height()
-            else:
-                svg_width = self._svg_renderer.defaultSize().width()
-                svg_height = self._svg_renderer.defaultSize().height()
-
-            if svg_width > 0 and svg_height > 0:
-                # 计算缩放比例，保持居中
-                widget_rect = self.rect()
-                scale_x = widget_rect.width() / svg_width
-                scale_y = widget_rect.height() / svg_height
-                scale = min(scale_x, scale_y) * 0.9  # 留一些边距
-
-                # 计算居中位置
-                new_width = svg_width * scale
-                new_height = svg_height * scale
-                x = (widget_rect.width() - new_width) / 2
-                y = (widget_rect.height() - new_height) / 2
-
-                target_rect = QRect(int(x), int(y), int(new_width), int(new_height))
-                self._svg_renderer.render(painter, target_rect)
-
-    def get_svg_content(self) -> str:
-        """获取当前 SVG 内容（用于导出）
-
-        如果 SVG 没有背景元素，会自动添加背景矩形
-        """
-        if not self._svg_content or not self._colors:
-            return self._svg_content
-
-        # 检查是否需要添加背景
-        if self._color_mapper and not self._color_mapper._has_background_element():
-            # 需要添加背景矩形
-            return self._add_background_to_svg(self._svg_content, self._colors[0])
-
-        return self._svg_content
-
-    def _add_background_to_svg(self, svg_content: str, bg_color: str) -> str:
-        """为 SVG 添加背景矩形
-
-        Args:
-            svg_content: 原始 SVG 内容
-            bg_color: 背景颜色
-
-        Returns:
-            添加背景后的 SVG 内容
-        """
-        try:
-            import xml.etree.ElementTree as ET
-
-            root = ET.fromstring(svg_content)
-
-            # 获取 SVG 命名空间
-            svg_ns = 'http://www.w3.org/2000/svg'
-            nsmap = {'svg': svg_ns}
-
-            # 检查根元素是否有命名空间
-            has_namespace = root.tag.startswith('{')
-
-            # 获取画布大小
-            viewbox = root.get('viewBox', '')
-            width = root.get('width', '0')
-            height = root.get('height', '0')
-
-            # 解析 viewBox 或 width/height
-            if viewbox:
-                parts = viewbox.split()
-                if len(parts) >= 4:
-                    x, y, w, h = parts[0], parts[1], parts[2], parts[3]
-                else:
-                    return svg_content
-            elif width and height:
-                # 移除单位
-                import re
-                w = re.sub(r'[^\d.]', '', width)
-                h = re.sub(r'[^\d.]', '', height)
-                x, y = '0', '0'
-            else:
-                return svg_content
-
-            # 创建背景矩形元素（使用正确的命名空间）
-            if has_namespace:
-                bg_rect = ET.Element(f'{{{svg_ns}}}rect')
-            else:
-                bg_rect = ET.Element('rect')
-
-            bg_rect.set('x', x)
-            bg_rect.set('y', y)
-            bg_rect.set('width', w)
-            bg_rect.set('height', h)
-            bg_rect.set('fill', bg_color)
-
-            # 将背景矩形插入到第一个位置
-            root.insert(0, bg_rect)
-
-            # 转换回字符串
-            return ET.tostring(root, encoding='unicode')
-
-        except Exception as e:
-            print(f"添加背景失败: {e}")
-            return svg_content
-
-    def has_svg(self) -> bool:
-        """是否已加载 SVG"""
-        return self._svg_renderer is not None and self._svg_renderer.isValid()
-
-    def _draw_empty_hint(self, painter: QPainter):
-        """绘制空配色提示"""
-        from ui.theme_colors import get_text_color
-
-        # 绘制背景
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(self.rect(), bg_color)
-
-        # 绘制提示文字
-        text_color = get_text_color()
-        painter.setPen(QPen(text_color))
-        font = QFont("Arial", 11)
-        painter.setFont(font)
-
-        hint_text = "请从配色管理面板导入配色"
-        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
-
+# ============================================================================
+# 注册预览场景
+# ============================================================================
 
 def register_preview_scenes():
     """注册所有预览场景类型到工厂"""
-    PreviewSceneFactory.register("configurable", ConfigurablePreviewScene)
+    # 只保留 svg 类型
+    PreviewSceneFactory.register("svg", SVGPreviewWidget)
 
 
+# 自动注册场景
 register_preview_scenes()
-
-
-
