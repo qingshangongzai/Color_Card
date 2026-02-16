@@ -1,33 +1,53 @@
 <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-  <!-- 背景 - 固定为白色 -->
-  <rect id="background" class="background" width="400" height="300" fill="#ffffff" data-fixed-color="original"/>
+  <!-- 背景 - 透明，让容器背景显示 -->
+  <rect id="background" class="background" width="400" height="300" fill="transparent" data-fixed-color="original"/>
 
-  <!-- 手机外框 -->
-  <rect id="phone-frame" class="primary" x="120" y="20" width="160" height="260" rx="24" fill="#1a1a1a" data-fixed-color="original"/>
+  <!-- 手机外框 - 固定颜色，不参与配色映射 -->
+  <rect id="phone-frame" class="primary" x="140" y="20" width="120" height="260" rx="18" fill="#333333" data-fixed-color="original"/>
 
-  <!-- 手机屏幕 -->
-  <rect id="screen" class="background" x="128" y="28" width="144" height="244" rx="18" fill="#ffffff"/>
+  <!-- 手机屏幕 - 使用背景色 -->
+  <rect id="screen" class="background" x="143" y="23" width="114" height="254" rx="15" fill="#ffffff"/>
 
-  <!-- 状态栏 -->
-  <rect id="status-bar" class="secondary" x="136" y="36" width="128" height="28" rx="10" fill="#333333"/>
-  <text id="time-text" class="text" x="200" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" data-fixed-color="black">9:41</text>
+  <!-- 状态栏时间 - 固定黑色文字 -->
+  <text id="time-text" class="text" x="200" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
 
-  <!-- 标题卡片 -->
-  <rect id="title-card" class="accent" x="144" y="72" width="112" height="50" rx="10" fill="#ff6b6b"/>
-  <text id="title-text" class="text" x="200" y="102" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" data-fixed-color="black">首页</text>
+  <!-- 状态栏信号图标 - 固定颜色 -->
+  <circle id="signal-1" class="secondary" cx="230" cy="35" r="1.2" fill="#333333" data-fixed-color="black"/>
+  <circle id="signal-2" class="secondary" cx="233" cy="35" r="1.2" fill="#333333" data-fixed-color="black"/>
+  <circle id="signal-3" class="secondary" cx="236" cy="35" r="1.2" fill="#333333" data-fixed-color="black"/>
 
-  <!-- 列表项1 -->
-  <rect id="list-item-1" class="primary" x="144" y="132" width="112" height="36" rx="8" fill="#1a1a1a"/>
-  <text id="item-text-1" class="text" x="156" y="156" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">项目 1</text>
+  <!-- 状态栏电池图标 - 固定颜色 -->
+  <rect id="battery" class="secondary" x="240" y="32" width="6" height="4" rx="0.8" fill="#333333" data-fixed-color="black"/>
 
-  <!-- 列表项2 -->
-  <rect id="list-item-2" class="secondary" x="144" y="176" width="112" height="36" rx="8" fill="#333333"/>
-  <text id="item-text-2" class="text" x="156" y="200" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">项目 2</text>
+  <!-- 搜索栏 - 使用次要色 -->
+  <rect id="search-bar" class="secondary" x="153" y="48" width="94" height="24" rx="12" fill="#f0f0f0"/>
+  <text id="search-text" class="text" x="200" y="63" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#999999" data-fixed-color="black">搜索</text>
 
-  <!-- 列表项3 -->
-  <rect id="list-item-3" class="primary" x="144" y="220" width="112" height="36" rx="8" fill="#1a1a1a"/>
-  <text id="item-text-3" class="text" x="156" y="244" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">项目 3</text>
+  <!-- 主内容卡片 - 使用强调色 -->
+  <rect id="main-card" class="accent" x="153" y="80" width="94" height="60" rx="10" fill="#ff6b6b"/>
+  <text id="card-title" class="text" x="200" y="105" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" data-fixed-color="black">首页</text>
+  <text id="card-subtitle" class="text" x="200" y="122" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" data-fixed-color="black">欢迎使用</text>
 
-  <!-- 底部导航 -->
-  <rect id="bottom-nav" class="secondary" x="136" y="248" width="128" height="16" rx="6" fill="#333333"/>
+  <!-- 快捷操作按钮组 - 使用主色 -->
+  <circle id="action-btn-1" class="primary" cx="168" cy="160" r="12" fill="#4a4a4a"/>
+  <circle id="action-btn-2" class="primary" cx="200" cy="160" r="12" fill="#4a4a4a"/>
+  <circle id="action-btn-3" class="primary" cx="232" cy="160" r="12" fill="#4a4a4a"/>
+
+  <!-- 列表项1 - 使用主色 -->
+  <rect id="list-item-1" class="primary" x="153" y="182" width="94" height="28" rx="6" fill="#4a4a4a"/>
+  <circle id="list-icon-1" class="accent" cx="163" cy="196" r="5" fill="#ff6b6b"/>
+  <text id="item-text-1" class="text" x="175" y="200" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">项目 1</text>
+
+  <!-- 列表项2 - 使用次要色 -->
+  <rect id="list-item-2" class="secondary" x="153" y="215" width="94" height="28" rx="6" fill="#6a6a6a"/>
+  <circle id="list-icon-2" class="accent" cx="163" cy="229" r="5" fill="#ff6b6b"/>
+  <text id="item-text-2" class="text" x="175" y="233" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">项目 2</text>
+
+  <!-- 底部导航栏背景 - 使用次要色 -->
+  <rect id="bottom-nav" class="secondary" x="153" y="252" width="94" height="18" rx="9" fill="#f5f5f5"/>
+
+  <!-- 底部导航图标 -->
+  <circle id="nav-icon-1" class="primary" cx="173" cy="261" r="3.5" fill="#4a4a4a"/>
+  <circle id="nav-icon-2" class="secondary" cx="200" cy="261" r="2.5" fill="#cccccc" data-fixed-color="black"/>
+  <circle id="nav-icon-3" class="secondary" cx="227" cy="261" r="2.5" fill="#cccccc" data-fixed-color="black"/>
 </svg>

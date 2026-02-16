@@ -473,7 +473,7 @@ class SVGColorMapper:
     def _has_background_element(self) -> bool:
         """检测 SVG 是否有背景元素
 
-        判断标准：是否有 fill 元素面积超过画布面积的 50%
+        判断标准：是否有 fill 元素面积超过画布面积的 50%，且不是固定颜色元素
 
         Returns:
             是否有背景元素
@@ -486,8 +486,11 @@ class SVGColorMapper:
         if canvas_area <= 0:
             return False
 
-        # 检查每个 fill 元素的面积
+        # 检查每个 fill 元素的面积（跳过固定颜色元素）
         for elem_info in self._elements:
+            # 跳过固定颜色元素
+            if elem_info.fixed_color:
+                continue
             if elem_info.fill_color and elem_info.area > canvas_area * 0.5:
                 print(f"检测到背景元素: {elem_info.element_id}, 面积: {elem_info.area}, 画布面积: {canvas_area}")
                 return True
