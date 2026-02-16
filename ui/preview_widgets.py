@@ -738,8 +738,16 @@ class SVGPreviewWidget(BasePreviewScene):
             self._draw_empty_hint(painter)
             return
 
-        # 绘制背景
-        bg_color = QColor(self._colors[0])
+        # 检查SVG是否有固定颜色的背景元素
+        has_fixed_background = self._has_fixed_background_element()
+
+        # 绘制背景（只有没有固定背景时才使用配色）
+        if has_fixed_background:
+            # SVG有固定背景，使用白色作为容器背景
+            bg_color = QColor("#ffffff")
+        else:
+            # 使用配色的第一个颜色作为背景
+            bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
 
         # 如果有 SVG 渲染器，绘制 SVG
@@ -855,6 +863,34 @@ class SVGPreviewWidget(BasePreviewScene):
     def is_template_mode(self) -> bool:
         """是否处于模板模式"""
         return self._template_mode
+
+    def _has_fixed_background_element(self) -> bool:
+        """检查SVG是否有固定颜色的背景元素
+
+        通过检查SVG内容中是否有 data-fixed-color="original" 的背景元素
+
+        Returns:
+            bool: 是否有固定背景元素
+        """
+        if not self._svg_content:
+            return False
+
+        try:
+            import xml.etree.ElementTree as ET
+
+            root = ET.fromstring(self._svg_content)
+
+            # 查找所有带有 data-fixed-color="original" 的rect元素
+            for elem in root.iter():
+                tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+                if tag == 'rect':
+                    fixed_color = elem.get('data-fixed-color')
+                    if fixed_color == 'original':
+                        return True
+
+            return False
+        except Exception:
+            return False
 
     def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""

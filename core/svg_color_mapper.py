@@ -31,6 +31,7 @@ class SVGElementInfo:
     stroke_color: Optional[str] = None       # 原始 stroke 颜色
     area: float = 0.0                        # 元素面积（用于排序）
     is_visible: bool = True                  # 是否可见
+    fixed_color: Optional[str] = None        # 固定颜色设置（black/original）
     attributes: Dict[str, str] = field(default_factory=dict)  # 其他属性
 
 
@@ -324,6 +325,9 @@ class SVGColorMapper:
             # 计算面积（简化版）
             area = self._calculate_element_area(elem)
 
+            # 提取固定颜色设置
+            fixed_color = elem.get('data-fixed-color')
+
             # 创建元素信息 - 修复：只有当确实有颜色时才记录，不使用默认值
             elem_info = SVGElementInfo(
                 element_id=elem_id,
@@ -332,6 +336,7 @@ class SVGColorMapper:
                 fill_color=fill if has_explicit_fill else None,
                 stroke_color=stroke if has_explicit_stroke else None,
                 area=area,
+                fixed_color=fixed_color if fixed_color in ('black', 'original') else None,
                 attributes=dict(elem.attrib)
             )
 
@@ -509,11 +514,15 @@ class SVGColorMapper:
         if not colors or not self._original_content:
             return self._original_content
 
-        # 1. 分别收集 fill 和 stroke 颜色及其面积
+        # 1. 分别收集 fill 和 stroke 颜色及其面积（跳过固定颜色元素）
         fill_color_areas: Dict[str, float] = {}
         stroke_color_areas: Dict[str, float] = {}
 
         for elem_info in self._elements:
+            # 跳过固定颜色元素
+            if elem_info.fixed_color:
+                continue
+
             # 收集 fill 颜色
             if elem_info.fill_color:
                 normalized_color = self._normalize_color(elem_info.fill_color)
@@ -636,20 +645,20 @@ class SVGColorMapper:
             if elem is None:
                 continue
 
+            # 处理固定颜色元素
+            if elem_info.fixed_color:
+                if elem_info.fixed_color == 'black':
+                    # 固定为黑色
+                    self._apply_color_to_element(elem, elem_info, '#000000')
+                # fixed_color == 'original' 时保持原色，不做任何操作
+                continue
+
             # 应用 fill 颜色映射
             if elem_info.fill_color:
                 fill_lower = elem_info.fill_color.lower()
                 if fill_lower in color_map_lower:
                     new_color = color_map_lower[fill_lower]
-                    # 检查颜色是否来自 style 属性
-                    style_attr = elem.get('style', '')
-                    if style_attr and self._color_in_style(style_attr, elem_info.fill_color):
-                        # 替换 style 属性中的颜色
-                        new_style = self._replace_color_in_style(style_attr, elem_info.fill_color, new_color)
-                        elem.set('style', new_style)
-                    else:
-                        # 设置 fill 属性
-                        elem.set('fill', new_color)
+                    self._apply_color_to_element(elem, elem_info, new_color, 'fill')
                     mapped_count += 1
 
             # 应用 stroke 颜色映射
@@ -657,15 +666,7 @@ class SVGColorMapper:
                 stroke_lower = elem_info.stroke_color.lower()
                 if stroke_lower in color_map_lower:
                     new_color = color_map_lower[stroke_lower]
-                    # 检查颜色是否来自 style 属性
-                    style_attr = elem.get('style', '')
-                    if style_attr and self._color_in_style(style_attr, elem_info.stroke_color):
-                        # 替换 style 属性中的颜色
-                        new_style = self._replace_color_in_style(style_attr, elem_info.stroke_color, new_color)
-                        elem.set('style', new_style)
-                    else:
-                        # 设置 stroke 属性
-                        elem.set('stroke', new_color)
+                    self._apply_color_to_element(elem, elem_info, new_color, 'stroke')
                     mapped_count += 1
 
         # 同时修改 CSS 样式定义（如果存在）
@@ -675,6 +676,28 @@ class SVGColorMapper:
         self._modified_content = self._element_tree_to_string(root)
         print(f"成功映射 {mapped_count} 个元素的颜色")
         return self._modified_content
+
+    def _apply_color_to_element(self, elem: ET.Element, elem_info: SVGElementInfo,
+                                  new_color: str, color_type: str = 'fill'):
+        """应用颜色到元素
+
+        Args:
+            elem: SVG 元素
+            elem_info: 元素信息
+            new_color: 新颜色值
+            color_type: 'fill' 或 'stroke'
+        """
+        # 检查颜色是否来自 style 属性
+        style_attr = elem.get('style', '')
+        orig_color = elem_info.fill_color if color_type == 'fill' else elem_info.stroke_color
+
+        if style_attr and orig_color and self._color_in_style(style_attr, orig_color):
+            # 替换 style 属性中的颜色
+            new_style = self._replace_color_in_style(style_attr, orig_color, new_color)
+            elem.set('style', new_style)
+        else:
+            # 设置属性
+            elem.set(color_type, new_color)
 
     def _color_in_style(self, style_attr: str, color: str) -> bool:
         """检查颜色是否存在于 style 属性中
