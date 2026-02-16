@@ -105,7 +105,8 @@ class ConfigManager:
                 "height": 660,
                 "is_maximized": False
             },
-            "favorites": []
+            "favorites": [],
+            "scene_templates": {}
         }
 
     def load(self) -> Dict[str, Any]:
@@ -502,12 +503,80 @@ class ConfigManager:
         favorites = self._config["favorites"]
         for fav in favorites:
             if fav.get("id") == favorite_id:
-                # 更新名称和颜色，保留ID和创建时间
                 fav['name'] = palette_data.get('name', fav.get('name', ''))
                 fav['colors'] = palette_data.get('colors', fav.get('colors', []))
                 return True
 
         return False
+
+    def get_scene_templates(self) -> Dict[str, List[Dict[str, Any]]]:
+        """获取用户场景模板索引
+
+        Returns:
+            Dict[str, List[Dict[str, Any]]]: 场景模板索引字典
+        """
+        return self._config.get("scene_templates", {})
+
+    def add_scene_template(self, scene_type: str, template_data: Dict[str, Any]) -> bool:
+        """添加场景模板
+
+        Args:
+            scene_type: 场景类型ID
+            template_data: 模板数据（包含 path, name, added_at）
+
+        Returns:
+            bool: 是否添加成功
+        """
+        if "scene_templates" not in self._config:
+            self._config["scene_templates"] = {}
+
+        if scene_type not in self._config["scene_templates"]:
+            self._config["scene_templates"][scene_type] = []
+
+        templates = self._config["scene_templates"][scene_type]
+        template_path = template_data.get("path", "")
+
+        if any(t.get("path") == template_path for t in templates):
+            return False
+
+        templates.append(template_data)
+        return True
+
+    def remove_scene_template(self, scene_type: str, template_path: str) -> bool:
+        """移除场景模板
+
+        Args:
+            scene_type: 场景类型ID
+            template_path: 模板路径
+
+        Returns:
+            bool: 是否移除成功
+        """
+        if "scene_templates" not in self._config:
+            return False
+
+        if scene_type not in self._config["scene_templates"]:
+            return False
+
+        templates = self._config["scene_templates"][scene_type]
+        original_count = len(templates)
+        self._config["scene_templates"][scene_type] = [
+            t for t in templates if t.get("path") != template_path
+        ]
+
+        return len(self._config["scene_templates"][scene_type]) < original_count
+
+    def get_scene_templates_by_type(self, scene_type: str) -> List[Dict[str, Any]]:
+        """获取指定场景类型的模板列表
+
+        Args:
+            scene_type: 场景类型ID
+
+        Returns:
+            List[Dict[str, Any]]: 模板列表
+        """
+        templates = self._config.get("scene_templates", {})
+        return templates.get(scene_type, [])
 
 
 class SceneConfigManager:

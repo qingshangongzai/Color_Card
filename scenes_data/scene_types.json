@@ -1,0 +1,68 @@
+{
+  "version": "3.0",
+  "scene_types": [
+    {
+      "id": "ui",
+      "name": "手机UI",
+      "icon": "phone",
+      "description": "手机应用界面预览",
+      "builtin": true
+    },
+    {
+      "id": "web",
+      "name": "网页",
+      "icon": "web",
+      "description": "网页布局预览",
+      "builtin": true
+    },
+    {
+      "id": "illustration",
+      "name": "插画",
+      "icon": "brush",
+      "description": "植物风格插画预览",
+      "builtin": true
+    },
+    {
+      "id": "typography",
+      "name": "排版",
+      "icon": "font",
+      "description": "文字排版预览",
+      "builtin": true
+    },
+    {
+      "id": "brand",
+      "name": "品牌",
+      "icon": "tag",
+      "description": "品牌设计预览",
+      "builtin": true
+    },
+    {
+      "id": "poster",
+      "name": "海报",
+      "icon": "image",
+      "description": "海报设计预览",
+      "builtin": true
+    },
+    {
+      "id": "pattern",
+      "name": "图案",
+      "icon": "grid",
+      "description": "图案纹理预览",
+      "builtin": true
+    },
+    {
+      "id": "magazine",
+      "name": "杂志",
+      "icon": "book",
+      "description": "杂志风格排版预览",
+      "builtin": true
+    },
+    {
+      "id": "custom",
+      "name": "自定义",
+      "icon": "svg",
+      "description": "自定义SVG预览（临时导入）",
+      "builtin": false
+    }
+  ]
+}
