@@ -1,0 +1,17 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <rect id="side-block" class="primary" x="0" y="100" width="8" height="100" fill="#1a1a1a"/>
+  
+  <line id="top-line" class="accent" x1="50" y1="30" x2="350" y2="30" stroke="#ff6b6b" stroke-width="3"/>
+  
+  <text id="title-line-1" class="text" x="200" y="100" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="bold" fill="#1a1a1a">All</text>
+  <text id="title-line-2" class="text" x="200" y="150" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="bold" fill="#333333">Bodies</text>
+  <text id="title-line-3" class="text" x="200" y="200" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="bold" fill="#1a1a1a">Are Good</text>
+  <text id="title-line-4" class="text" x="200" y="250" text-anchor="middle" font-family="Georgia, serif" font-size="42" font-weight="bold" fill="#ff6b6b">Bodies</text>
+  
+  <line id="bottom-line" class="secondary" x1="100" y1="270" x2="300" y2="270" stroke="#333333" stroke-width="2"/>
+  
+  <circle id="deco-dot-1" class="accent" cx="50" cy="30" r="5" fill="#ff6b6b"/>
+  <circle id="deco-dot-2" class="accent" cx="350" cy="30" r="5" fill="#ff6b6b"/>
+</svg>

@@ -1,0 +1,26 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <rect id="header-bar" class="primary" x="0" y="0" width="400" height="30" fill="#1a1a1a"/>
+  <text id="header-text" class="text" x="200" y="20" text-anchor="middle" font-family="Georgia, serif" font-size="12" fill="#ffffff">VOGUE DESIGN</text>
+  
+  <text id="main-title" class="text" x="30" y="70" font-family="Georgia, serif" font-size="32" fill="#1a1a1a">The Art of</text>
+  <text id="main-subtitle" class="accent" x="30" y="110" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#ff6b6b">Color</text>
+  
+  <rect id="feature-box" class="secondary" x="20" y="135" width="100" height="105" fill="#333333"/>
+  <text id="feature-text" class="text" x="70" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#ffffff">FEATURE</text>
+  
+  <text id="article-headline" class="text" x="140" y="155" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="#1a1a1a">Exploring the World of Colors</text>
+  
+  <text id="article-para-1" class="primary" x="140" y="175" font-family="Arial, sans-serif" font-size="10" fill="#1a1a1a">Color is a powerful tool in design,</text>
+  <text id="article-para-1b" class="primary" x="140" y="188" font-family="Arial, sans-serif" font-size="10" fill="#1a1a1a">evoking emotions and creating visual harmony.</text>
+  
+  <text id="article-para-2" class="secondary" x="140" y="208" font-family="Arial, sans-serif" font-size="10" fill="#333333">Understanding color theory helps designers</text>
+  <text id="article-para-2b" class="secondary" x="140" y="221" font-family="Arial, sans-serif" font-size="10" fill="#333333">create more impactful and meaningful work.</text>
+  
+  <rect id="quote-bar" class="accent" x="20" y="250" width="4" height="40" fill="#ff6b6b"/>
+  <text id="quote-text" class="text" x="32" y="265" font-family="Georgia, serif" font-size="10" font-style="italic" fill="#1a1a1a">Color is the keyboard, the eyes are the harmonies,</text>
+  <text id="quote-text-2" class="text" x="32" y="280" font-family="Georgia, serif" font-size="10" font-style="italic" fill="#1a1a1a">the soul is the piano with many strings.</text>
+  
+  <text id="footer-text" class="secondary" x="200" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#333333">2026 Spring Edition</text>
+</svg>

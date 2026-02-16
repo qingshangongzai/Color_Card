@@ -35,7 +35,13 @@ def test_type_based_mapping():
     
     test_files = [
         ("ui/default.svg", "手机UI"),
-        ("web/default.svg", "网页")
+        ("web/default.svg", "网页"),
+        ("illustration/default.svg", "插画"),
+        ("typography/default.svg", "排版"),
+        ("brand/default.svg", "品牌"),
+        ("poster/default.svg", "海报"),
+        ("pattern/default.svg", "图案"),
+        ("magazine/default.svg", "杂志")
     ]
     
     for svg_file, scene_name in test_files:
