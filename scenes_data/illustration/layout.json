@@ -1,7 +1,45 @@
 {
   "layout": {
-    "type": "scroll_v",
-    "item_size": 200,
-    "spacing": 10
-  }
+    "type": "grid_2x2",
+    "item_size": 180,
+    "spacing": 15
+  },
+  "scenes": [
+    {
+      "id": "default",
+      "name": "简约植物",
+      "file": "default.svg",
+      "description": "简约线条风格的植物插画"
+    },
+    {
+      "id": "botanical",
+      "name": "抽象植物",
+      "file": "botanical.svg",
+      "description": "有机形状的抽象植物插画，包含叶子和斑点装饰"
+    },
+    {
+      "id": "cocktail",
+      "name": "鸡尾酒派对",
+      "file": "cocktail.svg",
+      "description": "派对主题插画，包含马提尼酒杯和棕榈叶装饰"
+    },
+    {
+      "id": "geometric",
+      "name": "几何图案",
+      "file": "geometric.svg",
+      "description": "包豪斯风格的几何图形组合"
+    },
+    {
+      "id": "abstract",
+      "name": "抽象艺术",
+      "file": "abstract.svg",
+      "description": "流体形状与线条艺术的抽象组合"
+    },
+    {
+      "id": "landscape",
+      "name": "山水风景",
+      "file": "landscape.svg",
+      "description": "自然风光插画，包含山脉、太阳、云朵和小房子"
+    }
+  ]
 }

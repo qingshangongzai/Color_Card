@@ -1,0 +1,105 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f0f4f8"/>
+
+  <!-- 天空渐变背景 - 使用圆形模拟 -->
+  <circle id="sky-gradient" class="secondary" cx="200" cy="150" r="180" fill="#e1e8ed" opacity="0.5"/>
+
+  <!-- 太阳 -->
+  <circle id="sun" class="accent" cx="320" cy="70" r="35" fill="#f4a261" opacity="0.9"/>
+  <circle id="sun-inner" class="accent" cx="320" cy="70" r="25" fill="#f4a261" opacity="0.6"/>
+
+  <!-- 太阳光芒 -->
+  <g id="sun-rays" class="accent" opacity="0.4">
+    <line x1="320" y1="25" x2="320" y2="10" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/>
+    <line x1="320" y1="115" x2="320" y2="130" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/>
+    <line x1="275" y1="70" x2="260" y2="70" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/>
+    <line x1="365" y1="70" x2="380" y2="70" stroke="#f4a261" stroke-width="3" stroke-linecap="round"/>
+    <line x1="288" y1="38" x2="277" y2="27" stroke="#f4a261" stroke-width="2" stroke-linecap="round"/>
+    <line x1="352" y1="38" x2="363" y2="27" stroke="#f4a261" stroke-width="2" stroke-linecap="round"/>
+    <line x1="288" y1="102" x2="277" y2="113" stroke="#f4a261" stroke-width="2" stroke-linecap="round"/>
+    <line x1="352" y1="102" x2="363" y2="113" stroke="#f4a261" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- 云朵 -->
+  <g id="cloud-1" class="text" opacity="0.7">
+    <ellipse cx="80" cy="60" rx="25" ry="15" fill="#ffffff"/>
+    <ellipse cx="100" cy="55" rx="20" ry="18" fill="#ffffff"/>
+    <ellipse cx="120" cy="60" rx="22" ry="14" fill="#ffffff"/>
+  </g>
+
+  <g id="cloud-2" class="text" opacity="0.5">
+    <ellipse cx="200" cy="45" rx="20" ry="12" fill="#ffffff"/>
+    <ellipse cx="215" cy="40" rx="15" ry="14" fill="#ffffff"/>
+    <ellipse cx="230" cy="45" rx="18" ry="11" fill="#ffffff"/>
+  </g>
+
+  <!-- 远山 -->
+  <path id="mountain-back" class="secondary" d="M0 200 L80 100 L160 200 Z" fill="#a8b5c4" opacity="0.6"/>
+  <path id="mountain-back-2" class="secondary" d="M120 200 L200 80 L280 200 Z" fill="#9aaab8" opacity="0.5"/>
+  <path id="mountain-back-3" class="secondary" d="M240 200 L320 110 L400 200 Z" fill="#a8b5c4" opacity="0.6"/>
+
+  <!-- 近山 -->
+  <path id="mountain-front" class="primary" d="M-20 220 L100 130 L220 220 Z" fill="#5c6b7a" opacity="0.8"/>
+  <path id="mountain-front-2" class="primary" d="M180 220 L300 140 L420 220 Z" fill="#4a5568" opacity="0.85"/>
+
+  <!-- 山顶积雪 -->
+  <path id="snow-cap-1" class="text" d="M80 100 L95 120 L65 120 Z" fill="#ffffff" opacity="0.8"/>
+  <path id="snow-cap-2" class="text" d="M200 80 L220 105 L180 105 Z" fill="#ffffff" opacity="0.7"/>
+  <path id="snow-cap-3" class="text" d="M320 110 L340 135 L300 135 Z" fill="#ffffff" opacity="0.75"/>
+
+  <!-- 山脊线 -->
+  <path id="ridge-1" class="stroke" d="M100 130 L120 160 L140 145 L160 170" stroke="#3d4852" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path id="ridge-2" class="stroke" d="M300 140 L280 170 L320 165 L340 180" stroke="#3d4852" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+  <!-- 树木 - 左侧 -->
+  <g id="tree-1" class="primary">
+    <rect x="45" y="200" width="6" height="25" fill="#4a5568"/>
+    <polygon points="48,170 35,200 61,200" fill="#5c6b7a"/>
+    <polygon points="48,185 38,210 58,210" fill="#4a5568"/>
+  </g>
+
+  <g id="tree-2" class="secondary">
+    <rect x="65" y="210" width="5" height="20" fill="#6b7c8a"/>
+    <polygon points="67.5,185 57,210 78,210" fill="#7a8b99"/>
+    <polygon points="67.5,195 60,215 75,215" fill="#6b7c8a"/>
+  </g>
+
+  <!-- 树木 - 右侧 -->
+  <g id="tree-3" class="primary">
+    <rect x="340" y="205" width="6" height="25" fill="#4a5568"/>
+    <polygon points="343,175 330,205 356,205" fill="#5c6b7a"/>
+    <polygon points="343,190 333,215 353,215" fill="#4a5568"/>
+  </g>
+
+  <g id="tree-4" class="secondary">
+    <rect x="365" y="215" width="5" height="18" fill="#6b7c8a"/>
+    <polygon points="367.5,195 357,218 378,218" fill="#7a8b99"/>
+  </g>
+
+  <!-- 草地/丘陵 -->
+  <path id="hill-1" class="secondary" d="M0 250 Q100 230 200 250 Q300 270 400 250 L400 300 L0 300 Z" fill="#8fa3b8" opacity="0.5"/>
+  <path id="hill-2" class="primary" d="M0 270 Q150 250 300 270 Q350 280 400 270 L400 300 L0 300 Z" fill="#6b8a9a" opacity="0.6"/>
+
+  <!-- 小房子 -->
+  <g id="house" class="accent" transform="translate(170, 235)">
+    <rect x="5" y="15" width="30" height="25" fill="#e07a5f" opacity="0.8"/>
+    <polygon points="20,5 0,20 40,20" fill="#d4634a" opacity="0.9"/>
+    <rect x="12" y="25" width="8" height="15" fill="#5c4a42" opacity="0.7"/>
+    <rect x="25" y="22" width="6" height="6" fill="#87ceeb" opacity="0.6"/>
+  </g>
+
+  <!-- 飞鸟 -->
+  <g id="birds" class="text" opacity="0.5">
+    <path d="M150 90 Q155 85 160 90" stroke="#4a5568" stroke-width="1.5" fill="none"/>
+    <path d="M165 85 Q170 80 175 85" stroke="#4a5568" stroke-width="1.5" fill="none"/>
+    <path d="M140 100 Q145 95 150 100" stroke="#4a5568" stroke-width="1" fill="none"/>
+  </g>
+
+  <!-- 装饰性线条 -->
+  <path id="deco-line-1" class="stroke" d="M30 280 Q50 275 70 280" stroke="#a8b5c4" stroke-width="2" fill="none" opacity="0.5"/>
+  <path id="deco-line-2" class="stroke" d="M330 285 Q350 280 370 285" stroke="#a8b5c4" stroke-width="2" fill="none" opacity="0.5"/>
+
+  <!-- 小石头 -->
+  <ellipse id="rock-1" class="text" cx="120" cy="285" rx="8" ry="5" fill="#7a8b99" opacity="0.5"/>
+  <ellipse id="rock-2" class="text" cx="280" cy="288" rx="6" ry="4" fill="#7a8b99" opacity="0.4"/>
+</svg>
