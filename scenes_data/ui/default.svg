@@ -1,0 +1,33 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="120" y="20" width="160" height="260" rx="24" fill="#1a1a1a"/>
+  
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="128" y="28" width="144" height="244" rx="18" fill="#ffffff"/>
+  
+  <!-- 状态栏 -->
+  <rect id="status-bar" class="secondary" x="136" y="36" width="128" height="28" rx="10" fill="#333333"/>
+  <text id="time-text" class="text" x="200" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#ffffff">9:41</text>
+  
+  <!-- 标题卡片 -->
+  <rect id="title-card" class="accent" x="144" y="72" width="112" height="50" rx="10" fill="#ff6b6b"/>
+  <text id="title-text" class="text" x="200" y="102" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff">首页</text>
+  
+  <!-- 列表项1 -->
+  <rect id="list-item-1" class="primary" x="144" y="132" width="112" height="36" rx="8" fill="#1a1a1a"/>
+  <text id="item-text-1" class="text" x="156" y="156" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">项目 1</text>
+  
+  <!-- 列表项2 -->
+  <rect id="list-item-2" class="secondary" x="144" y="176" width="112" height="36" rx="8" fill="#333333"/>
+  <text id="item-text-2" class="text" x="156" y="200" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">项目 2</text>
+  
+  <!-- 列表项3 -->
+  <rect id="list-item-3" class="primary" x="144" y="220" width="112" height="36" rx="8" fill="#1a1a1a"/>
+  <text id="item-text-3" class="text" x="156" y="244" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">项目 3</text>
+  
+  <!-- 底部导航 -->
+  <rect id="bottom-nav" class="secondary" x="136" y="248" width="128" height="16" rx="6" fill="#333333"/>
+</svg>
