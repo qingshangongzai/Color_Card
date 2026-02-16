@@ -1053,13 +1053,16 @@ class SceneTypeManager:
         """
         templates = []
 
-        # 内置模板
-        builtin_svg = self.get_builtin_svg_path(scene_type)
-        if builtin_svg:
-            templates.append({
-                "path": builtin_svg,
-                "is_builtin": True
-            })
+        # 内置模板 - 加载场景目录下所有svg文件
+        scene_dir = self._scenes_data_dir / scene_type
+        if scene_dir.exists():
+            # 获取所有svg文件，按文件名排序
+            svg_files = sorted(scene_dir.glob("*.svg"))
+            for svg_path in svg_files:
+                templates.append({
+                    "path": str(svg_path),
+                    "is_builtin": True
+                })
 
         # 用户模板
         config_manager = get_config_manager()

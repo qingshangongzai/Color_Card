@@ -1,0 +1,46 @@
+<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 透明 -->
+  <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
+
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="75" y="20" width="150" height="360" rx="20" fill="#2a2a2a" data-fixed-color="original"/>
+
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="80" y="25" width="140" height="350" rx="16" fill="#ffffff"/>
+
+  <!-- 顶部装饰背景 - 圆角矩形 -->
+  <rect id="header-bg" class="secondary" x="85" y="30" width="130" height="40" rx="10" fill="#b8d0e8"/>
+
+  <!-- 状态栏 -->
+  <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
+
+  <!-- 页面标题 -->
+  <text id="page-title" class="text" x="150" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333333" data-fixed-color="black">Current Session</text>
+  <text id="page-subtitle" class="text" x="150" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">Medium Intensity</text>
+
+  <!-- 中央大圆形进度条 - 缩小半径确保在屏幕内 -->
+  <circle id="timer-bg" class="secondary" cx="150" cy="195" r="48" fill="none" stroke="#e8e8e8" stroke-width="8"/>
+  <path id="timer-progress" class="primary" d="M 150 147 A 48 48 0 1 1 107 168" fill="none" stroke="#ff6b6b" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- 完成标记点 -->
+  <circle id="progress-dot" class="accent" cx="107" cy="168" r="6" fill="#ff8a8a"/>
+
+  <!-- 中心时间显示 -->
+  <text id="timer-display" class="text" x="150" y="192" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333333" data-fixed-color="black">43:39</text>
+
+  <!-- 中央暂停按钮 -->
+  <circle id="pause-btn" class="secondary" cx="150" cy="225" r="14" fill="#f0f0f0"/>
+  <rect id="pause-l" x="145" y="219" width="3" height="12" rx="1" fill="#666666" data-fixed-color="black"/>
+  <rect id="pause-r" x="152" y="219" width="3" height="12" rx="1" fill="#666666" data-fixed-color="black"/>
+
+  <!-- 目标时间 -->
+  <text id="target-label" class="text" x="150" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">Target</text>
+  <text id="target-time" class="text" x="150" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333333" data-fixed-color="black">45 min</text>
+
+  <!-- 底部取消按钮 - 调整位置 -->
+  <rect id="cancel-btn" class="primary" x="105" y="320" width="90" height="30" rx="15" fill="#4a4a4a"/>
+  <text id="cancel-text" class="text" x="150" y="339" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" data-fixed-color="black">Cancel</text>
+
+  <!-- 装饰性背景色块 - 左下角 -->
+  <path id="deco-left" class="secondary" d="M 80 250 Q 105 270 80 300 Z" fill="#c8e0c8" opacity="0.5"/>
+</svg>

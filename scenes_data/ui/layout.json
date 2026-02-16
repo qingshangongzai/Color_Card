@@ -1,7 +1,7 @@
 {
   "layout": {
-    "type": "scroll_v",
-    "item_size": 200,
-    "spacing": 10
+    "type": "grid_2x2",
+    "item_size": 180,
+    "spacing": 15
   }
 }
