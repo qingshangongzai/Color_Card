@@ -7,13 +7,14 @@ class VersionManager:
     def __init__(self) -> None:
         """初始化版本管理器"""
         # 版本号组件
-        self.major: int = 1
-        self.minor: int = 2
+        self.major: int = 2
+        self.minor: int = 0
         self.patch: int = 0
         self.build: int = 0
+        self.prerelease: str = "beta"
 
         # 核心版本信息
-        self.version: str = f"{self.major}.{self.minor}.{self.patch}"
+        self.version: str = f"{self.major}.{self.minor}{self.prerelease}"
 
         # 详细版本信息结构
         self.version_info: Dict[str, int | str] = {
@@ -21,8 +22,9 @@ class VersionManager:
             "minor": self.minor,
             "patch": self.patch,
             "build": self.build,
-            "full": f"{self.major}.{self.minor}.{self.patch}",
-            "short": f"{self.major}.{self.minor}.{self.patch}"
+            "prerelease": self.prerelease,
+            "full": f"{self.major}.{self.minor}.{self.patch}-{self.prerelease}",
+            "short": f"{self.major}.{self.minor}{self.prerelease}"
         }
 
         # 应用程序元数据
