@@ -526,7 +526,12 @@ class ColorGenerationInterface(QWidget):
         self._base_hue = h
         self._base_saturation = s
 
-        # 色相变化：所有采样点跟着旋转
+        # RYB模式下，重新生成配色以保持RYB色轮上的相对角度关系
+        if self._color_wheel_mode == 'RYB' and delta_h != 0:
+            self._generate_scheme_colors()
+            return
+
+        # 色相变化：所有采样点跟着旋转（仅RGB模式）
         if delta_h != 0 and self._scheme_colors:
             for i in range(len(self._scheme_colors)):
                 old_h, old_s, old_b = self._scheme_colors[i]
