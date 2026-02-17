@@ -59,6 +59,8 @@ from .async_loader import BaseBatchLoader
 
 from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
 
+from .image_mediator import ImageMediator
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -114,4 +116,5 @@ __all__ = [
     'GROUPING_THRESHOLDS',
     'generate_groups',
     'should_use_batch_loading',
+    'ImageMediator',
 ]

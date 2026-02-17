@@ -239,10 +239,8 @@ class ColorExtractInterface(QWidget):
     def on_image_data_loaded(self, pixmap, image):
         """图片数据加载完成回调（用于同步到其他面板）"""
         window = self.window()
-        if window and hasattr(window, 'sync_image_data_to_luminance'):
-            # 立即同步图片数据到明度面板（只设置图片，不计算）
-            # 明度面板会自己延迟执行耗时操作
-            window.sync_image_data_to_luminance(pixmap, image)
+        if window and hasattr(window, '_image_mediator'):
+            window._image_mediator.set_image(pixmap, image, 'color')
 
         # 更新RGB直方图和色相直方图
         self.rgb_histogram_widget.set_image(image)
@@ -255,21 +253,28 @@ class ColorExtractInterface(QWidget):
         # 更新HSB色环上的采样点
         self.hsb_color_wheel.update_sample_point(index, rgb)
 
-    def clear_image(self):
-        """清空图片"""
-        self.image_canvas.clear_image()
+    def clear_all(self, emit_signal: bool = True):
+        """清空所有相关内容（图片、色卡、色环、直方图）
+
+        Args:
+            emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
+        """
+        self.image_canvas.clear_image(emit_signal)
         self.color_card_panel.clear_all()
         # 清除HSB色环和直方图
         self.hsb_color_wheel.clear_sample_points()
         self.rgb_histogram_widget.clear()
         self.hue_histogram_widget.clear()
 
+    def clear_image(self):
+        """清空图片（供外部调用，会发射信号同步到其他面板）"""
+        self.clear_all(emit_signal=True)
+
     def on_image_cleared(self):
         """图片已清空回调（同步清除明度面板）"""
-        # 同步清除明度提取面板
         window = self.window()
-        if window and hasattr(window, 'sync_clear_to_luminance'):
-            window.sync_clear_to_luminance()
+        if window and hasattr(window, '_image_mediator'):
+            window._image_mediator.clear_image('color')
 
     def set_histogram_mode(self, mode: str):
         """设置直方图显示模式
@@ -669,17 +674,24 @@ class LuminanceExtractInterface(QWidget):
         unique_zones = list(set(zones))
         self.histogram_widget.set_highlight_zones(unique_zones)
 
-    def clear_image(self):
-        """清空图片"""
-        self.luminance_canvas.clear_image()
+    def clear_all(self, emit_signal: bool = True):
+        """清空所有相关内容（图片、直方图）
+
+        Args:
+            emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
+        """
+        self.luminance_canvas.clear_image(emit_signal)
         self.histogram_widget.clear()
+
+    def clear_image(self):
+        """清空图片（供外部调用，会发射信号同步到其他面板）"""
+        self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):
         """图片已清空回调（同步清除色彩面板）"""
-        # 同步清除色彩提取面板
         window = self.window()
-        if window and hasattr(window, 'sync_clear_to_color'):
-            window.sync_clear_to_color()
+        if window and hasattr(window, '_image_mediator'):
+            window._image_mediator.clear_image('luminance')
 
     def on_histogram_zone_pressed(self, zone):
         """直方图Zone被按下时调用

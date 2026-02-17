@@ -8,7 +8,7 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 
 # 项目模块导入
 from core import get_color_info
-from core import get_config_manager
+from core import get_config_manager, ImageMediator
 from version import version_manager
 from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
 from .cards import ColorCardPanel
@@ -144,8 +144,8 @@ class MainWindow(FluentWindow):
         self._config_manager = get_config_manager()
         self._config = self._config_manager.load()
 
-        # 防止清空同步的递归标志
-        self._is_clearing = False
+        # 创建图片状态中介者
+        self._image_mediator = ImageMediator(self)
 
         # 应用窗口大小配置
         window_config = self._config.get('window', {})
@@ -230,6 +230,9 @@ class MainWindow(FluentWindow):
         self.settings_interface = SettingsInterface(self)
         self.settings_interface.setObjectName('settings')
         self.stackedWidget.addWidget(self.settings_interface)
+
+        # 连接中介者信号
+        self._setup_mediator_connections()
 
         # 连接设置信号
         self._setup_settings_connections()
@@ -353,6 +356,39 @@ class MainWindow(FluentWindow):
         """打开图片（从色彩提取界面调用）"""
         self.color_extract_interface.open_image()
 
+    def _setup_mediator_connections(self):
+        """连接图片中介者的信号"""
+        self._image_mediator.image_updated.connect(self._on_mediator_image_updated)
+        self._image_mediator.image_cleared.connect(self._on_mediator_image_cleared)
+
+    def _on_mediator_image_updated(self, pixmap, image, source_id):
+        """中介者图片更新回调
+
+        Args:
+            pixmap: QPixmap 对象
+            image: QImage 对象
+            source_id: 操作来源标识
+        """
+        if source_id == 'luminance':
+            self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
+            self.color_extract_interface.rgb_histogram_widget.set_image(image)
+            self.color_extract_interface.hue_histogram_widget.set_image(image)
+        elif source_id == 'color':
+            self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
+
+    def _on_mediator_image_cleared(self, source_id):
+        """中介者图片清空回调
+
+        Args:
+            source_id: 操作来源标识
+        """
+        if source_id == 'luminance':
+            # 从明度面板同步过来，不发射信号防止循环
+            self.color_extract_interface.clear_all(emit_signal=False)
+        elif source_id == 'color':
+            # 从色彩面板同步过来，不发射信号防止循环
+            self.luminance_extract_interface.clear_all(emit_signal=False)
+
     def on_luminance_image_imported(self, file_path, pixmap, image):
         """明度提取面板独立导入图片后的同步回调
 
@@ -361,44 +397,7 @@ class MainWindow(FluentWindow):
             pixmap: QPixmap 对象
             image: QImage 对象
         """
-        # 同步图片数据到色彩提取面板（emit_sync=False 防止双向同步循环）
-        self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
-
-        # 更新RGB直方图和色相直方图
-        self.color_extract_interface.rgb_histogram_widget.set_image(image)
-        self.color_extract_interface.hue_histogram_widget.set_image(image)
-
-    def sync_image_to_luminance(self, image_path):
-        """同步图片路径到明度提取面板（保留用于兼容）"""
-        if image_path:
-            self.luminance_extract_interface.set_image(image_path)
-
-    def sync_image_data_to_luminance(self, pixmap, image):
-        """同步图片数据到明度提取面板（避免重复加载）"""
-        # emit_sync=False 防止双向同步循环
-        self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
-
-    def sync_clear_to_luminance(self):
-        """同步清除明度提取面板"""
-        if self._is_clearing:
-            return
-        self._is_clearing = True
-        try:
-            self.luminance_extract_interface.luminance_canvas.clear_image()
-            self.luminance_extract_interface.histogram_widget.clear()
-        finally:
-            self._is_clearing = False
-
-    def sync_clear_to_color(self):
-        """同步清除色彩提取面板"""
-        if self._is_clearing:
-            return
-        self._is_clearing = True
-        try:
-            self.color_extract_interface.image_canvas.clear_image()
-            self.color_extract_interface.color_card_panel.clear_all()
-        finally:
-            self._is_clearing = False
+        self._image_mediator.set_image(pixmap, image, 'luminance')
 
     def refresh_palette_management(self):
         """刷新配色管理面板"""

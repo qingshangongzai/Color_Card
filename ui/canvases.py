@@ -711,8 +711,12 @@ class BaseCanvas(QWidget):
 
         menu.exec(event.globalPos())
 
-    def clear_image(self) -> None:
-        """清空图片"""
+    def clear_image(self, emit_signal: bool = True) -> None:
+        """清空图片
+
+        Args:
+            emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
+        """
         self._original_pixmap = None
         self._image = None
 
@@ -726,7 +730,8 @@ class BaseCanvas(QWidget):
         self.update()
 
         # 发送图片已清空信号，用于同步到其他面板
-        self.image_cleared.emit()
+        if emit_signal:
+            self.image_cleared.emit()
 
     def get_image(self) -> Optional[QImage]:
         """获取当前图片
@@ -1009,9 +1014,13 @@ class ImageCanvas(BaseCanvas):
         if self._high_brightness_pixmap is not None:
             self._high_brightness_pixmap = None
 
-    def clear_image(self) -> None:
-        """清空图片"""
-        super().clear_image()
+    def clear_image(self, emit_signal: bool = True) -> None:
+        """清空图片
+
+        Args:
+            emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
+        """
+        super().clear_image(emit_signal)
 
         # 隐藏取色点和放大视图
         for picker in self._pickers:
@@ -1539,9 +1548,13 @@ class LuminanceCanvas(BaseCanvas):
                 text_y = box_y + (box_height - text_height) // 2
                 painter.drawText(text_x, text_y + text_height - 2, zone)
 
-    def clear_image(self) -> None:
-        """清空图片"""
-        super().clear_image()
+    def clear_image(self, emit_signal: bool = True) -> None:
+        """清空图片
+
+        Args:
+            emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
+        """
+        super().clear_image(emit_signal)
 
         # 隐藏取色点
         for picker in self._pickers:
