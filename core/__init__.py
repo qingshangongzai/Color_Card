@@ -55,6 +55,8 @@ from .color_data import (
     get_random_palettes,
 )
 
+from .async_loader import BaseBatchLoader
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -106,4 +108,5 @@ __all__ = [
     'get_all_color_sources',
     'get_all_palettes',
     'get_random_palettes',
+    'BaseBatchLoader',
 ]

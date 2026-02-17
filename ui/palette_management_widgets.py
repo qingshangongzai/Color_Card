@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal, QThread
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel,
     QSizePolicy, QApplication, QLineEdit
@@ -17,6 +17,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
+from core.async_loader import BaseBatchLoader
 from .cards import COLOR_MODE_CONFIG, ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
@@ -63,15 +64,13 @@ def _generate_groups(total: int) -> list:
     return groups
 
 
-class FavoriteGroupLoaderThread(QThread):
+class FavoriteGroupLoaderThread(BaseBatchLoader):
     """配色管理分组数据异步加载线程
     
     用于大数据量配色组的分批加载，避免阻塞UI主线程。
     """
     
     data_ready = Signal(int, list)
-    batch_finished = Signal()
-    loading_finished = Signal()
     
     def __init__(self, favorites: list, group_indices: list, batch_size: int = 10, parent=None):
         """初始化加载线程
@@ -82,49 +81,42 @@ class FavoriteGroupLoaderThread(QThread):
             batch_size: 每批加载数量（默认10）
             parent: 父对象
         """
-        super().__init__(parent)
+        super().__init__(batch_size, parent)
         self._favorites = favorites
         self._group_indices = group_indices
-        self._batch_size = batch_size
-        self._is_cancelled = False
         self._total_items = len(group_indices)
     
-    def cancel(self):
-        """请求取消加载"""
-        self._is_cancelled = True
+    def get_total_batches(self) -> int:
+        """获取总批次数
+        
+        Returns:
+            int: 总批次数
+        """
+        return math.ceil(self._total_items / self._batch_size)
     
-    def run(self):
-        """分批加载数据"""
-        if self._total_items == 0:
-            self.loading_finished.emit()
-            return
+    def load_batch(self, batch_idx: int) -> list:
+        """加载指定批次的数据
         
-        total_batches = math.ceil(self._total_items / self._batch_size)
+        Args:
+            batch_idx: 批次索引（从0开始）
+            
+        Returns:
+            list: 批次数据列表
+        """
+        start = batch_idx * self._batch_size
+        end = min(start + self._batch_size, self._total_items)
         
-        for batch_idx in range(total_batches):
-            if self._is_cancelled:
-                return
-            
-            start = batch_idx * self._batch_size
-            end = min(start + self._batch_size, self._total_items)
-            
-            batch_data = []
-            for i in range(start, end):
-                if self._is_cancelled:
-                    return
-                fav_idx = self._group_indices[i]
-                if 0 <= fav_idx < len(self._favorites):
-                    batch_data.append(self._favorites[fav_idx])
-            
-            if self._is_cancelled:
-                return
-            
-            self.data_ready.emit(batch_idx, batch_data)
-            self.batch_finished.emit()
-            
-            self.msleep(10)
+        batch_data = []
+        for i in range(start, end):
+            if self._check_cancelled():
+                return batch_data
+            fav_idx = self._group_indices[i]
+            if 0 <= fav_idx < len(self._favorites):
+                batch_data.append(self._favorites[fav_idx])
         
-        self.loading_finished.emit()
+        self.data_ready.emit(batch_idx, batch_data)
+        
+        return batch_data
 
 
 class PaletteManagementColorCard(QWidget):

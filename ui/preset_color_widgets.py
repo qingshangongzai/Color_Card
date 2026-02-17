@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal, QThread
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel,
     QSizePolicy, QApplication
@@ -16,6 +16,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
+from core.async_loader import BaseBatchLoader
 from core.color_data import (
     get_color_source, get_random_palettes, ColorSource
 )
@@ -24,15 +25,13 @@ from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
 
 
-class GroupLoaderThread(QThread):
+class GroupLoaderThread(BaseBatchLoader):
     """分组数据异步加载线程
     
     用于大数据量配色组的分批加载，避免阻塞UI主线程。
     """
     
     data_ready = Signal(int, list)
-    batch_finished = Signal()
-    loading_finished = Signal()
     
     def __init__(self, source: ColorSource, group_index: int, batch_size: int = 10, parent=None):
         """初始化加载线程
@@ -43,45 +42,32 @@ class GroupLoaderThread(QThread):
             batch_size: 每批加载数量（默认10）
             parent: 父对象
         """
-        super().__init__(parent)
+        super().__init__(batch_size, parent)
         self._source = source
         self._group_index = group_index
-        self._batch_size = batch_size
-        self._is_cancelled = False
         
         group_info = source.get_group_info(group_index)
         self._total_items = group_info.get("total_items", 0)
     
-    def cancel(self):
-        """请求取消加载"""
-        self._is_cancelled = True
+    def get_total_batches(self) -> int:
+        """获取总批次数"""
+        return math.ceil(self._total_items / self._batch_size)
     
-    def run(self):
-        """分批加载数据"""
-        if self._total_items == 0:
-            self.loading_finished.emit()
-            return
+    def load_batch(self, batch_idx: int) -> list:
+        """加载指定批次的数据
         
-        total_batches = math.ceil(self._total_items / self._batch_size)
-        
-        for batch_idx in range(total_batches):
-            if self._is_cancelled:
-                return
+        Args:
+            batch_idx: 批次索引（从0开始）
             
-            start = batch_idx * self._batch_size
-            data = self._source.get_palettes_for_group_batch(
-                self._group_index, start, self._batch_size
-            )
-            
-            if self._is_cancelled:
-                return
-            
-            self.data_ready.emit(batch_idx, data)
-            self.batch_finished.emit()
-            
-            self.msleep(10)
-        
-        self.loading_finished.emit()
+        Returns:
+            list: 批次数据列表
+        """
+        start = batch_idx * self._batch_size
+        data = self._source.get_palettes_for_group_batch(
+            self._group_index, start, self._batch_size
+        )
+        self.data_ready.emit(batch_idx, data)
+        return data
 
 
 class PresetColorCard(QWidget):

@@ -20,67 +20,34 @@ from .theme_colors import (
 )
 
 
-class ImageLoader(QThread):
-    """图片加载工作线程（使用PIL在子线程读取图片数据）"""
-    loaded = Signal(bytes, int, int, str)  # 信号：图片数据(bytes), 宽度, 高度, 格式
-    error = Signal(str)  # 信号：错误信息
-
-    def __init__(self, image_path: str) -> None:
-        super().__init__()
-        self._image_path: str = image_path
-
-    def run(self) -> None:
-        """在子线程中使用PIL加载图片"""
-        try:
-            # 使用PIL打开图片（PIL是线程安全的）
-            with Image.open(self._image_path) as pil_image:
-                # 转换为RGB模式（处理RGBA、P模式等）
-                if pil_image.mode != 'RGB':
-                    pil_image = pil_image.convert('RGB')
-
-                # 获取图片尺寸
-                width, height = pil_image.size
-
-                # 将图片保存为内存中的BMP格式（无压缩，便于快速转换）
-                buffer = io.BytesIO()
-                pil_image.save(buffer, format='BMP')
-                image_data = buffer.getvalue()
-
-                self.loaded.emit(image_data, width, height, 'BMP')
-        except (IOError, OSError, ValueError) as e:
-            self.error.emit(str(e))
-
-
 class ProgressiveImageLoader(QThread):
     """分阶段图片加载工作线程
 
-    实现三阶段加载：
-    1. 快速加载模糊预览（缩略图）
-    2. 加载完整分辨率图片
-    3. 发送进度更新
+    实现两阶段加载：
+    1. 快速解码显示尺寸图片（用于快速显示）
+    2. 后台解码完整图片（用于直方图计算和精确取色）
 
     支持取消操作，避免阻塞UI线程
     """
-    # 信号：模糊预览图片数据, 宽度, 高度
-    blurry_loaded = Signal(bytes, int, int)
-    # 信号：完整图片数据, 宽度, 高度, 格式
-    full_loaded = Signal(bytes, int, int, str)
-    # 信号：加载进度 (0-100)
+    display_ready = Signal(bytes, int, int)
+    full_ready = Signal(bytes, int, int, str)
     progress = Signal(int)
-    # 信号：错误信息
     error = Signal(str)
 
-    def __init__(self, image_path: str, blurry_size: int = 150) -> None:
+    def __init__(self, image_path: str, display_size: int = 1920) -> None:
+        """初始化加载器
+
+        Args:
+            image_path: 图片文件路径
+            display_size: 显示尺寸上限（默认1920px）
+        """
         super().__init__()
         self._image_path: str = image_path
-        self._blurry_size: int = blurry_size  # 模糊预览的最大边长（减小以加快预览）
-        self._is_cancelled: bool = False  # 取消标志
+        self._display_size: int = display_size
+        self._is_cancelled: bool = False
 
     def cancel(self) -> None:
-        """请求取消加载
-
-        设置取消标志，run方法会在关键检查点检查此标志
-        """
+        """请求取消加载"""
         self._is_cancelled = True
 
     def _check_cancelled(self) -> bool:
@@ -94,60 +61,62 @@ class ProgressiveImageLoader(QThread):
     def run(self) -> None:
         """在子线程中分阶段加载图片"""
         try:
-            # 阶段1：快速加载模糊预览
-            self.progress.emit(10)
+            self.progress.emit(5)
 
             with Image.open(self._image_path) as pil_image:
-                # 检查是否被取消
                 if self._check_cancelled():
                     return
 
-                # 转换为RGB模式
                 if pil_image.mode != 'RGB':
                     pil_image = pil_image.convert('RGB')
 
                 width, height = pil_image.size
+                max_dim = max(width, height)
 
-                # 生成缩略图用于快速预览
-                thumb_image = pil_image.copy()
-                thumb_image.thumbnail((self._blurry_size, self._blurry_size), Image.Resampling.LANCZOS)
-
-                # 检查是否被取消
                 if self._check_cancelled():
                     return
 
-                # 保存缩略图数据
-                buffer = io.BytesIO()
-                thumb_image.save(buffer, format='BMP')
-                blurry_data = buffer.getvalue()
+                if max_dim > self._display_size:
+                    display_img = pil_image.copy()
+                    display_img.thumbnail(
+                        (self._display_size, self._display_size),
+                        Image.Resampling.LANCZOS
+                    )
 
-                # 发送模糊预览加载完成信号
-                self.blurry_loaded.emit(blurry_data, width, height)
-                self.progress.emit(40)
+                    if self._check_cancelled():
+                        return
 
-                # 检查是否被取消
+                    buffer = io.BytesIO()
+                    display_img.save(buffer, format='BMP')
+                    display_data = buffer.getvalue()
+
+                    self.display_ready.emit(display_data, width, height)
+                    self.progress.emit(50)
+
+                    del display_img
+                else:
+                    buffer = io.BytesIO()
+                    pil_image.save(buffer, format='BMP')
+                    display_data = buffer.getvalue()
+
+                    self.display_ready.emit(display_data, width, height)
+                    self.progress.emit(50)
+
                 if self._check_cancelled():
                     return
 
-                # 阶段2：加载完整图片
                 self.progress.emit(60)
-
-                # 检查是否被取消
-                if self._check_cancelled():
-                    return
 
                 full_buffer = io.BytesIO()
                 pil_image.save(full_buffer, format='BMP')
                 full_data = full_buffer.getvalue()
 
-                # 检查是否被取消
                 if self._check_cancelled():
                     return
 
                 self.progress.emit(90)
 
-                # 发送完整图片加载完成信号
-                self.full_loaded.emit(full_data, width, height, 'BMP')
+                self.full_ready.emit(full_data, width, height, 'BMP')
                 self.progress.emit(100)
 
         except (IOError, OSError, ValueError) as e:
@@ -194,7 +163,6 @@ class BaseCanvas(QWidget):
         self._image: Optional[QImage] = None
         self._picker_positions: List[QPoint] = []
         self._picker_rel_positions: List[QPointF] = []
-        self._loader: Optional[ImageLoader] = None
         self._progressive_loader: Optional[ProgressiveImageLoader] = None
         self._pending_image_path: Optional[str] = None
         self._picker_count: int = picker_count
@@ -272,18 +240,12 @@ class BaseCanvas(QWidget):
 
         # 创建并启动分阶段加载线程
         self._progressive_loader = ProgressiveImageLoader(image_path)
-        self._progressive_loader.blurry_loaded.connect(self._on_blurry_image_loaded)
-        self._progressive_loader.full_loaded.connect(self._on_full_image_loaded)
+        self._progressive_loader.display_ready.connect(self._on_display_ready)
+        self._progressive_loader.full_ready.connect(self._on_full_ready)
         self._progressive_loader.progress.connect(self._on_loading_progress)
         self._progressive_loader.error.connect(self._on_image_load_error)
         self._progressive_loader.finished.connect(self._cleanup_progressive_loader)
         self._progressive_loader.start()
-
-    def _cleanup_loader(self) -> None:
-        """清理加载线程"""
-        if self._loader is not None:
-            self._loader.deleteLater()
-            self._loader = None
 
     def _cleanup_progressive_loader(self) -> None:
         """清理分阶段加载线程"""
@@ -291,28 +253,25 @@ class BaseCanvas(QWidget):
             self._progressive_loader.deleteLater()
             self._progressive_loader = None
 
-    def _on_blurry_image_loaded(self, image_data: bytes, width: int, height: int) -> None:
-        """模糊预览图片加载完成的回调
+    def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
+        """显示图片就绪的回调
 
         Args:
-            image_data: 图片字节数据（缩略图）
+            image_data: 图片字节数据（显示尺寸）
             width: 原始图片宽度
             height: 原始图片高度
         """
-        # 从字节数据创建QImage和QPixmap
-        blurry_image = QImage.fromData(image_data, 'BMP')
-        self._original_pixmap = QPixmap.fromImage(blurry_image)
+        display_image = QImage.fromData(image_data, 'BMP')
+        self._original_pixmap = QPixmap.fromImage(display_image)
 
-        # 保存原始尺寸信息
         self._pending_image_width = width
         self._pending_image_height = height
 
-        # 显示模糊预览
-        self._setup_blurry_preview()
+        self._setup_display_preview()
         self.update()
 
-    def _on_full_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
-        """完整图片加载完成的回调
+    def _on_full_ready(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
+        """完整图片就绪的回调
 
         Args:
             image_data: 图片字节数据
@@ -320,14 +279,11 @@ class BaseCanvas(QWidget):
             height: 图片高度
             fmt: 图片格式
         """
-        # 从字节数据创建QImage（在主线程中安全执行）
         self._image = QImage.fromData(image_data, fmt)
         self._original_pixmap = QPixmap.fromImage(self._image)
 
-        # 隐藏加载状态
         self.hide_loading()
 
-        # 完成加载后的设置
         self._setup_after_load()
 
     def _on_loading_progress(self, progress: int) -> None:
@@ -336,15 +292,15 @@ class BaseCanvas(QWidget):
         Args:
             progress: 加载进度 (0-100)
         """
-        if progress < 40:
+        if progress < 50:
             self._loading_label.setText(f"正在导入图片... {progress}%")
         elif progress < 90:
-            self._loading_label.setText(f"正在加载高清图片... {progress}%")
+            self._loading_label.setText(f"正在加载完整图片... {progress}%")
         else:
             self._loading_label.setText(f"正在完成... {progress}%")
 
-    def _setup_blurry_preview(self) -> None:
-        """设置模糊预览（子类可重写）"""
+    def _setup_display_preview(self) -> None:
+        """设置显示预览（子类可重写）"""
         pass
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
@@ -858,17 +814,11 @@ class ImageCanvas(BaseCanvas):
         """异步加载并显示图片（使用分阶段加载）"""
         super().set_image(image_path)
 
-    def _setup_blurry_preview(self) -> None:
-        """设置模糊预览（阶段1：快速显示缩略图）"""
+    def _setup_display_preview(self) -> None:
+        """设置显示预览（阶段1：快速显示）"""
         if self._original_pixmap and not self._original_pixmap.isNull():
-            # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
-
-            # 模糊预览阶段不显示取色点，等待完整图片加载完成
-            # 避免用户在预览阶段看到未就绪的采样点，提升用户体验
-
-            # 更新加载提示
-            self._loading_label.setText("正在加载高清图片...")
+            self._loading_label.setText("正在加载完整图片...")
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """图片加载完成的回调"""
@@ -1432,17 +1382,11 @@ class LuminanceCanvas(BaseCanvas):
 
         self.update_picker_positions()
 
-    def _setup_blurry_preview(self) -> None:
-        """设置模糊预览（阶段1：快速显示缩略图）"""
+    def _setup_display_preview(self) -> None:
+        """设置显示预览（阶段1：快速显示）"""
         if self._original_pixmap and not self._original_pixmap.isNull():
-            # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
-
-            # 模糊预览阶段不显示取色点，等待完整图片加载完成
-            # 避免用户在预览阶段看到未就绪的采样点，提升用户体验
-
-            # 更新加载提示
-            self._loading_label.setText("正在加载高清图片...")
+            self._loading_label.setText("正在加载完整图片...")
 
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
@@ -1783,7 +1727,7 @@ class LuminanceCanvas(BaseCanvas):
 
 
 __all__ = [
-    'ImageLoader',
+    'ProgressiveImageLoader',
     'BaseCanvas',
     'ImageCanvas',
     'LuminanceCanvas',
