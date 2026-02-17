@@ -1,4 +1,4 @@
-"""预览组件模块 - 重构版本
+"""配色预览模块
 
 提供配色预览相关的UI组件，包括：
 - 可拖拽颜色圆点
@@ -9,26 +9,30 @@
 - 预览场景选择器
 - 预览面板
 - 预览工具栏
+- 配色预览界面
 """
 # 标准库导入
+from datetime import datetime
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 # 第三方库导入
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QSizePolicy, QPushButton, QLabel, QApplication
-)
 from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData
 from PySide6.QtGui import (
-    QPainter, QColor, QPen, QBrush, QFont, QDrag, QPixmap, QFontMetrics
+    QPainter, QColor, QPen, QBrush, QFont, QDrag, QPixmap
 )
 from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFileDialog,
+    QSizePolicy, QPushButton, QLabel, QApplication
+)
 from qfluentwidgets import (
     ComboBox, PushButton, SubtitleLabel, FluentIcon, isDarkTheme, qconfig,
     RoundMenu, Action, InfoBar, InfoBarPosition, ScrollArea
 )
 
 # 项目模块导入
+from core import get_config_manager
 from ui.theme_colors import get_border_color, get_text_color
 
 
@@ -84,15 +88,12 @@ class DraggableColorDot(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 绘制圆点背景
         color = QColor(self._color)
         painter.setBrush(QBrush(color))
 
-        # 绘制边框
         border_color = get_border_color()
         painter.setPen(QPen(border_color, 1))
 
-        # 绘制圆形
         rect = self.rect().adjusted(2, 2, -2, -2)
         painter.drawEllipse(rect)
 
@@ -107,33 +108,27 @@ class DraggableColorDot(QWidget):
         if not (event.buttons() & Qt.MouseButton.LeftButton):
             return
 
-        # 检查移动距离是否超过拖拽阈值
         if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
             return
 
-        # 创建拖拽对象
         drag = QDrag(self)
         mime_data = QMimeData()
         mime_data.setText(str(self._index))
         drag.setMimeData(mime_data)
 
-        # 创建拖拽时的预览图像
         pixmap = QPixmap(self.size())
         self.render(pixmap)
         drag.setPixmap(pixmap)
         drag.setHotSpot(QPoint(self.width() // 2, self.height() // 2))
 
-        # 执行拖拽
         drag.exec(Qt.DropAction.MoveAction)
 
-        # 拖拽结束后恢复光标
         self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def mouseReleaseEvent(self, event):
         """鼠标释放事件"""
         if event.button() == Qt.MouseButton.LeftButton:
             self.setCursor(Qt.CursorShape.OpenHandCursor)
-            # 检查是否是点击（没有发生拖拽）
             if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
                 self.clicked.emit(self._index)
 
@@ -153,16 +148,13 @@ class DraggableColorDot(QWidget):
         """右键菜单事件"""
         menu = RoundMenu("", self)
 
-        # 如果开启HEX显示，添加HEX值和复制按钮
         if self._hex_visible:
-            # HEX值显示和复制
             hex_value = self._color.upper()
             copy_action = Action(FluentIcon.COPY, f"{hex_value}")
             copy_action.triggered.connect(self._copy_hex_to_clipboard)
             menu.addAction(copy_action)
             menu.addSeparator()
 
-        # 删除选项
         delete_action = Action(FluentIcon.DELETE, "删除")
         delete_action.triggered.connect(lambda: self.delete_requested.emit(self._index))
         menu.addAction(delete_action)
@@ -218,14 +210,12 @@ class ColorDotBar(QWidget):
 
     def _rebuild_dots(self):
         """重建所有圆点"""
-        # 清除现有圆点
         layout = self.layout()
         for dot in self._dots:
             layout.removeWidget(dot)
             dot.deleteLater()
         self._dots.clear()
 
-        # 创建新圆点
         for i, color in enumerate(self._colors):
             dot = DraggableColorDot(color, i)
             dot.clicked.connect(self._on_dot_clicked)
@@ -271,7 +261,6 @@ class ColorDotBar(QWidget):
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-            # 计算指示线位置
             if self._insert_indicator_pos < len(self._dots):
                 target_widget = self._dots[self._insert_indicator_pos]
                 x = target_widget.geometry().left() - 4
@@ -281,24 +270,20 @@ class ColorDotBar(QWidget):
 
             x = max(10, min(x, self.width() - 10))
 
-            # 定义颜色和尺寸
             indicator_color = QColor(0, 120, 215) if not isDarkTheme() else QColor(0, 150, 255)
             dot_radius = 4
             line_width = 2
             y_center = self.height() // 2
 
-            # 绘制发光效果（外圈）
             glow_color = QColor(indicator_color)
             glow_color.setAlpha(60)
             painter.setBrush(QBrush(glow_color))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawEllipse(QPoint(x, y_center), dot_radius + 3, dot_radius + 3)
 
-            # 绘制中心圆点
             painter.setBrush(QBrush(indicator_color))
             painter.drawEllipse(QPoint(x, y_center), dot_radius, dot_radius)
 
-            # 绘制上下延伸的细线
             painter.setPen(QPen(indicator_color, line_width))
             line_length = (self.height() - 20) // 2 - dot_radius - 2
             if line_length > 0:
@@ -319,11 +304,9 @@ class ColorDotBar(QWidget):
 
         event.acceptProposedAction()
 
-        # 计算插入位置
         drop_pos = event.position().toPoint()
         target_index = self._calculate_insert_index(drop_pos)
 
-        # 更新指示器位置
         if target_index != self._insert_indicator_pos:
             self._insert_indicator_pos = target_index
             self.update()
@@ -337,11 +320,9 @@ class ColorDotBar(QWidget):
         """处理放置，完成排序"""
         event.acceptProposedAction()
 
-        # 隐藏指示器
         self._insert_indicator_pos = -1
         self.update()
 
-        # 获取拖拽的源索引
         mime_data = event.mimeData()
         if not mime_data.hasText():
             return
@@ -351,24 +332,18 @@ class ColorDotBar(QWidget):
         except ValueError:
             return
 
-        # 计算放置的目标位置
         drop_pos = event.position().toPoint()
         target_index = self._calculate_insert_index(drop_pos)
 
-        # 执行排序
         if target_index != source_index and 0 <= target_index <= len(self._colors):
-            # 移动颜色
             color = self._colors.pop(source_index)
 
-            # 调整目标索引（如果源在目标之前，pop后索引会变化）
             if source_index < target_index:
                 target_index -= 1
 
             self._colors.insert(target_index, color)
 
-            # 重建圆点
             self._rebuild_dots()
-            # 发射信号
             self.order_changed.emit(self._colors.copy())
 
     def _calculate_insert_index(self, pos: QPoint) -> int:
@@ -383,16 +358,13 @@ class ColorDotBar(QWidget):
         if not self._dots:
             return 0
 
-        # 遍历所有圆点，找到最近的插入位置
         for i, dot in enumerate(self._dots):
             dot_rect = dot.geometry()
             dot_center = dot_rect.center().x()
 
-            # 如果位置在当前圆点的左半部分，插入到当前位置
             if pos.x() < dot_center:
                 return i
 
-        # 如果位置在所有圆点右侧，插入到最后
         return len(self._dots)
 
 
@@ -524,7 +496,7 @@ class PreviewSceneFactory:
 
 
 # ============================================================================
-# SVG预览组件（增强版）
+# SVG预览组件
 # ============================================================================
 
 class SVGPreviewWidget(BasePreviewScene):
@@ -536,7 +508,6 @@ class SVGPreviewWidget(BasePreviewScene):
     - 支持右键删除用户模板
     """
 
-    # 信号：删除模板请求
     delete_requested = Signal(str)
 
     def __init__(self, scene_config: dict = None, parent=None):
@@ -546,7 +517,6 @@ class SVGPreviewWidget(BasePreviewScene):
             scene_config: 场景配置字典（可选）
             parent: 父控件
         """
-        # 如果没有传入配置，使用默认配置
         if scene_config is None:
             scene_config = {"id": "svg", "type": "svg", "name": "SVG预览"}
 
@@ -555,14 +525,12 @@ class SVGPreviewWidget(BasePreviewScene):
         self._svg_renderer: Optional[QSvgRenderer] = None
         self._svg_content: str = ""
         self._original_svg_content: str = ""
-        self._color_mapper: Optional[Any] = None  # SVGColorMapper 实例
-        self._template_mode: bool = False  # 模板模式标志
+        self._color_mapper: Optional[Any] = None
+        self._template_mode: bool = False
 
-        # 模板信息
-        self._is_builtin: bool = False  # 是否为内置模板
-        self._template_path: Optional[str] = None  # 模板路径
+        self._is_builtin: bool = False
+        self._template_path: Optional[str] = None
 
-        # 设置无边框样式
         self.setStyleSheet("border: none; background: transparent;")
 
     def set_template_info(self, is_builtin: bool, path: str = None):
@@ -577,24 +545,19 @@ class SVGPreviewWidget(BasePreviewScene):
 
     def contextMenuEvent(self, event):
         """右键菜单事件"""
-        # 创建菜单（title="", parent=self）
         menu = RoundMenu("", self)
 
-        # 统一显示"删除模板"
         delete_action = Action(FluentIcon.DELETE, "删除模板")
         delete_action.triggered.connect(self._on_delete_template)
         menu.addAction(delete_action)
 
-        # 显示菜单
         menu.exec(event.globalPos())
 
-        # 接受事件
         event.accept()
 
     def _on_delete_template(self):
         """删除模板"""
         if self._is_builtin:
-            # 内置模板，显示提示
             InfoBar.warning(
                 title="无法删除",
                 content="内置场景，不可删除",
@@ -605,7 +568,6 @@ class SVGPreviewWidget(BasePreviewScene):
                 parent=self.window()
             )
         elif self._template_path:
-            # 用户模板，发射删除信号
             self.delete_requested.emit(self._template_path)
 
     def load_svg(self, file_path: str) -> bool:
@@ -618,7 +580,6 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            # 使用新的 SVGColorMapper
             from core import SVGColorMapper
             self._color_mapper = SVGColorMapper()
 
@@ -627,10 +588,8 @@ class SVGPreviewWidget(BasePreviewScene):
 
             self._original_svg_content = self._color_mapper.get_original_content()
 
-            # 应用当前配色
             self._apply_colors_to_svg()
 
-            # 创建渲染器
             self._svg_renderer = QSvgRenderer()
             self._svg_renderer.load(self._svg_content.encode('utf-8'))
 
@@ -658,10 +617,8 @@ class SVGPreviewWidget(BasePreviewScene):
 
             self._original_svg_content = content
 
-            # 应用当前配色
             self._apply_colors_to_svg()
 
-            # 创建渲染器
             self._svg_renderer = QSvgRenderer()
             self._svg_renderer.load(self._svg_content.encode('utf-8'))
 
@@ -711,10 +668,8 @@ class SVGPreviewWidget(BasePreviewScene):
         else:
             self._colors = []
 
-        # 如果有已加载的 SVG，重新应用配色
         if self._original_svg_content:
             self._apply_colors_to_svg()
-            # 确保渲染器已创建并加载新内容
             if not self._svg_renderer:
                 self._svg_renderer = QSvgRenderer()
             self._svg_renderer.load(self._svg_content.encode('utf-8'))
@@ -725,7 +680,6 @@ class SVGPreviewWidget(BasePreviewScene):
         if not self._original_svg_content or not self._colors:
             return
 
-        # 使用智能映射
         if self._color_mapper:
             self._svg_content = self._color_mapper.apply_intelligent_mapping(self._colors)
         else:
@@ -736,26 +690,19 @@ class SVGPreviewWidget(BasePreviewScene):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 如果没有配色，显示提示信息
         if not self._colors:
             self._draw_empty_hint(painter)
             return
 
-        # 检查SVG是否有固定颜色的背景元素
         has_fixed_background = self._has_fixed_background_element()
 
-        # 绘制背景（只有没有固定背景时才使用配色）
         if has_fixed_background:
-            # SVG有固定背景，使用白色作为容器背景
             bg_color = QColor("#ffffff")
         else:
-            # 使用配色的第一个颜色作为背景
             bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
 
-        # 如果有 SVG 渲染器，绘制 SVG
         if self._svg_renderer and self._svg_renderer.isValid():
-            # 计算缩放比例，保持宽高比
             view_box = self._svg_renderer.viewBox()
             if view_box.isValid():
                 svg_width = view_box.width()
@@ -765,13 +712,11 @@ class SVGPreviewWidget(BasePreviewScene):
                 svg_height = self._svg_renderer.defaultSize().height()
 
             if svg_width > 0 and svg_height > 0:
-                # 计算缩放比例，保持宽高比完整显示
                 widget_rect = self.rect()
                 scale_x = widget_rect.width() / svg_width
                 scale_y = widget_rect.height() / svg_height
-                scale = min(scale_x, scale_y)  # 使用min保持完整显示
+                scale = min(scale_x, scale_y)
 
-                # 计算居中位置
                 new_width = svg_width * scale
                 new_height = svg_height * scale
                 x = (widget_rect.width() - new_width) / 2
@@ -788,9 +733,7 @@ class SVGPreviewWidget(BasePreviewScene):
         if not self._svg_content or not self._colors:
             return self._svg_content
 
-        # 检查是否需要添加背景
         if self._color_mapper and not self._color_mapper._has_background_element():
-            # 需要添加背景矩形
             return self._add_background_to_svg(self._svg_content, self._colors[0])
 
         return self._svg_content
@@ -811,18 +754,14 @@ class SVGPreviewWidget(BasePreviewScene):
 
             root = ET.fromstring(svg_content)
 
-            # 获取 SVG 命名空间
             svg_ns = 'http://www.w3.org/2000/svg'
 
-            # 检查根元素是否有命名空间
             has_namespace = root.tag.startswith('{')
 
-            # 获取画布大小
             viewbox = root.get('viewBox', '')
             width = root.get('width', '0')
             height = root.get('height', '0')
 
-            # 解析 viewBox 或 width/height
             if viewbox:
                 parts = viewbox.split()
                 if len(parts) >= 4:
@@ -830,14 +769,12 @@ class SVGPreviewWidget(BasePreviewScene):
                 else:
                     return svg_content
             elif width and height:
-                # 移除单位
                 w = re.sub(r'[^\d.]', '', width)
                 h = re.sub(r'[^\d.]', '', height)
                 x, y = '0', '0'
             else:
                 return svg_content
 
-            # 创建背景矩形元素（使用正确的命名空间）
             if has_namespace:
                 bg_rect = ET.Element(f'{{{svg_ns}}}rect')
             else:
@@ -849,10 +786,8 @@ class SVGPreviewWidget(BasePreviewScene):
             bg_rect.set('height', h)
             bg_rect.set('fill', bg_color)
 
-            # 将背景矩形插入到第一个位置
             root.insert(0, bg_rect)
 
-            # 转换回字符串
             return ET.tostring(root, encoding='unicode')
 
         except Exception as e:
@@ -883,7 +818,6 @@ class SVGPreviewWidget(BasePreviewScene):
 
             root = ET.fromstring(self._svg_content)
 
-            # 查找所有带有 data-fixed-color="original" 的rect元素
             for elem in root.iter():
                 tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
                 if tag == 'rect':
@@ -897,11 +831,9 @@ class SVGPreviewWidget(BasePreviewScene):
 
     def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""
-        # 绘制背景
         bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
         painter.fillRect(self.rect(), bg_color)
 
-        # 绘制提示文字
         text_color = get_text_color()
         painter.setPen(QPen(text_color))
         font = QFont("Arial", 11)
@@ -919,7 +851,7 @@ class BaseLayout(QWidget):
     """布局基类 - 所有布局必须继承此类"""
 
     current_index_changed = Signal(int)
-    template_deleted = Signal(str)  # 模板删除信号，参数为模板路径
+    template_deleted = Signal(str)
 
     def __init__(self, templates: list, config: dict, parent=None):
         super().__init__(parent)
@@ -961,10 +893,8 @@ class BaseLayout(QWidget):
         """
         svg_widget = SVGPreviewWidget(parent=self)
 
-        # 设置模板信息
         svg_widget.set_template_info(is_builtin, template_path)
 
-        # 连接删除信号
         svg_widget.delete_requested.connect(self._on_template_deleted)
 
         if template_path:
@@ -981,7 +911,6 @@ class BaseLayout(QWidget):
         Args:
             template_path: 被删除的模板路径
         """
-        # 转发删除信号到父组件
         self.template_deleted.emit(template_path)
 
 
@@ -1138,7 +1067,6 @@ class ScrollVLayout(BaseLayout):
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
-        # 设置滚动条角落为透明（防止出现灰色方块）
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
@@ -1196,7 +1124,6 @@ class ScrollHLayout(BaseLayout):
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
-        # 设置滚动条角落为透明（防止出现灰色方块）
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
@@ -1245,7 +1172,6 @@ class GridLayout(BaseLayout):
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
-        # 设置滚动条角落为透明（防止出现灰色方块）
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
@@ -1398,7 +1324,7 @@ class LayoutFactory:
 class PreviewSceneSelector(ComboBox):
     """预览场景选择器 - 从 scene_types.json 加载场景列表"""
 
-    scene_changed = Signal(str)  # 场景变化信号
+    scene_changed = Signal(str)
 
     def __init__(self, parent=None):
         """初始化场景选择器
@@ -1420,7 +1346,6 @@ class PreviewSceneSelector(ComboBox):
             self._scene_types = manager.get_all_scene_types()
         except Exception as e:
             print(f"加载场景类型失败: {e}")
-            # 使用默认场景列表
             self._scene_types = [
                 {"id": "mobile_ui", "name": "手机UI"},
                 {"id": "web", "name": "网页"},
@@ -1483,8 +1408,8 @@ class MixedPreviewPanel(QWidget):
         self._colors: List[str] = []
         self._current_scene: str = "mobile_ui"
         self._current_layout: Optional[BaseLayout] = None
-        self._svg_preview: Optional[SVGPreviewWidget] = None  # 用于 custom 场景
-        self._custom_svg_path: Optional[str] = None  # 保存 custom 场景导入的 SVG 路径
+        self._svg_preview: Optional[SVGPreviewWidget] = None
+        self._custom_svg_path: Optional[str] = None
         super().__init__(parent)
         self.setup_ui()
 
@@ -1502,17 +1427,14 @@ class MixedPreviewPanel(QWidget):
         """
         self._current_scene = scene
 
-        # 清除现有布局
         if self._current_layout:
             self._current_layout.deleteLater()
             self._current_layout = None
-        
-        # 清除 custom 场景的 SVG 预览
+
         if self._svg_preview is not None:
             self._svg_preview.deleteLater()
             self._svg_preview = None
 
-        # 使用 SceneTypeManager 和 LayoutFactory 创建布局
         try:
             from core import get_scene_type_manager
 
@@ -1523,26 +1445,20 @@ class MixedPreviewPanel(QWidget):
                 print(f"未找到场景配置: {scene}")
                 return
 
-            # 获取模板列表
             templates = manager.get_all_templates(scene)
 
-            # 获取布局配置
             layout_config = manager.get_layout_config(scene)
             layout_type = layout_config.get("layout", {}).get("type", "scroll_v")
 
-            # custom 场景固定使用 single 布局
             if scene == "custom":
                 layout_type = "single"
 
-            # 如果没有模板，创建一个空的SVG预览
             if not templates:
                 self._create_empty_preview()
-                # 如果之前导入过 SVG，重新加载
                 if self._custom_svg_path and self._svg_preview:
                     self._svg_preview.load_svg(self._custom_svg_path)
                 return
 
-            # 创建布局
             self._current_layout = LayoutFactory.create(
                 layout_type, templates, layout_config.get("layout", {}), self
             )
@@ -1550,9 +1466,7 @@ class MixedPreviewPanel(QWidget):
             if self._current_layout:
                 self._main_layout.addWidget(self._current_layout)
                 self._current_layout.set_colors(self._colors)
-                # 连接删除信号
                 self._current_layout.template_deleted.connect(self._on_template_deleted)
-                # 延迟更新布局大小，确保视口高度正确
                 from PySide6.QtCore import QTimer
                 QTimer.singleShot(100, self._update_layout_sizes)
 
@@ -1566,13 +1480,11 @@ class MixedPreviewPanel(QWidget):
         Args:
             template_path: 被删除的模板路径
         """
-        # 从 ConfigManager 中删除
         from core import get_config_manager
         config_manager = get_config_manager()
         config_manager.remove_scene_template(self._current_scene, template_path)
         config_manager.save()
 
-        # 重新加载当前场景
         self.set_scene(self._current_scene)
 
     def _create_empty_preview(self):
@@ -1599,7 +1511,6 @@ class MixedPreviewPanel(QWidget):
         self._colors = colors if colors else []
         if self._current_layout:
             self._current_layout.set_colors(self._colors)
-        # 更新 custom 场景的 SVG 预览
         if self._svg_preview is not None:
             self._svg_preview.set_colors(self._colors)
 
@@ -1609,11 +1520,9 @@ class MixedPreviewPanel(QWidget):
         Returns:
             Optional[SVGPreviewWidget]: SVG预览组件，如果不存在则返回None
         """
-        # 优先返回 custom 场景的 SVG 预览
         if self._svg_preview is not None:
             return self._svg_preview
-        
-        # 否则从当前布局中获取第一个
+
         if self._current_layout:
             widgets = self._current_layout.get_svg_widgets()
             if widgets:
@@ -1636,11 +1545,11 @@ class MixedPreviewPanel(QWidget):
 class PreviewToolbar(QWidget):
     """预览工具栏 - 包含圆点栏、场景选择、导入导出按钮"""
 
-    scene_changed = Signal(str)              # 场景变化
-    import_svg_requested = Signal()          # 导入SVG请求（custom场景）
-    export_svg_requested = Signal()          # 导出SVG请求（custom场景）
-    import_config_requested = Signal()       # 导入配置请求（所有场景）
-    export_config_requested = Signal()       # 导出配置请求（所有场景）
+    scene_changed = Signal(str)
+    import_svg_requested = Signal()
+    export_svg_requested = Signal()
+    import_config_requested = Signal()
+    export_config_requested = Signal()
 
     def __init__(self, parent=None):
         """初始化预览工具栏
@@ -1656,41 +1565,34 @@ class PreviewToolbar(QWidget):
 
     def setup_ui(self):
         """创建UI"""
-        # 使用垂直布局，两行
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(8)
 
-        # 第一行：标题 + 导入导出按钮 + 场景选择器
         top_row = QWidget()
         top_layout = QHBoxLayout(top_row)
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(15)
 
-        # 标题（使用 SubtitleLabel 保持一致性）
         self._title_label = SubtitleLabel("配色预览")
         top_layout.addWidget(self._title_label)
 
-        # 添加说明标签
         self._desc_label = QLabel("还在持续完善中")
         self._desc_label.setStyleSheet("font-size: 12px; color: gray;")
         top_layout.addWidget(self._desc_label)
 
-        top_layout.addStretch()  # 弹性空间，使右侧内容右对齐
+        top_layout.addStretch()
 
-        # 导入导出按钮容器（对所有场景可见）
         self._buttons_container = QWidget()
         buttons_layout = QHBoxLayout(self._buttons_container)
         buttons_layout.setContentsMargins(0, 0, 0, 0)
         buttons_layout.setSpacing(8)
 
-        # 导入按钮
         self._import_button = PushButton(FluentIcon.DOWN, "导入")
         self._import_button.setFixedHeight(32)
         self._import_button.clicked.connect(self._on_import_clicked)
         buttons_layout.addWidget(self._import_button)
 
-        # 导出按钮
         self._export_button = PushButton(FluentIcon.UP, "导出")
         self._export_button.setFixedHeight(32)
         self._export_button.clicked.connect(self._on_export_clicked)
@@ -1698,7 +1600,6 @@ class PreviewToolbar(QWidget):
 
         top_layout.addWidget(self._buttons_container)
 
-        # 场景选择器
         self._scene_selector = PreviewSceneSelector()
         self._scene_selector.setFixedWidth(100)
         self._scene_selector.scene_changed.connect(self._on_scene_changed)
@@ -1706,53 +1607,43 @@ class PreviewToolbar(QWidget):
 
         main_layout.addWidget(top_row)
 
-        # 第二行：颜色圆点栏（居中显示）
         bottom_row = QWidget()
         bottom_layout = QHBoxLayout(bottom_row)
         bottom_layout.setContentsMargins(0, 0, 0, 0)
         bottom_layout.setSpacing(0)
 
-        # 配色圆点栏
         self._dot_bar = ColorDotBar()
-        # 设置圆点栏在布局中居中
         self._dot_bar.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         bottom_layout.addWidget(self._dot_bar, alignment=Qt.AlignmentFlag.AlignCenter)
 
         main_layout.addWidget(bottom_row, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.setFixedHeight(100)  # 增加高度以容纳两行
+        self.setFixedHeight(100)
 
-        # 初始化时同步按钮显示状态
         current_scene = self._scene_selector.get_current_scene()
         self._on_scene_changed(current_scene)
 
     def _on_scene_changed(self, scene: str):
         """处理场景变化"""
         self._current_scene = scene
-        # 转发信号
         self.scene_changed.emit(scene)
 
     def _on_import_clicked(self):
         """处理导入按钮点击"""
         if self._current_scene == "custom":
-            # Custom场景：可以选择导入SVG或JSON配置
             self.import_svg_requested.emit()
         else:
-            # 其他场景：导入JSON配置
             self.import_config_requested.emit()
 
     def _on_export_clicked(self):
         """处理导出按钮点击"""
         if self._current_scene == "custom":
-            # Custom场景：导出SVG
             self.export_svg_requested.emit()
         else:
-            # 其他场景：导出JSON配置
             self.export_config_requested.emit()
 
     def _update_styles(self):
         """更新样式以适配主题"""
-        # 工具栏背景透明
         self.setStyleSheet("background: transparent;")
 
     def set_colors(self, colors: List[str]):
@@ -1797,14 +1688,348 @@ class PreviewToolbar(QWidget):
 
 
 # ============================================================================
+# 配色预览界面
+# ============================================================================
+
+class ColorPreviewInterface(QWidget):
+    """配色预览界面 - 预览收藏的配色在不同场景下的效果"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('colorPreviewInterface')
+        self._config_manager = get_config_manager()
+        self._favorites = []
+        self._current_index = 0
+        self._current_colors: list[str] = []
+        self._current_scene = "mobile_ui"
+        self._current_svg_path = ""
+        self._hex_visible = self._config_manager.get('settings.hex_visible', True)
+        self.setup_ui()
+        self._load_favorites()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        self.toolbar = PreviewToolbar(self)
+        self.toolbar.scene_changed.connect(self._on_scene_changed)
+        self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
+        self.toolbar.get_dot_bar().color_deleted.connect(self._on_color_deleted)
+        self.toolbar.import_svg_requested.connect(self._on_import_svg)
+        self.toolbar.export_svg_requested.connect(self._on_export_svg)
+        self.toolbar.import_config_requested.connect(self._on_import_config)
+        self.toolbar.export_config_requested.connect(self._on_export_config)
+        self.toolbar.set_hex_visible(self._hex_visible)
+        layout.addWidget(self.toolbar)
+
+        self.preview_panel = MixedPreviewPanel(self)
+        self.preview_panel.set_scene("mobile_ui")
+        layout.addWidget(self.preview_panel, stretch=1)
+
+    def _load_favorites(self):
+        """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
+        self._favorites = self._config_manager.get_favorites()
+        self._current_colors = []
+        self._update_preview()
+
+    def _load_current_scheme(self):
+        """加载当前配色"""
+        if not self._favorites or self._current_index >= len(self._favorites):
+            return
+
+        favorite = self._favorites[self._current_index]
+        colors_data = favorite.get('colors', [])
+
+        self._current_colors = []
+        for color_info in colors_data:
+            hex_value = color_info.get('hex', '')
+            if hex_value:
+                if not hex_value.startswith('#'):
+                    hex_value = '#' + hex_value
+                self._current_colors.append(hex_value)
+
+        if not self._current_colors:
+            self._current_colors = ["#E8E8E8"]
+
+        self._update_preview()
+
+    def _update_preview(self):
+        """更新预览显示"""
+        self.toolbar.set_colors(self._current_colors)
+        self.preview_panel.set_colors(self._current_colors)
+
+    def set_colors(self, colors: list[str]):
+        """设置要预览的配色（由外部调用）
+
+        Args:
+            colors: 颜色值列表（HEX格式）
+        """
+        self._current_colors = colors.copy() if colors else []
+        self._update_preview()
+
+    def _on_scene_changed(self, scene: str):
+        """场景切换回调"""
+        self._current_scene = scene
+        self.preview_panel.set_scene(scene)
+
+    def _on_color_order_changed(self, colors: list[str]):
+        """颜色顺序变化回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def _on_color_deleted(self, colors: list[str]):
+        """颜色删除回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def set_hex_visible(self, visible: bool):
+        """设置HEX值显示开关
+
+        Args:
+            visible: 是否显示HEX值
+        """
+        self._hex_visible = visible
+        self.toolbar.set_hex_visible(visible)
+
+    def _on_import_svg(self):
+        """导入 SVG 文件"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入 SVG 文件",
+            "",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        svg_preview = self.preview_panel.get_svg_preview()
+        if svg_preview is None:
+            InfoBar.warning(
+                title="无法导入",
+                content="当前场景不支持直接导入 SVG，请切换到自定义场景",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+            return
+
+        if svg_preview.load_svg(file_path):
+            self._current_svg_path = file_path
+            self.preview_panel.set_custom_svg_path(file_path)
+            svg_preview.set_colors(self._current_colors)
+
+            InfoBar.success(
+                title="导入成功",
+                content=f"已加载 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content="无法加载 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+
+    def _on_export_svg(self):
+        """导出 SVG 文件"""
+        svg_preview = self.preview_panel.get_svg_preview()
+
+        if svg_preview is None:
+            InfoBar.warning(
+                title="无法导出",
+                content="当前场景不支持导出 SVG",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        if not svg_preview.has_svg():
+            InfoBar.warning(
+                title="无法导出",
+                content="请先导入 SVG 文件",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出 SVG 文件",
+            "colored_preview.svg",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        if not file_path.endswith('.svg'):
+            file_path += '.svg'
+
+        try:
+            svg_content = svg_preview.get_svg_content()
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+
+            InfoBar.success(
+                title="导出成功",
+                content=f"已保存到: {file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        except Exception as e:
+            InfoBar.error(
+                title="导出失败",
+                content=f"保存文件时发生错误: {str(e)}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def _on_import_config(self):
+        """导入用户SVG模板到当前场景类型"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入 SVG 模板",
+            "",
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        template_data = {
+            "path": file_path,
+            "name": Path(file_path).stem,
+            "added_at": datetime.now().strftime("%Y-%m-%d")
+        }
+
+        success = self._config_manager.add_scene_template(self._current_scene, template_data)
+        self._config_manager.save()
+
+        if success:
+            self.preview_panel.set_scene(self._current_scene)
+            self.preview_panel.set_colors(self._current_colors)
+
+            InfoBar.success(
+                title="导入成功",
+                content=f"已添加模板到 {self._current_scene} 场景",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.warning(
+                title="导入失败",
+                content="该模板已存在",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+
+    def _on_export_config(self):
+        """导出当前配色下的SVG"""
+        svg_preview = self.preview_panel.get_svg_preview()
+
+        if not svg_preview or not svg_preview.has_svg():
+            InfoBar.warning(
+                title="无法导出",
+                content="当前没有可导出的SVG",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出 SVG",
+            default_name,
+            "SVG 文件 (*.svg);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        if not file_path.endswith('.svg'):
+            file_path += '.svg'
+
+        try:
+            svg_content = svg_preview.get_svg_content()
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(svg_content)
+
+            InfoBar.success(
+                title="导出成功",
+                content=f"已保存到: {file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+        except Exception as e:
+            InfoBar.error(
+                title="导出失败",
+                content=f"保存文件时发生错误: {str(e)}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
+
+    def refresh_favorites(self):
+        """刷新收藏列表（由主窗口调用）"""
+        self._load_favorites()
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        pass
+
+
+# ============================================================================
 # 注册预览场景
 # ============================================================================
 
 def register_preview_scenes():
     """注册所有预览场景类型到工厂"""
-    # 只保留 svg 类型
     PreviewSceneFactory.register("svg", SVGPreviewWidget)
 
 
-# 自动注册场景
 register_preview_scenes()

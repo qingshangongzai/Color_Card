@@ -24,8 +24,9 @@ from .palette_management import (
     PaletteManagementColorCard
 )
 from .preset_color import PresetColorInterface
-from .interfaces import SettingsInterface, ColorPreviewInterface
-from .preview_widgets import (
+from .settings import SettingsInterface
+from .color_preview import (
+    ColorPreviewInterface,
     DraggableColorDot, ColorDotBar,
     PreviewToolbar, MixedPreviewPanel,
     BaseLayout, SingleLayout, ScrollVLayout,
@@ -33,29 +34,23 @@ from .preview_widgets import (
 )
 
 __all__ = [
-    # 主窗口
     'MainWindow',
-    # 画布
     'BaseCanvas',
     'ImageCanvas',
     'LuminanceCanvas',
-    # 卡片
     'BaseCard',
     'BaseCardPanel',
     'ColorCard',
     'ColorCardPanel',
     'LuminanceCard',
     'LuminanceCardPanel',
-    # 控件
     'ColorPicker',
     'HSBColorWheel',
     'InteractiveColorWheel',
     'ZoomViewer',
-    # 直方图
     'BaseHistogram',
     'LuminanceHistogramWidget',
     'RGBHistogramWidget',
-    # 界面
     'ColorExtractInterface',
     'LuminanceExtractInterface',
     'SettingsInterface',
@@ -63,19 +58,15 @@ __all__ = [
     'PaletteManagementInterface',
     'PresetColorInterface',
     'ColorPreviewInterface',
-    # 配色生成组件
     'GenerationColorInfoCard',
     'GenerationColorPanel',
-    # 配色管理组件
     'PaletteManagementCard',
     'PaletteManagementList',
     'PaletteManagementColorCard',
-    # 配色预览组件
     'DraggableColorDot',
     'ColorDotBar',
     'PreviewToolbar',
     'MixedPreviewPanel',
-    # 布局系统
     'BaseLayout',
     'SingleLayout',
     'ScrollVLayout',

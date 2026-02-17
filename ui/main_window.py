@@ -15,7 +15,8 @@ from .luminance_extract import LuminanceExtractInterface
 from .color_generation import ColorGenerationInterface
 from .palette_management import PaletteManagementInterface
 from .preset_color import PresetColorInterface
-from .interfaces import SettingsInterface, ColorPreviewInterface
+from .settings import SettingsInterface
+from .color_preview import ColorPreviewInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
