@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, Set
+from typing import Dict, List, Optional, Tuple, Any
 
 
 class ElementType(Enum):
@@ -473,7 +473,10 @@ class SVGColorMapper:
     def _has_background_element(self) -> bool:
         """检测 SVG 是否有背景元素
 
-        判断标准：是否有 fill 元素面积超过画布面积的 50%，且不是固定颜色元素
+        判断标准（满足任一条件）：
+        1. 有 fill 元素面积超过画布面积的 50%，且不是固定颜色元素
+        2. 有元素的 class 属性包含 "background" 且不是固定颜色元素
+        3. 有元素的 element_type 为 BACKGROUND 且不是固定颜色元素
 
         Returns:
             是否有背景元素
@@ -486,13 +489,24 @@ class SVGColorMapper:
         if canvas_area <= 0:
             return False
 
-        # 检查每个 fill 元素的面积（跳过固定颜色元素）
         for elem_info in self._elements:
             # 跳过固定颜色元素
             if elem_info.fixed_color:
                 continue
+
+            # 条件1：面积超过50%
             if elem_info.fill_color and elem_info.area > canvas_area * 0.5:
-                print(f"检测到背景元素: {elem_info.element_id}, 面积: {elem_info.area}, 画布面积: {canvas_area}")
+                print(f"检测到背景元素(面积>50%): {elem_info.element_id}, 面积: {elem_info.area}, 画布面积: {canvas_area}")
+                return True
+
+            # 条件2：class 包含 "background"
+            if elem_info.element_class and 'background' in elem_info.element_class.lower():
+                print(f"检测到背景元素(class): {elem_info.element_id}, class: {elem_info.element_class}")
+                return True
+
+            # 条件3：element_type 为 BACKGROUND
+            if elem_info.element_type == ElementType.BACKGROUND:
+                print(f"检测到背景元素(类型): {elem_info.element_id}, type: {elem_info.element_type}")
                 return True
 
         return False
@@ -501,10 +515,10 @@ class SVGColorMapper:
         """智能映射配色
 
         策略：
-        1. 分别收集 fill 和 stroke 的原始颜色
-        2. 检测 SVG 是否有背景元素
-        3. 如果有背景：背景映射到新配色[0]，主体元素映射到新配色[1..n]
-        4. 如果没有背景（透明）：所有元素映射到新配色[1..n]
+        1. 检测 SVG 是否有背景元素
+        2. 按面积排序所有元素（包括固定颜色元素）
+        3. 遍历元素，跳过固定颜色元素（不消耗配色）
+        4. 非固定元素按顺序分配配色，配色顺延不跳过
         5. stroke 颜色保持原色（不替换）
         6. 应用映射到所有元素
 
@@ -517,79 +531,62 @@ class SVGColorMapper:
         if not colors or not self._original_content:
             return self._original_content
 
-        # 1. 分别收集 fill 和 stroke 颜色及其面积（跳过固定颜色元素）
-        fill_color_areas: Dict[str, float] = {}
-        stroke_color_areas: Dict[str, float] = {}
-
-        for elem_info in self._elements:
-            # 跳过固定颜色元素
-            if elem_info.fixed_color:
-                continue
-
-            # 收集 fill 颜色
-            if elem_info.fill_color:
-                normalized_color = self._normalize_color(elem_info.fill_color)
-                if normalized_color:
-                    fill_color_areas[normalized_color] = fill_color_areas.get(normalized_color, 0) + elem_info.area
-            # 收集 stroke 颜色
-            if elem_info.stroke_color:
-                normalized_color = self._normalize_color(elem_info.stroke_color)
-                if normalized_color:
-                    stroke_color_areas[normalized_color] = stroke_color_areas.get(normalized_color, 0) + elem_info.area
-
-        if not fill_color_areas and not stroke_color_areas:
-            print("未找到任何可替换的颜色")
-            return self._original_content
-
-        # 2. 检测是否有背景元素
+        # 1. 检测是否有背景元素
         has_background = self._has_background_element()
         print(f"SVG 是否有背景元素: {has_background}")
 
-        # 3. 创建 fill 颜色映射表
+        # 2. 创建 fill 颜色映射表
         fill_color_map: Dict[str, str] = {}
 
-        # 按面积排序 fill 颜色
-        sorted_fill_colors = sorted(fill_color_areas.keys(), key=lambda c: fill_color_areas[c], reverse=True)
+        # 按面积排序所有元素（包括固定颜色元素）
+        sorted_elements = sorted(self._elements, key=lambda e: e.area, reverse=True)
 
-        print(f"原始 fill 颜色（按面积排序）: {sorted_fill_colors}")
-        print(f"新配色: {colors}")
+        print(f"元素总数: {len(sorted_elements)}, 新配色: {colors}")
 
-        if len(sorted_fill_colors) > 0 and len(colors) > 0:
-            if has_background and len(colors) > 1:
-                # 有背景元素：背景映射到新配色[0]，其他映射到新配色[1..n]
-                background_color = sorted_fill_colors[0]
-                fill_color_map[background_color] = colors[0]
-                print(f"背景色 {background_color} -> {colors[0]}")
+        # 配色索引，用于按顺序分配配色
+        color_index = 0
 
-                # 其他颜色是主体色，映射到新配色[1..n]
-                other_colors = sorted_fill_colors[1:]
-                for i, orig_color in enumerate(other_colors):
-                    # 使用新配色[1..n]，如果不够则循环使用
-                    color_index = (i % (len(colors) - 1)) + 1
-                    fill_color_map[orig_color] = colors[color_index]
-                    print(f"主体色 {orig_color} -> {colors[color_index]}")
-            else:
-                # 无背景元素（透明背景）：所有元素映射到新配色[1..n]
-                # 如果只有一个颜色，则所有元素都映射到该颜色
-                start_index = 1 if len(colors) > 1 else 0
-                for i, orig_color in enumerate(sorted_fill_colors):
-                    if len(colors) > 1:
-                        color_index = (i % (len(colors) - 1)) + 1
+        for elem_info in sorted_elements:
+            # 跳过固定颜色元素，不消耗配色
+            if elem_info.fixed_color:
+                print(f"固定颜色元素: {elem_info.element_id} ({elem_info.fixed_color}), 跳过")
+                continue
+
+            # 处理 fill 颜色
+            if elem_info.fill_color:
+                normalized_color = self._normalize_color(elem_info.fill_color)
+                if normalized_color:
+                    # 根据是否有背景元素决定配色分配策略
+                    if has_background and len(colors) > 1:
+                        # 有背景元素：第一个非固定元素映射到 colors[0]（背景色）
+                        # 其他元素映射到 colors[1..n]
+                        if color_index == 0:
+                            fill_color_map[normalized_color] = colors[0]
+                            print(f"背景色 {normalized_color} -> {colors[0]}")
+                        else:
+                            color_idx = ((color_index - 1) % (len(colors) - 1)) + 1
+                            fill_color_map[normalized_color] = colors[color_idx]
+                            print(f"主体色 {normalized_color} -> {colors[color_idx]}")
                     else:
-                        color_index = 0
-                    fill_color_map[orig_color] = colors[color_index]
-                    print(f"元素色 {orig_color} -> {colors[color_index]}")
+                        # 无背景元素（透明背景）：容器背景使用 colors[0]
+                        # SVG内部元素从 colors[1] 开始映射，避免颜色重复
+                        if len(colors) > 1:
+                            color_idx = (color_index % (len(colors) - 1)) + 1
+                        else:
+                            color_idx = 0
+                        fill_color_map[normalized_color] = colors[color_idx]
+                        print(f"元素色 {normalized_color} -> {colors[color_idx]}")
 
-        # 4. 创建 stroke 颜色映射表（保持原色，不替换）
-        stroke_color_map: Dict[str, str] = {}
-        # stroke 颜色保持原色，不参与映射
+                    color_index += 1
+
+        if not fill_color_map:
+            print("未找到任何可替换的颜色")
+            return self._original_content
 
         print(f"fill 颜色映射: {fill_color_map}")
-        print(f"stroke 颜色保持原色: {list(stroke_color_areas.keys())}")
 
-        # 5. 合并映射表并应用
-        color_map = {**fill_color_map, **stroke_color_map}
-        return self._apply_color_map(color_map)
+        # 3. 合并映射表并应用
+        return self._apply_color_map(fill_color_map)
 
     def _normalize_color(self, color: str) -> Optional[str]:
         """标准化颜色值
