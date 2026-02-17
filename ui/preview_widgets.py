@@ -16,7 +16,7 @@ from typing import List, Optional, Dict, Any
 # 第三方库导入
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QScrollArea, QSizePolicy, QPushButton, QLabel, QApplication
+    QSizePolicy, QPushButton, QLabel, QApplication
 )
 from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData
 from PySide6.QtGui import (
@@ -25,7 +25,7 @@ from PySide6.QtGui import (
 from PySide6.QtSvg import QSvgRenderer
 from qfluentwidgets import (
     ComboBox, PushButton, SubtitleLabel, FluentIcon, isDarkTheme, qconfig,
-    RoundMenu, Action, InfoBar, InfoBarPosition
+    RoundMenu, Action, InfoBar, InfoBarPosition, ScrollArea
 )
 
 # 项目模块导入
@@ -562,6 +562,9 @@ class SVGPreviewWidget(BasePreviewScene):
         self._is_builtin: bool = False  # 是否为内置模板
         self._template_path: Optional[str] = None  # 模板路径
 
+        # 设置无边框样式
+        self.setStyleSheet("border: none; background: transparent;")
+
     def set_template_info(self, is_builtin: bool, path: str = None):
         """设置模板信息
 
@@ -997,6 +1000,7 @@ class SingleLayout(BaseLayout):
         main_layout.setSpacing(10)
 
         self._svg_container = QWidget()
+        self._svg_container.setStyleSheet("border: none; background: transparent;")
         self._svg_layout = QVBoxLayout(self._svg_container)
         self._svg_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self._svg_container, stretch=1)
@@ -1130,13 +1134,17 @@ class ScrollVLayout(BaseLayout):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self._scroll_area = QScrollArea()
+        self._scroll_area = ScrollArea()
         self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self._scroll_area.setFrameShape(QScrollArea.Shape.NoFrame)
+        self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
+
+        # 设置滚动条角落为透明（防止出现灰色方块）
+        corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
+        self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
+        self._content_widget.setStyleSheet("background: transparent;")
         self._content_layout = QVBoxLayout(self._content_widget)
         self._content_layout.setContentsMargins(10, 10, 10, 10)
         self._content_layout.setSpacing(15)
@@ -1184,13 +1192,17 @@ class ScrollHLayout(BaseLayout):
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self._scroll_area = QScrollArea()
+        self._scroll_area = ScrollArea()
         self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._scroll_area.setFrameShape(QScrollArea.Shape.NoFrame)
+        self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
+
+        # 设置滚动条角落为透明（防止出现灰色方块）
+        corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
+        self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
+        self._content_widget.setStyleSheet("background: transparent;")
         self._content_layout = QHBoxLayout(self._content_widget)
         self._content_layout.setContentsMargins(10, 10, 10, 10)
         self._content_layout.setSpacing(15)
@@ -1229,13 +1241,17 @@ class GridLayout(BaseLayout):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self._scroll_area = QScrollArea()
+        self._scroll_area = ScrollArea()
         self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self._scroll_area.setFrameShape(QScrollArea.Shape.NoFrame)
+        self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
+
+        # 设置滚动条角落为透明（防止出现灰色方块）
+        corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
+        self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
+        self._content_widget.setStyleSheet("background: transparent;")
         self._content_layout = QGridLayout(self._content_widget)
         self._content_layout.setContentsMargins(10, 10, 10, 10)
         self._content_layout.setSpacing(15)
@@ -1280,11 +1296,13 @@ class MixedLayout(BaseLayout):
         main_layout.setSpacing(15)
 
         self._left_widget = QWidget()
+        self._left_widget.setStyleSheet("border: none; background: transparent;")
         self._left_layout = QGridLayout(self._left_widget)
         self._left_layout.setContentsMargins(0, 0, 0, 0)
         self._left_layout.setSpacing(10)
 
         self._right_widget = QWidget()
+        self._right_widget.setStyleSheet("border: none; background: transparent;")
         self._right_layout = QVBoxLayout(self._right_widget)
         self._right_layout.setContentsMargins(0, 0, 0, 0)
 
@@ -1474,6 +1492,7 @@ class MixedPreviewPanel(QWidget):
         """创建UI"""
         self._main_layout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setStyleSheet("border: none; background: transparent;")
 
     def set_scene(self, scene: str):
         """切换预览场景
