@@ -15,8 +15,10 @@ from .histograms import (
 from .color_picker import ColorPicker
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .zoom_viewer import ZoomViewer
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
-from .generation_widgets import GenerationColorInfoCard, GenerationColorPanel
+from .color_extract import ColorExtractInterface
+from .luminance_extract import LuminanceExtractInterface
+from .color_generation import ColorGenerationInterface, GenerationColorInfoCard, GenerationColorPanel
+from .interfaces import SettingsInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
 from .palette_management_widgets import PaletteManagementCard, PaletteManagementList
 from .preview_widgets import (
     DraggableColorDot, ColorDotBar,
