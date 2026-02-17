@@ -9,47 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # 项目模块导入
 from version import version_manager
 from core.color import hex_to_rgb, get_color_info
-
-
-GROUPING_THRESHOLDS = {
-    "min_for_groups": 20,
-    "group_size": 20,
-    "batch_threshold": 50,
-    "batch_size": 10
-}
-
-
-def _generate_groups(total: int) -> list:
-    """生成分组配置（始终返回至少一个分组）
-    
-    Args:
-        total: 配色总数
-        
-    Returns:
-        list: 分组配置列表
-    """
-    group_size = GROUPING_THRESHOLDS["group_size"]
-    min_for_groups = GROUPING_THRESHOLDS["min_for_groups"]
-    
-    if total < min_for_groups:
-        return [{
-            "name": f"全部 ({total}组)",
-            "indices": list(range(total))
-        }]
-    
-    groups = []
-    num_groups = (total + group_size - 1) // group_size
-    
-    for i in range(num_groups):
-        start = i * group_size
-        end = min((i + 1) * group_size, total)
-        
-        groups.append({
-            "name": f"第 {start+1}-{end} 组",
-            "indices": list(range(start, end))
-        })
-    
-    return groups
+from core.grouping import generate_groups
 
 
 class ConfigManager:
@@ -372,7 +332,7 @@ class ConfigManager:
                         "name": fav.get("name", "未命名"),
                         "colors": hex_colors
                     })
-            groups = _generate_groups(len(palettes))
+            groups = generate_groups(len(palettes))
             export_data = {
                 "version": "1.0",
                 "id": palette_id,

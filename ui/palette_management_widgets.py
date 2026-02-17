@@ -18,50 +18,10 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
 from core.async_loader import BaseBatchLoader
+from core.grouping import generate_groups
 from .cards import COLOR_MODE_CONFIG, ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color
 from utils.platform import is_windows_10
-
-
-GROUPING_THRESHOLDS = {
-    "min_for_groups": 20,
-    "group_size": 20,
-    "batch_threshold": 50,
-    "batch_size": 10
-}
-
-
-def _generate_groups(total: int) -> list:
-    """生成分组配置（始终返回至少一个分组）
-    
-    Args:
-        total: 配色总数
-        
-    Returns:
-        list: 分组配置列表
-    """
-    group_size = GROUPING_THRESHOLDS["group_size"]
-    min_for_groups = GROUPING_THRESHOLDS["min_for_groups"]
-    
-    if total < min_for_groups:
-        return [{
-            "name": f"全部 ({total}组)",
-            "indices": list(range(total))
-        }]
-    
-    groups = []
-    num_groups = (total + group_size - 1) // group_size
-    
-    for i in range(num_groups):
-        start = i * group_size
-        end = min((i + 1) * group_size, total)
-        
-        groups.append({
-            "name": f"第 {start+1}-{end} 组",
-            "indices": list(range(start, end))
-        })
-    
-    return groups
 
 
 class FavoriteGroupLoaderThread(BaseBatchLoader):
@@ -863,7 +823,7 @@ class PaletteManagementList(QWidget):
     def set_favorites(self, favorites):
         """设置收藏列表"""
         self._favorites = favorites
-        self._groups = _generate_groups(len(favorites))
+        self._groups = generate_groups(len(favorites))
         self._current_group_index = 0
         self.groups_updated.emit(self._groups)
         

@@ -57,6 +57,8 @@ from .color_data import (
 
 from .async_loader import BaseBatchLoader
 
+from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -109,4 +111,7 @@ __all__ = [
     'get_all_palettes',
     'get_random_palettes',
     'BaseBatchLoader',
+    'GROUPING_THRESHOLDS',
+    'generate_groups',
+    'should_use_batch_loading',
 ]
