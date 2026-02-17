@@ -2,7 +2,7 @@
   "version": "3.0",
   "scene_types": [
     {
-      "id": "ui",
+      "id": "mobile_ui",
       "name": "手机UI",
       "icon": "phone",
       "description": "手机应用界面预览",

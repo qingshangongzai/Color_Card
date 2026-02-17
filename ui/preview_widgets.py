@@ -1422,7 +1422,7 @@ class PreviewSceneSelector(ComboBox):
             print(f"加载场景类型失败: {e}")
             # 使用默认场景列表
             self._scene_types = [
-                {"id": "ui", "name": "手机UI"},
+                {"id": "mobile_ui", "name": "手机UI"},
                 {"id": "web", "name": "网页"},
                 {"id": "custom", "name": "自定义"},
             ]
@@ -1445,7 +1445,7 @@ class PreviewSceneSelector(ComboBox):
 
     def get_current_scene(self) -> str:
         """获取当前场景ID"""
-        return self.itemData(self.currentIndex()) or "ui"
+        return self.itemData(self.currentIndex()) or "mobile_ui"
 
     def reload_scenes(self):
         """重新加载场景列表"""
@@ -1481,7 +1481,7 @@ class MixedPreviewPanel(QWidget):
             parent: 父控件
         """
         self._colors: List[str] = []
-        self._current_scene: str = "ui"
+        self._current_scene: str = "mobile_ui"
         self._current_layout: Optional[BaseLayout] = None
         self._svg_preview: Optional[SVGPreviewWidget] = None  # 用于 custom 场景
         self._custom_svg_path: Optional[str] = None  # 保存 custom 场景导入的 SVG 路径
@@ -1648,7 +1648,7 @@ class PreviewToolbar(QWidget):
         Args:
             parent: 父控件
         """
-        self._current_scene = "ui"
+        self._current_scene = "mobile_ui"
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()

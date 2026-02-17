@@ -2372,7 +2372,7 @@ class ColorPreviewInterface(QWidget):
         self._favorites = []
         self._current_index = 0
         self._current_colors = []
-        self._current_scene = "ui"  # 默认使用UI场景（有内置SVG模板）
+        self._current_scene = "mobile_ui"  # 默认使用UI场景（有内置SVG模板）
         self._current_svg_path = ""  # 当前加载的 SVG 文件路径
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self.setup_ui()
@@ -2401,7 +2401,7 @@ class ColorPreviewInterface(QWidget):
         # 预览区域
         self.preview_panel = MixedPreviewPanel(self)
         # 默认显示UI场景（有内置SVG模板）
-        self.preview_panel.set_scene("ui")
+        self.preview_panel.set_scene("mobile_ui")
         layout.addWidget(self.preview_panel, stretch=1)
 
     def _load_favorites(self):
