@@ -2,6 +2,7 @@
 
 from .icon import load_icon_universal, get_icon_path, create_fallback_icon
 from .platform import set_app_user_model_id, fix_windows_taskbar_icon_for_window, set_window_title_bar_theme
+from .layout import calculate_grid_columns
 
 __all__ = [
     # 图标工具
@@ -12,4 +13,6 @@ __all__ = [
     'set_app_user_model_id',
     'fix_windows_taskbar_icon_for_window',
     'set_window_title_bar_theme',
+    # 布局工具
+    'calculate_grid_columns',
 ]

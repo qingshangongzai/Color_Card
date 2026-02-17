@@ -7,22 +7,28 @@ from datetime import datetime
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel,
-    QSizePolicy, QApplication, QLineEdit
+    QSizePolicy, QApplication, QLineEdit, QFileDialog
 )
-from PySide6.QtGui import QColor
 from qfluentwidgets import (
     CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
-    InfoBar, InfoBarPosition, isDarkTheme, qconfig
+    InfoBar, InfoBarPosition, isDarkTheme, qconfig,
+    PushButton, SubtitleLabel, MessageBox
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb
+from core import get_color_info, hex_to_rgb, get_config_manager
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
-from .cards import COLOR_MODE_CONFIG, ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from .theme_colors import get_card_background_color
+from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
+from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color
 from utils.platform import is_windows_10
+from utils import calculate_grid_columns
+from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
 
+
+# =============================================================================
+# 异步加载线程
+# =============================================================================
 
 class FavoriteGroupLoaderThread(BaseBatchLoader):
     """配色管理分组数据异步加载线程
@@ -78,6 +84,10 @@ class FavoriteGroupLoaderThread(BaseBatchLoader):
         
         return batch_data
 
+
+# =============================================================================
+# 配色管理色卡组件
+# =============================================================================
 
 class PaletteManagementColorCard(QWidget):
     """配色管理中的单个色卡组件（与其他面板样式一致）"""
@@ -440,6 +450,10 @@ class PaletteManagementColorCard(QWidget):
         self.mode_container_2.clear_values()
 
 
+# =============================================================================
+# 配色管理卡片
+# =============================================================================
+
 class PaletteManagementCard(CardWidget):
     """配色管理卡片（网格排列色卡样式，动态数量）"""
 
@@ -582,35 +596,13 @@ class PaletteManagementCard(CardWidget):
     def _calculate_columns(color_count: int) -> int:
         """计算每行显示的列数
 
-        规则：
-        - 能被5整除 → 每行5个
-        - 能被6整除 → 每行6个
-        - 其他情况 → 根据数量选择最接近的
-
         Args:
             color_count: 颜色数量
 
         Returns:
             int: 每行列数
         """
-        if color_count <= 0:
-            return 1
-
-        # 能被5整除 → 每行5个
-        if color_count % 5 == 0:
-            return 5
-
-        # 能被6整除 → 每行6个
-        if color_count % 6 == 0:
-            return 6
-
-        # 其他情况：根据数量选择
-        if color_count <= 5:
-            return color_count
-        elif color_count <= 10:
-            return 5
-        else:
-            return 6
+        return calculate_grid_columns(color_count)
 
     def _create_color_cards(self, count):
         """创建指定数量的色卡
@@ -721,6 +713,10 @@ class PaletteManagementCard(CardWidget):
         if color_modes is not None:
             self.set_color_modes(color_modes)
 
+
+# =============================================================================
+# 配色管理列表容器
+# =============================================================================
 
 class PaletteManagementList(QWidget):
     """配色管理列表容器"""
@@ -1025,3 +1021,477 @@ class PaletteManagementList(QWidget):
                 self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
             except RuntimeError:
                 pass
+
+
+# =============================================================================
+# 配色管理界面
+# =============================================================================
+
+class PaletteManagementInterface(QWidget):
+    """配色管理界面"""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('paletteManagementInterface')
+        self._config_manager = get_config_manager()
+        self.setup_ui()
+        self._load_favorites()
+        self._load_settings()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(15)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.title_label = SubtitleLabel("配色管理")
+        header_layout.addWidget(self.title_label)
+
+        header_layout.addStretch()
+
+        self.add_button = PushButton(FluentIcon.ADD, "添加", self)
+        self.add_button.clicked.connect(self._on_add_clicked)
+        header_layout.addWidget(self.add_button)
+
+        self.import_button = PushButton(FluentIcon.DOWN, "导入", self)
+        self.import_button.clicked.connect(self._on_import_clicked)
+        header_layout.addWidget(self.import_button)
+
+        self.export_button = PushButton(FluentIcon.UP, "导出", self)
+        self.export_button.clicked.connect(self._on_export_clicked)
+        header_layout.addWidget(self.export_button)
+
+        self.clear_all_button = PushButton(FluentIcon.DELETE, "清空所有", self)
+        self.clear_all_button.setMinimumWidth(100)
+        self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
+        header_layout.addWidget(self.clear_all_button)
+
+        self.group_combo = ComboBox(self)
+        self.group_combo.setFixedWidth(150)
+        self.group_combo.currentIndexChanged.connect(self._on_group_changed)
+        header_layout.addWidget(self.group_combo)
+
+        layout.addLayout(header_layout)
+
+        self.palette_management_list = PaletteManagementList(self)
+        self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
+        self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
+        self.palette_management_list.favorite_contrast.connect(self._on_favorite_contrast)
+        self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
+        self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
+        self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
+        self.palette_management_list.groups_updated.connect(self._on_groups_updated)
+        layout.addWidget(self.palette_management_list, stretch=1)
+
+    def _on_groups_updated(self, groups: list):
+        """分组列表更新回调
+        
+        Args:
+            groups: 分组配置列表
+        """
+        self.group_combo.clear()
+        for i, group in enumerate(groups):
+            self.group_combo.addItem(group["name"])
+            self.group_combo.setItemData(i, i)
+
+    def _on_group_changed(self, index: int):
+        """分组切换回调
+        
+        Args:
+            index: 分组索引
+        """
+        if index >= 0:
+            self.palette_management_list.set_current_group(index)
+
+    def _load_favorites(self):
+        """加载收藏列表"""
+        favorites = self._config_manager.get_favorites()
+        self.palette_management_list.set_favorites(favorites)
+
+    def _on_clear_all_clicked(self):
+        """清空所有按钮点击"""
+        msg_box = MessageBox(
+            "确认清空",
+            "确定要清空所有收藏的配色吗？此操作不可撤销。",
+            self
+        )
+        msg_box.yesButton.setText("确定")
+        msg_box.cancelButton.setText("取消")
+        if msg_box.exec():
+            self._config_manager.clear_favorites()
+            self._config_manager.save()
+            self._load_favorites()
+
+    def _on_favorite_deleted(self, favorite_id):
+        """收藏删除回调"""
+        self._config_manager.delete_favorite(favorite_id)
+        self._config_manager.save()
+        self._load_favorites()
+
+    def _on_import_clicked(self):
+        """导入按钮点击"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "导入收藏",
+            "",
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 询问导入模式 - 使用两个独立的对话框
+        msg_box = MessageBox(
+            "选择导入模式",
+            "请选择导入方式：\n\n点击「是」追加到现有收藏\n点击「否」替换现有收藏",
+            self
+        )
+        msg_box.yesButton.setText("追加")
+        msg_box.cancelButton.setText("替换")
+
+        # 获取结果：1=追加, 0=替换
+        result = msg_box.exec()
+
+        # 确定导入模式
+        if result == 1:  # 点击了"追加"
+            mode = 'append'
+        else:  # 点击了"替换"
+            mode = 'replace'
+
+        success, count, error_msg = self._config_manager.import_favorites(file_path, mode)
+
+        if success:
+            self._config_manager.save()
+            self._load_favorites()
+            InfoBar.success(
+                title="导入成功",
+                content=f"成功导入 {count} 个配色",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+        else:
+            InfoBar.error(
+                title="导入失败",
+                content=error_msg,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+
+    def _on_export_clicked(self):
+        """导出按钮点击"""
+        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "导出收藏",
+            default_name,
+            "JSON 文件 (*.json);;所有文件 (*)"
+        )
+
+        if not file_path:
+            return
+
+        # 确保文件扩展名为 .json
+        if not file_path.endswith('.json'):
+            file_path += '.json'
+
+        success = self._config_manager.export_favorites(file_path)
+
+        if success:
+            InfoBar.success(
+                title="导出成功",
+                content=f"收藏已导出到：{file_path}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+        else:
+            InfoBar.error(
+                title="导出失败",
+                content="导出过程中发生错误，请检查文件路径和权限",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self
+            )
+
+    def _on_favorite_preview(self, favorite_data):
+        """收藏预览回调（色盲模拟）
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', '未命名')
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示色盲模拟预览对话框
+        dialog = ColorblindPreviewDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=self.window()
+        )
+        dialog.exec()
+
+    def _on_favorite_preview_in_panel(self, favorite_data):
+        """在配色预览面板中预览回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 提取颜色值
+        color_values = []
+        for color_info in colors:
+            hex_value = color_info.get('hex', '')
+            if hex_value:
+                if not hex_value.startswith('#'):
+                    hex_value = '#' + hex_value
+                color_values.append(hex_value)
+
+        if not color_values:
+            InfoBar.warning(
+                title="无法预览",
+                content="该配色没有有效的颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 调用主窗口跳转到配色预览页面
+        window = self.window()
+        if window and hasattr(window, 'show_color_preview'):
+            window.show_color_preview(color_values)
+
+    def _on_add_clicked(self):
+        """添加配色按钮点击"""
+        # 生成默认名称
+        favorites = self._config_manager.get_favorites()
+        default_name = f"配色 {len(favorites) + 1}"
+
+        # 显示添加对话框
+        dialog = EditPaletteDialog(default_name=default_name, parent=self.window())
+
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            return
+
+        # 获取配色数据
+        palette_data = dialog.get_palette_data()
+        if not palette_data:
+            return
+
+        # 添加到收藏
+        self._config_manager.add_favorite(palette_data)
+        self._config_manager.save()
+
+        # 刷新列表
+        self._load_favorites()
+
+        InfoBar.success(
+            title="添加成功",
+            content=f"配色「{palette_data['name']}」已添加",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+    def _on_favorite_edit(self, favorite_data):
+        """收藏编辑回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        favorite_id = favorite_data.get('id', '')
+        default_name = favorite_data.get('name', '')
+
+        # 显示编辑对话框
+        dialog = EditPaletteDialog(
+            default_name=default_name,
+            palette_data=favorite_data,
+            parent=self.window()
+        )
+
+        if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            return
+
+        # 获取编辑后的数据
+        new_palette_data = dialog.get_palette_data()
+        if not new_palette_data:
+            return
+
+        # 更新收藏数据
+        if self._config_manager.update_favorite(favorite_id, new_palette_data):
+            self._config_manager.save()
+            self._load_favorites()
+
+            InfoBar.success(
+                title="更新成功",
+                content=f"配色「{new_palette_data['name']}」已更新",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+        else:
+            InfoBar.error(
+                title="更新失败",
+                content="无法找到该配色",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+
+    def _on_favorite_contrast(self, favorite_data):
+        """收藏对比度检查回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', '未命名')
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title="无法检查",
+                content="该配色没有颜色数据",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        # 显示对比度检查对话框
+        dialog = ContrastCheckDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=self.window()
+        )
+        dialog.exec()
+
+    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: dict):
+        """收藏颜色变化回调
+
+        Args:
+            favorite_id: 收藏项ID
+            color_index: 颜色索引
+            color_info: 新的颜色信息
+        """
+        # 更新配置中的颜色数据
+        if self._config_manager.update_favorite_color(favorite_id, color_index, color_info):
+            self._config_manager.save()
+
+            InfoBar.success(
+                title="颜色已更新",
+                content=f"配色中的颜色已更新为 {color_info.get('hex', '#------')}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+
+    def _load_settings(self):
+        """加载显示设置"""
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self.palette_management_list.update_display_settings(hex_visible, color_modes)
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        """更新显示设置
+
+        Args:
+            hex_visible: 是否显示16进制颜色值
+            color_modes: 色彩模式列表
+        """
+        self.palette_management_list.update_display_settings(hex_visible, color_modes)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+        
+        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            card_bg = get_card_background_color()
+            border_color = get_border_color()
+            text_color = get_text_color()
+            
+            self.setStyleSheet(f"""
+                PaletteManagementInterface {{
+                    background-color: {bg_color.name()};
+                }}
+                ScrollArea {{
+                    background-color: transparent;
+                    border: none;
+                }}
+                ScrollArea > QWidget > QWidget {{
+                    background-color: transparent;
+                }}
+                PaletteManagementSchemeCard,
+                CardWidget {{
+                    background-color: {card_bg.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 8px;
+                }}
+                PushButton {{
+                    background-color: {card_bg.name()};
+                    color: {text_color.name()};
+                    border: 1px solid {border_color.name()};
+                    border-radius: 4px;
+                }}
+                PushButton:hover {{
+                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
+                }}
+                QLabel {{
+                    color: {text_color.name()};
+                }}
+            """)

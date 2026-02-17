@@ -18,8 +18,13 @@ from .zoom_viewer import ZoomViewer
 from .color_extract import ColorExtractInterface
 from .luminance_extract import LuminanceExtractInterface
 from .color_generation import ColorGenerationInterface, GenerationColorInfoCard, GenerationColorPanel
-from .interfaces import SettingsInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
-from .palette_management_widgets import PaletteManagementCard, PaletteManagementList
+from .palette_management import (
+    PaletteManagementInterface,
+    PaletteManagementCard, PaletteManagementList,
+    PaletteManagementColorCard
+)
+from .preset_color import PresetColorInterface
+from .interfaces import SettingsInterface, ColorPreviewInterface
 from .preview_widgets import (
     DraggableColorDot, ColorDotBar,
     PreviewToolbar, MixedPreviewPanel,
@@ -64,6 +69,7 @@ __all__ = [
     # 配色管理组件
     'PaletteManagementCard',
     'PaletteManagementList',
+    'PaletteManagementColorCard',
     # 配色预览组件
     'DraggableColorDot',
     'ColorDotBar',

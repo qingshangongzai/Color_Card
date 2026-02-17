@@ -335,16 +335,7 @@ class EditPaletteDialog(QDialog):
 
         # 验证至少有一个有效颜色
         if not valid_colors:
-            from qfluentwidgets import InfoBar, InfoBarPosition
-            InfoBar.warning(
-                title="输入无效",
-                content="请至少输入一个有效的颜色值",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self
-            )
+            self._show_error_tooltip("请至少输入一个有效的颜色值")
             return
 
         # 获取名称
@@ -359,6 +350,31 @@ class EditPaletteDialog(QDialog):
         }
 
         self.accept()
+
+    def _show_error_tooltip(self, message: str):
+        """显示错误提示（使用自定义 QLabel 替代 InfoBar）"""
+        # 创建错误提示标签
+        error_label = QLabel(self)
+        error_label.setText(f"⚠ {message}")
+        error_label.setStyleSheet("""
+            QLabel {
+                background-color: #FFF3CD;
+                color: #856404;
+                border: 1px solid #FFEAA7;
+                border-radius: 4px;
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        """)
+        error_label.adjustSize()
+        
+        # 定位在对话框顶部中央
+        x = (self.width() - error_label.width()) // 2
+        error_label.move(x, 5)
+        error_label.show()
+        
+        # 3秒后自动消失
+        QTimer.singleShot(3000, error_label.deleteLater)
 
     def get_palette_data(self):
         """获取配色数据
