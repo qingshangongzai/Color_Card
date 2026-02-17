@@ -16,7 +16,9 @@ from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
 from .theme_colors import (
     get_canvas_background_color, get_canvas_empty_text_color, get_picker_colors,
-    get_tooltip_bg_color, get_tooltip_text_color
+    get_tooltip_bg_color,
+    get_high_saturation_highlight_color, get_high_brightness_highlight_color,
+    get_high_saturation_border_color, get_high_brightness_border_color
 )
 
 
@@ -676,6 +678,50 @@ class BaseCanvas(QWidget):
         """
         pass
 
+    def _draw_info_box(self, painter: QPainter, text: str, text_color: QColor,
+                       display_rect: Tuple[int, int, int, int]) -> None:
+        """绘制信息提示框
+
+        Args:
+            painter: QPainter对象
+            text: 显示文字
+            text_color: 文字颜色
+            display_rect: 图片显示区域 (x, y, w, h)
+        """
+        disp_x, disp_y, disp_w, disp_h = display_rect
+
+        # 设置字体
+        font = QFont()
+        font.setPointSize(11)
+        font.setBold(True)
+        painter.setFont(font)
+
+        # 计算文字尺寸
+        text_rect = painter.boundingRect(QRect(), Qt.AlignmentFlag.AlignLeft, text)
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        # 背景框位置和尺寸
+        padding = 10
+        box_width = text_width + padding * 2
+        box_height = text_height + padding * 2
+        box_x = disp_x + (disp_w - box_width) // 2
+        box_y = disp_y + 20
+
+        # 绘制半透明背景框
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(get_tooltip_bg_color())
+        painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
+
+        # 绘制文字
+        text_color.setAlpha(255)
+        painter.setPen(text_color)
+        painter.drawText(
+            box_x + padding,
+            box_y + padding + text_height - 4,
+            text
+        )
+
     def mousePressEvent(self, event) -> None:
         """鼠标点击事件"""
         if event.button() == Qt.MouseButton.LeftButton:
@@ -1070,10 +1116,13 @@ class ImageCanvas(BaseCanvas):
             self._high_saturation_pixmap = None  # 清除缓存，重新生成
         self.update()
 
-    def _generate_high_saturation_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
-        """生成高饱和度区域高亮遮罩图
+    def _generate_highlight_pixmap(self, mode: str, threshold: float,
+                                   display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
+        """生成高亮遮罩图
 
         Args:
+            mode: 'saturation' 或 'brightness'
+            threshold: 阈值 (0.0-1.0)
             display_rect: 图片显示区域 (x, y, w, h)
 
         Returns:
@@ -1091,9 +1140,11 @@ class ImageCanvas(BaseCanvas):
         painter = QPainter(highlight_pixmap)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
-        # 导入颜色函数
-        from .theme_colors import get_high_saturation_highlight_color
-        highlight_color = get_high_saturation_highlight_color()
+        # 根据模式获取颜色
+        if mode == 'saturation':
+            highlight_color = get_high_saturation_highlight_color()
+        else:  # brightness
+            highlight_color = get_high_brightness_highlight_color()
 
         # 计算缩放比例
         scale_x = self._image.width() / disp_w
@@ -1113,13 +1164,14 @@ class ImageCanvas(BaseCanvas):
                 img_x = min(img_x, self._image.width() - 1)
                 img_y = min(img_y, self._image.height() - 1)
 
-                # 获取像素颜色并计算饱和度
+                # 获取像素颜色并计算HSV
                 color = self._image.pixelColor(img_x, img_y)
                 r, g, b = color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0
                 h, s, v = colorsys.rgb_to_hsv(r, g, b)
 
-                # 如果饱和度超过阈值，绘制遮罩
-                if s >= self._saturation_threshold:
+                # 根据模式比较阈值
+                value = s if mode == 'saturation' else v
+                if value >= threshold:
                     painter.fillRect(
                         disp_x + dx,
                         disp_y + dy,
@@ -1131,76 +1183,75 @@ class ImageCanvas(BaseCanvas):
         painter.end()
         return highlight_pixmap
 
-    def _draw_high_saturation_highlight(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
-        """绘制高饱和度区域高亮遮罩
+    def _draw_highlight(self, mode: str, painter: QPainter,
+                       display_rect: Tuple[int, int, int, int]) -> None:
+        """绘制高亮遮罩
 
         Args:
+            mode: 'saturation' 或 'brightness'
             painter: QPainter对象
             display_rect: 图片显示区域 (x, y, w, h)
         """
-        if not self._show_high_saturation:
+        # 根据模式选择对应的标志和缓存
+        if mode == 'saturation':
+            show_flag = self._show_high_saturation
+            cache = self._high_saturation_pixmap
+            threshold = self._saturation_threshold
+        else:  # brightness
+            show_flag = self._show_high_brightness
+            cache = self._high_brightness_pixmap
+            threshold = self._brightness_threshold
+
+        if not show_flag:
             return
 
         # 如果缓存不存在，生成遮罩图
-        if self._high_saturation_pixmap is None:
-            self._high_saturation_pixmap = self._generate_high_saturation_pixmap(display_rect)
+        if cache is None:
+            cache = self._generate_highlight_pixmap(mode, threshold, display_rect)
+            if mode == 'saturation':
+                self._high_saturation_pixmap = cache
+            else:
+                self._high_brightness_pixmap = cache
 
         # 绘制遮罩图
-        if self._high_saturation_pixmap:
-            painter.drawPixmap(0, 0, self._high_saturation_pixmap)
+        if cache:
+            painter.drawPixmap(0, 0, cache)
 
         # 绘制信息提示
-        self._draw_high_saturation_info(painter, display_rect)
+        self._draw_highlight_info(mode, painter, display_rect)
 
-    def _draw_high_saturation_info(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
-        """绘制高饱和度区域信息提示
+    def _draw_highlight_info(self, mode: str, painter: QPainter,
+                            display_rect: Tuple[int, int, int, int]) -> None:
+        """绘制高亮信息提示
 
         Args:
+            mode: 'saturation' 或 'brightness'
             painter: QPainter对象
             display_rect: 图片显示区域 (x, y, w, h)
         """
-        if not self._show_high_saturation:
+        # 根据模式选择对应的标志和阈值
+        if mode == 'saturation':
+            show_flag = self._show_high_saturation
+            threshold = self._saturation_threshold
+            label = "S"
+            name = "高饱和度区域"
+            text_color = get_high_saturation_border_color()
+        else:  # brightness
+            show_flag = self._show_high_brightness
+            threshold = self._brightness_threshold
+            label = "B"
+            name = "高明度区域"
+            text_color = get_high_brightness_border_color()
+
+        if not show_flag:
             return
 
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
         # 准备文字
-        threshold_percent = int(self._saturation_threshold * 100)
-        text = f"高饱和度区域 (S ≥ {threshold_percent}%)"
+        threshold_percent = int(threshold * 100)
+        text = f"{name} ({label} ≥ {threshold_percent}%)"
 
-        # 设置字体
-        font = QFont()
-        font.setPointSize(11)
-        font.setBold(True)
-        painter.setFont(font)
-
-        # 计算文字尺寸
-        text_rect = painter.boundingRect(QRect(), Qt.AlignmentFlag.AlignLeft, text)
-        text_width = text_rect.width()
-        text_height = text_rect.height()
-
-        # 背景框位置和尺寸
-        padding = 10
-        box_width = text_width + padding * 2
-        box_height = text_height + padding * 2
-        box_x = disp_x + (disp_w - box_width) // 2
-        box_y = disp_y + 20
-
-        # 绘制半透明背景框
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(get_tooltip_bg_color())
-        painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
-
-        # 绘制文字
-        from .theme_colors import get_high_saturation_border_color
-        text_color = get_high_saturation_border_color()
-        text_color.setAlpha(255)
-        painter.setPen(text_color)
-        painter.drawText(
-            box_x + padding,
-            box_y + padding + text_height - 4,
-            text
-        )
+        # 使用通用方法绘制信息框
+        self._draw_info_box(painter, text, text_color, display_rect)
 
     def toggle_high_brightness_highlight(self, show: bool) -> None:
         """切换高明度区域高亮显示
@@ -1213,138 +1264,6 @@ class ImageCanvas(BaseCanvas):
             self._high_brightness_pixmap = None  # 清除缓存，重新生成
         self.update()
 
-    def _generate_high_brightness_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
-        """生成高明度区域高亮遮罩图
-
-        Args:
-            display_rect: 图片显示区域 (x, y, w, h)
-
-        Returns:
-            QPixmap: 高亮遮罩图
-        """
-        if self._image is None or self._image.isNull():
-            return None
-
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        # 创建透明遮罩图
-        highlight_pixmap = QPixmap(self.size())
-        highlight_pixmap.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(highlight_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-        # 导入颜色函数
-        from .theme_colors import get_high_brightness_highlight_color
-        highlight_color = get_high_brightness_highlight_color()
-
-        # 计算缩放比例
-        scale_x = self._image.width() / disp_w
-        scale_y = self._image.height() / disp_h
-
-        # 采样步长（性能优化）
-        sample_step = 4
-
-        # 遍历显示区域的像素
-        for dy in range(0, disp_h, sample_step):
-            for dx in range(0, disp_w, sample_step):
-                # 计算对应的原始图片坐标
-                img_x = int(dx * scale_x)
-                img_y = int(dy * scale_y)
-
-                # 边界检查
-                img_x = min(img_x, self._image.width() - 1)
-                img_y = min(img_y, self._image.height() - 1)
-
-                # 获取像素颜色并计算明度
-                color = self._image.pixelColor(img_x, img_y)
-                r, g, b = color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0
-                h, s, v = colorsys.rgb_to_hsv(r, g, b)
-
-                # 如果明度超过阈值，绘制遮罩
-                if v >= self._brightness_threshold:
-                    painter.fillRect(
-                        disp_x + dx,
-                        disp_y + dy,
-                        sample_step,
-                        sample_step,
-                        highlight_color
-                    )
-
-        painter.end()
-        return highlight_pixmap
-
-    def _draw_high_brightness_highlight(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
-        """绘制高明度区域高亮遮罩
-
-        Args:
-            painter: QPainter对象
-            display_rect: 图片显示区域 (x, y, w, h)
-        """
-        if not self._show_high_brightness:
-            return
-
-        # 如果缓存不存在，生成遮罩图
-        if self._high_brightness_pixmap is None:
-            self._high_brightness_pixmap = self._generate_high_brightness_pixmap(display_rect)
-
-        # 绘制遮罩图
-        if self._high_brightness_pixmap:
-            painter.drawPixmap(0, 0, self._high_brightness_pixmap)
-
-        # 绘制信息提示
-        self._draw_high_brightness_info(painter, display_rect)
-
-    def _draw_high_brightness_info(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
-        """绘制高明度区域信息提示
-
-        Args:
-            painter: QPainter对象
-            display_rect: 图片显示区域 (x, y, w, h)
-        """
-        if not self._show_high_brightness:
-            return
-
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        # 准备文字
-        threshold_percent = int(self._brightness_threshold * 100)
-        text = f"高明度区域 (B ≥ {threshold_percent}%)"
-
-        # 设置字体
-        font = QFont()
-        font.setPointSize(11)
-        font.setBold(True)
-        painter.setFont(font)
-
-        # 计算文字尺寸
-        text_rect = painter.boundingRect(QRect(), Qt.AlignmentFlag.AlignLeft, text)
-        text_width = text_rect.width()
-        text_height = text_rect.height()
-
-        # 背景框位置和尺寸
-        padding = 10
-        box_width = text_width + padding * 2
-        box_height = text_height + padding * 2
-        box_x = disp_x + (disp_w - box_width) // 2
-        box_y = disp_y + 20
-
-        # 绘制半透明背景框
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(get_tooltip_bg_color())
-        painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
-
-        # 绘制文字
-        from .theme_colors import get_high_brightness_border_color
-        text_color = get_high_brightness_border_color()
-        text_color.setAlpha(255)
-        painter.setPen(text_color)
-        painter.drawText(
-            box_x + padding,
-            box_y + padding + text_height - 4,
-            text
-        )
-
     def _draw_overlay(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制叠加内容
 
@@ -1353,9 +1272,9 @@ class ImageCanvas(BaseCanvas):
             display_rect: 图片显示区域 (x, y, w, h)
         """
         # 绘制高饱和度区域高亮遮罩（在图片上方）
-        self._draw_high_saturation_highlight(painter, display_rect)
+        self._draw_highlight('saturation', painter, display_rect)
         # 绘制高明度区域高亮遮罩
-        self._draw_high_brightness_highlight(painter, display_rect)
+        self._draw_highlight('brightness', painter, display_rect)
 
 
 class LuminanceCanvas(BaseCanvas):
@@ -1687,8 +1606,6 @@ class LuminanceCanvas(BaseCanvas):
         if self._highlighted_zone < 0:
             return
 
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
         # 准备文字 - Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
         zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8"]
         zone_names = [
@@ -1704,39 +1621,11 @@ class LuminanceCanvas(BaseCanvas):
 
         text = f"{label} ({name}) | 亮度: {min_lum}-{max_lum}"
 
-        # 设置字体
-        font = QFont()
-        font.setPointSize(11)
-        font.setBold(True)
-        painter.setFont(font)
-
-        # 计算文字尺寸
-        text_rect = painter.boundingRect(QRect(), Qt.AlignmentFlag.AlignLeft, text)
-        text_width = text_rect.width()
-        text_height = text_rect.height()
-
-        # 背景框位置和尺寸
-        padding = 10
-        box_width = text_width + padding * 2
-        box_height = text_height + padding * 2
-        box_x = disp_x + (disp_w - box_width) // 2
-        box_y = disp_y + 20
-
-        # 绘制半透明背景框
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(get_tooltip_bg_color())
-        painter.drawRoundedRect(box_x, box_y, box_width, box_height, 6, 6)
-
-        # 绘制文字
+        # 获取文字颜色
         text_color = self._zone_highlight_colors[self._highlighted_zone]
-        # 使用不透明版本的颜色
-        text_color.setAlpha(255)
-        painter.setPen(text_color)
-        painter.drawText(
-            box_x + padding,
-            box_y + padding + text_height - 4,
-            text
-        )
+
+        # 使用通用方法绘制信息框
+        self._draw_info_box(painter, text, text_color, display_rect)
 
 
 __all__ = [
