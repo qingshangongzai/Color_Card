@@ -40,6 +40,12 @@
       "name": "登录页面",
       "file": "login.svg",
       "description": "左右分栏式登录页面，包含装饰区域和登录表单"
+    },
+    {
+      "id": "admin_dashboard",
+      "name": "后台仪表盘",
+      "file": "admin_dashboard.svg",
+      "description": "完整的后台管理系统界面，包含侧边栏、日历、用户列表、统计卡片和数据图表"
     }
   ]
 }
