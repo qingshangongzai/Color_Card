@@ -37,6 +37,7 @@ class BaseHistogram(QWidget):
         self._histogram: List[int] = []
         self._max_count = 0
         self._scaling_mode = "linear"  # "linear" 或 "adaptive"
+        self._is_loading = False  # 加载状态标志
 
         # 绘图边距
         self._margin_left = 35
@@ -46,7 +47,47 @@ class BaseHistogram(QWidget):
 
         # 背景色
         self._background_color = get_histogram_background_color()
-        
+
+    def set_loading(self, loading: bool):
+        """设置加载状态
+
+        Args:
+            loading: True 显示加载提示，False 隐藏加载提示
+        """
+        self._is_loading = loading
+        self.update()
+
+    def _draw_loading_indicator(self, painter: QPainter):
+        """绘制加载中提示"""
+        if not self._is_loading:
+            return
+
+        # 计算绘制区域
+        widget_width = self.width()
+        widget_height = self.height()
+
+        # 加载提示文字
+        text = "加载中..."
+
+        # 设置字体
+        font = QFont()
+        font.setPointSize(10)
+        painter.setFont(font)
+
+        # 计算文字尺寸
+        text_rect = painter.fontMetrics().boundingRect(text)
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        # 居中位置
+        text_x = (widget_width - text_width) // 2
+        text_y = (widget_height + text_height) // 2 - 5  # 微调垂直位置
+
+        # 绘制文字（使用直方图文本颜色）
+        text_color = get_histogram_text_color()
+        painter.setPen(text_color)
+        painter.drawText(text_x, text_y, text)
+
     def set_data(self, data: List[int]):
         """设置直方图数据
         
@@ -98,25 +139,28 @@ class BaseHistogram(QWidget):
         """绘制直方图"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
+
         # 绘制背景
         painter.fillRect(self.rect(), self._background_color)
-        
+
         # 计算绘图区域
         draw_width = self.width() - self._margin_left - self._margin_right
         draw_height = self.height() - self._margin_top - self._margin_bottom
-        
+
         if draw_width <= 0 or draw_height <= 0:
             return
-            
+
         # 绘制直方图
         self._draw_histogram(painter, self._margin_left, self._margin_top, draw_width, draw_height)
-        
+
         # 绘制自定义叠加内容
         self._draw_custom_overlay(painter, self._margin_left, self._margin_top, draw_width, draw_height)
-        
+
         # 绘制刻度标签
         self._draw_labels(painter, self._margin_left, self._margin_top, draw_width, draw_height)
+
+        # 绘制加载提示（如果有）
+        self._draw_loading_indicator(painter)
         
     def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制直方图（子类必须实现）
@@ -214,6 +258,7 @@ class LuminanceHistogramWidget(BaseHistogram):
         if image is None or image.isNull():
             self.clear()
             return
+        self.set_loading(True)
         self._histogram_service.calculate_luminance_async(image)
 
     def set_highlight_zones(self, zones):
@@ -248,11 +293,13 @@ class LuminanceHistogramWidget(BaseHistogram):
 
     def _on_histogram_ready(self, histogram):
         """直方图计算完成回调"""
+        self.set_loading(False)
         self.set_data(histogram)
 
     def _on_histogram_error(self, error_msg):
         """直方图计算错误回调"""
         print(f"明度直方图计算错误: {error_msg}")
+        self.set_loading(False)
         self.clear()
 
     def get_zone_from_luminance(self, luminance: int) -> int:
@@ -523,10 +570,12 @@ class RGBHistogramWidget(BaseHistogram):
         if image is None or image.isNull():
             self.clear()
             return
+        self.set_loading(True)
         self._histogram_service.calculate_rgb_async(image)
 
     def _on_histogram_ready(self, r_hist, g_hist, b_hist):
         """RGB直方图计算完成回调"""
+        self.set_loading(False)
         self._histogram_r = r_hist
         self._histogram_g = g_hist
         self._histogram_b = b_hist
@@ -541,6 +590,7 @@ class RGBHistogramWidget(BaseHistogram):
     def _on_histogram_error(self, error_msg):
         """直方图计算错误回调"""
         print(f"RGB直方图计算错误: {error_msg}")
+        self.set_loading(False)
         self.clear()
 
     def clear(self):
@@ -810,10 +860,12 @@ class HueHistogramWidget(BaseHistogram):
         if image is None or image.isNull():
             self.clear()
             return
+        self.set_loading(True)
         self._histogram_service.calculate_hue_async(image)
 
     def _on_histogram_ready(self, histogram):
         """色相直方图计算完成回调"""
+        self.set_loading(False)
         self._histogram = histogram
         self._max_count = max(self._histogram) if self._histogram else 1
         self.update()
@@ -821,6 +873,7 @@ class HueHistogramWidget(BaseHistogram):
     def _on_histogram_error(self, error_msg):
         """直方图计算错误回调"""
         print(f"色相直方图计算错误: {error_msg}")
+        self.set_loading(False)
         self.clear()
 
     def clear(self):
