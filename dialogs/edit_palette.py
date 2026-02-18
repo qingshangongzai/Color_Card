@@ -307,6 +307,9 @@ class EditPaletteDialog(QDialog):
         # 获取已有颜色
         colors = self._palette_data.get('colors', [])
 
+        # 保留原始ID（用于编辑模式）
+        self._original_id = self._palette_data.get('id', '')
+
         # 清空默认添加的空行（从布局中移除、隐藏并删除）
         while self._color_rows:
             row = self._color_rows.pop()
@@ -348,6 +351,14 @@ class EditPaletteDialog(QDialog):
             'colors': valid_colors,
             'created_at': datetime.now().isoformat()
         }
+
+        # 如果是编辑模式，保留原始ID；如果是添加模式，生成新ID
+        if self._is_edit_mode and hasattr(self, '_original_id') and self._original_id:
+            self._palette_data['id'] = self._original_id
+        else:
+            # 添加模式：生成新ID
+            import uuid
+            self._palette_data['id'] = str(uuid.uuid4())
 
         self.accept()
 

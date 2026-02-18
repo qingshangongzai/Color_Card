@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # 项目模块导入
 from version import version_manager
-from core.color import hex_to_rgb, get_color_info
-from core.grouping import generate_groups
 
 
 class ConfigManager:
@@ -303,125 +301,13 @@ class ConfigManager:
         """清空所有收藏"""
         self._config["favorites"] = []
 
-    def export_favorites(self, file_path: str) -> bool:
-        """导出收藏到文件
+    def set_favorites(self, favorites: list) -> None:
+        """设置收藏列表（用于批量替换）
 
         Args:
-            file_path: 导出文件路径
-
-        Returns:
-            bool: 是否导出成功
+            favorites: 收藏列表
         """
-        try:
-            favorites = self.get_favorites()
-            now = datetime.now()
-            palette_id = f"user_palettes_{now.strftime('%Y%m%d_%H%M%S')}"
-            palettes = []
-            for fav in favorites:
-                colors = fav.get("colors", [])
-                hex_colors = []
-                for color_info in colors:
-                    if isinstance(color_info, dict):
-                        hex_color = color_info.get("hex", "")
-                        if hex_color:
-                            hex_colors.append(hex_color)
-                    elif isinstance(color_info, str):
-                        hex_colors.append(color_info)
-                if hex_colors:
-                    palettes.append({
-                        "name": fav.get("name", "未命名"),
-                        "colors": hex_colors
-                    })
-            groups = generate_groups(len(palettes))
-            export_data = {
-                "version": "1.0",
-                "id": palette_id,
-                "name": "",
-                "name_zh": "",
-                "description": "",
-                "author": "",
-                "created_at": now.isoformat(),
-                "category": "user_palette",
-                "palettes": palettes,
-                "groups": groups
-            }
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(export_data, f, ensure_ascii=False, indent=4)
-            return True
-        except (IOError, OSError) as e:
-            print(f"导出收藏失败: {e}")
-            return False
-
-    def import_favorites(self, file_path: str, mode: str = 'append') -> tuple:
-        """从文件导入收藏
-
-        Args:
-            file_path: 导入文件路径
-            mode: 导入模式，'append' 追加到现有收藏，'replace' 替换现有收藏
-
-        Returns:
-            tuple: (是否成功, 导入数量, 错误信息)
-        """
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                import_data = json.load(f)
-
-            if not isinstance(import_data, dict):
-                return False, 0, "文件格式错误：根对象必须是字典"
-
-            palettes = import_data.get("palettes", [])
-            if not isinstance(palettes, list):
-                return False, 0, "文件格式错误：palettes 必须是列表"
-
-            if not palettes:
-                return False, 0, "文件中没有配色数据"
-
-            valid_favorites = []
-            for palette in palettes:
-                if not isinstance(palette, dict):
-                    continue
-                colors_data = palette.get("colors", [])
-                if not isinstance(colors_data, list) or not colors_data:
-                    continue
-                colors = []
-                for hex_color in colors_data:
-                    if isinstance(hex_color, str) and hex_color.startswith('#'):
-                        try:
-                            r, g, b = hex_to_rgb(hex_color)
-                            color_info = get_color_info(r, g, b)
-                            colors.append(color_info)
-                        except Exception:
-                            colors.append({"hex": hex_color, "rgb": (0, 0, 0)})
-                if colors:
-                    favorite_data = {
-                        "id": str(uuid.uuid4()),
-                        "name": palette.get("name", "未命名"),
-                        "colors": colors,
-                        "created_at": datetime.now().isoformat(),
-                        "source": "import"
-                    }
-                    valid_favorites.append(favorite_data)
-
-            if not valid_favorites:
-                return False, 0, "没有有效的配色数据"
-
-            if mode == 'replace':
-                self._config["favorites"] = valid_favorites
-            else:
-                existing_ids = {f.get("id") for f in self._config.get("favorites", [])}
-                for fav in valid_favorites:
-                    if fav.get("id") not in existing_ids:
-                        self._config["favorites"].append(fav)
-                        existing_ids.add(fav.get("id"))
-
-            return True, len(valid_favorites), ""
-
-        except json.JSONDecodeError as e:
-            return False, 0, f"JSON 解析错误: {e}"
-        except (IOError, OSError) as e:
-            return False, 0, f"文件读取错误: {e}"
-        except Exception as e:
-            return False, 0, f"导入失败: {e}"
+        self._config["favorites"] = favorites
 
     def update_favorite_color(self, favorite_id: str, color_index: int, color_info: dict) -> bool:
         """更新收藏中的颜色

@@ -63,6 +63,8 @@ from .image_mediator import ImageMediator
 
 from .color_service import ColorService, DominantColorExtractor
 
+from .palette_service import PaletteService, PaletteImporter, PaletteExporter
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -121,4 +123,7 @@ __all__ = [
     'ImageMediator',
     'ColorService',
     'DominantColorExtractor',
+    'PaletteService',
+    'PaletteImporter',
+    'PaletteExporter',
 ]

@@ -1,12 +1,11 @@
 # 标准库导入
 import math
-import uuid
 from datetime import datetime
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QGridLayout, QWidget, QLabel,
+    QVBoxLayout, QHBoxLayout, QWidget, QLabel,
     QSizePolicy, QApplication, QLineEdit, QFileDialog
 )
 from qfluentwidgets import (
@@ -17,6 +16,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb, get_config_manager
+from core import PaletteService
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
@@ -1034,11 +1034,20 @@ class PaletteManagementInterface(QWidget):
         super().__init__(parent)
         self.setObjectName('paletteManagementInterface')
         self._config_manager = get_config_manager()
+        self._palette_service = PaletteService(self)
+        self._setup_service_connections()
         self.setup_ui()
         self._load_favorites()
         self._load_settings()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def _setup_service_connections(self):
+        """设置配色服务信号连接"""
+        self._palette_service.import_finished.connect(self._on_import_finished)
+        self._palette_service.import_error.connect(self._on_import_error)
+        self._palette_service.export_finished.connect(self._on_export_finished)
+        self._palette_service.export_error.connect(self._on_export_error)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1146,6 +1155,9 @@ class PaletteManagementInterface(QWidget):
         if not file_path:
             return
 
+        # 保存文件路径和导入模式，供回调使用
+        self._pending_import_path = file_path
+
         # 询问导入模式 - 使用两个独立的对话框
         msg_box = MessageBox(
             "选择导入模式",
@@ -1160,34 +1172,55 @@ class PaletteManagementInterface(QWidget):
 
         # 确定导入模式
         if result == 1:  # 点击了"追加"
-            mode = 'append'
+            self._pending_import_mode = 'append'
         else:  # 点击了"替换"
-            mode = 'replace'
+            self._pending_import_mode = 'replace'
 
-        success, count, error_msg = self._config_manager.import_favorites(file_path, mode)
+        # 调用服务开始导入
+        self._palette_service.import_from_file(file_path)
 
-        if success:
-            self._config_manager.save()
-            self._load_favorites()
-            InfoBar.success(
-                title="导入成功",
-                content=f"成功导入 {count} 个配色",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self
-            )
-        else:
-            InfoBar.error(
-                title="导入失败",
-                content=error_msg,
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self
-            )
+    def _on_import_finished(self, palettes: list):
+        """导入完成回调
+
+        Args:
+            palettes: 导入的配色列表
+        """
+        # 根据导入模式处理
+        if self._pending_import_mode == 'replace':
+            self._config_manager.clear_favorites()
+
+        # 添加导入的配色
+        for palette in palettes:
+            self._config_manager.add_favorite(palette)
+
+        self._config_manager.save()
+        self._load_favorites()
+
+        InfoBar.success(
+            title="导入成功",
+            content=f"成功导入 {len(palettes)} 个配色",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=3000,
+            parent=self
+        )
+
+    def _on_import_error(self, error_msg: str):
+        """导入错误回调
+
+        Args:
+            error_msg: 错误信息
+        """
+        InfoBar.error(
+            title="导入失败",
+            content=error_msg,
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=5000,
+            parent=self
+        )
 
     def _on_export_clicked(self):
         """导出按钮点击"""
@@ -1206,28 +1239,41 @@ class PaletteManagementInterface(QWidget):
         if not file_path.endswith('.json'):
             file_path += '.json'
 
-        success = self._config_manager.export_favorites(file_path)
+        # 获取收藏列表并调用服务导出
+        favorites = self._config_manager.get_favorites()
+        self._palette_service.export_to_file(favorites, file_path)
 
-        if success:
-            InfoBar.success(
-                title="导出成功",
-                content=f"收藏已导出到：{file_path}",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self
-            )
-        else:
-            InfoBar.error(
-                title="导出失败",
-                content="导出过程中发生错误，请检查文件路径和权限",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self
-            )
+    def _on_export_finished(self, file_path: str):
+        """导出完成回调
+
+        Args:
+            file_path: 导出文件路径
+        """
+        InfoBar.success(
+            title="导出成功",
+            content=f"收藏已导出到：{file_path}",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=3000,
+            parent=self
+        )
+
+    def _on_export_error(self, error_msg: str):
+        """导出错误回调
+
+        Args:
+            error_msg: 错误信息
+        """
+        InfoBar.error(
+            title="导出失败",
+            content=error_msg,
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=5000,
+            parent=self
+        )
 
     def _on_favorite_preview(self, favorite_data):
         """收藏预览回调（色盲模拟）
