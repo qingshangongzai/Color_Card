@@ -380,7 +380,23 @@ class SVGColorMapper:
                 return 3.14159 * rx * ry
 
             elif tag in ['path', 'polygon', 'polyline']:
-                # 简化：根据边界框估算
+                # 尝试从 path 数据估算面积
+                d = elem.get('d', '')
+                if d:
+                    # 简单估算：计算 path 中所有数字的边界框
+                    import re
+                    numbers = re.findall(r'-?\d+\.?\d*', d)
+                    if len(numbers) >= 4:
+                        try:
+                            coords = [float(n) for n in numbers]
+                            xs = coords[0::2]  # x 坐标
+                            ys = coords[1::2]  # y 坐标
+                            if xs and ys:
+                                width = max(xs) - min(xs)
+                                height = max(ys) - min(ys)
+                                return width * height
+                        except (ValueError, IndexError):
+                            pass
                 return 1000.0  # 默认值
 
         except (ValueError, TypeError):
@@ -598,13 +614,12 @@ class SVGColorMapper:
             return self._apply_smart_mapping(colors)
 
     def _apply_smart_mapping(self, colors: List[str]) -> str:
-        """智能映射（包含透明元素）
+        """智能映射（简化版）
 
         策略：
-        1. 将透明元素视为可映射的颜色
-        2. 透明背景虚拟为元素，映射到 colors[0]
-        3. 其他元素（包括透明元素和有 fill 元素）按面积+位置排序
-        4. 从 colors[1] 开始顺序映射
+        1. 有透明元素：透明背景+透明元素 -> colors[0]，有 fill 元素从 colors[1] 开始
+        2. 无透明元素：面积最大元素 -> colors[0]，其他从 colors[1] 开始
+        3. 不识别背景，所有元素平等处理
 
         Args:
             colors: 颜色列表
@@ -618,35 +633,48 @@ class SVGColorMapper:
         # 创建颜色映射表
         color_map: Dict[str, str] = {}
 
-        # 1. 所有透明元素（包括背景）都映射到 colors[0]
-        if colors:
-            # 透明背景
-            color_map[TRANSPARENT_BACKGROUND_KEY] = colors[0]
-            print(f"智能映射 透明背景 -> {colors[0]}")
-            
-            # 透明元素
-            transparent_elements = [e for e in self._elements if e.is_transparent]
-            for i, elem in enumerate(transparent_elements):
-                key = f'{TRANSPARENT_ELEMENT_PREFIX}_{i}'
-                color_map[key] = colors[0]
-                print(f"智能映射 透明元素 {i} -> {colors[0]}")
+        # 检测是否有透明元素
+        transparent_elements = [e for e in self._elements if e.is_transparent]
+        has_transparent = len(transparent_elements) > 0
 
-        # 2. 收集有 fill 的元素
+        # 收集有 fill 的元素
         fill_elements = [e for e in self._elements if e.fill_color and not e.is_transparent]
-        
-        if not fill_elements:
+
+        if not fill_elements and not has_transparent:
             print("智能映射 - 未找到任何可替换的元素")
             return self._original_content
 
-        print(f"智能映射 - 透明元素: {len(transparent_elements)}, 有fill元素: {len(fill_elements)}")
-
-        # 3. 按面积+位置排序有 fill 的元素
+        # 按面积排序有 fill 的元素
         def sort_key(elem):
             x = float(elem.attributes.get('x', 0))
             y = float(elem.attributes.get('y', 0))
             return (-elem.area, y, x)
 
         fill_elements.sort(key=sort_key)
+
+        print(f"智能映射 - 透明元素: {len(transparent_elements)}, 有fill元素: {len(fill_elements)}")
+
+        # 透明背景总是映射到 colors[0]
+        color_map[TRANSPARENT_BACKGROUND_KEY] = colors[0]
+        print(f"智能映射 透明背景 -> {colors[0]}")
+
+        if has_transparent:
+            # 情况1：有透明元素
+            # 透明元素 -> colors[0]
+            for i, elem in enumerate(transparent_elements):
+                key = f'{TRANSPARENT_ELEMENT_PREFIX}_{i}'
+                color_map[key] = colors[0]
+                print(f"智能映射 透明元素 {i} -> {colors[0]}")
+
+            # 有 fill 的元素从 colors[1] 开始
+            start_idx = 1
+        else:
+            # 情况2：没有透明元素
+            # 有 fill 的元素从 colors[1] 开始
+            start_idx = 1
+
+        # 总是添加背景矩形
+        need_bg_rect = True
 
         # 调试：打印排序后的元素信息
         print("排序后的有fill元素：")
@@ -656,18 +684,18 @@ class SVGColorMapper:
             fill = elem.fill_color or 'N/A'
             print(f"  {i}: fill={fill}, area={elem.area:.2f}, x={x}, y={y}")
 
-        # 4. 映射颜色（从 colors[1] 开始）
+        # 映射颜色（从 start_idx 开始）
         for i, elem in enumerate(fill_elements):
             normalized = self._normalize_color(elem.fill_color)
             if normalized and normalized not in color_map:
-                color_idx = (i % (len(colors) - 1)) + 1 if len(colors) > 1 else 0
+                color_idx = (i % (len(colors) - 1)) + start_idx if len(colors) > 1 else 0
                 color_map[normalized] = colors[color_idx]
                 print(f"智能映射 {normalized} -> {colors[color_idx]}")
 
         print(f"智能映射 - 颜色映射: {color_map}")
 
-        # 5. 应用映射
-        return self._apply_color_map_extended(color_map)
+        # 应用映射
+        return self._apply_color_map_extended(color_map, need_bg_rect)
 
     def _normalize_color(self, color: str) -> Optional[str]:
         """标准化颜色值
@@ -758,11 +786,12 @@ class SVGColorMapper:
         print(f"成功映射 {mapped_count} 个元素的颜色")
         return self._modified_content
 
-    def _apply_color_map_extended(self, color_map: Dict[str, str]) -> str:
+    def _apply_color_map_extended(self, color_map: Dict[str, str], need_background_rect: bool = True) -> str:
         """应用颜色映射（扩展版，支持透明元素）
 
         Args:
             color_map: 颜色映射表，包含特殊键（__BACKGROUND__, __TRANSPARENT__*）
+            need_background_rect: 是否需要添加背景矩形
 
         Returns:
             str: 修改后的 SVG 内容
@@ -773,9 +802,8 @@ class SVGColorMapper:
         root = ET.fromstring(self._original_content)
 
         # 1. 处理透明背景
-        if TRANSPARENT_BACKGROUND_KEY in color_map:
+        if need_background_rect and TRANSPARENT_BACKGROUND_KEY in color_map:
             bg_color = color_map[TRANSPARENT_BACKGROUND_KEY]
-            # 在 SVG 最底层添加背景矩形
             self._add_background_rect(root, bg_color)
 
         # 2. 处理透明元素
