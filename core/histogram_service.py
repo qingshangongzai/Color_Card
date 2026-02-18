@@ -153,7 +153,7 @@ class HistogramService(QObject):
         else:
             return 2
 
-    def calculate_luminance_async(self, image: QImage, delay_ms: int = 500) -> None:
+    def calculate_luminance_async(self, image: QImage, delay_ms: int = 100) -> None:
         """异步计算明度直方图
 
         Args:
@@ -205,7 +205,7 @@ class HistogramService(QObject):
         self._safe_stop_calculator(self._luminance_calculator)
         self._luminance_calculator = None
 
-    def calculate_rgb_async(self, image: QImage, delay_ms: int = 500) -> None:
+    def calculate_rgb_async(self, image: QImage, delay_ms: int = 100) -> None:
         """异步计算RGB直方图
 
         Args:
@@ -256,7 +256,7 @@ class HistogramService(QObject):
         self._safe_stop_calculator(self._rgb_calculator)
         self._rgb_calculator = None
 
-    def calculate_hue_async(self, image: QImage, delay_ms: int = 500) -> None:
+    def calculate_hue_async(self, image: QImage, delay_ms: int = 100) -> None:
         """异步计算色相直方图
 
         Args:
