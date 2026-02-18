@@ -1251,7 +1251,7 @@ class LayoutFactory:
 # ============================================================================
 
 class PreviewSceneSelector(ComboBox):
-    """预览场景选择器 - 从 scene_types.json 加载场景列表"""
+    """预览场景选择器 - 从 scene_types.json 加载场景列表（延迟加载）"""
 
     scene_changed = Signal(str)
 
@@ -1262,8 +1262,8 @@ class PreviewSceneSelector(ComboBox):
             parent: 父控件
         """
         self._scene_types: List[dict] = []
+        self._scene_types_loaded = False
         super().__init__(parent)
-        self._load_scene_types()
         self._setup_items()
         self.currentTextChanged.connect(self._on_selection_changed)
 
@@ -1284,18 +1284,32 @@ class PreviewSceneSelector(ComboBox):
     def _setup_items(self):
         """设置选项"""
         self.clear()
-        for scene_type in self._scene_types:
-            scene_id = scene_type.get("id", "")
-            scene_name = scene_type.get("name", scene_id)
-            self.addItem(scene_name)
-            self.setItemData(self.count() - 1, scene_id)
+        if not self._scene_types_loaded:
+            self.addItem("加载中...")
+            self.setEnabled(False)
+        else:
+            self.setEnabled(True)
+            for scene_type in self._scene_types:
+                scene_id = scene_type.get("id", "")
+                scene_name = scene_type.get("name", scene_id)
+                self.addItem(scene_name)
+                self.setItemData(self.count() - 1, scene_id)
 
     def _on_selection_changed(self, text: str):
         """处理选择变化"""
+        if not self._scene_types_loaded:
+            return
         index = self.currentIndex()
         key = self.itemData(index)
         if key:
             self.scene_changed.emit(key)
+
+    def ensure_loaded(self):
+        """确保场景类型已加载（延迟加载入口）"""
+        if not self._scene_types_loaded:
+            self._load_scene_types()
+            self._scene_types_loaded = True
+            self._setup_items()
 
     def get_current_scene(self) -> str:
         """获取当前场景ID"""
@@ -1304,6 +1318,7 @@ class PreviewSceneSelector(ComboBox):
     def reload_scenes(self):
         """重新加载场景列表"""
         self._load_scene_types()
+        self._scene_types_loaded = True
         self._setup_items()
 
     def get_scene_type_config(self, scene_id: str) -> Optional[dict]:
@@ -1636,6 +1651,7 @@ class ColorPreviewInterface(QWidget):
         self._current_scene = "mobile_ui"
         self._current_svg_path = ""
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
+        self._scene_types_loaded = False
         self.setup_ui()
         self._load_favorites()
         self._update_styles()
@@ -1659,8 +1675,32 @@ class ColorPreviewInterface(QWidget):
         layout.addWidget(self.toolbar)
 
         self.preview_panel = MixedPreviewPanel(self)
-        self.preview_panel.set_scene("mobile_ui")
+        # 延迟加载：不在初始化时设置场景，等 on_tab_selected 触发
         layout.addWidget(self.preview_panel, stretch=1)
+
+    def on_tab_selected(self):
+        """当标签页被选中时调用（延迟加载入口）"""
+        if not self._scene_types_loaded:
+            register_preview_scenes()
+            self._load_scene_types()
+            # 首次加载后设置场景
+            self.preview_panel.set_scene(self._current_scene)
+
+    def _load_scene_types(self):
+        """加载场景类型"""
+        scene_selector = self.toolbar.get_scene_selector()
+        if scene_selector:
+            InfoBar.info(
+                title="加载中",
+                content="正在加载场景类型...",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=1000,
+                parent=self.window()
+            )
+            scene_selector.ensure_loaded()
+        self._scene_types_loaded = True
 
     def _load_favorites(self):
         """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
@@ -1952,9 +1992,12 @@ class ColorPreviewInterface(QWidget):
 # 注册预览场景
 # ============================================================================
 
+_preview_scenes_registered = False
+
+
 def register_preview_scenes():
-    """注册所有预览场景类型到工厂"""
-    PreviewSceneFactory.register("svg", SVGPreviewWidget)
-
-
-register_preview_scenes()
+    """注册所有预览场景类型到工厂（延迟调用）"""
+    global _preview_scenes_registered
+    if not _preview_scenes_registered:
+        PreviewSceneFactory.register("svg", SVGPreviewWidget)
+        _preview_scenes_registered = True

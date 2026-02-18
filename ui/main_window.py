@@ -315,6 +315,17 @@ class MainWindow(FluentWindow):
         # 设置默认选中的导航项
         self.navigationInterface.setCurrentItem(self.color_extract_interface.objectName())
 
+        # 连接导航切换信号
+        self.stackedWidget.currentChanged.connect(self._on_tab_changed)
+
+    def _on_tab_changed(self, index):
+        """标签页切换回调"""
+        current_widget = self.stackedWidget.widget(index)
+
+        # 如果是配色预览界面，触发延迟加载
+        if current_widget == self.color_preview_interface:
+            self.color_preview_interface.on_tab_selected()
+
     def _setup_logo(self):
         """在导航栏左上角设置 Logo"""
         logo_label = QLabel(self.navigationInterface.panel)
