@@ -69,6 +69,8 @@ from .image_service import ImageService, ProgressiveImageLoader
 
 from .luminance_service import LuminanceService, LuminanceCalculator
 
+from .preview_service import PreviewService
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -134,4 +136,5 @@ __all__ = [
     'ProgressiveImageLoader',
     'LuminanceService',
     'LuminanceCalculator',
+    'PreviewService',
 ]

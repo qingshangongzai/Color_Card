@@ -12,8 +12,6 @@
 - 配色预览界面
 """
 # 标准库导入
-from datetime import datetime
-from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 # 第三方库导入
@@ -32,7 +30,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_config_manager
+from core import get_config_manager, PreviewService
 from ui.theme_colors import get_border_color, get_text_color
 
 
@@ -745,62 +743,6 @@ class SVGPreviewWidget(BasePreviewScene):
         print(f"get_svg_content 前200字符: {self._svg_content[:200]}")
         return self._svg_content
 
-    def _add_background_to_svg(self, svg_content: str, bg_color: str) -> str:
-        """为 SVG 添加背景矩形
-
-        Args:
-            svg_content: 原始 SVG 内容
-            bg_color: 背景颜色
-
-        Returns:
-            添加背景后的 SVG 内容
-        """
-        try:
-            import xml.etree.ElementTree as ET
-            import re
-
-            root = ET.fromstring(svg_content)
-
-            svg_ns = 'http://www.w3.org/2000/svg'
-
-            has_namespace = root.tag.startswith('{')
-
-            viewbox = root.get('viewBox', '')
-            width = root.get('width', '0')
-            height = root.get('height', '0')
-
-            if viewbox:
-                parts = viewbox.split()
-                if len(parts) >= 4:
-                    x, y, w, h = parts[0], parts[1], parts[2], parts[3]
-                else:
-                    return svg_content
-            elif width and height:
-                w = re.sub(r'[^\d.]', '', width)
-                h = re.sub(r'[^\d.]', '', height)
-                x, y = '0', '0'
-            else:
-                return svg_content
-
-            if has_namespace:
-                bg_rect = ET.Element(f'{{{svg_ns}}}rect')
-            else:
-                bg_rect = ET.Element('rect')
-
-            bg_rect.set('x', x)
-            bg_rect.set('y', y)
-            bg_rect.set('width', w)
-            bg_rect.set('height', h)
-            bg_rect.set('fill', bg_color)
-
-            root.insert(0, bg_rect)
-
-            return ET.tostring(root, encoding='unicode')
-
-        except Exception as e:
-            print(f"添加背景失败: {e}")
-            return svg_content
-
     def has_svg(self) -> bool:
         """是否已加载 SVG"""
         return self._svg_renderer is not None and self._svg_renderer.isValid()
@@ -810,31 +752,11 @@ class SVGPreviewWidget(BasePreviewScene):
         return self._template_mode
 
     def _has_fixed_background_element(self) -> bool:
-        """检查SVG是否有固定颜色的背景元素
-
-        通过检查SVG内容中是否有 data-fixed-color="original" 的背景元素
-
-        Returns:
-            bool: 是否有固定背景元素
-        """
-        if not self._svg_content:
-            return False
-
-        try:
-            import xml.etree.ElementTree as ET
-
-            root = ET.fromstring(self._svg_content)
-
-            for elem in root.iter():
-                tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
-                if tag == 'rect':
-                    fixed_color = elem.get('data-fixed-color')
-                    if fixed_color == 'original':
-                        return True
-
-            return False
-        except Exception:
-            return False
+        """检查SVG是否有固定颜色的背景元素"""
+        if not hasattr(self, '_preview_service') or self._preview_service is None:
+            from core import PreviewService
+            self._preview_service = PreviewService()
+        return self._preview_service.has_fixed_background_element(self._svg_content)
 
     def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""
@@ -1487,12 +1409,14 @@ class MixedPreviewPanel(QWidget):
         Args:
             template_path: 被删除的模板路径
         """
-        from core import get_config_manager
-        config_manager = get_config_manager()
-        config_manager.remove_scene_template(self._current_scene, template_path)
-        config_manager.save()
+        success, message = self._preview_service.remove_user_template(
+            self._current_scene, template_path
+        )
 
-        self.set_scene(self._current_scene)
+        if success:
+            self.set_scene(self._current_scene)
+        else:
+            print(f"删除模板失败: {message}")
 
     def _create_empty_preview(self):
         """创建空的SVG预览（用于 custom 场景）"""
@@ -1705,6 +1629,7 @@ class ColorPreviewInterface(QWidget):
         super().__init__(parent)
         self.setObjectName('colorPreviewInterface')
         self._config_manager = get_config_manager()
+        self._preview_service = PreviewService(self)
         self._favorites = []
         self._current_index = 0
         self._current_colors: list[str] = []
@@ -1749,19 +1674,7 @@ class ColorPreviewInterface(QWidget):
             return
 
         favorite = self._favorites[self._current_index]
-        colors_data = favorite.get('colors', [])
-
-        self._current_colors = []
-        for color_info in colors_data:
-            hex_value = color_info.get('hex', '')
-            if hex_value:
-                if not hex_value.startswith('#'):
-                    hex_value = '#' + hex_value
-                self._current_colors.append(hex_value)
-
-        if not self._current_colors:
-            self._current_colors = ["#E8E8E8"]
-
+        self._current_colors = self._preview_service.extract_hex_colors_from_favorite(favorite)
         self._update_preview()
 
     def _update_preview(self):
@@ -1893,25 +1806,23 @@ class ColorPreviewInterface(QWidget):
         if not file_path.endswith('.svg'):
             file_path += '.svg'
 
-        try:
-            svg_content = svg_preview.get_svg_content()
+        svg_content = svg_preview.get_svg_content()
+        success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
 
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(svg_content)
-
+        if success:
             InfoBar.success(
                 title="导出成功",
-                content=f"已保存到: {file_path}",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=3000,
                 parent=self.window()
             )
-        except Exception as e:
+        else:
             InfoBar.error(
                 title="导出失败",
-                content=f"保存文件时发生错误: {str(e)}",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1931,14 +1842,23 @@ class ColorPreviewInterface(QWidget):
         if not file_path:
             return
 
-        template_data = {
-            "path": file_path,
-            "name": Path(file_path).stem,
-            "added_at": datetime.now().strftime("%Y-%m-%d")
-        }
+        # 验证文件
+        is_valid, error_msg = self._preview_service.validate_svg_file(file_path)
+        if not is_valid:
+            InfoBar.error(
+                title="导入失败",
+                content=error_msg,
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self.window()
+            )
+            return
 
-        success = self._config_manager.add_scene_template(self._current_scene, template_data)
-        self._config_manager.save()
+        success, message = self._preview_service.add_user_template(
+            self._current_scene, file_path
+        )
 
         if success:
             self.preview_panel.set_scene(self._current_scene)
@@ -1946,7 +1866,7 @@ class ColorPreviewInterface(QWidget):
 
             InfoBar.success(
                 title="导入成功",
-                content=f"已添加模板到 {self._current_scene} 场景",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1956,7 +1876,7 @@ class ColorPreviewInterface(QWidget):
         else:
             InfoBar.warning(
                 title="导入失败",
-                content="该模板已存在",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1980,7 +1900,7 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
+        default_name = self._preview_service.generate_export_filename("color_card")
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -1995,25 +1915,23 @@ class ColorPreviewInterface(QWidget):
         if not file_path.endswith('.svg'):
             file_path += '.svg'
 
-        try:
-            svg_content = svg_preview.get_svg_content()
+        svg_content = svg_preview.get_svg_content()
+        success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
 
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(svg_content)
-
+        if success:
             InfoBar.success(
                 title="导出成功",
-                content=f"已保存到: {file_path}",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=3000,
                 parent=self.window()
             )
-        except Exception as e:
+        else:
             InfoBar.error(
                 title="导出失败",
-                content=f"保存文件时发生错误: {str(e)}",
+                content=message,
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
