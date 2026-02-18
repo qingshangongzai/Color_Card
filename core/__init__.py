@@ -71,6 +71,8 @@ from .luminance_service import LuminanceService, LuminanceCalculator
 
 from .preview_service import PreviewService
 
+from .histogram_service import HistogramService, HistogramCalculator
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -137,4 +139,6 @@ __all__ = [
     'LuminanceService',
     'LuminanceCalculator',
     'PreviewService',
+    'HistogramService',
+    'HistogramCalculator',
 ]
