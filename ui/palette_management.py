@@ -672,6 +672,9 @@ class PaletteManagementCard(CardWidget):
     def _on_delete_clicked(self):
         """删除按钮点击"""
         favorite_id = self._favorite_data.get('id', '')
+        # 如果没有id，使用name作为备选标识
+        if not favorite_id:
+            favorite_id = self._favorite_data.get('name', '')
         if favorite_id:
             self.delete_requested.emit(favorite_id)
 
@@ -1139,9 +1142,23 @@ class PaletteManagementInterface(QWidget):
 
     def _on_favorite_deleted(self, favorite_id):
         """收藏删除回调"""
-        self._config_manager.delete_favorite(favorite_id)
-        self._config_manager.save()
-        self._load_favorites()
+        # 获取配色信息用于显示在提示框中
+        favorite = self._config_manager.get_favorite(favorite_id)
+        palette_name = favorite.get('name', '未命名配色') if favorite else '该配色'
+
+        # 显示确认对话框
+        msg_box = MessageBox(
+            "确认删除",
+            f"确定要删除「{palette_name}」吗？此操作不可撤销。",
+            self
+        )
+        msg_box.yesButton.setText("删除")
+        msg_box.cancelButton.setText("取消")
+
+        if msg_box.exec():
+            self._config_manager.delete_favorite(favorite_id)
+            self._config_manager.save()
+            self._load_favorites()
 
     def _on_import_clicked(self):
         """导入按钮点击"""

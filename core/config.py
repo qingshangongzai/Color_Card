@@ -237,6 +237,29 @@ class ConfigManager:
         """
         return self._config.get("favorites", [])
 
+    def get_favorite(self, favorite_id: str) -> Optional[Dict[str, Any]]:
+        """获取单个收藏项
+
+        Args:
+            favorite_id: 收藏ID或名称（当没有id时）
+
+        Returns:
+            Optional[Dict[str, Any]]: 收藏数据字典，未找到返回None
+        """
+        favorites = self._config.get("favorites", [])
+
+        # 先尝试根据id查找
+        for favorite in favorites:
+            if favorite.get("id") == favorite_id:
+                return favorite
+
+        # 如果没有找到，尝试根据name查找（兼容旧数据）
+        for favorite in favorites:
+            if favorite.get("name") == favorite_id:
+                return favorite
+
+        return None
+
     def add_favorite(self, favorite_data: Dict[str, Any]) -> str:
         """添加收藏
 
@@ -262,7 +285,7 @@ class ConfigManager:
         """删除收藏
 
         Args:
-            favorite_id: 收藏ID
+            favorite_id: 收藏ID或名称（当没有id时）
 
         Returns:
             bool: 是否删除成功
@@ -272,7 +295,13 @@ class ConfigManager:
 
         favorites = self._config["favorites"]
         original_count = len(favorites)
+
+        # 先尝试根据id删除
         self._config["favorites"] = [f for f in favorites if f.get("id") != favorite_id]
+
+        # 如果没有删除任何项，尝试根据name删除（兼容旧数据）
+        if len(self._config["favorites"]) == original_count:
+            self._config["favorites"] = [f for f in favorites if f.get("name") != favorite_id]
 
         return len(self._config["favorites"]) < original_count
 
