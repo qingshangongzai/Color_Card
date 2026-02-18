@@ -61,6 +61,8 @@ from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loa
 
 from .image_mediator import ImageMediator
 
+from .color_service import ColorService, DominantColorExtractor
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -117,4 +119,6 @@ __all__ = [
     'generate_groups',
     'should_use_batch_loading',
     'ImageMediator',
+    'ColorService',
+    'DominantColorExtractor',
 ]

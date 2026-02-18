@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QSplitter, QStackedWidget,
     QSizePolicy, QVBoxLayout, QWidget
@@ -20,77 +20,12 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, extract_dominant_colors, find_dominant_color_positions
+from core import get_color_info, get_config_manager, ColorService
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
 from .cards import ColorCardPanel
 from .color_wheel import HSBColorWheel
 from .histograms import RGBHistogramWidget, HueHistogramWidget
-from .theme_colors import get_text_color
-
-
-class DominantColorExtractor(QThread):
-    """主色调提取线程
-
-    在后台线程中执行主色调提取，避免阻塞UI。
-    支持取消操作。
-    """
-
-    # 信号：提取完成
-    extraction_finished = Signal(list, list)  # dominant_colors, positions
-    # 信号：提取失败
-    extraction_error = Signal(str)  # error_message
-    # 信号：提取进度（可选）
-    extraction_progress = Signal(int)  # progress_percent
-
-    def __init__(self, image, count: int = 5, parent=None):
-        """
-        Args:
-            image: QImage 对象
-            count: 提取颜色数量
-            parent: 父对象
-        """
-        super().__init__(parent)
-        self._image = image
-        self._count = count
-        self._is_cancelled = False
-
-    def cancel(self):
-        """请求取消提取"""
-        self._is_cancelled = True
-
-    def _check_cancelled(self) -> bool:
-        """检查是否被取消"""
-        return self._is_cancelled
-
-    def run(self):
-        """在子线程中执行主色调提取"""
-        try:
-            if self._check_cancelled() or not self._image or self._image.isNull():
-                return
-
-            # 提取主色调
-            dominant_colors = extract_dominant_colors(self._image, count=self._count)
-
-            if self._check_cancelled():
-                return
-
-            if not dominant_colors:
-                self.extraction_error.emit("无法从图片中提取主色调")
-                return
-
-            # 找到每种主色调在图片中的位置
-            positions = find_dominant_color_positions(self._image, dominant_colors)
-
-            if self._check_cancelled():
-                return
-
-            # 发送成功信号
-            self.extraction_finished.emit(dominant_colors, positions)
-
-        except Exception as e:
-            if not self._check_cancelled():
-                self.extraction_error.emit(str(e))
 
 
 class ColorExtractInterface(QWidget):
@@ -99,9 +34,16 @@ class ColorExtractInterface(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._config_manager = get_config_manager()
-        self._extractor = None  # 主色调提取线程
+        self._color_service = ColorService(self)
+        self._setup_color_service_connections()
         self.setup_ui()
         self.setup_connections()
+
+    def _setup_color_service_connections(self):
+        """设置颜色服务信号连接"""
+        self._color_service.extraction_finished.connect(self._on_extraction_finished)
+        self._color_service.extraction_error.connect(self._on_extraction_error)
+        self._color_service.extraction_started.connect(self._on_extraction_started)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -367,11 +309,11 @@ class ColorExtractInterface(QWidget):
         # 获取当前设置的采样点数量
         count = self._config_manager.get('settings.color_sample_count', 5)
 
-        # 取消之前的提取线程（如果存在）
-        if self._extractor is not None and self._extractor.isRunning():
-            self._extractor.cancel()
-            self._extractor = None
+        # 使用颜色服务开始提取
+        self._color_service.extract_dominant_colors(image, count=count)
 
+    def _on_extraction_started(self):
+        """提取开始回调"""
         # 显示正在提取的提示
         InfoBar.info(
             title="正在提取",
@@ -387,12 +329,10 @@ class ColorExtractInterface(QWidget):
         self.extract_dominant_button.setEnabled(False)
         self.extract_dominant_button.setText("提取中...")
 
-        # 创建并启动提取线程
-        self._extractor = DominantColorExtractor(image, count=count, parent=self)
-        self._extractor.extraction_finished.connect(self._on_extraction_finished)
-        self._extractor.extraction_error.connect(self._on_extraction_error)
-        self._extractor.finished.connect(self._on_extraction_finished_cleanup)
-        self._extractor.start()
+    def _reset_extract_button(self):
+        """恢复提取按钮状态"""
+        self.extract_dominant_button.setEnabled(True)
+        self.extract_dominant_button.setText("自动提取主色调")
 
     def _on_extraction_finished(self, dominant_colors, positions):
         """主色调提取完成回调
@@ -401,6 +341,8 @@ class ColorExtractInterface(QWidget):
             dominant_colors: 主色调列表 [(r, g, b), ...]
             positions: 颜色位置列表 [(rel_x, rel_y), ...]
         """
+        self._reset_extract_button()
+
         count = self._config_manager.get('settings.color_sample_count', 5)
 
         # 更新取色点位置
@@ -427,6 +369,8 @@ class ColorExtractInterface(QWidget):
         Args:
             error_message: 错误信息
         """
+        self._reset_extract_button()
+
         InfoBar.error(
             title="提取失败",
             content=f"提取过程中发生错误: {error_message}",
@@ -436,17 +380,6 @@ class ColorExtractInterface(QWidget):
             duration=3000,
             parent=self.window()
         )
-
-    def _on_extraction_finished_cleanup(self):
-        """主色调提取完成后的清理工作"""
-        # 恢复提取按钮状态
-        self.extract_dominant_button.setEnabled(True)
-        self.extract_dominant_button.setText("自动提取主色调")
-
-        # 清理线程引用
-        if self._extractor is not None:
-            self._extractor.deleteLater()
-            self._extractor = None
 
     def _on_high_saturation_pressed(self):
         """高饱和度区域按钮按下回调"""
