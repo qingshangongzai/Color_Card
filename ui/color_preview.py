@@ -694,11 +694,15 @@ class SVGPreviewWidget(BasePreviewScene):
             self._draw_empty_hint(painter)
             return
 
-        has_fixed_background = self._has_fixed_background_element()
+        # 判断SVG类型
+        has_semantic = self._color_mapper and self._color_mapper.has_semantic_types()
 
-        if has_fixed_background:
-            bg_color = QColor("#ffffff")
+        if has_semantic:
+            # 语义化映射模式：检查是否有固定背景元素
+            has_fixed_background = self._has_fixed_background_element()
+            bg_color = QColor("#ffffff") if has_fixed_background else QColor(self._colors[0])
         else:
+            # 智能映射模式：使用colors[0]作为容器背景
             bg_color = QColor(self._colors[0])
         painter.fillRect(self.rect(), bg_color)
 
@@ -728,12 +732,15 @@ class SVGPreviewWidget(BasePreviewScene):
     def get_svg_content(self) -> str:
         """获取当前 SVG 内容（用于导出）
 
-        如果 SVG 没有背景元素，会自动添加背景矩形
+        如果 SVG 使用智能映射模式且没有背景元素，会自动添加背景矩形
         """
         if not self._svg_content or not self._colors:
             return self._svg_content
 
-        if self._color_mapper and not self._color_mapper._has_background_element():
+        # 只在智能映射模式下添加背景
+        if (self._color_mapper and
+            not self._color_mapper.has_semantic_types() and
+            not self._color_mapper._has_background_element()):
             return self._add_background_to_svg(self._svg_content, self._colors[0])
 
         return self._svg_content
