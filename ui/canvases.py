@@ -1,17 +1,15 @@
 # 标准库导入
 import colorsys
-import io
 from typing import List, Optional, Tuple
 
 # 第三方库导入
-from PIL import Image
-from PySide6.QtCore import QPoint, QPointF, QRect, Qt, QThread, Signal, QTimer
+from PySide6.QtCore import QPoint, QPointF, QRect, Qt, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone
+from core import get_luminance, get_zone, ImageService, LuminanceService
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
 from .theme_colors import (
@@ -22,115 +20,11 @@ from .theme_colors import (
 )
 
 
-class ProgressiveImageLoader(QThread):
-    """分阶段图片加载工作线程
-
-    实现两阶段加载：
-    1. 快速解码显示尺寸图片（用于快速显示）
-    2. 后台解码完整图片（用于直方图计算和精确取色）
-
-    支持取消操作，避免阻塞UI线程
-    """
-    display_ready = Signal(bytes, int, int)
-    full_ready = Signal(bytes, int, int, str)
-    progress = Signal(int)
-    error = Signal(str)
-
-    def __init__(self, image_path: str, display_size: int = 1920) -> None:
-        """初始化加载器
-
-        Args:
-            image_path: 图片文件路径
-            display_size: 显示尺寸上限（默认1920px）
-        """
-        super().__init__()
-        self._image_path: str = image_path
-        self._display_size: int = display_size
-        self._is_cancelled: bool = False
-
-    def cancel(self) -> None:
-        """请求取消加载"""
-        self._is_cancelled = True
-
-    def _check_cancelled(self) -> bool:
-        """检查是否被取消
-
-        Returns:
-            bool: True表示已取消
-        """
-        return self._is_cancelled
-
-    def run(self) -> None:
-        """在子线程中分阶段加载图片"""
-        try:
-            self.progress.emit(5)
-
-            with Image.open(self._image_path) as pil_image:
-                if self._check_cancelled():
-                    return
-
-                if pil_image.mode != 'RGB':
-                    pil_image = pil_image.convert('RGB')
-
-                width, height = pil_image.size
-                max_dim = max(width, height)
-
-                if self._check_cancelled():
-                    return
-
-                if max_dim > self._display_size:
-                    display_img = pil_image.copy()
-                    display_img.thumbnail(
-                        (self._display_size, self._display_size),
-                        Image.Resampling.LANCZOS
-                    )
-
-                    if self._check_cancelled():
-                        return
-
-                    buffer = io.BytesIO()
-                    display_img.save(buffer, format='BMP')
-                    display_data = buffer.getvalue()
-
-                    self.display_ready.emit(display_data, width, height)
-                    self.progress.emit(50)
-
-                    del display_img
-                else:
-                    buffer = io.BytesIO()
-                    pil_image.save(buffer, format='BMP')
-                    display_data = buffer.getvalue()
-
-                    self.display_ready.emit(display_data, width, height)
-                    self.progress.emit(50)
-
-                if self._check_cancelled():
-                    return
-
-                self.progress.emit(60)
-
-                full_buffer = io.BytesIO()
-                pil_image.save(full_buffer, format='BMP')
-                full_data = full_buffer.getvalue()
-
-                if self._check_cancelled():
-                    return
-
-                self.progress.emit(90)
-
-                self.full_ready.emit(full_data, width, height, 'BMP')
-                self.progress.emit(100)
-
-        except (IOError, OSError, ValueError) as e:
-            if not self._check_cancelled():
-                self.error.emit(str(e))
-
-
 class BaseCanvas(QWidget):
     """画布基类，提供图片加载、显示和取色点管理的公共功能
 
     功能：
-        - 异步图片加载（支持分阶段加载）
+        - 异步图片加载（通过ImageService支持分阶段加载）
         - 图片显示（保持比例）
         - 取色点管理
         - 坐标转换
@@ -151,7 +45,7 @@ class BaseCanvas(QWidget):
 
     def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
         super().__init__(parent)
-        from PySide6.QtWidgets import QSizePolicy, QVBoxLayout, QLabel
+        from PySide6.QtWidgets import QSizePolicy
 
         # 设置sizePolicy，允许在水平和垂直方向上都充分扩展和压缩
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -165,7 +59,7 @@ class BaseCanvas(QWidget):
         self._image: Optional[QImage] = None
         self._picker_positions: List[QPoint] = []
         self._picker_rel_positions: List[QPointF] = []
-        self._progressive_loader: Optional[ProgressiveImageLoader] = None
+        self._image_service: ImageService = ImageService(self)
         self._pending_image_path: Optional[str] = None
         self._picker_count: int = picker_count
         self._is_loading: bool = False  # 是否正在加载
@@ -173,14 +67,22 @@ class BaseCanvas(QWidget):
         # 启用文件拖拽接收
         self.setAcceptDrops(True)
 
+        # 设置ImageService信号连接
+        self._setup_image_service_connections()
+
         # 创建加载状态显示组件
         self._setup_loading_ui()
 
+    def _setup_image_service_connections(self) -> None:
+        """设置ImageService信号连接"""
+        self._image_service.loading_started.connect(self._on_loading_started)
+        self._image_service.loading_progress.connect(self._on_loading_progress)
+        self._image_service.display_ready.connect(self._on_display_ready)
+        self._image_service.image_loaded.connect(self._on_image_loaded_from_service)
+        self._image_service.error.connect(self._on_image_load_error)
+
     def _setup_loading_ui(self) -> None:
         """设置加载状态UI"""
-        from PySide6.QtWidgets import QVBoxLayout, QLabel, QWidget
-        from PySide6.QtCore import Qt
-
         # 加载状态容器（居中显示）
         self._loading_widget = QWidget(self)
         self._loading_widget.setStyleSheet("background-color: rgba(42, 42, 42, 180); border-radius: 8px;")
@@ -195,6 +97,10 @@ class BaseCanvas(QWidget):
         self._loading_label.setStyleSheet("color: white; font-size: 14px; background: transparent;")
         self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._loading_label)
+
+    def _on_loading_started(self) -> None:
+        """加载开始回调"""
+        self.show_loading("正在导入图片...")
 
     def show_loading(self, text: str = "正在导入图片...") -> None:
         """显示加载状态
@@ -222,7 +128,7 @@ class BaseCanvas(QWidget):
             self._loading_widget.setGeometry(self.rect())
 
     def set_image(self, image_path: str) -> None:
-        """异步加载并显示图片（使用分阶段加载，非阻塞）
+        """异步加载并显示图片（使用ImageService分阶段加载，非阻塞）
 
         Args:
             image_path: 图片文件路径
@@ -230,30 +136,8 @@ class BaseCanvas(QWidget):
         # 保存图片路径
         self._pending_image_path = image_path
 
-        # 如果已有加载线程在运行，请求取消（非阻塞）
-        if self._progressive_loader is not None:
-            self._progressive_loader.cancel()
-            # 注意：不调用 wait()，避免阻塞UI线程
-            # 旧线程会在检查点发现取消标志后自然结束
-            self._progressive_loader = None
-
-        # 显示加载状态
-        self.show_loading("正在导入图片...")
-
-        # 创建并启动分阶段加载线程
-        self._progressive_loader = ProgressiveImageLoader(image_path)
-        self._progressive_loader.display_ready.connect(self._on_display_ready)
-        self._progressive_loader.full_ready.connect(self._on_full_ready)
-        self._progressive_loader.progress.connect(self._on_loading_progress)
-        self._progressive_loader.error.connect(self._on_image_load_error)
-        self._progressive_loader.finished.connect(self._cleanup_progressive_loader)
-        self._progressive_loader.start()
-
-    def _cleanup_progressive_loader(self) -> None:
-        """清理分阶段加载线程"""
-        if self._progressive_loader is not None:
-            self._progressive_loader.deleteLater()
-            self._progressive_loader = None
+        # 使用ImageService加载图片
+        self._image_service.load_image_async(image_path)
 
     def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
         """显示图片就绪的回调
@@ -272,17 +156,15 @@ class BaseCanvas(QWidget):
         self._setup_display_preview()
         self.update()
 
-    def _on_full_ready(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
-        """完整图片就绪的回调
+    def _on_image_loaded_from_service(self, pixmap: QPixmap, image: QImage) -> None:
+        """图片从ImageService加载完成的回调
 
         Args:
-            image_data: 图片字节数据
-            width: 图片宽度
-            height: 图片高度
-            fmt: 图片格式
+            pixmap: QPixmap对象
+            image: QImage对象
         """
-        self._image = QImage.fromData(image_data, fmt)
-        self._original_pixmap = QPixmap.fromImage(self._image)
+        self._image = image
+        self._original_pixmap = pixmap
 
         self.hide_loading()
 
@@ -304,20 +186,6 @@ class BaseCanvas(QWidget):
     def _setup_display_preview(self) -> None:
         """设置显示预览（子类可重写）"""
         pass
-
-    def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
-        """图片加载完成的回调（在主线程中创建QImage/QPixmap）
-
-        Args:
-            image_data: 图片字节数据
-            width: 图片宽度
-            height: 图片高度
-            fmt: 图片格式
-        """
-        # 从字节数据创建QImage（在主线程中安全执行）
-        self._image = QImage.fromData(image_data, fmt)
-        self._original_pixmap = QPixmap.fromImage(self._image)
-        self._setup_after_load()
 
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调
@@ -1296,6 +1164,9 @@ class LuminanceCanvas(BaseCanvas):
         # Zone高亮颜色配置 (Zone 0-7) - Adobe标准映射
         self._zone_highlight_colors: List[QColor] = get_picker_colors()
 
+        # 明度服务
+        self._luminance_service: LuminanceService = LuminanceService(self)
+
         # 创建取色点（初始隐藏）
         for i in range(self._picker_count):
             picker = ColorPicker(i, self)
@@ -1515,6 +1386,8 @@ class LuminanceCanvas(BaseCanvas):
     def _generate_zone_highlight_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
         """生成Zone高亮遮罩图
 
+        使用 LuminanceService 生成高亮遮罩图，实现业务逻辑下沉。
+
         Args:
             display_rect: 图片显示区域 (x, y, w, h)
 
@@ -1524,56 +1397,17 @@ class LuminanceCanvas(BaseCanvas):
         if self._image is None or self._image.isNull():
             return None
 
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        # 创建透明遮罩图
-        highlight_pixmap = QPixmap(self.size())
-        highlight_pixmap.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(highlight_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-        # 获取当前Zone的颜色
+        # 使用 LuminanceService 生成高亮遮罩图
+        canvas_size = (self.width(), self.height())
         zone_color = self._zone_highlight_colors[self._highlighted_zone]
 
-        # 计算亮度范围
-        min_lum = self._highlighted_zone * 32
-        max_lum = (self._highlighted_zone + 1) * 32 - 1
-
-        # 计算缩放比例
-        scale_x = self._image.width() / disp_w
-        scale_y = self._image.height() / disp_h
-
-        # 采样步长（性能优化）
-        sample_step = 4
-
-        # 遍历显示区域的像素
-        for dy in range(0, disp_h, sample_step):
-            for dx in range(0, disp_w, sample_step):
-                # 计算对应的原始图片坐标
-                img_x = int(dx * scale_x)
-                img_y = int(dy * scale_y)
-
-                # 边界检查
-                img_x = min(img_x, self._image.width() - 1)
-                img_y = min(img_y, self._image.height() - 1)
-
-                # 获取像素颜色并计算亮度
-                color = self._image.pixelColor(img_x, img_y)
-                luminance = get_luminance(color.red(), color.green(), color.blue())
-
-                # 如果亮度在当前Zone范围内，绘制遮罩
-                if min_lum <= luminance <= max_lum:
-                    painter.fillRect(
-                        disp_x + dx,
-                        disp_y + dy,
-                        sample_step,
-                        sample_step,
-                        zone_color
-                    )
-
-        painter.end()
-        return highlight_pixmap
+        return self._luminance_service.generate_zone_highlight_pixmap(
+            self._image,
+            self._highlighted_zone,
+            canvas_size,
+            display_rect,
+            zone_color
+        )
 
     def _draw_zone_highlight(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制Zone高亮遮罩
@@ -1629,7 +1463,6 @@ class LuminanceCanvas(BaseCanvas):
 
 
 __all__ = [
-    'ProgressiveImageLoader',
     'BaseCanvas',
     'ImageCanvas',
     'LuminanceCanvas',

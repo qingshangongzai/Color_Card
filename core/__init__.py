@@ -65,6 +65,10 @@ from .color_service import ColorService, DominantColorExtractor
 
 from .palette_service import PaletteService, PaletteImporter, PaletteExporter
 
+from .image_service import ImageService, ProgressiveImageLoader
+
+from .luminance_service import LuminanceService, LuminanceCalculator
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -126,4 +130,8 @@ __all__ = [
     'PaletteService',
     'PaletteImporter',
     'PaletteExporter',
+    'ImageService',
+    'ProgressiveImageLoader',
+    'LuminanceService',
+    'LuminanceCalculator',
 ]

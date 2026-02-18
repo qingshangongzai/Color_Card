@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 
 # 项目模块导入
+from core import LuminanceService
 from .canvases import LuminanceCanvas
 from .histograms import LuminanceHistogramWidget
 
@@ -21,8 +22,10 @@ class LuminanceExtractInterface(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging_index = -1  # 当前正在拖动的采样点索引
+        self._luminance_service = LuminanceService(self)
         self.setup_ui()
         self.setup_connections()
+        self._setup_service_connections()
 
     def setup_ui(self):
         """设置界面布局"""
@@ -62,6 +65,28 @@ class LuminanceExtractInterface(QWidget):
         # 连接直方图点击信号
         self.histogram_widget.zone_pressed.connect(self.on_histogram_zone_pressed)
         self.histogram_widget.zone_released.connect(self.on_histogram_zone_released)
+
+    def _setup_service_connections(self):
+        """设置LuminanceService信号连接"""
+        self._luminance_service.calculation_finished.connect(self._on_luminance_calculation_finished)
+        self._luminance_service.calculation_error.connect(self._on_luminance_calculation_error)
+
+    def _on_luminance_calculation_finished(self, result: dict):
+        """明度计算完成回调
+
+        Args:
+            result: 计算结果字典，包含distribution等信息
+        """
+        # 可以在这里处理计算结果，如更新UI显示
+        pass
+
+    def _on_luminance_calculation_error(self, error_msg: str):
+        """明度计算错误回调
+
+        Args:
+            error_msg: 错误信息
+        """
+        print(f"明度计算错误: {error_msg}")
 
     def open_image(self):
         """打开图片文件（独立导入）"""
