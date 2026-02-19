@@ -21,7 +21,7 @@ class LocaleManager(QObject):
     SUPPORTED_LANGUAGES = {
         'ZW_JT': '简体中文',
         'ZW_FT': '繁體中文',
-        'en_US': 'English'
+        'EN_US': 'English'
     }
     
     DEFAULT_LANGUAGE = 'ZW_JT'
@@ -47,7 +47,7 @@ class LocaleManager(QObject):
         """加载指定语言的翻译数据
         
         Args:
-            language_code: 语言代码（如 'ZW_JT', 'en_US'）
+            language_code: 语言代码（如 'ZW_JT', 'EN_US'）
             
         Returns:
             bool: 是否加载成功
