@@ -19,11 +19,12 @@ class LocaleManager(QObject):
     language_changed = Signal(str)
     
     SUPPORTED_LANGUAGES = {
-        'zh_CN': '简体中文',
+        'ZW_JT': '简体中文',
+        'ZW_FT': '繁體中文',
         'en_US': 'English'
     }
     
-    DEFAULT_LANGUAGE = 'zh_CN'
+    DEFAULT_LANGUAGE = 'ZW_JT'
     
     def __init__(self):
         """初始化多语言管理器"""
@@ -46,7 +47,7 @@ class LocaleManager(QObject):
         """加载指定语言的翻译数据
         
         Args:
-            language_code: 语言代码（如 'zh_CN', 'en_US'）
+            language_code: 语言代码（如 'ZW_JT', 'en_US'）
             
         Returns:
             bool: 是否加载成功

@@ -50,7 +50,7 @@ class SettingsInterface(QWidget):
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
         self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
-        self._language = self._config_manager.get('settings.language', 'zh_CN')
+        self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)

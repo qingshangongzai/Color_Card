@@ -150,7 +150,7 @@ def main():
     
     # 初始化语言管理器并加载用户语言配置
     locale_manager = get_locale_manager()
-    language_setting = config_manager.get('settings.language', 'zh_CN')
+    language_setting = config_manager.get('settings.language', 'ZW_JT')
     locale_manager.load_language(language_setting)
     
     theme_setting = config_manager.get('settings.theme', 'auto')
