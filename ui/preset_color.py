@@ -22,7 +22,7 @@ from core.color_data import (
     get_color_source, get_all_color_sources, get_random_palettes, ColorSource
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color
+from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color, get_secondary_text_color
 from utils.platform import is_windows_10
 
 
@@ -472,6 +472,14 @@ class PresetColorList(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
+        self._loading_label = QLabel("加载中……")
+        self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._loading_label.setStyleSheet(
+            f"font-size: 14px; color: {get_secondary_text_color().name()}; padding: 10px;"
+        )
+        self._loading_label.setVisible(False)
+        layout.addWidget(self._loading_label)
+
         self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
@@ -491,6 +499,7 @@ class PresetColorList(QWidget):
         layout.addWidget(self.scroll_area)
 
     def _clear_content(self):
+        self._loading_label.setVisible(False)
         self._cancel_loader()
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
@@ -535,6 +544,7 @@ class PresetColorList(QWidget):
             self._load_palettes(palettes)
 
     def _start_batch_loading(self, source: ColorSource, group_index: int):
+        self._loading_label.setVisible(True)
         self._loader = GroupLoaderThread(
             source, group_index, self.BATCH_SIZE, parent=self
         )
@@ -557,6 +567,7 @@ class PresetColorList(QWidget):
             self._palette_counter += 1
 
     def _on_loading_finished(self):
+        self._loading_label.setVisible(False)
         self.content_layout.addStretch()
         if self._loader is not None:
             self._loader.deleteLater()
@@ -620,7 +631,10 @@ class PresetColorList(QWidget):
             self.set_color_modes(color_modes)
 
     def _update_styles(self):
-        pass
+        if hasattr(self, '_loading_label'):
+            self._loading_label.setStyleSheet(
+                f"font-size: 14px; color: {get_secondary_text_color().name()}; padding: 10px;"
+            )
 
 
 # =============================================================================
