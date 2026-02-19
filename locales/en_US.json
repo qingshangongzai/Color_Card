@@ -201,7 +201,19 @@
       "current_version": "Current Version",
       "latest_version": "Latest Version",
       "cancel": "Cancel",
-      "release_page": "Release Page"
+      "release_page": "Release Page",
+      "info": "Info",
+      "latest_version_content": "You are using the latest version",
+      "check_failed": "Update Check Failed",
+      "warning": "Warning",
+      "missing_requests": "Missing requests library, cannot check for updates",
+      "version_info": "Current: {current} / Latest: {latest}",
+      "error_missing_requests": "Missing requests library, cannot check for updates",
+      "error_parse_version": "Failed to parse version information",
+      "error_http": "HTTP error, status code: {status_code}",
+      "error_timeout": "Request timeout, please check your network connection",
+      "error_connection": "Connection failed, please check your network connection",
+      "error_general": "An error occurred while checking for updates: {error}"
     },
     "edit_palette": {
       "add_title": "Add Palette",

@@ -21,7 +21,10 @@ class LocaleManager(QObject):
     SUPPORTED_LANGUAGES = {
         'ZW_JT': '简体中文',
         'ZW_FT': '繁體中文',
-        'EN_US': 'English'
+        'EN_US': 'English',
+        'JA_JP': '日本語',
+        'FR_FR': 'Français',
+        'RU_RU': 'Русский'
     }
     
     DEFAULT_LANGUAGE = 'ZW_JT'
