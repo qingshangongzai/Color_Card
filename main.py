@@ -137,7 +137,7 @@ def main():
 
     # 导入项目模块
     from core import get_config_manager
-    from utils import fix_windows_taskbar_icon_for_window, load_icon_universal
+    from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, tr, get_locale_manager
     from ui import MainWindow
 
     # 设置应用程序图标（重要！）
@@ -147,6 +147,12 @@ def main():
     # 加载主题配置并设置初始主题
     config_manager = get_config_manager()
     config_manager.load()
+    
+    # 初始化语言管理器并加载用户语言配置
+    locale_manager = get_locale_manager()
+    language_setting = config_manager.get('settings.language', 'zh_CN')
+    locale_manager.load_language(language_setting)
+    
     theme_setting = config_manager.get('settings.theme', 'auto')
 
     if theme_setting == 'light':

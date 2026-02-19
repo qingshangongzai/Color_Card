@@ -21,7 +21,9 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager
+from core import get_color_info, get_config_manager, hsb_to_rgb, rgb_to_hsb, adjust_brightness
+from utils import tr, get_locale_manager
+from dialogs import EditPaletteDialog
 from .cards import BaseCard, BaseCardPanel, ColorModeContainer, get_text_color, get_placeholder_color, get_border_color
 from .color_wheel import InteractiveColorWheel
 from .theme_colors import get_canvas_empty_bg_color
@@ -155,8 +157,8 @@ class GenerationColorInfoCard(BaseCard):
             clipboard.setText(self._hex_value)
             # 显示复制成功提示
             InfoBar.success(
-                title="已复制",
-                content=f"颜色值 {self._hex_value} 已复制到剪贴板",
+                title=tr('color_generation.copied'),
+                content=tr('color_generation.copied_content', hex=self._hex_value),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -348,15 +350,15 @@ class ColorGenerationInterface(QWidget):
         top_layout.setContentsMargins(0, 0, 0, 0)
 
         # 配色选择下拉框
-        self.scheme_label = QLabel("配色生成:")
+        self.scheme_label = QLabel(tr('color_generation.title'))
         top_layout.addWidget(self.scheme_label)
 
         self.scheme_combo = ComboBox(self)
-        self.scheme_combo.addItem("同色系")
-        self.scheme_combo.addItem("邻近色")
-        self.scheme_combo.addItem("互补色")
-        self.scheme_combo.addItem("分离补色")
-        self.scheme_combo.addItem("双补色")
+        self.scheme_combo.addItem(tr('color_generation.schemes.monochromatic'))
+        self.scheme_combo.addItem(tr('color_generation.schemes.analogous'))
+        self.scheme_combo.addItem(tr('color_generation.schemes.complementary'))
+        self.scheme_combo.addItem(tr('color_generation.schemes.split_complementary'))
+        self.scheme_combo.addItem(tr('color_generation.schemes.double_complementary'))
         self.scheme_combo.setItemData(0, "monochromatic")
         self.scheme_combo.setItemData(1, "analogous")
         self.scheme_combo.setItemData(2, "complementary")
@@ -366,12 +368,12 @@ class ColorGenerationInterface(QWidget):
         top_layout.addWidget(self.scheme_combo)
 
         # 随机按钮
-        self.random_btn = PrimaryPushButton(FluentIcon.SYNC, "随机", self)
+        self.random_btn = PrimaryPushButton(FluentIcon.SYNC, tr('color_generation.random'), self)
         self.random_btn.setFixedWidth(100)
         top_layout.addWidget(self.random_btn)
 
         # 收藏按钮
-        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏", self)
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, tr('color_generation.favorite'), self)
         self.favorite_button.setFixedWidth(80)
         self.favorite_button.clicked.connect(self._on_favorite_clicked)
         top_layout.addWidget(self.favorite_button)
@@ -412,7 +414,7 @@ class ColorGenerationInterface(QWidget):
         brightness_layout.setSpacing(5)
         brightness_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.brightness_label = QLabel("明度调整:")
+        self.brightness_label = QLabel(tr('color_generation.brightness'))
         brightness_layout.addWidget(self.brightness_label)
 
         self.brightness_slider = Slider(Qt.Orientation.Horizontal, brightness_container)
@@ -443,6 +445,10 @@ class ColorGenerationInterface(QWidget):
         self.color_wheel.base_color_changed.connect(self.on_base_color_changed)
         self.color_wheel.scheme_color_changed.connect(self.on_scheme_color_changed)
         self.brightness_slider.valueChanged.connect(self.on_brightness_changed)
+        
+        locale_manager = get_locale_manager()
+        if locale_manager:
+            locale_manager.language_changed.connect(self._on_language_changed)
 
     def _update_styles(self):
         """更新样式以适配主题"""
@@ -456,6 +462,24 @@ class ColorGenerationInterface(QWidget):
         self.scheme_label.setStyleSheet(f"color: {label_color};")
         self.brightness_label.setStyleSheet(f"color: {label_color};")
         self.brightness_value_label.setStyleSheet(f"color: {value_color};")
+
+    def update_texts(self):
+        """更新所有界面文本"""
+        self.scheme_label.setText(tr('color_generation.title'))
+        self.random_btn.setText(tr('color_generation.random'))
+        self.favorite_button.setText(tr('color_generation.favorite'))
+        self.brightness_label.setText(tr('color_generation.brightness'))
+        
+        current_index = self.scheme_combo.currentIndex()
+        self.scheme_combo.setItemText(0, tr('color_generation.schemes.monochromatic'))
+        self.scheme_combo.setItemText(1, tr('color_generation.schemes.analogous'))
+        self.scheme_combo.setItemText(2, tr('color_generation.schemes.complementary'))
+        self.scheme_combo.setItemText(3, tr('color_generation.schemes.split_complementary'))
+        self.scheme_combo.setItemText(4, tr('color_generation.schemes.double_complementary'))
+
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()
 
     def _load_settings(self):
         """加载显示设置"""
@@ -515,8 +539,6 @@ class ColorGenerationInterface(QWidget):
         色相变化时，所有采样点跟随旋转；
         饱和度变化时，仅基准点变化，其他采样点保持原位。
         """
-        from core import hsb_to_rgb
-
         # 计算色相变化量
         delta_h = h - self._base_hue
         # 计算饱和度变化量
@@ -560,8 +582,6 @@ class ColorGenerationInterface(QWidget):
             s: 饱和度
             b: 亮度
         """
-        from core import hsb_to_rgb
-
         # 更新配色数据
         if 0 <= index < len(self._scheme_colors):
             self._scheme_colors[index] = (h, s, b)
@@ -592,7 +612,6 @@ class ColorGenerationInterface(QWidget):
         """生成配色颜色"""
         from core import (
             get_scheme_preview_colors, get_scheme_preview_colors_ryb,
-            adjust_brightness, hsb_to_rgb, rgb_to_hsb
         )
 
         # 根据配色类型确定颜色数量
@@ -629,8 +648,6 @@ class ColorGenerationInterface(QWidget):
 
     def _on_favorite_clicked(self):
         """收藏按钮点击回调"""
-        from dialogs import EditPaletteDialog
-
         colors = []
         for card in self.color_panel.cards:
             if card._current_color_info:
@@ -638,8 +655,8 @@ class ColorGenerationInterface(QWidget):
 
         if not colors:
             InfoBar.warning(
-                title="无法收藏",
-                content="没有可收藏的配色",
+                title=tr('color_generation.favorite_failed'),
+                content=tr('color_generation.no_colors_to_favorite'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -687,8 +704,8 @@ class ColorGenerationInterface(QWidget):
             window.refresh_palette_management()
 
         InfoBar.success(
-            title="收藏成功",
-            content=f"已收藏配色：{favorite_data['name']}",
+            title=tr('color_generation.favorite_success'),
+            content=tr('color_generation.favorite_success_content', name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,

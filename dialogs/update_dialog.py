@@ -13,7 +13,7 @@ except ImportError:
     requests = None
 
 # 项目模块导入
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from ui.theme_colors import get_dialog_bg_color, get_text_color
 
 
@@ -39,7 +39,7 @@ class UpdateCheckThread(QThread):
         """在后台线程中检查更新"""
         try:
             if requests is None:
-                self.check_finished.emit(False, "", "缺少 requests 库，无法检查更新")
+                self.check_finished.emit(False, "", tr('dialogs.update.error_missing_requests'))
                 return
 
             api_url = "https://gitee.com/api/v5/repos/qingshangongzai/color_card/releases/latest"
@@ -52,18 +52,18 @@ class UpdateCheckThread(QThread):
                 if latest_version:
                     self.check_finished.emit(True, latest_version, "")
                 else:
-                    self.check_finished.emit(False, "", "无法解析版本信息")
+                    self.check_finished.emit(False, "", tr('dialogs.update.error_parse_version'))
             else:
                 self.check_finished.emit(
-                    False, "", f"获取版本信息失败: HTTP {response.status_code}"
+                    False, "", tr('dialogs.update.error_http', status_code=response.status_code)
                 )
 
         except requests.exceptions.Timeout:
-            self.check_finished.emit(False, "", "连接超时，请检查网络连接")
+            self.check_finished.emit(False, "", tr('dialogs.update.error_timeout'))
         except requests.exceptions.ConnectionError:
-            self.check_finished.emit(False, "", "网络连接失败，请检查网络设置")
+            self.check_finished.emit(False, "", tr('dialogs.update.error_connection'))
         except Exception as e:
-            self.check_finished.emit(False, "", f"检查更新时出错: {str(e)}")
+            self.check_finished.emit(False, "", tr('dialogs.update.error_general', error=str(e)))
 
 
 def compare_versions(current, latest):
@@ -116,7 +116,7 @@ class UpdateAvailableDialog(QDialog):
             latest_version: 最新版本号
         """
         super().__init__(parent)
-        self.setWindowTitle("发现新版本")
+        self.setWindowTitle(tr('dialogs.update.title'))
         self.setFixedSize(400, 200)
         self.current_version = current_version
         self.latest_version = latest_version
@@ -152,7 +152,7 @@ class UpdateAvailableDialog(QDialog):
 
         # 提示文本
         text_color = get_text_color()
-        info_label = QLabel("有新版本可以更新")
+        info_label = QLabel(tr('dialogs.update.new_version'))
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info_label.setStyleSheet(
             f"QLabel {{ color: {text_color.name()}; font-size: 16px; font-weight: bold; }}"
@@ -160,7 +160,7 @@ class UpdateAvailableDialog(QDialog):
         layout.addWidget(info_label)
 
         # 版本信息
-        version_label = QLabel(f"当前版本: {self.current_version} → 最新版本: {self.latest_version}")
+        version_label = QLabel(tr('dialogs.update.version_info', current=self.current_version, latest=self.latest_version))
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         version_label.setStyleSheet(f"QLabel {{ color: {text_color.name()}; font-size: 12px; }}")
         layout.addWidget(version_label)
@@ -176,13 +176,13 @@ class UpdateAvailableDialog(QDialog):
         buttons_layout.addStretch()
 
         # 取消按钮
-        cancel_button = PushButton("取消")
+        cancel_button = PushButton(tr('dialogs.update.cancel'))
         cancel_button.setMinimumWidth(90)
         cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(cancel_button)
 
         # 发行页面按钮（主题色）
-        release_button = PrimaryPushButton("发行页面")
+        release_button = PrimaryPushButton(tr('dialogs.update.release_page'))
         release_button.setMinimumWidth(90)
         release_button.clicked.connect(self.open_release_page)
         buttons_layout.addWidget(release_button)
@@ -218,8 +218,8 @@ class UpdateAvailableDialog(QDialog):
         """
         if requests is None:
             InfoBar.warning(
-                title="提示",
-                content="缺少 requests 库，无法检查更新",
+                title=tr('dialogs.update.warning'),
+                content=tr('dialogs.update.missing_requests'),
                 parent=parent,
                 duration=3000,
                 position=InfoBarPosition.TOP,
@@ -235,8 +235,8 @@ class UpdateAvailableDialog(QDialog):
                 if result >= 0:
                     # 当前版本已是最新
                     InfoBar.info(
-                        title="提示",
-                        content="当前已是最新版本",
+                        title=tr('dialogs.update.info'),
+                        content=tr('dialogs.update.latest_version'),
                         parent=parent,
                         duration=3000,
                         position=InfoBarPosition.TOP,
@@ -247,7 +247,7 @@ class UpdateAvailableDialog(QDialog):
                     dialog.exec()
             else:
                 InfoBar.warning(
-                    title="检查更新失败",
+                    title=tr('dialogs.update.check_failed'),
                     content=error_msg,
                     parent=parent,
                     duration=5000,

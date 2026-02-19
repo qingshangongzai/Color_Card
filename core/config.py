@@ -51,7 +51,8 @@ class ConfigManager:
                 "histogram_scaling_mode": "adaptive",
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
-                "color_wheel_labels_visible": True
+                "color_wheel_labels_visible": True,
+                "language": "zh_CN"
             },
             "scheme": {
                 "default_scheme": "monochromatic",

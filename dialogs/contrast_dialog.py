@@ -20,6 +20,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
+from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from core.contrast import (
     calculate_contrast_ratio, get_contrast_info,
     rgb_to_hex, get_contrast_status_color
@@ -28,7 +29,6 @@ from ui.theme_colors import (
     get_dialog_bg_color, get_text_color, get_border_color,
     get_secondary_text_color, get_title_color, get_card_background_color
 )
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 
 
 class ColorSelector(QWidget):
@@ -76,7 +76,7 @@ class ColorSelector(QWidget):
         for i, color_data in enumerate(self._colors):
             rgb = color_data.get('rgb', [128, 128, 128])
             hex_val = rgb_to_hex(tuple(rgb))
-            self.color_combo.addItem(f"颜色 {i+1}")
+            self.color_combo.addItem(tr('dialogs.contrast.color_index', index=i+1))
             self.color_combo.setItemData(i, i)
         self.color_combo.currentIndexChanged.connect(self._on_combo_changed)
         layout.addWidget(self.color_combo, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -185,7 +185,7 @@ class PreviewCard(QWidget):
         layout.addWidget(self.title_label)
         
         # 示例文字
-        self.sample_label = QLabel("高颜色对比\n可使任何内\n容都更易于\n阅读")
+        self.sample_label = QLabel(tr('dialogs.contrast.sample_text'))
         self.sample_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         self.sample_label.setWordWrap(True)
         layout.addWidget(self.sample_label)
@@ -227,8 +227,6 @@ class PreviewCard(QWidget):
     
     def paintEvent(self, event):
         """绘制背景和边框"""
-        from PySide6.QtGui import QPainter, QBrush, QPen
-        
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
@@ -304,7 +302,7 @@ class GraphicPreviewCard(QWidget):
         layout.setSpacing(4)
         
         # 标题
-        self.title_label = QLabel("图形元件")
+        self.title_label = QLabel(tr('dialogs.contrast.graphic_element'))
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.title_label)
         
@@ -336,8 +334,6 @@ class GraphicPreviewCard(QWidget):
     
     def paintEvent(self, event):
         """绘制背景和边框"""
-        from PySide6.QtGui import QPainter, QBrush, QPen
-        
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
@@ -373,7 +369,7 @@ class ContrastCheckDialog(QDialog):
         self._scheme_name = scheme_name
         self._colors = colors
         
-        self.setWindowTitle(f"对比度检查 - {scheme_name}")
+        self.setWindowTitle(tr('dialogs.contrast.window_title', name=scheme_name))
         
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
@@ -418,12 +414,11 @@ class ContrastCheckDialog(QDialog):
         border_color = get_border_color()
         
         # 标题
-        title_label = QLabel("对比度检查")
+        title_label = QLabel(tr('dialogs.contrast.title'))
         title_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {title_color.name()};")
         main_layout.addWidget(title_label)
         
-        # 配色方案名称
-        name_label = QLabel(f"配色方案: {self._scheme_name}")
+        name_label = QLabel(tr('dialogs.contrast.scheme_name', name=self._scheme_name))
         name_label.setStyleSheet(f"font-size: 13px; color: {secondary_color.name()};")
         main_layout.addWidget(name_label)
         
@@ -432,7 +427,7 @@ class ContrastCheckDialog(QDialog):
         selector_layout.setSpacing(10)
         
         # 背景色选择器
-        self.bg_selector = ColorSelector("背景色", self._colors)
+        self.bg_selector = ColorSelector(tr('dialogs.contrast.background_color'), self._colors)
         self.bg_selector.color_selected.connect(self._update_contrast)
         selector_layout.addWidget(self.bg_selector)
         
@@ -441,14 +436,14 @@ class ContrastCheckDialog(QDialog):
         swap_layout.addStretch()
         self.swap_button = ToolButton(FluentIcon.SYNC)
         self.swap_button.setFixedSize(32, 32)
-        self.swap_button.setToolTip("交换颜色")
+        self.swap_button.setToolTip(tr('dialogs.contrast.swap_colors'))
         self.swap_button.clicked.connect(self._swap_colors)
         swap_layout.addWidget(self.swap_button)
         swap_layout.addStretch()
         selector_layout.addLayout(swap_layout)
         
         # 文本色选择器
-        self.text_selector = ColorSelector("文本色", self._colors)
+        self.text_selector = ColorSelector(tr('dialogs.contrast.text_color'), self._colors)
         self.text_selector.color_selected.connect(self._update_contrast)
         # 默认选择最后一个颜色
         if len(self._colors) > 1:
@@ -461,7 +456,7 @@ class ContrastCheckDialog(QDialog):
         level_layout = QHBoxLayout()
         level_layout.setSpacing(10)
         
-        level_label = QLabel("WCAG 2.1 等级")
+        level_label = QLabel(tr('dialogs.contrast.wcag_level'))
         level_label.setStyleSheet(f"font-size: 13px; color: {text_color.name()};")
         level_layout.addWidget(level_label)
         
@@ -505,7 +500,7 @@ class ContrastCheckDialog(QDialog):
         main_layout.addWidget(line)
         
         # 预览区域标题
-        preview_title = QLabel("预览效果")
+        preview_title = QLabel(tr('dialogs.contrast.preview_effect'))
         preview_title.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {text_color.name()};")
         main_layout.addWidget(preview_title)
         
@@ -514,11 +509,10 @@ class ContrastCheckDialog(QDialog):
         preview_layout.setSpacing(10)
         
         # 一般文字预览
-        self.normal_preview = PreviewCard("一般文字", 12)
+        self.normal_preview = PreviewCard(tr('dialogs.contrast.normal_text'), 12)
         preview_layout.addWidget(self.normal_preview)
         
-        # 大号文字预览
-        self.large_preview = PreviewCard("大号文字", 16, is_bold=True)
+        self.large_preview = PreviewCard(tr('dialogs.contrast.large_text'), 16, is_bold=True)
         preview_layout.addWidget(self.large_preview)
         
         # 图形元件预览
@@ -530,8 +524,7 @@ class ContrastCheckDialog(QDialog):
         
         # 说明文字
         self.description_label = QLabel(
-            "WCAG 2.1 标准：普通文字 AA 需要 4.5:1，AAA 需要 7:1；"
-            "大号文字 AA 需要 3:1，AAA 需要 4.5:1"
+            tr('dialogs.contrast.wcag_description')
         )
         self.description_label.setStyleSheet(f"font-size: 11px; color: {secondary_color.name()};")
         self.description_label.setWordWrap(True)
@@ -575,21 +568,19 @@ class ContrastCheckDialog(QDialog):
         
         # 根据选择的等级判断通过状态
         if selected_level == "AAA":
-            # AAA 标准：普通文字 7:1，大号文字 4.5:1
             if ratio >= 7:
-                level_text = "✓ 通过 AAA"
+                level_text = tr('dialogs.contrast.pass_aaa')
             elif ratio >= 4.5:
-                level_text = "△ 仅大号通过"
+                level_text = tr('dialogs.contrast.large_only')
             else:
-                level_text = "✗ 不通过"
+                level_text = tr('dialogs.contrast.fail')
         else:
-            # AA 标准：普通文字 4.5:1，大号文字 3:1
             if ratio >= 4.5:
-                level_text = "✓ 通过 AA"
+                level_text = tr('dialogs.contrast.pass_aa')
             elif ratio >= 3:
-                level_text = "△ 仅大号通过"
+                level_text = tr('dialogs.contrast.large_only')
             else:
-                level_text = "✗ 不通过"
+                level_text = tr('dialogs.contrast.fail')
         
         self.level_label.setText(level_text)
         self.level_label.setStyleSheet(

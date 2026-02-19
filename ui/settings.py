@@ -10,6 +10,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager
+from utils import tr, get_supported_languages, set_language, get_locale_manager
 
 from dialogs import AboutDialog, UpdateAvailableDialog
 from version import version_manager
@@ -23,6 +24,7 @@ AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
 class SettingsInterface(QWidget):
     """设置界面"""
 
+    language_changed = Signal(str)
     hex_display_changed = Signal(bool)
     color_modes_changed = Signal(list)
     color_sample_count_changed = Signal(int)
@@ -48,9 +50,11 @@ class SettingsInterface(QWidget):
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
         self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
+        self._language = self._config_manager.get('settings.language', 'zh_CN')
         self.setup_ui()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
+        get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -65,15 +69,23 @@ class SettingsInterface(QWidget):
         layout.setSpacing(20)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.title_label = SubtitleLabel("设置")
+        self.title_label = SubtitleLabel(tr('settings.title'))
         layout.addWidget(self.title_label)
 
-        self.card_display_group = SettingCardGroup("色卡显示设置", self.content_widget)
+        # 语言设置分组
+        self.language_group = SettingCardGroup(tr('settings.language'), self.content_widget)
+
+        self.language_card = self._create_language_card()
+        self.language_group.addSettingCard(self.language_card)
+
+        layout.addWidget(self.language_group)
+
+        self.card_display_group = SettingCardGroup(tr('settings.card_display'), self.content_widget)
 
         self.hex_display_card = self._create_switch_card(
             FluentIcon.PALETTE,
-            "显示16进制颜色值",
-            "在色彩提取面板的色卡中显示16进制颜色值和复制按钮",
+            tr('settings.hex_display'),
+            tr('settings.hex_display_desc'),
             self._hex_visible
         )
         self.card_display_group.addSettingCard(self.hex_display_card)
@@ -83,12 +95,12 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.card_display_group)
 
-        self.sampling_group = SettingCardGroup("采样设置", self.content_widget)
+        self.sampling_group = SettingCardGroup(tr('settings.sampling'), self.content_widget)
 
         self.color_sample_count_card = self._create_spin_box_card(
             FluentIcon.PALETTE,
-            "色彩提取采样点数",
-            "设置色彩提取面板的采样点数量（2-5）",
+            tr('settings.color_sample_count'),
+            tr('settings.color_sample_count_desc'),
             self._color_sample_count,
             2,
             5,
@@ -98,8 +110,8 @@ class SettingsInterface(QWidget):
 
         self.luminance_sample_count_card = self._create_spin_box_card(
             FluentIcon.BRIGHTNESS,
-            "明度提取采样点数",
-            "设置明度提取面板的采样点数量（2-5）",
+            tr('settings.luminance_sample_count'),
+            tr('settings.luminance_sample_count_desc'),
             self._luminance_sample_count,
             2,
             5,
@@ -109,7 +121,7 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.sampling_group)
 
-        self.histogram_group = SettingCardGroup("直方图设置", self.content_widget)
+        self.histogram_group = SettingCardGroup(tr('settings.histogram'), self.content_widget)
 
         self.histogram_scaling_card = self._create_histogram_scaling_card()
         self.histogram_group.addSettingCard(self.histogram_scaling_card)
@@ -119,12 +131,12 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.histogram_group)
 
-        self.highlight_group = SettingCardGroup("区域高亮设置", self.content_widget)
+        self.highlight_group = SettingCardGroup(tr('settings.highlight'), self.content_widget)
 
         self.saturation_threshold_card = self._create_threshold_card(
             FluentIcon.BRIGHTNESS,
-            "高饱和度阈值",
-            "设置高饱和度区域的饱和度阈值",
+            tr('settings.saturation_threshold'),
+            tr('settings.saturation_threshold_desc'),
             self._saturation_threshold,
             self._on_saturation_threshold_changed
         )
@@ -132,8 +144,8 @@ class SettingsInterface(QWidget):
 
         self.brightness_threshold_card = self._create_threshold_card(
             FluentIcon.VIEW,
-            "高明度阈值",
-            "设置高明度区域的明度阈值",
+            tr('settings.brightness_threshold'),
+            tr('settings.brightness_threshold_desc'),
             self._brightness_threshold,
             self._on_brightness_threshold_changed
         )
@@ -141,12 +153,12 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.highlight_group)
 
-        self.color_wheel_group = SettingCardGroup("色环显示设置", self.content_widget)
+        self.color_wheel_group = SettingCardGroup(tr('settings.color_wheel'), self.content_widget)
 
         self.color_wheel_labels_card = self._create_switch_card(
             FluentIcon.PALETTE,
-            "显示色环标签",
-            "在色环周围显示色相名称标签",
+            tr('settings.color_wheel_labels'),
+            tr('settings.color_wheel_labels_desc'),
             self._color_wheel_labels_visible
         )
         self.color_wheel_labels_card.switch_button.checkedChanged.connect(
@@ -156,20 +168,20 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.color_wheel_group)
 
-        self.color_scheme_group = SettingCardGroup("配色生成方案", self.content_widget)
+        self.color_scheme_group = SettingCardGroup(tr('settings.color_scheme'), self.content_widget)
 
         self.color_wheel_mode_card = self._create_color_wheel_mode_card()
         self.color_scheme_group.addSettingCard(self.color_wheel_mode_card)
 
         layout.addWidget(self.color_scheme_group)
 
-        self.help_group = SettingCardGroup("帮助", self.content_widget)
+        self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
 
         self.update_card = PushSettingCard(
-            "检查更新",
+            tr('settings.check_update'),
             FluentIcon.DOWNLOAD,
-            "版本更新",
-            "检查软件是否有新版本可用",
+            tr('settings.version_update'),
+            tr('settings.version_update_desc'),
             self.help_group
         )
         self.update_card.clicked.connect(self.on_check_update)
@@ -177,10 +189,10 @@ class SettingsInterface(QWidget):
         self.help_group.addSettingCard(self.update_card)
 
         self.about_card = PushSettingCard(
-            "查看",
+            tr('settings.about'),
             FluentIcon.INFO,
-            "关于 Color Card",
-            "查看项目、文档等信息",
+            tr('settings.about_title'),
+            tr('settings.about_desc'),
             self.help_group
         )
         self.about_card.clicked.connect(self.on_show_about)
@@ -197,6 +209,129 @@ class SettingsInterface(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.scroll_area)
 
+    def _create_language_card(self):
+        """创建语言选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.LANGUAGE,
+            tr('settings.language_title'),
+            tr('settings.language_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        supported_languages = get_supported_languages()
+        for code, name in supported_languages.items():
+            combo_box.addItem(name)
+            combo_box.setItemData(combo_box.count() - 1, code)
+        
+        # 设置当前语言
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._language:
+                combo_box.setCurrentIndex(i)
+                break
+        
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_language_combo_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_language_combo_changed(self, index):
+        """语言选择下拉框切换回调"""
+        combo_box = self.language_card.combo_box
+        language_code = combo_box.itemData(index)
+        self._language = language_code
+        self._config_manager.set('settings.language', language_code)
+        self._config_manager.save()
+        
+        # 切换语言
+        set_language(language_code)
+        
+        self.language_changed.emit(language_code)
+
+    def _on_language_changed(self, language_code):
+        """语言切换回调（来自LocaleManager）"""
+        self._update_texts()
+
+    def _update_texts(self):
+        """更新所有界面文本"""
+        # 更新标题
+        self.title_label.setText(tr('settings.title'))
+
+        # 更新分组标题
+        self.language_group.titleLabel.setText(tr('settings.language'))
+        self.card_display_group.titleLabel.setText(tr('settings.card_display'))
+        self.sampling_group.titleLabel.setText(tr('settings.sampling'))
+        self.histogram_group.titleLabel.setText(tr('settings.histogram'))
+        self.highlight_group.titleLabel.setText(tr('settings.highlight'))
+        self.color_wheel_group.titleLabel.setText(tr('settings.color_wheel'))
+        self.color_scheme_group.titleLabel.setText(tr('settings.color_scheme'))
+        self.help_group.titleLabel.setText(tr('settings.help'))
+
+        # 更新语言卡片
+        self.language_card.titleLabel.setText(tr('settings.language_title'))
+        self.language_card.contentLabel.setText(tr('settings.language_desc'))
+
+        # 更新16进制显示卡片
+        self.hex_display_card.titleLabel.setText(tr('settings.hex_display'))
+        self.hex_display_card.contentLabel.setText(tr('settings.hex_display_desc'))
+        self.hex_display_card.switch_button.setOnText(tr('settings.switch_on'))
+        self.hex_display_card.switch_button.setOffText(tr('settings.switch_off'))
+
+        # 更新色彩模式卡片
+        self.color_mode_card.titleLabel.setText(tr('settings.color_mode'))
+        self.color_mode_card.contentLabel.setText(tr('settings.color_mode_desc'))
+
+        # 更新采样卡片
+        self.color_sample_count_card.titleLabel.setText(tr('settings.color_sample_count'))
+        self.color_sample_count_card.contentLabel.setText(tr('settings.color_sample_count_desc'))
+        self.luminance_sample_count_card.titleLabel.setText(tr('settings.luminance_sample_count'))
+        self.luminance_sample_count_card.contentLabel.setText(tr('settings.luminance_sample_count_desc'))
+
+        # 更新直方图卡片
+        self.histogram_scaling_card.titleLabel.setText(tr('settings.histogram_scaling'))
+        self.histogram_scaling_card.contentLabel.setText(tr('settings.histogram_scaling_desc'))
+        self.histogram_scaling_card.combo_box.setItemText(0, tr('settings.linear_scaling'))
+        self.histogram_scaling_card.combo_box.setItemText(1, tr('settings.adaptive_scaling'))
+
+        self.histogram_mode_card.titleLabel.setText(tr('settings.histogram_mode'))
+        self.histogram_mode_card.contentLabel.setText(tr('settings.histogram_mode_desc'))
+        self.histogram_mode_card.combo_box.setItemText(0, tr('settings.rgb_channel'))
+        self.histogram_mode_card.combo_box.setItemText(1, tr('settings.hue_distribution'))
+
+        # 更新高亮卡片
+        self.saturation_threshold_card.titleLabel.setText(tr('settings.saturation_threshold'))
+        self.saturation_threshold_card.contentLabel.setText(tr('settings.saturation_threshold_desc'))
+        self.brightness_threshold_card.titleLabel.setText(tr('settings.brightness_threshold'))
+        self.brightness_threshold_card.contentLabel.setText(tr('settings.brightness_threshold_desc'))
+
+        # 更新色环卡片
+        self.color_wheel_labels_card.titleLabel.setText(tr('settings.color_wheel_labels'))
+        self.color_wheel_labels_card.contentLabel.setText(tr('settings.color_wheel_labels_desc'))
+        self.color_wheel_labels_card.switch_button.setOnText(tr('settings.switch_on'))
+        self.color_wheel_labels_card.switch_button.setOffText(tr('settings.switch_off'))
+
+        # 更新配色方案卡片
+        self.color_wheel_mode_card.titleLabel.setText(tr('settings.color_scheme_mode'))
+        self.color_wheel_mode_card.contentLabel.setText(tr('settings.color_scheme_mode_desc'))
+        self.color_wheel_mode_card.combo_box.setItemText(0, tr('settings.rgb_optical'))
+        self.color_wheel_mode_card.combo_box.setItemText(1, tr('settings.ryb_artistic'))
+
+        # 更新帮助卡片
+        self.update_card.titleLabel.setText(tr('settings.version_update'))
+        self.update_card.contentLabel.setText(tr('settings.version_update_desc'))
+        self.update_card.button.setText(tr('settings.check_update'))
+
+        self.about_card.titleLabel.setText(tr('settings.about_title'))
+        self.about_card.contentLabel.setText(tr('settings.about_desc'))
+        self.about_card.button.setText(tr('settings.about'))
+
     def _create_switch_card(self, icon, title, content, initial_checked):
         """创建自定义开关卡片"""
         card = PushSettingCard("", icon, title, content, self.content_widget)
@@ -204,8 +339,8 @@ class SettingsInterface(QWidget):
 
         switch = SwitchButton(self.content_widget)
         switch.setChecked(initial_checked)
-        switch.setOnText("开")
-        switch.setOffText("关")
+        switch.setOnText(tr('settings.switch_on'))
+        switch.setOffText(tr('settings.switch_off'))
         switch.checkedChanged.connect(self._on_hex_display_changed)
 
         card.hBoxLayout.addWidget(switch, 0, Qt.AlignmentFlag.AlignRight)
@@ -264,8 +399,8 @@ class SettingsInterface(QWidget):
         card = PushSettingCard(
             "",
             FluentIcon.BRUSH,
-            "色彩模式显示",
-            "选择在色卡中显示的两种色彩模式",
+            tr('settings.color_mode'),
+            tr('settings.color_mode_desc'),
             self.content_widget
         )
         card.button.setVisible(False)
@@ -342,16 +477,16 @@ class SettingsInterface(QWidget):
         card = PushSettingCard(
             "",
             FluentIcon.DOCUMENT,
-            "直方图缩放模式",
-            "选择直方图的缩放方式（线性/自适应）",
+            tr('settings.histogram_scaling'),
+            tr('settings.histogram_scaling_desc'),
             self.content_widget
         )
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
-        combo_box.addItem("线性缩放")
+        combo_box.addItem(tr('settings.linear_scaling'))
         combo_box.setItemData(0, "linear")
-        combo_box.addItem("自适应缩放")
+        combo_box.addItem(tr('settings.adaptive_scaling'))
         combo_box.setItemData(1, "adaptive")
 
         for i in range(combo_box.count()):
@@ -383,16 +518,16 @@ class SettingsInterface(QWidget):
         card = PushSettingCard(
             "",
             FluentIcon.PALETTE,
-            "直方图显示模式",
-            "选择色彩提取面板的直方图类型（RGB通道/色相分布）",
+            tr('settings.histogram_mode'),
+            tr('settings.histogram_mode_desc'),
             self.content_widget
         )
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
-        combo_box.addItem("RGB 通道")
+        combo_box.addItem(tr('settings.rgb_channel'))
         combo_box.setItemData(0, "rgb")
-        combo_box.addItem("色相分布")
+        combo_box.addItem(tr('settings.hue_distribution'))
         combo_box.setItemData(1, "hue")
 
         for i in range(combo_box.count()):
@@ -424,16 +559,16 @@ class SettingsInterface(QWidget):
         card = PushSettingCard(
             "",
             FluentIcon.PALETTE,
-            "配色方案模式",
-            "选择配色方案使用的色彩逻辑（RGB: 光学混色，RYB: 美术混色）",
+            tr('settings.color_scheme_mode'),
+            tr('settings.color_scheme_mode_desc'),
             self.content_widget
         )
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
-        combo_box.addItem("RGB 光学")
+        combo_box.addItem(tr('settings.rgb_optical'))
         combo_box.setItemData(0, "RGB")
-        combo_box.addItem("RYB 美术")
+        combo_box.addItem(tr('settings.ryb_artistic'))
         combo_box.setItemData(1, "RYB")
 
         for i in range(combo_box.count()):

@@ -17,12 +17,12 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_color_info, hex_to_rgb, get_config_manager
 from core import PaletteService
+from utils import tr, get_locale_manager, calculate_grid_columns
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color
 from utils.platform import is_windows_10
-from utils import calculate_grid_columns
 from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
 
 
@@ -298,11 +298,10 @@ class PaletteManagementColorCard(QWidget):
             self._add_to_history(new_color_info)
 
         except ValueError:
-            # 输入无效，恢复原值
             self.hex_input.setText(self._hex_value)
             InfoBar.warning(
-                title="输入无效",
-                content=f"请输入有效的16进制颜色值（如 #FF0000）",
+                title=tr('messages.invalid_input.title'),
+                content=tr('messages.invalid_input.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -385,8 +384,8 @@ class PaletteManagementColorCard(QWidget):
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
             InfoBar.success(
-                title="已复制",
-                content=f"颜色值 {self._hex_value} 已复制到剪贴板",
+                title=tr('messages.copy_success.title'),
+                content=tr('messages.copy_success.content', default=f"颜色值 {self._hex_value} 已复制到剪贴板").format(value=self._hex_value),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -646,7 +645,7 @@ class PaletteManagementCard(CardWidget):
 
     def _load_favorite_data(self):
         """加载收藏数据"""
-        self.name_label.setText(self._favorite_data.get('name', '未命名'))
+        self.name_label.setText(self._favorite_data.get('name', tr('palette_management.unnamed')))
 
         created_at = self._favorite_data.get('created_at', '')
         if created_at:
@@ -792,12 +791,12 @@ class PaletteManagementList(QWidget):
         self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._icon_label)
 
-        self._text_label = QLabel("还没有收藏的配色")
+        self._text_label = QLabel(tr('palette_management.empty_title'))
         self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
         self._text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._text_label)
 
-        self._hint_label = QLabel("在色彩提取或配色生成面板点击收藏按钮")
+        self._hint_label = QLabel(tr('palette_management.empty_hint'))
         self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
         self._hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._hint_label)
@@ -1024,6 +1023,19 @@ class PaletteManagementList(QWidget):
                 self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
             except RuntimeError:
                 pass
+    
+    def update_texts(self):
+        """更新界面文本"""
+        if hasattr(self, '_text_label') and self._text_label is not None:
+            try:
+                self._text_label.setText(tr('palette_management.empty_title'))
+            except RuntimeError:
+                pass
+        if hasattr(self, '_hint_label') and self._hint_label is not None:
+            try:
+                self._hint_label.setText(tr('palette_management.empty_hint'))
+            except RuntimeError:
+                pass
 
 
 # =============================================================================
@@ -1044,6 +1056,10 @@ class PaletteManagementInterface(QWidget):
         self._load_settings()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
+        
+        locale_manager = get_locale_manager()
+        if locale_manager:
+            locale_manager.language_changed.connect(self._on_language_changed)
 
     def _setup_service_connections(self):
         """设置配色服务信号连接"""
@@ -1062,24 +1078,24 @@ class PaletteManagementInterface(QWidget):
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.title_label = SubtitleLabel("配色管理")
+        self.title_label = SubtitleLabel(tr('palette_management.title'))
         header_layout.addWidget(self.title_label)
 
         header_layout.addStretch()
 
-        self.add_button = PushButton(FluentIcon.ADD, "添加", self)
+        self.add_button = PushButton(FluentIcon.ADD, tr('palette_management.add'), self)
         self.add_button.clicked.connect(self._on_add_clicked)
         header_layout.addWidget(self.add_button)
 
-        self.import_button = PushButton(FluentIcon.DOWN, "导入", self)
+        self.import_button = PushButton(FluentIcon.DOWN, tr('palette_management.import'), self)
         self.import_button.clicked.connect(self._on_import_clicked)
         header_layout.addWidget(self.import_button)
 
-        self.export_button = PushButton(FluentIcon.UP, "导出", self)
+        self.export_button = PushButton(FluentIcon.UP, tr('palette_management.export'), self)
         self.export_button.clicked.connect(self._on_export_clicked)
         header_layout.addWidget(self.export_button)
 
-        self.clear_all_button = PushButton(FluentIcon.DELETE, "清空所有", self)
+        self.clear_all_button = PushButton(FluentIcon.DELETE, tr('palette_management.clear_all'), self)
         self.clear_all_button.setMinimumWidth(100)
         self.clear_all_button.clicked.connect(self._on_clear_all_clicked)
         header_layout.addWidget(self.clear_all_button)
@@ -1129,12 +1145,12 @@ class PaletteManagementInterface(QWidget):
     def _on_clear_all_clicked(self):
         """清空所有按钮点击"""
         msg_box = MessageBox(
-            "确认清空",
-            "确定要清空所有收藏的配色吗？此操作不可撤销。",
+            tr('dialogs.confirm.clear_title'),
+            tr('dialogs.confirm.clear_content'),
             self
         )
-        msg_box.yesButton.setText("确定")
-        msg_box.cancelButton.setText("取消")
+        msg_box.yesButton.setText(tr('dialogs.confirm.confirm_btn'))
+        msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
         if msg_box.exec():
             self._config_manager.clear_favorites()
             self._config_manager.save()
@@ -1142,18 +1158,16 @@ class PaletteManagementInterface(QWidget):
 
     def _on_favorite_deleted(self, favorite_id):
         """收藏删除回调"""
-        # 获取配色信息用于显示在提示框中
         favorite = self._config_manager.get_favorite(favorite_id)
-        palette_name = favorite.get('name', '未命名配色') if favorite else '该配色'
+        palette_name = favorite.get('name', tr('palette_management.unnamed')) if favorite else tr('palette_management.unnamed')
 
-        # 显示确认对话框
         msg_box = MessageBox(
-            "确认删除",
-            f"确定要删除「{palette_name}」吗？此操作不可撤销。",
+            tr('dialogs.confirm.delete_title'),
+            tr('dialogs.confirm.delete_content', default=f"确定要删除「{palette_name}」吗？此操作不可撤销。").format(name=palette_name),
             self
         )
-        msg_box.yesButton.setText("删除")
-        msg_box.cancelButton.setText("取消")
+        msg_box.yesButton.setText(tr('dialogs.confirm.delete_btn'))
+        msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
 
         if msg_box.exec():
             self._config_manager.delete_favorite(favorite_id)
@@ -1164,25 +1178,23 @@ class PaletteManagementInterface(QWidget):
         """导入按钮点击"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "导入收藏",
+            tr('palette_management.import_title'),
             "",
-            "JSON 文件 (*.json);;所有文件 (*)"
+            tr('palette_management.json_filter')
         )
 
         if not file_path:
             return
 
-        # 保存文件路径和导入模式，供回调使用
         self._pending_import_path = file_path
 
-        # 询问导入模式 - 使用两个独立的对话框
         msg_box = MessageBox(
-            "选择导入模式",
-            "请选择导入方式：\n\n点击「是」追加到现有收藏\n点击「否」替换现有收藏",
+            tr('dialogs.confirm.import_mode_title'),
+            tr('dialogs.confirm.import_mode_content'),
             self
         )
-        msg_box.yesButton.setText("追加")
-        msg_box.cancelButton.setText("替换")
+        msg_box.yesButton.setText(tr('dialogs.confirm.append'))
+        msg_box.cancelButton.setText(tr('dialogs.confirm.replace'))
 
         # 获取结果：1=追加, 0=替换
         result = msg_box.exec()
@@ -1202,11 +1214,9 @@ class PaletteManagementInterface(QWidget):
         Args:
             palettes: 导入的配色列表
         """
-        # 根据导入模式处理
         if self._pending_import_mode == 'replace':
             self._config_manager.clear_favorites()
 
-        # 添加导入的配色
         for palette in palettes:
             self._config_manager.add_favorite(palette)
 
@@ -1214,8 +1224,8 @@ class PaletteManagementInterface(QWidget):
         self._load_favorites()
 
         InfoBar.success(
-            title="导入成功",
-            content=f"成功导入 {len(palettes)} 个配色",
+            title=tr('messages.import_success.title'),
+            content=tr('messages.import_success.content', default=f"成功导入 {len(palettes)} 个配色").format(count=len(palettes)),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1230,8 +1240,8 @@ class PaletteManagementInterface(QWidget):
             error_msg: 错误信息
         """
         InfoBar.error(
-            title="导入失败",
-            content=error_msg,
+            title=tr('messages.import_failed.title'),
+            content=tr('messages.import_failed.content', default=error_msg).format(error=error_msg),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1244,9 +1254,9 @@ class PaletteManagementInterface(QWidget):
         default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "导出收藏",
+            tr('palette_management.export_title'),
             default_name,
-            "JSON 文件 (*.json);;所有文件 (*)"
+            tr('palette_management.json_filter')
         )
 
         if not file_path:
@@ -1267,8 +1277,8 @@ class PaletteManagementInterface(QWidget):
             file_path: 导出文件路径
         """
         InfoBar.success(
-            title="导出成功",
-            content=f"收藏已导出到：{file_path}",
+            title=tr('messages.export_success.title'),
+            content=tr('messages.export_success.content', default=f"收藏已导出到：{file_path}").format(path=file_path),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1283,8 +1293,8 @@ class PaletteManagementInterface(QWidget):
             error_msg: 错误信息
         """
         InfoBar.error(
-            title="导出失败",
-            content=error_msg,
+            title=tr('messages.export_failed.title'),
+            content=tr('messages.export_failed.content', default=error_msg).format(error=error_msg),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1298,13 +1308,13 @@ class PaletteManagementInterface(QWidget):
         Args:
             favorite_data: 收藏项数据
         """
-        scheme_name = favorite_data.get('name', '未命名')
+        scheme_name = favorite_data.get('name', tr('palette_management.unnamed'))
         colors = favorite_data.get('colors', [])
 
         if not colors:
             InfoBar.warning(
-                title="无法预览",
-                content="该配色没有颜色数据",
+                title=tr('messages.preview_failed.title'),
+                content=tr('messages.preview_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1331,8 +1341,8 @@ class PaletteManagementInterface(QWidget):
 
         if not colors:
             InfoBar.warning(
-                title="无法预览",
-                content="该配色没有颜色数据",
+                title=tr('messages.preview_failed.title'),
+                content=tr('messages.preview_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1341,7 +1351,6 @@ class PaletteManagementInterface(QWidget):
             )
             return
 
-        # 提取颜色值
         color_values = []
         for color_info in colors:
             hex_value = color_info.get('hex', '')
@@ -1352,8 +1361,8 @@ class PaletteManagementInterface(QWidget):
 
         if not color_values:
             InfoBar.warning(
-                title="无法预览",
-                content="该配色没有有效的颜色数据",
+                title=tr('messages.preview_invalid.title'),
+                content=tr('messages.preview_invalid.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1369,31 +1378,26 @@ class PaletteManagementInterface(QWidget):
 
     def _on_add_clicked(self):
         """添加配色按钮点击"""
-        # 生成默认名称
         favorites = self._config_manager.get_favorites()
-        default_name = f"配色 {len(favorites) + 1}"
+        default_name = f"{tr('messages.palette')} {len(favorites) + 1}"
 
-        # 显示添加对话框
         dialog = EditPaletteDialog(default_name=default_name, parent=self.window())
 
         if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
             return
 
-        # 获取配色数据
         palette_data = dialog.get_palette_data()
         if not palette_data:
             return
 
-        # 添加到收藏
         self._config_manager.add_favorite(palette_data)
         self._config_manager.save()
 
-        # 刷新列表
         self._load_favorites()
 
         InfoBar.success(
-            title="添加成功",
-            content=f"配色「{palette_data['name']}」已添加",
+            title=tr('messages.add_success.title'),
+            content=tr('messages.add_success.content', default=f"配色「{palette_data['name']}」已添加").format(name=palette_data['name']),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -1410,7 +1414,6 @@ class PaletteManagementInterface(QWidget):
         favorite_id = favorite_data.get('id', '')
         default_name = favorite_data.get('name', '')
 
-        # 显示编辑对话框
         dialog = EditPaletteDialog(
             default_name=default_name,
             palette_data=favorite_data,
@@ -1420,19 +1423,17 @@ class PaletteManagementInterface(QWidget):
         if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
             return
 
-        # 获取编辑后的数据
         new_palette_data = dialog.get_palette_data()
         if not new_palette_data:
             return
 
-        # 更新收藏数据
         if self._config_manager.update_favorite(favorite_id, new_palette_data):
             self._config_manager.save()
             self._load_favorites()
 
             InfoBar.success(
-                title="更新成功",
-                content=f"配色「{new_palette_data['name']}」已更新",
+                title=tr('messages.update_success.title'),
+                content=tr('messages.update_success.content', default=f"配色「{new_palette_data['name']}」已更新").format(name=new_palette_data['name']),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1441,8 +1442,8 @@ class PaletteManagementInterface(QWidget):
             )
         else:
             InfoBar.error(
-                title="更新失败",
-                content="无法找到该配色",
+                title=tr('messages.update_failed.title'),
+                content=tr('messages.update_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1456,13 +1457,13 @@ class PaletteManagementInterface(QWidget):
         Args:
             favorite_data: 收藏项数据
         """
-        scheme_name = favorite_data.get('name', '未命名')
+        scheme_name = favorite_data.get('name', tr('palette_management.unnamed'))
         colors = favorite_data.get('colors', [])
 
         if not colors:
             InfoBar.warning(
-                title="无法检查",
-                content="该配色没有颜色数据",
+                title=tr('messages.preview_failed.title'),
+                content=tr('messages.preview_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1487,13 +1488,12 @@ class PaletteManagementInterface(QWidget):
             color_index: 颜色索引
             color_info: 新的颜色信息
         """
-        # 更新配置中的颜色数据
         if self._config_manager.update_favorite_color(favorite_id, color_index, color_info):
             self._config_manager.save()
 
             InfoBar.success(
-                title="颜色已更新",
-                content=f"配色中的颜色已更新为 {color_info.get('hex', '#------')}",
+                title=tr('messages.color_updated.title'),
+                content=tr('messages.color_updated.content', default=f"配色中的颜色已更新为 {color_info.get('hex', '#------')}").format(hex=color_info.get('hex', '#------')),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1521,7 +1521,6 @@ class PaletteManagementInterface(QWidget):
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
         
-        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
         if is_windows_10():
             bg_color = get_interface_background_color()
             card_bg = get_card_background_color()
@@ -1558,3 +1557,16 @@ class PaletteManagementInterface(QWidget):
                     color: {text_color.name()};
                 }}
             """)
+    
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()
+        self.palette_management_list.update_texts()
+    
+    def update_texts(self):
+        """更新界面文本"""
+        self.title_label.setText(tr('palette_management.title'))
+        self.add_button.setText(tr('palette_management.add'))
+        self.import_button.setText(tr('palette_management.import'))
+        self.export_button.setText(tr('palette_management.export'))
+        self.clear_all_button.setText(tr('palette_management.clear_all'))

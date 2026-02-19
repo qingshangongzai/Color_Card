@@ -16,6 +16,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb, get_config_manager
+from utils import tr, get_locale_manager, calculate_grid_columns
 from core.async_loader import BaseBatchLoader
 from core.color_data import (
     get_color_source, get_all_color_sources, get_random_palettes, ColorSource
@@ -23,7 +24,6 @@ from core.color_data import (
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color
 from utils.platform import is_windows_10
-from utils import calculate_grid_columns
 
 
 # =============================================================================
@@ -190,8 +190,8 @@ class PresetColorCard(QWidget):
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
             InfoBar.success(
-                title="已复制",
-                content=f"颜色值 {self._hex_value} 已复制到剪贴板",
+                title=tr('preset_color.copy_success.title'),
+                content=tr('preset_color.copy_success.content', default='颜色值 {value} 已复制到剪贴板').format(value=self._hex_value),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -408,8 +408,8 @@ class PaletteCard(CardWidget):
         self.favorite_requested.emit(favorite_data)
 
         InfoBar.success(
-            title="已收藏",
-            content=f"配色 '{favorite_data['name']}' 已添加到配色管理",
+            title=tr('preset_color.favorite_success.title'),
+            content=tr('preset_color.favorite_success.content', default='配色「{name}」已添加到配色管理').format(name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -643,6 +643,7 @@ class PresetColorInterface(QWidget):
         self.setup_ui()
         self._load_settings()
         self._update_styles()
+        get_locale_manager().language_changed.connect(self._on_language_changed)
         qconfig.themeChangedFinished.connect(self._update_styles)
 
     def setup_ui(self):
@@ -654,10 +655,10 @@ class PresetColorInterface(QWidget):
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.title_label = SubtitleLabel("内置色彩")
+        self.title_label = SubtitleLabel(tr('preset_color.title'))
         header_layout.addWidget(self.title_label)
 
-        self.desc_label = QLabel("从全部配色方案中随机筛选")
+        self.desc_label = QLabel(tr('preset_color.desc_random'))
         self.desc_label.setStyleSheet("font-size: 12px; color: gray;")
         header_layout.addWidget(self.desc_label)
 
@@ -670,7 +671,7 @@ class PresetColorInterface(QWidget):
         controls_layout.setContentsMargins(0, 0, 0, 0)
 
         self.source_combo = ComboBox(self)
-        self.source_combo.addItem("随机配色")
+        self.source_combo.addItem(tr('preset_color.random_palette'))
         self.source_combo.setItemData(0, "random")
 
         all_sources = get_all_color_sources()
@@ -694,7 +695,7 @@ class PresetColorInterface(QWidget):
         self.group_combo.currentIndexChanged.connect(self._on_group_changed)
         self.group_control_layout.addWidget(self.group_combo)
 
-        self.random_btn = PushButton("随机", self)
+        self.random_btn = PushButton(tr('preset_color.random'), self)
         self.random_btn.setFixedWidth(150)
         self.random_btn.clicked.connect(self._on_random_palette_clicked)
         self.random_btn.setVisible(False)
@@ -730,14 +731,14 @@ class PresetColorInterface(QWidget):
         self._current_source = source_id
 
         if source_id == 'random':
-            self.desc_label.setText("从全部配色方案中随机筛选")
+            self.desc_label.setText(tr('preset_color.desc_random'))
             self.group_combo.setVisible(False)
             self.random_btn.setVisible(True)
             self.preset_color_list.set_data_source('random', 10)
         else:
             source = self._color_sources.get(source_id)
             if source:
-                self.desc_label.setText(f"基于 {source.name}")
+                self.desc_label.setText(tr('preset_color.desc_source', default='基于 {name}').format(name=source.name))
                 self.group_combo.setVisible(source.has_groups)
                 self.random_btn.setVisible(False)
                 
@@ -785,3 +786,22 @@ class PresetColorInterface(QWidget):
                     background-color: {bg_color.name()};
                 }}
             """)
+
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()
+
+    def update_texts(self):
+        """更新界面文本"""
+        self.title_label.setText(tr('preset_color.title'))
+        self.desc_label.setText(tr('preset_color.desc_random'))
+        self.random_btn.setText(tr('preset_color.random'))
+        
+        self.source_combo.setItemText(0, tr('preset_color.random_palette'))
+        
+        if self._current_source == 'random':
+            self.desc_label.setText(tr('preset_color.desc_random'))
+        else:
+            source = self._color_sources.get(self._current_source)
+            if source:
+                self.desc_label.setText(tr('preset_color.desc_source', default='基于 {name}').format(name=source.name))

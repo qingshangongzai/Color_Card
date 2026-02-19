@@ -21,6 +21,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, get_config_manager, ColorService
+from utils import tr, get_locale_manager
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
 from .cards import ColorCardPanel
@@ -38,6 +39,7 @@ class ColorExtractInterface(QWidget):
         self._setup_color_service_connections()
         self.setup_ui()
         self.setup_connections()
+        get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def _setup_color_service_connections(self):
         """设置颜色服务信号连接"""
@@ -111,26 +113,26 @@ class ColorExtractInterface(QWidget):
         favorite_toolbar_layout.setContentsMargins(0, 8, 0, 8)
         favorite_toolbar_layout.setSpacing(10)
 
-        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, "收藏当前配色", self)
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, tr('color_extract.favorite'), self)
         self.favorite_button.setFixedHeight(32)
         self.favorite_button.clicked.connect(self._on_favorite_clicked)
         favorite_toolbar_layout.addWidget(self.favorite_button)
 
         # 主色调提取按钮
-        self.extract_dominant_button = PushButton(FluentIcon.PALETTE, "自动提取主色调", self)
+        self.extract_dominant_button = PushButton(FluentIcon.PALETTE, tr('color_extract.extract_dominant'), self)
         self.extract_dominant_button.setFixedHeight(32)
         self.extract_dominant_button.clicked.connect(self._on_extract_dominant_clicked)
         favorite_toolbar_layout.addWidget(self.extract_dominant_button)
 
         # 高饱和度区域显示按钮
-        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, "显示高饱和区域", self)
+        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, tr('color_extract.show_high_saturation'), self)
         self.high_saturation_button.setFixedHeight(32)
         self.high_saturation_button.pressed.connect(self._on_high_saturation_pressed)
         self.high_saturation_button.released.connect(self._on_high_saturation_released)
         favorite_toolbar_layout.addWidget(self.high_saturation_button)
 
         # 高明度区域显示按钮
-        self.high_brightness_button = PushButton(FluentIcon.VIEW, "显示高明度区域", self)
+        self.high_brightness_button = PushButton(FluentIcon.VIEW, tr('color_extract.show_high_brightness'), self)
         self.high_brightness_button.setFixedHeight(32)
         self.high_brightness_button.pressed.connect(self._on_high_brightness_pressed)
         self.high_brightness_button.released.connect(self._on_high_brightness_released)
@@ -161,9 +163,9 @@ class ColorExtractInterface(QWidget):
         """打开图片文件"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "选择图片",
+            tr('color_extract.select_image'),
             "",
-            "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+            tr('color_extract.image_filter')
         )
 
         if file_path:
@@ -233,8 +235,8 @@ class ColorExtractInterface(QWidget):
 
         if not colors:
             InfoBar.warning(
-                title="无法收藏",
-                content="请先提取颜色后再收藏",
+                title=tr('messages.favorite_failed.title'),
+                content=tr('messages.favorite_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -244,7 +246,7 @@ class ColorExtractInterface(QWidget):
             return
 
         # 弹出编辑配色对话框
-        default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
+        default_name = f"{tr('messages.palette')} {len(self._config_manager.get_favorites()) + 1}"
 
         # 构造配色数据
         palette_data = {
@@ -282,8 +284,8 @@ class ColorExtractInterface(QWidget):
             window.refresh_palette_management()
 
         InfoBar.success(
-            title="收藏成功",
-            content=f"已收藏配色：{favorite_data['name']}",
+            title=tr('messages.favorite_success.title'),
+            content=tr('messages.favorite_success.content').format(name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -296,8 +298,8 @@ class ColorExtractInterface(QWidget):
         image = self.image_canvas.get_image()
         if not image or image.isNull():
             InfoBar.warning(
-                title="无法提取",
-                content="请先导入图片",
+                title=tr('messages.extract_failed.title'),
+                content=tr('messages.extract_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -314,10 +316,9 @@ class ColorExtractInterface(QWidget):
 
     def _on_extraction_started(self):
         """提取开始回调"""
-        # 显示正在提取的提示
         InfoBar.info(
-            title="正在提取",
-            content="正在分析图片主色调，请稍候...",
+            title=tr('messages.extracting.title'),
+            content=tr('messages.extracting.content'),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -325,14 +326,13 @@ class ColorExtractInterface(QWidget):
             parent=self.window()
         )
 
-        # 禁用提取按钮，防止重复点击
         self.extract_dominant_button.setEnabled(False)
-        self.extract_dominant_button.setText("提取中...")
+        self.extract_dominant_button.setText(tr('color_extract.extracting'))
 
     def _reset_extract_button(self):
         """恢复提取按钮状态"""
         self.extract_dominant_button.setEnabled(True)
-        self.extract_dominant_button.setText("自动提取主色调")
+        self.extract_dominant_button.setText(tr('color_extract.extract_dominant'))
 
     def _on_extraction_finished(self, dominant_colors, positions):
         """主色调提取完成回调
@@ -354,8 +354,8 @@ class ColorExtractInterface(QWidget):
                 self.hsb_color_wheel.update_sample_point(i, rgb)
 
         InfoBar.success(
-            title="提取完成",
-            content=f"已成功提取 {len(dominant_colors)} 个主色调",
+            title=tr('messages.extract_success.title'),
+            content=tr('messages.extract_success.content').format(count=len(dominant_colors)),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -372,8 +372,8 @@ class ColorExtractInterface(QWidget):
         self._reset_extract_button()
 
         InfoBar.error(
-            title="提取失败",
-            content=f"提取过程中发生错误: {error_message}",
+            title=tr('messages.extract_error.title'),
+            content=tr('messages.extract_error.content').format(error=error_message),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -383,13 +383,11 @@ class ColorExtractInterface(QWidget):
 
     def _on_high_saturation_pressed(self):
         """高饱和度区域按钮按下回调"""
-        # 检查是否有图片
         image = self.image_canvas.get_image()
         if not image or image.isNull():
-            # 如果没有图片，显示提示
             InfoBar.warning(
-                title="无法显示",
-                content="请先导入图片",
+                title=tr('messages.display_failed.title'),
+                content=tr('messages.display_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -398,23 +396,19 @@ class ColorExtractInterface(QWidget):
             )
             return
 
-        # 显示高饱和度区域
         self.image_canvas.toggle_high_saturation_highlight(True)
 
     def _on_high_saturation_released(self):
         """高饱和度区域按钮释放回调"""
-        # 隐藏高饱和度区域
         self.image_canvas.toggle_high_saturation_highlight(False)
 
     def _on_high_brightness_pressed(self):
         """高明度区域按钮按下回调"""
-        # 检查是否有图片
         image = self.image_canvas.get_image()
         if not image or image.isNull():
-            # 如果没有图片，显示提示
             InfoBar.warning(
-                title="无法显示",
-                content="请先导入图片",
+                title=tr('messages.display_failed.title'),
+                content=tr('messages.display_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -423,12 +417,10 @@ class ColorExtractInterface(QWidget):
             )
             return
 
-        # 显示高明度区域
         self.image_canvas.toggle_high_brightness_highlight(True)
 
     def _on_high_brightness_released(self):
         """高明度区域按钮释放回调"""
-        # 隐藏高明度区域
         self.image_canvas.toggle_high_brightness_highlight(False)
 
     def set_saturation_threshold(self, value: int):
@@ -446,3 +438,14 @@ class ColorExtractInterface(QWidget):
             value: 阈值百分比 (0-100)
         """
         self.image_canvas.set_brightness_threshold(value)
+
+    def update_texts(self):
+        """更新所有界面文本"""
+        self.favorite_button.setText(tr('color_extract.favorite'))
+        self.extract_dominant_button.setText(tr('color_extract.extract_dominant'))
+        self.high_saturation_button.setText(tr('color_extract.show_high_saturation'))
+        self.high_brightness_button.setText(tr('color_extract.show_high_brightness'))
+
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()

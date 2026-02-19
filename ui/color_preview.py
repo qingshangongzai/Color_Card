@@ -15,7 +15,7 @@
 from typing import List, Optional, Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData
+from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData, QTimer
 from PySide6.QtGui import (
     QPainter, QColor, QPen, QBrush, QFont, QDrag, QPixmap
 )
@@ -30,7 +30,8 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_config_manager, PreviewService
+from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_type_manager
+from utils import tr, get_locale_manager
 from ui.theme_colors import get_border_color, get_text_color
 
 
@@ -153,7 +154,7 @@ class DraggableColorDot(QWidget):
             menu.addAction(copy_action)
             menu.addSeparator()
 
-        delete_action = Action(FluentIcon.DELETE, "删除")
+        delete_action = Action(FluentIcon.DELETE, tr('common.delete'))
         delete_action.triggered.connect(lambda: self.delete_requested.emit(self._index))
         menu.addAction(delete_action)
         menu.exec(event.globalPos())
@@ -545,7 +546,7 @@ class SVGPreviewWidget(BasePreviewScene):
         """右键菜单事件"""
         menu = RoundMenu("", self)
 
-        delete_action = Action(FluentIcon.DELETE, "删除模板")
+        delete_action = Action(FluentIcon.DELETE, tr('color_preview.delete_template'))
         delete_action.triggered.connect(self._on_delete_template)
         menu.addAction(delete_action)
 
@@ -557,8 +558,8 @@ class SVGPreviewWidget(BasePreviewScene):
         """删除模板"""
         if self._is_builtin:
             InfoBar.warning(
-                title="无法删除",
-                content="内置场景，不可删除",
+                title=tr('color_preview_messages.cannot_delete.title'),
+                content=tr('color_preview_messages.cannot_delete.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -578,7 +579,6 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            from core import SVGColorMapper
             self._color_mapper = SVGColorMapper()
 
             if not self._color_mapper.load_svg(file_path):
@@ -607,7 +607,6 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            from core import SVGColorMapper
             self._color_mapper = SVGColorMapper()
 
             if not self._color_mapper.load_svg_from_string(content):
@@ -636,8 +635,6 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            from core import get_scene_type_manager
-
             manager = get_scene_type_manager()
             svg_path = manager.get_builtin_svg_path(scene_type)
 
@@ -754,7 +751,6 @@ class SVGPreviewWidget(BasePreviewScene):
     def _has_fixed_background_element(self) -> bool:
         """检查SVG是否有固定颜色的背景元素"""
         if not hasattr(self, '_preview_service') or self._preview_service is None:
-            from core import PreviewService
             self._preview_service = PreviewService()
         return self._preview_service.has_fixed_background_element(self._svg_content)
 
@@ -768,7 +764,7 @@ class SVGPreviewWidget(BasePreviewScene):
         font = QFont("Arial", 11)
         painter.setFont(font)
 
-        hint_text = "请从配色管理面板导入配色"
+        hint_text = tr('color_preview.hint_import_colors')
         painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, hint_text)
 
 
@@ -868,7 +864,7 @@ class SingleLayout(BaseLayout):
         nav_layout.setContentsMargins(10, 5, 10, 5)
         nav_layout.setSpacing(20)
 
-        self._prev_button = QPushButton("< 上一个")
+        self._prev_button = QPushButton(tr('color_preview.prev_svg'))
         self._prev_button.setFixedSize(100, 32)
         self._prev_button.clicked.connect(self.prev_svg)
         nav_layout.addWidget(self._prev_button)
@@ -878,7 +874,7 @@ class SingleLayout(BaseLayout):
         self._index_label.setFixedHeight(32)
         nav_layout.addWidget(self._index_label, stretch=1)
 
-        self._next_button = QPushButton("下一个 >")
+        self._next_button = QPushButton(tr('color_preview.next_svg'))
         self._next_button.setFixedSize(100, 32)
         self._next_button.clicked.connect(self.next_svg)
         nav_layout.addWidget(self._next_button)
@@ -931,12 +927,18 @@ class SingleLayout(BaseLayout):
         total = len(self._svg_widgets)
         current = self._current_index + 1 if total > 0 else 0
 
-        self._index_label.setText(f"{current} / {total}")
+        self._index_label.setText(tr('color_preview.page_info', current=current, total=total))
 
         self._prev_button.setEnabled(self._current_index > 0)
         self._next_button.setEnabled(self._current_index < total - 1)
 
         self._update_button_styles()
+
+    def update_texts(self):
+        """更新界面文本"""
+        self._prev_button.setText(tr('color_preview.prev_svg'))
+        self._next_button.setText(tr('color_preview.next_svg'))
+        self.update_navigation()
 
     def _update_button_styles(self):
         text_color = get_text_color()
@@ -1270,7 +1272,6 @@ class PreviewSceneSelector(ComboBox):
     def _load_scene_types(self):
         """从 SceneTypeManager 加载场景类型"""
         try:
-            from core import get_scene_type_manager
             manager = get_scene_type_manager()
             self._scene_types = manager.get_all_scene_types()
         except Exception as e:
@@ -1285,7 +1286,7 @@ class PreviewSceneSelector(ComboBox):
         """设置选项"""
         self.clear()
         if not self._scene_types_loaded:
-            self.addItem("加载中...")
+            self.addItem(tr('color_preview.loading'))
             self.setEnabled(False)
         else:
             self.setEnabled(True)
@@ -1380,8 +1381,6 @@ class MixedPreviewPanel(QWidget):
             self._svg_preview = None
 
         try:
-            from core import get_scene_type_manager
-
             manager = get_scene_type_manager()
             scene_config = manager.get_scene_type_by_id(scene)
 
@@ -1411,7 +1410,6 @@ class MixedPreviewPanel(QWidget):
                 self._main_layout.addWidget(self._current_layout)
                 self._current_layout.set_colors(self._colors)
                 self._current_layout.template_deleted.connect(self._on_template_deleted)
-                from PySide6.QtCore import QTimer
                 QTimer.singleShot(100, self._update_layout_sizes)
 
         except Exception as e:
@@ -1520,10 +1518,10 @@ class PreviewToolbar(QWidget):
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(15)
 
-        self._title_label = SubtitleLabel("配色预览")
+        self._title_label = SubtitleLabel(tr('color_preview.title'))
         top_layout.addWidget(self._title_label)
 
-        self._desc_label = QLabel("还在持续完善中")
+        self._desc_label = QLabel(tr('color_preview.subtitle'))
         self._desc_label.setStyleSheet("font-size: 12px; color: gray;")
         top_layout.addWidget(self._desc_label)
 
@@ -1534,12 +1532,12 @@ class PreviewToolbar(QWidget):
         buttons_layout.setContentsMargins(0, 0, 0, 0)
         buttons_layout.setSpacing(8)
 
-        self._import_button = PushButton(FluentIcon.DOWN, "导入")
+        self._import_button = PushButton(FluentIcon.DOWN, tr('color_preview.import_btn'))
         self._import_button.setFixedHeight(32)
         self._import_button.clicked.connect(self._on_import_clicked)
         buttons_layout.addWidget(self._import_button)
 
-        self._export_button = PushButton(FluentIcon.UP, "导出")
+        self._export_button = PushButton(FluentIcon.UP, tr('color_preview.export_btn'))
         self._export_button.setFixedHeight(32)
         self._export_button.clicked.connect(self._on_export_clicked)
         buttons_layout.addWidget(self._export_button)
@@ -1591,6 +1589,13 @@ class PreviewToolbar(QWidget):
     def _update_styles(self):
         """更新样式以适配主题"""
         self.setStyleSheet("background: transparent;")
+
+    def update_texts(self):
+        """更新所有界面文本"""
+        self._title_label.setText(tr('color_preview.title'))
+        self._desc_label.setText(tr('color_preview.subtitle'))
+        self._import_button.setText(tr('color_preview.import_btn'))
+        self._export_button.setText(tr('color_preview.export_btn'))
 
     def set_colors(self, colors: List[str]):
         """设置颜色
@@ -1656,6 +1661,7 @@ class ColorPreviewInterface(QWidget):
         self._load_favorites()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
+        get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1691,8 +1697,8 @@ class ColorPreviewInterface(QWidget):
         scene_selector = self.toolbar.get_scene_selector()
         if scene_selector:
             InfoBar.info(
-                title="加载中",
-                content="正在加载场景类型...",
+                title=tr('color_preview.loading'),
+                content=tr('color_preview.loading_scene_types'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1759,9 +1765,9 @@ class ColorPreviewInterface(QWidget):
         """导入 SVG 文件"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "导入 SVG 文件",
+            tr('color_preview.import_svg'),
             "",
-            "SVG 文件 (*.svg);;所有文件 (*)"
+            tr('color_preview.svg_filter')
         )
 
         if not file_path:
@@ -1770,8 +1776,8 @@ class ColorPreviewInterface(QWidget):
         svg_preview = self.preview_panel.get_svg_preview()
         if svg_preview is None:
             InfoBar.warning(
-                title="无法导入",
-                content="当前场景不支持直接导入 SVG，请切换到自定义场景",
+                title=tr('color_preview_messages.cannot_import.title'),
+                content=tr('color_preview_messages.cannot_import.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1786,8 +1792,8 @@ class ColorPreviewInterface(QWidget):
             svg_preview.set_colors(self._current_colors)
 
             InfoBar.success(
-                title="导入成功",
-                content=f"已加载 SVG 文件",
+                title=tr('color_preview_messages.import_success.title'),
+                content=tr('color_preview_messages.import_success.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1796,8 +1802,8 @@ class ColorPreviewInterface(QWidget):
             )
         else:
             InfoBar.error(
-                title="导入失败",
-                content="无法加载 SVG 文件",
+                title=tr('color_preview_messages.import_failed.title'),
+                content=tr('color_preview_messages.import_failed.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1811,8 +1817,8 @@ class ColorPreviewInterface(QWidget):
 
         if svg_preview is None:
             InfoBar.warning(
-                title="无法导出",
-                content="当前场景不支持导出 SVG",
+                title=tr('color_preview_messages.cannot_export.title'),
+                content=tr('color_preview_messages.cannot_export.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1823,8 +1829,8 @@ class ColorPreviewInterface(QWidget):
 
         if not svg_preview.has_svg():
             InfoBar.warning(
-                title="无法导出",
-                content="请先导入 SVG 文件",
+                title=tr('color_preview_messages.no_svg_to_export.title'),
+                content=tr('color_preview_messages.no_svg_to_export.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1835,9 +1841,9 @@ class ColorPreviewInterface(QWidget):
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "导出 SVG 文件",
-            "colored_preview.svg",
-            "SVG 文件 (*.svg);;所有文件 (*)"
+            tr('color_preview.export_svg'),
+            tr('color_preview.export_svg_default'),
+            tr('color_preview.svg_filter')
         )
 
         if not file_path:
@@ -1851,8 +1857,8 @@ class ColorPreviewInterface(QWidget):
 
         if success:
             InfoBar.success(
-                title="导出成功",
-                content=message,
+                title=tr('color_preview_messages.export_success.title'),
+                content=tr('color_preview_messages.export_success.content', message=message),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1861,8 +1867,8 @@ class ColorPreviewInterface(QWidget):
             )
         else:
             InfoBar.error(
-                title="导出失败",
-                content=message,
+                title=tr('color_preview_messages.export_failed.title'),
+                content=tr('color_preview_messages.export_failed.content', message=message),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1874,20 +1880,19 @@ class ColorPreviewInterface(QWidget):
         """导入用户SVG模板到当前场景类型"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "导入 SVG 模板",
+            tr('color_preview.import_template'),
             "",
-            "SVG 文件 (*.svg);;所有文件 (*)"
+            tr('color_preview.svg_filter')
         )
 
         if not file_path:
             return
 
-        # 验证文件
         is_valid, error_msg = self._preview_service.validate_svg_file(file_path)
         if not is_valid:
             InfoBar.error(
-                title="导入失败",
-                content=error_msg,
+                title=tr('color_preview_messages.template_import_failed.title'),
+                content=tr('color_preview_messages.template_import_failed.content', error=error_msg),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1905,8 +1910,8 @@ class ColorPreviewInterface(QWidget):
             self.preview_panel.set_colors(self._current_colors)
 
             InfoBar.success(
-                title="导入成功",
-                content=message,
+                title=tr('color_preview_messages.template_import_success.title'),
+                content=tr('color_preview_messages.template_import_success.content', message=message),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1915,8 +1920,8 @@ class ColorPreviewInterface(QWidget):
             )
         else:
             InfoBar.warning(
-                title="导入失败",
-                content=message,
+                title=tr('color_preview_messages.template_import_failed.title'),
+                content=tr('color_preview_messages.template_import_failed.content', error=message),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1930,8 +1935,8 @@ class ColorPreviewInterface(QWidget):
 
         if not svg_preview or not svg_preview.has_svg():
             InfoBar.warning(
-                title="无法导出",
-                content="当前没有可导出的SVG",
+                title=tr('color_preview_messages.no_svg_available.title'),
+                content=tr('color_preview_messages.no_svg_available.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1940,13 +1945,13 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        default_name = self._preview_service.generate_export_filename("color_card")
+        default_name = self._preview_service.generate_export_filename(tr('color_preview.export_default_name'))
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "导出 SVG",
+            tr('color_preview.export_svg_title'),
             default_name,
-            "SVG 文件 (*.svg);;所有文件 (*)"
+            tr('color_preview.svg_filter')
         )
 
         if not file_path:
@@ -1960,8 +1965,8 @@ class ColorPreviewInterface(QWidget):
 
         if success:
             InfoBar.success(
-                title="导出成功",
-                content=message,
+                title=tr('color_preview_messages.export_success.title'),
+                content=tr('color_preview_messages.export_success.content', message=message),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1970,8 +1975,8 @@ class ColorPreviewInterface(QWidget):
             )
         else:
             InfoBar.error(
-                title="导出失败",
-                content=message,
+                title=tr('color_preview_messages.export_failed.title'),
+                content=tr('color_preview_messages.export_failed.content', message=message),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1986,6 +1991,14 @@ class ColorPreviewInterface(QWidget):
     def _update_styles(self):
         """更新样式以适配主题"""
         pass
+
+    def update_texts(self):
+        """更新所有界面文本"""
+        self.toolbar.update_texts()
+
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()
 
 
 # ============================================================================

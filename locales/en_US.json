@@ -1,0 +1,360 @@
+{
+  "app": {
+    "name": "Color Card",
+    "name_en": "Color Card",
+    "loading": "Loading..."
+  },
+  "navigation": {
+    "color_extract": "Color Extract",
+    "luminance_extract": "Luminance Extract",
+    "color_generation": "Color Generation",
+    "palette_management": "Palette Management",
+    "preset_color": "Preset Colors",
+    "color_preview": "Color Preview",
+    "settings": "Settings"
+  },
+  "title_bar": {
+    "toggle_theme": "Toggle Dark/Light Mode",
+    "toggle_fullscreen": "Fullscreen/Exit Fullscreen (F11)"
+  },
+  "color_extract": {
+    "favorite": "Save Palette",
+    "extract_dominant": "Auto Extract Dominant",
+    "extracting": "Extracting...",
+    "show_high_saturation": "Show High Saturation",
+    "show_high_brightness": "Show High Brightness",
+    "select_image": "Select Image",
+    "image_filter": "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "luminance_extract": {
+    "select_image": "Select Image",
+    "image_filter": "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "color_generation": {
+    "title": "Color Scheme:",
+    "random": "Random",
+    "favorite": "Save",
+    "brightness": "Brightness:",
+    "schemes": {
+      "monochromatic": "Monochromatic",
+      "analogous": "Analogous",
+      "complementary": "Complementary",
+      "split_complementary": "Split Complementary",
+      "double_complementary": "Double Complementary"
+    }
+  },
+  "palette_management": {
+    "title": "Palette Management",
+    "add": "Add",
+    "import": "Import",
+    "export": "Export",
+    "clear_all": "Clear All",
+    "unnamed": "Unnamed",
+    "empty_title": "No saved palettes yet",
+    "empty_hint": "Click the save button in Color Extract or Color Generation panel",
+    "import_title": "Import Palettes",
+    "export_title": "Export Palettes",
+    "json_filter": "JSON Files (*.json);;All Files (*)"
+  },
+  "color_preview": {
+    "title": "Color Preview",
+    "subtitle": "Still under development",
+    "import_btn": "Import",
+    "export_btn": "Export",
+    "delete": "Delete",
+    "delete_template": "Delete Template",
+    "loading": "Loading...",
+    "loading_scene_types": "Loading scene types...",
+    "import_svg": "Import SVG File",
+    "svg_filter": "SVG Files (*.svg);;All Files (*)",
+    "import_template": "Import SVG Template",
+    "export_svg": "Export SVG File",
+    "export_svg_default": "colored_preview.svg",
+    "export_svg_title": "Export SVG",
+    "export_default_name": "color_card",
+    "hint_import_colors": "Please import colors from Palette Management",
+    "prev_svg": "< Previous",
+    "next_svg": "Next >",
+    "page_info": "{current} / {total}"
+  },
+  "color_preview_messages": {
+    "cannot_delete": {
+      "title": "Cannot Delete",
+      "content": "Built-in scenes cannot be deleted"
+    },
+    "cannot_import": {
+      "title": "Cannot Import",
+      "content": "Current scene does not support direct SVG import, please switch to custom scene"
+    },
+    "import_success": {
+      "title": "Import Successful",
+      "content": "SVG file loaded"
+    },
+    "import_failed": {
+      "title": "Import Failed",
+      "content": "Unable to load SVG file"
+    },
+    "cannot_export": {
+      "title": "Cannot Export",
+      "content": "Current scene does not support SVG export"
+    },
+    "no_svg_to_export": {
+      "title": "Cannot Export",
+      "content": "Please import an SVG file first"
+    },
+    "export_success": {
+      "title": "Export Successful",
+      "content": "{message}"
+    },
+    "export_failed": {
+      "title": "Export Failed",
+      "content": "{message}"
+    },
+    "template_import_failed": {
+      "title": "Import Failed",
+      "content": "{error}"
+    },
+    "template_import_success": {
+      "title": "Import Successful",
+      "content": "{message}"
+    },
+    "no_svg_available": {
+      "title": "Cannot Export",
+      "content": "No SVG available for export"
+    }
+  },
+  "preset_color": {
+    "title": "Preset Colors",
+    "random_palette": "Random Palette",
+    "random": "Random",
+    "desc_random": "Randomly filtered from all color schemes",
+    "desc_source": "Based on {name}",
+    "copy_success": {
+      "title": "Copied",
+      "content": "Color value {value} copied to clipboard"
+    },
+    "favorite_success": {
+      "title": "Saved",
+      "content": "Palette \"{name}\" has been added to palette management"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "card_display": "Card Display Settings",
+    "hex_display": "Show HEX Color Value",
+    "hex_display_desc": "Display HEX color value and copy button in color cards",
+    "color_mode": "Color Mode Display",
+    "color_mode_desc": "Select two color modes to display in color cards",
+    "sampling": "Sampling Settings",
+    "color_sample_count": "Color Extract Sample Count",
+    "color_sample_count_desc": "Set the number of sample points for color extraction (2-5)",
+    "luminance_sample_count": "Luminance Extract Sample Count",
+    "luminance_sample_count_desc": "Set the number of sample points for luminance extraction (2-5)",
+    "histogram": "Histogram Settings",
+    "histogram_scaling": "Histogram Scaling Mode",
+    "histogram_scaling_desc": "Select histogram scaling method (Linear/Adaptive)",
+    "histogram_mode": "Histogram Display Mode",
+    "histogram_mode_desc": "Select histogram type for color extraction panel (RGB Channels/Hue Distribution)",
+    "highlight": "Highlight Area Settings",
+    "saturation_threshold": "High Saturation Threshold",
+    "saturation_threshold_desc": "Set saturation threshold for high saturation areas",
+    "brightness_threshold": "High Brightness Threshold",
+    "brightness_threshold_desc": "Set brightness threshold for high brightness areas",
+    "color_wheel": "Color Wheel Display Settings",
+    "color_wheel_labels": "Show Color Wheel Labels",
+    "color_wheel_labels_desc": "Display hue name labels around the color wheel",
+    "color_scheme": "Color Scheme Settings",
+    "color_scheme_mode": "Color Scheme Mode",
+    "color_scheme_mode_desc": "Select color logic for color schemes (RGB: Optical mixing, RYB: Artistic mixing)",
+    "language": "Language Settings",
+    "language_title": "Interface Language",
+    "language_desc": "Select the display language for the application",
+    "help": "Help",
+    "check_update": "Check for Updates",
+    "version_update": "Version Update",
+    "version_update_desc": "Check if a new version is available",
+    "about": "View",
+    "about_title": "About Color Card",
+    "about_desc": "View project and documentation information",
+    "linear_scaling": "Linear Scaling",
+    "adaptive_scaling": "Adaptive Scaling",
+    "rgb_channel": "RGB Channels",
+    "hue_distribution": "Hue Distribution",
+    "rgb_optical": "RGB Optical",
+    "ryb_artistic": "RYB Artistic",
+    "switch_on": "On",
+    "switch_off": "Off"
+  },
+  "dialogs": {
+    "about": {
+      "title": "About",
+      "homepage": "Homepage",
+      "project": "Project",
+      "license": "License",
+      "agreement": "User Agreement",
+      "copyright": "Copyright",
+      "license_note": "Licensed under GPL v3, for educational purposes only"
+    },
+    "update": {
+      "title": "New Version Available",
+      "new_version": "A new version is available",
+      "current_version": "Current Version",
+      "latest_version": "Latest Version",
+      "cancel": "Cancel",
+      "release_page": "Release Page"
+    },
+    "edit_palette": {
+      "add_title": "Add Palette",
+      "edit_title": "Edit Palette",
+      "name_label": "Palette Name:",
+      "name_placeholder": "Enter palette name...",
+      "colors_title": "Color List (at least one required)",
+      "add_color": "Add Color",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "color_label": "Color"
+    },
+    "colorblind": {
+      "title": "Colorblind Simulation Preview",
+      "window_title": "Colorblind Simulation Preview - {name}",
+      "scheme_name": "Color Scheme: {name}",
+      "colorblind_type": "Colorblind Type:",
+      "original_color": "Original",
+      "simulated_color": "Simulated",
+      "original": "Original",
+      "simulated": "Simulated",
+      "description": "Note: {text}"
+    },
+    "contrast": {
+      "title": "Contrast Check",
+      "window_title": "Contrast Check - {name}",
+      "scheme_name": "Color Scheme: {name}",
+      "background_color": "Background",
+      "text_color": "Text",
+      "color_index": "Color {index}",
+      "swap_colors": "Swap Colors",
+      "wcag_level": "WCAG 2.1 Level",
+      "preview_effect": "Preview Effect",
+      "normal_text": "Normal Text",
+      "large_text": "Large Text",
+      "graphic_element": "Graphic Elements",
+      "sample_text": "High color contrast\nmakes any content\neasier to read",
+      "wcag_description": "WCAG 2.1 Standard: Normal text AA requires 4.5:1, AAA requires 7:1; Large text AA requires 3:1, AAA requires 4.5:1",
+      "pass_aaa": "✓ Pass AAA",
+      "pass_aa": "✓ Pass AA",
+      "large_only": "△ Large text only",
+      "fail": "✗ Fail"
+    },
+    "confirm": {
+      "clear_title": "Confirm Clear",
+      "clear_content": "Are you sure you want to clear all saved palettes? This action cannot be undone.",
+      "delete_title": "Confirm Delete",
+      "delete_content": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "import_mode_title": "Select Import Mode",
+      "import_mode_content": "Choose import method:\n\nClick \"Yes\" to append to existing palettes\nClick \"No\" to replace existing palettes",
+      "append": "Append",
+      "replace": "Replace",
+      "confirm_btn": "Confirm",
+      "delete_btn": "Delete",
+      "cancel_btn": "Cancel"
+    }
+  },
+  "messages": {
+    "favorite_failed": {
+      "title": "Cannot Save",
+      "content": "Please extract colors first before saving"
+    },
+    "favorite_success": {
+      "title": "Saved Successfully",
+      "content": "Palette saved: {name}"
+    },
+    "extract_failed": {
+      "title": "Cannot Extract",
+      "content": "Please import an image first"
+    },
+    "extracting": {
+      "title": "Extracting",
+      "content": "Analyzing image dominant colors, please wait..."
+    },
+    "extract_success": {
+      "title": "Extraction Complete",
+      "content": "Successfully extracted {count} dominant colors"
+    },
+    "extract_error": {
+      "title": "Extraction Failed",
+      "content": "An error occurred during extraction: {error}"
+    },
+    "display_failed": {
+      "title": "Cannot Display",
+      "content": "Please import an image first"
+    },
+    "copy_success": {
+      "title": "Copied",
+      "content": "Color value {value} copied to clipboard"
+    },
+    "invalid_input": {
+      "title": "Invalid Input",
+      "content": "Please enter a valid HEX color value (e.g., #FF0000)"
+    },
+    "no_colors": {
+      "title": "Cannot Save",
+      "content": "No colors available to save"
+    },
+    "preview_failed": {
+      "title": "Cannot Preview",
+      "content": "This palette has no color data"
+    },
+    "preview_invalid": {
+      "title": "Cannot Preview",
+      "content": "This palette has no valid color data"
+    },
+    "import_success": {
+      "title": "Import Successful",
+      "content": "Successfully imported {count} palettes"
+    },
+    "import_failed": {
+      "title": "Import Failed",
+      "content": "{error}"
+    },
+    "export_success": {
+      "title": "Export Successful",
+      "content": "Palettes exported to: {path}"
+    },
+    "export_failed": {
+      "title": "Export Failed",
+      "content": "{error}"
+    },
+    "add_success": {
+      "title": "Added Successfully",
+      "content": "Palette \"{name}\" has been added"
+    },
+    "update_success": {
+      "title": "Updated Successfully",
+      "content": "Palette \"{name}\" has been updated"
+    },
+    "update_failed": {
+      "title": "Update Failed",
+      "content": "Cannot find this palette"
+    },
+    "color_updated": {
+      "title": "Color Updated",
+      "content": "Color in palette updated to {hex}"
+    },
+    "check_update_failed": {
+      "title": "Update Check Failed",
+      "content": "{error}"
+    },
+    "latest_version": {
+      "title": "Info",
+      "content": "You are using the latest version"
+    },
+    "no_requests": {
+      "title": "Info",
+      "content": "Missing requests library, cannot check for updates"
+    },
+    "palette": "Palette"
+  },
+  "common": {
+    "delete": "Delete"
+  }
+}

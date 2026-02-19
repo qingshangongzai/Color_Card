@@ -15,8 +15,8 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
+from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from ui.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 
 
 class ColorInputRow(QWidget):
@@ -37,7 +37,7 @@ class ColorInputRow(QWidget):
         layout.setSpacing(10)
 
         # 序号标签
-        self.index_label = QLabel(f"颜色 {self._index + 1}")
+        self.index_label = QLabel(f"{tr('dialogs.edit_palette.color_label')} {self._index + 1}")
         self.index_label.setFixedWidth(50)
         layout.addWidget(self.index_label)
 
@@ -220,7 +220,7 @@ class EditPaletteDialog(QDialog):
         layout.addWidget(separator)
 
         # 颜色列表标题
-        colors_title = QLabel("颜色列表（至少输入一个）")
+        colors_title = QLabel(tr('dialogs.edit_palette.colors_title'))
         colors_title.setStyleSheet(f"color: {get_text_color().name()}; font-size: 13px;")
         layout.addWidget(colors_title)
 
@@ -246,7 +246,7 @@ class EditPaletteDialog(QDialog):
         layout.addWidget(scroll_area)
 
         # 添加颜色按钮
-        self.add_color_button = PushButton(FluentIcon.ADD, "添加颜色")
+        self.add_color_button = PushButton(FluentIcon.ADD, tr('dialogs.edit_palette.add_color'))
         self.add_color_button.setFixedHeight(32)
         self.add_color_button.clicked.connect(self._on_add_color)
         layout.addWidget(self.add_color_button)
@@ -262,7 +262,7 @@ class EditPaletteDialog(QDialog):
         buttons_layout.addWidget(self.cancel_button)
 
         # 确认按钮
-        self.confirm_button = PrimaryPushButton("确认")
+        self.confirm_button = PrimaryPushButton(tr('dialogs.edit_palette.confirm'))
         self.confirm_button.setMinimumWidth(80)
         self.confirm_button.clicked.connect(self._on_confirm)
         buttons_layout.addWidget(self.confirm_button)

@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 
 # 项目模块导入
 from core import LuminanceService
+from utils import tr, get_locale_manager
 from .canvases import LuminanceCanvas
 from .histograms import LuminanceHistogramWidget
 
@@ -21,11 +22,12 @@ class LuminanceExtractInterface(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._dragging_index = -1  # 当前正在拖动的采样点索引
+        self._dragging_index = -1
         self._luminance_service = LuminanceService(self)
         self.setup_ui()
         self.setup_connections()
         self._setup_service_connections()
+        get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -92,9 +94,9 @@ class LuminanceExtractInterface(QWidget):
         """打开图片文件（独立导入）"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "选择图片",
+            tr('luminance_extract.select_image'),
             "",
-            "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+            tr('luminance_extract.image_filter')
         )
 
         if file_path:
@@ -221,5 +223,12 @@ class LuminanceExtractInterface(QWidget):
 
     def on_histogram_zone_released(self):
         """直方图Zone被释放时调用"""
-        # 清除画布上的高亮显示
         self.luminance_canvas.clear_zone_highlight()
+
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()
+
+    def update_texts(self):
+        """更新界面文本（语言切换时调用）"""
+        pass
