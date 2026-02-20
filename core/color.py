@@ -10,6 +10,50 @@ except ImportError:
     NUMPY_AVAILABLE = False
 
 
+# ==================== 配色常量定义 ====================
+
+SATURATION_STEPS = [1.0, 0.75, 0.5, 0.25]
+MIN_SATURATION = 20
+DEFAULT_BRIGHTNESS_STEPS = [100, 90, 80, 70]
+DEFAULT_ANALOGOUS_ANGLE = 30
+DEFAULT_SPLIT_ANGLE = 30
+
+
+def _generate_saturation_steps(base_saturation: float, count: int) -> list:
+    """生成饱和度递减序列
+
+    Args:
+        base_saturation: 基准饱和度 (0-100)
+        count: 生成数量
+
+    Returns:
+        list: 饱和度列表，所有值不低于 MIN_SATURATION
+    """
+    if count == 4:
+        return [
+            base_saturation,
+            max(MIN_SATURATION, base_saturation * SATURATION_STEPS[1]),
+            max(MIN_SATURATION, base_saturation * SATURATION_STEPS[2]),
+            max(MIN_SATURATION, base_saturation * SATURATION_STEPS[3])
+        ]
+    step = (base_saturation - MIN_SATURATION) / max(count - 1, 1)
+    return [max(MIN_SATURATION, base_saturation - i * step) for i in range(count)]
+
+
+def _generate_brightness_steps(count: int) -> list:
+    """生成明度递减序列
+
+    Args:
+        count: 生成数量
+
+    Returns:
+        list: 明度列表
+    """
+    if count == 4:
+        return DEFAULT_BRIGHTNESS_STEPS.copy()
+    return [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+
+
 def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
     """将RGB转换为HSB (Hue, Saturation, Brightness)
 
@@ -542,24 +586,11 @@ def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 
         list: HSB颜色列表 [(h, s, b), ...]
     """
     colors = []
-    # 基于基准饱和度生成递减的饱和度序列
-    if count == 4:
-        # 在基准饱和度基础上递减，保持合理的间隔
-        saturations = [
-            base_saturation,
-            max(20, base_saturation * 0.75),
-            max(20, base_saturation * 0.5),
-            max(20, base_saturation * 0.25)
-        ]
-        brightnesses = [100, 90, 80, 70]
-    else:
-        # 根据数量均匀分布饱和度
-        step = (base_saturation - 20) / max(count - 1, 1)
-        saturations = [max(20, base_saturation - i * step) for i in range(count)]
-        brightnesses = [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+    saturations = _generate_saturation_steps(base_saturation, count)
+    brightnesses = _generate_brightness_steps(count)
 
     for i in range(count):
-        s = max(20, min(100, saturations[i] if i < len(saturations) else 50))
+        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
         b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
         colors.append((hue % 360, s, b))
 
@@ -622,31 +653,29 @@ def generate_complementary(hue: float, count: int = 5, base_saturation: float = 
     comp_hue = (hue + 180) % 360
 
     if count == 5:
-        # 基准色一侧3个：通过调整饱和度和明度来区分，保持色相一致
+        base_saturations = _generate_saturation_steps(base_saturation, 3)
+        comp_saturations = _generate_saturation_steps(base_saturation, 2)
         colors = [
-            (hue, base_saturation, 100),                    # 基准色：最鲜艳
-            (hue, max(30, base_saturation * 0.75), 90),     # 基准色：降低饱和度
-            (hue, max(30, base_saturation * 0.5), 80),      # 基准色：进一步降低饱和度
-            # 互补色一侧2个
-            (comp_hue, base_saturation, 100),               # 互补色：最鲜艳
-            (comp_hue, max(30, base_saturation * 0.75), 90), # 互补色：降低饱和度
+            (hue, base_saturations[0], 100),
+            (hue, max(30, base_saturations[1]), 90),
+            (hue, max(30, base_saturations[2]), 80),
+            (comp_hue, comp_saturations[0], 100),
+            (comp_hue, max(30, comp_saturations[1]), 90),
         ]
     else:
-        # 平均分配：基准色一侧 ceil(count/2)，互补色一侧 floor(count/2)
         base_count = (count + 1) // 2
         comp_count = count - base_count
 
-        # 基准色一侧：同一色相，基于基准饱和度生成变化
+        base_saturations = _generate_saturation_steps(base_saturation, base_count)
+        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
+
         for i in range(base_count):
-            saturation_factor = 1 - i * (0.5 / max(base_count, 1))  # 从100%递减到50%
-            s = max(30, base_saturation * saturation_factor)
-            b = 100 - i * (20 / max(base_count, 1))  # 明度稍微降低
+            s = max(30, base_saturations[i])
+            b = 100 - i * (20 / max(base_count, 1))
             colors.append((hue, s, max(80, b)))
 
-        # 互补色一侧：同一色相，基于基准饱和度生成变化
         for i in range(comp_count):
-            saturation_factor = 1 - i * (0.5 / max(comp_count, 1))
-            s = max(30, base_saturation * saturation_factor)
+            s = max(30, comp_saturations[i])
             b = 100 - i * (20 / max(comp_count, 1))
             colors.append((comp_hue, s, max(80, b)))
 
@@ -1398,25 +1427,13 @@ def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: 
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
     colors = []
-    # 基于基准饱和度生成递减的饱和度序列
-    if count == 4:
-        saturations = [
-            base_saturation,
-            max(20, base_saturation * 0.75),
-            max(20, base_saturation * 0.5),
-            max(20, base_saturation * 0.25)
-        ]
-        brightnesses = [100, 90, 80, 70]
-    else:
-        step = (base_saturation - 20) / max(count - 1, 1)
-        saturations = [max(20, base_saturation - i * step) for i in range(count)]
-        brightnesses = [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+    saturations = _generate_saturation_steps(base_saturation, count)
+    brightnesses = _generate_brightness_steps(count)
 
-    # 转换 RYB 色相到 RGB 色相
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
 
     for i in range(count):
-        s = max(20, min(100, saturations[i] if i < len(saturations) else 50))
+        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
         b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
         colors.append((rgb_hue % 360, s, b))
 
@@ -1477,34 +1494,33 @@ def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: 
     colors = []
     ryb_comp_hue = (ryb_hue + 180) % 360
 
-    # 转换到 RGB 色相
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
     rgb_comp_hue = ryb_hue_to_rgb_hue(ryb_comp_hue)
 
     if count == 5:
-        # 基准色一侧3个：通过调整饱和度和明度来区分
+        base_saturations = _generate_saturation_steps(base_saturation, 3)
+        comp_saturations = _generate_saturation_steps(base_saturation, 2)
         colors = [
-            (rgb_hue, base_saturation, 100),
-            (rgb_hue, max(30, base_saturation * 0.75), 90),
-            (rgb_hue, max(30, base_saturation * 0.5), 80),
-            # 互补色一侧2个
-            (rgb_comp_hue, base_saturation, 100),
-            (rgb_comp_hue, max(30, base_saturation * 0.75), 90),
+            (rgb_hue, base_saturations[0], 100),
+            (rgb_hue, max(30, base_saturations[1]), 90),
+            (rgb_hue, max(30, base_saturations[2]), 80),
+            (rgb_comp_hue, comp_saturations[0], 100),
+            (rgb_comp_hue, max(30, comp_saturations[1]), 90),
         ]
     else:
-        # 平均分配
         base_count = (count + 1) // 2
         comp_count = count - base_count
 
+        base_saturations = _generate_saturation_steps(base_saturation, base_count)
+        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
+
         for i in range(base_count):
-            saturation_factor = 1 - i * (0.5 / max(base_count, 1))  # 从100%递减到50%
-            s = max(30, base_saturation * saturation_factor)
+            s = max(30, base_saturations[i])
             b = 100 - i * (20 / max(base_count, 1))
             colors.append((rgb_hue, s, max(80, b)))
 
         for i in range(comp_count):
-            saturation_factor = 1 - i * (0.5 / max(comp_count, 1))
-            s = max(30, base_saturation * saturation_factor)
+            s = max(30, comp_saturations[i])
             b = 100 - i * (20 / max(comp_count, 1))
             colors.append((rgb_comp_hue, s, max(80, b)))
 
