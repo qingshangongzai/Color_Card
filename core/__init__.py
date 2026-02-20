@@ -73,6 +73,21 @@ from .preview_service import PreviewService
 
 from .histogram_service import HistogramService, HistogramCalculator
 
+from .cache_base import BaseCache
+
+from .color_scheme_cache import (
+    ColorSchemeCache,
+    get_color_scheme_cache,
+    clear_color_scheme_cache,
+)
+
+from .histogram_cache import (
+    HistogramCache,
+    get_histogram_cache,
+    clear_histogram_cache,
+    generate_image_fingerprint,
+)
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -141,4 +156,12 @@ __all__ = [
     'PreviewService',
     'HistogramService',
     'HistogramCalculator',
+    'BaseCache',
+    'ColorSchemeCache',
+    'get_color_scheme_cache',
+    'clear_color_scheme_cache',
+    'HistogramCache',
+    'get_histogram_cache',
+    'clear_histogram_cache',
+    'generate_image_fingerprint',
 ]

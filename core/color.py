@@ -9,6 +9,9 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
+# 项目模块导入
+from .color_scheme_cache import get_color_scheme_cache
+
 
 # ==================== 配色常量定义 ====================
 
@@ -783,7 +786,13 @@ def adjust_brightness(hsb_colors: List[Tuple[float, float, float]], brightness_d
     return adjusted
 
 
-def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[int, int, int]]:
+def get_scheme_preview_colors(
+    scheme_type: str,
+    base_hue: float,
+    count: int = 5,
+    base_saturation: float = 100,
+    use_cache: bool = True
+) -> List[Tuple[int, int, int]]:
     """获取配色方案的预览颜色（RGB格式）
 
     Args:
@@ -792,10 +801,18 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5,
         base_hue: 基准色相 (0-360)
         count: 生成颜色数量
         base_saturation: 基准饱和度 (0-100)，用于生成变化的饱和度
+        use_cache: 是否使用缓存（默认True）
 
     Returns:
         list: RGB颜色列表 [(r, g, b), ...]
     """
+    # 尝试从缓存获取
+    if use_cache:
+        cache = get_color_scheme_cache()
+        cached_hsb = cache.get(scheme_type, base_hue, count, base_saturation)
+        if cached_hsb is not None:
+            return [hsb_to_rgb(h, s, b) for h, s, b in cached_hsb]
+
     # 根据方案类型调用对应的生成器，传递 base_saturation 参数
     if scheme_type == 'monochromatic':
         hsb_colors = generate_monochromatic(base_hue, count, base_saturation)
@@ -809,6 +826,10 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5,
         hsb_colors = generate_double_complementary(base_hue, 30, count, base_saturation)
     else:
         hsb_colors = generate_monochromatic(base_hue, count, base_saturation)
+
+    # 存入缓存
+    if use_cache:
+        cache.set(scheme_type, base_hue, count, base_saturation, hsb_colors)
 
     return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]
 
@@ -1618,7 +1639,13 @@ def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: 
     return colors
 
 
-def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[int, int, int]]:
+def get_scheme_preview_colors_ryb(
+    scheme_type: str,
+    base_hue: float,
+    count: int = 5,
+    base_saturation: float = 100,
+    use_cache: bool = True
+) -> List[Tuple[int, int, int]]:
     """获取 RYB 配色方案的预览颜色（RGB格式）
 
     Args:
@@ -1627,10 +1654,21 @@ def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int 
         base_hue: 基准色相 (0-360，RGB色相)
         count: 生成颜色数量
         base_saturation: 基准饱和度 (0-100)，用于生成变化的饱和度
+        use_cache: 是否使用缓存（默认True）
 
     Returns:
         list: RGB颜色列表 [(r, g, b), ...]
     """
+    # RYB缓存键添加前缀区分
+    cache_key_type = f"ryb_{scheme_type}"
+
+    # 尝试从缓存获取
+    if use_cache:
+        cache = get_color_scheme_cache()
+        cached_hsb = cache.get(cache_key_type, base_hue, count, base_saturation)
+        if cached_hsb is not None:
+            return [hsb_to_rgb(h, s, b) for h, s, b in cached_hsb]
+
     # 先将 RGB 色相转换为 RYB 色相
     ryb_hue = rgb_hue_to_ryb_hue(base_hue)
 
@@ -1647,5 +1685,9 @@ def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int 
         hsb_colors = generate_ryb_double_complementary(ryb_hue, 30, count, base_saturation)
     else:
         hsb_colors = generate_ryb_monochromatic(ryb_hue, count, base_saturation)
+
+    # 存入缓存
+    if use_cache:
+        cache.set(cache_key_type, base_hue, count, base_saturation, hsb_colors)
 
     return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]

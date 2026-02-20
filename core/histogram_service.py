@@ -7,6 +7,7 @@ from PySide6.QtGui import QImage
 
 # 项目模块导入
 from .color import calculate_histogram, calculate_rgb_histogram
+from .histogram_cache import get_histogram_cache, generate_image_fingerprint
 
 
 class HistogramCalculator(QThread):
@@ -105,7 +106,7 @@ class HistogramService(QObject):
     """直方图计算服务
 
     管理直方图计算任务生命周期，提供异步计算接口。
-    支持取消机制和延迟计算。
+    支持取消机制、延迟计算和缓存复用。
 
     信号:
         luminance_histogram_ready: 明度直方图计算完成
@@ -119,14 +120,21 @@ class HistogramService(QObject):
     hue_histogram_ready = Signal(list)
     error = Signal(str)
 
-    def __init__(self, parent=None):
-        """初始化直方图服务"""
+    def __init__(self, parent=None, use_cache: bool = True):
+        """初始化直方图服务
+
+        Args:
+            parent: 父对象
+            use_cache: 是否使用缓存（默认True）
+        """
         super().__init__(parent)
         self._luminance_calculator: Optional[HistogramCalculator] = None
         self._rgb_calculator: Optional[HistogramCalculator] = None
         self._hue_calculator: Optional[HistogramCalculator] = None
         self._pending_image: Optional[QImage] = None
         self._delay_timer: Optional[QTimer] = None
+        self._use_cache = use_cache
+        self._current_image_key: str = ""
 
     def _get_sample_step(self, image: QImage) -> int:
         """根据图片大小确定采样步长
@@ -165,6 +173,17 @@ class HistogramService(QObject):
         # 取消之前的计算
         self._cancel_luminance_calculator()
 
+        # 生成图片指纹
+        self._current_image_key = generate_image_fingerprint(image)
+
+        # 尝试从缓存获取
+        if self._use_cache:
+            cache = get_histogram_cache()
+            cached = cache.get(self._current_image_key, "luminance")
+            if cached is not None:
+                self.luminance_histogram_ready.emit(cached)
+                return
+
         # 使用延迟计算
         if self._delay_timer is None:
             self._delay_timer = QTimer(self)
@@ -201,6 +220,12 @@ class HistogramService(QObject):
         # 检查服务是否还有效（没有被销毁）
         if self._luminance_calculator is None:
             return
+
+        # 存入缓存
+        if self._use_cache and self._current_image_key:
+            cache = get_histogram_cache()
+            cache.set(self._current_image_key, "luminance", histogram)
+
         self.luminance_histogram_ready.emit(histogram)
         self._safe_stop_calculator(self._luminance_calculator)
         self._luminance_calculator = None
@@ -216,6 +241,17 @@ class HistogramService(QObject):
 
         # 取消之前的计算
         self._cancel_rgb_calculator()
+
+        # 生成图片指纹
+        self._current_image_key = generate_image_fingerprint(image)
+
+        # 尝试从缓存获取
+        if self._use_cache:
+            cache = get_histogram_cache()
+            cached = cache.get(self._current_image_key, "rgb")
+            if cached is not None:
+                self.rgb_histogram_ready.emit(cached[0], cached[1], cached[2])
+                return
 
         # 使用延迟计算
         if self._delay_timer is None:
@@ -252,6 +288,12 @@ class HistogramService(QObject):
         if self._rgb_calculator is None:
             return
         r_hist, g_hist, b_hist = result
+
+        # 存入缓存
+        if self._use_cache and self._current_image_key:
+            cache = get_histogram_cache()
+            cache.set(self._current_image_key, "rgb", [r_hist, g_hist, b_hist])
+
         self.rgb_histogram_ready.emit(r_hist, g_hist, b_hist)
         self._safe_stop_calculator(self._rgb_calculator)
         self._rgb_calculator = None
@@ -267,6 +309,17 @@ class HistogramService(QObject):
 
         # 取消之前的计算
         self._cancel_hue_calculator()
+
+        # 生成图片指纹
+        self._current_image_key = generate_image_fingerprint(image)
+
+        # 尝试从缓存获取
+        if self._use_cache:
+            cache = get_histogram_cache()
+            cached = cache.get(self._current_image_key, "hue")
+            if cached is not None:
+                self.hue_histogram_ready.emit(cached)
+                return
 
         # 使用延迟计算
         if self._delay_timer is None:
@@ -302,6 +355,12 @@ class HistogramService(QObject):
         """色相直方图计算完成回调"""
         if self._hue_calculator is None:
             return
+
+        # 存入缓存
+        if self._use_cache and self._current_image_key:
+            cache = get_histogram_cache()
+            cache.set(self._current_image_key, "hue", histogram)
+
         self.hue_histogram_ready.emit(histogram)
         self._safe_stop_calculator(self._hue_calculator)
         self._hue_calculator = None
