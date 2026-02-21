@@ -16,6 +16,12 @@ from PIL.ExifTags import TAGS
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap
 
+# 增加 PIL 图片像素限制，支持超大图片（约 5 亿像素）
+Image.MAX_IMAGE_PIXELS = 500_000_000
+
+# 项目模块导入
+from .image_memory_manager import get_memory_manager
+
 
 # ==================== 色彩空间检测 ====================
 
@@ -212,6 +218,9 @@ class ProgressiveImageLoader(QThread):
     def cancel(self) -> None:
         """请求取消加载"""
         self._is_cancelled = True
+        # 等待线程完成，但设置超时避免阻塞UI
+        if self.isRunning():
+            self.wait(200)  # 等待最多200毫秒
 
     def _check_cancelled(self) -> bool:
         """检查是否被取消
@@ -327,7 +336,7 @@ class ImageService(QObject):
 
     def __init__(self, parent=None):
         """初始化图片服务
-        
+
         Args:
             parent: 父对象
         """
@@ -335,14 +344,17 @@ class ImageService(QObject):
         self._loader: Optional[ProgressiveImageLoader] = None
         self._current_path: Optional[str] = None
         self._colorspace_info: Optional[ColorSpaceInfo] = None
+        self._memory_manager = get_memory_manager()
 
     def load_image_async(self, path: str, display_size: int = 1920) -> None:
         """异步加载图片
-        
+
         使用分阶段加载策略：
         1. 快速解码显示尺寸图片（用于快速显示）
         2. 后台解码完整图片（用于直方图计算和精确取色）
-        
+
+        加载完成后，图片会被添加到内存管理器中。
+
         Args:
             path: 图片文件路径
             display_size: 显示尺寸上限（默认1920px）
@@ -350,8 +362,18 @@ class ImageService(QObject):
         self._current_path = path
         self._colorspace_info = None
 
+        # 检查内存管理器中是否已有该图片
+        cached = self._memory_manager.get_image(path)
+        if cached:
+            pixmap, image = cached
+            self.image_loaded.emit(pixmap, image)
+            return
+
         if self._loader is not None:
             self._loader.cancel()
+            # 等待线程完全结束
+            if self._loader.isRunning():
+                self._loader.wait(500)  # 等待最多500ms
             self._loader = None
 
         self.loading_started.emit()
@@ -380,22 +402,27 @@ class ImageService(QObject):
 
     def generate_thumbnail(self, image: QImage, size: int = 100) -> QPixmap:
         """生成缩略图
-        
+
+        使用QImage进行缩放，然后转换为QPixmap，减少内存占用。
+
         Args:
             image: 原始图片
             size: 缩略图尺寸（默认100px）
-            
+
         Returns:
             QPixmap: 缩略图
         """
         if image is None or image.isNull():
             return QPixmap()
 
-        return QPixmap.fromImage(image).scaled(
+        # 使用QImage进行缩放，内存效率更高
+        thumbnail_image = image.scaled(
             size, size,
             aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
             transformMode=Qt.TransformationMode.SmoothTransformation
         )
+
+        return QPixmap.fromImage(thumbnail_image)
 
     def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
         """显示图片就绪的回调
@@ -409,7 +436,7 @@ class ImageService(QObject):
 
     def _on_full_ready(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """完整图片就绪的回调
-        
+
         Args:
             image_data: 图片字节数据
             width: 图片宽度
@@ -420,6 +447,10 @@ class ImageService(QObject):
 
         image = QImage.fromData(image_data, fmt)
         pixmap = QPixmap.fromImage(image)
+
+        # 添加到内存管理器
+        if self._current_path:
+            self._memory_manager.add_image(self._current_path, pixmap, image)
 
         self.image_loaded.emit(pixmap, image)
 
@@ -445,6 +476,55 @@ class ImageService(QObject):
         if self._loader is not None:
             self._loader.deleteLater()
             self._loader = None
+
+    def release_current_image(self) -> None:
+        """释放当前图片的内存
+
+        从内存管理器中移除当前图片，触发垃圾回收。
+        同时取消正在进行的加载任务。
+        """
+        # 取消正在进行的加载任务
+        if self._loader is not None:
+            # 断开信号连接，防止回调触发
+            try:
+                self._loader.display_ready.disconnect()
+            except:
+                pass
+            try:
+                self._loader.full_ready.disconnect()
+            except:
+                pass
+            try:
+                self._loader.colorspace_ready.disconnect()
+            except:
+                pass
+            try:
+                self._loader.progress.disconnect()
+            except:
+                pass
+            try:
+                self._loader.error.disconnect()
+            except:
+                pass
+            try:
+                self._loader.finished.disconnect()
+            except:
+                pass
+
+            self._loader.cancel()
+            self._loader = None
+
+        if self._current_path:
+            self._memory_manager.remove_image(self._current_path)
+            self._current_path = None
+
+    def get_memory_stats(self) -> dict:
+        """获取内存统计信息
+
+        Returns:
+            dict: 内存统计信息
+        """
+        return self._memory_manager.get_memory_stats()
 
 
 from PySide6.QtCore import Qt

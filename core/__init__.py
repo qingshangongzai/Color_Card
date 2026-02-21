@@ -88,6 +88,12 @@ from .histogram_cache import (
     generate_image_fingerprint,
 )
 
+from .image_memory_manager import (
+    ImageMemoryManager,
+    get_memory_manager,
+    set_memory_limit,
+)
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -166,4 +172,7 @@ __all__ = [
     'get_histogram_cache',
     'clear_histogram_cache',
     'generate_image_fingerprint',
+    'ImageMemoryManager',
+    'get_memory_manager',
+    'set_memory_limit',
 ]

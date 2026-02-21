@@ -108,6 +108,9 @@ def main():
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
 
+    # 增加 Qt 图像分配限制，支持超大图片（1GB）
+    os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
+
     app = QApplication(sys.argv)
 
     # 立即显示启动画面（在其他模块导入前）

@@ -198,6 +198,9 @@ class ColorExtractInterface(QWidget):
         Args:
             emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
         """
+        # 取消颜色提取任务
+        self._color_service.cancel_extraction()
+
         self.image_canvas.clear_image(emit_signal)
         self.color_card_panel.clear_all()
         # 清除HSB色环和直方图

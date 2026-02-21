@@ -44,6 +44,9 @@ class HistogramCalculator(QThread):
     def cancel(self) -> None:
         """请求取消计算"""
         self._is_cancelled = True
+        # 等待线程完成，但设置超时避免阻塞
+        if self.isRunning():
+            self.wait(50)  # 等待最多50毫秒，避免阻塞UI
 
     def _check_cancelled(self) -> bool:
         """检查是否被取消"""
@@ -386,8 +389,8 @@ class HistogramService(QObject):
         """
         if calculator is None:
             return
-        
-        # 断开所有信号连接
+
+        # 断开所有信号连接，防止回调触发
         try:
             calculator.finished.disconnect()
         except:
@@ -396,12 +399,18 @@ class HistogramService(QObject):
             calculator.error.disconnect()
         except:
             pass
-        
+
         # 请求取消
         calculator.cancel()
-        
+
         # 等待线程结束（非阻塞方式）
         if calculator.isRunning():
+            # 使用较短的等待时间，避免阻塞UI
+            calculator.wait(200)
+
+        # 如果线程仍在运行，强制终止（不推荐，但必要时使用）
+        if calculator.isRunning():
+            calculator.terminate()
             calculator.wait(100)
 
     def _cancel_luminance_calculator(self) -> None:
@@ -421,12 +430,14 @@ class HistogramService(QObject):
 
     def cancel_all(self) -> None:
         """取消所有计算"""
+        # 先停止延迟计时器，防止新的计算开始
+        if self._delay_timer is not None and self._delay_timer.isActive():
+            self._delay_timer.stop()
+
+        # 取消所有进行中的计算
         self._cancel_luminance_calculator()
         self._cancel_rgb_calculator()
         self._cancel_hue_calculator()
-
-        if self._delay_timer is not None and self._delay_timer.isActive():
-            self._delay_timer.stop()
 
     def clear(self) -> None:
         """清理资源"""

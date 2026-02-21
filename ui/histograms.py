@@ -329,11 +329,12 @@ class LuminanceHistogramWidget(BaseHistogram):
 
     def clear(self):
         """清除直方图数据"""
+        # 先取消计算，避免线程冲突
+        self._histogram_service.cancel_all()
         super().clear()
         self._highlight_zones = []
         self._pressed_zone = -1
         self._current_zone = -1
-        self._histogram_service.cancel_all()
         self.update()
 
     def _on_histogram_ready(self, histogram):
@@ -640,10 +641,11 @@ class RGBHistogramWidget(BaseHistogram):
 
     def clear(self):
         """清除直方图数据"""
+        # 先取消计算，避免线程冲突
+        self._histogram_service.cancel_all()
         self._histogram_r = [0] * 256
         self._histogram_g = [0] * 256
         self._histogram_b = [0] * 256
-        self._histogram_service.cancel_all()
         super().clear()
 
     def set_display_mode(self, mode: str):
@@ -923,8 +925,9 @@ class HueHistogramWidget(BaseHistogram):
 
     def clear(self):
         """清除直方图数据"""
-        self._histogram = [0] * 360
+        # 先取消计算，避免线程冲突
         self._histogram_service.cancel_all()
+        self._histogram = [0] * 360
         super().clear()
 
     def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):

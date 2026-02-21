@@ -1,5 +1,6 @@
 # 标准库导入
 import colorsys
+import gc
 from typing import List, Optional, Tuple
 
 # 第三方库导入
@@ -629,11 +630,18 @@ class BaseCanvas(QWidget):
     def clear_image(self, emit_signal: bool = True) -> None:
         """清空图片
 
+        显式释放图片内存，清理相关缓存。
+
         Args:
             emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
         """
+        # 显式释放图片内存
+        # 直接赋值为 None，让 Python 垃圾回收处理
         self._original_pixmap = None
         self._image = None
+
+        # 释放ImageService中的图片内存
+        self._image_service.release_current_image()
 
         # 重置相对坐标到默认位置
         for i in range(len(self._picker_rel_positions)):
@@ -643,6 +651,9 @@ class BaseCanvas(QWidget):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.update()
+
+        # 触发垃圾回收
+        gc.collect()
 
         # 发送图片已清空信号，用于同步到其他面板
         if emit_signal:
@@ -932,6 +943,8 @@ class ImageCanvas(BaseCanvas):
     def clear_image(self, emit_signal: bool = True) -> None:
         """清空图片
 
+        显式释放图片内存和相关缓存。
+
         Args:
             emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
         """
@@ -943,10 +956,11 @@ class ImageCanvas(BaseCanvas):
         if self._zoom_viewer:
             self._zoom_viewer.hide()
 
-        # 清除高饱和度区域高亮
+        # 清除高饱和度区域高亮缓存
         self._show_high_saturation = False
         self._high_saturation_pixmap = None
-        # 清除高明度区域高亮
+
+        # 清除高明度区域高亮缓存
         self._show_high_brightness = False
         self._high_brightness_pixmap = None
 
@@ -1342,10 +1356,15 @@ class LuminanceCanvas(BaseCanvas):
     def clear_image(self, emit_signal: bool = True) -> None:
         """清空图片
 
+        显式释放图片内存和相关缓存。
+
         Args:
             emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
         """
         super().clear_image(emit_signal)
+
+        # 取消明度服务中的计算任务
+        self._luminance_service.cancel_calculation()
 
         # 隐藏取色点
         for picker in self._pickers:
@@ -1353,6 +1372,10 @@ class LuminanceCanvas(BaseCanvas):
 
         # 重置区域编号
         self._picker_zones = ["0-1"] * len(self._pickers)
+
+        # 清除Zone高亮缓存
+        self._highlighted_zone = -1
+        self._zone_highlight_pixmap = None
 
     def get_picker_zones(self) -> List[str]:
         """获取所有取色器的区域编号
