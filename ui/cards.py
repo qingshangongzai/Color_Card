@@ -38,7 +38,7 @@ class BaseCardPanel(QWidget):
     
     功能：
         - 卡片列表管理
-        - 卡片数量控制（2-5个）
+        - 卡片数量控制（2-6个）
         - 批量清空卡片
     """
     
@@ -70,9 +70,9 @@ class BaseCardPanel(QWidget):
         """设置卡片数量
         
         Args:
-            count: 卡片数量 (2-5)
+            count: 卡片数量 (2-6)
         """
-        if count < 2 or count > 5:
+        if count < 2 or count > 6:
             return
         
         if count == self._card_count:

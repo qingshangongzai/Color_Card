@@ -290,9 +290,9 @@ class BaseCanvas(QWidget):
         """设置取色点数量
 
         Args:
-            count: 取色点数量 (2-5)
+            count: 取色点数量 (2-6)
         """
-        if count < 2 or count > 5:
+        if count < 2 or count > 6:
             return
 
         if count == self._picker_count:

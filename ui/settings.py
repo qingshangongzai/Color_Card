@@ -103,7 +103,7 @@ class SettingsInterface(QWidget):
             tr('settings.color_sample_count_desc'),
             self._color_sample_count,
             2,
-            5,
+            6,
             self._on_color_sample_count_changed
         )
         self.sampling_group.addSettingCard(self.color_sample_count_card)
@@ -114,7 +114,7 @@ class SettingsInterface(QWidget):
             tr('settings.luminance_sample_count_desc'),
             self._luminance_sample_count,
             2,
-            5,
+            6,
             self._on_luminance_sample_count_changed
         )
         self.sampling_group.addSettingCard(self.luminance_sample_count_card)
