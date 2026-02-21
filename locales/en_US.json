@@ -64,7 +64,6 @@
     "delete": "Delete",
     "delete_template": "Delete Template",
     "loading": "Loading...",
-    "loading_scene_types": "Loading scene types...",
     "import_svg": "Import SVG File",
     "svg_filter": "SVG Files (*.svg);;All Files (*)",
     "import_template": "Import SVG Template",

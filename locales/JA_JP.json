@@ -64,7 +64,6 @@
     "delete": "削除",
     "delete_template": "テンプレートを削除",
     "loading": "読み込み中...",
-    "loading_scene_types": "シーンタイプを読み込み中...",
     "import_svg": "SVGファイルをインポート",
     "svg_filter": "SVGファイル (*.svg);;すべてのファイル (*)",
     "import_template": "SVGテンプレートをインポート",

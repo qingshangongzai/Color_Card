@@ -1696,15 +1696,6 @@ class ColorPreviewInterface(QWidget):
         """加载场景类型"""
         scene_selector = self.toolbar.get_scene_selector()
         if scene_selector:
-            InfoBar.info(
-                title=tr('color_preview.loading'),
-                content=tr('color_preview.loading_scene_types'),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=1000,
-                parent=self.window()
-            )
             scene_selector.ensure_loaded()
         self._scene_types_loaded = True
 

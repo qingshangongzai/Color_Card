@@ -64,7 +64,6 @@
     "delete": "删除",
     "delete_template": "删除模板",
     "loading": "加载中...",
-    "loading_scene_types": "正在加载场景类型...",
     "import_svg": "导入 SVG 文件",
     "svg_filter": "SVG 文件 (*.svg);;所有文件 (*)",
     "import_template": "导入 SVG 模板",

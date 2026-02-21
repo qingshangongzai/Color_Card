@@ -64,7 +64,6 @@
     "delete": "刪除",
     "delete_template": "刪除範本",
     "loading": "載入中...",
-    "loading_scene_types": "正在載入場景類型...",
     "import_svg": "導入 SVG 文件",
     "svg_filter": "SVG 文件 (*.svg);;所有文件 (*)",
     "import_template": "導入 SVG 範本",

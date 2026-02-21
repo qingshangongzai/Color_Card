@@ -64,7 +64,6 @@
     "delete": "Supprimer",
     "delete_template": "Supprimer le modèle",
     "loading": "Chargement...",
-    "loading_scene_types": "Chargement des types de scènes...",
     "import_svg": "Importer un fichier SVG",
     "svg_filter": "Fichiers SVG (*.svg);;Tous les fichiers (*)",
     "import_template": "Importer un modèle SVG",

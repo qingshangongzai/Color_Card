@@ -64,7 +64,6 @@
     "delete": "Удалить",
     "delete_template": "Удалить шаблон",
     "loading": "Загрузка...",
-    "loading_scene_types": "Загрузка типов сцен...",
     "import_svg": "Импорт SVG файла",
     "svg_filter": "SVG файлы (*.svg);;Все файлы (*)",
     "import_template": "Импорт SVG шаблона",
