@@ -365,6 +365,10 @@
     },
     "palette": "配色"
   },
+  "context_menu": {
+    "change_image": "更換圖片",
+    "clear_image": "清空圖片"
+  },
   "common": {
     "delete": "刪除"
   }

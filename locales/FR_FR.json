@@ -365,6 +365,10 @@
     },
     "palette": "Palette"
   },
+  "context_menu": {
+    "change_image": "Changer l'image",
+    "clear_image": "Effacer l'image"
+  },
   "common": {
     "delete": "Supprimer"
   }

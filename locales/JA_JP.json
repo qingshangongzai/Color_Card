@@ -365,6 +365,10 @@
     },
     "palette": "パレット"
   },
+  "context_menu": {
+    "change_image": "画像を変更",
+    "clear_image": "画像をクリア"
+  },
   "common": {
     "delete": "削除"
   }

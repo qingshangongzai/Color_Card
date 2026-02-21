@@ -365,6 +365,10 @@
     },
     "palette": "Палитра"
   },
+  "context_menu": {
+    "change_image": "Изменить изображение",
+    "clear_image": "Очистить изображение"
+  },
   "common": {
     "delete": "Удалить"
   }

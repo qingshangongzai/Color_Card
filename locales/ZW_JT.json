@@ -365,6 +365,10 @@
     },
     "palette": "配色"
   },
+  "context_menu": {
+    "change_image": "更换图片",
+    "clear_image": "清空图片"
+  },
   "common": {
     "delete": "删除"
   }

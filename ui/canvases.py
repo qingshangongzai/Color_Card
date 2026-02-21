@@ -10,6 +10,7 @@ from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
 from core import get_luminance, get_zone, ImageService, LuminanceService
+from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
 from .theme_colors import (
@@ -615,11 +616,11 @@ class BaseCanvas(QWidget):
 
         menu = RoundMenu("")
 
-        change_action = Action(FluentIcon.PHOTO, "更换图片")
+        change_action = Action(FluentIcon.PHOTO, tr('context_menu.change_image'))
         change_action.triggered.connect(self.change_image_requested.emit)
         menu.addAction(change_action)
 
-        clear_action = Action(FluentIcon.DELETE, "清空图片")
+        clear_action = Action(FluentIcon.DELETE, tr('context_menu.clear_image'))
         clear_action.triggered.connect(self.clear_image_requested.emit)
         menu.addAction(clear_action)
 
