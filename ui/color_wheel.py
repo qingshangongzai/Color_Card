@@ -130,8 +130,8 @@ class HSBColorWheel(QWidget):
         angle_rad = ((h + 90) * math.pi / 180.0)
 
         # 饱和度转换为半径（0%在中心，100%在边缘）
-        # 使用80%的最大半径，留一些边距
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，让采样点可以到达圆周
+        max_radius = self._wheel_radius
         radius = (s / 100.0) * max_radius
 
         # 计算坐标
@@ -456,7 +456,8 @@ class InteractiveColorWheel(QWidget):
         """
         # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
         angle_rad = ((h + 90) * math.pi / 180.0)
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，让采样点可以到达圆周
+        max_radius = self._wheel_radius
 
         # 位置仅由饱和度决定
         # 饱和度越高，点越靠近边缘；饱和度越低，点越靠近中心
@@ -481,7 +482,8 @@ class InteractiveColorWheel(QWidget):
         dy = y - self._center_y
         distance = math.sqrt(dx * dx + dy * dy)
 
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，与 _hsb_to_position 保持一致
+        max_radius = self._wheel_radius
         saturation = min(distance / max_radius, 1.0) * 100
 
         angle = math.atan2(-dy, dx)
@@ -557,7 +559,8 @@ class InteractiveColorWheel(QWidget):
 
         # 根据距离直接计算饱和度
         # 距离中心越近，饱和度越低；距离中心越远，饱和度越高
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，与 _hsb_to_position 保持一致
+        max_radius = self._wheel_radius
         saturation = min(distance / max_radius, 1.0) * 100
 
         return max(0, min(100, saturation))
