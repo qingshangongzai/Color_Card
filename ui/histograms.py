@@ -114,6 +114,32 @@ class BaseHistogram(QWidget):
             self._scaling_mode = mode
             self.update()
 
+    def _calculate_cv(self, histogram: List[int]) -> float:
+        """计算直方图的变异系数（CV）
+
+        CV = 标准差 / 平均值
+        用于衡量直方图分布的离散程度
+
+        Args:
+            histogram: 直方图数据列表
+
+        Returns:
+            float: 变异系数，值越大表示分布越集中
+        """
+        non_zero = [h for h in histogram if h > 0]
+
+        if len(non_zero) < 2:
+            return 0.0
+
+        mean_val = sum(non_zero) / len(non_zero)
+        if mean_val == 0:
+            return 0.0
+
+        variance = sum((x - mean_val) ** 2 for x in non_zero) / len(non_zero)
+        std_val = math.sqrt(variance)
+
+        return std_val / mean_val
+
     def _calculate_bar_height(self, count: int, max_count: int, height: int) -> float:
         """根据缩放模式计算柱子高度
 
@@ -129,11 +155,30 @@ class BaseHistogram(QWidget):
             return 0
 
         if self._scaling_mode == "linear":
-            return (count / max_count) * height
-        else:  # adaptive: 使用平方根缩放
-            sqrt_max = math.sqrt(max_count)
-            sqrt_count = math.sqrt(count)
-            return (sqrt_count / sqrt_max) * height
+            # 线性缩放，保留5%头部空间
+            return (count / max_count) * height * 0.95
+        else:  # adaptive: 自适应缩放
+            # 计算CV值
+            cv = self._calculate_cv(self._histogram)
+
+            # 根据CV值选择缩放策略
+            if cv < 0.8:
+                # 分布非常平坦：使用线性缩放
+                normalized = count / max_count
+            elif cv > 2.0:
+                # 分布集中：使用平方根缩放
+                sqrt_max = math.sqrt(max_count)
+                sqrt_count = math.sqrt(count)
+                normalized = sqrt_count / sqrt_max
+            else:
+                # 中间态：使用动态指数
+                # cv=0.8 时 exponent=0.75, cv=2.0 时 exponent=0.55
+                t = (cv - 0.8) / (2.0 - 0.8)
+                exponent = 0.75 - t * 0.2
+                normalized = (count / max_count) ** exponent
+
+            # 保留5%头部空间
+            return min(0.95, normalized) * height
 
     def paintEvent(self, event):
         """绘制直方图"""
