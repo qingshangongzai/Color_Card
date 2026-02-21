@@ -8,6 +8,7 @@ from PySide6.QtGui import QImage
 # 项目模块导入
 from .color import calculate_histogram, calculate_rgb_histogram
 from .histogram_cache import get_histogram_cache, generate_image_fingerprint
+from .image_service import ColorSpaceInfo
 
 
 class HistogramCalculator(QThread):
@@ -21,22 +22,23 @@ class HistogramCalculator(QThread):
         error: 计算出错时发射，参数为错误信息
     """
 
-    finished = Signal(object)  # 计算完成信号，参数根据计算类型不同
-    error = Signal(str)        # 错误信号
+    finished = Signal(object)
+    error = Signal(str)
 
-    def __init__(self, image: QImage, calc_type: str = "luminance", sample_step: int = 4):
+    def __init__(self, image: QImage, calc_type: str = "luminance", sample_step: int = 4, gamma: float = 2.2):
         """初始化直方图计算线程
 
         Args:
             image: QImage 对象
             calc_type: 计算类型，可选 "luminance", "rgb", "hue"
             sample_step: 采样步长，每隔N个像素采样一次
+            gamma: Gamma 值（默认 2.2，sRGB 标准）
         """
         super().__init__()
-        # 复制图像数据，避免线程访问父对象的图像时被销毁
         self._image = image.copy() if image and not image.isNull() else None
         self._calc_type = calc_type
         self._sample_step = sample_step
+        self._gamma = gamma
         self._is_cancelled = False
 
     def cancel(self) -> None:
@@ -54,7 +56,7 @@ class HistogramCalculator(QThread):
                 return
 
             if self._calc_type == "luminance":
-                result = calculate_histogram(self._image, self._sample_step)
+                result = calculate_histogram(self._image, self._sample_step, self._gamma)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
@@ -94,7 +96,6 @@ class HistogramCalculator(QThread):
                 b = color.blue() / 255.0
                 h, s, v = colorsys.rgb_to_hsv(r, g, b)
 
-                # 排除黑白灰（饱和度<10% 或 亮度<10%）
                 if s > 0.1 and v > 0.1:
                     hue = int(h * 360) % 360
                     histogram[hue] += 1
@@ -116,7 +117,7 @@ class HistogramService(QObject):
     """
 
     luminance_histogram_ready = Signal(list)
-    rgb_histogram_ready = Signal(list, list, list)  # r_hist, g_hist, b_hist
+    rgb_histogram_ready = Signal(list, list, list)
     hue_histogram_ready = Signal(list)
     error = Signal(str)
 
@@ -135,6 +136,20 @@ class HistogramService(QObject):
         self._delay_timer: Optional[QTimer] = None
         self._use_cache = use_cache
         self._current_image_key: str = ""
+        self._colorspace_info: Optional[ColorSpaceInfo] = None
+        self._gamma: float = 2.2
+
+    def set_colorspace_info(self, colorspace_info: Optional[ColorSpaceInfo]) -> None:
+        """设置色彩空间信息
+
+        Args:
+            colorspace_info: 色彩空间信息
+        """
+        self._colorspace_info = colorspace_info
+        if colorspace_info and colorspace_info.gamma:
+            self._gamma = colorspace_info.gamma
+        else:
+            self._gamma = 2.2
 
     def _get_sample_step(self, image: QImage) -> int:
         """根据图片大小确定采样步长
@@ -199,14 +214,12 @@ class HistogramService(QObject):
 
         sample_step = self._get_sample_step(self._pending_image)
 
-        # 安全地停止并清理旧线程
         self._safe_stop_calculator(self._luminance_calculator)
         self._luminance_calculator = None
 
         self._luminance_calculator = HistogramCalculator(
-            self._pending_image, "luminance", sample_step
+            self._pending_image, "luminance", sample_step, self._gamma
         )
-        # 使用 QueuedConnection 确保信号在接收者线程中处理
         self._luminance_calculator.finished.connect(
             self._on_luminance_finished, Qt.ConnectionType.QueuedConnection
         )

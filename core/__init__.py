@@ -65,7 +65,7 @@ from .color_service import ColorService, DominantColorExtractor
 
 from .palette_service import PaletteService, PaletteImporter, PaletteExporter
 
-from .image_service import ImageService, ProgressiveImageLoader
+from .image_service import ImageService, ProgressiveImageLoader, ColorSpaceInfo, ColorSpaceDetector
 
 from .luminance_service import LuminanceService, LuminanceCalculator
 
@@ -151,6 +151,8 @@ __all__ = [
     'PaletteExporter',
     'ImageService',
     'ProgressiveImageLoader',
+    'ColorSpaceInfo',
+    'ColorSpaceDetector',
     'LuminanceService',
     'LuminanceCalculator',
     'PreviewService',

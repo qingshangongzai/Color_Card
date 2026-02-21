@@ -246,51 +246,54 @@ def get_color_info(r: int, g: int, b: int) -> Dict[str, any]:
     }
 
 
-def get_luminance(r: int, g: int, b: int) -> int:
+def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     """计算像素的明度值 (0-255)
 
-    使用 Rec. 709 标准计算亮度值，包含 sRGB Gamma 校正
+    使用 Rec. 709 标准计算亮度值，包含 Gamma 校正
     这是 Lightroom、Photoshop 等专业软件使用的标准方法
 
     Args:
         r: 红色通道值 (0-255)
         g: 绿色通道值 (0-255)
         b: 蓝色通道值 (0-255)
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
         int: 明度值 (0-255)
     """
-    # 步骤1: 归一化到 0-1 范围
     r_norm = r / 255.0
     g_norm = g / 255.0
     b_norm = b / 255.0
 
-    # 步骤2: sRGB Gamma 解码（转换到线性空间）
-    # sRGB 的 gamma 曲线近似于 gamma 2.2，但使用更精确的公式
-    def srgb_to_linear(c: float) -> float:
-        if c <= 0.04045:
-            return c / 12.92
-        else:
-            return ((c + 0.055) / 1.055) ** 2.4
+    if gamma == 2.2:
+        def srgb_to_linear(c: float) -> float:
+            if c <= 0.04045:
+                return c / 12.92
+            else:
+                return ((c + 0.055) / 1.055) ** 2.4
 
-    r_linear = srgb_to_linear(r_norm)
-    g_linear = srgb_to_linear(g_norm)
-    b_linear = srgb_to_linear(b_norm)
+        r_linear = srgb_to_linear(r_norm)
+        g_linear = srgb_to_linear(g_norm)
+        b_linear = srgb_to_linear(b_norm)
+    else:
+        r_linear = r_norm ** gamma
+        g_linear = g_norm ** gamma
+        b_linear = b_norm ** gamma
 
-    # 步骤3: 在线性空间应用 Rec. 709 权重
     luminance_linear = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
 
-    # 步骤4: 将结果编码回 sRGB Gamma 空间（为了显示一致性）
-    def linear_to_srgb(c: float) -> float:
-        if c <= 0.0031308:
-            return c * 12.92
-        else:
-            return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+    if gamma == 2.2:
+        def linear_to_srgb(c: float) -> float:
+            if c <= 0.0031308:
+                return c * 12.92
+            else:
+                return 1.055 * (c ** (1.0 / 2.4)) - 0.055
 
-    luminance_srgb = linear_to_srgb(luminance_linear)
+        luminance_output = linear_to_srgb(luminance_linear)
+    else:
+        luminance_output = luminance_linear ** (1.0 / gamma)
 
-    # 步骤5: 转换回 0-255 范围
-    return min(255, round(luminance_srgb * 255))
+    return min(255, round(luminance_output * 255))
 
 
 def get_zone(luminance: int) -> str:
@@ -329,12 +332,13 @@ def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
     return (start * 32, (start + 1) * 32 - 1)
 
 
-def calculate_histogram(image, sample_step: int = 4) -> List[int]:
+def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
     """计算图片的明度直方图（使用NumPy向量化优化）
 
     Args:
         image: QImage 对象
         sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
         list: 长度为256的列表，表示每个明度值的像素数量
@@ -345,108 +349,100 @@ def calculate_histogram(image, sample_step: int = 4) -> List[int]:
     width = image.width()
     height = image.height()
 
-    # 使用NumPy向量化计算（如果可用）
     if NUMPY_AVAILABLE and hasattr(image, 'bits'):
         try:
-            return _calculate_histogram_numpy(image, width, height, sample_step)
+            return _calculate_histogram_numpy(image, width, height, sample_step, gamma)
         except Exception:
-            pass  # 失败时回退到纯Python实现
+            pass
 
-    return _calculate_histogram_python(image, width, height, sample_step)
+    return _calculate_histogram_python(image, width, height, sample_step, gamma)
 
 
-def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int) -> List[int]:
+def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
     """使用NumPy向量化计算明度直方图"""
-    # 将QImage转换为NumPy数组
     image = image.convertToFormat(image.Format.Format_RGB888)
     ptr = image.bits()
     ptr.setsize(image.sizeInBytes())
     arr = np.array(ptr).reshape(height, width, 3)
 
-    # 采样像素（包含边缘像素）
     sampled = arr[::sample_step, ::sample_step]
 
-    # 额外采样边缘像素
     edge_pixels = []
     if width > 0:
         edge_pixels.append(arr[::sample_step, -1])
     if height > 0:
         edge_pixels.append(arr[-1, ::sample_step])
 
-    # 合并所有采样像素
     if edge_pixels:
         all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
     else:
         all_pixels = sampled.reshape(-1, 3)
 
-    # 向量化计算明度值
-    luminance = _calculate_luminance_numpy(all_pixels)
+    luminance = _calculate_luminance_numpy(all_pixels, gamma)
 
-    # 使用bincount统计直方图
     histogram = np.bincount(luminance, minlength=256)
 
     return histogram.tolist()
 
 
-def _calculate_luminance_numpy(pixels: np.ndarray) -> np.ndarray:
-    """使用NumPy向量化计算明度值（Rec. 709标准 + sRGB Gamma校正）
+def _calculate_luminance_numpy(pixels: np.ndarray, gamma: float = 2.2) -> np.ndarray:
+    """使用NumPy向量化计算明度值（Rec. 709标准 + Gamma校正）
 
     Args:
         pixels: NumPy数组，形状为 (N, 3)，值范围 0-255
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
         np.ndarray: 明度值数组，值范围 0-255
     """
-    # 归一化到 0-1 范围
     rgb = pixels.astype(np.float32) / 255.0
 
-    # sRGB Gamma 解码（向量化）
-    linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    if gamma == 2.2:
+        linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    else:
+        linear = rgb ** gamma
 
-    # 应用 Rec. 709 权重
     luminance_linear = 0.2126 * linear[:, 0] + 0.7152 * linear[:, 1] + 0.0722 * linear[:, 2]
 
-    # 编码回 sRGB 空间
-    luminance_srgb = np.where(
-        luminance_linear <= 0.0031308,
-        luminance_linear * 12.92,
-        1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
-    )
+    if gamma == 2.2:
+        luminance_output = np.where(
+            luminance_linear <= 0.0031308,
+            luminance_linear * 12.92,
+            1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
+        )
+    else:
+        luminance_output = luminance_linear ** (1.0 / gamma)
 
-    # 转换到 0-255 范围，使用round与Python实现保持一致
-    return np.clip(np.round(luminance_srgb * 255), 0, 255).astype(np.uint8)
+    return np.clip(np.round(luminance_output * 255), 0, 255).astype(np.uint8)
 
 
-def _calculate_histogram_python(image, width: int, height: int, sample_step: int) -> List[int]:
+def _calculate_histogram_python(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
     """使用纯Python计算明度直方图（回退实现）"""
     histogram = [0] * 256
 
-    # 采样计算直方图
     for y in range(0, height, sample_step):
         for x in range(0, width, sample_step):
             color = image.pixelColor(x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue())
+            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
             histogram[luminance] += 1
 
-    # 额外采样最右侧和最底部的边缘像素
     if width > 0:
         right_x = width - 1
         for y in range(0, height, sample_step):
             color = image.pixelColor(right_x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue())
+            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
             histogram[luminance] += 1
 
     if height > 0:
         bottom_y = height - 1
         for x in range(0, width, sample_step):
             color = image.pixelColor(x, bottom_y)
-            luminance = get_luminance(color.red(), color.green(), color.blue())
+            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
             histogram[luminance] += 1
 
-    # 采样右下角像素
     if width > 0 and height > 0:
         color = image.pixelColor(width - 1, height - 1)
-        luminance = get_luminance(color.red(), color.green(), color.blue())
+        luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
         histogram[luminance] += 1
 
     return histogram
