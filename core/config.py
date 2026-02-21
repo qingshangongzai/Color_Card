@@ -1,5 +1,6 @@
 # 标准库导入
 import json
+import logging
 import shutil
 import uuid
 from datetime import datetime
@@ -8,6 +9,15 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # 项目模块导入
 from version import version_manager
+
+
+# 创建模块级日志记录器
+logger = logging.getLogger(__name__)
+
+
+class ConfigLoadError(Exception):
+    """配置文件加载错误"""
+    pass
 
 
 class ConfigManager:
@@ -88,8 +98,8 @@ class ConfigManager:
             self._merge_config(self._config, loaded_config)
 
         except (json.JSONDecodeError, IOError, OSError) as e:
-            print(f"加载配置文件失败: {e}")
-            # 使用默认配置
+            logger.error(f"加载配置文件失败: {e}")
+            raise ConfigLoadError(f"无法加载配置文件: {e}") from e
 
         return self._config
 

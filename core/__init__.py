@@ -33,7 +33,7 @@ from .color import (
     find_dominant_color_positions,
 )
 
-from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
 
 from .svg_color_mapper import (
     ElementType,
@@ -131,6 +131,7 @@ __all__ = [
     'get_scene_config_manager',
     'SceneTypeManager',
     'get_scene_type_manager',
+    'ConfigLoadError',
     'ElementType',
     'SVGElementInfo',
     'ColorMappingConfig',
