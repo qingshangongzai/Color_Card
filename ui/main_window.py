@@ -150,7 +150,7 @@ class MainWindow(FluentWindow):
 
         self._version = version_manager.get_version()
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
-        self.setMinimumSize(935, 600)
+        self.setMinimumSize(1095, 600)
 
         # 加载配置
         self._config_manager = get_config_manager()
@@ -161,7 +161,7 @@ class MainWindow(FluentWindow):
 
         # 应用窗口大小配置
         window_config = self._config.get('window', {})
-        width = window_config.get('width', 940)
+        width = window_config.get('width', 1150)
         height = window_config.get('height', 660)
         is_maximized = window_config.get('is_maximized', False)
         is_fullscreen = window_config.get('is_fullscreen', False)
