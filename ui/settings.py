@@ -14,7 +14,7 @@ from utils import tr, get_supported_languages, set_language, get_locale_manager
 
 from dialogs import AboutDialog, UpdateAvailableDialog
 from version import version_manager
-from .theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
+from utils.theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
 from utils.platform import is_windows_10
 
 

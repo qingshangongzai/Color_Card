@@ -14,7 +14,7 @@ except ImportError:
 
 # 项目模块导入
 from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
-from ui.theme_colors import get_dialog_bg_color, get_text_color
+from utils.theme_colors import get_dialog_bg_color, get_text_color
 
 
 class UpdateCheckThread(QThread):

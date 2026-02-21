@@ -9,7 +9,7 @@ from qfluentwidgets import isDarkTheme
 
 # 项目模块导入
 from core import rgb_to_hsb
-from .theme_colors import (
+from utils.theme_colors import (
     get_wheel_bg_color, get_wheel_border_color, get_wheel_text_color,
     get_wheel_selector_border_color, get_wheel_selector_inner_color,
     get_wheel_line_color, get_wheel_label_color
@@ -260,7 +260,7 @@ class HSBColorWheel(QWidget):
 
     def _draw_title(self, painter):
         """绘制标题"""
-        from .theme_colors import get_wheel_text_color
+        from utils.theme_colors import get_wheel_text_color
         painter.setPen(get_wheel_text_color())
 
         font = QFont()

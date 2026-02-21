@@ -26,7 +26,7 @@ from utils import tr, get_locale_manager
 from dialogs import EditPaletteDialog
 from .cards import BaseCard, BaseCardPanel, ColorModeContainer, get_text_color, get_placeholder_color, get_border_color
 from .color_wheel import InteractiveColorWheel
-from .theme_colors import get_canvas_empty_bg_color
+from utils.theme_colors import get_canvas_empty_bg_color
 
 
 # ==================== 配色生成组件 ====================

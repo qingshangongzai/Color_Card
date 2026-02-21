@@ -16,7 +16,7 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
 from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
-from ui.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
+from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
 
 
 class ColorInputRow(QWidget):

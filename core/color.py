@@ -1,6 +1,6 @@
 # 标准库导入
 import colorsys
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 # 第三方库导入
 try:
@@ -219,7 +219,7 @@ def rgb_to_cmyk(r: int, g: int, b: int) -> Tuple[float, float, float, float]:
     return c * 100, m * 100, y * 100, k * 100
 
 
-def get_color_info(r: int, g: int, b: int) -> Dict[str, any]:
+def get_color_info(r: int, g: int, b: int) -> Dict[str, Any]:
     """获取颜色的完整信息
 
     Args:

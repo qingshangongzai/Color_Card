@@ -22,7 +22,7 @@ from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, 
 from core.colorblind import (
     simulate_colorblind, get_colorblind_info, get_all_colorblind_types
 )
-from ui.theme_colors import (
+from utils.theme_colors import (
     get_dialog_bg_color, get_text_color, get_border_color,
     get_secondary_text_color, get_title_color
 )

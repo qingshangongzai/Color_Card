@@ -32,7 +32,7 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_type_manager
 from utils import tr, get_locale_manager
-from ui.theme_colors import get_border_color, get_text_color
+from utils.theme_colors import get_border_color, get_text_color
 
 
 # ============================================================================

@@ -4,7 +4,7 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from .theme_colors import get_zoom_bg_color, get_zoom_grid_color
+from utils.theme_colors import get_zoom_bg_color, get_zoom_grid_color
 
 
 def get_crosshair_color():

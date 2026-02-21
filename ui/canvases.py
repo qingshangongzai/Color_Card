@@ -14,7 +14,7 @@ from core import get_luminance, get_zone, ImageService, LuminanceService
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
-from .theme_colors import (
+from utils.theme_colors import (
     get_canvas_background_color, get_canvas_empty_text_color, get_picker_colors,
     get_tooltip_bg_color,
     get_high_saturation_highlight_color, get_high_brightness_highlight_color,

@@ -22,7 +22,7 @@ from core.color_data import (
     get_color_source, get_all_color_sources, get_random_palettes, ColorSource
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color, get_secondary_text_color
+from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color, get_secondary_text_color
 from utils.platform import is_windows_10
 
 

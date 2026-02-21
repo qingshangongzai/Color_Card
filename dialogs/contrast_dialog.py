@@ -25,7 +25,7 @@ from core.contrast import (
     calculate_contrast_ratio, get_contrast_info,
     rgb_to_hex, get_contrast_status_color
 )
-from ui.theme_colors import (
+from utils.theme_colors import (
     get_dialog_bg_color, get_text_color, get_border_color,
     get_secondary_text_color, get_title_color, get_card_background_color
 )

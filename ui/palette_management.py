@@ -21,7 +21,7 @@ from utils import tr, get_locale_manager, calculate_grid_columns
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from .theme_colors import get_card_background_color, get_title_color, get_interface_background_color
+from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color
 from utils.platform import is_windows_10
 from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
 

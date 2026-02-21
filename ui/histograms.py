@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
 from core import get_zone_bounds, HistogramService
-from .theme_colors import (
+from utils.theme_colors import (
     get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
     get_histogram_text_color, get_histogram_highlight_color, get_histogram_highlight_border_color,
     get_histogram_highlight_text_color, get_zone_colors, get_zone_colors_highlight,
@@ -424,7 +424,7 @@ class LuminanceHistogramWidget(BaseHistogram):
 
             # 如果当前Zone被按下，绘制蓝色边框
             if i == self._pressed_zone:
-                from .theme_colors import get_accent_color
+                from utils.theme_colors import get_accent_color
                 painter.setPen(QPen(get_accent_color(), 2))
                 painter.setBrush(Qt.BrushStyle.NoBrush)
                 painter.drawRect(int(zone_x), y, int(zone_width), height)
@@ -869,7 +869,7 @@ class RGBHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        from .theme_colors import get_wheel_text_color
+        from utils.theme_colors import get_wheel_text_color
         painter.setPen(get_wheel_text_color())
         font = QFont()
         font.setPointSize(9)
@@ -994,7 +994,7 @@ class HueHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        from .theme_colors import get_wheel_text_color
+        from utils.theme_colors import get_wheel_text_color
         painter.setPen(get_wheel_text_color())
         font = QFont()
         font.setPointSize(9)
