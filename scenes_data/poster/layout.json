@@ -1,0 +1,7 @@
+{
+  "layout": {
+    "type": "scroll_v",
+    "item_size": 200,
+    "spacing": 10
+  }
+}

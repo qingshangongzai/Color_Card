@@ -1,0 +1,135 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f5f7fa" data-fixed-color="original"/>
+
+  <!-- 左侧边栏 -->
+  <rect id="sidebar" class="primary" x="0" y="0" width="70" height="300" fill="#ffffff"/>
+
+  <!-- 用户头像 -->
+  <circle id="user-avatar" class="accent" cx="35" cy="35" r="18" fill="#ff8a8a"/>
+  <text id="user-name" class="text" x="35" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Hannah Doe</text>
+
+  <!-- 导航菜单图标 -->
+  <rect id="nav-home" class="secondary" x="20" y="90" width="30" height="6" rx="3" fill="#e0e0e0"/>
+  <rect id="nav-calendar" class="secondary" x="20" y="105" width="30" height="6" rx="3" fill="#e0e0e0"/>
+  <rect id="nav-messages" class="secondary" x="20" y="120" width="30" height="6" rx="3" fill="#e0e0e0"/>
+  <rect id="nav-email" class="accent" x="20" y="135" width="30" height="6" rx="3" fill="#ffb3b3"/>
+  <rect id="nav-users" class="secondary" x="20" y="150" width="30" height="6" rx="3" fill="#e0e0e0"/>
+
+  <!-- 主内容区背景 -->
+  <rect id="main-content" class="background" x="70" y="0" width="330" height="300" fill="#f5f7fa"/>
+
+  <!-- 顶部标题栏 -->
+  <text id="welcome-title" class="text" x="90" y="25" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333" data-fixed-color="black">Welcome back!</text>
+
+  <!-- 顶部图标 -->
+  <circle id="icon-notify" class="secondary" cx="320" cy="20" r="6" fill="#d0d0d0"/>
+  <circle id="icon-mail" class="secondary" cx="340" cy="20" r="6" fill="#d0d0d0"/>
+  <circle id="icon-settings" class="secondary" cx="360" cy="20" r="6" fill="#d0d0d0"/>
+  <rect id="search-bar" class="secondary" x="290" y="12" width="80" height="16" rx="8" fill="#e8e8e8"/>
+
+  <!-- 日历卡片 -->
+  <rect id="calendar-card" class="secondary" x="90" y="45" width="90" height="75" rx="8" fill="#ffffff"/>
+  <text id="calendar-title" class="text" x="135" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#333333" data-fixed-color="black">Dec 2021</text>
+  <!-- 日历网格 -->
+  <rect id="cal-day-15" class="accent" x="105" y="70" width="10" height="10" rx="2" fill="#ff8a8a"/>
+  <rect id="cal-day-16" class="secondary" x="118" y="70" width="10" height="10" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-17" class="secondary" x="131" y="70" width="10" height="10" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-18" class="secondary" x="144" y="70" width="10" height="10" rx="2" fill="#f0f0f0"/>
+
+  <!-- 账户菜单卡片 -->
+  <rect id="account-card" class="secondary" x="190" y="45" width="90" height="75" rx="8" fill="#ffffff"/>
+  <text id="account-item-1" class="text" x="200" y="60" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">Account</text>
+  <text id="account-item-2" class="text" x="200" y="75" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">Settings</text>
+  <text id="account-item-3" class="text" x="200" y="90" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">Help Center</text>
+  <text id="account-item-4" class="text" x="200" y="105" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">Logout</text>
+
+  <!-- 销售标签页 -->
+  <rect id="tabs-card" class="secondary" x="290" y="45" width="100" height="40" rx="8" fill="#ffffff"/>
+  <text id="tab-sales" class="text" x="305" y="65" font-family="Arial, sans-serif" font-size="6" fill="#888888" data-fixed-color="black">SALES</text>
+  <text id="tab-orders" class="text" x="340" y="65" font-family="Arial, sans-serif" font-size="6" fill="#888888" data-fixed-color="black">ORDERS</text>
+  <text id="tab-visits" class="text" x="375" y="65" font-family="Arial, sans-serif" font-size="6" fill="#888888" data-fixed-color="black">VISITS</text>
+  <rect id="tab-indicator" class="accent" x="305" y="70" width="20" height="2" rx="1" fill="#ff8a8a"/>
+
+  <!-- 用户选择器 -->
+  <rect id="user-select" class="secondary" x="290" y="95" width="100" height="25" rx="4" fill="#ffffff"/>
+  <text id="user-select-text" class="text" x="300" y="110" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">Select User</text>
+
+  <!-- 用户列表 -->
+  <rect id="user-list-card" class="secondary" x="290" y="125" width="100" height="80" rx="8" fill="#ffffff"/>
+  <!-- 用户1 -->
+  <circle id="user1-avatar" class="primary" cx="305" cy="145" r="8" fill="#6a6a6a"/>
+  <text id="user1-name" class="text" x="320" y="145" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Martin Boss</text>
+  <text id="user1-role" class="text" x="320" y="153" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">Marketing</text>
+  <!-- 用户2 -->
+  <circle id="user2-avatar" class="accent" cx="305" cy="170" r="8" fill="#ff8a8a"/>
+  <text id="user2-name" class="text" x="320" y="170" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Hannah Doe</text>
+  <text id="user2-role" class="text" x="320" y="178" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">Marketing</text>
+  <!-- 用户3 -->
+  <circle id="user3-avatar" class="primary" cx="305" cy="195" r="8" fill="#8fa8c0"/>
+  <text id="user3-name" class="text" x="320" y="195" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Joe Black</text>
+  <text id="user3-role" class="text" x="320" y="203" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">Manager</text>
+
+  <!-- 登录表单卡片 -->
+  <rect id="login-card" class="secondary" x="90" y="130" width="90" height="75" rx="8" fill="#ffffff"/>
+  <text id="login-title" class="text" x="100" y="145" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#333333" data-fixed-color="black">Sign In</text>
+  <rect id="login-input-1" class="secondary" x="100" y="155" width="70" height="12" rx="2" fill="#f5f5f5"/>
+  <rect id="login-input-2" class="secondary" x="100" y="172" width="70" height="12" rx="2" fill="#f5f5f5"/>
+  <rect id="login-btn" class="accent" x="100" y="190" width="70" height="10" rx="2" fill="#ff8a8a"/>
+
+  <!-- 字体展示卡片 -->
+  <rect id="font-card" class="secondary" x="190" y="130" width="90" height="75" rx="8" fill="#ffffff"/>
+  <text id="font-demo" class="text" x="235" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333333" data-fixed-color="black">Aa</text>
+
+  <!-- 按钮展示 -->
+  <rect id="btn-primary" class="accent" x="190" y="215" width="90" height="20" rx="4" fill="#ffb3b3"/>
+  <text id="btn-text" class="text" x="235" y="228" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#ffffff" data-fixed-color="black">Button</text>
+
+  <rect id="btn-secondary" class="secondary" x="190" y="240" width="90" height="20" rx="4" fill="#ffffff"/>
+  <rect id="btn-secondary-border" x="190" y="240" width="90" height="20" rx="4" fill="none" stroke="#ffb3b3" stroke-width="1"/>
+
+  <!-- 图标按钮组 -->
+  <rect id="icon-btn-1" class="accent" x="90" y="215" width="18" height="18" rx="4" fill="#8fa8c0"/>
+  <rect id="icon-btn-2" class="accent" x="112" y="215" width="18" height="18" rx="4" fill="#a8c0d8"/>
+  <rect id="icon-btn-3" class="accent" x="134" y="215" width="18" height="18" rx="4" fill="#ffc8a8"/>
+  <rect id="icon-btn-4" class="accent" x="156" y="215" width="18" height="18" rx="4" fill="#ff8a8a"/>
+
+  <!-- 搜索建议 -->
+  <rect id="search-suggest" class="secondary" x="90" y="240" width="90" height="45" rx="8" fill="#ffffff"/>
+  <rect id="suggest-item-1" class="accent" x="100" y="250" width="70" height="10" rx="2" fill="#ffe0e0"/>
+  <rect id="suggest-item-2" class="secondary" x="100" y="265" width="70" height="6" rx="2" fill="#f5f5f5"/>
+
+  <!-- 统计卡片1 -->
+  <rect id="stat-card-1" class="secondary" x="290" y="215" width="100" height="35" rx="8" fill="#ffffff"/>
+  <text id="stat-num-1" class="text" x="305" y="235" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333333" data-fixed-color="black">51,099</text>
+  <text id="stat-label-1" class="text" x="305" y="245" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">Total users</text>
+
+  <!-- 统计卡片2 -->
+  <rect id="stat-card-2" class="secondary" x="290" y="255" width="100" height="35" rx="8" fill="#ffffff"/>
+  <text id="stat-num-2" class="text" x="305" y="275" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333333" data-fixed-color="black">800k</text>
+  <text id="stat-label-2" class="text" x="305" y="285" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">Database</text>
+
+  <!-- 复选框组 -->
+  <rect id="checkbox-card" class="secondary" x="90" y="290" width="190" height="50" rx="8" fill="#ffffff"/>
+  <text id="sort-title" class="text" x="100" y="305" font-family="Arial, sans-serif" font-size="6" fill="#888888" data-fixed-color="black">SORT BY</text>
+  <circle id="radio-1" class="secondary" cx="110" cy="320" r="4" fill="#ffffff" stroke="#d0d0d0"/>
+  <text id="radio-1-text" class="text" x="120" y="322" font-family="Arial, sans-serif" font-size="5" fill="#666666" data-fixed-color="black">Low to High</text>
+  <circle id="radio-2" class="accent" cx="160" cy="320" r="4" fill="#ff8a8a"/>
+  <text id="radio-2-text" class="text" x="170" y="322" font-family="Arial, sans-serif" font-size="5" fill="#333333" data-fixed-color="black">High to Low</text>
+
+  <!-- 底部统计图表区 -->
+  <rect id="chart-card" class="secondary" x="0" y="300" width="400" height="100" fill="#ffffff"/>
+  <text id="chart-title" class="text" x="20" y="330" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333333" data-fixed-color="black">Total Sales</text>
+  <text id="chart-value" class="text" x="20" y="355" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333333" data-fixed-color="black">248,500</text>
+  <text id="chart-growth" class="text" x="20" y="375" font-family="Arial, sans-serif" font-size="8" fill="#4caf50" data-fixed-color="black">12.6% ↑</text>
+
+  <!-- 柱状图 -->
+  <rect id="bar-1" class="accent" x="150" y="340" width="12" height="50" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-2" class="secondary" x="170" y="360" width="12" height="30" rx="2" fill="#c8e0c8"/>
+  <rect id="bar-3" class="accent" x="190" y="350" width="12" height="40" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-4" class="secondary" x="210" y="370" width="12" height="20" rx="2" fill="#c8e0c8"/>
+  <rect id="bar-5" class="accent" x="230" y="345" width="12" height="45" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-6" class="secondary" x="250" y="365" width="12" height="25" rx="2" fill="#c8e0c8"/>
+  <rect id="bar-7" class="accent" x="270" y="355" width="12" height="35" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-8" class="secondary" x="290" y="375" width="12" height="15" rx="2" fill="#c8e0c8"/>
+</svg>

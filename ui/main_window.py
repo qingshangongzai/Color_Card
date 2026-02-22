@@ -1,3 +1,6 @@
+# 标准库导入
+from typing import List, Dict, Any
+
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
@@ -8,9 +11,16 @@ from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qro
 
 # 项目模块导入
 from core import get_color_info
-from core import get_config_manager
+from core import get_config_manager, ImageMediator
+from utils import tr, get_locale_manager
 from version import version_manager
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
+from .color_extract import ColorExtractInterface
+from .luminance_extract import LuminanceExtractInterface
+from .color_generation import ColorGenerationInterface
+from .palette_management import PaletteManagementInterface
+from .preset_color import PresetColorInterface
+from .settings import SettingsInterface
+from .color_preview import ColorPreviewInterface
 from .cards import ColorCardPanel
 from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
@@ -26,7 +36,7 @@ class CustomTitleBar(FluentTitleBar):
         # 创建深色模式切换按钮
         self.themeButton = ToolButton(self)
         self.themeButton.setFixedSize(40, 32)
-        self.themeButton.setToolTip("切换深色/浅色模式")
+        self.themeButton.setToolTip(tr('title_bar.toggle_theme'))
         self.themeButton.setStyleSheet("""
             ToolButton {
                 background-color: transparent !important;
@@ -47,7 +57,7 @@ class CustomTitleBar(FluentTitleBar):
         # 创建全屏切换按钮
         self.fullscreenButton = ToolButton(self)
         self.fullscreenButton.setFixedSize(40, 32)
-        self.fullscreenButton.setToolTip("全屏/退出全屏 (F11)")
+        self.fullscreenButton.setToolTip(tr('title_bar.toggle_fullscreen'))
         self.fullscreenButton.setStyleSheet("""
             ToolButton {
                 background-color: transparent !important;
@@ -126,6 +136,11 @@ class CustomTitleBar(FluentTitleBar):
         else:
             self.fullscreenButton.setIcon(FluentIcon.FULL_SCREEN)
 
+    def update_texts(self):
+        """更新界面文本"""
+        self.themeButton.setToolTip(tr('title_bar.toggle_theme'))
+        self.fullscreenButton.setToolTip(tr('title_bar.toggle_fullscreen'))
+
 
 class MainWindow(FluentWindow):
     """主窗口"""
@@ -138,18 +153,18 @@ class MainWindow(FluentWindow):
 
         self._version = version_manager.get_version()
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
-        self.setMinimumSize(935, 600)
+        self.setMinimumSize(1095, 600)
 
         # 加载配置
         self._config_manager = get_config_manager()
         self._config = self._config_manager.load()
 
-        # 防止清空同步的递归标志
-        self._is_clearing = False
+        # 创建图片状态中介者
+        self._image_mediator = ImageMediator(self)
 
         # 应用窗口大小配置
         window_config = self._config.get('window', {})
-        width = window_config.get('width', 940)
+        width = window_config.get('width', 1150)
         height = window_config.get('height', 660)
         is_maximized = window_config.get('is_maximized', False)
         is_fullscreen = window_config.get('is_fullscreen', False)
@@ -193,12 +208,14 @@ class MainWindow(FluentWindow):
         # 色彩提取界面
         self.color_extract_interface = ColorExtractInterface(self)
         self.color_extract_interface.setObjectName('colorExtract')
+        self.color_extract_interface._nav_icon = FluentIcon.PHOTO
         qrouter.setDefaultRouteKey(self.stackedWidget, 'colorExtract')
         self.stackedWidget.addWidget(self.color_extract_interface)
 
         # 明度提取界面
         self.luminance_extract_interface = LuminanceExtractInterface(self)
         self.luminance_extract_interface.setObjectName('luminanceExtract')
+        self.luminance_extract_interface._nav_icon = FluentIcon.BRIGHTNESS
         self.stackedWidget.addWidget(self.luminance_extract_interface)
 
         # 连接明度提取面板的图片导入信号（独立导入时同步到色彩面板）
@@ -209,30 +226,41 @@ class MainWindow(FluentWindow):
         # 配色生成界面
         self.color_generation_interface = ColorGenerationInterface(self)
         self.color_generation_interface.setObjectName('colorGeneration')
+        self.color_generation_interface._nav_icon = FluentIcon.PALETTE
         self.stackedWidget.addWidget(self.color_generation_interface)
 
         # 配色管理界面
         self.palette_management_interface = PaletteManagementInterface(self)
         self.palette_management_interface.setObjectName('paletteManagement')
+        self.palette_management_interface._nav_icon = FluentIcon.HEART
         self.stackedWidget.addWidget(self.palette_management_interface)
 
         # 内置色彩界面
         self.preset_color_interface = PresetColorInterface(self)
         self.preset_color_interface.setObjectName('presetColor')
+        self.preset_color_interface._nav_icon = FluentIcon.BOOK_SHELF
         self.stackedWidget.addWidget(self.preset_color_interface)
 
         # 配色预览界面
         self.color_preview_interface = ColorPreviewInterface(self)
         self.color_preview_interface.setObjectName('colorPreview')
+        self.color_preview_interface._nav_icon = FluentIcon.VIEW
         self.stackedWidget.addWidget(self.color_preview_interface)
 
         # 设置界面
         self.settings_interface = SettingsInterface(self)
         self.settings_interface.setObjectName('settings')
+        self.settings_interface._nav_icon = FluentIcon.SETTING
         self.stackedWidget.addWidget(self.settings_interface)
+
+        # 连接中介者信号
+        self._setup_mediator_connections()
 
         # 连接设置信号
         self._setup_settings_connections()
+
+        # 连接语言切换信号
+        get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def setup_navigation(self):
         """设置导航栏"""
@@ -251,7 +279,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.color_extract_interface,
             FluentIcon.PHOTO,
-            "色彩提取",
+            tr('navigation.color_extract'),
             position=NavigationItemPosition.TOP
         )
 
@@ -259,7 +287,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.luminance_extract_interface,
             FluentIcon.BRIGHTNESS,
-            "明度提取",
+            tr('navigation.luminance_extract'),
             position=NavigationItemPosition.TOP
         )
 
@@ -267,7 +295,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.color_generation_interface,
             FluentIcon.PALETTE,
-            "配色生成",
+            tr('navigation.color_generation'),
             position=NavigationItemPosition.TOP
         )
 
@@ -275,7 +303,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.palette_management_interface,
             FluentIcon.HEART,
-            "配色管理",
+            tr('navigation.palette_management'),
             position=NavigationItemPosition.TOP
         )
 
@@ -283,7 +311,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.preset_color_interface,
             FluentIcon.BOOK_SHELF,
-            "内置色彩",
+            tr('navigation.preset_color'),
             position=NavigationItemPosition.TOP
         )
 
@@ -291,7 +319,7 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.color_preview_interface,
             FluentIcon.VIEW,
-            "配色预览",
+            tr('navigation.color_preview'),
             position=NavigationItemPosition.TOP
         )
 
@@ -299,12 +327,23 @@ class MainWindow(FluentWindow):
         self.addSubInterface(
             self.settings_interface,
             FluentIcon.SETTING,
-            "设置",
+            tr('navigation.settings'),
             position=NavigationItemPosition.BOTTOM
         )
 
         # 设置默认选中的导航项
         self.navigationInterface.setCurrentItem(self.color_extract_interface.objectName())
+
+        # 连接导航切换信号
+        self.stackedWidget.currentChanged.connect(self._on_tab_changed)
+
+    def _on_tab_changed(self, index):
+        """标签页切换回调"""
+        current_widget = self.stackedWidget.widget(index)
+
+        # 如果是配色预览界面，触发延迟加载
+        if current_widget == self.color_preview_interface:
+            self.color_preview_interface.on_tab_selected()
 
     def _setup_logo(self):
         """在导航栏左上角设置 Logo"""
@@ -353,6 +392,39 @@ class MainWindow(FluentWindow):
         """打开图片（从色彩提取界面调用）"""
         self.color_extract_interface.open_image()
 
+    def _setup_mediator_connections(self):
+        """连接图片中介者的信号"""
+        self._image_mediator.image_updated.connect(self._on_mediator_image_updated)
+        self._image_mediator.image_cleared.connect(self._on_mediator_image_cleared)
+
+    def _on_mediator_image_updated(self, pixmap, image, source_id):
+        """中介者图片更新回调
+
+        Args:
+            pixmap: QPixmap 对象
+            image: QImage 对象
+            source_id: 操作来源标识
+        """
+        if source_id == 'luminance':
+            self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
+            self.color_extract_interface.rgb_histogram_widget.set_image(image)
+            self.color_extract_interface.hue_histogram_widget.set_image(image)
+        elif source_id == 'color':
+            self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
+
+    def _on_mediator_image_cleared(self, source_id):
+        """中介者图片清空回调
+
+        Args:
+            source_id: 操作来源标识
+        """
+        if source_id == 'luminance':
+            # 从明度面板同步过来，不发射信号防止循环
+            self.color_extract_interface.clear_all(emit_signal=False)
+        elif source_id == 'color':
+            # 从色彩面板同步过来，不发射信号防止循环
+            self.luminance_extract_interface.clear_all(emit_signal=False)
+
     def on_luminance_image_imported(self, file_path, pixmap, image):
         """明度提取面板独立导入图片后的同步回调
 
@@ -361,44 +433,7 @@ class MainWindow(FluentWindow):
             pixmap: QPixmap 对象
             image: QImage 对象
         """
-        # 同步图片数据到色彩提取面板（emit_sync=False 防止双向同步循环）
-        self.color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
-
-        # 更新RGB直方图和色相直方图
-        self.color_extract_interface.rgb_histogram_widget.set_image(image)
-        self.color_extract_interface.hue_histogram_widget.set_image(image)
-
-    def sync_image_to_luminance(self, image_path):
-        """同步图片路径到明度提取面板（保留用于兼容）"""
-        if image_path:
-            self.luminance_extract_interface.set_image(image_path)
-
-    def sync_image_data_to_luminance(self, pixmap, image):
-        """同步图片数据到明度提取面板（避免重复加载）"""
-        # emit_sync=False 防止双向同步循环
-        self.luminance_extract_interface.set_image_data(pixmap, image, emit_sync=False)
-
-    def sync_clear_to_luminance(self):
-        """同步清除明度提取面板"""
-        if self._is_clearing:
-            return
-        self._is_clearing = True
-        try:
-            self.luminance_extract_interface.luminance_canvas.clear_image()
-            self.luminance_extract_interface.histogram_widget.clear()
-        finally:
-            self._is_clearing = False
-
-    def sync_clear_to_color(self):
-        """同步清除色彩提取面板"""
-        if self._is_clearing:
-            return
-        self._is_clearing = True
-        try:
-            self.color_extract_interface.image_canvas.clear_image()
-            self.color_extract_interface.color_card_panel.clear_all()
-        finally:
-            self._is_clearing = False
+        self._image_mediator.set_image(pixmap, image, 'luminance')
 
     def refresh_palette_management(self):
         """刷新配色管理面板"""
@@ -410,7 +445,7 @@ class MainWindow(FluentWindow):
         if hasattr(self, 'color_preview_interface'):
             self.color_preview_interface.refresh_favorites()
 
-    def show_color_preview(self, colors: list):
+    def show_color_preview(self, colors: List[str]):
         """跳转到配色预览页面并显示指定配色
 
         Args:
@@ -438,7 +473,7 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
-    def _on_preset_color_preview(self, preview_data: dict):
+    def _on_preset_color_preview(self, preview_data: Dict[str, Any]):
         """处理内置色彩界面的预览请求
 
         Args:
@@ -641,3 +676,25 @@ class MainWindow(FluentWindow):
     def _on_brightness_threshold_changed(self, value):
         """明度阈值改变"""
         self.color_extract_interface.set_brightness_threshold(value)
+
+    def _on_language_changed(self, language_code):
+        """语言切换回调"""
+        self._update_navigation_texts()
+        if hasattr(self, 'titleBar') and hasattr(self.titleBar, 'update_texts'):
+            self.titleBar.update_texts()
+
+    def _update_navigation_texts(self):
+        """更新导航栏文本"""
+        navigation_items = [
+            (self.color_extract_interface.objectName(), tr('navigation.color_extract')),
+            (self.luminance_extract_interface.objectName(), tr('navigation.luminance_extract')),
+            (self.color_generation_interface.objectName(), tr('navigation.color_generation')),
+            (self.palette_management_interface.objectName(), tr('navigation.palette_management')),
+            (self.preset_color_interface.objectName(), tr('navigation.preset_color')),
+            (self.color_preview_interface.objectName(), tr('navigation.color_preview')),
+            (self.settings_interface.objectName(), tr('navigation.settings')),
+        ]
+        for route_key, text in navigation_items:
+            widget = self.navigationInterface.widget(route_key)
+            if widget:
+                widget.setText(text)

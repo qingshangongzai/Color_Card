@@ -1,0 +1,20 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <circle id="deco-circle-top" class="primary" cx="40" cy="24" r="18" fill="#1a1a1a"/>
+  <rect id="deco-rect-top" class="secondary" x="300" y="15" width="60" height="16" rx="2" fill="#333333"/>
+  <circle id="deco-circle-small" class="accent" cx="352" cy="45" r="12" fill="#ff6b6b"/>
+  
+  <text id="main-title" class="text" x="200" y="115" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="56" font-weight="bold" letter-spacing="8" fill="#1a1a1a">DESIGN</text>
+  
+  <text id="subtitle" class="secondary" x="200" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#333333">创意无限 · 设计未来</text>
+  
+  <rect id="deco-line" class="accent" x="80" y="165" width="240" height="3" fill="#ff6b6b"/>
+  
+  <text id="date" class="primary" x="80" y="200" font-family="Arial, sans-serif" font-size="14" fill="#1a1a1a">2026.02.16</text>
+  <text id="location" class="secondary" x="80" y="220" font-family="Arial, sans-serif" font-size="14" fill="#333333">Shanghai</text>
+  
+  <rect id="bottom-rect-1" class="secondary" x="60" y="240" width="100" height="30" rx="4" fill="#333333"/>
+  <circle id="bottom-circle" class="accent" cx="220" cy="255" r="15" fill="#ff6b6b"/>
+  <rect id="bottom-rect-2" class="primary" x="280" y="245" width="80" height="20" rx="3" fill="#1a1a1a"/>
+</svg>

@@ -1,0 +1,379 @@
+{
+  "app": {
+    "name": "取色卡",
+    "name_en": "Color Card",
+    "loading": "起動中..."
+  },
+  "navigation": {
+    "color_extract": "カラー抽出",
+    "luminance_extract": "輝度抽出",
+    "color_generation": "カラー生成",
+    "palette_management": "パレット管理",
+    "preset_color": "プリセットカラー",
+    "color_preview": "カラープレビュー",
+    "settings": "設定"
+  },
+  "title_bar": {
+    "toggle_theme": "ダーク/ライトモード切替",
+    "toggle_fullscreen": "全画面/全画面解除 (F11)"
+  },
+  "color_extract": {
+    "favorite": "パレットを保存",
+    "extract_dominant": "主色調を自動抽出",
+    "extracting": "抽出中...",
+    "show_high_saturation": "高彩度領域を表示",
+    "show_high_brightness": "高輝度領域を表示",
+    "select_image": "画像を選択",
+    "image_filter": "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "luminance_extract": {
+    "select_image": "画像を選択",
+    "image_filter": "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "color_generation": {
+    "title": "カラースキーム:",
+    "random": "ランダム",
+    "favorite": "保存",
+    "brightness": "輝度調整:",
+    "schemes": {
+      "monochromatic": "モノクロマティック",
+      "analogous": "アナロガス",
+      "complementary": "コンプリメンタリー",
+      "split_complementary": "スプリットコンプリメンタリー",
+      "double_complementary": "ダブルコンプリメンタリー"
+    },
+    "favorite_success": {
+      "title": "保存しました",
+      "content": "配色「{name}」をパレット管理に追加しました"
+    }
+  },
+  "palette_management": {
+    "title": "パレット管理",
+    "add": "追加",
+    "import": "インポート",
+    "export": "エクスポート",
+    "clear_all": "すべてクリア",
+    "unnamed": "名前なし",
+    "empty_title": "保存されたパレットはありません",
+    "empty_hint": "カラー抽出またはカラー生成パネルで保存ボタンをクリックしてください",
+    "import_title": "パレットをインポート",
+    "export_title": "パレットをエクスポート",
+    "json_filter": "JSONファイル (*.json);;すべてのファイル (*)"
+  },
+  "color_preview": {
+    "title": "カラープレビュー",
+    "subtitle": "開発中です",
+    "import_btn": "インポート",
+    "export_btn": "エクスポート",
+    "delete": "削除",
+    "delete_template": "テンプレートを削除",
+    "loading": "読み込み中...",
+    "import_svg": "SVGファイルをインポート",
+    "svg_filter": "SVGファイル (*.svg);;すべてのファイル (*)",
+    "import_template": "SVGテンプレートをインポート",
+    "export_svg": "SVGファイルをエクスポート",
+    "export_svg_default": "colored_preview.svg",
+    "export_svg_title": "SVGをエクスポート",
+    "export_default_name": "color_card",
+    "hint_import_colors": "パレット管理パネルからカラーをインポートしてください",
+    "prev_svg": "< 前へ",
+    "next_svg": "次へ >",
+    "page_info": "{current} / {total}"
+  },
+  "color_preview_messages": {
+    "cannot_delete": {
+      "title": "削除できません",
+      "content": "組み込みシーンは削除できません"
+    },
+    "cannot_import": {
+      "title": "インポートできません",
+      "content": "現在のシーンはSVGの直接インポートをサポートしていません。カスタムシーンに切り替えてください"
+    },
+    "import_success": {
+      "title": "インポート成功",
+      "content": "SVGファイルを読み込みました"
+    },
+    "import_failed": {
+      "title": "インポート失敗",
+      "content": "SVGファイルを読み込めませんでした"
+    },
+    "cannot_export": {
+      "title": "エクスポートできません",
+      "content": "現在のシーンはSVGエクスポートをサポートしていません"
+    },
+    "no_svg_to_export": {
+      "title": "エクスポートできません",
+      "content": "先にSVGファイルをインポートしてください"
+    },
+    "export_success": {
+      "title": "エクスポート成功",
+      "content": "{message}"
+    },
+    "export_failed": {
+      "title": "エクスポート失敗",
+      "content": "{message}"
+    },
+    "template_import_failed": {
+      "title": "インポート失敗",
+      "content": "{error}"
+    },
+    "template_import_success": {
+      "title": "インポート成功",
+      "content": "{message}"
+    },
+    "no_svg_available": {
+      "title": "エクスポートできません",
+      "content": "エクスポート可能なSVGがありません"
+    }
+  },
+  "preset_color": {
+    "title": "プリセットカラー",
+    "random_palette": "ランダムパレット",
+    "random": "ランダム",
+    "desc_random": "すべてのカラースキームからランダムに選択",
+    "desc_source": "{name}に基づく",
+    "copy_success": {
+      "title": "コピーしました",
+      "content": "カラー値 {value} をクリップボードにコピーしました"
+    },
+    "favorite_success": {
+      "title": "保存しました",
+      "content": "パレット「{name}」をパレット管理に追加しました"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "card_display": "カード表示設定",
+    "hex_display": "HEXカラー値を表示",
+    "hex_display_desc": "カラーカードにHEXカラー値とコピーボタンを表示",
+    "color_mode": "カラーモード表示",
+    "color_mode_desc": "カラーカードに表示する2つのカラーモードを選択",
+    "sampling": "サンプリング設定",
+    "color_sample_count": "カラー抽出サンプル数",
+    "color_sample_count_desc": "カラー抽出パネルのサンプルポイント数を設定（2-6）",
+    "luminance_sample_count": "輝度抽出サンプル数",
+    "luminance_sample_count_desc": "輝度抽出パネルのサンプルポイント数を設定（2-6）",
+    "histogram": "ヒストグラム設定",
+    "histogram_scaling": "ヒストグラムスケーリングモード",
+    "histogram_scaling_desc": "ヒストグラムのスケーリング方法を選択（線形/アダプティブ）",
+    "histogram_mode": "ヒストグラム表示モード",
+    "histogram_mode_desc": "カラー抽出パネルのヒストグラムタイプを選択（RGBチャンネル/色相分布）",
+    "highlight": "ハイライト領域設定",
+    "saturation_threshold": "高彩度閾値",
+    "saturation_threshold_desc": "高彩度領域の彩度閾値を設定",
+    "brightness_threshold": "高輝度閾値",
+    "brightness_threshold_desc": "高輝度領域の輝度閾値を設定",
+    "color_wheel": "カラーホイール表示設定",
+    "color_wheel_labels": "カラーホイールラベルを表示",
+    "color_wheel_labels_desc": "カラーホイール周囲に色相名ラベルを表示",
+    "color_scheme": "カラースキーム設定",
+    "color_scheme_mode": "カラースキームモード",
+    "color_scheme_mode_desc": "カラースキームで使用するカラーロジックを選択（RGB: 光学混色、RYB: 芸術混色）",
+    "language": "言語設定",
+    "language_title": "インターフェース言語",
+    "language_desc": "アプリケーションの表示言語を選択",
+    "help": "ヘルプ",
+    "check_update": "更新を確認",
+    "version_update": "バージョン更新",
+    "version_update_desc": "新しいバージョンが利用可能かどうかを確認",
+    "about": "情報",
+    "about_title": "Color Cardについて",
+    "about_desc": "プロジェクトとドキュメント情報を表示",
+    "linear_scaling": "線形スケーリング",
+    "adaptive_scaling": "アダプティブスケーリング",
+    "rgb_channel": "RGBチャンネル",
+    "hue_distribution": "色相分布",
+    "rgb_optical": "RGB光学",
+    "ryb_artistic": "RYB芸術",
+    "switch_on": "オン",
+    "switch_off": "オフ"
+  },
+  "dialogs": {
+    "about": {
+      "title": "について",
+      "homepage": "ホームページ",
+      "project": "プロジェクト",
+      "license": "ライセンス",
+      "agreement": "利用規約",
+      "copyright": "著作権",
+      "license_note": "GPL v3の下でライセンスされています。教育目的のみです"
+    },
+    "update": {
+      "title": "新しいバージョンが利用可能",
+      "new_version": "新しいバージョンが利用可能です",
+      "current_version": "現在のバージョン",
+      "latest_version": "最新バージョン",
+      "cancel": "キャンセル",
+      "release_page": "リリースページ",
+      "info": "情報",
+      "latest_version_content": "最新バージョンを使用しています",
+      "check_failed": "更新確認失敗",
+      "warning": "警告",
+      "missing_requests": "requestsライブラリがありません。更新を確認できません",
+      "version_info": "現在バージョン: {current} / 最新バージョン: {latest}",
+      "error_missing_requests": "requestsライブラリがありません。更新を確認できません",
+      "error_parse_version": "バージョン情報の解析に失敗しました",
+      "error_http": "HTTPエラー、ステータスコード: {status_code}",
+      "error_timeout": "リクエストがタイムアウトしました。ネットワーク接続を確認してください",
+      "error_connection": "接続に失敗しました。ネットワーク接続を確認してください",
+      "error_general": "更新確認中にエラーが発生しました: {error}"
+    },
+    "edit_palette": {
+      "add_title": "パレットを追加",
+      "edit_title": "パレットを編集",
+      "name_label": "パレット名:",
+      "name_placeholder": "パレット名を入力...",
+      "colors_title": "カラーリスト（1つ以上必要）",
+      "add_color": "カラーを追加",
+      "cancel": "キャンセル",
+      "confirm": "確認",
+      "color_label": "カラー"
+    },
+    "colorblind": {
+      "title": "色覚シミュレーションプレビュー",
+      "window_title": "色覚シミュレーションプレビュー - {name}",
+      "scheme_name": "カラースキーム: {name}",
+      "colorblind_type": "色覚タイプ:",
+      "original_color": "元のカラー",
+      "simulated_color": "シミュレートカラー",
+      "original": "元",
+      "simulated": "シミュレート",
+      "description": "注: {text}"
+    },
+    "contrast": {
+      "title": "コントラストチェック",
+      "window_title": "コントラストチェック - {name}",
+      "scheme_name": "カラースキーム: {name}",
+      "background_color": "背景色",
+      "text_color": "テキスト色",
+      "color_index": "カラー {index}",
+      "swap_colors": "カラーを入れ替え",
+      "wcag_level": "WCAG 2.1 レベル",
+      "preview_effect": "プレビュー効果",
+      "normal_text": "通常テキスト",
+      "large_text": "大きなテキスト",
+      "graphic_element": "グラフィック要素",
+      "sample_text": "高いカラーコントラストは\nどんなコンテンツも\n読みやすくします",
+      "wcag_description": "WCAG 2.1標準: 通常テキストはAAが4.5:1、AAAが7:1が必要です。大きなテキストはAAが3:1、AAAが4.5:1が必要です",
+      "pass_aaa": "✓ AAA合格",
+      "pass_aa": "✓ AA合格",
+      "large_only": "△ 大きなテキストのみ",
+      "fail": "✗ 不合格"
+    },
+    "confirm": {
+      "clear_title": "クリアの確認",
+      "clear_content": "すべての保存されたパレットをクリアしてもよろしいですか？この操作は元に戻せません。",
+      "delete_title": "削除の確認",
+      "delete_content": "「{name}」を削除してもよろしいですか？この操作は元に戻せません。",
+      "import_mode_title": "インポートモードを選択",
+      "import_mode_content": "インポート方法を選択してください:\n\n「はい」をクリックすると既存のパレットに追加\n「いいえ」をクリックすると既存のパレットを置き換え",
+      "append": "追加",
+      "replace": "置き換え",
+      "confirm_btn": "確認",
+      "delete_btn": "削除",
+      "cancel_btn": "キャンセル"
+    }
+  },
+  "messages": {
+    "favorite_failed": {
+      "title": "保存できません",
+      "content": "先にカラーを抽出してから保存してください"
+    },
+    "favorite_success": {
+      "title": "保存成功",
+      "content": "パレットを保存しました: {name}"
+    },
+    "extract_failed": {
+      "title": "抽出できません",
+      "content": "先に画像をインポートしてください"
+    },
+    "extracting": {
+      "title": "抽出中",
+      "content": "画像の主色調を分析中です。しばらくお待ちください..."
+    },
+    "extract_success": {
+      "title": "抽出完了",
+      "content": "{count}個の主色調を抽出しました"
+    },
+    "extract_error": {
+      "title": "抽出失敗",
+      "content": "抽出中にエラーが発生しました: {error}"
+    },
+    "display_failed": {
+      "title": "表示できません",
+      "content": "先に画像をインポートしてください"
+    },
+    "copy_success": {
+      "title": "コピーしました",
+      "content": "カラー値 {value} をクリップボードにコピーしました"
+    },
+    "invalid_input": {
+      "title": "無効な入力",
+      "content": "有効なHEXカラー値を入力してください（例: #FF0000）"
+    },
+    "no_colors": {
+      "title": "保存できません",
+      "content": "保存可能なパレットがありません"
+    },
+    "preview_failed": {
+      "title": "プレビューできません",
+      "content": "このパレットにはカラーデータがありません"
+    },
+    "preview_invalid": {
+      "title": "プレビューできません",
+      "content": "このパレットには有効なカラーデータがありません"
+    },
+    "import_success": {
+      "title": "インポート成功",
+      "content": "{count}個のパレットをインポートしました"
+    },
+    "import_failed": {
+      "title": "インポート失敗",
+      "content": "{error}"
+    },
+    "export_success": {
+      "title": "エクスポート成功",
+      "content": "パレットをエクスポートしました: {path}"
+    },
+    "export_failed": {
+      "title": "エクスポート失敗",
+      "content": "{error}"
+    },
+    "add_success": {
+      "title": "追加成功",
+      "content": "パレット「{name}」を追加しました"
+    },
+    "update_success": {
+      "title": "更新成功",
+      "content": "パレット「{name}」を更新しました"
+    },
+    "update_failed": {
+      "title": "更新失敗",
+      "content": "このパレットが見つかりません"
+    },
+    "color_updated": {
+      "title": "カラーが更新されました",
+      "content": "パレット内のカラーが {hex} に更新されました"
+    },
+    "check_update_failed": {
+      "title": "更新確認失敗",
+      "content": "{error}"
+    },
+    "latest_version": {
+      "title": "情報",
+      "content": "最新バージョンを使用しています"
+    },
+    "no_requests": {
+      "title": "情報",
+      "content": "requestsライブラリがありません。更新を確認できません"
+    },
+    "palette": "パレット"
+  },
+  "context_menu": {
+    "change_image": "画像を変更",
+    "clear_image": "画像をクリア"
+  },
+  "common": {
+    "delete": "削除"
+  }
+}

@@ -6,7 +6,11 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any, Set
+from typing import Dict, List, Optional, Tuple, Any
+
+# 特殊颜色键（用于透明元素映射）
+TRANSPARENT_BACKGROUND_KEY = '__BACKGROUND__'
+TRANSPARENT_ELEMENT_PREFIX = '__TRANSPARENT__'
 
 
 class ElementType(Enum):
@@ -31,6 +35,9 @@ class SVGElementInfo:
     stroke_color: Optional[str] = None       # 原始 stroke 颜色
     area: float = 0.0                        # 元素面积（用于排序）
     is_visible: bool = True                  # 是否可见
+    fixed_color: Optional[str] = None        # 固定颜色设置（black/original）
+    is_semantic: bool = False                # 是否通过语义化标识（class/id关键词）分类
+    is_transparent: bool = False             # 是否是透明元素（无 fill 但有 stroke）
     attributes: Dict[str, str] = field(default_factory=dict)  # 其他属性
 
 
@@ -79,8 +86,8 @@ class SVGElementClassifier:
         'line': ElementType.STROKE,
     }
 
-    def classify(self, element: ET.Element, area: float = 0.0, 
-                 is_largest_rect: bool = False, total_rect_count: int = 0) -> ElementType:
+    def classify(self, element: ET.Element, area: float = 0.0,
+                 is_largest_rect: bool = False, total_rect_count: int = 0) -> tuple[ElementType, bool]:
         """对元素进行分类
 
         Args:
@@ -90,7 +97,7 @@ class SVGElementClassifier:
             total_rect_count: 矩形总数
 
         Returns:
-            ElementType: 元素类型
+            tuple[ElementType, bool]: (元素类型, 是否通过语义化标识分类)
         """
         tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
 
@@ -99,44 +106,44 @@ class SVGElementClassifier:
         if element_class:
             for keyword, elem_type in self.CLASS_KEYWORDS.items():
                 if keyword in element_class.lower():
-                    return elem_type
+                    return elem_type, True  # 通过语义化标识分类
 
         # 2. 检查 id 属性
         element_id = element.get('id', '')
         if element_id:
             for keyword, elem_type in self.CLASS_KEYWORDS.items():
                 if keyword in element_id.lower():
-                    return elem_type
+                    return elem_type, True  # 通过语义化标识分类
 
-        # 3. 根据标签类型和上下文智能判断
+        # 3. 根据标签类型和上下文智能判断（非语义化，是启发式规则）
         if tag == 'rect':
             # 矩形分类策略：
             # - 如果只有一个矩形或面积最大 -> 可能是背景
             # - 如果有多个矩形且不是最大的 -> 可能是装饰/主元素
             # - 大面积矩形（>10000）-> 背景
             if is_largest_rect and area > 5000:
-                return ElementType.BACKGROUND
+                return ElementType.BACKGROUND, False
             elif area > 10000:
-                return ElementType.BACKGROUND
+                return ElementType.BACKGROUND, False
             elif total_rect_count > 1:
                 # 多个矩形时，小矩形作为装饰元素
-                return ElementType.PRIMARY if area < 5000 else ElementType.BACKGROUND
+                return (ElementType.PRIMARY if area < 5000 else ElementType.BACKGROUND), False
             else:
-                return ElementType.BACKGROUND
-        
-        elif tag in ['path', 'polygon', 'polyline']:
-            return ElementType.PRIMARY
-            
-        elif tag in ['circle', 'ellipse']:
-            return ElementType.PRIMARY
-            
-        elif tag == 'line':
-            return ElementType.SECONDARY
-            
-        elif tag in ['text', 'tspan']:
-            return ElementType.TEXT
+                return ElementType.BACKGROUND, False
 
-        return ElementType.UNKNOWN
+        elif tag in ['path', 'polygon', 'polyline']:
+            return ElementType.PRIMARY, False
+
+        elif tag in ['circle', 'ellipse']:
+            return ElementType.PRIMARY, False
+
+        elif tag == 'line':
+            return ElementType.SECONDARY, False
+
+        elif tag in ['text', 'tspan']:
+            return ElementType.TEXT, False
+
+        return ElementType.UNKNOWN, False
 
 
 class SVGColorMapper:
@@ -316,13 +323,19 @@ class SVGColorMapper:
             # 判断是否是可见图形元素
             has_explicit_fill = fill and fill.lower() not in ('none', 'transparent')
             has_explicit_stroke = stroke and stroke.lower() not in ('none', 'transparent')
-            
-            # 跳过真正无颜色的元素
+
+            # 判断是否是透明元素（无 fill 但有 stroke）
+            is_transparent = not has_explicit_fill and has_explicit_stroke
+
+            # 跳过真正无颜色的元素（既无 fill 也无 stroke）
             if tag not in colorable_tags and not has_explicit_fill and not has_explicit_stroke:
                 continue
 
             # 计算面积（简化版）
             area = self._calculate_element_area(elem)
+
+            # 提取固定颜色设置
+            fixed_color = elem.get('data-fixed-color')
 
             # 创建元素信息 - 修复：只有当确实有颜色时才记录，不使用默认值
             elem_info = SVGElementInfo(
@@ -332,14 +345,18 @@ class SVGColorMapper:
                 fill_color=fill if has_explicit_fill else None,
                 stroke_color=stroke if has_explicit_stroke else None,
                 area=area,
+                fixed_color=fixed_color if fixed_color in ('black', 'original') else None,
+                is_transparent=is_transparent,
                 attributes=dict(elem.attrib)
             )
 
             # 判断是否是最大矩形
             is_largest_rect = (tag == 'rect' and area == max_rect_area and area > 0)
-            
+
             # 分类元素
-            elem_info.element_type = self._classifier.classify(elem, area, is_largest_rect, total_rect_count)
+            elem_type, is_semantic = self._classifier.classify(elem, area, is_largest_rect, total_rect_count)
+            elem_info.element_type = elem_type
+            elem_info.is_semantic = is_semantic
 
             self._elements.append(elem_info)
 
@@ -363,7 +380,23 @@ class SVGColorMapper:
                 return 3.14159 * rx * ry
 
             elif tag in ['path', 'polygon', 'polyline']:
-                # 简化：根据边界框估算
+                # 尝试从 path 数据估算面积
+                d = elem.get('d', '')
+                if d:
+                    # 简单估算：计算 path 中所有数字的边界框
+                    import re
+                    numbers = re.findall(r'-?\d+\.?\d*', d)
+                    if len(numbers) >= 4:
+                        try:
+                            coords = [float(n) for n in numbers]
+                            xs = coords[0::2]  # x 坐标
+                            ys = coords[1::2]  # y 坐标
+                            if xs and ys:
+                                width = max(xs) - min(xs)
+                                height = max(ys) - min(ys)
+                                return width * height
+                        except (ValueError, IndexError):
+                            pass
                 return 1000.0  # 默认值
 
         except (ValueError, TypeError):
@@ -379,6 +412,19 @@ class SVGColorMapper:
         """按类型获取元素"""
         return [e for e in self._elements if e.element_type == element_type]
 
+    def has_semantic_types(self) -> bool:
+        """检查SVG是否有语义化类型信息
+
+        判断标准：存在至少一个元素通过class/id关键词被分类（is_semantic=True）
+
+        Returns:
+            bool: 是否存在通过语义化标识分类的元素
+        """
+        for elem_info in self._elements:
+            if elem_info.is_semantic:
+                return True
+        return False
+
     def auto_classify_background(self):
         """自动识别背景元素（面积最大的矩形）"""
         if not self._elements:
@@ -390,6 +436,31 @@ class SVGColorMapper:
         # 如果面积足够大且是矩形，标记为背景
         if largest.area > 5000 and largest.tag in ['rect', 'svg']:
             largest.element_type = ElementType.BACKGROUND
+
+    def _create_mapping_config_from_colors(self, colors: List[str]) -> ColorMappingConfig:
+        """从颜色列表创建映射配置
+
+        Args:
+            colors: 颜色列表
+
+        Returns:
+            ColorMappingConfig: 颜色映射配置
+        """
+        config = ColorMappingConfig()
+
+        if len(colors) >= 1:
+            config.background_color = colors[0]
+        if len(colors) >= 2:
+            config.primary_color = colors[1]
+        if len(colors) >= 3:
+            config.secondary_color = colors[2]
+        if len(colors) >= 4:
+            config.accent_color = colors[3]
+        if len(colors) >= 5:
+            config.text_color = colors[4]
+            config.stroke_color = colors[4]
+
+        return config
 
     def apply_color_mapping(self, config: ColorMappingConfig) -> str:
         """应用颜色映射
@@ -412,6 +483,14 @@ class SVGColorMapper:
             if elem is None:
                 continue
 
+            # 处理固定颜色元素
+            if elem_info.fixed_color:
+                if elem_info.fixed_color == 'black':
+                    # 固定为黑色
+                    self._apply_color_to_element(elem, elem_info, '#000000')
+                # fixed_color == 'original' 时保持原色，不做任何操作
+                continue
+
             # 获取对应颜色
             color = config.get_color_for_type(elem_info.element_type)
             if not color:
@@ -424,7 +503,7 @@ class SVGColorMapper:
                 elem_info.tag in ['text', 'tspan'] or  # 文字元素
                 elem_info.element_type in [ElementType.PRIMARY, ElementType.SECONDARY, ElementType.ACCENT, ElementType.BACKGROUND]  # 图形元素
             )
-            
+
             if should_apply_fill:
                 elem.set('fill', color)
 
@@ -468,7 +547,10 @@ class SVGColorMapper:
     def _has_background_element(self) -> bool:
         """检测 SVG 是否有背景元素
 
-        判断标准：是否有 fill 元素面积超过画布面积的 50%
+        判断标准（满足任一条件）：
+        1. 有 fill 元素面积超过画布面积的 50%，且不是固定颜色元素
+        2. 有元素的 class 属性包含 "background" 且不是固定颜色元素
+        3. 有元素的 element_type 为 BACKGROUND 且不是固定颜色元素
 
         Returns:
             是否有背景元素
@@ -481,24 +563,35 @@ class SVGColorMapper:
         if canvas_area <= 0:
             return False
 
-        # 检查每个 fill 元素的面积
         for elem_info in self._elements:
+            # 跳过固定颜色元素
+            if elem_info.fixed_color:
+                continue
+
+            # 条件1：面积超过50%
             if elem_info.fill_color and elem_info.area > canvas_area * 0.5:
-                print(f"检测到背景元素: {elem_info.element_id}, 面积: {elem_info.area}, 画布面积: {canvas_area}")
+                print(f"检测到背景元素(面积>50%): {elem_info.element_id}, 面积: {elem_info.area}, 画布面积: {canvas_area}")
+                return True
+
+            # 条件2：class 包含 "background"
+            if elem_info.element_class and 'background' in elem_info.element_class.lower():
+                print(f"检测到背景元素(class): {elem_info.element_id}, class: {elem_info.element_class}")
+                return True
+
+            # 条件3：element_type 为 BACKGROUND
+            if elem_info.element_type == ElementType.BACKGROUND:
+                print(f"检测到背景元素(类型): {elem_info.element_id}, type: {elem_info.element_type}")
                 return True
 
         return False
 
     def apply_intelligent_mapping(self, colors: List[str]) -> str:
-        """智能映射配色
+        """智能映射配色 - 自动选择语义化映射或智能映射
 
         策略：
-        1. 分别收集 fill 和 stroke 的原始颜色
-        2. 检测 SVG 是否有背景元素
-        3. 如果有背景：背景映射到新配色[0]，主体元素映射到新配色[1..n]
-        4. 如果没有背景（透明）：所有元素映射到新配色[1..n]
-        5. stroke 颜色保持原色（不替换）
-        6. 应用映射到所有元素
+        1. 检测SVG是否有语义化类型信息
+        2. 如果有语义化类型，使用语义化映射（按element_type分配配色）
+        3. 如果没有语义化类型，使用智能映射（按面积排序分配配色）
 
         Args:
             colors: 颜色列表
@@ -509,75 +602,100 @@ class SVGColorMapper:
         if not colors or not self._original_content:
             return self._original_content
 
-        # 1. 分别收集 fill 和 stroke 颜色及其面积
-        fill_color_areas: Dict[str, float] = {}
-        stroke_color_areas: Dict[str, float] = {}
+        # 检测是否有语义化类型
+        if self.has_semantic_types():
+            print("使用语义化映射模式")
+            # 使用语义化映射
+            config = self._create_mapping_config_from_colors(colors)
+            return self.apply_color_mapping(config)
+        else:
+            print("使用智能映射模式")
+            # 使用智能映射（无语义化类型）
+            return self._apply_smart_mapping(colors)
 
-        for elem_info in self._elements:
-            # 收集 fill 颜色
-            if elem_info.fill_color:
-                normalized_color = self._normalize_color(elem_info.fill_color)
-                if normalized_color:
-                    fill_color_areas[normalized_color] = fill_color_areas.get(normalized_color, 0) + elem_info.area
-            # 收集 stroke 颜色
-            if elem_info.stroke_color:
-                normalized_color = self._normalize_color(elem_info.stroke_color)
-                if normalized_color:
-                    stroke_color_areas[normalized_color] = stroke_color_areas.get(normalized_color, 0) + elem_info.area
+    def _apply_smart_mapping(self, colors: List[str]) -> str:
+        """智能映射（简化版）
 
-        if not fill_color_areas and not stroke_color_areas:
-            print("未找到任何可替换的颜色")
+        策略：
+        1. 有透明元素：透明背景+透明元素 -> colors[0]，有 fill 元素从 colors[1] 开始
+        2. 无透明元素：面积最大元素 -> colors[0]，其他从 colors[1] 开始
+        3. 不识别背景，所有元素平等处理
+
+        Args:
+            colors: 颜色列表
+
+        Returns:
+            str: 修改后的 SVG 内容
+        """
+        if not colors or not self._original_content:
             return self._original_content
 
-        # 2. 检测是否有背景元素
-        has_background = self._has_background_element()
-        print(f"SVG 是否有背景元素: {has_background}")
+        # 创建颜色映射表
+        color_map: Dict[str, str] = {}
 
-        # 3. 创建 fill 颜色映射表
-        fill_color_map: Dict[str, str] = {}
+        # 检测是否有透明元素
+        transparent_elements = [e for e in self._elements if e.is_transparent]
+        has_transparent = len(transparent_elements) > 0
 
-        # 按面积排序 fill 颜色
-        sorted_fill_colors = sorted(fill_color_areas.keys(), key=lambda c: fill_color_areas[c], reverse=True)
+        # 收集有 fill 的元素
+        fill_elements = [e for e in self._elements if e.fill_color and not e.is_transparent]
 
-        print(f"原始 fill 颜色（按面积排序）: {sorted_fill_colors}")
-        print(f"新配色: {colors}")
+        if not fill_elements and not has_transparent:
+            print("智能映射 - 未找到任何可替换的元素")
+            return self._original_content
 
-        if len(sorted_fill_colors) > 0 and len(colors) > 0:
-            if has_background and len(colors) > 1:
-                # 有背景元素：背景映射到新配色[0]，其他映射到新配色[1..n]
-                background_color = sorted_fill_colors[0]
-                fill_color_map[background_color] = colors[0]
-                print(f"背景色 {background_color} -> {colors[0]}")
+        # 按面积排序有 fill 的元素
+        def sort_key(elem):
+            x = float(elem.attributes.get('x', 0))
+            y = float(elem.attributes.get('y', 0))
+            return (-elem.area, y, x)
 
-                # 其他颜色是主体色，映射到新配色[1..n]
-                other_colors = sorted_fill_colors[1:]
-                for i, orig_color in enumerate(other_colors):
-                    # 使用新配色[1..n]，如果不够则循环使用
-                    color_index = (i % (len(colors) - 1)) + 1
-                    fill_color_map[orig_color] = colors[color_index]
-                    print(f"主体色 {orig_color} -> {colors[color_index]}")
-            else:
-                # 无背景元素（透明背景）：所有元素映射到新配色[1..n]
-                # 如果只有一个颜色，则所有元素都映射到该颜色
-                start_index = 1 if len(colors) > 1 else 0
-                for i, orig_color in enumerate(sorted_fill_colors):
-                    if len(colors) > 1:
-                        color_index = (i % (len(colors) - 1)) + 1
-                    else:
-                        color_index = 0
-                    fill_color_map[orig_color] = colors[color_index]
-                    print(f"元素色 {orig_color} -> {colors[color_index]}")
+        fill_elements.sort(key=sort_key)
 
-        # 4. 创建 stroke 颜色映射表（保持原色，不替换）
-        stroke_color_map: Dict[str, str] = {}
-        # stroke 颜色保持原色，不参与映射
+        print(f"智能映射 - 透明元素: {len(transparent_elements)}, 有fill元素: {len(fill_elements)}")
 
-        print(f"fill 颜色映射: {fill_color_map}")
-        print(f"stroke 颜色保持原色: {list(stroke_color_areas.keys())}")
+        # 透明背景总是映射到 colors[0]
+        color_map[TRANSPARENT_BACKGROUND_KEY] = colors[0]
+        print(f"智能映射 透明背景 -> {colors[0]}")
 
-        # 5. 合并映射表并应用
-        color_map = {**fill_color_map, **stroke_color_map}
-        return self._apply_color_map(color_map)
+        if has_transparent:
+            # 情况1：有透明元素
+            # 透明元素 -> colors[0]
+            for i, elem in enumerate(transparent_elements):
+                key = f'{TRANSPARENT_ELEMENT_PREFIX}_{i}'
+                color_map[key] = colors[0]
+                print(f"智能映射 透明元素 {i} -> {colors[0]}")
+
+            # 有 fill 的元素从 colors[1] 开始
+            start_idx = 1
+        else:
+            # 情况2：没有透明元素
+            # 有 fill 的元素从 colors[1] 开始
+            start_idx = 1
+
+        # 总是添加背景矩形
+        need_bg_rect = True
+
+        # 调试：打印排序后的元素信息
+        print("排序后的有fill元素：")
+        for i, elem in enumerate(fill_elements[:10]):
+            x = elem.attributes.get('x', 'N/A')
+            y = elem.attributes.get('y', 'N/A')
+            fill = elem.fill_color or 'N/A'
+            print(f"  {i}: fill={fill}, area={elem.area:.2f}, x={x}, y={y}")
+
+        # 映射颜色（从 start_idx 开始）
+        for i, elem in enumerate(fill_elements):
+            normalized = self._normalize_color(elem.fill_color)
+            if normalized and normalized not in color_map:
+                color_idx = (i % (len(colors) - 1)) + start_idx if len(colors) > 1 else 0
+                color_map[normalized] = colors[color_idx]
+                print(f"智能映射 {normalized} -> {colors[color_idx]}")
+
+        print(f"智能映射 - 颜色映射: {color_map}")
+
+        # 应用映射
+        return self._apply_color_map_extended(color_map, need_bg_rect)
 
     def _normalize_color(self, color: str) -> Optional[str]:
         """标准化颜色值
@@ -636,20 +754,20 @@ class SVGColorMapper:
             if elem is None:
                 continue
 
+            # 处理固定颜色元素
+            if elem_info.fixed_color:
+                if elem_info.fixed_color == 'black':
+                    # 固定为黑色
+                    self._apply_color_to_element(elem, elem_info, '#000000')
+                # fixed_color == 'original' 时保持原色，不做任何操作
+                continue
+
             # 应用 fill 颜色映射
             if elem_info.fill_color:
                 fill_lower = elem_info.fill_color.lower()
                 if fill_lower in color_map_lower:
                     new_color = color_map_lower[fill_lower]
-                    # 检查颜色是否来自 style 属性
-                    style_attr = elem.get('style', '')
-                    if style_attr and self._color_in_style(style_attr, elem_info.fill_color):
-                        # 替换 style 属性中的颜色
-                        new_style = self._replace_color_in_style(style_attr, elem_info.fill_color, new_color)
-                        elem.set('style', new_style)
-                    else:
-                        # 设置 fill 属性
-                        elem.set('fill', new_color)
+                    self._apply_color_to_element(elem, elem_info, new_color, 'fill')
                     mapped_count += 1
 
             # 应用 stroke 颜色映射
@@ -657,15 +775,7 @@ class SVGColorMapper:
                 stroke_lower = elem_info.stroke_color.lower()
                 if stroke_lower in color_map_lower:
                     new_color = color_map_lower[stroke_lower]
-                    # 检查颜色是否来自 style 属性
-                    style_attr = elem.get('style', '')
-                    if style_attr and self._color_in_style(style_attr, elem_info.stroke_color):
-                        # 替换 style 属性中的颜色
-                        new_style = self._replace_color_in_style(style_attr, elem_info.stroke_color, new_color)
-                        elem.set('style', new_style)
-                    else:
-                        # 设置 stroke 属性
-                        elem.set('stroke', new_color)
+                    self._apply_color_to_element(elem, elem_info, new_color, 'stroke')
                     mapped_count += 1
 
         # 同时修改 CSS 样式定义（如果存在）
@@ -675,6 +785,99 @@ class SVGColorMapper:
         self._modified_content = self._element_tree_to_string(root)
         print(f"成功映射 {mapped_count} 个元素的颜色")
         return self._modified_content
+
+    def _apply_color_map_extended(self, color_map: Dict[str, str], need_background_rect: bool = True) -> str:
+        """应用颜色映射（扩展版，支持透明元素）
+
+        Args:
+            color_map: 颜色映射表，包含特殊键（__BACKGROUND__, __TRANSPARENT__*）
+            need_background_rect: 是否需要添加背景矩形
+
+        Returns:
+            str: 修改后的 SVG 内容
+        """
+        if not self._original_content:
+            return ""
+
+        root = ET.fromstring(self._original_content)
+
+        # 1. 处理透明背景
+        if need_background_rect and TRANSPARENT_BACKGROUND_KEY in color_map:
+            bg_color = color_map[TRANSPARENT_BACKGROUND_KEY]
+            self._add_background_rect(root, bg_color)
+
+        # 2. 处理透明元素
+        transparent_index = 0
+        for elem_info in self._elements:
+            if elem_info.is_transparent:
+                elem = self._find_element_by_id(root, elem_info.element_id)
+                if elem is not None:
+                    key = f'{TRANSPARENT_ELEMENT_PREFIX}_{transparent_index}'
+                    if key in color_map:
+                        # 给透明元素添加 fill
+                        elem.set('fill', color_map[key])
+                        transparent_index += 1
+
+        # 3. 处理有 fill 的元素
+        for elem_info in self._elements:
+            if elem_info.fill_color and not elem_info.is_transparent:
+                elem = self._find_element_by_id(root, elem_info.element_id)
+                if elem is not None:
+                    normalized = self._normalize_color(elem_info.fill_color)
+                    if normalized and normalized in color_map:
+                        new_color = color_map[normalized]
+                        # 使用 _apply_color_to_element 方法处理 CSS 样式
+                        self._apply_color_to_element(elem, elem_info, new_color, 'fill')
+
+        self._modified_content = self._element_tree_to_string(root)
+        return self._modified_content
+
+    def _apply_color_to_element(self, elem: ET.Element, elem_info: SVGElementInfo,
+                                  new_color: str, color_type: str = 'fill'):
+        """应用颜色到元素
+
+        Args:
+            elem: SVG 元素
+            elem_info: 元素信息
+            new_color: 新颜色值
+            color_type: 'fill' 或 'stroke'
+        """
+        # 获取原始颜色
+        orig_color = elem_info.fill_color if color_type == 'fill' else elem_info.stroke_color
+        if not orig_color:
+            return
+
+        # 检查颜色是否来自 style 属性
+        style_attr = elem.get('style', '')
+        if style_attr and self._color_in_style(style_attr, orig_color):
+            # 替换 style 属性中的颜色
+            new_style = self._replace_color_in_style(style_attr, orig_color, new_color)
+            elem.set('style', new_style)
+            return
+
+        # 检查颜色是否来自 CSS 类
+        elem_class = elem.get('class', '')
+        if elem_class:
+            # 使用内联 style 覆盖 CSS 类
+            # 这样可以确保新颜色生效，同时保留其他样式
+            inline_styles = {}
+            if style_attr:
+                for decl in style_attr.split(';'):
+                    decl = decl.strip()
+                    if ':' in decl:
+                        prop, value = decl.split(':', 1)
+                        inline_styles[prop.strip()] = value.strip()
+
+            # 设置新的颜色
+            inline_styles[color_type] = new_color
+
+            # 构建新的 style 属性
+            new_style = '; '.join([f"{k}:{v}" for k, v in inline_styles.items()])
+            elem.set('style', new_style)
+            return
+
+        # 没有 style 属性和 class，直接设置属性
+        elem.set(color_type, new_color)
 
     def _color_in_style(self, style_attr: str, color: str) -> bool:
         """检查颜色是否存在于 style 属性中
@@ -720,6 +923,35 @@ class SVGColorMapper:
         result = re.sub(stroke_pattern, rf'\g<1>{new_color}', result, flags=re.IGNORECASE)
 
         return result
+
+    def _add_background_rect(self, root: ET.Element, color: str):
+        """在 SVG 最底层添加背景矩形
+
+        Args:
+            root: SVG 根元素
+            color: 背景颜色
+        """
+        # 获取 viewBox 或 width/height
+        viewbox = root.get('viewBox')
+        if viewbox:
+            parts = viewbox.split()
+            if len(parts) >= 4:
+                w, h = parts[2], parts[3]
+            else:
+                w, h = '100%', '100%'
+        else:
+            w = root.get('width', '100%')
+            h = root.get('height', '100%')
+
+        # 创建背景矩形
+        bg_rect = ET.Element('rect')
+        bg_rect.set('width', str(w))
+        bg_rect.set('height', str(h))
+        bg_rect.set('fill', color)
+        bg_rect.set('id', 'auto-background')
+
+        # 插入到最前面
+        root.insert(0, bg_rect)
 
     def _update_css_styles(self, root: ET.Element, color_map: Dict[str, str]):
         """更新 CSS 样式定义中的颜色
@@ -802,7 +1034,13 @@ class SVGColorMapper:
             ET.register_namespace(prefix, uri)
 
         # 转换
-        return ET.tostring(root, encoding='unicode')
+        result = ET.tostring(root, encoding='unicode')
+
+        # 移除 svg: 命名空间前缀（如果有）
+        result = result.replace('<svg:', '<').replace('</svg:', '</')
+        result = result.replace(' xmlns:svg=', ' xmlns=')
+
+        return result
 
     def get_modified_content(self) -> str:
         """获取修改后的 SVG 内容"""

@@ -10,9 +10,9 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import CaptionLabel, PlainTextEdit, PrimaryPushButton, PushButton, isDarkTheme, qconfig
 
 # 项目模块导入
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from version import version_manager
-from ui.theme_colors import get_dialog_bg_color, get_text_color
+from utils.theme_colors import get_dialog_bg_color, get_text_color
 
 
 class AboutDialog(QDialog):
@@ -24,7 +24,7 @@ class AboutDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("关于")
+        self.setWindowTitle(tr('dialogs.about.title'))
         self.setFixedSize(600, 550)
 
         # 设置窗口图标
@@ -108,7 +108,7 @@ class AboutDialog(QDialog):
         buttons_layout.addStretch()
         
         # 个人主页按钮
-        self.homepage_button = PushButton("个人主页")
+        self.homepage_button = PushButton(tr('dialogs.about.homepage'))
         self.homepage_button.setMinimumWidth(90)
         self.homepage_button.clicked.connect(
             lambda: self._open_url("https://space.bilibili.com/1232406878")
@@ -116,7 +116,7 @@ class AboutDialog(QDialog):
         buttons_layout.addWidget(self.homepage_button)
         
         # 项目地址按钮（主题色）
-        self.project_button = PrimaryPushButton("项目地址")
+        self.project_button = PrimaryPushButton(tr('dialogs.about.project'))
         self.project_button.setMinimumWidth(90)
         self.project_button.clicked.connect(
             lambda: self._open_url("https://gitee.com/qingshangongzai/color_card")
@@ -124,13 +124,13 @@ class AboutDialog(QDialog):
         buttons_layout.addWidget(self.project_button)
 
         # 开源许可按钮
-        self.license_button = PushButton("开源许可")
+        self.license_button = PushButton(tr('dialogs.about.license'))
         self.license_button.setMinimumWidth(90)
         self.license_button.clicked.connect(self._open_license_file)
         buttons_layout.addWidget(self.license_button)
         
         # 用户协议按钮
-        self.agreement_button = PushButton("用户协议")
+        self.agreement_button = PushButton(tr('dialogs.about.agreement'))
         self.agreement_button.setMinimumWidth(90)
         self.agreement_button.clicked.connect(self._open_agreement_file)
         buttons_layout.addWidget(self.agreement_button)
@@ -147,10 +147,8 @@ class AboutDialog(QDialog):
         """
         app_info = version_manager.get_app_info()
         
-        copyright_label = CaptionLabel(
-            f"版权所有 {app_info['copyright']}\n"
-            "基于 GPL v3 开源，仅供学习交流使用"
-        )
+        copyright_text = f"{tr('dialogs.about.copyright')} {app_info['copyright']}\n{tr('dialogs.about.license_note')}"
+        copyright_label = CaptionLabel(copyright_text)
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         parent_layout.addWidget(copyright_label)
@@ -308,6 +306,12 @@ class AboutDialog(QDialog):
     版权所有：Brent Vollebregt
     许可证：MIT
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
+
+  • 本程序使用 PyInstaller 进行打包（auto-py-to-exe 的底层引擎）
+    版权所有：PyInstaller Development Team
+    许可证：GPL-2.0+ with Bootloader Exception
+    项目地址：https://github.com/pyinstaller/pyinstaller
+    官网：https://pyinstaller.org/
 
   • 本程序使用 UPX 工具压缩可执行文件体积
     版权所有：Markus Oberhumer, Laszlo Molnar, John Reiser

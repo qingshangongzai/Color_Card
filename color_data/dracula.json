@@ -1,119 +1,149 @@
 {
   "version": "1.0",
-  "description": "Dracula 配色方案 - 深色主题配色",
-  "source": "https://draculatheme.com/",
-  "license": "MIT",
-  "count": 11,
-  "colors": {
-    "dracula_bg": {
+  "id": "dracula",
+  "name": "Dracula",
+  "name_zh": "Dracula 主题",
+  "description": "暗色主题配色",
+  "author": "Dracula Theme",
+  "category": "theme",
+  "palettes": [
+    {
       "name": "背景色",
       "name_en": "Background",
-      "colors": {
-        "0": "#282a36",
-        "1": "#282a36",
-        "2": "#282a36",
-        "3": "#282a36"
-      }
+      "colors": [
+        "#282a36",
+        "#282a36",
+        "#282a36",
+        "#282a36"
+      ]
     },
-    "dracula_current_line": {
+    {
       "name": "当前行",
       "name_en": "Current Line",
-      "colors": {
-        "0": "#44475a",
-        "1": "#44475a",
-        "2": "#44475a",
-        "3": "#44475a"
-      }
+      "colors": [
+        "#44475a",
+        "#44475a",
+        "#44475a",
+        "#44475a"
+      ]
     },
-    "dracula_foreground": {
+    {
       "name": "前景色",
       "name_en": "Foreground",
-      "colors": {
-        "0": "#f8f8f2",
-        "1": "#f8f8f2",
-        "2": "#f8f8f2",
-        "3": "#f8f8f2"
-      }
+      "colors": [
+        "#f8f8f2",
+        "#f8f8f2",
+        "#f8f8f2",
+        "#f8f8f2"
+      ]
     },
-    "dracula_comment": {
+    {
       "name": "注释色",
       "name_en": "Comment",
-      "colors": {
-        "0": "#6272a4",
-        "1": "#6272a4",
-        "2": "#6272a4",
-        "3": "#6272a4"
-      }
+      "colors": [
+        "#6272a4",
+        "#6272a4",
+        "#6272a4",
+        "#6272a4"
+      ]
     },
-    "dracula_cyan": {
+    {
       "name": "青色",
       "name_en": "Cyan",
-      "colors": {
-        "0": "#8be9fd",
-        "1": "#8be9fd",
-        "2": "#8be9fd",
-        "3": "#8be9fd"
-      }
+      "colors": [
+        "#8be9fd",
+        "#8be9fd",
+        "#8be9fd",
+        "#8be9fd"
+      ]
     },
-    "dracula_green": {
+    {
       "name": "绿色",
       "name_en": "Green",
-      "colors": {
-        "0": "#50fa7b",
-        "1": "#50fa7b",
-        "2": "#50fa7b",
-        "3": "#50fa7b"
-      }
+      "colors": [
+        "#50fa7b",
+        "#50fa7b",
+        "#50fa7b",
+        "#50fa7b"
+      ]
     },
-    "dracula_orange": {
+    {
       "name": "橙色",
       "name_en": "Orange",
-      "colors": {
-        "0": "#ffb86c",
-        "1": "#ffb86c",
-        "2": "#ffb86c",
-        "3": "#ffb86c"
-      }
+      "colors": [
+        "#ffb86c",
+        "#ffb86c",
+        "#ffb86c",
+        "#ffb86c"
+      ]
     },
-    "dracula_pink": {
+    {
       "name": "粉色",
       "name_en": "Pink",
-      "colors": {
-        "0": "#ff79c6",
-        "1": "#ff79c6",
-        "2": "#ff79c6",
-        "3": "#ff79c6"
-      }
+      "colors": [
+        "#ff79c6",
+        "#ff79c6",
+        "#ff79c6",
+        "#ff79c6"
+      ]
     },
-    "dracula_purple": {
+    {
       "name": "紫色",
       "name_en": "Purple",
-      "colors": {
-        "0": "#bd93f9",
-        "1": "#bd93f9",
-        "2": "#bd93f9",
-        "3": "#bd93f9"
-      }
+      "colors": [
+        "#bd93f9",
+        "#bd93f9",
+        "#bd93f9",
+        "#bd93f9"
+      ]
     },
-    "dracula_red": {
+    {
       "name": "红色",
       "name_en": "Red",
-      "colors": {
-        "0": "#ff5555",
-        "1": "#ff5555",
-        "2": "#ff5555",
-        "3": "#ff5555"
-      }
+      "colors": [
+        "#ff5555",
+        "#ff5555",
+        "#ff5555",
+        "#ff5555"
+      ]
     },
-    "dracula_yellow": {
+    {
       "name": "黄色",
       "name_en": "Yellow",
-      "colors": {
-        "0": "#f1fa8c",
-        "1": "#f1fa8c",
-        "2": "#f1fa8c",
-        "3": "#f1fa8c"
-      }
+      "colors": [
+        "#f1fa8c",
+        "#f1fa8c",
+        "#f1fa8c",
+        "#f1fa8c"
+      ]
     }
-  }
+  ],
+  "groups": [
+    {
+      "name": "基础色系",
+      "indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "主题色-1",
+      "indices": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "name": "主题色-2",
+      "indices": [
+        8,
+        9,
+        10
+      ]
+    }
+  ]
 }

@@ -1,0 +1,60 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f5e6e0"/>
+
+  <!-- 背景拱形装饰 -->
+  <path id="arch-bg" class="secondary" d="M100 280 L100 120 Q200 20 300 120 L300 280" fill="#b8c5d0" opacity="0.6"/>
+  <path id="arch-inner" class="primary" d="M115 280 L115 130 Q200 50 285 130 L285 280" fill="#9aaab8" opacity="0.4"/>
+
+  <!-- 马提尼酒杯 -->
+  <path id="glass-bowl" class="text" d="M140 100 L200 200 L260 100 Z" fill="#e8e8e8" opacity="0.7"/>
+  <path id="glass-stem" class="text" d="M195 200 L195 260 L205 260 L205 200" fill="#e8e8e8" opacity="0.7"/>
+  <ellipse id="glass-base" class="text" cx="200" cy="265" rx="35" ry="8" fill="#e8e8e8" opacity="0.7"/>
+
+  <!-- 杯中液体 -->
+  <path id="liquid" class="accent" d="M155 115 L200 190 L245 115 Q200 125 155 115" fill="#e07a5f" opacity="0.85"/>
+
+  <!-- 橄榄装饰 -->
+  <ellipse id="olive-1" class="primary" cx="225" cy="140" rx="12" ry="15" fill="#6b8e6b" transform="rotate(30 225 140)"/>
+  <ellipse id="olive-pit-1" class="secondary" cx="225" cy="140" rx="4" ry="5" fill="#4a6b4a" transform="rotate(30 225 140)"/>
+
+  <ellipse id="olive-2" class="primary" cx="240" cy="125" rx="10" ry="13" fill="#7a9e7a" transform="rotate(45 240 125)"/>
+  <ellipse id="olive-pit-2" class="secondary" cx="240" cy="125" rx="3" ry="4" fill="#5a8a5a" transform="rotate(45 240 125)"/>
+
+  <!-- 牙签 -->
+  <line id="toothpick" class="stroke" x1="260" y1="100" x2="235" y2="145" stroke="#8b7355" stroke-width="2"/>
+
+  <!-- 棕榈叶装饰 - 左侧 -->
+  <path id="palm-left-1" class="primary" d="M80 280 Q70 220 90 180 Q100 160 95 200 Q90 240 100 280" fill="#6b9080" opacity="0.8"/>
+  <path id="palm-left-2" class="secondary" d="M60 280 Q50 230 75 190 Q85 175 80 210 Q75 250 85 280" fill="#8ab5a0" opacity="0.7"/>
+  <path id="palm-left-3" class="accent" d="M100 280 Q95 240 110 200 Q120 185 115 220 Q110 260 120 280" fill="#a5c9b8" opacity="0.6"/>
+
+  <!-- 棕榈叶装饰 - 右侧 -->
+  <path id="palm-right-1" class="accent" d="M320 280 Q330 220 310 180 Q300 160 305 200 Q310 240 300 280" fill="#e6b89c" opacity="0.8"/>
+  <path id="palm-right-2" class="secondary" d="M340 280 Q350 230 325 190 Q315 175 320 210 Q325 250 315 280" fill="#d4a080" opacity="0.7"/>
+  <path id="palm-right-3" class="primary" d="M300 280 Q305 240 290 200 Q280 185 285 220 Q290 260 280 280" fill="#c49060" opacity="0.6"/>
+
+  <!-- 星星/闪光装饰 -->
+  <path id="star-1" class="text" d="M120 60 L123 68 L131 68 L125 73 L127 81 L120 76 L113 81 L115 73 L109 68 L117 68 Z" fill="#ffffff" opacity="0.9"/>
+  <path id="star-2" class="text" d="M280 80 L282 85 L287 85 L283 88 L285 93 L280 90 L275 93 L277 88 L273 85 L278 85 Z" fill="#ffffff" opacity="0.8"/>
+  <path id="star-3" class="text" d="M200 50 L202 57 L209 57 L203 61 L205 68 L200 64 L195 68 L197 61 L191 57 L198 57 Z" fill="#ffffff" opacity="0.7"/>
+  <path id="star-4" class="accent" d="M160 220 L162 227 L169 227 L163 231 L165 238 L160 234 L155 238 L157 231 L151 227 L158 227 Z" fill="#f4d03f" opacity="0.8"/>
+  <path id="star-5" class="accent" d="M340 180 L342 185 L347 185 L343 188 L345 193 L340 190 L335 193 L337 188 L333 185 L338 185 Z" fill="#f4d03f" opacity="0.7"/>
+
+  <!-- 小圆点装饰 -->
+  <circle id="dot-1" class="text" cx="50" cy="50" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle id="dot-2" class="text" cx="350" cy="60" r="2.5" fill="#ffffff" opacity="0.5"/>
+  <circle id="dot-3" class="text" cx="60" cy="120" r="2" fill="#ffffff" opacity="0.4"/>
+  <circle id="dot-4" class="accent" cx="360" cy="240" r="3" fill="#f4d03f" opacity="0.6"/>
+
+  <!-- 边框装饰线 -->
+  <line id="border-top" class="stroke" x1="30" y1="30" x2="370" y2="30" stroke="#d4a5a5" stroke-width="1" opacity="0.5"/>
+  <line id="border-bottom" class="stroke" x1="30" y1="290" x2="370" y2="290" stroke="#d4a5a5" stroke-width="1" opacity="0.5"/>
+  <line id="border-left" class="stroke" x1="30" y1="30" x2="30" y2="290" stroke="#d4a5a5" stroke-width="1" opacity="0.5"/>
+  <line id="border-right" class="stroke" x1="370" y1="30" x2="370" y2="290" stroke="#d4a5a5" stroke-width="1" opacity="0.5"/>
+
+  <!-- 角落装饰 -->
+  <path id="corner-tl" class="accent" d="M30 50 L30 30 L50 30" stroke="#e07a5f" stroke-width="2" fill="none" opacity="0.6"/>
+  <path id="corner-tr" class="accent" d="M350 30 L370 30 L370 50" stroke="#e07a5f" stroke-width="2" fill="none" opacity="0.6"/>
+  <path id="corner-bl" class="accent" d="M30 250 L30 270 L50 270" stroke="#e07a5f" stroke-width="2" fill="none" opacity="0.6"/>
+  <path id="corner-br" class="accent" d="M350 270 L370 270 L370 250" stroke="#e07a5f" stroke-width="2" fill="none" opacity="0.6"/>
+</svg>

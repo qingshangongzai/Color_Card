@@ -21,7 +21,6 @@ from .color import (
     generate_double_complementary,
     adjust_brightness,
     get_scheme_preview_colors,
-    # RYB 色彩空间支持
     rgb_hue_to_ryb_hue,
     ryb_hue_to_rgb_hue,
     generate_ryb_monochromatic,
@@ -30,14 +29,12 @@ from .color import (
     generate_ryb_split_complementary,
     generate_ryb_double_complementary,
     get_scheme_preview_colors_ryb,
-    # MMCQ 主色调提取
     extract_dominant_colors,
     find_dominant_color_positions,
 )
 
-from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
 
-# SVG 配色映射模块
 from .svg_color_mapper import (
     ElementType,
     SVGElementInfo,
@@ -48,21 +45,58 @@ from .svg_color_mapper import (
     suggest_mapping_strategy,
 )
 
-# 颜色数据模块
 from .color_data import (
-    get_color_series_names,
-    get_color_series,
-    get_light_shades,
-    get_dark_shades,
-    get_selected_shades,
-    get_color_series_name_mapping,
-    get_nice_palette_count,
-    get_nice_palette,
-    get_nice_palettes_batch,
+    ColorSource,
+    ColorSourceRegistry,
+    get_color_source_registry,
+    get_color_source,
+    get_all_color_sources,
+    get_all_palettes,
+    get_random_palettes,
 )
 
+from .async_loader import BaseBatchLoader
+
+from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
+
+from .image_mediator import ImageMediator
+
+from .color_service import ColorService, DominantColorExtractor
+
+from .palette_service import PaletteService, PaletteImporter, PaletteExporter
+
+from .image_service import ImageService, ProgressiveImageLoader, ColorSpaceInfo, ColorSpaceDetector
+
+from .luminance_service import LuminanceService, LuminanceCalculator
+
+from .preview_service import PreviewService
+
+from .histogram_service import HistogramService, HistogramCalculator
+
+from .cache_base import BaseCache
+
+from .color_scheme_cache import (
+    ColorSchemeCache,
+    get_color_scheme_cache,
+    clear_color_scheme_cache,
+)
+
+from .histogram_cache import (
+    HistogramCache,
+    get_histogram_cache,
+    clear_histogram_cache,
+    generate_image_fingerprint,
+)
+
+from .image_memory_manager import (
+    ImageMemoryManager,
+    get_memory_manager,
+    set_memory_limit,
+)
+
+from .service_factory import ServiceFactory
+
 __all__ = [
-    # 颜色函数
     'rgb_to_hsb',
     'rgb_to_lab',
     'rgb_to_hex',
@@ -76,7 +110,6 @@ __all__ = [
     'get_zone_bounds',
     'calculate_histogram',
     'calculate_rgb_histogram',
-    # 配色方案函数
     'generate_monochromatic',
     'generate_analogous',
     'generate_complementary',
@@ -84,7 +117,6 @@ __all__ = [
     'generate_double_complementary',
     'adjust_brightness',
     'get_scheme_preview_colors',
-    # RYB 色彩空间支持
     'rgb_hue_to_ryb_hue',
     'ryb_hue_to_rgb_hue',
     'generate_ryb_monochromatic',
@@ -93,15 +125,15 @@ __all__ = [
     'generate_ryb_split_complementary',
     'generate_ryb_double_complementary',
     'get_scheme_preview_colors_ryb',
-    # MMCQ 主色调提取
     'extract_dominant_colors',
     'find_dominant_color_positions',
-    # 配置
     'ConfigManager',
     'get_config_manager',
     'SceneConfigManager',
     'get_scene_config_manager',
-    # SVG 配色映射
+    'SceneTypeManager',
+    'get_scene_type_manager',
+    'ConfigLoadError',
     'ElementType',
     'SVGElementInfo',
     'ColorMappingConfig',
@@ -109,14 +141,42 @@ __all__ = [
     'SVGColorMapper',
     'create_mapping_from_palette',
     'suggest_mapping_strategy',
-    # 颜色数据
-    'get_color_series_names',
-    'get_color_series',
-    'get_light_shades',
-    'get_dark_shades',
-    'get_selected_shades',
-    'get_color_series_name_mapping',
-    'get_nice_palette_count',
-    'get_nice_palette',
-    'get_nice_palettes_batch',
+    'ColorSource',
+    'ColorSourceRegistry',
+    'get_color_source_registry',
+    'get_color_source',
+    'get_all_color_sources',
+    'get_all_palettes',
+    'get_random_palettes',
+    'BaseBatchLoader',
+    'GROUPING_THRESHOLDS',
+    'generate_groups',
+    'should_use_batch_loading',
+    'ImageMediator',
+    'ColorService',
+    'DominantColorExtractor',
+    'PaletteService',
+    'PaletteImporter',
+    'PaletteExporter',
+    'ImageService',
+    'ProgressiveImageLoader',
+    'ColorSpaceInfo',
+    'ColorSpaceDetector',
+    'LuminanceService',
+    'LuminanceCalculator',
+    'PreviewService',
+    'HistogramService',
+    'HistogramCalculator',
+    'BaseCache',
+    'ColorSchemeCache',
+    'get_color_scheme_cache',
+    'clear_color_scheme_cache',
+    'HistogramCache',
+    'get_histogram_cache',
+    'clear_histogram_cache',
+    'generate_image_fingerprint',
+    'ImageMemoryManager',
+    'get_memory_manager',
+    'set_memory_limit',
+    'ServiceFactory',
 ]

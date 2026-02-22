@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QW
 from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, qconfig
 
 # 项目模块导入
-from .theme_colors import (
+from utils.theme_colors import (
     get_border_color, get_placeholder_color, get_secondary_text_color,
     get_text_color, get_zone_background_color, get_zone_text_color
 )
@@ -38,7 +38,7 @@ class BaseCardPanel(QWidget):
     
     功能：
         - 卡片列表管理
-        - 卡片数量控制（2-5个）
+        - 卡片数量控制（2-6个）
         - 批量清空卡片
     """
     
@@ -70,9 +70,9 @@ class BaseCardPanel(QWidget):
         """设置卡片数量
         
         Args:
-            count: 卡片数量 (2-5)
+            count: 卡片数量 (2-6)
         """
-        if count < 2 or count > 5:
+        if count < 2 or count > 6:
             return
         
         if count == self._card_count:

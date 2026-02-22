@@ -1,5 +1,6 @@
 # 标准库导入
 import math
+from typing import List, Tuple
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -9,7 +10,7 @@ from qfluentwidgets import isDarkTheme
 
 # 项目模块导入
 from core import rgb_to_hsb
-from .theme_colors import (
+from utils.theme_colors import (
     get_wheel_bg_color, get_wheel_border_color, get_wheel_text_color,
     get_wheel_selector_border_color, get_wheel_selector_inner_color,
     get_wheel_line_color, get_wheel_label_color
@@ -125,13 +126,13 @@ class HSBColorWheel(QWidget):
         """
         import math
 
-        # 色相转换为角度（0°在右侧，逆时针增加）
-        # Qt坐标系：0°在右侧，逆时针为正
-        angle_rad = (h * math.pi / 180.0)
+        # 色相转换为角度（0°在上方12点钟方向，逆时针增加）
+        # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
+        angle_rad = ((h + 90) * math.pi / 180.0)
 
         # 饱和度转换为半径（0%在中心，100%在边缘）
-        # 使用80%的最大半径，留一些边距
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，让采样点可以到达圆周
+        max_radius = self._wheel_radius
         radius = (s / 100.0) * max_radius
 
         # 计算坐标
@@ -170,7 +171,8 @@ class HSBColorWheel(QWidget):
                 # 只绘制圆形区域内的像素
                 if distance <= self._wheel_radius:
                     # 计算角度（色相）
-                    angle = math.atan2(-dy, dx)  # 注意Y轴翻转
+                    # 减90度偏移，使0°色相（红色）位于12点钟方向
+                    angle = math.atan2(-dy, dx) - math.pi / 2
                     hue = (angle / (2 * math.pi)) % 1.0
 
                     # 计算饱和度（距离中心的远近）
@@ -259,7 +261,7 @@ class HSBColorWheel(QWidget):
 
     def _draw_title(self, painter):
         """绘制标题"""
-        from .theme_colors import get_wheel_text_color
+        from utils.theme_colors import get_wheel_text_color
         painter.setPen(get_wheel_text_color())
 
         font = QFont()
@@ -302,7 +304,9 @@ class HSBColorWheel(QWidget):
 
         for angle, label in hue_labels:
             # 计算标签位置（注意Y轴翻转）
-            rad = math.radians(angle)
+            # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
+            adjusted_angle = angle + 90
+            rad = math.radians(adjusted_angle)
             x = self._center_x + label_radius * math.cos(rad)
             y = self._center_y - label_radius * math.sin(rad)
 
@@ -393,7 +397,7 @@ class InteractiveColorWheel(QWidget):
         """
         return self._base_hue, self._base_saturation, self._base_brightness
 
-    def set_scheme_colors(self, colors: list):
+    def set_scheme_colors(self, colors: List[Tuple[float, float, float]]):
         """设置配色颜色点
 
         Args:
@@ -451,8 +455,10 @@ class InteractiveColorWheel(QWidget):
         Returns:
             (x, y) 坐标
         """
-        angle_rad = (h * math.pi / 180.0)
-        max_radius = self._wheel_radius * 0.85
+        # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
+        angle_rad = ((h + 90) * math.pi / 180.0)
+        # 使用完整的色轮半径，让采样点可以到达圆周
+        max_radius = self._wheel_radius
 
         # 位置仅由饱和度决定
         # 饱和度越高，点越靠近边缘；饱和度越低，点越靠近中心
@@ -477,22 +483,24 @@ class InteractiveColorWheel(QWidget):
         dy = y - self._center_y
         distance = math.sqrt(dx * dx + dy * dy)
 
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，与 _hsb_to_position 保持一致
+        max_radius = self._wheel_radius
         saturation = min(distance / max_radius, 1.0) * 100
 
         angle = math.atan2(-dy, dx)
-        hue = (angle / (2 * math.pi)) % 1.0 * 360
+        # 减90度偏移，使0°色相（红色）位于12点钟方向
+        hue = ((angle - math.pi / 2) / (2 * math.pi)) % 1.0 * 360
 
         return hue, saturation
 
-    def _get_point_position(self, index: int) -> tuple:
+    def _get_point_position(self, index: int) -> Tuple[int, int]:
         """获取指定索引采样点的位置
 
         Args:
             index: 采样点索引（0为基准点）
 
         Returns:
-            (x, y) 坐标
+            Tuple[int, int]: (x, y) 坐标
         """
         brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
 
@@ -552,7 +560,8 @@ class InteractiveColorWheel(QWidget):
 
         # 根据距离直接计算饱和度
         # 距离中心越近，饱和度越低；距离中心越远，饱和度越高
-        max_radius = self._wheel_radius * 0.85
+        # 使用完整的色轮半径，与 _hsb_to_position 保持一致
+        max_radius = self._wheel_radius
         saturation = min(distance / max_radius, 1.0) * 100
 
         return max(0, min(100, saturation))
@@ -584,7 +593,8 @@ class InteractiveColorWheel(QWidget):
 
                 if distance <= self._wheel_radius:
                     angle = math.atan2(-dy, dx)
-                    hue = (angle / (2 * math.pi)) % 1.0
+                    # 减90度偏移，使0°色相（红色）位于12点钟方向
+                    hue = ((angle - math.pi / 2) / (2 * math.pi)) % 1.0
                     saturation = min(distance / self._wheel_radius, 1.0)
                     # 使用全局明度值
                     value = brightness_value
@@ -663,7 +673,9 @@ class InteractiveColorWheel(QWidget):
 
         for angle, label in hue_labels:
             # 计算标签位置（注意Y轴翻转）
-            rad = math.radians(angle)
+            # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
+            adjusted_angle = angle + 90
+            rad = math.radians(adjusted_angle)
             x = self._center_x + label_radius * math.cos(rad)
             y = self._center_y - label_radius * math.sin(rad)
 

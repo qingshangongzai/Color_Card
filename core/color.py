@@ -1,6 +1,6 @@
 # 标准库导入
 import colorsys
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 # 第三方库导入
 try:
@@ -8,6 +8,53 @@ try:
     NUMPY_AVAILABLE = True
 except ImportError:
     NUMPY_AVAILABLE = False
+
+# 项目模块导入
+from .color_scheme_cache import get_color_scheme_cache
+
+
+# ==================== 配色常量定义 ====================
+
+SATURATION_STEPS = [1.0, 0.75, 0.5, 0.25]
+MIN_SATURATION = 20
+DEFAULT_BRIGHTNESS_STEPS = [100, 90, 80, 70]
+DEFAULT_ANALOGOUS_ANGLE = 30
+DEFAULT_SPLIT_ANGLE = 30
+
+
+def _generate_saturation_steps(base_saturation: float, count: int) -> List[float]:
+    """生成饱和度递减序列
+
+    Args:
+        base_saturation: 基准饱和度 (0-100)
+        count: 生成数量
+
+    Returns:
+        List[float]: 饱和度列表，所有值不低于 MIN_SATURATION
+    """
+    if count == 4:
+        return [
+            base_saturation,
+            max(MIN_SATURATION, base_saturation * SATURATION_STEPS[1]),
+            max(MIN_SATURATION, base_saturation * SATURATION_STEPS[2]),
+            max(MIN_SATURATION, base_saturation * SATURATION_STEPS[3])
+        ]
+    step = (base_saturation - MIN_SATURATION) / max(count - 1, 1)
+    return [max(MIN_SATURATION, base_saturation - i * step) for i in range(count)]
+
+
+def _generate_brightness_steps(count: int) -> List[float]:
+    """生成明度递减序列
+
+    Args:
+        count: 生成数量
+
+    Returns:
+        List[float]: 明度列表
+    """
+    if count == 4:
+        return DEFAULT_BRIGHTNESS_STEPS.copy()
+    return [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
 
 
 def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
@@ -172,7 +219,7 @@ def rgb_to_cmyk(r: int, g: int, b: int) -> Tuple[float, float, float, float]:
     return c * 100, m * 100, y * 100, k * 100
 
 
-def get_color_info(r: int, g: int, b: int) -> Dict[str, any]:
+def get_color_info(r: int, g: int, b: int) -> Dict[str, Any]:
     """获取颜色的完整信息
 
     Args:
@@ -199,51 +246,54 @@ def get_color_info(r: int, g: int, b: int) -> Dict[str, any]:
     }
 
 
-def get_luminance(r: int, g: int, b: int) -> int:
+def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     """计算像素的明度值 (0-255)
 
-    使用 Rec. 709 标准计算亮度值，包含 sRGB Gamma 校正
+    使用 Rec. 709 标准计算亮度值，包含 Gamma 校正
     这是 Lightroom、Photoshop 等专业软件使用的标准方法
 
     Args:
         r: 红色通道值 (0-255)
         g: 绿色通道值 (0-255)
         b: 蓝色通道值 (0-255)
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
         int: 明度值 (0-255)
     """
-    # 步骤1: 归一化到 0-1 范围
     r_norm = r / 255.0
     g_norm = g / 255.0
     b_norm = b / 255.0
 
-    # 步骤2: sRGB Gamma 解码（转换到线性空间）
-    # sRGB 的 gamma 曲线近似于 gamma 2.2，但使用更精确的公式
-    def srgb_to_linear(c: float) -> float:
-        if c <= 0.04045:
-            return c / 12.92
-        else:
-            return ((c + 0.055) / 1.055) ** 2.4
+    if gamma == 2.2:
+        def srgb_to_linear(c: float) -> float:
+            if c <= 0.04045:
+                return c / 12.92
+            else:
+                return ((c + 0.055) / 1.055) ** 2.4
 
-    r_linear = srgb_to_linear(r_norm)
-    g_linear = srgb_to_linear(g_norm)
-    b_linear = srgb_to_linear(b_norm)
+        r_linear = srgb_to_linear(r_norm)
+        g_linear = srgb_to_linear(g_norm)
+        b_linear = srgb_to_linear(b_norm)
+    else:
+        r_linear = r_norm ** gamma
+        g_linear = g_norm ** gamma
+        b_linear = b_norm ** gamma
 
-    # 步骤3: 在线性空间应用 Rec. 709 权重
     luminance_linear = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
 
-    # 步骤4: 将结果编码回 sRGB Gamma 空间（为了显示一致性）
-    def linear_to_srgb(c: float) -> float:
-        if c <= 0.0031308:
-            return c * 12.92
-        else:
-            return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+    if gamma == 2.2:
+        def linear_to_srgb(c: float) -> float:
+            if c <= 0.0031308:
+                return c * 12.92
+            else:
+                return 1.055 * (c ** (1.0 / 2.4)) - 0.055
 
-    luminance_srgb = linear_to_srgb(luminance_linear)
+        luminance_output = linear_to_srgb(luminance_linear)
+    else:
+        luminance_output = luminance_linear ** (1.0 / gamma)
 
-    # 步骤5: 转换回 0-255 范围
-    return min(255, round(luminance_srgb * 255))
+    return min(255, round(luminance_output * 255))
 
 
 def get_zone(luminance: int) -> str:
@@ -282,12 +332,13 @@ def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
     return (start * 32, (start + 1) * 32 - 1)
 
 
-def calculate_histogram(image, sample_step: int = 4) -> List[int]:
+def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
     """计算图片的明度直方图（使用NumPy向量化优化）
 
     Args:
         image: QImage 对象
         sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
         list: 长度为256的列表，表示每个明度值的像素数量
@@ -298,108 +349,100 @@ def calculate_histogram(image, sample_step: int = 4) -> List[int]:
     width = image.width()
     height = image.height()
 
-    # 使用NumPy向量化计算（如果可用）
     if NUMPY_AVAILABLE and hasattr(image, 'bits'):
         try:
-            return _calculate_histogram_numpy(image, width, height, sample_step)
+            return _calculate_histogram_numpy(image, width, height, sample_step, gamma)
         except Exception:
-            pass  # 失败时回退到纯Python实现
+            pass
 
-    return _calculate_histogram_python(image, width, height, sample_step)
+    return _calculate_histogram_python(image, width, height, sample_step, gamma)
 
 
-def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int) -> List[int]:
+def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
     """使用NumPy向量化计算明度直方图"""
-    # 将QImage转换为NumPy数组
     image = image.convertToFormat(image.Format.Format_RGB888)
     ptr = image.bits()
     ptr.setsize(image.sizeInBytes())
     arr = np.array(ptr).reshape(height, width, 3)
 
-    # 采样像素（包含边缘像素）
     sampled = arr[::sample_step, ::sample_step]
 
-    # 额外采样边缘像素
     edge_pixels = []
     if width > 0:
         edge_pixels.append(arr[::sample_step, -1])
     if height > 0:
         edge_pixels.append(arr[-1, ::sample_step])
 
-    # 合并所有采样像素
     if edge_pixels:
         all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
     else:
         all_pixels = sampled.reshape(-1, 3)
 
-    # 向量化计算明度值
-    luminance = _calculate_luminance_numpy(all_pixels)
+    luminance = _calculate_luminance_numpy(all_pixels, gamma)
 
-    # 使用bincount统计直方图
     histogram = np.bincount(luminance, minlength=256)
 
     return histogram.tolist()
 
 
-def _calculate_luminance_numpy(pixels: np.ndarray) -> np.ndarray:
-    """使用NumPy向量化计算明度值（Rec. 709标准 + sRGB Gamma校正）
+def _calculate_luminance_numpy(pixels: np.ndarray, gamma: float = 2.2) -> np.ndarray:
+    """使用NumPy向量化计算明度值（Rec. 709标准 + Gamma校正）
 
     Args:
         pixels: NumPy数组，形状为 (N, 3)，值范围 0-255
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
         np.ndarray: 明度值数组，值范围 0-255
     """
-    # 归一化到 0-1 范围
     rgb = pixels.astype(np.float32) / 255.0
 
-    # sRGB Gamma 解码（向量化）
-    linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    if gamma == 2.2:
+        linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    else:
+        linear = rgb ** gamma
 
-    # 应用 Rec. 709 权重
     luminance_linear = 0.2126 * linear[:, 0] + 0.7152 * linear[:, 1] + 0.0722 * linear[:, 2]
 
-    # 编码回 sRGB 空间
-    luminance_srgb = np.where(
-        luminance_linear <= 0.0031308,
-        luminance_linear * 12.92,
-        1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
-    )
+    if gamma == 2.2:
+        luminance_output = np.where(
+            luminance_linear <= 0.0031308,
+            luminance_linear * 12.92,
+            1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
+        )
+    else:
+        luminance_output = luminance_linear ** (1.0 / gamma)
 
-    # 转换到 0-255 范围，使用round与Python实现保持一致
-    return np.clip(np.round(luminance_srgb * 255), 0, 255).astype(np.uint8)
+    return np.clip(np.round(luminance_output * 255), 0, 255).astype(np.uint8)
 
 
-def _calculate_histogram_python(image, width: int, height: int, sample_step: int) -> List[int]:
+def _calculate_histogram_python(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
     """使用纯Python计算明度直方图（回退实现）"""
     histogram = [0] * 256
 
-    # 采样计算直方图
     for y in range(0, height, sample_step):
         for x in range(0, width, sample_step):
             color = image.pixelColor(x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue())
+            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
             histogram[luminance] += 1
 
-    # 额外采样最右侧和最底部的边缘像素
     if width > 0:
         right_x = width - 1
         for y in range(0, height, sample_step):
             color = image.pixelColor(right_x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue())
+            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
             histogram[luminance] += 1
 
     if height > 0:
         bottom_y = height - 1
         for x in range(0, width, sample_step):
             color = image.pixelColor(x, bottom_y)
-            luminance = get_luminance(color.red(), color.green(), color.blue())
+            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
             histogram[luminance] += 1
 
-    # 采样右下角像素
     if width > 0 and height > 0:
         color = image.pixelColor(width - 1, height - 1)
-        luminance = get_luminance(color.red(), color.green(), color.blue())
+        luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
         histogram[luminance] += 1
 
     return histogram
@@ -542,24 +585,11 @@ def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 
         list: HSB颜色列表 [(h, s, b), ...]
     """
     colors = []
-    # 基于基准饱和度生成递减的饱和度序列
-    if count == 4:
-        # 在基准饱和度基础上递减，保持合理的间隔
-        saturations = [
-            base_saturation,
-            max(20, base_saturation * 0.75),
-            max(20, base_saturation * 0.5),
-            max(20, base_saturation * 0.25)
-        ]
-        brightnesses = [100, 90, 80, 70]
-    else:
-        # 根据数量均匀分布饱和度
-        step = (base_saturation - 20) / max(count - 1, 1)
-        saturations = [max(20, base_saturation - i * step) for i in range(count)]
-        brightnesses = [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+    saturations = _generate_saturation_steps(base_saturation, count)
+    brightnesses = _generate_brightness_steps(count)
 
     for i in range(count):
-        s = max(20, min(100, saturations[i] if i < len(saturations) else 50))
+        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
         b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
         colors.append((hue % 360, s, b))
 
@@ -622,31 +652,29 @@ def generate_complementary(hue: float, count: int = 5, base_saturation: float = 
     comp_hue = (hue + 180) % 360
 
     if count == 5:
-        # 基准色一侧3个：通过调整饱和度和明度来区分，保持色相一致
+        base_saturations = _generate_saturation_steps(base_saturation, 3)
+        comp_saturations = _generate_saturation_steps(base_saturation, 2)
         colors = [
-            (hue, base_saturation, 100),                    # 基准色：最鲜艳
-            (hue, max(30, base_saturation * 0.75), 90),     # 基准色：降低饱和度
-            (hue, max(30, base_saturation * 0.5), 80),      # 基准色：进一步降低饱和度
-            # 互补色一侧2个
-            (comp_hue, base_saturation, 100),               # 互补色：最鲜艳
-            (comp_hue, max(30, base_saturation * 0.75), 90), # 互补色：降低饱和度
+            (hue, base_saturations[0], 100),
+            (hue, max(30, base_saturations[1]), 90),
+            (hue, max(30, base_saturations[2]), 80),
+            (comp_hue, comp_saturations[0], 100),
+            (comp_hue, max(30, comp_saturations[1]), 90),
         ]
     else:
-        # 平均分配：基准色一侧 ceil(count/2)，互补色一侧 floor(count/2)
         base_count = (count + 1) // 2
         comp_count = count - base_count
 
-        # 基准色一侧：同一色相，基于基准饱和度生成变化
+        base_saturations = _generate_saturation_steps(base_saturation, base_count)
+        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
+
         for i in range(base_count):
-            saturation_factor = 1 - i * (0.5 / max(base_count, 1))  # 从100%递减到50%
-            s = max(30, base_saturation * saturation_factor)
-            b = 100 - i * (20 / max(base_count, 1))  # 明度稍微降低
+            s = max(30, base_saturations[i])
+            b = 100 - i * (20 / max(base_count, 1))
             colors.append((hue, s, max(80, b)))
 
-        # 互补色一侧：同一色相，基于基准饱和度生成变化
         for i in range(comp_count):
-            saturation_factor = 1 - i * (0.5 / max(comp_count, 1))
-            s = max(30, base_saturation * saturation_factor)
+            s = max(30, comp_saturations[i])
             b = 100 - i * (20 / max(comp_count, 1))
             colors.append((comp_hue, s, max(80, b)))
 
@@ -754,7 +782,13 @@ def adjust_brightness(hsb_colors: List[Tuple[float, float, float]], brightness_d
     return adjusted
 
 
-def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[int, int, int]]:
+def get_scheme_preview_colors(
+    scheme_type: str,
+    base_hue: float,
+    count: int = 5,
+    base_saturation: float = 100,
+    use_cache: bool = True
+) -> List[Tuple[int, int, int]]:
     """获取配色方案的预览颜色（RGB格式）
 
     Args:
@@ -763,10 +797,18 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5,
         base_hue: 基准色相 (0-360)
         count: 生成颜色数量
         base_saturation: 基准饱和度 (0-100)，用于生成变化的饱和度
+        use_cache: 是否使用缓存（默认True）
 
     Returns:
         list: RGB颜色列表 [(r, g, b), ...]
     """
+    # 尝试从缓存获取
+    if use_cache:
+        cache = get_color_scheme_cache()
+        cached_hsb = cache.get(scheme_type, base_hue, count, base_saturation)
+        if cached_hsb is not None:
+            return [hsb_to_rgb(h, s, b) for h, s, b in cached_hsb]
+
     # 根据方案类型调用对应的生成器，传递 base_saturation 参数
     if scheme_type == 'monochromatic':
         hsb_colors = generate_monochromatic(base_hue, count, base_saturation)
@@ -780,6 +822,10 @@ def get_scheme_preview_colors(scheme_type: str, base_hue: float, count: int = 5,
         hsb_colors = generate_double_complementary(base_hue, 30, count, base_saturation)
     else:
         hsb_colors = generate_monochromatic(base_hue, count, base_saturation)
+
+    # 存入缓存
+    if use_cache:
+        cache.set(scheme_type, base_hue, count, base_saturation, hsb_colors)
 
     return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]
 
@@ -1398,25 +1444,13 @@ def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: 
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
     colors = []
-    # 基于基准饱和度生成递减的饱和度序列
-    if count == 4:
-        saturations = [
-            base_saturation,
-            max(20, base_saturation * 0.75),
-            max(20, base_saturation * 0.5),
-            max(20, base_saturation * 0.25)
-        ]
-        brightnesses = [100, 90, 80, 70]
-    else:
-        step = (base_saturation - 20) / max(count - 1, 1)
-        saturations = [max(20, base_saturation - i * step) for i in range(count)]
-        brightnesses = [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
+    saturations = _generate_saturation_steps(base_saturation, count)
+    brightnesses = _generate_brightness_steps(count)
 
-    # 转换 RYB 色相到 RGB 色相
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
 
     for i in range(count):
-        s = max(20, min(100, saturations[i] if i < len(saturations) else 50))
+        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
         b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
         colors.append((rgb_hue % 360, s, b))
 
@@ -1477,34 +1511,33 @@ def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: 
     colors = []
     ryb_comp_hue = (ryb_hue + 180) % 360
 
-    # 转换到 RGB 色相
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
     rgb_comp_hue = ryb_hue_to_rgb_hue(ryb_comp_hue)
 
     if count == 5:
-        # 基准色一侧3个：通过调整饱和度和明度来区分
+        base_saturations = _generate_saturation_steps(base_saturation, 3)
+        comp_saturations = _generate_saturation_steps(base_saturation, 2)
         colors = [
-            (rgb_hue, base_saturation, 100),
-            (rgb_hue, max(30, base_saturation * 0.75), 90),
-            (rgb_hue, max(30, base_saturation * 0.5), 80),
-            # 互补色一侧2个
-            (rgb_comp_hue, base_saturation, 100),
-            (rgb_comp_hue, max(30, base_saturation * 0.75), 90),
+            (rgb_hue, base_saturations[0], 100),
+            (rgb_hue, max(30, base_saturations[1]), 90),
+            (rgb_hue, max(30, base_saturations[2]), 80),
+            (rgb_comp_hue, comp_saturations[0], 100),
+            (rgb_comp_hue, max(30, comp_saturations[1]), 90),
         ]
     else:
-        # 平均分配
         base_count = (count + 1) // 2
         comp_count = count - base_count
 
+        base_saturations = _generate_saturation_steps(base_saturation, base_count)
+        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
+
         for i in range(base_count):
-            saturation_factor = 1 - i * (0.5 / max(base_count, 1))  # 从100%递减到50%
-            s = max(30, base_saturation * saturation_factor)
+            s = max(30, base_saturations[i])
             b = 100 - i * (20 / max(base_count, 1))
             colors.append((rgb_hue, s, max(80, b)))
 
         for i in range(comp_count):
-            saturation_factor = 1 - i * (0.5 / max(comp_count, 1))
-            s = max(30, base_saturation * saturation_factor)
+            s = max(30, comp_saturations[i])
             b = 100 - i * (20 / max(comp_count, 1))
             colors.append((rgb_comp_hue, s, max(80, b)))
 
@@ -1602,7 +1635,13 @@ def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: 
     return colors
 
 
-def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[int, int, int]]:
+def get_scheme_preview_colors_ryb(
+    scheme_type: str,
+    base_hue: float,
+    count: int = 5,
+    base_saturation: float = 100,
+    use_cache: bool = True
+) -> List[Tuple[int, int, int]]:
     """获取 RYB 配色方案的预览颜色（RGB格式）
 
     Args:
@@ -1611,10 +1650,21 @@ def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int 
         base_hue: 基准色相 (0-360，RGB色相)
         count: 生成颜色数量
         base_saturation: 基准饱和度 (0-100)，用于生成变化的饱和度
+        use_cache: 是否使用缓存（默认True）
 
     Returns:
         list: RGB颜色列表 [(r, g, b), ...]
     """
+    # RYB缓存键添加前缀区分
+    cache_key_type = f"ryb_{scheme_type}"
+
+    # 尝试从缓存获取
+    if use_cache:
+        cache = get_color_scheme_cache()
+        cached_hsb = cache.get(cache_key_type, base_hue, count, base_saturation)
+        if cached_hsb is not None:
+            return [hsb_to_rgb(h, s, b) for h, s, b in cached_hsb]
+
     # 先将 RGB 色相转换为 RYB 色相
     ryb_hue = rgb_hue_to_ryb_hue(base_hue)
 
@@ -1631,5 +1681,9 @@ def get_scheme_preview_colors_ryb(scheme_type: str, base_hue: float, count: int 
         hsb_colors = generate_ryb_double_complementary(ryb_hue, 30, count, base_saturation)
     else:
         hsb_colors = generate_ryb_monochromatic(ryb_hue, count, base_saturation)
+
+    # 存入缓存
+    if use_cache:
+        cache.set(cache_key_type, base_hue, count, base_saturation, hsb_colors)
 
     return [hsb_to_rgb(h, s, b) for h, s, b in hsb_colors]

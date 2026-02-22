@@ -1,169 +1,209 @@
 {
   "version": "1.0",
-  "description": "Nord 配色方案 - 北极灵感配色",
-  "source": "https://www.nordtheme.com/",
-  "license": "MIT",
-  "count": 16,
-  "colors": {
-    "nord0": {
+  "id": "nord",
+  "name": "Nord",
+  "name_zh": "Nord 主题",
+  "description": "北极蓝调主题配色",
+  "author": "Arctic Ice Studio",
+  "category": "theme",
+  "palettes": [
+    {
       "name": "北极黑",
       "name_en": "Polar Night",
-      "colors": {
-        "0": "#2E3440",
-        "1": "#3B4252",
-        "2": "#434C5E",
-        "3": "#4C566A"
-      }
+      "colors": [
+        "#2E3440",
+        "#3B4252",
+        "#434C5E",
+        "#4C566A"
+      ]
     },
-    "nord1": {
+    {
       "name": "雪暴",
       "name_en": "Snow Storm",
-      "colors": {
-        "0": "#D8DEE9",
-        "1": "#E5E9F0",
-        "2": "#ECEFF4",
-        "3": "#D8DEE9"
-      }
+      "colors": [
+        "#D8DEE9",
+        "#E5E9F0",
+        "#ECEFF4",
+        "#D8DEE9"
+      ]
     },
-    "nord2": {
+    {
       "name": "霜冻",
       "name_en": "Frost",
-      "colors": {
-        "0": "#A3BE8C",
-        "1": "#94E2D5",
-        "2": "#81A1C1",
-        "3": "#8FBCBB"
-      }
+      "colors": [
+        "#A3BE8C",
+        "#94E2D5",
+        "#81A1C1",
+        "#8FBCBB"
+      ]
     },
-    "nord3": {
+    {
       "name": "北极光",
       "name_en": "Aurora",
-      "colors": {
-        "0": "#88C0D0",
-        "1": "#81A1C1",
-        "2": "#5E81AC",
-        "3": "#EBCB8B"
-      }
+      "colors": [
+        "#88C0D0",
+        "#81A1C1",
+        "#5E81AC",
+        "#EBCB8B"
+      ]
     },
-    "nord4": {
+    {
       "name": "北风",
       "name_en": "Nord",
-      "colors": {
-        "0": "#5E81AC",
-        "1": "#81A1C1",
-        "2": "#88C0D0",
-        "3": "#8FBCBB"
-      }
+      "colors": [
+        "#5E81AC",
+        "#81A1C1",
+        "#88C0D0",
+        "#8FBCBB"
+      ]
     },
-    "nord5": {
+    {
       "name": "北极星",
       "name_en": "Polar Star",
-      "colors": {
-        "0": "#ECEFF4",
-        "1": "#8FBCBB",
-        "2": "#88C0D0",
-        "3": "#81A1C1"
-      }
+      "colors": [
+        "#ECEFF4",
+        "#8FBCBB",
+        "#88C0D0",
+        "#81A1C1"
+      ]
     },
-    "nord6": {
+    {
       "name": "冰川蓝",
       "name_en": "Glacier Blue",
-      "colors": {
-        "0": "#81A1C1",
-        "1": "#88C0D0",
-        "2": "#8FBCBB",
-        "3": "#5E81AC"
-      }
+      "colors": [
+        "#81A1C1",
+        "#88C0D0",
+        "#8FBCBB",
+        "#5E81AC"
+      ]
     },
-    "nord7": {
+    {
       "name": "北极绿",
       "name_en": "Arctic Green",
-      "colors": {
-        "0": "#8FBCBB",
-        "1": "#88C0D0",
-        "2": "#81A1C1",
-        "3": "#A3BE8C"
-      }
+      "colors": [
+        "#8FBCBB",
+        "#88C0D0",
+        "#81A1C1",
+        "#A3BE8C"
+      ]
     },
-    "nord8": {
+    {
       "name": "极夜",
       "name_en": "Night Owl",
-      "colors": {
-        "0": "#4C566A",
-        "1": "#434C5E",
-        "2": "#3B4252",
-        "3": "#2E3440"
-      }
+      "colors": [
+        "#4C566A",
+        "#434C5E",
+        "#3B4252",
+        "#2E3440"
+      ]
     },
-    "nord9": {
+    {
       "name": "深海",
       "name_en": "Deep Ocean",
-      "colors": {
-        "0": "#434C5E",
-        "1": "#3B4252",
-        "2": "#2E3440",
-        "3": "#242931"
-      }
+      "colors": [
+        "#434C5E",
+        "#3B4252",
+        "#2E3440",
+        "#242931"
+      ]
     },
-    "nord10": {
+    {
       "name": "极光",
       "name_en": "Aurora",
-      "colors": {
-        "0": "#88C0D0",
-        "1": "#81A1C1",
-        "2": "#5E81AC",
-        "3": "#EBCB8B"
-      }
+      "colors": [
+        "#88C0D0",
+        "#81A1C1",
+        "#5E81AC",
+        "#EBCB8B"
+      ]
     },
-    "nord11": {
+    {
       "name": "北极光",
       "name_en": "Polar Light",
-      "colors": {
-        "0": "#ECEFF4",
-        "1": "#D8DEE9",
-        "2": "#E5E9F0",
-        "3": "#D8DEE9"
-      }
+      "colors": [
+        "#ECEFF4",
+        "#D8DEE9",
+        "#E5E9F0",
+        "#D8DEE9"
+      ]
     },
-    "nord12": {
+    {
       "name": "冰河",
       "name_en": "Ice River",
-      "colors": {
-        "0": "#8FBCBB",
-        "1": "#88C0D0",
-        "2": "#81A1C1",
-        "3": "#A3BE8C"
-      }
+      "colors": [
+        "#8FBCBB",
+        "#88C0D0",
+        "#81A1C1",
+        "#A3BE8C"
+      ]
     },
-    "nord13": {
+    {
       "name": "北极蓝",
       "name_en": "Arctic Blue",
-      "colors": {
-        "0": "#5E81AC",
-        "1": "#81A1C1",
-        "2": "#88C0D0",
-        "3": "#8FBCBB"
-      }
+      "colors": [
+        "#5E81AC",
+        "#81A1C1",
+        "#88C0D0",
+        "#8FBCBB"
+      ]
     },
-    "nord14": {
+    {
       "name": "霜白",
       "name_en": "Frost White",
-      "colors": {
-        "0": "#D8DEE9",
-        "1": "#E5E9F0",
-        "2": "#ECEFF4",
-        "3": "#D8DEE9"
-      }
+      "colors": [
+        "#D8DEE9",
+        "#E5E9F0",
+        "#ECEFF4",
+        "#D8DEE9"
+      ]
     },
-    "nord15": {
+    {
       "name": "北极白",
       "name_en": "Arctic White",
-      "colors": {
-        "0": "#ECEFF4",
-        "1": "#D8DEE9",
-        "2": "#E5E9F0",
-        "3": "#D8DEE9"
-      }
+      "colors": [
+        "#ECEFF4",
+        "#D8DEE9",
+        "#E5E9F0",
+        "#D8DEE9"
+      ]
     }
-  }
+  ],
+  "groups": [
+    {
+      "name": "分组1",
+      "indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "分组2",
+      "indices": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "name": "分组3",
+      "indices": [
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "name": "分组4",
+      "indices": [
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  ]
 }

@@ -1,564 +1,604 @@
 {
   "version": "1.0",
-  "source": "ColorBrewer",
-  "url": "https://colorbrewer2.org/",
-  "license": "Apache-2.0",
-  "colors": {
-    "brewer_blues": {
+  "id": "colorbrewer",
+  "name": "ColorBrewer",
+  "name_zh": "ColorBrewer 配色",
+  "description": "专业地图配色方案",
+  "author": "Cynthia Brewer",
+  "category": "design_system",
+  "palettes": [
+    {
       "name": "布鲁斯蓝",
       "name_en": "Blues",
-      "type": "sequential",
-      "colors": {
-        "0": "#f7fbff",
-        "1": "#deebf7",
-        "2": "#c6dbef",
-        "3": "#9ecae1",
-        "4": "#6baed6",
-        "5": "#4292c6",
-        "6": "#2171b5",
-        "7": "#08519c",
-        "8": "#08306b"
-      }
+      "colors": [
+        "#f7fbff",
+        "#deebf7",
+        "#c6dbef",
+        "#9ecae1",
+        "#6baed6",
+        "#4292c6",
+        "#2171b5",
+        "#08519c",
+        "#08306b"
+      ]
     },
-    "brewer_greens": {
+    {
       "name": "格林绿",
       "name_en": "Greens",
-      "type": "sequential",
-      "colors": {
-        "0": "#f7fcf5",
-        "1": "#e5f5e0",
-        "2": "#c7e9c0",
-        "3": "#a1d99b",
-        "4": "#74c476",
-        "5": "#41ab5d",
-        "6": "#238b45",
-        "7": "#006d2c",
-        "8": "#00441b"
-      }
+      "colors": [
+        "#f7fcf5",
+        "#e5f5e0",
+        "#c7e9c0",
+        "#a1d99b",
+        "#74c476",
+        "#41ab5d",
+        "#238b45",
+        "#006d2c",
+        "#00441b"
+      ]
     },
-    "brewer_greys": {
+    {
       "name": "格雷灰",
       "name_en": "Greys",
-      "type": "sequential",
-      "colors": {
-        "0": "#ffffff",
-        "1": "#f0f0f0",
-        "2": "#d9d9d9",
-        "3": "#bdbdbd",
-        "4": "#969696",
-        "5": "#737373",
-        "6": "#525252",
-        "7": "#252525",
-        "8": "#000000"
-      }
+      "colors": [
+        "#ffffff",
+        "#f0f0f0",
+        "#d9d9d9",
+        "#bdbdbd",
+        "#969696",
+        "#737373",
+        "#525252",
+        "#252525",
+        "#000000"
+      ]
     },
-    "brewer_oranges": {
+    {
       "name": "奥兰治橙",
       "name_en": "Oranges",
-      "type": "sequential",
-      "colors": {
-        "0": "#fff5eb",
-        "1": "#fee6ce",
-        "2": "#fdd0a2",
-        "3": "#fdae6b",
-        "4": "#fd8d3c",
-        "5": "#f16913",
-        "6": "#d94801",
-        "7": "#a63603",
-        "8": "#7f2704"
-      }
+      "colors": [
+        "#fff5eb",
+        "#fee6ce",
+        "#fdd0a2",
+        "#fdae6b",
+        "#fd8d3c",
+        "#f16913",
+        "#d94801",
+        "#a63603",
+        "#7f2704"
+      ]
     },
-    "brewer_purples": {
+    {
       "name": "珀尔普紫",
       "name_en": "Purples",
-      "type": "sequential",
-      "colors": {
-        "0": "#fcfbfd",
-        "1": "#efedf5",
-        "2": "#dadaeb",
-        "3": "#bcbddc",
-        "4": "#9e9ac8",
-        "5": "#807dba",
-        "6": "#6a51a3",
-        "7": "#54278f",
-        "8": "#3f007d"
-      }
+      "colors": [
+        "#fcfbfd",
+        "#efedf5",
+        "#dadaeb",
+        "#bcbddc",
+        "#9e9ac8",
+        "#807dba",
+        "#6a51a3",
+        "#54278f",
+        "#3f007d"
+      ]
     },
-    "brewer_reds": {
+    {
       "name": "雷兹红",
       "name_en": "Reds",
-      "type": "sequential",
-      "colors": {
-        "0": "#fff5f0",
-        "1": "#fee0d2",
-        "2": "#fcbba1",
-        "3": "#fc9272",
-        "4": "#fb6a4a",
-        "5": "#ef3b2c",
-        "6": "#cb181d",
-        "7": "#a50f15",
-        "8": "#67000d"
-      }
+      "colors": [
+        "#fff5f0",
+        "#fee0d2",
+        "#fcbba1",
+        "#fc9272",
+        "#fb6a4a",
+        "#ef3b2c",
+        "#cb181d",
+        "#a50f15",
+        "#67000d"
+      ]
     },
-    "brewer_bugn": {
+    {
       "name": "蓝绿渐变",
       "name_en": "BuGn",
-      "type": "sequential",
-      "colors": {
-        "0": "#f7fcfd",
-        "1": "#e5f5f9",
-        "2": "#ccece6",
-        "3": "#99d8c9",
-        "4": "#66c2a4",
-        "5": "#41ae76",
-        "6": "#238b45",
-        "7": "#006d2c",
-        "8": "#00441b"
-      }
+      "colors": [
+        "#f7fcfd",
+        "#e5f5f9",
+        "#ccece6",
+        "#99d8c9",
+        "#66c2a4",
+        "#41ae76",
+        "#238b45",
+        "#006d2c",
+        "#00441b"
+      ]
     },
-    "brewer_bupu": {
+    {
       "name": "蓝紫渐变",
       "name_en": "BuPu",
-      "type": "sequential",
-      "colors": {
-        "0": "#f7fcfd",
-        "1": "#e0ecf4",
-        "2": "#bfd3e6",
-        "3": "#9ebcda",
-        "4": "#8c96c6",
-        "5": "#8c6bb1",
-        "6": "#88419d",
-        "7": "#810f7c",
-        "8": "#4d004b"
-      }
+      "colors": [
+        "#f7fcfd",
+        "#e0ecf4",
+        "#bfd3e6",
+        "#9ebcda",
+        "#8c96c6",
+        "#8c6bb1",
+        "#88419d",
+        "#810f7c",
+        "#4d004b"
+      ]
     },
-    "brewer_gnbu": {
+    {
       "name": "绿蓝渐变",
       "name_en": "GnBu",
-      "type": "sequential",
-      "colors": {
-        "0": "#f7fcf0",
-        "1": "#e0f3db",
-        "2": "#ccebc5",
-        "3": "#a8ddb5",
-        "4": "#7bccc4",
-        "5": "#4eb3d3",
-        "6": "#2b8cbe",
-        "7": "#0868ac",
-        "8": "#084081"
-      }
+      "colors": [
+        "#f7fcf0",
+        "#e0f3db",
+        "#ccebc5",
+        "#a8ddb5",
+        "#7bccc4",
+        "#4eb3d3",
+        "#2b8cbe",
+        "#0868ac",
+        "#084081"
+      ]
     },
-    "brewer_orrd": {
+    {
       "name": "橙红渐变",
       "name_en": "OrRd",
-      "type": "sequential",
-      "colors": {
-        "0": "#fff7ec",
-        "1": "#fee8c8",
-        "2": "#fdd49e",
-        "3": "#fdbb84",
-        "4": "#fc8d59",
-        "5": "#ef6548",
-        "6": "#d7301f",
-        "7": "#b30000",
-        "8": "#7f0000"
-      }
+      "colors": [
+        "#fff7ec",
+        "#fee8c8",
+        "#fdd49e",
+        "#fdbb84",
+        "#fc8d59",
+        "#ef6548",
+        "#d7301f",
+        "#b30000",
+        "#7f0000"
+      ]
     },
-    "brewer_pubu": {
+    {
       "name": "紫蓝渐变",
       "name_en": "PuBu",
-      "type": "sequential",
-      "colors": {
-        "0": "#fff7fb",
-        "1": "#ece7f2",
-        "2": "#d0d1e6",
-        "3": "#a6bddb",
-        "4": "#74a9cf",
-        "5": "#3690c0",
-        "6": "#0570b0",
-        "7": "#045a8d",
-        "8": "#023858"
-      }
+      "colors": [
+        "#fff7fb",
+        "#ece7f2",
+        "#d0d1e6",
+        "#a6bddb",
+        "#74a9cf",
+        "#3690c0",
+        "#0570b0",
+        "#045a8d",
+        "#023858"
+      ]
     },
-    "brewer_pubugn": {
+    {
       "name": "紫蓝绿渐变",
       "name_en": "PuBuGn",
-      "type": "sequential",
-      "colors": {
-        "0": "#fff7fb",
-        "1": "#ece2f0",
-        "2": "#d0d1e6",
-        "3": "#a6bddb",
-        "4": "#67a9cf",
-        "5": "#3690c0",
-        "6": "#02818a",
-        "7": "#016c59",
-        "8": "#014636"
-      }
+      "colors": [
+        "#fff7fb",
+        "#ece2f0",
+        "#d0d1e6",
+        "#a6bddb",
+        "#67a9cf",
+        "#3690c0",
+        "#02818a",
+        "#016c59",
+        "#014636"
+      ]
     },
-    "brewer_purd": {
+    {
       "name": "紫红渐变",
       "name_en": "PuRd",
-      "type": "sequential",
-      "colors": {
-        "0": "#f7f4f9",
-        "1": "#e7e1ef",
-        "2": "#d4b9da",
-        "3": "#c994c7",
-        "4": "#df65b0",
-        "5": "#e7298a",
-        "6": "#ce1256",
-        "7": "#980043",
-        "8": "#67001f"
-      }
+      "colors": [
+        "#f7f4f9",
+        "#e7e1ef",
+        "#d4b9da",
+        "#c994c7",
+        "#df65b0",
+        "#e7298a",
+        "#ce1256",
+        "#980043",
+        "#67001f"
+      ]
     },
-    "brewer_rdpu": {
+    {
       "name": "红紫渐变",
       "name_en": "RdPu",
-      "type": "sequential",
-      "colors": {
-        "0": "#fff7f3",
-        "1": "#fde0dd",
-        "2": "#fcc5c0",
-        "3": "#fa9fb5",
-        "4": "#f768a1",
-        "5": "#dd3497",
-        "6": "#ae017e",
-        "7": "#7a0177",
-        "8": "#49006a"
-      }
+      "colors": [
+        "#fff7f3",
+        "#fde0dd",
+        "#fcc5c0",
+        "#fa9fb5",
+        "#f768a1",
+        "#dd3497",
+        "#ae017e",
+        "#7a0177",
+        "#49006a"
+      ]
     },
-    "brewer_ylgn": {
+    {
       "name": "黄绿渐变",
       "name_en": "YlGn",
-      "type": "sequential",
-      "colors": {
-        "0": "#ffffe5",
-        "1": "#f7fcb9",
-        "2": "#d9f0a3",
-        "3": "#addd8e",
-        "4": "#78c679",
-        "5": "#41ab5d",
-        "6": "#238443",
-        "7": "#006837",
-        "8": "#004529"
-      }
+      "colors": [
+        "#ffffe5",
+        "#f7fcb9",
+        "#d9f0a3",
+        "#addd8e",
+        "#78c679",
+        "#41ab5d",
+        "#238443",
+        "#006837",
+        "#004529"
+      ]
     },
-    "brewer_ylgnbu": {
+    {
       "name": "黄绿蓝渐变",
       "name_en": "YlGnBu",
-      "type": "sequential",
-      "colors": {
-        "0": "#ffffd9",
-        "1": "#edf8b1",
-        "2": "#c7e9b4",
-        "3": "#7fcdbb",
-        "4": "#41b6c4",
-        "5": "#1d91c0",
-        "6": "#225ea8",
-        "7": "#253494",
-        "8": "#081d58"
-      }
+      "colors": [
+        "#ffffd9",
+        "#edf8b1",
+        "#c7e9b4",
+        "#7fcdbb",
+        "#41b6c4",
+        "#1d91c0",
+        "#225ea8",
+        "#253494",
+        "#081d58"
+      ]
     },
-    "brewer_ylorbr": {
+    {
       "name": "黄橙棕渐变",
       "name_en": "YlOrBr",
-      "type": "sequential",
-      "colors": {
-        "0": "#ffffe5",
-        "1": "#fff7bc",
-        "2": "#fee391",
-        "3": "#fec44f",
-        "4": "#fe9929",
-        "5": "#ec7014",
-        "6": "#cc4c02",
-        "7": "#993404",
-        "8": "#662506"
-      }
+      "colors": [
+        "#ffffe5",
+        "#fff7bc",
+        "#fee391",
+        "#fec44f",
+        "#fe9929",
+        "#ec7014",
+        "#cc4c02",
+        "#993404",
+        "#662506"
+      ]
     },
-    "brewer_ylorrd": {
+    {
       "name": "黄橙红渐变",
       "name_en": "YlOrRd",
-      "type": "sequential",
-      "colors": {
-        "0": "#ffffcc",
-        "1": "#ffeda0",
-        "2": "#fed976",
-        "3": "#feb24c",
-        "4": "#fd8d3c",
-        "5": "#fc4e2a",
-        "6": "#e31a1c",
-        "7": "#bd0026",
-        "8": "#800026"
-      }
+      "colors": [
+        "#ffffcc",
+        "#ffeda0",
+        "#fed976",
+        "#feb24c",
+        "#fd8d3c",
+        "#fc4e2a",
+        "#e31a1c",
+        "#bd0026",
+        "#800026"
+      ]
     },
-    "brewer_brbg": {
+    {
       "name": "棕青发散",
       "name_en": "BrBG",
-      "type": "diverging",
-      "colors": {
-        "0": "#543005",
-        "1": "#8c510a",
-        "2": "#bf812d",
-        "3": "#dfc27d",
-        "4": "#f6e8c3",
-        "5": "#c7eae5",
-        "6": "#80cdc1",
-        "7": "#35978f",
-        "8": "#01665e"
-      }
+      "colors": [
+        "#543005",
+        "#8c510a",
+        "#bf812d",
+        "#dfc27d",
+        "#f6e8c3",
+        "#c7eae5",
+        "#80cdc1",
+        "#35978f",
+        "#01665e"
+      ]
     },
-    "brewer_piyg": {
+    {
       "name": "粉绿发散",
       "name_en": "PiYG",
-      "type": "diverging",
-      "colors": {
-        "0": "#8e0152",
-        "1": "#c51b7d",
-        "2": "#de77ae",
-        "3": "#f1b6da",
-        "4": "#fde0ef",
-        "5": "#e6f5d0",
-        "6": "#b8e186",
-        "7": "#7fbc41",
-        "8": "#4d9221"
-      }
+      "colors": [
+        "#8e0152",
+        "#c51b7d",
+        "#de77ae",
+        "#f1b6da",
+        "#fde0ef",
+        "#e6f5d0",
+        "#b8e186",
+        "#7fbc41",
+        "#4d9221"
+      ]
     },
-    "brewer_prgn": {
+    {
       "name": "紫绿发散",
       "name_en": "PRGn",
-      "type": "diverging",
-      "colors": {
-        "0": "#40004b",
-        "1": "#762a83",
-        "2": "#9970ab",
-        "3": "#c2a5cf",
-        "4": "#e7d4e8",
-        "5": "#d9f0d3",
-        "6": "#a6dba0",
-        "7": "#5aae61",
-        "8": "#1b7837"
-      }
+      "colors": [
+        "#40004b",
+        "#762a83",
+        "#9970ab",
+        "#c2a5cf",
+        "#e7d4e8",
+        "#d9f0d3",
+        "#a6dba0",
+        "#5aae61",
+        "#1b7837"
+      ]
     },
-    "brewer_puor": {
+    {
       "name": "紫橙发散",
       "name_en": "PuOr",
-      "type": "diverging",
-      "colors": {
-        "0": "#7f3b08",
-        "1": "#b35806",
-        "2": "#e08214",
-        "3": "#fdb863",
-        "4": "#fee0b6",
-        "5": "#d8daeb",
-        "6": "#b2abd2",
-        "7": "#8073ac",
-        "8": "#542788"
-      }
+      "colors": [
+        "#7f3b08",
+        "#b35806",
+        "#e08214",
+        "#fdb863",
+        "#fee0b6",
+        "#d8daeb",
+        "#b2abd2",
+        "#8073ac",
+        "#542788"
+      ]
     },
-    "brewer_rdbu": {
+    {
       "name": "红蓝发散",
       "name_en": "RdBu",
-      "type": "diverging",
-      "colors": {
-        "0": "#67001f",
-        "1": "#b2182b",
-        "2": "#d6604d",
-        "3": "#f4a582",
-        "4": "#fddbc7",
-        "5": "#d1e5f0",
-        "6": "#92c5de",
-        "7": "#4393c3",
-        "8": "#2166ac"
-      }
+      "colors": [
+        "#67001f",
+        "#b2182b",
+        "#d6604d",
+        "#f4a582",
+        "#fddbc7",
+        "#d1e5f0",
+        "#92c5de",
+        "#4393c3",
+        "#2166ac"
+      ]
     },
-    "brewer_rdgy": {
+    {
       "name": "红灰发散",
       "name_en": "RdGy",
-      "type": "diverging",
-      "colors": {
-        "0": "#67001f",
-        "1": "#b2182b",
-        "2": "#d6604d",
-        "3": "#f4a582",
-        "4": "#fddbc7",
-        "5": "#e0e0e0",
-        "6": "#bababa",
-        "7": "#878787",
-        "8": "#4d4d4d"
-      }
+      "colors": [
+        "#67001f",
+        "#b2182b",
+        "#d6604d",
+        "#f4a582",
+        "#fddbc7",
+        "#e0e0e0",
+        "#bababa",
+        "#878787",
+        "#4d4d4d"
+      ]
     },
-    "brewer_rdylbu": {
+    {
       "name": "红黄蓝发散",
       "name_en": "RdYlBu",
-      "type": "diverging",
-      "colors": {
-        "0": "#a50026",
-        "1": "#d73027",
-        "2": "#f46d43",
-        "3": "#fdae61",
-        "4": "#fee090",
-        "5": "#e0f3f8",
-        "6": "#abd9e9",
-        "7": "#74add1",
-        "8": "#4575b4"
-      }
+      "colors": [
+        "#a50026",
+        "#d73027",
+        "#f46d43",
+        "#fdae61",
+        "#fee090",
+        "#e0f3f8",
+        "#abd9e9",
+        "#74add1",
+        "#4575b4"
+      ]
     },
-    "brewer_rdylgn": {
+    {
       "name": "红黄绿发散",
       "name_en": "RdYlGn",
-      "type": "diverging",
-      "colors": {
-        "0": "#a50026",
-        "1": "#d73027",
-        "2": "#f46d43",
-        "3": "#fdae61",
-        "4": "#fee08b",
-        "5": "#d9ef8b",
-        "6": "#a6d96a",
-        "7": "#66bd63",
-        "8": "#1a9850"
-      }
+      "colors": [
+        "#a50026",
+        "#d73027",
+        "#f46d43",
+        "#fdae61",
+        "#fee08b",
+        "#d9ef8b",
+        "#a6d96a",
+        "#66bd63",
+        "#1a9850"
+      ]
     },
-    "brewer_spectral": {
+    {
       "name": "光谱色",
       "name_en": "Spectral",
-      "type": "diverging",
-      "colors": {
-        "0": "#9e0142",
-        "1": "#d53e4f",
-        "2": "#f46d43",
-        "3": "#fdae61",
-        "4": "#fee08b",
-        "5": "#e6f598",
-        "6": "#abdda4",
-        "7": "#66c2a5",
-        "8": "#3288bd"
-      }
+      "colors": [
+        "#9e0142",
+        "#d53e4f",
+        "#f46d43",
+        "#fdae61",
+        "#fee08b",
+        "#e6f598",
+        "#abdda4",
+        "#66c2a5",
+        "#3288bd"
+      ]
     },
-    "brewer_set1": {
+    {
       "name": "设置1",
       "name_en": "Set1",
-      "type": "qualitative",
-      "colors": {
-        "0": "#e41a1c",
-        "1": "#377eb8",
-        "2": "#4daf4a",
-        "3": "#984ea3",
-        "4": "#ff7f00",
-        "5": "#ffff33",
-        "6": "#a65628",
-        "7": "#f781bf",
-        "8": "#999999"
-      }
+      "colors": [
+        "#e41a1c",
+        "#377eb8",
+        "#4daf4a",
+        "#984ea3",
+        "#ff7f00",
+        "#ffff33",
+        "#a65628",
+        "#f781bf",
+        "#999999"
+      ]
     },
-    "brewer_set2": {
+    {
       "name": "设置2",
       "name_en": "Set2",
-      "type": "qualitative",
-      "colors": {
-        "0": "#66c2a5",
-        "1": "#fc8d62",
-        "2": "#8da0cb",
-        "3": "#e78ac3",
-        "4": "#a6d854",
-        "5": "#ffd92f",
-        "6": "#e5c494",
-        "7": "#b3b3b3"
-      }
+      "colors": [
+        "#66c2a5",
+        "#fc8d62",
+        "#8da0cb",
+        "#e78ac3",
+        "#a6d854",
+        "#ffd92f",
+        "#e5c494",
+        "#b3b3b3"
+      ]
     },
-    "brewer_set3": {
+    {
       "name": "设置3",
       "name_en": "Set3",
-      "type": "qualitative",
-      "colors": {
-        "0": "#8dd3c7",
-        "1": "#ffffb3",
-        "2": "#bebada",
-        "3": "#fb8072",
-        "4": "#80b1d3",
-        "5": "#fdb462",
-        "6": "#b3de69",
-        "7": "#fccde5",
-        "8": "#d9d9d9"
-      }
+      "colors": [
+        "#8dd3c7",
+        "#ffffb3",
+        "#bebada",
+        "#fb8072",
+        "#80b1d3",
+        "#fdb462",
+        "#b3de69",
+        "#fccde5",
+        "#d9d9d9"
+      ]
     },
-    "brewer_paired": {
+    {
       "name": "成对色",
       "name_en": "Paired",
-      "type": "qualitative",
-      "colors": {
-        "0": "#a6cee3",
-        "1": "#1f78b4",
-        "2": "#b2df8a",
-        "3": "#33a02c",
-        "4": "#fb9a99",
-        "5": "#e31a1c",
-        "6": "#fdbf6f",
-        "7": "#ff7f00",
-        "8": "#cab2d6"
-      }
+      "colors": [
+        "#a6cee3",
+        "#1f78b4",
+        "#b2df8a",
+        "#33a02c",
+        "#fb9a99",
+        "#e31a1c",
+        "#fdbf6f",
+        "#ff7f00",
+        "#cab2d6"
+      ]
     },
-    "brewer_dark2": {
+    {
       "name": "深色2",
       "name_en": "Dark2",
-      "type": "qualitative",
-      "colors": {
-        "0": "#1b9e77",
-        "1": "#d95f02",
-        "2": "#7570b3",
-        "3": "#e7298a",
-        "4": "#66a61e",
-        "5": "#e6ab02",
-        "6": "#a6761d",
-        "7": "#666666"
-      }
+      "colors": [
+        "#1b9e77",
+        "#d95f02",
+        "#7570b3",
+        "#e7298a",
+        "#66a61e",
+        "#e6ab02",
+        "#a6761d",
+        "#666666"
+      ]
     },
-    "brewer_accent": {
+    {
       "name": "强调色",
       "name_en": "Accent",
-      "type": "qualitative",
-      "colors": {
-        "0": "#7fc97f",
-        "1": "#beaed4",
-        "2": "#fdc086",
-        "3": "#ffff99",
-        "4": "#386cb0",
-        "5": "#f0027f",
-        "6": "#bf5b17",
-        "7": "#666666"
-      }
+      "colors": [
+        "#7fc97f",
+        "#beaed4",
+        "#fdc086",
+        "#ffff99",
+        "#386cb0",
+        "#f0027f",
+        "#bf5b17",
+        "#666666"
+      ]
     },
-    "brewer_pastel1": {
+    {
       "name": "粉彩1",
       "name_en": "Pastel1",
-      "type": "qualitative",
-      "colors": {
-        "0": "#fbb4ae",
-        "1": "#b3cde3",
-        "2": "#ccebc5",
-        "3": "#decbe4",
-        "4": "#fed9a6",
-        "5": "#ffffcc",
-        "6": "#e5d8bd",
-        "7": "#fddaec",
-        "8": "#f2f2f2"
-      }
+      "colors": [
+        "#fbb4ae",
+        "#b3cde3",
+        "#ccebc5",
+        "#decbe4",
+        "#fed9a6",
+        "#ffffcc",
+        "#e5d8bd",
+        "#fddaec",
+        "#f2f2f2"
+      ]
     },
-    "brewer_pastel2": {
+    {
       "name": "粉彩2",
       "name_en": "Pastel2",
-      "type": "qualitative",
-      "colors": {
-        "0": "#b3e2cd",
-        "1": "#fdcdac",
-        "2": "#cbd5e8",
-        "3": "#f4cae4",
-        "4": "#e6f5c9",
-        "5": "#fff2ae",
-        "6": "#f1e2cc",
-        "7": "#cccccc"
-      }
+      "colors": [
+        "#b3e2cd",
+        "#fdcdac",
+        "#cbd5e8",
+        "#f4cae4",
+        "#e6f5c9",
+        "#fff2ae",
+        "#f1e2cc",
+        "#cccccc"
+      ]
     }
-  }
+  ],
+  "groups": [
+    {
+      "name": "顺序色-单色系",
+      "indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "name": "顺序色-蓝绿紫",
+      "indices": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "name": "顺序色-暖色系",
+      "indices": [
+        12,
+        13,
+        14,
+        15,
+        16,
+        17
+      ]
+    },
+    {
+      "name": "发散色-对比",
+      "indices": [
+        18,
+        19,
+        20,
+        21,
+        22
+      ]
+    },
+    {
+      "name": "发散色-光谱",
+      "indices": [
+        23,
+        24,
+        25,
+        26
+      ]
+    },
+    {
+      "name": "定性色-分类",
+      "indices": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32
+      ]
+    },
+    {
+      "name": "定性色-粉彩",
+      "indices": [
+        33,
+        34
+      ]
+    }
+  ]
 }

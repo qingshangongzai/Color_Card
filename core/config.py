@@ -1,5 +1,6 @@
 # 标准库导入
 import json
+import logging
 import shutil
 import uuid
 from datetime import datetime
@@ -8,7 +9,15 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # 项目模块导入
 from version import version_manager
-from core.color import hex_to_rgb, get_color_info
+
+
+# 创建模块级日志记录器
+logger = logging.getLogger(__name__)
+
+
+class ConfigLoadError(Exception):
+    """配置文件加载错误"""
+    pass
 
 
 class ConfigManager:
@@ -52,8 +61,8 @@ class ConfigManager:
                 "histogram_scaling_mode": "adaptive",
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
-                "svg_mapping_mode": "intelligent",
-                "color_wheel_labels_visible": True
+                "color_wheel_labels_visible": True,
+                "language": "ZW_JT"
             },
             "scheme": {
                 "default_scheme": "monochromatic",
@@ -65,7 +74,8 @@ class ConfigManager:
                 "height": 660,
                 "is_maximized": False
             },
-            "favorites": []
+            "favorites": [],
+            "scene_templates": {}
         }
 
     def load(self) -> Dict[str, Any]:
@@ -88,8 +98,8 @@ class ConfigManager:
             self._merge_config(self._config, loaded_config)
 
         except (json.JSONDecodeError, IOError, OSError) as e:
-            print(f"加载配置文件失败: {e}")
-            # 使用默认配置
+            logger.error(f"加载配置文件失败: {e}")
+            raise ConfigLoadError(f"无法加载配置文件: {e}") from e
 
         return self._config
 
@@ -230,13 +240,36 @@ class ConfigManager:
         """
         self._config["window"] = window_config
 
-    def get_favorites(self) -> list:
+    def get_favorites(self) -> List[Dict[str, Any]]:
         """获取收藏列表
 
         Returns:
-            list: 收藏配色方案列表
+            List[Dict[str, Any]]: 收藏配色方案列表
         """
         return self._config.get("favorites", [])
+
+    def get_favorite(self, favorite_id: str) -> Optional[Dict[str, Any]]:
+        """获取单个收藏项
+
+        Args:
+            favorite_id: 收藏ID或名称（当没有id时）
+
+        Returns:
+            Optional[Dict[str, Any]]: 收藏数据字典，未找到返回None
+        """
+        favorites = self._config.get("favorites", [])
+
+        # 先尝试根据id查找
+        for favorite in favorites:
+            if favorite.get("id") == favorite_id:
+                return favorite
+
+        # 如果没有找到，尝试根据name查找（兼容旧数据）
+        for favorite in favorites:
+            if favorite.get("name") == favorite_id:
+                return favorite
+
+        return None
 
     def add_favorite(self, favorite_data: Dict[str, Any]) -> str:
         """添加收藏
@@ -263,7 +296,7 @@ class ConfigManager:
         """删除收藏
 
         Args:
-            favorite_id: 收藏ID
+            favorite_id: 收藏ID或名称（当没有id时）
 
         Returns:
             bool: 是否删除成功
@@ -273,7 +306,13 @@ class ConfigManager:
 
         favorites = self._config["favorites"]
         original_count = len(favorites)
+
+        # 先尝试根据id删除
         self._config["favorites"] = [f for f in favorites if f.get("id") != favorite_id]
+
+        # 如果没有删除任何项，尝试根据name删除（兼容旧数据）
+        if len(self._config["favorites"]) == original_count:
+            self._config["favorites"] = [f for f in favorites if f.get("name") != favorite_id]
 
         return len(self._config["favorites"]) < original_count
 
@@ -302,125 +341,15 @@ class ConfigManager:
         """清空所有收藏"""
         self._config["favorites"] = []
 
-    def export_favorites(self, file_path: str) -> bool:
-        """导出收藏到文件
+    def set_favorites(self, favorites: List[Dict[str, Any]]) -> None:
+        """设置收藏列表（用于批量替换）
 
         Args:
-            file_path: 导出文件路径
-
-        Returns:
-            bool: 是否导出成功
+            favorites: 收藏列表
         """
-        try:
-            favorites = self.get_favorites()
-            now = datetime.now()
-            palette_id = f"user_palettes_{now.strftime('%Y%m%d_%H%M%S')}"
-            palettes = []
-            for fav in favorites:
-                colors = fav.get("colors", [])
-                hex_colors = []
-                for color_info in colors:
-                    if isinstance(color_info, dict):
-                        hex_color = color_info.get("hex", "")
-                        if hex_color:
-                            hex_colors.append(hex_color)
-                    elif isinstance(color_info, str):
-                        hex_colors.append(color_info)
-                if hex_colors:
-                    palettes.append({
-                        "name": fav.get("name", "未命名"),
-                        "colors": hex_colors
-                    })
-            export_data = {
-                "version": "1.0",
-                "id": palette_id,
-                "name": "",
-                "name_zh": "",
-                "description": "",
-                "author": "",
-                "created_at": now.isoformat(),
-                "category": "user_palette",
-                "palettes": palettes
-            }
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(export_data, f, ensure_ascii=False, indent=4)
-            return True
-        except (IOError, OSError) as e:
-            print(f"导出收藏失败: {e}")
-            return False
+        self._config["favorites"] = favorites
 
-    def import_favorites(self, file_path: str, mode: str = 'append') -> tuple:
-        """从文件导入收藏
-
-        Args:
-            file_path: 导入文件路径
-            mode: 导入模式，'append' 追加到现有收藏，'replace' 替换现有收藏
-
-        Returns:
-            tuple: (是否成功, 导入数量, 错误信息)
-        """
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                import_data = json.load(f)
-
-            if not isinstance(import_data, dict):
-                return False, 0, "文件格式错误：根对象必须是字典"
-
-            palettes = import_data.get("palettes", [])
-            if not isinstance(palettes, list):
-                return False, 0, "文件格式错误：palettes 必须是列表"
-
-            if not palettes:
-                return False, 0, "文件中没有配色数据"
-
-            valid_favorites = []
-            for palette in palettes:
-                if not isinstance(palette, dict):
-                    continue
-                colors_data = palette.get("colors", [])
-                if not isinstance(colors_data, list) or not colors_data:
-                    continue
-                colors = []
-                for hex_color in colors_data:
-                    if isinstance(hex_color, str) and hex_color.startswith('#'):
-                        try:
-                            r, g, b = hex_to_rgb(hex_color)
-                            color_info = get_color_info(r, g, b)
-                            colors.append(color_info)
-                        except Exception:
-                            colors.append({"hex": hex_color, "rgb": (0, 0, 0)})
-                if colors:
-                    favorite_data = {
-                        "id": str(uuid.uuid4()),
-                        "name": palette.get("name", "未命名"),
-                        "colors": colors,
-                        "created_at": datetime.now().isoformat(),
-                        "source": "import"
-                    }
-                    valid_favorites.append(favorite_data)
-
-            if not valid_favorites:
-                return False, 0, "没有有效的配色数据"
-
-            if mode == 'replace':
-                self._config["favorites"] = valid_favorites
-            else:
-                existing_ids = {f.get("id") for f in self._config.get("favorites", [])}
-                for fav in valid_favorites:
-                    if fav.get("id") not in existing_ids:
-                        self._config["favorites"].append(fav)
-                        existing_ids.add(fav.get("id"))
-
-            return True, len(valid_favorites), ""
-
-        except json.JSONDecodeError as e:
-            return False, 0, f"JSON 解析错误: {e}"
-        except (IOError, OSError) as e:
-            return False, 0, f"文件读取错误: {e}"
-        except Exception as e:
-            return False, 0, f"导入失败: {e}"
-
-    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: dict) -> bool:
+    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: Dict[str, Any]) -> bool:
         """更新收藏中的颜色
 
         Args:
@@ -444,7 +373,7 @@ class ConfigManager:
 
         return False
 
-    def update_favorite(self, favorite_id: str, palette_data: dict) -> bool:
+    def update_favorite(self, favorite_id: str, palette_data: Dict[str, Any]) -> bool:
         """更新整个收藏配色
 
         Args:
@@ -460,12 +389,80 @@ class ConfigManager:
         favorites = self._config["favorites"]
         for fav in favorites:
             if fav.get("id") == favorite_id:
-                # 更新名称和颜色，保留ID和创建时间
                 fav['name'] = palette_data.get('name', fav.get('name', ''))
                 fav['colors'] = palette_data.get('colors', fav.get('colors', []))
                 return True
 
         return False
+
+    def get_scene_templates(self) -> Dict[str, List[Dict[str, Any]]]:
+        """获取用户场景模板索引
+
+        Returns:
+            Dict[str, List[Dict[str, Any]]]: 场景模板索引字典
+        """
+        return self._config.get("scene_templates", {})
+
+    def add_scene_template(self, scene_type: str, template_data: Dict[str, Any]) -> bool:
+        """添加场景模板
+
+        Args:
+            scene_type: 场景类型ID
+            template_data: 模板数据（包含 path, name, added_at）
+
+        Returns:
+            bool: 是否添加成功
+        """
+        if "scene_templates" not in self._config:
+            self._config["scene_templates"] = {}
+
+        if scene_type not in self._config["scene_templates"]:
+            self._config["scene_templates"][scene_type] = []
+
+        templates = self._config["scene_templates"][scene_type]
+        template_path = template_data.get("path", "")
+
+        if any(t.get("path") == template_path for t in templates):
+            return False
+
+        templates.append(template_data)
+        return True
+
+    def remove_scene_template(self, scene_type: str, template_path: str) -> bool:
+        """移除场景模板
+
+        Args:
+            scene_type: 场景类型ID
+            template_path: 模板路径
+
+        Returns:
+            bool: 是否移除成功
+        """
+        if "scene_templates" not in self._config:
+            return False
+
+        if scene_type not in self._config["scene_templates"]:
+            return False
+
+        templates = self._config["scene_templates"][scene_type]
+        original_count = len(templates)
+        self._config["scene_templates"][scene_type] = [
+            t for t in templates if t.get("path") != template_path
+        ]
+
+        return len(self._config["scene_templates"][scene_type]) < original_count
+
+    def get_scene_templates_by_type(self, scene_type: str) -> List[Dict[str, Any]]:
+        """获取指定场景类型的模板列表
+
+        Args:
+            scene_type: 场景类型ID
+
+        Returns:
+            List[Dict[str, Any]]: 模板列表
+        """
+        templates = self._config.get("scene_templates", {})
+        return templates.get(scene_type, [])
 
 
 class SceneConfigManager:
@@ -824,3 +821,159 @@ def get_scene_config_manager() -> SceneConfigManager:
     if _scene_config_manager is None:
         _scene_config_manager = SceneConfigManager()
     return _scene_config_manager
+
+
+class SceneTypeManager:
+    """场景类型管理器 - 从 scenes_data/ 目录加载场景配置和SVG模板"""
+
+    SCENES_DATA_DIR = "scenes_data"
+    SCENE_TYPES_FILE = "scene_types.json"
+
+    def __init__(self) -> None:
+        """初始化场景类型管理器"""
+        self._scenes_data_dir: Path = self._get_scenes_data_dir()
+        self._scene_types: List[Dict[str, Any]] = []
+        self._loaded: bool = False
+
+    def _get_scenes_data_dir(self) -> Path:
+        """获取 scenes_data 目录路径
+
+        Returns:
+            Path: scenes_data 目录的完整路径
+        """
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent
+        return project_root / self.SCENES_DATA_DIR
+
+    def _ensure_loaded(self) -> None:
+        """确保场景数据已加载（延迟加载）"""
+        if not self._loaded:
+            self._load_scene_types()
+            self._loaded = True
+
+    def _load_scene_types(self) -> None:
+        """从 scene_types.json 加载场景类型"""
+        scene_types_file = self._scenes_data_dir / self.SCENE_TYPES_FILE
+
+        if not scene_types_file.exists():
+            print(f"场景类型配置文件不存在: {scene_types_file}")
+            self._scene_types = []
+            return
+
+        try:
+            with open(scene_types_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            self._scene_types = data.get("scene_types", [])
+            print(f"已加载 {len(self._scene_types)} 个场景类型")
+        except (json.JSONDecodeError, IOError, OSError) as e:
+            print(f"加载场景类型配置失败: {e}")
+            self._scene_types = []
+
+    def get_all_scene_types(self) -> List[Dict[str, Any]]:
+        """获取所有场景类型配置
+
+        Returns:
+            List[Dict[str, Any]]: 场景类型配置列表
+        """
+        self._ensure_loaded()
+        return self._scene_types.copy()
+
+    def get_scene_type_by_id(self, scene_id: str) -> Optional[Dict[str, Any]]:
+        """根据ID获取场景类型配置
+
+        Args:
+            scene_id: 场景类型ID
+
+        Returns:
+            Optional[Dict[str, Any]]: 场景类型配置，如果不存在则返回None
+        """
+        self._ensure_loaded()
+        for scene_type in self._scene_types:
+            if scene_type.get("id") == scene_id:
+                return scene_type.copy()
+        return None
+
+    def get_builtin_svg_path(self, scene_type: str) -> Optional[str]:
+        """获取内置SVG模板路径
+
+        Args:
+            scene_type: 场景类型ID（如 'ui', 'web'）
+
+        Returns:
+            str: SVG文件路径，如果不存在则返回None
+        """
+        svg_path = self._scenes_data_dir / scene_type / "default.svg"
+        if svg_path.exists():
+            return str(svg_path)
+        return None
+
+    def get_layout_config(self, scene_type: str) -> Dict[str, Any]:
+        """加载场景的布局配置
+
+        Args:
+            scene_type: 场景类型ID
+
+        Returns:
+            dict: 布局配置字典
+        """
+        layout_file = self._scenes_data_dir / scene_type / "layout.json"
+
+        if not layout_file.exists():
+            return {}
+
+        try:
+            with open(layout_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError, OSError) as e:
+            print(f"加载布局配置失败: {e}")
+            return {}
+
+    def get_all_templates(self, scene_type: str) -> List[Dict[str, Any]]:
+        """获取场景类型的所有模板（内置 + 用户模板）
+
+        Args:
+            scene_type: 场景类型ID
+
+        Returns:
+            List[Dict[str, Any]]: 模板列表，每个模板包含 path, is_builtin 字段
+        """
+        templates = []
+
+        # 内置模板 - 加载场景目录下所有svg文件
+        scene_dir = self._scenes_data_dir / scene_type
+        if scene_dir.exists():
+            # 获取所有svg文件，按文件名排序
+            svg_files = sorted(scene_dir.glob("*.svg"))
+            for svg_path in svg_files:
+                templates.append({
+                    "path": str(svg_path),
+                    "is_builtin": True
+                })
+
+        # 用户模板
+        config_manager = get_config_manager()
+        user_templates = config_manager.get_scene_templates_by_type(scene_type)
+        for template in user_templates:
+            template_path = template.get("path", "")
+            if template_path and Path(template_path).exists():
+                templates.append({
+                    "path": template_path,
+                    "is_builtin": False
+                })
+
+        return templates
+
+
+_scene_type_manager: Optional[SceneTypeManager] = None
+
+
+def get_scene_type_manager() -> SceneTypeManager:
+    """获取全局场景类型管理器实例
+
+    Returns:
+        SceneTypeManager: 场景类型管理器实例
+    """
+    global _scene_type_manager
+    if _scene_type_manager is None:
+        _scene_type_manager = SceneTypeManager()
+    return _scene_type_manager

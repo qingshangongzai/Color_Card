@@ -1,0 +1,39 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f8f6f3"/>
+
+  <!-- 有机形状背景斑点 -->
+  <path id="blob-1" class="secondary" d="M50 80 Q30 50 60 40 Q90 30 100 60 Q110 90 80 100 Q50 110 50 80" fill="#d4c4b5" opacity="0.6"/>
+  <path id="blob-2" class="accent" d="M320 50 Q300 20 340 15 Q380 10 390 45 Q400 80 360 85 Q320 90 320 50" fill="#e8b4b4" opacity="0.5"/>
+  <path id="blob-3" class="primary" d="M280 200 Q260 170 300 160 Q340 150 350 185 Q360 220 320 230 Q280 240 280 200" fill="#c9b8a8" opacity="0.4"/>
+
+  <!-- 主叶子 - 左上方 -->
+  <path id="leaf-main-1" class="primary" d="M80 150 Q60 100 100 80 Q140 60 160 100 Q180 140 140 160 Q100 180 80 150" fill="#8b7355" opacity="0.8"/>
+  <path id="leaf-vein-1" class="stroke" d="M120 120 Q130 110 140 100 M120 120 Q110 130 100 140 M120 120 Q125 135 130 150" stroke="#6b5344" stroke-width="1.5" fill="none" opacity="0.6"/>
+
+  <!-- 主叶子 - 右上方 -->
+  <path id="leaf-main-2" class="accent" d="M280 120 Q300 70 340 90 Q380 110 360 150 Q340 190 300 170 Q260 150 280 120" fill="#d4a5a5" opacity="0.85"/>
+  <path id="leaf-vein-2" class="stroke" d="M320 130 Q330 120 340 110 M320 130 Q310 140 300 150 M320 130 Q325 145 330 160" stroke="#b08080" stroke-width="1.5" fill="none" opacity="0.6"/>
+
+  <!-- 细长叶子 - 中间 -->
+  <path id="leaf-slender-1" class="secondary" d="M180 200 Q170 140 200 100 Q230 60 220 120 Q210 180 200 220 Q190 260 180 200" fill="#a89080" opacity="0.7"/>
+  <path id="leaf-slender-line" class="stroke" d="M200 100 Q205 150 200 220" stroke="#8a7060" stroke-width="2" fill="none" opacity="0.5"/>
+
+  <!-- 小圆叶装饰 -->
+  <ellipse id="leaf-small-1" class="accent" cx="60" cy="220" rx="25" ry="35" fill="#e5c4c4" transform="rotate(-30 60 220)" opacity="0.7"/>
+  <ellipse id="leaf-small-2" class="primary" cx="340" cy="240" rx="20" ry="30" fill="#b8a090" transform="rotate(20 340 240)" opacity="0.7"/>
+
+  <!-- 线条装饰元素 -->
+  <path id="line-deco-1" class="text" d="M40 40 Q50 35 60 40 Q70 45 80 40" stroke="#666666" stroke-width="2" fill="none" opacity="0.4"/>
+  <path id="line-deco-2" class="text" d="M350 260 Q360 255 370 260 Q380 265 390 260" stroke="#666666" stroke-width="2" fill="none" opacity="0.4"/>
+
+  <!-- 点状装饰 -->
+  <circle id="dot-1" class="accent" cx="150" cy="50" r="4" fill="#d4a5a5" opacity="0.6"/>
+  <circle id="dot-2" class="accent" cx="165" cy="45" r="3" fill="#d4a5a5" opacity="0.5"/>
+  <circle id="dot-3" class="accent" cx="155" cy="60" r="2.5" fill="#d4a5a5" opacity="0.4"/>
+  <circle id="dot-4" class="primary" cx="250" cy="250" r="4" fill="#8b7355" opacity="0.5"/>
+  <circle id="dot-5" class="primary" cx="265" cy="255" r="3" fill="#8b7355" opacity="0.4"/>
+
+  <!-- 波浪线条装饰 -->
+  <path id="wave-1" class="secondary" d="M20 280 Q40 270 60 280 Q80 290 100 280" stroke="#a89080" stroke-width="2" fill="none" opacity="0.5"/>
+  <path id="wave-2" class="secondary" d="M300 280 Q320 270 340 280 Q360 290 380 280" stroke="#a89080" stroke-width="2" fill="none" opacity="0.5"/>
+</svg>

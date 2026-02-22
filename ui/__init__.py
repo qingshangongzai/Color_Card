@@ -15,39 +15,42 @@ from .histograms import (
 from .color_picker import ColorPicker
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .zoom_viewer import ZoomViewer
-from .interfaces import ColorExtractInterface, LuminanceExtractInterface, SettingsInterface, ColorGenerationInterface, PaletteManagementInterface, PresetColorInterface, ColorPreviewInterface
-from .generation_widgets import GenerationColorInfoCard, GenerationColorPanel
-from .palette_management_widgets import PaletteManagementCard, PaletteManagementList
-from .preview_widgets import (
+from .color_extract import ColorExtractInterface
+from .luminance_extract import LuminanceExtractInterface
+from .color_generation import ColorGenerationInterface, GenerationColorInfoCard, GenerationColorPanel
+from .palette_management import (
+    PaletteManagementInterface,
+    PaletteManagementCard, PaletteManagementList,
+    PaletteManagementColorCard
+)
+from .preset_color import PresetColorInterface
+from .settings import SettingsInterface
+from .color_preview import (
+    ColorPreviewInterface,
     DraggableColorDot, ColorDotBar,
-    IllustrationPreview, TypographyPreview,
-    PreviewToolbar, MixedPreviewPanel
+    PreviewToolbar, MixedPreviewPanel,
+    BaseLayout, SingleLayout, ScrollVLayout,
+    ScrollHLayout, GridLayout, MixedLayout, LayoutFactory
 )
 
 __all__ = [
-    # 主窗口
     'MainWindow',
-    # 画布
     'BaseCanvas',
     'ImageCanvas',
     'LuminanceCanvas',
-    # 卡片
     'BaseCard',
     'BaseCardPanel',
     'ColorCard',
     'ColorCardPanel',
     'LuminanceCard',
     'LuminanceCardPanel',
-    # 控件
     'ColorPicker',
     'HSBColorWheel',
     'InteractiveColorWheel',
     'ZoomViewer',
-    # 直方图
     'BaseHistogram',
     'LuminanceHistogramWidget',
     'RGBHistogramWidget',
-    # 界面
     'ColorExtractInterface',
     'LuminanceExtractInterface',
     'SettingsInterface',
@@ -55,17 +58,20 @@ __all__ = [
     'PaletteManagementInterface',
     'PresetColorInterface',
     'ColorPreviewInterface',
-    # 配色生成组件
     'GenerationColorInfoCard',
     'GenerationColorPanel',
-    # 配色管理组件
     'PaletteManagementCard',
     'PaletteManagementList',
-    # 配色预览组件
+    'PaletteManagementColorCard',
     'DraggableColorDot',
     'ColorDotBar',
-    'IllustrationPreview',
-    'TypographyPreview',
     'PreviewToolbar',
     'MixedPreviewPanel',
+    'BaseLayout',
+    'SingleLayout',
+    'ScrollVLayout',
+    'ScrollHLayout',
+    'GridLayout',
+    'MixedLayout',
+    'LayoutFactory',
 ]
