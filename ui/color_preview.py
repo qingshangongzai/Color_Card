@@ -1424,6 +1424,12 @@ class MixedPreviewPanel(QWidget):
         Args:
             template_path: 被删除的模板路径
         """
+        if self._current_scene == "custom":
+            self._custom_svg_path = None
+            self._current_svg_path = None
+            self.set_scene(self._current_scene)
+            return
+
         success, message = self._preview_service.remove_user_template(
             self._current_scene, template_path
         )
@@ -1437,6 +1443,7 @@ class MixedPreviewPanel(QWidget):
         """创建空的SVG预览（用于 custom 场景）"""
         self._svg_preview = SVGPreviewWidget(parent=self)
         self._svg_preview.set_colors(self._colors)
+        self._svg_preview.delete_requested.connect(self._on_template_deleted)
         self._main_layout.addWidget(self._svg_preview)
         self._current_layout = None
 
@@ -1782,6 +1789,7 @@ class ColorPreviewInterface(QWidget):
         if svg_preview.load_svg(file_path):
             self._current_svg_path = file_path
             self.preview_panel.set_custom_svg_path(file_path)
+            svg_preview.set_template_info(False, file_path)
             svg_preview.set_colors(self._current_colors)
 
             InfoBar.success(
@@ -1832,10 +1840,12 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
+        default_name = self._preview_service.generate_export_filename(tr('color_preview.export_default_name'))
+
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             tr('color_preview.export_svg'),
-            tr('color_preview.export_svg_default'),
+            default_name,
             tr('color_preview.svg_filter')
         )
 
