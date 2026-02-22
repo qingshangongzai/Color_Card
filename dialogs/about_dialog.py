@@ -307,6 +307,12 @@ class AboutDialog(QDialog):
     许可证：MIT
     项目地址：https://github.com/brentvollebregt/auto-py-to-exe
 
+  • 本程序使用 PyInstaller 进行打包（auto-py-to-exe 的底层引擎）
+    版权所有：PyInstaller Development Team
+    许可证：GPL-2.0+ with Bootloader Exception
+    项目地址：https://github.com/pyinstaller/pyinstaller
+    官网：https://pyinstaller.org/
+
   • 本程序使用 UPX 工具压缩可执行文件体积
     版权所有：Markus Oberhumer, Laszlo Molnar, John Reiser
     许可证：GPL-2.0+ with special exceptions
