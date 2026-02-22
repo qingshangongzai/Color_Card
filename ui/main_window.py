@@ -1,3 +1,6 @@
+# 标准库导入
+from typing import List, Dict, Any
+
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
@@ -442,7 +445,7 @@ class MainWindow(FluentWindow):
         if hasattr(self, 'color_preview_interface'):
             self.color_preview_interface.refresh_favorites()
 
-    def show_color_preview(self, colors: list):
+    def show_color_preview(self, colors: List[str]):
         """跳转到配色预览页面并显示指定配色
 
         Args:
@@ -470,7 +473,7 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
-    def _on_preset_color_preview(self, preview_data: dict):
+    def _on_preset_color_preview(self, preview_data: Dict[str, Any]):
         """处理内置色彩界面的预览请求
 
         Args:

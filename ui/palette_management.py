@@ -1,6 +1,7 @@
 # 标准库导入
 import math
 from datetime import datetime
+from typing import List, Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -37,7 +38,7 @@ class FavoriteGroupLoaderThread(BaseBatchLoader):
     
     data_ready = Signal(int, list)
     
-    def __init__(self, favorites: list, group_indices: list, batch_size: int = 10, parent=None):
+    def __init__(self, favorites: List[Dict[str, Any]], group_indices: List[int], batch_size: int = 10, parent=None):
         """初始化加载线程
         
         Args:
@@ -456,14 +457,14 @@ class PaletteManagementCard(CardWidget):
     """配色管理卡片（网格排列色卡样式，动态数量）"""
 
     delete_requested = Signal(str)
-    preview_requested = Signal(dict)  # favorite_data (色盲模拟预览)
-    contrast_requested = Signal(dict)  # favorite_data
-    color_changed = Signal(str, int, dict)  # favorite_id, color_index, new_color_info
-    preview_in_panel_requested = Signal(dict)  # favorite_data (在配色预览面板中预览)
-    edit_requested = Signal(dict)  # favorite_data (编辑配色)
-    MAX_COLORS_PER_ROW = 6  # 每行最多显示的颜色数量
+    preview_requested = Signal(dict)
+    contrast_requested = Signal(dict)
+    color_changed = Signal(str, int, dict)
+    preview_in_panel_requested = Signal(dict)
+    edit_requested = Signal(dict)
+    MAX_COLORS_PER_ROW = 6
 
-    def __init__(self, favorite_data: dict, parent=None):
+    def __init__(self, favorite_data: Dict[str, Any], parent=None):
         self._favorite_data = favorite_data
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
@@ -869,7 +870,7 @@ class PaletteManagementList(QWidget):
         
         self.content_layout.addStretch()
 
-    def _start_batch_loading(self, group_indices: list):
+    def _start_batch_loading(self, group_indices: List[int]):
         """启动分批加载
         
         Args:
@@ -882,7 +883,7 @@ class PaletteManagementList(QWidget):
         self._loader.loading_finished.connect(self._on_loading_finished)
         self._loader.start()
 
-    def _on_batch_data_ready(self, batch_idx: int, batch_data: list):
+    def _on_batch_data_ready(self, batch_idx: int, batch_data: List[Dict[str, Any]]):
         """批次数据就绪回调
         
         Args:
@@ -1489,7 +1490,7 @@ class PaletteManagementInterface(QWidget):
         )
         dialog.exec()
 
-    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: dict):
+    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: Dict[str, Any]):
         """收藏颜色变化回调
 
         Args:

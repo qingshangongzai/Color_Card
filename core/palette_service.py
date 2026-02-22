@@ -9,7 +9,7 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal
@@ -146,7 +146,7 @@ class PaletteExporter(QThread):
     # 信号：导出失败
     error = Signal(str)       # 错误信息
 
-    def __init__(self, palettes: list, file_path: str, parent=None):
+    def __init__(self, palettes: List[Dict[str, Any]], file_path: str, parent=None):
         """初始化导出线程
 
         Args:
@@ -299,7 +299,7 @@ class PaletteService(QObject):
         if self._importer is not None and self._importer.isRunning():
             self._importer.cancel()
 
-    def _on_import_finished(self, palettes: list):
+    def _on_import_finished(self, palettes: List[Dict[str, Any]]):
         """导入完成处理
 
         Args:
@@ -358,14 +358,14 @@ class PaletteService(QObject):
             self._exporter = None
 
     @staticmethod
-    def validate_palette(palette: dict) -> Tuple[bool, str]:
+    def validate_palette(palette: Dict[str, Any]) -> Tuple[bool, str]:
         """验证配色数据格式
 
         Args:
             palette: 配色数据字典
 
         Returns:
-            tuple: (是否有效, 错误信息)
+            Tuple[bool, str]: (是否有效, 错误信息)
         """
         if not isinstance(palette, dict):
             return False, "配色数据必须是字典"

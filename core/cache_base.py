@@ -1,6 +1,6 @@
 # 标准库导入
 from collections import OrderedDict
-from typing import Optional, Any
+from typing import Optional, Any, Tuple, Dict
 
 
 class BaseCache:
@@ -27,21 +27,21 @@ class BaseCache:
         self._hits = 0
         self._misses = 0
 
-    def _get_key(self, *args) -> tuple:
+    def _get_key(self, *args) -> Tuple:
         """生成缓存键，子类必须重写
 
         Args:
             *args: 缓存参数
 
         Returns:
-            tuple: 缓存键元组
+            Tuple: 缓存键元组
 
         Raises:
             NotImplementedError: 子类未实现此方法
         """
         raise NotImplementedError("子类必须实现 _get_key 方法")
 
-    def _get_from_cache(self, key: tuple) -> Optional[Any]:
+    def _get_from_cache(self, key: Tuple) -> Optional[Any]:
         """从缓存获取数据，内部方法
 
         Args:
@@ -84,11 +84,11 @@ class BaseCache:
         self._hits = 0
         self._misses = 0
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> Dict[str, Any]:
         """获取缓存统计信息
 
         Returns:
-            dict: 包含命中率、命中次数、未命中次数、缓存大小的字典
+            Dict[str, Any]: 包含命中率、命中次数、未命中次数、缓存大小的字典
         """
         total = self._hits + self._misses
         hit_rate = self._hits / total if total > 0 else 0.0

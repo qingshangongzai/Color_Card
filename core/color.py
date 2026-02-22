@@ -22,7 +22,7 @@ DEFAULT_ANALOGOUS_ANGLE = 30
 DEFAULT_SPLIT_ANGLE = 30
 
 
-def _generate_saturation_steps(base_saturation: float, count: int) -> list:
+def _generate_saturation_steps(base_saturation: float, count: int) -> List[float]:
     """生成饱和度递减序列
 
     Args:
@@ -30,7 +30,7 @@ def _generate_saturation_steps(base_saturation: float, count: int) -> list:
         count: 生成数量
 
     Returns:
-        list: 饱和度列表，所有值不低于 MIN_SATURATION
+        List[float]: 饱和度列表，所有值不低于 MIN_SATURATION
     """
     if count == 4:
         return [
@@ -43,14 +43,14 @@ def _generate_saturation_steps(base_saturation: float, count: int) -> list:
     return [max(MIN_SATURATION, base_saturation - i * step) for i in range(count)]
 
 
-def _generate_brightness_steps(count: int) -> list:
+def _generate_brightness_steps(count: int) -> List[float]:
     """生成明度递减序列
 
     Args:
         count: 生成数量
 
     Returns:
-        list: 明度列表
+        List[float]: 明度列表
     """
     if count == 4:
         return DEFAULT_BRIGHTNESS_STEPS.copy()

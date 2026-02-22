@@ -5,7 +5,7 @@ UI层通过LuminanceService调用业务功能，实现UI与业务逻辑分离。
 """
 
 # 标准库导入
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal
@@ -282,7 +282,7 @@ class LuminanceService(QObject):
         painter.end()
         return highlight_pixmap
 
-    def _on_calculation_finished(self, result: dict):
+    def _on_calculation_finished(self, result: Dict[str, Any]):
         """计算完成处理
 
         Args:

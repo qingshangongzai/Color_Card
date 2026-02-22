@@ -12,7 +12,7 @@
 - 配色预览界面
 """
 # 标准库导入
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Type
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData, QTimer
@@ -374,7 +374,7 @@ class ColorDotBar(QWidget):
 class BasePreviewScene(QWidget):
     """预览场景基类 - 所有预览场景必须继承此类"""
 
-    def __init__(self, scene_config: dict, parent=None):
+    def __init__(self, scene_config: Dict[str, Any], parent=None):
         """初始化基类
 
         Args:
@@ -410,12 +410,12 @@ class BasePreviewScene(QWidget):
         """获取场景类型"""
         return self._scene_type
 
-    def get_scene_config(self) -> dict:
+    def get_scene_config(self) -> Dict[str, Any]:
         """获取场景配置"""
         return self._config.copy()
 
     @classmethod
-    def from_config(cls, config: dict, parent=None):
+    def from_config(cls, config: Dict[str, Any], parent=None):
         """从配置创建实例 - 工厂方法
 
         Args:
@@ -435,10 +435,10 @@ class BasePreviewScene(QWidget):
 class PreviewSceneFactory:
     """预览场景工厂 - 根据配置动态创建场景实例"""
 
-    _registry: dict = {}
+    _registry: Dict[str, Type['BasePreviewScene']] = {}
 
     @classmethod
-    def register(cls, scene_type: str, scene_class: type):
+    def register(cls, scene_type: str, scene_class: Type['BasePreviewScene']) -> None:
         """注册场景类型
 
         Args:
@@ -451,7 +451,7 @@ class PreviewSceneFactory:
         print(f"已注册场景类型: {scene_type} -> {scene_class.__name__}")
 
     @classmethod
-    def create(cls, scene_config: dict, parent=None) -> BasePreviewScene:
+    def create(cls, scene_config: Dict[str, Any], parent=None) -> 'BasePreviewScene':
         """根据配置创建场景实例
 
         Args:
@@ -509,7 +509,7 @@ class SVGPreviewWidget(BasePreviewScene):
 
     delete_requested = Signal(str)
 
-    def __init__(self, scene_config: dict = None, parent=None):
+    def __init__(self, scene_config: Optional[Dict[str, Any]] = None, parent=None):
         """初始化SVG预览组件
 
         Args:
@@ -778,7 +778,7 @@ class BaseLayout(QWidget):
     current_index_changed = Signal(int)
     template_deleted = Signal(str)
 
-    def __init__(self, templates: list, config: dict, parent=None):
+    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
         super().__init__(parent)
         self._templates: List[str] = templates if templates else []
         self._config: Dict[str, Any] = config if config else {}
@@ -788,13 +788,13 @@ class BaseLayout(QWidget):
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def set_colors(self, colors: list):
+    def set_colors(self, colors: List[str]):
         self._colors = colors.copy() if colors else []
         for svg_widget in self._svg_widgets:
             if svg_widget and hasattr(svg_widget, 'set_colors'):
                 svg_widget.set_colors(self._colors)
 
-    def get_svg_widgets(self) -> list:
+    def get_svg_widgets(self) -> List[Any]:
         return self._svg_widgets
 
     def clear(self):
@@ -842,7 +842,7 @@ class BaseLayout(QWidget):
 class SingleLayout(BaseLayout):
     """单图布局 - 一次显示一个SVG，支持左右切换"""
 
-    def __init__(self, templates: list, config: dict, parent=None):
+    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self._current_index: int = 0
         self.setup_ui()
@@ -985,7 +985,7 @@ class SingleLayout(BaseLayout):
 class ScrollVLayout(BaseLayout):
     """垂直滚动布局 - 多个SVG垂直排列，可滚动"""
 
-    def __init__(self, templates: list, config: dict, parent=None):
+    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
         self.load_templates()
@@ -1142,7 +1142,7 @@ class GridLayout(BaseLayout):
 class MixedLayout(BaseLayout):
     """混合布局 - 左侧2x2网格 + 右侧大图"""
 
-    def __init__(self, templates: list, config: dict, parent=None):
+    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
         self.load_templates()
@@ -1216,7 +1216,7 @@ class LayoutFactory:
     }
 
     @classmethod
-    def create(cls, layout_type: str, templates: list, config: dict, parent=None) -> Optional[BaseLayout]:
+    def create(cls, layout_type: str, templates: List[str], config: Dict[str, Any], parent=None) -> Optional[BaseLayout]:
         layout_class = cls._layout_registry.get(layout_type)
 
         if layout_class is None:
@@ -1233,7 +1233,7 @@ class LayoutFactory:
         return layout_class(templates, config, parent)
 
     @classmethod
-    def register(cls, layout_type: str, layout_class: type):
+    def register(cls, layout_type: str, layout_class: Type[BaseLayout]) -> None:
         if not issubclass(layout_class, BaseLayout):
             raise ValueError(f"布局类必须继承 BaseLayout: {layout_class}")
         cls._layout_registry[layout_type] = layout_class

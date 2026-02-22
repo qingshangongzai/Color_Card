@@ -2,6 +2,7 @@
 import math
 import uuid
 from datetime import datetime
+from typing import List, Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -252,7 +253,7 @@ class PaletteCard(CardWidget):
     favorite_requested = Signal(dict)
     preview_in_panel_requested = Signal(dict)
 
-    def __init__(self, palette_index: int, palette_data: dict, parent=None):
+    def __init__(self, palette_index: int, palette_data: Dict[str, Any], parent=None):
         self._palette_index = palette_index
         self._palette_data = palette_data
         self._colors = palette_data.get("colors", [])
@@ -783,7 +784,7 @@ class PresetColorInterface(QWidget):
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
         self.preset_color_list.update_display_settings(hex_visible, color_modes)
 
-    def _on_preview_in_panel_requested(self, preview_data: dict):
+    def _on_preview_in_panel_requested(self, preview_data: Dict[str, Any]):
         self.preview_in_panel_requested.emit(preview_data)
 
     def update_display_settings(self, hex_visible=None, color_modes=None):

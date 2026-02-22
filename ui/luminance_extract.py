@@ -4,6 +4,8 @@
 """
 
 # 标准库导入
+from typing import Dict, Any
+
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 
@@ -73,7 +75,7 @@ class LuminanceExtractInterface(QWidget):
         self._luminance_service.calculation_finished.connect(self._on_luminance_calculation_finished)
         self._luminance_service.calculation_error.connect(self._on_luminance_calculation_error)
 
-    def _on_luminance_calculation_finished(self, result: dict):
+    def _on_luminance_calculation_finished(self, result: Dict[str, Any]):
         """明度计算完成回调
 
         Args:

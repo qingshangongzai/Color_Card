@@ -719,7 +719,7 @@ class ImageCanvas(BaseCanvas):
         super().__init__(parent, picker_count)
         self.setMouseTracking(True)
 
-        self._pickers: list = []
+        self._pickers: List[ColorPicker] = []
         self._zoom_viewer: Optional[ZoomViewer] = None
         self._active_picker_index: int = -1
 

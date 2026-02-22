@@ -309,14 +309,14 @@ class PreviewService(QObject):
         except Exception:
             return False
 
-    def extract_hex_colors_from_favorite(self, favorite: dict) -> list[str]:
+    def extract_hex_colors_from_favorite(self, favorite: Dict[str, Any]) -> List[str]:
         """从收藏数据中提取 HEX 颜色列表
 
         Args:
             favorite: 收藏数据字典
 
         Returns:
-            list[str]: HEX 颜色列表
+            List[str]: HEX 颜色列表
         """
         colors_data = favorite.get('colors', [])
         hex_colors = []

@@ -240,11 +240,11 @@ class ConfigManager:
         """
         self._config["window"] = window_config
 
-    def get_favorites(self) -> list:
+    def get_favorites(self) -> List[Dict[str, Any]]:
         """获取收藏列表
 
         Returns:
-            list: 收藏配色方案列表
+            List[Dict[str, Any]]: 收藏配色方案列表
         """
         return self._config.get("favorites", [])
 
@@ -341,7 +341,7 @@ class ConfigManager:
         """清空所有收藏"""
         self._config["favorites"] = []
 
-    def set_favorites(self, favorites: list) -> None:
+    def set_favorites(self, favorites: List[Dict[str, Any]]) -> None:
         """设置收藏列表（用于批量替换）
 
         Args:
@@ -349,7 +349,7 @@ class ConfigManager:
         """
         self._config["favorites"] = favorites
 
-    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: dict) -> bool:
+    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: Dict[str, Any]) -> bool:
         """更新收藏中的颜色
 
         Args:
@@ -373,7 +373,7 @@ class ConfigManager:
 
         return False
 
-    def update_favorite(self, favorite_id: str, palette_data: dict) -> bool:
+    def update_favorite(self, favorite_id: str, palette_data: Dict[str, Any]) -> bool:
         """更新整个收藏配色
 
         Args:

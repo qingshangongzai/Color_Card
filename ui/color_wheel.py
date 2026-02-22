@@ -1,5 +1,6 @@
 # 标准库导入
 import math
+from typing import List, Tuple
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -396,7 +397,7 @@ class InteractiveColorWheel(QWidget):
         """
         return self._base_hue, self._base_saturation, self._base_brightness
 
-    def set_scheme_colors(self, colors: list):
+    def set_scheme_colors(self, colors: List[Tuple[float, float, float]]):
         """设置配色颜色点
 
         Args:
@@ -492,14 +493,14 @@ class InteractiveColorWheel(QWidget):
 
         return hue, saturation
 
-    def _get_point_position(self, index: int) -> tuple:
+    def _get_point_position(self, index: int) -> Tuple[int, int]:
         """获取指定索引采样点的位置
 
         Args:
             index: 采样点索引（0为基准点）
 
         Returns:
-            (x, y) 坐标
+            Tuple[int, int]: (x, y) 坐标
         """
         brightness_factor = max(0.1, min(1.0, 1.0 + self._global_brightness / 100.0))
 

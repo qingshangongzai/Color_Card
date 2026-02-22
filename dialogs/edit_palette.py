@@ -1,6 +1,7 @@
 # 标准库导入
 import re
 from datetime import datetime
+from typing import Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -135,7 +136,7 @@ class ColorInputRow(QWidget):
         self._index = index
         self.index_label.setText(f"颜色 {index + 1}")
 
-    def set_color_info(self, color_info: dict):
+    def set_color_info(self, color_info: Dict[str, Any]):
         """设置颜色信息
 
         Args:
