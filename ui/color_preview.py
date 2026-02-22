@@ -1355,7 +1355,9 @@ class MixedPreviewPanel(QWidget):
         self._current_layout: Optional[BaseLayout] = None
         self._svg_preview: Optional[SVGPreviewWidget] = None
         self._custom_svg_path: Optional[str] = None
+        self._preview_service: Optional[PreviewService] = None
         super().__init__(parent)
+        self._preview_service = PreviewService(self)
         self.setup_ui()
 
     def setup_ui(self):
