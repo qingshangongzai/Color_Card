@@ -468,7 +468,7 @@ class ConfigManager:
 class SceneConfigManager:
     """场景配置管理器，处理预览场景配置的加载、保存和导入导出"""
 
-    SCENES_DIR_NAME: str = "preview_scenes"
+    SCENES_DIR_NAME: str = "scenes_data"
     SCENES_FILE_NAME: str = "scenes.json"
     USER_SCENES_DIR_NAME: str = "user_scenes"
 
