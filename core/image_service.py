@@ -19,9 +19,6 @@ from PySide6.QtGui import QImage, QPixmap
 # 增加 PIL 图片像素限制，支持超大图片（约 5 亿像素）
 Image.MAX_IMAGE_PIXELS = 500_000_000
 
-# 项目模块导入
-from .image_memory_manager import get_memory_manager
-
 
 # ==================== 色彩空间检测 ====================
 
@@ -344,7 +341,18 @@ class ImageService(QObject):
         self._loader: Optional[ProgressiveImageLoader] = None
         self._current_path: Optional[str] = None
         self._colorspace_info: Optional[ColorSpaceInfo] = None
-        self._memory_manager = get_memory_manager()
+        self._memory_manager = None
+
+    def _get_memory_manager(self):
+        """延迟获取内存管理器
+        
+        Returns:
+            ImageMemoryManager: 内存管理器实例
+        """
+        if self._memory_manager is None:
+            from .image_memory_manager import get_memory_manager
+            self._memory_manager = get_memory_manager()
+        return self._memory_manager
 
     def load_image_async(self, path: str, display_size: int = 1920) -> None:
         """异步加载图片
@@ -363,7 +371,7 @@ class ImageService(QObject):
         self._colorspace_info = None
 
         # 检查内存管理器中是否已有该图片
-        cached = self._memory_manager.get_image(path)
+        cached = self._get_memory_manager().get_image(path)
         if cached:
             pixmap, image = cached
             self.image_loaded.emit(pixmap, image)
@@ -524,7 +532,7 @@ class ImageService(QObject):
         Returns:
             dict: 内存统计信息
         """
-        return self._memory_manager.get_memory_stats()
+        return self._get_memory_manager().get_memory_stats()
 
 
 from PySide6.QtCore import Qt

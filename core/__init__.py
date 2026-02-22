@@ -94,6 +94,8 @@ from .image_memory_manager import (
     set_memory_limit,
 )
 
+from .service_factory import ServiceFactory
+
 __all__ = [
     'rgb_to_hsb',
     'rgb_to_lab',
@@ -176,4 +178,5 @@ __all__ = [
     'ImageMemoryManager',
     'get_memory_manager',
     'set_memory_limit',
+    'ServiceFactory',
 ]

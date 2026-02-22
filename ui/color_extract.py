@@ -20,7 +20,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, ColorService
+from core import get_color_info, get_config_manager, ServiceFactory
 from utils import tr, get_locale_manager
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
@@ -35,11 +35,21 @@ class ColorExtractInterface(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._config_manager = get_config_manager()
-        self._color_service = ColorService(self)
-        self._setup_color_service_connections()
+        self._color_service = None
         self.setup_ui()
         self.setup_connections()
         get_locale_manager().language_changed.connect(self._on_language_changed)
+
+    def _get_color_service(self):
+        """延迟获取颜色服务
+        
+        Returns:
+            ColorService: 颜色服务实例
+        """
+        if self._color_service is None:
+            self._color_service = ServiceFactory.get_color_service(self)
+            self._setup_color_service_connections()
+        return self._color_service
 
     def _setup_color_service_connections(self):
         """设置颜色服务信号连接"""
@@ -199,7 +209,7 @@ class ColorExtractInterface(QWidget):
             emit_signal: 是否发射清空信号（默认True，从其他面板同步时设为False）
         """
         # 取消颜色提取任务
-        self._color_service.cancel_extraction()
+        self._get_color_service().cancel_extraction()
 
         self.image_canvas.clear_image(emit_signal)
         self.color_card_panel.clear_all()
@@ -315,7 +325,7 @@ class ColorExtractInterface(QWidget):
         count = self._config_manager.get('settings.color_sample_count', 5)
 
         # 使用颜色服务开始提取
-        self._color_service.extract_dominant_colors(image, count=count)
+        self._get_color_service().extract_dominant_colors(image, count=count)
 
     def _on_extraction_started(self):
         """提取开始回调"""

@@ -15,8 +15,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb, get_config_manager
-from core import PaletteService
+from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
 from utils import tr, get_locale_manager, calculate_grid_columns
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
@@ -1049,8 +1048,7 @@ class PaletteManagementInterface(QWidget):
         super().__init__(parent)
         self.setObjectName('paletteManagementInterface')
         self._config_manager = get_config_manager()
-        self._palette_service = PaletteService(self)
-        self._setup_service_connections()
+        self._palette_service = None
         self.setup_ui()
         self._load_favorites()
         self._load_settings()
@@ -1060,6 +1058,17 @@ class PaletteManagementInterface(QWidget):
         locale_manager = get_locale_manager()
         if locale_manager:
             locale_manager.language_changed.connect(self._on_language_changed)
+
+    def _get_palette_service(self):
+        """延迟获取配色服务
+        
+        Returns:
+            PaletteService: 配色服务实例
+        """
+        if self._palette_service is None:
+            self._palette_service = ServiceFactory.get_palette_service(self)
+            self._setup_service_connections()
+        return self._palette_service
 
     def _setup_service_connections(self):
         """设置配色服务信号连接"""
@@ -1206,7 +1215,7 @@ class PaletteManagementInterface(QWidget):
             self._pending_import_mode = 'replace'
 
         # 调用服务开始导入
-        self._palette_service.import_from_file(file_path)
+        self._get_palette_service().import_from_file(file_path)
 
     def _on_import_finished(self, palettes: list):
         """导入完成回调
@@ -1268,7 +1277,7 @@ class PaletteManagementInterface(QWidget):
 
         # 获取收藏列表并调用服务导出
         favorites = self._config_manager.get_favorites()
-        self._palette_service.export_to_file(favorites, file_path)
+        self._get_palette_service().export_to_file(favorites, file_path)
 
     def _on_export_finished(self, file_path: str):
         """导出完成回调

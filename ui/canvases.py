@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ImageService, LuminanceService
+from core import get_luminance, get_zone, ServiceFactory
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -61,7 +61,7 @@ class BaseCanvas(QWidget):
         self._image: Optional[QImage] = None
         self._picker_positions: List[QPoint] = []
         self._picker_rel_positions: List[QPointF] = []
-        self._image_service: ImageService = ImageService(self)
+        self._image_service = None
         self._pending_image_path: Optional[str] = None
         self._picker_count: int = picker_count
         self._is_loading: bool = False  # 是否正在加载
@@ -69,11 +69,19 @@ class BaseCanvas(QWidget):
         # 启用文件拖拽接收
         self.setAcceptDrops(True)
 
-        # 设置ImageService信号连接
-        self._setup_image_service_connections()
-
         # 创建加载状态显示组件
         self._setup_loading_ui()
+
+    def _get_image_service(self):
+        """延迟获取图片服务
+        
+        Returns:
+            ImageService: 图片服务实例
+        """
+        if self._image_service is None:
+            self._image_service = ServiceFactory.get_image_service(self)
+            self._setup_image_service_connections()
+        return self._image_service
 
     def _setup_image_service_connections(self) -> None:
         """设置ImageService信号连接"""
@@ -139,7 +147,7 @@ class BaseCanvas(QWidget):
         self._pending_image_path = image_path
 
         # 使用ImageService加载图片
-        self._image_service.load_image_async(image_path)
+        self._get_image_service().load_image_async(image_path)
 
     def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
         """显示图片就绪的回调
@@ -641,7 +649,7 @@ class BaseCanvas(QWidget):
         self._image = None
 
         # 释放ImageService中的图片内存
-        self._image_service.release_current_image()
+        self._get_image_service().release_current_image()
 
         # 重置相对坐标到默认位置
         for i in range(len(self._picker_rel_positions)):
@@ -1180,7 +1188,7 @@ class LuminanceCanvas(BaseCanvas):
         self._zone_highlight_colors: List[QColor] = get_picker_colors()
 
         # 明度服务
-        self._luminance_service: LuminanceService = LuminanceService(self)
+        self._luminance_service = None
 
         # 创建取色点（初始隐藏）
         for i in range(self._picker_count):
@@ -1195,6 +1203,16 @@ class LuminanceCanvas(BaseCanvas):
             self._picker_zones.append("0-1")
 
         self.update_picker_positions()
+
+    def _get_luminance_service(self):
+        """延迟获取明度服务
+        
+        Returns:
+            LuminanceService: 明度服务实例
+        """
+        if self._luminance_service is None:
+            self._luminance_service = ServiceFactory.get_luminance_service(self)
+        return self._luminance_service
 
     def _setup_display_preview(self) -> None:
         """设置显示预览（阶段1：快速显示）"""
@@ -1364,7 +1382,7 @@ class LuminanceCanvas(BaseCanvas):
         super().clear_image(emit_signal)
 
         # 取消明度服务中的计算任务
-        self._luminance_service.cancel_calculation()
+        self._get_luminance_service().cancel_calculation()
 
         # 隐藏取色点
         for picker in self._pickers:
@@ -1425,7 +1443,7 @@ class LuminanceCanvas(BaseCanvas):
         canvas_size = (self.width(), self.height())
         zone_color = self._zone_highlight_colors[self._highlighted_zone]
 
-        return self._luminance_service.generate_zone_highlight_pixmap(
+        return self._get_luminance_service().generate_zone_highlight_pixmap(
             self._image,
             self._highlighted_zone,
             canvas_size,
