@@ -1,0 +1,375 @@
+{
+  "app": {
+    "name": "取色卡",
+    "name_en": "Color Card",
+    "loading": "啟動中……"
+  },
+  "navigation": {
+    "color_extract": "色彩提取",
+    "luminance_extract": "明度提取",
+    "color_generation": "配色生成",
+    "palette_management": "配色管理",
+    "preset_color": "內置色彩",
+    "color_preview": "配色預覽",
+    "settings": "設置"
+  },
+  "title_bar": {
+    "toggle_theme": "切換深色/淺色模式",
+    "toggle_fullscreen": "全屏/退出全屏 (F11)"
+  },
+  "color_extract": {
+    "favorite": "收藏當前配色",
+    "extract_dominant": "自動提取主色調",
+    "extracting": "提取中...",
+    "show_high_saturation": "顯示高飽和區域",
+    "show_high_brightness": "顯示高明度區域",
+    "select_image": "選擇圖片",
+    "image_filter": "圖片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "luminance_extract": {
+    "select_image": "選擇圖片",
+    "image_filter": "圖片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "color_generation": {
+    "title": "配色生成:",
+    "random": "隨機",
+    "favorite": "收藏",
+    "brightness": "明度調整:",
+    "schemes": {
+      "monochromatic": "同色系",
+      "analogous": "鄰近色",
+      "complementary": "互補色",
+      "split_complementary": "分離補色",
+      "double_complementary": "雙補色"
+    }
+  },
+  "palette_management": {
+    "title": "配色管理",
+    "add": "添加",
+    "import": "導入",
+    "export": "導出",
+    "clear_all": "清空所有",
+    "unnamed": "未命名",
+    "empty_title": "還沒有收藏的配色",
+    "empty_hint": "在色彩提取或配色生成面板點擊收藏按鈕",
+    "import_title": "導入收藏",
+    "export_title": "導出收藏",
+    "json_filter": "JSON 文件 (*.json);;所有文件 (*)"
+  },
+  "color_preview": {
+    "title": "配色預覽",
+    "subtitle": "還在持續完善中",
+    "import_btn": "導入",
+    "export_btn": "導出",
+    "delete": "刪除",
+    "delete_template": "刪除範本",
+    "loading": "載入中...",
+    "import_svg": "導入 SVG 文件",
+    "svg_filter": "SVG 文件 (*.svg);;所有文件 (*)",
+    "import_template": "導入 SVG 範本",
+    "export_svg": "導出 SVG 文件",
+    "export_svg_default": "colored_preview.svg",
+    "export_svg_title": "導出 SVG",
+    "export_default_name": "color_card",
+    "hint_import_colors": "請從配色管理面板導入配色",
+    "prev_svg": "< 上一個",
+    "next_svg": "下一個 >",
+    "page_info": "{current} / {total}"
+  },
+  "color_preview_messages": {
+    "cannot_delete": {
+      "title": "無法刪除",
+      "content": "內置場景，不可刪除"
+    },
+    "cannot_import": {
+      "title": "無法導入",
+      "content": "當前場景不支援直接導入 SVG，請切換到自訂場景"
+    },
+    "import_success": {
+      "title": "導入成功",
+      "content": "已載入 SVG 文件"
+    },
+    "import_failed": {
+      "title": "導入失敗",
+      "content": "無法載入 SVG 文件"
+    },
+    "cannot_export": {
+      "title": "無法導出",
+      "content": "當前場景不支持導出 SVG"
+    },
+    "no_svg_to_export": {
+      "title": "無法導出",
+      "content": "請先導入 SVG 文件"
+    },
+    "export_success": {
+      "title": "導出成功",
+      "content": "{message}"
+    },
+    "export_failed": {
+      "title": "導出失敗",
+      "content": "{message}"
+    },
+    "template_import_failed": {
+      "title": "導入失敗",
+      "content": "{error}"
+    },
+    "template_import_success": {
+      "title": "導入成功",
+      "content": "{message}"
+    },
+    "no_svg_available": {
+      "title": "無法導出",
+      "content": "當前沒有可導出的SVG"
+    }
+  },
+  "preset_color": {
+    "title": "內置色彩",
+    "random_palette": "隨機配色",
+    "random": "隨機",
+    "desc_random": "從全部配色方案中隨機篩選",
+    "desc_source": "基於 {name}",
+    "copy_success": {
+      "title": "已複製",
+      "content": "顏色值 {value} 已複製到剪貼簿"
+    },
+    "favorite_success": {
+      "title": "已收藏",
+      "content": "配色「{name}」已添加到配色管理"
+    }
+  },
+  "settings": {
+    "title": "設置",
+    "card_display": "色卡顯示設置",
+    "hex_display": "顯示16進制顏色值",
+    "hex_display_desc": "在色彩提取面板的色卡中顯示16進制顏色值和複製按鈕",
+    "color_mode": "色彩模式顯示",
+    "color_mode_desc": "選擇在色卡中顯示的兩種色彩模式",
+    "sampling": "取樣設置",
+    "color_sample_count": "色彩提取取樣點數",
+    "color_sample_count_desc": "設置色彩提取面板的取樣點數量（2-6）",
+    "luminance_sample_count": "明度提取取樣點數",
+    "luminance_sample_count_desc": "設置明度提取面板的取樣點數量（2-6）",
+    "histogram": "直方圖設置",
+    "histogram_scaling": "直方圖縮放模式",
+    "histogram_scaling_desc": "選擇直方圖的縮放方式（線性/自適應）",
+    "histogram_mode": "直方圖顯示模式",
+    "histogram_mode_desc": "選擇色彩提取面板的直方圖類型（RGB通道/色相分布）",
+    "highlight": "區域高亮設置",
+    "saturation_threshold": "高飽和度閾值",
+    "saturation_threshold_desc": "設置高飽和度區域的飽和度閾值",
+    "brightness_threshold": "高明度閾值",
+    "brightness_threshold_desc": "設置高明度區域的明度閾值",
+    "color_wheel": "色環顯示設置",
+    "color_wheel_labels": "顯示色環標簽",
+    "color_wheel_labels_desc": "在色環周圍顯示色相名稱標簽",
+    "color_scheme": "配色生成方案",
+    "color_scheme_mode": "配色方案模式",
+    "color_scheme_mode_desc": "選擇配色方案使用的色彩邏輯（RGB: 光學混色，RYB: 美術混色）",
+    "language": "語言設置",
+    "language_title": "頁面語言",
+    "language_desc": "選擇應用程序的顯示語言",
+    "help": "幫助",
+    "check_update": "檢查更新",
+    "version_update": "版本更新",
+    "version_update_desc": "檢查軟件是否有新版本可用",
+    "about": "關於",
+    "about_title": "關於 Color Card",
+    "about_desc": "查看項目、文件等信息",
+    "linear_scaling": "線性縮放",
+    "adaptive_scaling": "自適應縮放",
+    "rgb_channel": "RGB 通道",
+    "hue_distribution": "色相分布",
+    "rgb_optical": "RGB 光學",
+    "ryb_artistic": "RYB 美術",
+    "switch_on": "開",
+    "switch_off": "關"
+  },
+  "dialogs": {
+    "about": {
+      "title": "關於",
+      "homepage": "個人主頁",
+      "project": "項目地址",
+      "license": "開源許可",
+      "agreement": "用戶協議",
+      "copyright": "版權所有",
+      "license_note": "基於 GPL v3 開源，僅供學習交流使用"
+    },
+    "update": {
+      "title": "發現新版本",
+      "new_version": "有新版本可以更新",
+      "current_version": "當前版本",
+      "latest_version": "最新版本",
+      "cancel": "取消",
+      "release_page": "發行頁面",
+      "info": "提示",
+      "latest_version_content": "當前已是最新版本",
+      "check_failed": "檢查更新失敗",
+      "warning": "警告",
+      "missing_requests": "缺少 requests 庫，無法檢查更新",
+      "version_info": "當前版本: {current} / 最新版本: {latest}",
+      "error_missing_requests": "缺少 requests 庫，無法檢查更新",
+      "error_parse_version": "解析版本資訊失敗",
+      "error_http": "HTTP 錯誤，狀態碼: {status_code}",
+      "error_timeout": "請求超時，請檢查網路連接",
+      "error_connection": "連接失敗，請檢查網路連接",
+      "error_general": "檢查更新時發生錯誤: {error}"
+    },
+    "edit_palette": {
+      "add_title": "添加配色",
+      "edit_title": "編輯配色",
+      "name_label": "配色名稱：",
+      "name_placeholder": "輸入配色名稱...",
+      "colors_title": "顏色列表（至少輸入一個）",
+      "add_color": "添加顏色",
+      "cancel": "取消",
+      "confirm": "確認",
+      "color_label": "顏色"
+    },
+    "colorblind": {
+      "title": "色盲模擬預覽",
+      "window_title": "色盲模擬預覽 - {name}",
+      "scheme_name": "配色方案: {name}",
+      "colorblind_type": "色盲類型:",
+      "original_color": "原顏色",
+      "simulated_color": "模擬顏色",
+      "original": "原始",
+      "simulated": "模擬",
+      "description": "說明: {text}"
+    },
+    "contrast": {
+      "title": "對比度檢查",
+      "window_title": "對比度檢查 - {name}",
+      "scheme_name": "配色方案: {name}",
+      "background_color": "背景色",
+      "text_color": "文本色",
+      "color_index": "顏色 {index}",
+      "swap_colors": "交換顏色",
+      "wcag_level": "WCAG 2.1 等級",
+      "preview_effect": "預覽效果",
+      "normal_text": "一般文字",
+      "large_text": "大號文字",
+      "graphic_element": "圖形元件",
+      "sample_text": "高顏色對比\n可使任何內\n容都更易於\n閱讀",
+      "wcag_description": "WCAG 2.1 標準：普通文字 AA 需要 4.5:1，AAA 需要 7:1；大號文字 AA 需要 3:1，AAA 需要 4.5:1",
+      "pass_aaa": "✓ 通過 AAA",
+      "pass_aa": "✓ 通過 AA",
+      "large_only": "△ 僅大號通過",
+      "fail": "✗ 不通過"
+    },
+    "confirm": {
+      "clear_title": "確認清空",
+      "clear_content": "確定要清空所有收藏的配色嗎？此操作不可復原。",
+      "delete_title": "確認刪除",
+      "delete_content": "確定要刪除「{name}」嗎？此操作不可復原。",
+      "import_mode_title": "選擇導入模式",
+      "import_mode_content": "請選擇導入方式：\n\n點擊「是」追加到現有收藏\n點擊「否」取代現有收藏",
+      "append": "追加",
+      "replace": "取代",
+      "confirm_btn": "確定",
+      "delete_btn": "刪除",
+      "cancel_btn": "取消"
+    }
+  },
+  "messages": {
+    "favorite_failed": {
+      "title": "無法收藏",
+      "content": "請先提取顏色後再收藏"
+    },
+    "favorite_success": {
+      "title": "收藏成功",
+      "content": "已收藏配色：{name}"
+    },
+    "extract_failed": {
+      "title": "無法提取",
+      "content": "請先導入圖片"
+    },
+    "extracting": {
+      "title": "正在提取",
+      "content": "正在分析圖片主色調，請稍候..."
+    },
+    "extract_success": {
+      "title": "提取完成",
+      "content": "已成功提取 {count} 個主色調"
+    },
+    "extract_error": {
+      "title": "提取失敗",
+      "content": "提取過程中發生錯誤: {error}"
+    },
+    "display_failed": {
+      "title": "無法顯示",
+      "content": "請先導入圖片"
+    },
+    "copy_success": {
+      "title": "已複製",
+      "content": "顏色值 {value} 已複製到剪貼簿"
+    },
+    "invalid_input": {
+      "title": "輸入無效",
+      "content": "請輸入有效的16進制顏色值（如 #FF0000）"
+    },
+    "no_colors": {
+      "title": "無法收藏",
+      "content": "沒有可收藏的配色"
+    },
+    "preview_failed": {
+      "title": "無法預覽",
+      "content": "該配色沒有顏色資料"
+    },
+    "preview_invalid": {
+      "title": "無法預覽",
+      "content": "該配色沒有有效的顏色資料"
+    },
+    "import_success": {
+      "title": "導入成功",
+      "content": "成功導入 {count} 個配色"
+    },
+    "import_failed": {
+      "title": "導入失敗",
+      "content": "{error}"
+    },
+    "export_success": {
+      "title": "導出成功",
+      "content": "收藏已導出到：{path}"
+    },
+    "export_failed": {
+      "title": "導出失敗",
+      "content": "{error}"
+    },
+    "add_success": {
+      "title": "添加成功",
+      "content": "配色「{name}」已添加"
+    },
+    "update_success": {
+      "title": "更新成功",
+      "content": "配色「{name}」已更新"
+    },
+    "update_failed": {
+      "title": "更新失敗",
+      "content": "無法找到該配色"
+    },
+    "color_updated": {
+      "title": "顏色已更新",
+      "content": "配色中的顏色已更新為 {hex}"
+    },
+    "check_update_failed": {
+      "title": "檢查更新失敗",
+      "content": "{error}"
+    },
+    "latest_version": {
+      "title": "提示",
+      "content": "當前已是最新版本"
+    },
+    "no_requests": {
+      "title": "提示",
+      "content": "缺少 requests 庫，無法檢查更新"
+    },
+    "palette": "配色"
+  },
+  "context_menu": {
+    "change_image": "更換圖片",
+    "clear_image": "清空圖片"
+  },
+  "common": {
+    "delete": "刪除"
+  }
+}

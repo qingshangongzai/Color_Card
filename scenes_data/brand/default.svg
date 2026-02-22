@@ -1,0 +1,22 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <circle id="logo-circle" class="primary" cx="200" cy="50" r="35" fill="#1a1a1a"/>
+  <text id="logo-icon" class="text" x="200" y="58" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#ff6b6b">B</text>
+  
+  <text id="brand-name" class="text" x="200" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a">BRAND</text>
+  <text id="tagline" class="secondary" x="200" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333333">Your Tagline Here</text>
+  
+  <rect id="card-bg" class="background" x="30" y="155" width="340" height="80" rx="8" fill="#ffffff"/>
+  <rect id="card-bar" class="primary" x="30" y="155" width="12" height="80" rx="4" fill="#1a1a1a"/>
+  
+  <text id="card-name" class="text" x="60" y="185" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#1a1a1a">John Doe</text>
+  <text id="card-title" class="secondary" x="60" y="205" font-family="Arial, sans-serif" font-size="11" fill="#333333">Creative Director</text>
+  <text id="card-contact" class="accent" x="60" y="225" font-family="Arial, sans-serif" font-size="10" fill="#ff6b6b">hello@brand.com</text>
+  
+  <rect id="color-strip-1" class="primary" x="30" y="255" width="64" height="30" fill="#1a1a1a"/>
+  <rect id="color-strip-2" class="secondary" x="98" y="255" width="64" height="30" fill="#333333"/>
+  <rect id="color-strip-3" class="accent" x="166" y="255" width="64" height="30" fill="#ff6b6b"/>
+  <rect id="color-strip-4" class="text" x="234" y="255" width="64" height="30" fill="#666666"/>
+  <rect id="color-strip-5" class="primary" x="302" y="255" width="68" height="30" fill="#1a1a1a"/>
+</svg>

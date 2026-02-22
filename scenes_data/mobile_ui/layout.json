@@ -1,0 +1,7 @@
+{
+  "layout": {
+    "type": "grid_2x2",
+    "item_size": 180,
+    "spacing": 15
+  }
+}

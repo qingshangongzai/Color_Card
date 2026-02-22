@@ -1,0 +1,51 @@
+{
+  "layout": {
+    "type": "scroll_v",
+    "item_size": 200,
+    "spacing": 10
+  },
+  "scenes": [
+    {
+      "id": "default",
+      "name": "企业官网",
+      "file": "default.svg",
+      "description": "通用企业官网首页，包含导航、Hero区域和功能卡片"
+    },
+    {
+      "id": "ecommerce",
+      "name": "电商页面",
+      "file": "ecommerce.svg",
+      "description": "电商产品列表页，包含搜索框、分类标签和产品网格"
+    },
+    {
+      "id": "blog",
+      "name": "博客页面",
+      "file": "blog.svg",
+      "description": "博客文章列表页，包含特色文章和侧边栏标签云"
+    },
+    {
+      "id": "portfolio",
+      "name": "作品集",
+      "file": "portfolio.svg",
+      "description": "设计师作品集页面，极简风格的作品网格展示"
+    },
+    {
+      "id": "dashboard",
+      "name": "数据仪表盘",
+      "file": "dashboard.svg",
+      "description": "网页版数据仪表盘，包含统计卡片、折线图和活动列表"
+    },
+    {
+      "id": "login",
+      "name": "登录页面",
+      "file": "login.svg",
+      "description": "左右分栏式登录页面，包含装饰区域和登录表单"
+    },
+    {
+      "id": "admin_dashboard",
+      "name": "后台仪表盘",
+      "file": "admin_dashboard.svg",
+      "description": "完整的后台管理系统界面，包含侧边栏、日历、用户列表、统计卡片和数据图表"
+    }
+  ]
+}

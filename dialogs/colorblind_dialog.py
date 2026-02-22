@@ -18,14 +18,14 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
+from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from core.colorblind import (
     simulate_colorblind, get_colorblind_info, get_all_colorblind_types
 )
-from ui.theme_colors import (
+from utils.theme_colors import (
     get_dialog_bg_color, get_text_color, get_border_color,
     get_secondary_text_color, get_title_color
 )
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 
 
 class ColorBlock(QWidget):
@@ -104,11 +104,11 @@ class ColorComparisonRow(QWidget):
         info_layout = QVBoxLayout()
         info_layout.setSpacing(4)
         
-        self.original_hex = QLabel("原始: #------")
+        self.original_hex = QLabel(tr('dialogs.colorblind.original') + ": #------")
         self.original_hex.setStyleSheet("font-size: 12px;")
         info_layout.addWidget(self.original_hex)
         
-        self.simulated_hex = QLabel("模拟: #------")
+        self.simulated_hex = QLabel(tr('dialogs.colorblind.simulated') + ": #------")
         self.simulated_hex.setStyleSheet("font-size: 12px;")
         info_layout.addWidget(self.simulated_hex)
         
@@ -136,8 +136,8 @@ class ColorComparisonRow(QWidget):
         original_hex = f"#{original_rgb[0]:02X}{original_rgb[1]:02X}{original_rgb[2]:02X}"
         simulated_hex = f"#{simulated_rgb[0]:02X}{simulated_rgb[1]:02X}{simulated_rgb[2]:02X}"
         
-        self.original_hex.setText(f"原始: {original_hex}")
-        self.simulated_hex.setText(f"模拟: {simulated_hex}")
+        self.original_hex.setText(f"{tr('dialogs.colorblind.original')}: {original_hex}")
+        self.simulated_hex.setText(f"{tr('dialogs.colorblind.simulated')}: {simulated_hex}")
 
 
 class ColorblindPreviewDialog(QDialog):
@@ -159,7 +159,7 @@ class ColorblindPreviewDialog(QDialog):
         self._colors = colors
         self._current_type = 'normal'
         
-        self.setWindowTitle(f"色盲模拟预览 - {scheme_name}")
+        self.setWindowTitle(tr('dialogs.colorblind.window_title', name=scheme_name))
         self.setFixedSize(320, 420)
         
         # 设置窗口图标
@@ -199,12 +199,11 @@ class ColorblindPreviewDialog(QDialog):
         border_color = get_border_color()
         
         # 标题
-        title_label = QLabel("色盲模拟预览")
+        title_label = QLabel(tr('dialogs.colorblind.title'))
         title_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {title_color.name()};")
         main_layout.addWidget(title_label)
         
-        # 配色方案名称
-        name_label = QLabel(f"配色方案: {self._scheme_name}")
+        name_label = QLabel(tr('dialogs.colorblind.scheme_name', name=self._scheme_name))
         name_label.setStyleSheet(f"font-size: 13px; color: {secondary_color.name()};")
         main_layout.addWidget(name_label)
         
@@ -212,7 +211,7 @@ class ColorblindPreviewDialog(QDialog):
         type_layout = QHBoxLayout()
         type_layout.setSpacing(10)
         
-        type_label = QLabel("色盲类型:")
+        type_label = QLabel(tr('dialogs.colorblind.colorblind_type'))
         type_label.setStyleSheet(f"font-size: 13px; color: {text_color.name()};")
         type_layout.addWidget(type_label)
         
@@ -249,7 +248,7 @@ class ColorblindPreviewDialog(QDialog):
         color_area_title_layout.setSpacing(5)
         color_area_title.setFixedWidth(155)
         
-        original_title = QLabel("原颜色")
+        original_title = QLabel(tr('dialogs.colorblind.original_color'))
         original_title.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {text_color.name()};")
         original_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         original_title.setFixedWidth(60)
@@ -259,7 +258,7 @@ class ColorblindPreviewDialog(QDialog):
         arrow_spacer.setFixedWidth(15)
         color_area_title_layout.addWidget(arrow_spacer)
         
-        simulated_title = QLabel("模拟颜色")
+        simulated_title = QLabel(tr('dialogs.colorblind.simulated_color'))
         simulated_title.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {text_color.name()};")
         simulated_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         simulated_title.setFixedWidth(70)
@@ -328,7 +327,7 @@ class ColorblindPreviewDialog(QDialog):
         
         # 更新说明文字
         info = get_colorblind_info(self._current_type)
-        self.description_label.setText(f"说明: {info['description']}")
+        self.description_label.setText(tr('dialogs.colorblind.description', text=info['description']))
     
     def _update_title_bar_theme(self):
         """更新标题栏主题以适配当前主题"""

@@ -2,37 +2,42 @@
 import math
 import uuid
 from datetime import datetime
+from typing import List, Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal, QThread
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel,
     QSizePolicy, QApplication
 )
 from qfluentwidgets import (
     CardWidget, ToolButton, FluentIcon, PushButton,
-    InfoBar, InfoBarPosition, qconfig, ScrollArea
+    InfoBar, InfoBarPosition, qconfig, ScrollArea, ComboBox, SubtitleLabel
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb
+from core import get_color_info, hex_to_rgb, get_config_manager
+from utils import tr, get_locale_manager, calculate_grid_columns
+from core.async_loader import BaseBatchLoader
 from core.color_data import (
-    get_color_source, get_random_palettes, ColorSource
+    get_color_source, get_all_color_sources, get_random_palettes, ColorSource
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from .theme_colors import get_card_background_color
+from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color, get_secondary_text_color
 from utils.platform import is_windows_10
 
 
-class GroupLoaderThread(QThread):
+# =============================================================================
+# 异步加载线程
+# =============================================================================
+
+class GroupLoaderThread(BaseBatchLoader):
     """分组数据异步加载线程
     
     用于大数据量配色组的分批加载，避免阻塞UI主线程。
     """
     
     data_ready = Signal(int, list)
-    batch_finished = Signal()
-    loading_finished = Signal()
     
     def __init__(self, source: ColorSource, group_index: int, batch_size: int = 10, parent=None):
         """初始化加载线程
@@ -43,46 +48,37 @@ class GroupLoaderThread(QThread):
             batch_size: 每批加载数量（默认10）
             parent: 父对象
         """
-        super().__init__(parent)
+        super().__init__(batch_size, parent)
         self._source = source
         self._group_index = group_index
-        self._batch_size = batch_size
-        self._is_cancelled = False
         
         group_info = source.get_group_info(group_index)
         self._total_items = group_info.get("total_items", 0)
     
-    def cancel(self):
-        """请求取消加载"""
-        self._is_cancelled = True
+    def get_total_batches(self) -> int:
+        """获取总批次数"""
+        return math.ceil(self._total_items / self._batch_size)
     
-    def run(self):
-        """分批加载数据"""
-        if self._total_items == 0:
-            self.loading_finished.emit()
-            return
+    def load_batch(self, batch_idx: int) -> list:
+        """加载指定批次的数据
         
-        total_batches = math.ceil(self._total_items / self._batch_size)
-        
-        for batch_idx in range(total_batches):
-            if self._is_cancelled:
-                return
+        Args:
+            batch_idx: 批次索引（从0开始）
             
-            start = batch_idx * self._batch_size
-            data = self._source.get_palettes_for_group_batch(
-                self._group_index, start, self._batch_size
-            )
-            
-            if self._is_cancelled:
-                return
-            
-            self.data_ready.emit(batch_idx, data)
-            self.batch_finished.emit()
-            
-            self.msleep(10)
-        
-        self.loading_finished.emit()
+        Returns:
+            list: 批次数据列表
+        """
+        start = batch_idx * self._batch_size
+        data = self._source.get_palettes_for_group_batch(
+            self._group_index, start, self._batch_size
+        )
+        self.data_ready.emit(batch_idx, data)
+        return data
 
+
+# =============================================================================
+# 预设色彩色卡组件
+# =============================================================================
 
 class PresetColorCard(QWidget):
     """预设色彩面板中的单个色卡组件"""
@@ -195,8 +191,8 @@ class PresetColorCard(QWidget):
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
             InfoBar.success(
-                title="已复制",
-                content=f"颜色值 {self._hex_value} 已复制到剪贴板",
+                title=tr('preset_color.copy_success.title'),
+                content=tr('preset_color.copy_success.content', default='颜色值 {value} 已复制到剪贴板').format(value=self._hex_value),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -247,13 +243,17 @@ class PresetColorCard(QWidget):
         self.mode_container_2.clear_values()
 
 
+# =============================================================================
+# 配色卡片
+# =============================================================================
+
 class PaletteCard(CardWidget):
     """配色卡片（统一展示配色方案）"""
 
     favorite_requested = Signal(dict)
     preview_in_panel_requested = Signal(dict)
 
-    def __init__(self, palette_index: int, palette_data: dict, parent=None):
+    def __init__(self, palette_index: int, palette_data: Dict[str, Any], parent=None):
         self._palette_index = palette_index
         self._palette_data = palette_data
         self._colors = palette_data.get("colors", [])
@@ -342,21 +342,7 @@ class PaletteCard(CardWidget):
 
     @staticmethod
     def _calculate_columns(color_count: int) -> int:
-        if color_count <= 0:
-            return 1
-
-        if color_count % 5 == 0:
-            return 5
-
-        if color_count % 6 == 0:
-            return 6
-
-        if color_count <= 5:
-            return color_count
-        elif color_count <= 10:
-            return 5
-        else:
-            return 6
+        return calculate_grid_columns(color_count)
 
     def _create_color_cards(self, colors: list):
         valid_colors = [c for c in colors if c]
@@ -423,8 +409,8 @@ class PaletteCard(CardWidget):
         self.favorite_requested.emit(favorite_data)
 
         InfoBar.success(
-            title="已收藏",
-            content=f"配色 '{favorite_data['name']}' 已添加到配色管理",
+            title=tr('preset_color.favorite_success.title'),
+            content=tr('preset_color.favorite_success.content', default='配色「{name}」已添加到配色管理').format(name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
@@ -457,6 +443,10 @@ class PaletteCard(CardWidget):
             self.set_color_modes(color_modes)
 
 
+# =============================================================================
+# 预设色彩列表容器
+# =============================================================================
+
 class PresetColorList(QWidget):
     """预设色彩列表容器"""
 
@@ -483,6 +473,14 @@ class PresetColorList(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
+        self._loading_label = QLabel("加载中……")
+        self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._loading_label.setStyleSheet(
+            f"font-size: 14px; color: {get_secondary_text_color().name()}; padding: 10px;"
+        )
+        self._loading_label.setVisible(False)
+        layout.addWidget(self._loading_label)
+
         self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
@@ -502,6 +500,7 @@ class PresetColorList(QWidget):
         layout.addWidget(self.scroll_area)
 
     def _clear_content(self):
+        self._loading_label.setVisible(False)
         self._cancel_loader()
         while self.content_layout.count():
             item = self.content_layout.takeAt(0)
@@ -546,6 +545,7 @@ class PresetColorList(QWidget):
             self._load_palettes(palettes)
 
     def _start_batch_loading(self, source: ColorSource, group_index: int):
+        self._loading_label.setVisible(True)
         self._loader = GroupLoaderThread(
             source, group_index, self.BATCH_SIZE, parent=self
         )
@@ -568,6 +568,7 @@ class PresetColorList(QWidget):
             self._palette_counter += 1
 
     def _on_loading_finished(self):
+        self._loading_label.setVisible(False)
         self.content_layout.addStretch()
         if self._loader is not None:
             self._loader.deleteLater()
@@ -631,4 +632,191 @@ class PresetColorList(QWidget):
             self.set_color_modes(color_modes)
 
     def _update_styles(self):
-        pass
+        if hasattr(self, '_loading_label'):
+            self._loading_label.setStyleSheet(
+                f"font-size: 14px; color: {get_secondary_text_color().name()}; padding: 10px;"
+            )
+
+
+# =============================================================================
+# 预设色彩界面
+# =============================================================================
+
+class PresetColorInterface(QWidget):
+    """内置色彩界面（从JSON动态加载配色源）"""
+
+    favorite_requested = Signal(dict)
+    preview_in_panel_requested = Signal(dict)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setObjectName('presetColorInterface')
+        self._config_manager = get_config_manager()
+        self._current_source = 'random'
+        self._current_group_index = 0
+        self._color_sources = {}
+        self.setup_ui()
+        self._load_settings()
+        self._update_styles()
+        get_locale_manager().language_changed.connect(self._on_language_changed)
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(15)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.title_label = SubtitleLabel(tr('preset_color.title'))
+        header_layout.addWidget(self.title_label)
+
+        self.desc_label = QLabel(tr('preset_color.desc_random'))
+        self.desc_label.setStyleSheet("font-size: 12px; color: gray;")
+        header_layout.addWidget(self.desc_label)
+
+        header_layout.addStretch()
+
+        controls_container = QWidget()
+        controls_container.setFixedWidth(340)
+        controls_layout = QHBoxLayout(controls_container)
+        controls_layout.setSpacing(10)
+        controls_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.source_combo = ComboBox(self)
+        self.source_combo.addItem(tr('preset_color.random_palette'))
+        self.source_combo.setItemData(0, "random")
+
+        all_sources = get_all_color_sources()
+        for i, source in enumerate(all_sources):
+            self.source_combo.addItem(source.name)
+            self.source_combo.setItemData(i + 1, source.id)
+            self._color_sources[source.id] = source
+
+        self.source_combo.setFixedWidth(180)
+        self.source_combo.currentIndexChanged.connect(self._on_source_changed)
+        controls_layout.addWidget(self.source_combo)
+
+        self.group_control_container = QWidget(self)
+        self.group_control_container.setFixedWidth(150)
+        self.group_control_layout = QHBoxLayout(self.group_control_container)
+        self.group_control_layout.setContentsMargins(0, 0, 0, 0)
+        self.group_control_layout.setSpacing(0)
+
+        self.group_combo = ComboBox(self)
+        self.group_combo.setFixedWidth(150)
+        self.group_combo.currentIndexChanged.connect(self._on_group_changed)
+        self.group_control_layout.addWidget(self.group_combo)
+
+        self.random_btn = PushButton(tr('preset_color.random'), self)
+        self.random_btn.setFixedWidth(150)
+        self.random_btn.clicked.connect(self._on_random_palette_clicked)
+        self.random_btn.setVisible(False)
+        self.group_control_layout.addWidget(self.random_btn)
+
+        controls_layout.addWidget(self.group_control_container)
+
+        header_layout.addWidget(controls_container)
+
+        layout.addLayout(header_layout)
+
+        self.preset_color_list = PresetColorList(self)
+        self.preset_color_list.favorite_requested.connect(self.favorite_requested)
+        self.preset_color_list.preview_in_panel_requested.connect(
+            self._on_preview_in_panel_requested
+        )
+        layout.addWidget(self.preset_color_list, stretch=1)
+
+        self.source_combo.setCurrentIndex(0)
+        self.group_combo.setVisible(False)
+        self.random_btn.setVisible(True)
+        self.preset_color_list.set_data_source('random', 10)
+
+    def _setup_group_combo(self, source):
+        self.group_combo.clear()
+        groups = source.get_groups()
+        for i, group in enumerate(groups):
+            self.group_combo.addItem(group["name"])
+            self.group_combo.setItemData(i, i)
+
+    def _on_source_changed(self, index):
+        source_id = self.source_combo.currentData()
+        self._current_source = source_id
+
+        if source_id == 'random':
+            self.desc_label.setText(tr('preset_color.desc_random'))
+            self.group_combo.setVisible(False)
+            self.random_btn.setVisible(True)
+            self.preset_color_list.set_data_source('random', 10)
+        else:
+            source = self._color_sources.get(source_id)
+            if source:
+                self.desc_label.setText(tr('preset_color.desc_source', default='基于 {name}').format(name=source.name))
+                self.group_combo.setVisible(source.has_groups)
+                self.random_btn.setVisible(False)
+                
+                if source.has_groups:
+                    self._setup_group_combo(source)
+                    self._current_group_index = 0
+                    self.group_combo.setCurrentIndex(0)
+                else:
+                    self.group_combo.clear()
+                    self.group_combo.setVisible(False)
+                
+                self.preset_color_list.set_data_source(source_id, 0)
+
+    def _on_random_palette_clicked(self):
+        self.preset_color_list.set_data_source('random', 10)
+
+    def _on_group_changed(self, index):
+        if index < 0:
+            return
+
+        self._current_group_index = index
+        
+        if self._current_source and self._current_source != 'random':
+            self.preset_color_list.set_data_source(self._current_source, index)
+
+    def _load_settings(self):
+        hex_visible = self._config_manager.get('settings.hex_visible', True)
+        color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
+        self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def _on_preview_in_panel_requested(self, preview_data: Dict[str, Any]):
+        self.preview_in_panel_requested.emit(preview_data)
+
+    def update_display_settings(self, hex_visible=None, color_modes=None):
+        self.preset_color_list.update_display_settings(hex_visible, color_modes)
+
+    def _update_styles(self):
+        title_color = get_title_color()
+        self.title_label.setStyleSheet(f"color: {title_color.name()};")
+
+        if is_windows_10():
+            bg_color = get_interface_background_color()
+            self.setStyleSheet(f"""
+                PresetColorInterface {{
+                    background-color: {bg_color.name()};
+                }}
+            """)
+
+    def _on_language_changed(self):
+        """语言切换回调"""
+        self.update_texts()
+
+    def update_texts(self):
+        """更新界面文本"""
+        self.title_label.setText(tr('preset_color.title'))
+        self.desc_label.setText(tr('preset_color.desc_random'))
+        self.random_btn.setText(tr('preset_color.random'))
+        
+        self.source_combo.setItemText(0, tr('preset_color.random_palette'))
+        
+        if self._current_source == 'random':
+            self.desc_label.setText(tr('preset_color.desc_random'))
+        else:
+            source = self._color_sources.get(self._current_source)
+            if source:
+                self.desc_label.setText(tr('preset_color.desc_source', default='基于 {name}').format(name=source.name))

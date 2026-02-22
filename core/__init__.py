@@ -33,7 +33,7 @@ from .color import (
     find_dominant_color_positions,
 )
 
-from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
 
 from .svg_color_mapper import (
     ElementType,
@@ -54,6 +54,47 @@ from .color_data import (
     get_all_palettes,
     get_random_palettes,
 )
+
+from .async_loader import BaseBatchLoader
+
+from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
+
+from .image_mediator import ImageMediator
+
+from .color_service import ColorService, DominantColorExtractor
+
+from .palette_service import PaletteService, PaletteImporter, PaletteExporter
+
+from .image_service import ImageService, ProgressiveImageLoader, ColorSpaceInfo, ColorSpaceDetector
+
+from .luminance_service import LuminanceService, LuminanceCalculator
+
+from .preview_service import PreviewService
+
+from .histogram_service import HistogramService, HistogramCalculator
+
+from .cache_base import BaseCache
+
+from .color_scheme_cache import (
+    ColorSchemeCache,
+    get_color_scheme_cache,
+    clear_color_scheme_cache,
+)
+
+from .histogram_cache import (
+    HistogramCache,
+    get_histogram_cache,
+    clear_histogram_cache,
+    generate_image_fingerprint,
+)
+
+from .image_memory_manager import (
+    ImageMemoryManager,
+    get_memory_manager,
+    set_memory_limit,
+)
+
+from .service_factory import ServiceFactory
 
 __all__ = [
     'rgb_to_hsb',
@@ -90,6 +131,9 @@ __all__ = [
     'get_config_manager',
     'SceneConfigManager',
     'get_scene_config_manager',
+    'SceneTypeManager',
+    'get_scene_type_manager',
+    'ConfigLoadError',
     'ElementType',
     'SVGElementInfo',
     'ColorMappingConfig',
@@ -104,4 +148,35 @@ __all__ = [
     'get_all_color_sources',
     'get_all_palettes',
     'get_random_palettes',
+    'BaseBatchLoader',
+    'GROUPING_THRESHOLDS',
+    'generate_groups',
+    'should_use_batch_loading',
+    'ImageMediator',
+    'ColorService',
+    'DominantColorExtractor',
+    'PaletteService',
+    'PaletteImporter',
+    'PaletteExporter',
+    'ImageService',
+    'ProgressiveImageLoader',
+    'ColorSpaceInfo',
+    'ColorSpaceDetector',
+    'LuminanceService',
+    'LuminanceCalculator',
+    'PreviewService',
+    'HistogramService',
+    'HistogramCalculator',
+    'BaseCache',
+    'ColorSchemeCache',
+    'get_color_scheme_cache',
+    'clear_color_scheme_cache',
+    'HistogramCache',
+    'get_histogram_cache',
+    'clear_histogram_cache',
+    'generate_image_fingerprint',
+    'ImageMemoryManager',
+    'get_memory_manager',
+    'set_memory_limit',
+    'ServiceFactory',
 ]

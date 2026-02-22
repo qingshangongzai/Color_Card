@@ -1,0 +1,375 @@
+{
+  "app": {
+    "name": "取色卡",
+    "name_en": "Color Card",
+    "loading": "Chargement..."
+  },
+  "navigation": {
+    "color_extract": "Extraction de couleurs",
+    "luminance_extract": "Extraction de luminance",
+    "color_generation": "Génération de couleurs",
+    "palette_management": "Gestion des palettes",
+    "preset_color": "Couleurs prédéfinies",
+    "color_preview": "Aperçu des couleurs",
+    "settings": "Paramètres"
+  },
+  "title_bar": {
+    "toggle_theme": "Basculer mode sombre/clair",
+    "toggle_fullscreen": "Plein écran/Quitter plein écran (F11)"
+  },
+  "color_extract": {
+    "favorite": "Enregistrer la palette",
+    "extract_dominant": "Extraire les couleurs dominantes",
+    "extracting": "Extraction...",
+    "show_high_saturation": "Afficher zones haute saturation",
+    "show_high_brightness": "Afficher zones haute luminosité",
+    "select_image": "Sélectionner une image",
+    "image_filter": "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "luminance_extract": {
+    "select_image": "Sélectionner une image",
+    "image_filter": "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "color_generation": {
+    "title": "Schéma de couleurs:",
+    "random": "Aléatoire",
+    "favorite": "Enregistrer",
+    "brightness": "Luminosité:",
+    "schemes": {
+      "monochromatic": "Monochromatique",
+      "analogous": "Analogue",
+      "complementary": "Complémentaire",
+      "split_complementary": "Complémentaire partagé",
+      "double_complementary": "Double complémentaire"
+    }
+  },
+  "palette_management": {
+    "title": "Gestion des palettes",
+    "add": "Ajouter",
+    "import": "Importer",
+    "export": "Exporter",
+    "clear_all": "Tout effacer",
+    "unnamed": "Sans nom",
+    "empty_title": "Aucune palette enregistrée",
+    "empty_hint": "Cliquez sur le bouton d'enregistrement dans le panneau d'extraction ou de génération de couleurs",
+    "import_title": "Importer des palettes",
+    "export_title": "Exporter des palettes",
+    "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)"
+  },
+  "color_preview": {
+    "title": "Aperçu des couleurs",
+    "subtitle": "En cours de développement",
+    "import_btn": "Importer",
+    "export_btn": "Exporter",
+    "delete": "Supprimer",
+    "delete_template": "Supprimer le modèle",
+    "loading": "Chargement...",
+    "import_svg": "Importer un fichier SVG",
+    "svg_filter": "Fichiers SVG (*.svg);;Tous les fichiers (*)",
+    "import_template": "Importer un modèle SVG",
+    "export_svg": "Exporter un fichier SVG",
+    "export_svg_default": "colored_preview.svg",
+    "export_svg_title": "Exporter SVG",
+    "export_default_name": "color_card",
+    "hint_import_colors": "Veuillez importer des couleurs depuis le panneau de gestion des palettes",
+    "prev_svg": "< Précédent",
+    "next_svg": "Suivant >",
+    "page_info": "{current} / {total}"
+  },
+  "color_preview_messages": {
+    "cannot_delete": {
+      "title": "Impossible de supprimer",
+      "content": "Les scènes intégrées ne peuvent pas être supprimées"
+    },
+    "cannot_import": {
+      "title": "Impossible d'importer",
+      "content": "La scène actuelle ne prend pas en charge l'importation directe SVG, veuillez passer à une scène personnalisée"
+    },
+    "import_success": {
+      "title": "Importation réussie",
+      "content": "Fichier SVG chargé"
+    },
+    "import_failed": {
+      "title": "Échec de l'importation",
+      "content": "Impossible de charger le fichier SVG"
+    },
+    "cannot_export": {
+      "title": "Impossible d'exporter",
+      "content": "La scène actuelle ne prend pas en charge l'exportation SVG"
+    },
+    "no_svg_to_export": {
+      "title": "Impossible d'exporter",
+      "content": "Veuillez d'abord importer un fichier SVG"
+    },
+    "export_success": {
+      "title": "Exportation réussie",
+      "content": "{message}"
+    },
+    "export_failed": {
+      "title": "Échec de l'exportation",
+      "content": "{message}"
+    },
+    "template_import_failed": {
+      "title": "Échec de l'importation",
+      "content": "{error}"
+    },
+    "template_import_success": {
+      "title": "Importation réussie",
+      "content": "{message}"
+    },
+    "no_svg_available": {
+      "title": "Impossible d'exporter",
+      "content": "Aucun SVG disponible pour l'exportation"
+    }
+  },
+  "preset_color": {
+    "title": "Couleurs prédéfinies",
+    "random_palette": "Palette aléatoire",
+    "random": "Aléatoire",
+    "desc_random": "Filtré aléatoirement parmi tous les schémas de couleurs",
+    "desc_source": "Basé sur {name}",
+    "copy_success": {
+      "title": "Copié",
+      "content": "Valeur de couleur {value} copiée dans le presse-papiers"
+    },
+    "favorite_success": {
+      "title": "Enregistré",
+      "content": "La palette \"{name}\" a été ajoutée à la gestion des palettes"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "card_display": "Paramètres d'affichage des cartes",
+    "hex_display": "Afficher la valeur HEX",
+    "hex_display_desc": "Afficher la valeur HEX et le bouton de copie dans les cartes de couleurs",
+    "color_mode": "Affichage du mode couleur",
+    "color_mode_desc": "Sélectionner deux modes de couleur à afficher dans les cartes",
+    "sampling": "Paramètres d'échantillonnage",
+    "color_sample_count": "Points d'échantillonnage extraction",
+    "color_sample_count_desc": "Définir le nombre de points d'échantillonnage pour l'extraction de couleurs (2-6)",
+    "luminance_sample_count": "Points d'échantillonnage luminance",
+    "luminance_sample_count_desc": "Définir le nombre de points d'échantillonnage pour l'extraction de luminance (2-6)",
+    "histogram": "Paramètres de l'histogramme",
+    "histogram_scaling": "Mode de mise à l'échelle",
+    "histogram_scaling_desc": "Sélectionner la méthode de mise à l'échelle de l'histogramme (Linéaire/Adaptatif)",
+    "histogram_mode": "Mode d'affichage de l'histogramme",
+    "histogram_mode_desc": "Sélectionner le type d'histogramme pour le panneau d'extraction (Canaux RVB/Distribution teinte)",
+    "highlight": "Paramètres de surbrillance",
+    "saturation_threshold": "Seuil de haute saturation",
+    "saturation_threshold_desc": "Définir le seuil de saturation pour les zones à haute saturation",
+    "brightness_threshold": "Seuil de haute luminosité",
+    "brightness_threshold_desc": "Définir le seuil de luminosité pour les zones à haute luminosité",
+    "color_wheel": "Paramètres d'affichage de la roue chromatique",
+    "color_wheel_labels": "Afficher les étiquettes",
+    "color_wheel_labels_desc": "Afficher les étiquettes de nom de teinte autour de la roue chromatique",
+    "color_scheme": "Paramètres du schéma de couleurs",
+    "color_scheme_mode": "Mode de schéma",
+    "color_scheme_mode_desc": "Sélectionner la logique couleur (RVB: Mélange optique, RYB: Mélange artistique)",
+    "language": "Paramètres de langue",
+    "language_title": "Langue de l'interface",
+    "language_desc": "Sélectionner la langue d'affichage de l'application",
+    "help": "Aide",
+    "check_update": "Vérifier les mises à jour",
+    "version_update": "Mise à jour",
+    "version_update_desc": "Vérifier si une nouvelle version est disponible",
+    "about": "Voir",
+    "about_title": "À propos de Color Card",
+    "about_desc": "Voir les informations sur le projet et la documentation",
+    "linear_scaling": "Mise à l'échelle linéaire",
+    "adaptive_scaling": "Mise à l'échelle adaptative",
+    "rgb_channel": "Canaux RVB",
+    "hue_distribution": "Distribution des teintes",
+    "rgb_optical": "RVB Optique",
+    "ryb_artistic": "RYB Artistique",
+    "switch_on": "Activé",
+    "switch_off": "Désactivé"
+  },
+  "dialogs": {
+    "about": {
+      "title": "À propos",
+      "homepage": "Page d'accueil",
+      "project": "Projet",
+      "license": "Licence",
+      "agreement": "Contrat utilisateur",
+      "copyright": "Droits d'auteur",
+      "license_note": "Sous licence GPL v3, uniquement à des fins éducatives"
+    },
+    "update": {
+      "title": "Nouvelle version disponible",
+      "new_version": "Une nouvelle version est disponible",
+      "current_version": "Version actuelle",
+      "latest_version": "Dernière version",
+      "cancel": "Annuler",
+      "release_page": "Page de publication",
+      "info": "Info",
+      "latest_version_content": "Vous utilisez la dernière version",
+      "check_failed": "Échec de la vérification",
+      "warning": "Avertissement",
+      "missing_requests": "Bibliothèque requests manquante, impossible de vérifier les mises à jour",
+      "version_info": "Actuelle: {current} / Dernière: {latest}",
+      "error_missing_requests": "Bibliothèque requests manquante, impossible de vérifier les mises à jour",
+      "error_parse_version": "Échec de l'analyse des informations de version",
+      "error_http": "Erreur HTTP, code d'état: {status_code}",
+      "error_timeout": "Délai d'attente dépassé, veuillez vérifier votre connexion réseau",
+      "error_connection": "Échec de la connexion, veuillez vérifier votre connexion réseau",
+      "error_general": "Une erreur s'est produite lors de la vérification: {error}"
+    },
+    "edit_palette": {
+      "add_title": "Ajouter une palette",
+      "edit_title": "Modifier la palette",
+      "name_label": "Nom de la palette:",
+      "name_placeholder": "Entrer le nom de la palette...",
+      "colors_title": "Liste des couleurs (au moins une requise)",
+      "add_color": "Ajouter une couleur",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "color_label": "Couleur"
+    },
+    "colorblind": {
+      "title": "Aperçu simulation daltonisme",
+      "window_title": "Aperçu simulation daltonisme - {name}",
+      "scheme_name": "Schéma de couleurs: {name}",
+      "colorblind_type": "Type de daltonisme:",
+      "original_color": "Couleur originale",
+      "simulated_color": "Couleur simulée",
+      "original": "Original",
+      "simulated": "Simulé",
+      "description": "Note: {text}"
+    },
+    "contrast": {
+      "title": "Vérification du contraste",
+      "window_title": "Vérification du contraste - {name}",
+      "scheme_name": "Schéma de couleurs: {name}",
+      "background_color": "Arrière-plan",
+      "text_color": "Texte",
+      "color_index": "Couleur {index}",
+      "swap_colors": "Échanger les couleurs",
+      "wcag_level": "Niveau WCAG 2.1",
+      "preview_effect": "Effet d'aperçu",
+      "normal_text": "Texte normal",
+      "large_text": "Texte grand",
+      "graphic_element": "Éléments graphiques",
+      "sample_text": "Un contraste élevé\nrend tout contenu\nplus facile à lire",
+      "wcag_description": "Standard WCAG 2.1: Texte normal AA nécessite 4.5:1, AAA nécessite 7:1; Texte grand AA nécessite 3:1, AAA nécessite 4.5:1",
+      "pass_aaa": "✓ Réussite AAA",
+      "pass_aa": "✓ Réussite AA",
+      "large_only": "△ Grand texte seulement",
+      "fail": "✗ Échec"
+    },
+    "confirm": {
+      "clear_title": "Confirmer l'effacement",
+      "clear_content": "Voulez-vous vraiment effacer toutes les palettes enregistrées? Cette action est irréversible.",
+      "delete_title": "Confirmer la suppression",
+      "delete_content": "Voulez-vous vraiment supprimer \"{name}\"? Cette action est irréversible.",
+      "import_mode_title": "Sélectionner le mode d'importation",
+      "import_mode_content": "Choisir la méthode d'importation:\n\nCliquez \"Oui\" pour ajouter aux palettes existantes\nCliquez \"Non\" pour remplacer les palettes existantes",
+      "append": "Ajouter",
+      "replace": "Remplacer",
+      "confirm_btn": "Confirmer",
+      "delete_btn": "Supprimer",
+      "cancel_btn": "Annuler"
+    }
+  },
+  "messages": {
+    "favorite_failed": {
+      "title": "Impossible d'enregistrer",
+      "content": "Veuillez d'abord extraire des couleurs avant d'enregistrer"
+    },
+    "favorite_success": {
+      "title": "Enregistrement réussi",
+      "content": "Palette enregistrée: {name}"
+    },
+    "extract_failed": {
+      "title": "Impossible d'extraire",
+      "content": "Veuillez d'abord importer une image"
+    },
+    "extracting": {
+      "title": "Extraction en cours",
+      "content": "Analyse des couleurs dominantes de l'image, veuillez patienter..."
+    },
+    "extract_success": {
+      "title": "Extraction terminée",
+      "content": "{count} couleurs dominantes extraites avec succès"
+    },
+    "extract_error": {
+      "title": "Échec de l'extraction",
+      "content": "Une erreur s'est produite pendant l'extraction: {error}"
+    },
+    "display_failed": {
+      "title": "Impossible d'afficher",
+      "content": "Veuillez d'abord importer une image"
+    },
+    "copy_success": {
+      "title": "Copié",
+      "content": "Valeur de couleur {value} copiée dans le presse-papiers"
+    },
+    "invalid_input": {
+      "title": "Entrée invalide",
+      "content": "Veuillez entrer une valeur HEX valide (ex: #FF0000)"
+    },
+    "no_colors": {
+      "title": "Impossible d'enregistrer",
+      "content": "Aucune palette disponible à enregistrer"
+    },
+    "preview_failed": {
+      "title": "Impossible d'afficher l'aperçu",
+      "content": "Cette palette n'a pas de données de couleur"
+    },
+    "preview_invalid": {
+      "title": "Impossible d'afficher l'aperçu",
+      "content": "Cette palette n'a pas de données de couleur valides"
+    },
+    "import_success": {
+      "title": "Importation réussie",
+      "content": "{count} palettes importées avec succès"
+    },
+    "import_failed": {
+      "title": "Échec de l'importation",
+      "content": "{error}"
+    },
+    "export_success": {
+      "title": "Exportation réussie",
+      "content": "Palettes exportées vers: {path}"
+    },
+    "export_failed": {
+      "title": "Échec de l'exportation",
+      "content": "{error}"
+    },
+    "add_success": {
+      "title": "Ajout réussi",
+      "content": "La palette \"{name}\" a été ajoutée"
+    },
+    "update_success": {
+      "title": "Mise à jour réussie",
+      "content": "La palette \"{name}\" a été mise à jour"
+    },
+    "update_failed": {
+      "title": "Échec de la mise à jour",
+      "content": "Impossible de trouver cette palette"
+    },
+    "color_updated": {
+      "title": "Couleur mise à jour",
+      "content": "La couleur dans la palette a été mise à jour vers {hex}"
+    },
+    "check_update_failed": {
+      "title": "Échec de la vérification",
+      "content": "{error}"
+    },
+    "latest_version": {
+      "title": "Info",
+      "content": "Vous utilisez la dernière version"
+    },
+    "no_requests": {
+      "title": "Info",
+      "content": "Bibliothèque requests manquante, impossible de vérifier les mises à jour"
+    },
+    "palette": "Palette"
+  },
+  "context_menu": {
+    "change_image": "Changer l'image",
+    "clear_image": "Effacer l'image"
+  },
+  "common": {
+    "delete": "Supprimer"
+  }
+}

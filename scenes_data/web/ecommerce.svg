@@ -1,0 +1,69 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 页面背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f8f9fa"/>
+
+  <!-- 顶部导航栏 -->
+  <rect id="navbar" class="primary" x="0" y="0" width="400" height="45" fill="#2d3436"/>
+
+  <!-- Logo -->
+  <rect id="logo" class="accent" x="20" y="12" width="70" height="20" rx="4" fill="#e17055"/>
+  <text id="logo-text" class="text" x="55" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff">SHOP</text>
+
+  <!-- 搜索框 -->
+  <rect id="search-box" class="secondary" x="110" y="10" width="180" height="24" rx="12" fill="#636e72"/>
+  <text id="search-placeholder" class="text" x="200" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#b2bec3">搜索商品...</text>
+
+  <!-- 购物车图标 -->
+  <circle id="cart-icon" class="accent" cx="370" cy="22" r="14" fill="#e17055"/>
+  <text id="cart-text" class="text" x="370" y="26" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">🛒</text>
+
+  <!-- 分类标签栏 -->
+  <rect id="category-bar" class="secondary" x="0" y="45" width="400" height="35" fill="#dfe6e9"/>
+
+  <rect id="tag-1" class="accent" x="20" y="52" width="50" height="22" rx="11" fill="#e17055"/>
+  <text id="tag-1-text" class="text" x="45" y="67" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff">全部</text>
+
+  <rect id="tag-2" class="primary" x="80" y="52" width="50" height="22" rx="11" fill="#2d3436"/>
+  <text id="tag-2-text" class="text" x="105" y="67" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff">数码</text>
+
+  <rect id="tag-3" class="primary" x="140" y="52" width="50" height="22" rx="11" fill="#2d3436"/>
+  <text id="tag-3-text" class="text" x="165" y="67" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff">服饰</text>
+
+  <rect id="tag-4" class="primary" x="200" y="52" width="50" height="22" rx="11" fill="#2d3436"/>
+  <text id="tag-4-text" class="text" x="225" y="67" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff">家居</text>
+
+  <!-- 促销横幅 -->
+  <rect id="promo-banner" class="accent" x="20" y="90" width="360" height="50" rx="8" fill="#fdcb6e"/>
+  <text id="promo-title" class="text" x="200" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#2d3436">夏季大促</text>
+  <text id="promo-subtitle" class="text" x="200" y="128" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#636e72">全场5折起，限时优惠</text>
+
+  <!-- 产品网格 - 第一行 -->
+  <!-- 产品1 -->
+  <rect id="product-1" class="secondary" x="20" y="155" width="80" height="110" rx="8" fill="#ffffff"/>
+  <rect id="product-1-img" class="primary" x="30" y="165" width="60" height="60" rx="4" fill="#b2bec3"/>
+  <text id="product-1-name" class="text" x="60" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#2d3436">无线耳机</text>
+  <text id="product-1-price" class="accent" x="60" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#e17055">¥299</text>
+
+  <!-- 产品2 -->
+  <rect id="product-2" class="secondary" x="115" y="155" width="80" height="110" rx="8" fill="#ffffff"/>
+  <rect id="product-2-img" class="primary" x="125" y="165" width="60" height="60" rx="4" fill="#b2bec3"/>
+  <text id="product-2-name" class="text" x="155" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#2d3436">智能手表</text>
+  <text id="product-2-price" class="accent" x="155" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#e17055">¥899</text>
+
+  <!-- 产品3 -->
+  <rect id="product-3" class="secondary" x="210" y="155" width="80" height="110" rx="8" fill="#ffffff"/>
+  <rect id="product-3-img" class="primary" x="220" y="165" width="60" height="60" rx="4" fill="#b2bec3"/>
+  <text id="product-3-name" class="text" x="250" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#2d3436">蓝牙音箱</text>
+  <text id="product-3-price" class="accent" x="250" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#e17055">¥199</text>
+
+  <!-- 产品4 -->
+  <rect id="product-4" class="secondary" x="305" y="155" width="80" height="110" rx="8" fill="#ffffff"/>
+  <rect id="product-4-img" class="primary" x="315" y="165" width="60" height="60" rx="4" fill="#b2bec3"/>
+  <text id="product-4-name" class="text" x="345" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#2d3436">充电宝</text>
+  <text id="product-4-price" class="accent" x="345" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#e17055">¥129</text>
+
+  <!-- 底部分页指示器 -->
+  <circle id="page-1" class="accent" cx="185" cy="285" r="5" fill="#e17055"/>
+  <circle id="page-2" class="secondary" cx="200" cy="285" r="5" fill="#b2bec3"/>
+  <circle id="page-3" class="secondary" cx="215" cy="285" r="5" fill="#b2bec3"/>
+</svg>

@@ -4,7 +4,7 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from .theme_colors import get_picker_border_color, get_picker_fill_color
+from utils.theme_colors import get_picker_border_color, get_picker_fill_color
 
 
 class ColorPicker(QWidget):

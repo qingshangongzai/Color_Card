@@ -1,6 +1,7 @@
 # 标准库导入
 import re
 from datetime import datetime
+from typing import Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -15,8 +16,8 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb
-from ui.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
-from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
 
 
 class ColorInputRow(QWidget):
@@ -37,7 +38,7 @@ class ColorInputRow(QWidget):
         layout.setSpacing(10)
 
         # 序号标签
-        self.index_label = QLabel(f"颜色 {self._index + 1}")
+        self.index_label = QLabel(f"{tr('dialogs.edit_palette.color_label')} {self._index + 1}")
         self.index_label.setFixedWidth(50)
         layout.addWidget(self.index_label)
 
@@ -135,7 +136,7 @@ class ColorInputRow(QWidget):
         self._index = index
         self.index_label.setText(f"颜色 {index + 1}")
 
-    def set_color_info(self, color_info: dict):
+    def set_color_info(self, color_info: Dict[str, Any]):
         """设置颜色信息
 
         Args:
@@ -220,7 +221,7 @@ class EditPaletteDialog(QDialog):
         layout.addWidget(separator)
 
         # 颜色列表标题
-        colors_title = QLabel("颜色列表（至少输入一个）")
+        colors_title = QLabel(tr('dialogs.edit_palette.colors_title'))
         colors_title.setStyleSheet(f"color: {get_text_color().name()}; font-size: 13px;")
         layout.addWidget(colors_title)
 
@@ -246,7 +247,7 @@ class EditPaletteDialog(QDialog):
         layout.addWidget(scroll_area)
 
         # 添加颜色按钮
-        self.add_color_button = PushButton(FluentIcon.ADD, "添加颜色")
+        self.add_color_button = PushButton(FluentIcon.ADD, tr('dialogs.edit_palette.add_color'))
         self.add_color_button.setFixedHeight(32)
         self.add_color_button.clicked.connect(self._on_add_color)
         layout.addWidget(self.add_color_button)
@@ -262,7 +263,7 @@ class EditPaletteDialog(QDialog):
         buttons_layout.addWidget(self.cancel_button)
 
         # 确认按钮
-        self.confirm_button = PrimaryPushButton("确认")
+        self.confirm_button = PrimaryPushButton(tr('dialogs.edit_palette.confirm'))
         self.confirm_button.setMinimumWidth(80)
         self.confirm_button.clicked.connect(self._on_confirm)
         buttons_layout.addWidget(self.confirm_button)
@@ -307,6 +308,9 @@ class EditPaletteDialog(QDialog):
         # 获取已有颜色
         colors = self._palette_data.get('colors', [])
 
+        # 保留原始ID（用于编辑模式）
+        self._original_id = self._palette_data.get('id', '')
+
         # 清空默认添加的空行（从布局中移除、隐藏并删除）
         while self._color_rows:
             row = self._color_rows.pop()
@@ -335,16 +339,7 @@ class EditPaletteDialog(QDialog):
 
         # 验证至少有一个有效颜色
         if not valid_colors:
-            from qfluentwidgets import InfoBar, InfoBarPosition
-            InfoBar.warning(
-                title="输入无效",
-                content="请至少输入一个有效的颜色值",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self
-            )
+            self._show_error_tooltip("请至少输入一个有效的颜色值")
             return
 
         # 获取名称
@@ -358,7 +353,40 @@ class EditPaletteDialog(QDialog):
             'created_at': datetime.now().isoformat()
         }
 
+        # 如果是编辑模式，保留原始ID；如果是添加模式，生成新ID
+        if self._is_edit_mode and hasattr(self, '_original_id') and self._original_id:
+            self._palette_data['id'] = self._original_id
+        else:
+            # 添加模式：生成新ID
+            import uuid
+            self._palette_data['id'] = str(uuid.uuid4())
+
         self.accept()
+
+    def _show_error_tooltip(self, message: str):
+        """显示错误提示（使用自定义 QLabel 替代 InfoBar）"""
+        # 创建错误提示标签
+        error_label = QLabel(self)
+        error_label.setText(f"⚠ {message}")
+        error_label.setStyleSheet("""
+            QLabel {
+                background-color: #FFF3CD;
+                color: #856404;
+                border: 1px solid #FFEAA7;
+                border-radius: 4px;
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        """)
+        error_label.adjustSize()
+        
+        # 定位在对话框顶部中央
+        x = (self.width() - error_label.width()) // 2
+        error_label.move(x, 5)
+        error_label.show()
+        
+        # 3秒后自动消失
+        QTimer.singleShot(3000, error_label.deleteLater)
 
     def get_palette_data(self):
         """获取配色数据

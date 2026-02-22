@@ -1,6 +1,3 @@
-# 标准库导入
-import colorsys
-
 # 第三方库导入
 import math
 from typing import List, Optional
@@ -9,8 +6,8 @@ from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen, QMouse
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from core import calculate_histogram, calculate_rgb_histogram, get_zone_bounds
-from .theme_colors import (
+from core import get_zone_bounds, HistogramService
+from utils.theme_colors import (
     get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
     get_histogram_text_color, get_histogram_highlight_color, get_histogram_highlight_border_color,
     get_histogram_highlight_text_color, get_zone_colors, get_zone_colors_highlight,
@@ -40,6 +37,7 @@ class BaseHistogram(QWidget):
         self._histogram: List[int] = []
         self._max_count = 0
         self._scaling_mode = "linear"  # "linear" 或 "adaptive"
+        self._is_loading = False  # 加载状态标志
 
         # 绘图边距
         self._margin_left = 35
@@ -49,7 +47,47 @@ class BaseHistogram(QWidget):
 
         # 背景色
         self._background_color = get_histogram_background_color()
-        
+
+    def set_loading(self, loading: bool):
+        """设置加载状态
+
+        Args:
+            loading: True 显示加载提示，False 隐藏加载提示
+        """
+        self._is_loading = loading
+        self.update()
+
+    def _draw_loading_indicator(self, painter: QPainter):
+        """绘制加载中提示"""
+        if not self._is_loading:
+            return
+
+        # 计算绘制区域
+        widget_width = self.width()
+        widget_height = self.height()
+
+        # 加载提示文字
+        text = "加载中..."
+
+        # 设置字体
+        font = QFont()
+        font.setPointSize(10)
+        painter.setFont(font)
+
+        # 计算文字尺寸
+        text_rect = painter.fontMetrics().boundingRect(text)
+        text_width = text_rect.width()
+        text_height = text_rect.height()
+
+        # 居中位置
+        text_x = (widget_width - text_width) // 2
+        text_y = (widget_height + text_height) // 2 - 5  # 微调垂直位置
+
+        # 绘制文字（使用直方图文本颜色）
+        text_color = get_histogram_text_color()
+        painter.setPen(text_color)
+        painter.drawText(text_x, text_y, text)
+
     def set_data(self, data: List[int]):
         """设置直方图数据
         
@@ -76,6 +114,32 @@ class BaseHistogram(QWidget):
             self._scaling_mode = mode
             self.update()
 
+    def _calculate_cv(self, histogram: List[int]) -> float:
+        """计算直方图的变异系数（CV）
+
+        CV = 标准差 / 平均值
+        用于衡量直方图分布的离散程度
+
+        Args:
+            histogram: 直方图数据列表
+
+        Returns:
+            float: 变异系数，值越大表示分布越集中
+        """
+        non_zero = [h for h in histogram if h > 0]
+
+        if len(non_zero) < 2:
+            return 0.0
+
+        mean_val = sum(non_zero) / len(non_zero)
+        if mean_val == 0:
+            return 0.0
+
+        variance = sum((x - mean_val) ** 2 for x in non_zero) / len(non_zero)
+        std_val = math.sqrt(variance)
+
+        return std_val / mean_val
+
     def _calculate_bar_height(self, count: int, max_count: int, height: int) -> float:
         """根据缩放模式计算柱子高度
 
@@ -91,35 +155,57 @@ class BaseHistogram(QWidget):
             return 0
 
         if self._scaling_mode == "linear":
-            return (count / max_count) * height
-        else:  # adaptive: 使用平方根缩放
-            sqrt_max = math.sqrt(max_count)
-            sqrt_count = math.sqrt(count)
-            return (sqrt_count / sqrt_max) * height
+            # 线性缩放，保留5%头部空间
+            return (count / max_count) * height * 0.95
+        else:  # adaptive: 自适应缩放
+            # 计算CV值
+            cv = self._calculate_cv(self._histogram)
+
+            # 根据CV值选择缩放策略
+            if cv < 0.8:
+                # 分布非常平坦：使用线性缩放
+                normalized = count / max_count
+            elif cv > 2.0:
+                # 分布集中：使用平方根缩放
+                sqrt_max = math.sqrt(max_count)
+                sqrt_count = math.sqrt(count)
+                normalized = sqrt_count / sqrt_max
+            else:
+                # 中间态：使用动态指数
+                # cv=0.8 时 exponent=0.75, cv=2.0 时 exponent=0.55
+                t = (cv - 0.8) / (2.0 - 0.8)
+                exponent = 0.75 - t * 0.2
+                normalized = (count / max_count) ** exponent
+
+            # 保留5%头部空间
+            return min(0.95, normalized) * height
 
     def paintEvent(self, event):
         """绘制直方图"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
+
         # 绘制背景
         painter.fillRect(self.rect(), self._background_color)
-        
+
         # 计算绘图区域
         draw_width = self.width() - self._margin_left - self._margin_right
         draw_height = self.height() - self._margin_top - self._margin_bottom
-        
+
         if draw_width <= 0 or draw_height <= 0:
             return
-            
+
         # 绘制直方图
         self._draw_histogram(painter, self._margin_left, self._margin_top, draw_width, draw_height)
-        
+
         # 绘制自定义叠加内容
         self._draw_custom_overlay(painter, self._margin_left, self._margin_top, draw_width, draw_height)
-        
+
         # 绘制刻度标签
         self._draw_labels(painter, self._margin_left, self._margin_top, draw_width, draw_height)
+
+        # 绘制加载提示（如果有）
+        self._draw_loading_indicator(painter)
         
     def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制直方图（子类必须实现）
@@ -207,10 +293,18 @@ class LuminanceHistogramWidget(BaseHistogram):
         # 启用鼠标跟踪
         self.setMouseTracking(True)
 
+        # 创建直方图服务
+        self._histogram_service = HistogramService(self)
+        self._histogram_service.luminance_histogram_ready.connect(self._on_histogram_ready)
+        self._histogram_service.error.connect(self._on_histogram_error)
+
     def set_image(self, image):
-        """设置图片并计算直方图"""
-        histogram = calculate_histogram(image)
-        self.set_data(histogram)
+        """设置图片并异步计算直方图"""
+        if image is None or image.isNull():
+            self.clear()
+            return
+        self.set_loading(True)
+        self._histogram_service.calculate_luminance_async(image)
 
     def set_highlight_zones(self, zones):
         """设置高亮显示的区域
@@ -235,11 +329,24 @@ class LuminanceHistogramWidget(BaseHistogram):
 
     def clear(self):
         """清除直方图数据"""
+        # 先取消计算，避免线程冲突
+        self._histogram_service.cancel_all()
         super().clear()
         self._highlight_zones = []
         self._pressed_zone = -1
         self._current_zone = -1
         self.update()
+
+    def _on_histogram_ready(self, histogram):
+        """直方图计算完成回调"""
+        self.set_loading(False)
+        self.set_data(histogram)
+
+    def _on_histogram_error(self, error_msg):
+        """直方图计算错误回调"""
+        print(f"明度直方图计算错误: {error_msg}")
+        self.set_loading(False)
+        self.clear()
 
     def get_zone_from_luminance(self, luminance: int) -> int:
         """根据明度值获取Zone (0-7)"""
@@ -317,7 +424,7 @@ class LuminanceHistogramWidget(BaseHistogram):
 
             # 如果当前Zone被按下，绘制蓝色边框
             if i == self._pressed_zone:
-                from .theme_colors import get_accent_color
+                from utils.theme_colors import get_accent_color
                 painter.setPen(QPen(get_accent_color(), 2))
                 painter.setBrush(Qt.BrushStyle.NoBrush)
                 painter.drawRect(int(zone_x), y, int(zone_width), height)
@@ -495,13 +602,29 @@ class RGBHistogramWidget(BaseHistogram):
         self._btn_margin_right = 10  # 距离右边距
         self._btn_margin_top = 5  # 距离顶部边距
 
+        # 创建直方图服务
+        self._histogram_service = HistogramService(self)
+        self._histogram_service.rgb_histogram_ready.connect(self._on_histogram_ready)
+        self._histogram_service.error.connect(self._on_histogram_error)
+
     def set_image(self, image):
-        """设置图片并计算RGB直方图
+        """设置图片并异步计算RGB直方图
 
         Args:
             image: QImage 对象
         """
-        self._histogram_r, self._histogram_g, self._histogram_b = calculate_rgb_histogram(image)
+        if image is None or image.isNull():
+            self.clear()
+            return
+        self.set_loading(True)
+        self._histogram_service.calculate_rgb_async(image)
+
+    def _on_histogram_ready(self, r_hist, g_hist, b_hist):
+        """RGB直方图计算完成回调"""
+        self.set_loading(False)
+        self._histogram_r = r_hist
+        self._histogram_g = g_hist
+        self._histogram_b = b_hist
 
         # 计算最大值用于归一化
         max_r = max(self._histogram_r) if self._histogram_r else 0
@@ -510,8 +633,16 @@ class RGBHistogramWidget(BaseHistogram):
         self._max_count = max(max_r, max_g, max_b)
         self.update()
 
+    def _on_histogram_error(self, error_msg):
+        """直方图计算错误回调"""
+        print(f"RGB直方图计算错误: {error_msg}")
+        self.set_loading(False)
+        self.clear()
+
     def clear(self):
         """清除直方图数据"""
+        # 先取消计算，避免线程冲突
+        self._histogram_service.cancel_all()
         self._histogram_r = [0] * 256
         self._histogram_g = [0] * 256
         self._histogram_b = [0] * 256
@@ -738,7 +869,7 @@ class RGBHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        from .theme_colors import get_wheel_text_color
+        from utils.theme_colors import get_wheel_text_color
         painter.setPen(get_wheel_text_color())
         font = QFont()
         font.setPointSize(9)
@@ -762,6 +893,11 @@ class HueHistogramWidget(BaseHistogram):
         self._margin_top = 25
         self._margin_right = 10
 
+        # 创建直方图服务
+        self._histogram_service = HistogramService(self)
+        self._histogram_service.hue_histogram_ready.connect(self._on_histogram_ready)
+        self._histogram_service.error.connect(self._on_histogram_error)
+
     def set_image(self, image):
         """计算并显示图片的色相分布
 
@@ -769,46 +905,28 @@ class HueHistogramWidget(BaseHistogram):
             image: QImage 对象
         """
         if image is None or image.isNull():
-            self._histogram = [0] * 360
-            self._max_count = 0
-            self.update()
+            self.clear()
             return
+        self.set_loading(True)
+        self._histogram_service.calculate_hue_async(image)
 
-        self._histogram = self._calculate_hue_histogram(image)
+    def _on_histogram_ready(self, histogram):
+        """色相直方图计算完成回调"""
+        self.set_loading(False)
+        self._histogram = histogram
         self._max_count = max(self._histogram) if self._histogram else 1
         self.update()
 
-    def _calculate_hue_histogram(self, image, sample_step: int = 4) -> List[int]:
-        """计算色相直方图，排除低饱和度/低亮度的颜色
-
-        Args:
-            image: QImage 对象
-            sample_step: 采样步长
-
-        Returns:
-            list: 长度为360的色相分布列表
-        """
-        histogram = [0] * 360
-        width = image.width()
-        height = image.height()
-
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                color = image.pixelColor(x, y)
-                r = color.red() / 255.0
-                g = color.green() / 255.0
-                b = color.blue() / 255.0
-                h, s, v = colorsys.rgb_to_hsv(r, g, b)
-
-                # 排除黑白灰（饱和度<10% 或 亮度<10%）
-                if s > 0.1 and v > 0.1:
-                    hue = int(h * 360) % 360
-                    histogram[hue] += 1
-
-        return histogram
+    def _on_histogram_error(self, error_msg):
+        """直方图计算错误回调"""
+        print(f"色相直方图计算错误: {error_msg}")
+        self.set_loading(False)
+        self.clear()
 
     def clear(self):
         """清除直方图数据"""
+        # 先取消计算，避免线程冲突
+        self._histogram_service.cancel_all()
         self._histogram = [0] * 360
         super().clear()
 
@@ -876,7 +994,7 @@ class HueHistogramWidget(BaseHistogram):
 
     def _draw_title(self, painter: QPainter):
         """绘制标题"""
-        from .theme_colors import get_wheel_text_color
+        from utils.theme_colors import get_wheel_text_color
         painter.setPen(get_wheel_text_color())
         font = QFont()
         font.setPointSize(9)

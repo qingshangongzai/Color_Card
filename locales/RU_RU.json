@@ -1,0 +1,375 @@
+{
+  "app": {
+    "name": "取色卡",
+    "name_en": "Color Card",
+    "loading": "Загрузка..."
+  },
+  "navigation": {
+    "color_extract": "Извлечение цвета",
+    "luminance_extract": "Извлечение яркости",
+    "color_generation": "Генерация цвета",
+    "palette_management": "Управление палитрами",
+    "preset_color": "Предустановленные цвета",
+    "color_preview": "Предпросмотр цвета",
+    "settings": "Настройки"
+  },
+  "title_bar": {
+    "toggle_theme": "Переключить темную/светлую тему",
+    "toggle_fullscreen": "Полноэкранный режим/Выход (F11)"
+  },
+  "color_extract": {
+    "favorite": "Сохранить палитру",
+    "extract_dominant": "Автоизвлечение доминирующих",
+    "extracting": "Извлечение...",
+    "show_high_saturation": "Показать высоконасыщенные области",
+    "show_high_brightness": "Показать высокояркие области",
+    "select_image": "Выбрать изображение",
+    "image_filter": "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "luminance_extract": {
+    "select_image": "Выбрать изображение",
+    "image_filter": "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "color_generation": {
+    "title": "Цветовая схема:",
+    "random": "Случайно",
+    "favorite": "Сохранить",
+    "brightness": "Яркость:",
+    "schemes": {
+      "monochromatic": "Монохроматическая",
+      "analogous": "Аналогичная",
+      "complementary": "Комплементарная",
+      "split_complementary": "Разделенная комплементарная",
+      "double_complementary": "Двойная комплементарная"
+    }
+  },
+  "palette_management": {
+    "title": "Управление палитрами",
+    "add": "Добавить",
+    "import": "Импорт",
+    "export": "Экспорт",
+    "clear_all": "Очистить все",
+    "unnamed": "Без названия",
+    "empty_title": "Нет сохраненных палитр",
+    "empty_hint": "Нажмите кнопку сохранения в панели извлечения или генерации цвета",
+    "import_title": "Импорт палитр",
+    "export_title": "Экспорт палитр",
+    "json_filter": "JSON файлы (*.json);;Все файлы (*)"
+  },
+  "color_preview": {
+    "title": "Предпросмотр цвета",
+    "subtitle": "В разработке",
+    "import_btn": "Импорт",
+    "export_btn": "Экспорт",
+    "delete": "Удалить",
+    "delete_template": "Удалить шаблон",
+    "loading": "Загрузка...",
+    "import_svg": "Импорт SVG файла",
+    "svg_filter": "SVG файлы (*.svg);;Все файлы (*)",
+    "import_template": "Импорт SVG шаблона",
+    "export_svg": "Экспорт SVG файла",
+    "export_svg_default": "colored_preview.svg",
+    "export_svg_title": "Экспорт SVG",
+    "export_default_name": "color_card",
+    "hint_import_colors": "Пожалуйста, импортируйте цвета из панели управления палитрами",
+    "prev_svg": "< Назад",
+    "next_svg": "Вперед >",
+    "page_info": "{current} / {total}"
+  },
+  "color_preview_messages": {
+    "cannot_delete": {
+      "title": "Невозможно удалить",
+      "content": "Встроенные сцены нельзя удалить"
+    },
+    "cannot_import": {
+      "title": "Невозможно импортировать",
+      "content": "Текущая сцена не поддерживает прямой импорт SVG, переключитесь на пользовательскую сцену"
+    },
+    "import_success": {
+      "title": "Импорт успешен",
+      "content": "SVG файл загружен"
+    },
+    "import_failed": {
+      "title": "Ошибка импорта",
+      "content": "Невозможно загрузить SVG файл"
+    },
+    "cannot_export": {
+      "title": "Невозможно экспортировать",
+      "content": "Текущая сцена не поддерживает экспорт SVG"
+    },
+    "no_svg_to_export": {
+      "title": "Невозможно экспортировать",
+      "content": "Сначала импортируйте SVG файл"
+    },
+    "export_success": {
+      "title": "Экспорт успешен",
+      "content": "{message}"
+    },
+    "export_failed": {
+      "title": "Ошибка экспорта",
+      "content": "{message}"
+    },
+    "template_import_failed": {
+      "title": "Ошибка импорта",
+      "content": "{error}"
+    },
+    "template_import_success": {
+      "title": "Импорт успешен",
+      "content": "{message}"
+    },
+    "no_svg_available": {
+      "title": "Невозможно экспортировать",
+      "content": "Нет доступных SVG для экспорта"
+    }
+  },
+  "preset_color": {
+    "title": "Предустановленные цвета",
+    "random_palette": "Случайная палитра",
+    "random": "Случайно",
+    "desc_random": "Случайный выбор из всех цветовых схем",
+    "desc_source": "На основе {name}",
+    "copy_success": {
+      "title": "Скопировано",
+      "content": "Значение цвета {value} скопировано в буфер обмена"
+    },
+    "favorite_success": {
+      "title": "Сохранено",
+      "content": "Палитра \"{name}\" добавлена в управление палитрами"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "card_display": "Настройки отображения карточек",
+    "hex_display": "Показывать HEX значение",
+    "hex_display_desc": "Отображать HEX значение цвета и кнопку копирования в цветовых карточках",
+    "color_mode": "Отображение цветового режима",
+    "color_mode_desc": "Выберите два цветовых режима для отображения в карточках",
+    "sampling": "Настройки выборки",
+    "color_sample_count": "Точки выборки извлечения",
+    "color_sample_count_desc": "Установите количество точек выборки для извлечения цвета (2-6)",
+    "luminance_sample_count": "Точки выборки яркости",
+    "luminance_sample_count_desc": "Установите количество точек выборки для извлечения яркости (2-6)",
+    "histogram": "Настройки гистограммы",
+    "histogram_scaling": "Режим масштабирования",
+    "histogram_scaling_desc": "Выберите метод масштабирования гистограммы (Линейный/Адаптивный)",
+    "histogram_mode": "Режим отображения гистограммы",
+    "histogram_mode_desc": "Выберите тип гистограммы для панели извлечения (RGB каналы/Распределение оттенков)",
+    "highlight": "Настройки выделения",
+    "saturation_threshold": "Порог высокой насыщенности",
+    "saturation_threshold_desc": "Установите порог насыщенности для высоконасыщенных областей",
+    "brightness_threshold": "Порог высокой яркости",
+    "brightness_threshold_desc": "Установите порог яркости для высокоярких областей",
+    "color_wheel": "Настройки цветового круга",
+    "color_wheel_labels": "Показывать метки",
+    "color_wheel_labels_desc": "Отображать метки названий оттенков вокруг цветового круга",
+    "color_scheme": "Настройки цветовой схемы",
+    "color_scheme_mode": "Режим цветовой схемы",
+    "color_scheme_mode_desc": "Выберите цветовую логику (RGB: Оптическое смешение, RYB: Художественное смешение)",
+    "language": "Настройки языка",
+    "language_title": "Язык интерфейса",
+    "language_desc": "Выберите язык отображения приложения",
+    "help": "Справка",
+    "check_update": "Проверить обновления",
+    "version_update": "Обновление версии",
+    "version_update_desc": "Проверить наличие новой версии",
+    "about": "Просмотр",
+    "about_title": "О Color Card",
+    "about_desc": "Просмотр информации о проекте и документации",
+    "linear_scaling": "Линейное масштабирование",
+    "adaptive_scaling": "Адаптивное масштабирование",
+    "rgb_channel": "RGB каналы",
+    "hue_distribution": "Распределение оттенков",
+    "rgb_optical": "RGB Оптический",
+    "ryb_artistic": "RYB Художественный",
+    "switch_on": "Вкл",
+    "switch_off": "Выкл"
+  },
+  "dialogs": {
+    "about": {
+      "title": "О программе",
+      "homepage": "Домашняя страница",
+      "project": "Проект",
+      "license": "Лицензия",
+      "agreement": "Пользовательское соглашение",
+      "copyright": "Авторские права",
+      "license_note": "Лицензировано под GPL v3, только для образовательных целей"
+    },
+    "update": {
+      "title": "Доступна новая версия",
+      "new_version": "Доступна новая версия",
+      "current_version": "Текущая версия",
+      "latest_version": "Последняя версия",
+      "cancel": "Отмена",
+      "release_page": "Страница выпуска",
+      "info": "Информация",
+      "latest_version_content": "Вы используете последнюю версию",
+      "check_failed": "Ошибка проверки обновлений",
+      "warning": "Предупреждение",
+      "missing_requests": "Отсутствует библиотека requests, невозможно проверить обновления",
+      "version_info": "Текущая: {current} / Последняя: {latest}",
+      "error_missing_requests": "Отсутствует библиотека requests, невозможно проверить обновления",
+      "error_parse_version": "Не удалось разобрать информацию о версии",
+      "error_http": "Ошибка HTTP, код состояния: {status_code}",
+      "error_timeout": "Время ожидания запроса истекло, проверьте подключение к сети",
+      "error_connection": "Ошибка подключения, проверьте подключение к сети",
+      "error_general": "Произошла ошибка при проверке обновлений: {error}"
+    },
+    "edit_palette": {
+      "add_title": "Добавить палитру",
+      "edit_title": "Редактировать палитру",
+      "name_label": "Название палитры:",
+      "name_placeholder": "Введите название палитры...",
+      "colors_title": "Список цветов (требуется минимум один)",
+      "add_color": "Добавить цвет",
+      "cancel": "Отмена",
+      "confirm": "Подтвердить",
+      "color_label": "Цвет"
+    },
+    "colorblind": {
+      "title": "Предпросмотр симуляции дальтонизма",
+      "window_title": "Предпросмотр симуляции дальтонизма - {name}",
+      "scheme_name": "Цветовая схема: {name}",
+      "colorblind_type": "Тип дальтонизма:",
+      "original_color": "Исходный цвет",
+      "simulated_color": "Симулированный цвет",
+      "original": "Исходный",
+      "simulated": "Симулированный",
+      "description": "Примечание: {text}"
+    },
+    "contrast": {
+      "title": "Проверка контраста",
+      "window_title": "Проверка контраста - {name}",
+      "scheme_name": "Цветовая схема: {name}",
+      "background_color": "Фон",
+      "text_color": "Текст",
+      "color_index": "Цвет {index}",
+      "swap_colors": "Поменять цвета",
+      "wcag_level": "Уровень WCAG 2.1",
+      "preview_effect": "Эффект предпросмотра",
+      "normal_text": "Обычный текст",
+      "large_text": "Крупный текст",
+      "graphic_element": "Графические элементы",
+      "sample_text": "Высокий цветовой контраст\nделает любое содержимое\nболее читаемым",
+      "wcag_description": "Стандарт WCAG 2.1: Обычный текст AA требует 4.5:1, AAA требует 7:1; Крупный текст AA требует 3:1, AAA требует 4.5:1",
+      "pass_aaa": "✓ Пройдено AAA",
+      "pass_aa": "✓ Пройдено AA",
+      "large_only": "△ Только крупный текст",
+      "fail": "✗ Не пройдено"
+    },
+    "confirm": {
+      "clear_title": "Подтвердить очистку",
+      "clear_content": "Вы уверены, что хотите очистить все сохраненные палитры? Это действие нельзя отменить.",
+      "delete_title": "Подтвердить удаление",
+      "delete_content": "Вы уверены, что хотите удалить \"{name}\"? Это действие нельзя отменить.",
+      "import_mode_title": "Выбрать режим импорта",
+      "import_mode_content": "Выберите метод импорта:\n\nНажмите \"Да\" для добавления к существующим палитрам\nНажмите \"Нет\" для замены существующих палитр",
+      "append": "Добавить",
+      "replace": "Заменить",
+      "confirm_btn": "Подтвердить",
+      "delete_btn": "Удалить",
+      "cancel_btn": "Отмена"
+    }
+  },
+  "messages": {
+    "favorite_failed": {
+      "title": "Невозможно сохранить",
+      "content": "Сначала извлеките цвета, затем сохраните"
+    },
+    "favorite_success": {
+      "title": "Успешно сохранено",
+      "content": "Палитра сохранена: {name}"
+    },
+    "extract_failed": {
+      "title": "Невозможно извлечь",
+      "content": "Сначала импортируйте изображение"
+    },
+    "extracting": {
+      "title": "Извлечение",
+      "content": "Анализ доминирующих цветов изображения, пожалуйста, подождите..."
+    },
+    "extract_success": {
+      "title": "Извлечение завершено",
+      "content": "Успешно извлечено {count} доминирующих цветов"
+    },
+    "extract_error": {
+      "title": "Ошибка извлечения",
+      "content": "Произошла ошибка во время извлечения: {error}"
+    },
+    "display_failed": {
+      "title": "Невозможно отобразить",
+      "content": "Сначала импортируйте изображение"
+    },
+    "copy_success": {
+      "title": "Скопировано",
+      "content": "Значение цвета {value} скопировано в буфер обмена"
+    },
+    "invalid_input": {
+      "title": "Неверный ввод",
+      "content": "Введите действительное HEX значение цвета (например, #FF0000)"
+    },
+    "no_colors": {
+      "title": "Невозможно сохранить",
+      "content": "Нет доступных палитр для сохранения"
+    },
+    "preview_failed": {
+      "title": "Невозможно предпросмотреть",
+      "content": "У этой палитры нет данных о цвете"
+    },
+    "preview_invalid": {
+      "title": "Невозможно предпросмотреть",
+      "content": "У этой палитры нет действительных данных о цвете"
+    },
+    "import_success": {
+      "title": "Импорт успешен",
+      "content": "Успешно импортировано {count} палитр"
+    },
+    "import_failed": {
+      "title": "Ошибка импорта",
+      "content": "{error}"
+    },
+    "export_success": {
+      "title": "Экспорт успешен",
+      "content": "Палитры экспортированы в: {path}"
+    },
+    "export_failed": {
+      "title": "Ошибка экспорта",
+      "content": "{error}"
+    },
+    "add_success": {
+      "title": "Успешно добавлено",
+      "content": "Палитра \"{name}\" добавлена"
+    },
+    "update_success": {
+      "title": "Успешно обновлено",
+      "content": "Палитра \"{name}\" обновлена"
+    },
+    "update_failed": {
+      "title": "Ошибка обновления",
+      "content": "Невозможно найти эту палитру"
+    },
+    "color_updated": {
+      "title": "Цвет обновлен",
+      "content": "Цвет в палитре обновлен на {hex}"
+    },
+    "check_update_failed": {
+      "title": "Ошибка проверки обновлений",
+      "content": "{error}"
+    },
+    "latest_version": {
+      "title": "Информация",
+      "content": "Вы используете последнюю версию"
+    },
+    "no_requests": {
+      "title": "Информация",
+      "content": "Отсутствует библиотека requests, невозможно проверить обновления"
+    },
+    "palette": "Палитра"
+  },
+  "context_menu": {
+    "change_image": "Изменить изображение",
+    "clear_image": "Очистить изображение"
+  },
+  "common": {
+    "delete": "Удалить"
+  }
+}

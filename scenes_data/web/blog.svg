@@ -1,0 +1,63 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 页面背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#fafafa"/>
+
+  <!-- 顶部导航栏 -->
+  <rect id="navbar" class="primary" x="0" y="0" width="400" height="50" fill="#ffffff"/>
+  <rect id="logo" class="accent" x="30" y="15" width="80" height="20" rx="4" fill="#6c5ce7"/>
+  <text id="logo-text" class="text" x="70" y="29" text-anchor="middle" font-family="Georgia, serif" font-size="12" font-weight="bold" fill="#ffffff">BLOG</text>
+
+  <!-- 导航链接 -->
+  <text id="nav-home" class="text" x="280" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436">首页</text>
+  <text id="nav-articles" class="text" x="320" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436">文章</text>
+  <text id="nav-about" class="text" x="360" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436">关于</text>
+
+  <!-- 分隔线 -->
+  <line id="nav-divider" class="stroke" x1="0" y1="50" x2="400" y2="50" stroke="#dfe6e9" stroke-width="1"/>
+
+  <!-- 特色文章区域 -->
+  <rect id="featured-card" class="secondary" x="30" y="65" width="340" height="90" rx="8" fill="#ffffff"/>
+
+  <!-- 特色文章图片 -->
+  <rect id="featured-img" class="primary" x="40" y="75" width="120" height="70" rx="4" fill="#74b9ff"/>
+
+  <!-- 特色文章内容 -->
+  <rect id="featured-tag" class="accent" x="175" y="80" width="50" height="16" rx="8" fill="#fd79a8"/>
+  <text id="featured-tag-text" class="text" x="200" y="91" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">精选</text>
+
+  <text id="featured-title" class="text" x="175" y="112" font-family="Georgia, serif" font-size="13" font-weight="bold" fill="#2d3436">探索设计的无限可能</text>
+  <text id="featured-excerpt" class="text" x="175" y="130" font-family="Arial, sans-serif" font-size="9" fill="#636e72">设计不仅仅是外观，更是功能的体现...</text>
+
+  <!-- 文章列表 -->
+  <!-- 文章1 -->
+  <rect id="article-1" class="secondary" x="30" y="165" width="220" height="55" rx="6" fill="#ffffff"/>
+  <rect id="article-1-thumb" class="primary" x="40" y="172" width="50" height="40" rx="3" fill="#a29bfe"/>
+  <text id="article-1-title" class="text" x="100" y="188" font-family="Georgia, serif" font-size="10" font-weight="bold" fill="#2d3436">色彩心理学入门</text>
+  <text id="article-1-date" class="text" x="100" y="203" font-family="Arial, sans-serif" font-size="8" fill="#b2bec3">2026年2月15日</text>
+
+  <!-- 文章2 -->
+  <rect id="article-2" class="secondary" x="30" y="225" width="220" height="55" rx="6" fill="#ffffff"/>
+  <rect id="article-2-thumb" class="primary" x="40" y="232" width="50" height="40" rx="3" fill="#fd79a8"/>
+  <text id="article-2-title" class="text" x="100" y="248" font-family="Georgia, serif" font-size="10" font-weight="bold" fill="#2d3436">排版设计基础</text>
+  <text id="article-2-date" class="text" x="100" y="263" font-family="Arial, sans-serif" font-size="8" fill="#b2bec3">2026年2月10日</text>
+
+  <!-- 侧边栏 -->
+  <rect id="sidebar" class="secondary" x="265" y="165" width="105" height="115" rx="6" fill="#ffffff"/>
+  <text id="sidebar-title" class="text" x="317" y="185" text-anchor="middle" font-family="Georgia, serif" font-size="11" font-weight="bold" fill="#2d3436">标签云</text>
+
+  <!-- 标签 -->
+  <rect id="tag-design" class="accent" x="275" y="195" width="40" height="18" rx="9" fill="#6c5ce7"/>
+  <text id="tag-design-text" class="text" x="295" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">设计</text>
+
+  <rect id="tag-color" class="primary" x="325" y="195" width="35" height="18" rx="9" fill="#2d3436"/>
+  <text id="tag-color-text" class="text" x="342" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">配色</text>
+
+  <rect id="tag-ui" class="primary" x="275" y="220" width="30" height="18" rx="9" fill="#2d3436"/>
+  <text id="tag-ui-text" class="text" x="290" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">UI</text>
+
+  <rect id="tag-typo" class="accent" x="315" y="220" width="45" height="18" rx="9" fill="#fd79a8"/>
+  <text id="tag-typo-text" class="text" x="337" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">排版</text>
+
+  <rect id="tag-brand" class="primary" x="275" y="245" width="35" height="18" rx="9" fill="#2d3436"/>
+  <text id="tag-brand-text" class="text" x="292" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff">品牌</text>
+</svg>

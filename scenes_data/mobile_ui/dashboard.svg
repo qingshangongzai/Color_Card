@@ -1,0 +1,63 @@
+<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 透明 -->
+  <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
+
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#2a2a2a" data-fixed-color="original"/>
+
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="81" y="24" width="138" height="352" rx="16" fill="#ffffff"/>
+
+  <!-- 顶部装饰背景 - 圆角矩形 -->
+  <rect id="header-bg" class="secondary" x="85" y="30" width="130" height="55" rx="12" fill="#8fa8c0"/>
+
+  <!-- 状态栏 -->
+  <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
+
+  <!-- 用户欢迎区 -->
+  <text id="greeting" class="text" x="95" y="105" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333333" data-fixed-color="black">Hi, User</text>
+  <text id="date" class="text" x="95" y="122" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">Monday, 17 June</text>
+
+  <!-- 用户头像 - 左移 -->
+  <circle id="avatar" class="primary" cx="185" cy="115" r="13" fill="#4a4a4a"/>
+
+  <!-- 搜索栏 -->
+  <rect id="search-bar" class="secondary" x="95" y="140" width="110" height="28" rx="14" fill="#f0f0f0"/>
+  <text id="search-text" class="text" x="150" y="158" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#999999" data-fixed-color="black">Search</text>
+
+  <!-- Categories 标题 -->
+  <text id="categories-title" class="text" x="95" y="185" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333" data-fixed-color="black">Categories</text>
+
+  <!-- 分类标签 - 调整位置 -->
+  <rect id="tag-1" class="accent" x="95" y="193" width="50" height="20" rx="10" fill="#ff6b6b"/>
+  <text id="tag-1-text" class="text" x="120" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">Weight</text>
+
+  <rect id="tag-2" class="secondary" x="150" y="193" width="48" height="20" rx="10" fill="#e0e0e0"/>
+  <text id="tag-2-text" class="text" x="174" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">Cardio</text>
+
+  <!-- Start a Session 标题 -->
+  <text id="session-title" class="text" x="95" y="230" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333" data-fixed-color="black">Start a Session</text>
+
+  <!-- 训练卡片 2x2 网格 - 调整位置和大小 -->
+  <!-- 卡片1: 15 min -->
+  <rect id="card-1" class="accent" x="95" y="240" width="50" height="52" rx="10" fill="#ff6b6b"/>
+  <text id="card-1-time" class="text" x="120" y="258" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" data-fixed-color="black">15</text>
+  <text id="card-1-unit" class="text" x="120" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#ffffff" data-fixed-color="black">min</text>
+  <text id="card-1-level" class="text" x="120" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#ffffff" data-fixed-color="black">High</text>
+
+  <!-- 卡片2: 30 min -->
+  <rect id="card-2" class="primary" x="152" y="240" width="50" height="52" rx="10" fill="#4a4a4a"/>
+  <text id="card-2-time" class="text" x="177" y="258" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#ffffff" data-fixed-color="black">30</text>
+  <text id="card-2-unit" class="text" x="177" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#ffffff" data-fixed-color="black">min</text>
+  <text id="card-2-level" class="text" x="177" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#ffffff" data-fixed-color="black">Mid</text>
+
+  <!-- 卡片3: 45 min -->
+  <rect id="card-3" class="secondary" x="95" y="298" width="50" height="30" rx="8" fill="#6a6a6a"/>
+  <text id="card-3-time" class="text" x="120" y="313" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">45 min</text>
+  <text id="card-3-level" class="text" x="120" y="323" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" fill="#ffffff" data-fixed-color="black">Medium</text>
+
+  <!-- 卡片4: 60 min -->
+  <rect id="card-4" class="accent" x="152" y="298" width="50" height="30" rx="8" fill="#ff8a8a"/>
+  <text id="card-4-time" class="text" x="177" y="313" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">60 min</text>
+  <text id="card-4-level" class="text" x="177" y="323" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" fill="#ffffff" data-fixed-color="black">Low</text>
+</svg>

@@ -1,0 +1,86 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 页面背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f5f6fa"/>
+
+  <!-- 侧边导航栏 -->
+  <rect id="sidebar" class="primary" x="0" y="0" width="70" height="300" fill="#2d3436"/>
+
+  <!-- 侧边栏Logo -->
+  <rect id="sidebar-logo" class="accent" x="15" y="20" width="40" height="25" rx="4" fill="#00b894"/>
+  <text id="logo-text" class="text" x="35" y="37" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff">DASH</text>
+
+  <!-- 侧边栏菜单项 -->
+  <rect id="menu-active" class="accent" x="10" y="65" width="50" height="30" rx="4" fill="#00b894" opacity="0.3"/>
+  <text id="menu-home" class="text" x="35" y="84" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff">首页</text>
+
+  <text id="menu-analytics" class="text" x="35" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3">分析</text>
+  <text id="menu-users" class="text" x="35" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3">用户</text>
+  <text id="menu-settings" class="text" x="35" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3">设置</text>
+
+  <!-- 主内容区顶部栏 -->
+  <rect id="topbar" class="secondary" x="70" y="0" width="330" height="50" fill="#ffffff"/>
+
+  <!-- 搜索框 -->
+  <rect id="search-box" class="secondary" x="90" y="12" width="180" height="26" rx="13" fill="#f5f6fa"/>
+  <text id="search-text" class="text" x="180" y="29" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#b2bec3">搜索数据...</text>
+
+  <!-- 用户头像 -->
+  <circle id="user-avatar" class="accent" cx="370" cy="25" r="15" fill="#00b894"/>
+  <text id="user-initial" class="text" x="370" y="29" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff">U</text>
+
+  <!-- 统计卡片区域 -->
+  <!-- 卡片1: 总收入 -->
+  <rect id="stat-card-1" class="secondary" x="90" y="65" width="90" height="70" rx="8" fill="#ffffff"/>
+  <text id="stat-1-label" class="text" x="100" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3">总收入</text>
+  <text id="stat-1-value" class="text" x="100" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436">¥128K</text>
+  <rect id="stat-1-bar" class="accent" x="100" y="118" width="70" height="6" rx="3" fill="#00b894"/>
+
+  <!-- 卡片2: 用户数 -->
+  <rect id="stat-card-2" class="secondary" x="190" y="65" width="90" height="70" rx="8" fill="#ffffff"/>
+  <text id="stat-2-label" class="text" x="200" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3">用户数</text>
+  <text id="stat-2-value" class="text" x="200" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436">8,542</text>
+  <rect id="stat-2-bar" class="primary" x="200" y="118" width="50" height="6" rx="3" fill="#74b9ff"/>
+
+  <!-- 卡片3: 订单量 -->
+  <rect id="stat-card-3" class="secondary" x="290" y="65" width="90" height="70" rx="8" fill="#ffffff"/>
+  <text id="stat-3-label" class="text" x="300" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3">订单量</text>
+  <text id="stat-3-value" class="text" x="300" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436">3,215</text>
+  <rect id="stat-3-bar" class="accent" x="300" y="118" width="60" height="6" rx="3" fill="#fdcb6e"/>
+
+  <!-- 图表区域 -->
+  <rect id="chart-card" class="secondary" x="90" y="145" width="200" height="140" rx="8" fill="#ffffff"/>
+  <text id="chart-title" class="text" x="105" y="170" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2d3436">访问趋势</text>
+
+  <!-- 折线图 -->
+  <polyline id="chart-line" class="accent" points="105,250 130,230 155,240 180,210 205,220 230,190 255,200 280,180" stroke="#00b894" stroke-width="2" fill="none"/>
+
+  <!-- 图表数据点 -->
+  <circle id="point-1" class="accent" cx="130" cy="230" r="4" fill="#00b894"/>
+  <circle id="point-2" class="accent" cx="155" cy="240" r="4" fill="#00b894"/>
+  <circle id="point-3" class="accent" cx="180" cy="210" r="4" fill="#00b894"/>
+  <circle id="point-4" class="accent" cx="205" cy="220" r="4" fill="#00b894"/>
+  <circle id="point-5" class="accent" cx="230" cy="190" r="4" fill="#00b894"/>
+  <circle id="point-6" class="accent" cx="255" cy="200" r="4" fill="#00b894"/>
+  <circle id="point-7" class="accent" cx="280" cy="180" r="4" fill="#00b894"/>
+
+  <!-- 图表坐标轴 -->
+  <line id="axis-x" class="stroke" x1="105" y1="260" x2="280" y2="260" stroke="#dfe6e9" stroke-width="1"/>
+  <line id="axis-y" class="stroke" x1="105" y1="175" x2="105" y2="260" stroke="#dfe6e9" stroke-width="1"/>
+
+  <!-- 右侧活动列表 -->
+  <rect id="activity-card" class="secondary" x="300" y="145" width="80" height="140" rx="8" fill="#ffffff"/>
+  <text id="activity-title" class="text" x="340" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#2d3436">最近活动</text>
+
+  <!-- 活动项 -->
+  <circle id="act-1-icon" class="accent" cx="315" cy="195" r="6" fill="#00b894"/>
+  <text id="act-1-text" class="text" x="340" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#636e72">新订单</text>
+
+  <circle id="act-2-icon" class="primary" cx="315" cy="220" r="6" fill="#74b9ff"/>
+  <text id="act-2-text" class="text" x="340" y="223" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#636e72">用户注册</text>
+
+  <circle id="act-3-icon" class="accent" cx="315" cy="245" r="6" fill="#fdcb6e"/>
+  <text id="act-3-text" class="text" x="340" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#636e72">评论新增</text>
+
+  <circle id="act-4-icon" class="primary" cx="315" cy="270" r="6" fill="#a29bfe"/>
+  <text id="act-4-text" class="text" x="340" y="273" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#636e72">系统更新</text>
+</svg>
