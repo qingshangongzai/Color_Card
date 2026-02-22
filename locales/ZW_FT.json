@@ -41,6 +41,10 @@
       "complementary": "互補色",
       "split_complementary": "分離補色",
       "double_complementary": "雙補色"
+    },
+    "favorite_success": {
+      "title": "已收藏",
+      "content": "配色「{name}」已添加到配色管理"
     }
   },
   "palette_management": {

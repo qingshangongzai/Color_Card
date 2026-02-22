@@ -41,6 +41,10 @@
       "complementary": "コンプリメンタリー",
       "split_complementary": "スプリットコンプリメンタリー",
       "double_complementary": "ダブルコンプリメンタリー"
+    },
+    "favorite_success": {
+      "title": "保存しました",
+      "content": "配色「{name}」をパレット管理に追加しました"
     }
   },
   "palette_management": {

@@ -41,6 +41,10 @@
       "complementary": "Complémentaire",
       "split_complementary": "Complémentaire partagé",
       "double_complementary": "Double complémentaire"
+    },
+    "favorite_success": {
+      "title": "Enregistré",
+      "content": "Le schéma de couleurs \"{name}\" a été ajouté à la gestion des palettes"
     }
   },
   "palette_management": {

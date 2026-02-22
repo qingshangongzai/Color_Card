@@ -41,6 +41,10 @@
       "complementary": "Комплементарная",
       "split_complementary": "Разделенная комплементарная",
       "double_complementary": "Двойная комплементарная"
+    },
+    "favorite_success": {
+      "title": "Сохранено",
+      "content": "Цветовая схема \"{name}\" добавлена в управление палитрами"
     }
   },
   "palette_management": {

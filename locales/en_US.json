@@ -41,6 +41,10 @@
       "complementary": "Complementary",
       "split_complementary": "Split Complementary",
       "double_complementary": "Double Complementary"
+    },
+    "favorite_success": {
+      "title": "Saved",
+      "content": "Color scheme \"{name}\" has been added to palette management"
     }
   },
   "palette_management": {

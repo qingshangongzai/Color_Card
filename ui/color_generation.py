@@ -704,8 +704,8 @@ class ColorGenerationInterface(QWidget):
             window.refresh_palette_management()
 
         InfoBar.success(
-            title=tr('color_generation.favorite_success'),
-            content=tr('color_generation.favorite_success_content', name=favorite_data['name']),
+            title=tr('color_generation.favorite_success.title'),
+            content=tr('color_generation.favorite_success.content', name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
