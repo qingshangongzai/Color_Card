@@ -19,7 +19,7 @@
 **开源地址**：
 - **主仓库（Gitee）**：https://gitee.com/qingshangongzai/color_card
 - **镜像仓库（GitHub）**：https://github.com/qingshangongzai/Color_Card
-- **项目官网**：https://qingshangongzai.github.io/color_card/
+- **项目官网**：https://qingshangongzai.github.io/Color_Card/
 
 ### 核心功能特色
 
@@ -233,7 +233,7 @@ Copyright © 2026 浮晓 HXiao Studio
 **Repository URLs**:
 - **Primary Repository (Gitee)**: https://gitee.com/qingshangongzai/color_card
 - **Mirror Repository (GitHub)**: https://github.com/qingshangongzai/Color_Card
-- **Project Website**: https://qingshangongzai.github.io/color_card/
+- **Project Website**: https://qingshangongzai.github.io/Color_Card/
 
 ### Key Features
 
