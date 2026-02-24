@@ -126,11 +126,37 @@
       "content": "No SVG available for export"
     }
   },
+  "canvases": {
+    "click_to_import": "Click to import image",
+    "importing_image": "Importing image...",
+    "loading_full_image": "Loading full image...",
+    "finishing": "Finishing..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "HSB Color Wheel",
+    "hue_red": "R",
+    "hue_orange_red": "O-R",
+    "hue_yellow": "Y",
+    "hue_yellow_green": "Y-G",
+    "hue_green": "G",
+    "hue_cyan_green": "C-G",
+    "hue_cyan": "C",
+    "hue_cyan_blue": "C-B",
+    "hue_blue": "B",
+    "hue_purple": "P",
+    "hue_magenta": "M",
+    "hue_purple_red": "P-R"
+  },
+  "histograms": {
+    "loading": "Loading...",
+    "hue_distribution_title": "Hue Distribution"
+  },
   "preset_color": {
     "title": "Preset Colors",
     "random_palette": "Random Palette",
     "random": "Random",
     "desc_random": "Randomly filtered from all color schemes",
+    "loading": "Loading...",
     "desc_source": "Based on {name}",
     "copy_success": {
       "title": "Copied",
@@ -374,6 +400,8 @@
     "clear_image": "Clear Image"
   },
   "common": {
-    "delete": "Delete"
+    "delete": "Delete",
+    "group_range": "{start}-{end}",
+    "group_all": "All ({total})"
   }
 }

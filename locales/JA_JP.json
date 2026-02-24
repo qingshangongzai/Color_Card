@@ -126,11 +126,37 @@
       "content": "エクスポート可能なSVGがありません"
     }
   },
+  "canvases": {
+    "click_to_import": "クリックして画像をインポート",
+    "importing_image": "画像をインポート中...",
+    "loading_full_image": "フル画像を読み込み中...",
+    "finishing": "完了中..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "HSB色環",
+    "hue_red": "赤",
+    "hue_orange_red": "赤橙",
+    "hue_yellow": "黄",
+    "hue_yellow_green": "黄緑",
+    "hue_green": "緑",
+    "hue_cyan_green": "青緑",
+    "hue_cyan": "青",
+    "hue_cyan_blue": "青藍",
+    "hue_blue": "藍",
+    "hue_purple": "紫",
+    "hue_magenta": "赤紫",
+    "hue_purple_red": "紫赤"
+  },
+  "histograms": {
+    "loading": "読み込み中...",
+    "hue_distribution_title": "色相分布"
+  },
   "preset_color": {
     "title": "プリセットカラー",
     "random_palette": "ランダムパレット",
     "random": "ランダム",
-    "desc_random": "すべてのカラースキームからランダムに選択",
+    "desc_random": "すべてのカラースキームからランダムに抽出",
+    "loading": "読み込み中...",
     "desc_source": "{name}に基づく",
     "copy_success": {
       "title": "コピーしました",
@@ -374,6 +400,8 @@
     "clear_image": "画像をクリア"
   },
   "common": {
-    "delete": "削除"
+    "delete": "削除",
+    "group_range": "{start}-{end}",
+    "group_all": "すべて ({total})"
   }
 }

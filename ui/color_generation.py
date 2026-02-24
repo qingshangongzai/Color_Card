@@ -374,7 +374,7 @@ class ColorGenerationInterface(QWidget):
 
         # 收藏按钮
         self.favorite_button = PrimaryPushButton(FluentIcon.HEART, tr('color_generation.favorite'), self)
-        self.favorite_button.setFixedWidth(80)
+        self.favorite_button.setFixedWidth(100)
         self.favorite_button.clicked.connect(self._on_favorite_clicked)
         top_layout.addWidget(self.favorite_button)
 

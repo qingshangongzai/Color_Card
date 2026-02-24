@@ -126,20 +126,46 @@
       "content": "当前没有可导出的SVG"
     }
   },
+  "canvases": {
+    "click_to_import": "點擊導入圖片",
+    "importing_image": "正在導入圖片...",
+    "loading_full_image": "正在加載完整圖片...",
+    "finishing": "正在完成..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "HSB色環",
+    "hue_red": "紅",
+    "hue_orange_red": "橙紅",
+    "hue_yellow": "黃",
+    "hue_yellow_green": "黃綠",
+    "hue_green": "綠",
+    "hue_cyan_green": "青綠",
+    "hue_cyan": "青",
+    "hue_cyan_blue": "青藍",
+    "hue_blue": "藍",
+    "hue_purple": "紫",
+    "hue_magenta": "品紅",
+    "hue_purple_red": "紫紅"
+  },
+  "histograms": {
+    "loading": "加載中...",
+    "hue_distribution_title": "色相分布"
+  },
   "preset_color": {
-    "title": "内置色彩",
-    "random_palette": "随机配色",
-    "random": "随机",
-    "desc_random": "从全部配色方案中随机筛选",
-    "desc_source": "基于 {name}",
+    "title": "預設顏色",
+    "random_palette": "隨機配色",
+    "random": "隨機",
+    "desc_random": "從所有配色方案中隨機篩選",
+    "desc_source": "基於 {name}",
     "copy_success": {
-      "title": "已复制",
-      "content": "颜色值 {value} 已复制到剪贴板"
+      "title": "已複製",
+      "content": "顏色值 {value} 已複製到剪貼板"
     },
     "favorite_success": {
       "title": "已收藏",
       "content": "配色「{name}」已添加到配色管理"
-    }
+    },
+    "loading": "加載中..."
   },
   "settings": {
     "title": "设置",
@@ -374,6 +400,8 @@
     "clear_image": "清空图片"
   },
   "common": {
-    "delete": "删除"
+    "delete": "刪除",
+    "group_range": "{start}-{end}",
+    "group_all": "全部 ({total})"
   }
 }
