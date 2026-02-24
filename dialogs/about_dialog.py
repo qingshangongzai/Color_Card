@@ -107,6 +107,14 @@ class AboutDialog(QDialog):
         
         buttons_layout.addStretch()
         
+        # 官网按钮
+        self.website_button = PushButton(tr('dialogs.about.website'))
+        self.website_button.setMinimumWidth(90)
+        self.website_button.clicked.connect(
+            lambda: self._open_url("https://qingshangongzai.github.io/color_card/")
+        )
+        buttons_layout.addWidget(self.website_button)
+
         # 个人主页按钮
         self.homepage_button = PushButton(tr('dialogs.about.homepage'))
         self.homepage_button.setMinimumWidth(90)

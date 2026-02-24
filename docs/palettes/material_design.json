@@ -1,0 +1,361 @@
+{
+  "version": "1.0",
+  "id": "material_design",
+  "name": "Material Design",
+  "name_zh": "Material Design 配色",
+  "description": "Google Material Design 官方配色系统",
+  "author": "Google",
+  "category": "design_system",
+  "palettes": [
+    {
+      "name": "红色",
+      "name_en": "Red",
+      "colors": [
+        "#ffebee",
+        "#ffcdd2",
+        "#ef9a9a",
+        "#e57373",
+        "#ef5350",
+        "#f44336",
+        "#e53935",
+        "#d32f2f",
+        "#c62828",
+        "#b71c1c"
+      ]
+    },
+    {
+      "name": "粉色",
+      "name_en": "Pink",
+      "colors": [
+        "#fce4ec",
+        "#f8bbd9",
+        "#f48fb1",
+        "#f06292",
+        "#ec407a",
+        "#e91e63",
+        "#d81b60",
+        "#c2185b",
+        "#ad1457",
+        "#880e4f"
+      ]
+    },
+    {
+      "name": "紫色",
+      "name_en": "Purple",
+      "colors": [
+        "#f3e5f5",
+        "#e1bee7",
+        "#ce93d8",
+        "#ba68c8",
+        "#ab47bc",
+        "#9c27b0",
+        "#8e24aa",
+        "#7b1fa2",
+        "#6a1b9a",
+        "#4a148c"
+      ]
+    },
+    {
+      "name": "深紫色",
+      "name_en": "Deep Purple",
+      "colors": [
+        "#ede7f6",
+        "#d1c4e9",
+        "#b39ddb",
+        "#9575cd",
+        "#7e57c2",
+        "#673ab7",
+        "#5e35b1",
+        "#512da8",
+        "#4527a0",
+        "#311b92"
+      ]
+    },
+    {
+      "name": "靛蓝色",
+      "name_en": "Indigo",
+      "colors": [
+        "#e8eaf6",
+        "#c5cae9",
+        "#9fa8da",
+        "#7986cb",
+        "#5c6bc0",
+        "#3f51b5",
+        "#3949ab",
+        "#303f9f",
+        "#283593",
+        "#1a237e"
+      ]
+    },
+    {
+      "name": "蓝色",
+      "name_en": "Blue",
+      "colors": [
+        "#e3f2fd",
+        "#bbdefb",
+        "#90caf9",
+        "#64b5f6",
+        "#42a5f5",
+        "#2196f3",
+        "#1e88e5",
+        "#1976d2",
+        "#1565c0",
+        "#0d47a1"
+      ]
+    },
+    {
+      "name": "浅蓝色",
+      "name_en": "Light Blue",
+      "colors": [
+        "#e1f5fe",
+        "#b3e5fc",
+        "#81d4fa",
+        "#4fc3f7",
+        "#29b6f6",
+        "#03a9f4",
+        "#039be5",
+        "#0288d1",
+        "#0277bd",
+        "#01579b"
+      ]
+    },
+    {
+      "name": "青色",
+      "name_en": "Cyan",
+      "colors": [
+        "#e0f7fa",
+        "#b2ebf2",
+        "#80deea",
+        "#4dd0e1",
+        "#26c6da",
+        "#00bcd4",
+        "#00acc1",
+        "#0097a7",
+        "#00838f",
+        "#006064"
+      ]
+    },
+    {
+      "name": "蓝绿色",
+      "name_en": "Teal",
+      "colors": [
+        "#e0f2f1",
+        "#b2dfdb",
+        "#80cbc4",
+        "#4db6ac",
+        "#26a69a",
+        "#009688",
+        "#00897b",
+        "#00796b",
+        "#00695c",
+        "#004d40"
+      ]
+    },
+    {
+      "name": "绿色",
+      "name_en": "Green",
+      "colors": [
+        "#e8f5e9",
+        "#c8e6c9",
+        "#a5d6a7",
+        "#81c784",
+        "#66bb6a",
+        "#4caf50",
+        "#43a047",
+        "#388e3c",
+        "#2e7d32",
+        "#1b5e20"
+      ]
+    },
+    {
+      "name": "浅绿色",
+      "name_en": "Light Green",
+      "colors": [
+        "#f1f8e9",
+        "#dcedc8",
+        "#c5e1a5",
+        "#aed581",
+        "#9ccc65",
+        "#8bc34a",
+        "#7cb342",
+        "#689f38",
+        "#558b2f",
+        "#33691e"
+      ]
+    },
+    {
+      "name": "柠檬绿",
+      "name_en": "Lime",
+      "colors": [
+        "#f9fbe7",
+        "#f0f4c3",
+        "#e6ee9c",
+        "#dce775",
+        "#d4e157",
+        "#cddc39",
+        "#c0ca33",
+        "#afb42b",
+        "#9e9d24",
+        "#827717"
+      ]
+    },
+    {
+      "name": "黄色",
+      "name_en": "Yellow",
+      "colors": [
+        "#fffde7",
+        "#fff9c4",
+        "#fff59d",
+        "#fff176",
+        "#ffee58",
+        "#ffeb3b",
+        "#fdd835",
+        "#fbc02d",
+        "#f9a825",
+        "#f57f17"
+      ]
+    },
+    {
+      "name": "琥珀色",
+      "name_en": "Amber",
+      "colors": [
+        "#fff8e1",
+        "#ffecb3",
+        "#ffe082",
+        "#ffd54f",
+        "#ffca28",
+        "#ffc107",
+        "#ffb300",
+        "#ffa000",
+        "#ff8f00",
+        "#ff6f00"
+      ]
+    },
+    {
+      "name": "橙色",
+      "name_en": "Orange",
+      "colors": [
+        "#fff3e0",
+        "#ffe0b2",
+        "#ffcc80",
+        "#ffb74d",
+        "#ffa726",
+        "#ff9800",
+        "#fb8c00",
+        "#f57c00",
+        "#ef6c00",
+        "#e65100"
+      ]
+    },
+    {
+      "name": "深橙色",
+      "name_en": "Deep Orange",
+      "colors": [
+        "#fbe9e7",
+        "#ffccbc",
+        "#ffab91",
+        "#ff8a65",
+        "#ff7043",
+        "#ff5722",
+        "#f4511e",
+        "#e64a19",
+        "#d84315",
+        "#bf360c"
+      ]
+    },
+    {
+      "name": "棕色",
+      "name_en": "Brown",
+      "colors": [
+        "#efebe9",
+        "#d7ccc8",
+        "#bcaaa4",
+        "#a1887f",
+        "#8d6e63",
+        "#795548",
+        "#6d4c41",
+        "#5d4037",
+        "#4e342e",
+        "#3e2723"
+      ]
+    },
+    {
+      "name": "灰色",
+      "name_en": "Grey",
+      "colors": [
+        "#fafafa",
+        "#f5f5f5",
+        "#eeeeee",
+        "#e0e0e0",
+        "#bdbdbd",
+        "#9e9e9e",
+        "#757575",
+        "#616161",
+        "#424242",
+        "#212121"
+      ]
+    },
+    {
+      "name": "蓝灰色",
+      "name_en": "Blue Grey",
+      "colors": [
+        "#eceff1",
+        "#cfd8dc",
+        "#b0bec5",
+        "#90a4ae",
+        "#78909c",
+        "#607d8b",
+        "#546e7a",
+        "#455a64",
+        "#37474f",
+        "#263238"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "name": "红/粉/紫组",
+      "indices": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "蓝/青组",
+      "indices": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "name": "绿色系",
+      "indices": [
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "name": "黄/橙组",
+      "indices": [
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    {
+      "name": "棕/灰组",
+      "indices": [
+        16,
+        17,
+        18
+      ]
+    }
+  ]
+}

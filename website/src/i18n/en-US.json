@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "features": "Features",
+    "palettes": "Palettes",
+    "preview": "Preview",
+    "download": "Download"
+  },
+  "hero": {
+    "title": "All-in-One Color Tool",
+    "subtitle": "Professional color analysis tool for photographers and designers",
+    "description": "Extract colors from images, analyze luminance distribution, generate harmonious color schemes, manage palettes, and preview color effects - a complete workflow from color analysis to application",
+    "download": "Download Now",
+    "learnMore": "Learn More",
+    "badge": "Open Source"
+  },
+  "features": {
+    "title": "Powerful Features",
+    "subtitle": "Complete color workflow from extraction to application",
+    "colorExtract": {
+      "title": "Visual Color Extraction",
+      "description": "Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB)"
+    },
+    "colorGeneration": {
+      "title": "Smart Color Generation",
+      "description": "5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel"
+    },
+    "paletteManagement": {
+      "title": "Palette Management",
+      "description": "Save and manage color schemes, support batch import/export in JSON format, build your personal color library"
+    },
+    "builtInPalettes": {
+      "title": "Built-in Color Library",
+      "description": "13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes"
+    },
+    "colorPreview": {
+      "title": "Color Preview",
+      "description": "8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support"
+    },
+    "luminanceAnalysis": {
+      "title": "Luminance Analysis",
+      "description": "5-zone luminance segmentation with histogram visualization to assist color grading decisions"
+    }
+  },
+  "palettes": {
+    "title": "13 Professional Color Schemes",
+    "subtitle": "661 curated color palettes covering design systems, terminal themes, and artistic palettes",
+    "categories": {
+      "all": "All",
+      "design_system": "Design System",
+      "terminal": "Terminal",
+      "artistic": "Artistic"
+    },
+    "copySuccess": "Copied to clipboard",
+    "copyFailed": "Copy failed"
+  },
+  "download": {
+    "title": "Get Started Now",
+    "subtitle": "No internet required, no registration needed, privacy secure, one-step access",
+    "windows": {
+      "title": "Windows",
+      "description": "For Windows 10/11 64-bit",
+      "button": "Download Installer"
+    },
+    "source": {
+      "title": "Source Code",
+      "description": "GPL 3.0 License",
+      "github": "GitHub",
+      "gitee": "Gitee"
+    },
+    "requirements": {
+      "title": "System Requirements",
+      "os": "OS: Windows 10/11 64-bit",
+      "python": "Python: 3.11 or higher",
+      "memory": "Memory: 4GB+ recommended",
+      "disk": "Disk: At least 100MB"
+    }
+  },
+  "footer": {
+    "description": "Color Card is an all-in-one color tool and image color analysis tool for photographers and designers",
+    "links": {
+      "product": "Product",
+      "resources": "Resources",
+      "about": "About"
+    },
+    "copyright": "© 2026 Color Card. All rights reserved.",
+    "license": "GPL 3.0 License"
+  }
+}

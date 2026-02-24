@@ -217,6 +217,7 @@
   "dialogs": {
     "about": {
       "title": "について",
+      "website": "公式サイト",
       "homepage": "ホームページ",
       "project": "プロジェクト",
       "license": "ライセンス",

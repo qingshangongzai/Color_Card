@@ -217,6 +217,7 @@
   "dialogs": {
     "about": {
       "title": "О программе",
+      "website": "Сайт",
       "homepage": "Домашняя страница",
       "project": "Проект",
       "license": "Лицензия",

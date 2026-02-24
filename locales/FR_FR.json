@@ -217,6 +217,7 @@
   "dialogs": {
     "about": {
       "title": "À propos",
+      "website": "Site officiel",
       "homepage": "Page d'accueil",
       "project": "Projet",
       "license": "Licence",

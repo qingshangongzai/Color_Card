@@ -1,0 +1,88 @@
+{
+  "nav": {
+    "features": "功能特性",
+    "palettes": "配色方案",
+    "preview": "场景预览",
+    "download": "下载"
+  },
+  "hero": {
+    "title": "一站式配色工具",
+    "subtitle": "为摄影师和设计师打造的专业色彩分析工具",
+    "description": "从图片中提取颜色、分析明度分布、生成和谐配色、管理配色方案、预览配色效果，满足从色彩分析到配色应用的全流程需求",
+    "download": "立即下载",
+    "learnMore": "了解更多",
+    "badge": "开源免费"
+  },
+  "features": {
+    "title": "强大功能，一站解决",
+    "subtitle": "从色彩提取到配色应用，提供完整的色彩工作流",
+    "colorExtract": {
+      "title": "可视化色彩提取",
+      "description": "通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）"
+    },
+    "colorGeneration": {
+      "title": "智能配色生成",
+      "description": "提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择"
+    },
+    "paletteManagement": {
+      "title": "配色方案收藏",
+      "description": "支持收藏、管理配色方案，支持批量导入导出JSON文件，建立个人色彩库"
+    },
+    "builtInPalettes": {
+      "title": "内置色彩库",
+      "description": "集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡"
+    },
+    "colorPreview": {
+      "title": "配色预览",
+      "description": "支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG"
+    },
+    "luminanceAnalysis": {
+      "title": "明度分析",
+      "description": "将图片按明度分为5个区域，提供直方图可视化，辅助调色决策"
+    }
+  },
+  "palettes": {
+    "title": "13套专业配色方案",
+    "subtitle": "集成661组精选色卡，涵盖设计系统、终端主题、艺术配色等多种风格",
+    "categories": {
+      "all": "全部",
+      "design_system": "设计系统",
+      "terminal": "终端主题",
+      "artistic": "艺术配色"
+    },
+    "copySuccess": "已复制到剪贴板",
+    "copyFailed": "复制失败"
+  },
+  "download": {
+    "title": "立即开始使用",
+    "subtitle": "无需联网、无需注册、隐私安全、一步即达",
+    "windows": {
+      "title": "Windows 版",
+      "description": "适用于 Windows 10/11 64位",
+      "button": "下载安装包"
+    },
+    "source": {
+      "title": "源码",
+      "description": "GPL 3.0 开源协议",
+      "github": "GitHub",
+      "gitee": "Gitee"
+    },
+    "requirements": {
+      "title": "系统要求",
+      "os": "操作系统：Windows 10/11 64位",
+      "python": "Python 版本：3.11 及以上",
+      "memory": "内存：推荐 4GB 以上",
+      "disk": "硬盘空间：至少 100MB"
+    }
+  },
+  "footer": {
+    "description": "Color Card 是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具",
+    "links": {
+      "product": "产品",
+      "resources": "资源",
+      "about": "关于"
+    },
+    "copyright": "© 2026 Color Card. 保留所有权利。",
+    "license": "GPL 3.0 开源协议"
+  }
+}

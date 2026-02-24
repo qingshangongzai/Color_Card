@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "id": "solarized",
+  "name": "Solarized",
+  "name_zh": "Solarized 主题",
+  "description": "精准科学主题配色",
+  "author": "Ethan Schoonover",
+  "category": "theme",
+  "palettes": [
+    {
+      "name": "深色",
+      "name_en": "Dark",
+      "colors": [
+        "#002b36",
+        "#073642",
+        "#586e75",
+        "#657b83",
+        "#839496",
+        "#93a1a1",
+        "#eee8d5",
+        "#fdf6e3",
+        "#dc322f",
+        "#cb4b16",
+        "#b58900",
+        "#859900",
+        "#2aa198",
+        "#268bd2",
+        "#6c71c4",
+        "#d33682"
+      ]
+    },
+    {
+      "name": "浅色",
+      "name_en": "Light",
+      "colors": [
+        "#fdf6e3",
+        "#eee8d5",
+        "#93a1a1",
+        "#839496",
+        "#657b83",
+        "#586e75",
+        "#073642",
+        "#002b36",
+        "#dc322f",
+        "#cb4b16",
+        "#b58900",
+        "#859900",
+        "#2aa198",
+        "#268bd2",
+        "#6c71c4",
+        "#d33682"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "name": "全部系列",
+      "indices": [
+        0,
+        1
+      ]
+    }
+  ]
+}

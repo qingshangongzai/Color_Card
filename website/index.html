@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Color Card - 一站式配色工具，为摄影师和设计师打造的专业色彩分析工具">
+    <meta name="keywords" content="配色工具,色彩分析,色卡,颜色提取,配色方案,Color Card">
+    <title>Color Card - 一站式配色工具</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#FF6B6B',
+                            secondary: '#15AABF',
+                            accent: '#FAB005',
+                        },
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6B6B 0%, #15AABF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .dark .glass-card {
+            background: rgba(17, 24, 39, 0.8);
+            border-color: rgba(55, 65, 81, 0.5);
+        }
+        .btn-primary {
+            background: #FF6B6B;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(255, 107, 107, 0.4);
+        }
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #111827;
+            transition: all 0.2s;
+        }
+        .dark .btn-secondary {
+            background: #1F2937;
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+        .dark .btn-secondary:hover {
+            background: #374151;
+        }
+        .section-container {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        @media (min-width: 640px) {
+            .section-container { padding: 0 1.5rem; }
+        }
+        @media (min-width: 1024px) {
+            .section-container { padding: 0 2rem; }
+        }
+        .palette-card {
+            transition: all 0.2s;
+        }
+        .palette-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .animation-delay-100 { animation-delay: 100ms; }
+        .animation-delay-200 { animation-delay: 200ms; }
+        .animation-delay-300 { animation-delay: 300ms; }
+        .animation-delay-400 { animation-delay: 400ms; }
+        .animation-delay-500 { animation-delay: 500ms; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card border-b-0">
+        <div class="section-container">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="flex items-center gap-2">
+                    <img src="logo.png" alt="Color Card" class="w-8 h-8 rounded-lg">
+                    <span class="font-bold text-lg hidden sm:block">Color Card</span>
+                </a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
+                    <a href="#screenshots" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
+                    <a href="#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
+                    <a href="#changelog" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">更新日志</a>
+                    <a href="#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-4 py-2 rounded-xl text-sm font-medium hidden sm:inline-block">立即下载</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-brand-primary/30 rounded-full blur-3xl animate-float"></div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-brand-secondary/30 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-accent/20 rounded-full blur-3xl animate-float" style="animation-delay: 0.5s;"></div>
+        </div>
+        <div class="relative z-10 section-container text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-fade-in">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-sm font-medium">开源免费</span>
+            </div>
+            <div class="mb-8 animate-fade-in" style="animation-delay: 100ms;">
+                <img src="logo.png" alt="Color Card" class="w-32 h-32 mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 animate-fade-in" style="animation-delay: 200ms;">
+                <span class="gradient-text">一站式配色工具</span>
+            </h1>
+            <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 animate-fade-in" style="animation-delay: 300ms;">为摄影师和设计师打造的专业色彩分析工具</p>
+            <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in" style="animation-delay: 400ms;">从图片中提取颜色、分析明度分布、生成和谐配色、管理配色方案、预览配色效果，满足从色彩分析到配色应用的全流程需求</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style="animation-delay: 500ms;">
+                <a href="#download" class="btn-primary text-lg px-8 py-4 rounded-xl font-medium">立即下载</a>
+                <a href="#features" class="btn-secondary text-lg px-8 py-4 rounded-xl font-medium">了解更多</a>
+            </div>
+            <div class="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto animate-fade-in" style="animation-delay: 500ms;">
+                <div class="text-center">
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-primary">13</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">配色方案</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-secondary">661</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">色卡组</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-accent">8</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">预览场景</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 bg-gray-50 dark:bg-gray-950">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">强大功能，一站解决</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">从色彩提取到配色应用，提供完整的色彩工作流</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="features-grid">
+                <!-- Features will be loaded by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="py-24 bg-white dark:bg-gray-950">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">软件界面</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">直观的功能界面，简单易用</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="screenshots-grid">
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-extract.png')">
+                    <img src="screenshots/color-extract.png" alt="色彩提取" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">色彩提取</h3>
+                        <p class="text-sm text-gray-500 mt-1">可视化取色，支持多色彩空间</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-generation.png')">
+                    <img src="screenshots/color-generation.png" alt="配色生成" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">配色生成</h3>
+                        <p class="text-sm text-gray-500 mt-1">5种专业配色方案</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-preview.png')">
+                    <img src="screenshots/color-preview.png" alt="配色预览" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">配色预览</h3>
+                        <p class="text-sm text-gray-500 mt-1">8种场景实时预览</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/luminance-extract.png')">
+                    <img src="screenshots/luminance-extract.png" alt="明度提取" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">明度提取</h3>
+                        <p class="text-sm text-gray-500 mt-1">8级明度分区分析</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/palette-management.png')">
+                    <img src="screenshots/palette-management.png" alt="配色管理" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">配色管理</h3>
+                        <p class="text-sm text-gray-500 mt-1">收藏和管理配色方案</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/preset-colors.png')">
+                    <img src="screenshots/preset-colors.png" alt="内置色彩" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">内置色彩</h3>
+                        <p class="text-sm text-gray-500 mt-1">13套开源配色方案</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden items-center justify-center p-4" onclick="closeLightbox()">
+        <button class="absolute top-4 right-4 text-white/80 hover:text-white p-2" onclick="closeLightbox()">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <img id="lightbox-img" src="" alt="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl">
+    </div>
+
+    <!-- Palettes Section -->
+    <section id="palettes" class="py-24">
+        <div class="section-container">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">13套专业配色方案</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">集成661组精选色卡，涵盖设计系统、终端主题、艺术配色等多种风格</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3 mb-12">
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-brand-primary text-white" data-category="all">全部</button>
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all" data-category="design_system">设计系统</button>
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all" data-category="theme">终端主题</button>
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all" data-category="palette">精选配色</button>
+            </div>
+            <div id="palettes-container" class="space-y-12">
+                <div class="text-center py-20">
+                    <div class="inline-block w-10 h-10 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">立即开始使用</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">无需联网、无需注册、隐私安全、一步即达</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+                <div class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300">
+                    <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Windows 版</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">适用于 Windows 10/11 64位</p>
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        下载安装包
+                    </a>
+                </div>
+                <div class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300">
+                    <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">源码</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">开源免费，欢迎贡献</p>
+                    <div class="flex gap-3 justify-center">
+                        <a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="btn-secondary inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                            GitHub
+                        </a>
+                        <a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="btn-secondary inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                            Gitee
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Changelog Section -->
+    <section id="changelog" class="py-24">
+        <div class="section-container">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">更新日志</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">持续迭代，不断优化体验</p>
+            </div>
+            <div class="max-w-3xl mx-auto">
+                <div id="changelog-container" class="space-y-6">
+                    <div class="text-center py-12">
+                        <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+                        <p class="mt-4 text-gray-500">加载中...</p>
+                    </div>
+                </div>
+                <div class="text-center mt-8">
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="text-brand-primary hover:text-brand-primary/80 font-medium inline-flex items-center gap-2">
+                        查看全部更新
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-16">
+        <div class="section-container">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="logo.png" alt="Color Card" class="w-10 h-10 rounded-lg">
+                        <span class="text-xl font-bold">Color Card</span>
+                    </div>
+                    <p class="text-gray-400 max-w-sm">Color Card 是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">产品</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#features" class="hover:text-white transition-colors">功能特性</a></li>
+                        <li><a href="#palettes" class="hover:text-white transition-colors">配色方案</a></li>
+                        <li><a href="#download" class="hover:text-white transition-colors">下载</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">资源</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>GitHub</a></li>
+                        <li><a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>Gitee</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <p class="text-gray-500 text-sm">&copy; 2026 浮晓 HXiao Studio. 保留所有权利。</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full shadow-lg z-50 transition-all duration-300 opacity-0 translate-y-2 pointer-events-none">
+        <span id="toast-message">已复制到剪贴板</span>
+    </div>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check saved theme or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Features Data
+        const features = [
+            { icon: 'pipette', title: '可视化色彩提取', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）' },
+            { icon: 'palette', title: '智能配色生成', desc: '提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择' },
+            { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出JSON文件，建立个人色彩库' },
+            { icon: 'library', title: '内置色彩库', desc: '集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡' },
+            { icon: 'eye', title: '配色预览', desc: '支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG' },
+            { icon: 'barchart', title: '明度分析', desc: '将图片按明度分为8个区域，提供直方图可视化，辅助调色决策' },
+        ];
+
+        const iconSvg = {
+            pipette: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>',
+            palette: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>',
+            bookmark: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>',
+            library: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>',
+            eye: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>',
+            barchart: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>',
+        };
+
+        // Render Features
+        const featuresGrid = document.getElementById('features-grid');
+        features.forEach((feature, index) => {
+            const div = document.createElement('div');
+            div.className = 'group glass-card rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1';
+            div.style.animationDelay = `${index * 100}ms`;
+            div.innerHTML = `
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-primary/20 to-brand-secondary/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 text-brand-primary">
+                    ${iconSvg[feature.icon]}
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">${feature.title}</h3>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">${feature.desc}</p>
+            `;
+            featuresGrid.appendChild(div);
+        });
+
+        // Palettes Data
+        const paletteFiles = [
+            'open_color.json', 'tailwind_colors.json', 'material_design.json', 'radix_colors.json',
+            'colorbrewer.json', 'nord.json', 'dracula.json', 'solarized.json',
+            'gruvbox.json', 'catppuccin.json', 'rose_pine.json', 'tokyo_night.json', 'nice_palettes.json'
+        ];
+
+        let allPalettes = [];
+        let currentCategory = 'all';
+
+        // Load Palettes
+        async function loadPalettes() {
+            const container = document.getElementById('palettes-container');
+            container.innerHTML = '<div class="text-center py-20"><div class="inline-block w-10 h-10 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div><p class="mt-4 text-gray-600 dark:text-gray-400">加载中...</p></div>';
+            
+            allPalettes = [];
+            for (const file of paletteFiles) {
+                try {
+                    const response = await fetch(`palettes/${file}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        allPalettes.push(data);
+                    }
+                } catch (e) {
+                    console.warn(`Failed to load ${file}:`, e);
+                }
+            }
+            renderPalettes();
+        }
+
+        // Render Palettes
+        function renderPalettes() {
+            const container = document.getElementById('palettes-container');
+            const filtered = currentCategory === 'all' 
+                ? allPalettes 
+                : allPalettes.filter(p => p.category === currentCategory);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-20 text-gray-500">暂无数据</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(paletteSet => `
+                <div class="glass-card rounded-2xl p-6 sm:p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">${paletteSet.name_zh || paletteSet.name}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${paletteSet.description}</p>
+                        </div>
+                        <span class="text-sm text-gray-400">${paletteSet.palettes.length} 组</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        ${paletteSet.palettes.slice(0, 8).map(palette => {
+                            const midColor = palette.colors[Math.floor(palette.colors.length / 2)];
+                            return `
+                            <div class="palette-card glass-card rounded-xl overflow-hidden cursor-pointer" onclick="copyColor('${midColor}')">
+                                <div class="flex h-16">
+                                    ${palette.colors.slice(0, 5).map(color => `<div class="flex-1" style="background-color: ${color}"></div>`).join('')}
+                                </div>
+                                <div class="p-3">
+                                    <p class="font-medium text-gray-900 dark:text-white text-sm truncate">${palette.name}</p>
+                                    <p class="text-xs text-gray-500 mt-1 font-mono">${midColor}</p>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ${paletteSet.palettes.length > 8 ? `<div class="text-center mt-4"><span class="text-sm text-gray-500">+${paletteSet.palettes.length - 8} 更多</span></div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Category Filter
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => {
+                    b.classList.remove('bg-brand-primary', 'text-white');
+                    b.classList.add('bg-gray-100', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300');
+                });
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300');
+                btn.classList.add('bg-brand-primary', 'text-white');
+                currentCategory = btn.dataset.category;
+                renderPalettes();
+            });
+        });
+
+        // Copy Color
+        async function copyColor(color) {
+            try {
+                await navigator.clipboard.writeText(color);
+                showToast('已复制到剪贴板');
+            } catch (e) {
+                showToast('复制失败');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+        }
+
+        // Load palettes on page load
+        loadPalettes();
+
+        // Lightbox functions
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = src;
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        // Close lightbox with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+
+        // Load Changelog from local JSON
+        async function loadChangelog() {
+            const container = document.getElementById('changelog-container');
+            try {
+                const response = await fetch('changelog.json');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                const versions = data.versions;
+                
+                if (versions.length === 0) {
+                    container.innerHTML = '<div class="text-center py-12 text-gray-500">暂无更新记录</div>';
+                    return;
+                }
+                
+                container.innerHTML = versions.map(v => {
+                    const date = new Date(v.date).toLocaleDateString('zh-CN');
+                    // Support both array and string format for changes
+                    let changesHtml;
+                    if (Array.isArray(v.changes)) {
+                        changesHtml = v.changes.map(c => `<li class="flex items-start gap-2"><span class="text-brand-primary mt-1">•</span><span>${c}</span></li>`).join('');
+                    } else {
+                        // String format: split by newline and format
+                        changesHtml = v.changes.split('\n').filter(line => line.trim()).map(c => `<li class="flex items-start gap-2"><span class="text-brand-primary mt-1">•</span><span>${c.trim()}</span></li>`).join('');
+                    }
+                    return `
+                        <div class="glass-card rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${v.version}</h3>
+                                <span class="text-sm text-gray-500">${date}</span>
+                            </div>
+                            <ul class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed space-y-2">
+                                ${changesHtml}
+                            </ul>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Failed to load changelog:', error);
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 mb-4">无法加载更新日志: ${error.message}</p>
+                        <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
+                            前往 Gitee 查看
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        // Load changelog on page load
+        loadChangelog();
+    </script>
+</body>
+</html>

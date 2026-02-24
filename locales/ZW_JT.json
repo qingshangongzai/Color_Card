@@ -217,6 +217,7 @@
   "dialogs": {
     "about": {
       "title": "关于",
+      "website": "官方网站",
       "homepage": "个人主页",
       "project": "项目地址",
       "license": "开源许可",
