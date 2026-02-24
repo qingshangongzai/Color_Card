@@ -2,7 +2,7 @@
   "version": "1.0",
   "id": "colorbrewer",
   "name": "ColorBrewer",
-  "name_zh": "ColorBrewer 配色",
+  "name_zh": "ColorBrewer",
   "description": "专业地图配色方案",
   "author": "Cynthia Brewer",
   "category": "design_system",

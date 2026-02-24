@@ -2,7 +2,7 @@
   "version": "1.0",
   "id": "tailwind_colors",
   "name": "Tailwind Colors",
-  "name_zh": "Tailwind Colors 配色",
+  "name_zh": "Tailwind Colors",
   "description": "Tailwind CSS 官方配色系统",
   "author": "Tailwind Labs",
   "category": "design_system",

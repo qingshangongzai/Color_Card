@@ -2,7 +2,7 @@
   "version": "1.0",
   "id": "radix_colors",
   "name": "Radix Colors",
-  "name_zh": "Radix Colors 配色",
+  "name_zh": "Radix Colors",
   "description": "Radix UI 官方配色系统",
   "author": "Radix UI",
   "category": "design_system",

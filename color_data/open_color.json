@@ -2,7 +2,7 @@
   "version": "1.0",
   "id": "open_color",
   "name": "Open Color",
-  "name_zh": "Open Color 配色",
+  "name_zh": "Open Color",
   "description": "开源配色方案，适用于UI设计",
   "author": "Yeun",
   "category": "design_system",
