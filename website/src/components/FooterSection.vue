@@ -27,12 +27,6 @@
           <h4 class="font-semibold mb-4">{{ t('footer.links.resources') }}</h4>
           <ul class="space-y-2 text-gray-400">
             <li>
-              <a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2">
-                <Github class="w-4 h-4" />
-                GitHub
-              </a>
-            </li>
-            <li>
               <a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2">
                 <GitBranch class="w-4 h-4" />
                 Gitee
@@ -91,7 +85,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { Github, GitBranch, Sun, Moon, Scale } from 'lucide-vue-next'
+import { GitBranch, Sun, Moon, Scale } from 'lucide-vue-next'
 import { useTheme } from '@/composables/useTheme'
 
 const { t, locale } = useI18n()

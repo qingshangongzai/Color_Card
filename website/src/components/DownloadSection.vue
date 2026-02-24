@@ -41,24 +41,14 @@
           <p class="text-gray-600 dark:text-gray-400 mb-6">
             {{ t('download.source.description') }}
           </p>
-          <div class="flex gap-3 justify-center">
-            <a 
-              href="https://github.com/qingshangongzai/Color_Card"
-              target="_blank"
-              class="btn-secondary inline-flex items-center gap-2"
-            >
-              <Github class="w-5 h-5" />
-              {{ t('download.source.github') }}
-            </a>
-            <a 
-              href="https://gitee.com/qingshangongzai/color_card"
-              target="_blank"
-              class="btn-secondary inline-flex items-center gap-2"
-            >
-              <GitBranch class="w-5 h-5" />
-              {{ t('download.source.gitee') }}
-            </a>
-          </div>
+          <a 
+            href="https://gitee.com/qingshangongzai/color_card"
+            target="_blank"
+            class="btn-secondary inline-flex items-center gap-2"
+          >
+            <GitBranch class="w-5 h-5" />
+            {{ t('download.source.gitee') }}
+          </a>
         </div>
       </div>
 
@@ -97,7 +87,6 @@ import {
   Monitor,
   Download,
   Code2,
-  Github,
   GitBranch,
   Cpu,
 } from 'lucide-vue-next'
