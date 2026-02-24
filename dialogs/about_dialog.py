@@ -200,8 +200,15 @@ class AboutDialog(QDialog):
   • 出品：浮晓 HXiao Studio
   • 开发：青山公仔
   • 代码：Trae、Qoder
-  • logo绘制：青山公仔
+  • logo绘制：智谱清言
   • 联系邮箱：hxiao_studio@163.com
+
+【字体使用说明】
+  • 本程序 LOGO 与标题使用了「得意黑」字体
+    版权所有：© atelier-anchor
+    许可证：SIL Open Font License 1.1
+    项目地址：https://github.com/atelier-anchor/smiley-sans
+    官方网站：https://atelier-anchor.com/typefaces/smiley-sans/
 
 【第三方开源库使用说明】
   • 本程序基于 PySide6 架构开发
