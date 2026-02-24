@@ -610,7 +610,7 @@ of this License. But first, please read <https://www.gnu.org/licenses/why-not-lg
 --------------------------------------------------------------------------------
 本项目使用了以下第三方库，每个库都有其自己的开源许可证：
 
-================================================================================
+--------------------------------------------------------------------------------
 1. PySide6
 --------------------------------------------------------------------------------
 版权所有：The Qt Company
@@ -1394,6 +1394,48 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
+19. 网站使用资源
+--------------------------------------------------------------------------------
+项目官网 (https://qingshangongzai.github.io/Color_Card/) 使用了以下资源：
+
+1. Tailwind CSS
+   来源：https://cdn.tailwindcss.com
+   许可证：MIT License
+   用途：CSS 样式框架
+
+   MIT License
+
+   Copyright (c) Tailwind Labs, Inc.
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
+
+2. Inter 字体
+   来源：Google Fonts (https://fonts.google.com/specimen/Inter)
+   版权所有：© Rasmus Andersson
+   许可证：SIL Open Font License 1.1
+   用途：网站正文字体
+
+3. 开源配色方案展示
+   官网展示了13套开源配色方案（详见上文第6-18节）
+   所有配色方案均遵循各自的开源许可证
+
+================================================================================
 开发工具链许可证
 --------------------------------------------------------------------------------
 本项目在开发过程中使用了以下工具：
@@ -2071,6 +2113,38 @@ END OF TERMS AND CONDITIONS
 官网：https://jrsoftware.org/isinfo.php
 许可证：Modified BSD
 用途：将独立的可执行文件打包为安装程序
+
+================================================================================
+5. Vite
+--------------------------------------------------------------------------------
+版权所有：Yuxi (Evan) You and Vite contributors
+项目地址：https://github.com/vitejs/vite
+官网：https://vitejs.dev/
+许可证：MIT License
+用途：网站开发构建工具（仅用于开发，不包含在最终产品中）
+
+--------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2019-present, Yuxi (Evan) You and Vite contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 --------------------------------------------------------------------------------
 Inno Setup License

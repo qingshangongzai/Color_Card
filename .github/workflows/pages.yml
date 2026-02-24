@@ -21,6 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Sync website files to docs
+        run: |
+          cp website/index.html docs/index.html
+          cp website/public/changelog.json docs/changelog.json
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:
