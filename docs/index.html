@@ -47,7 +47,62 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            /* Linear 风格缓动曲线 */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        
+        /* Linear 风格动态渐变网格背景 */
+        .gradient-mesh {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+        .gradient-mesh::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: 
+                radial-gradient(at 40% 20%, rgba(255, 107, 107, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(21, 170, 191, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(250, 176, 5, 0.3) 0px, transparent 50%),
+                radial-gradient(at 80% 50%, rgba(255, 107, 107, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(21, 170, 191, 0.4) 0px, transparent 50%);
+            animation: meshMove 20s ease infinite;
+            filter: blur(60px);
+        }
+        @keyframes meshMove {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            33% {
+                transform: translate(2%, 2%) rotate(5deg) scale(1.05);
+            }
+            66% {
+                transform: translate(-1%, 1%) rotate(-3deg) scale(0.95);
+            }
+        }
+        
+        /* 网格线效果 */
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridFloat 15s linear infinite;
+        }
+        @keyframes gridFloat {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+        
         .gradient-text {
             background: linear-gradient(135deg, #FF6B6B 0%, #15AABF 100%);
             -webkit-background-clip: text;
@@ -111,11 +166,311 @@
         .animation-delay-300 { animation-delay: 300ms; }
         .animation-delay-400 { animation-delay: 400ms; }
         .animation-delay-500 { animation-delay: 500ms; }
+
+        /* Scroll Reveal Animation */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* 初始可见状态，避免页面加载时内容隐藏 */
+        .scroll-reveal.no-js {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+        /* Gradient Text Flow Animation */
+        .gradient-text-flow {
+            background: linear-gradient(90deg, #FF6B6B, #15AABF, #FAB005, #FF6B6B);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientFlow 4s ease infinite;
+        }
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Button Shine Effect */
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        .btn-shine:hover::before {
+            left: 100%;
+        }
+
+        /* Navigation Scroll Effect */
+        .nav-scrolled {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .dark .nav-scrolled {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Card 3D Tilt Effect */
+        .tilt-card {
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+        .tilt-card:hover {
+            transform: perspective(1000px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg)) scale(1.02);
+        }
+
+        /* Floating Particles */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 15s infinite ease-in-out;
+        }
+        @keyframes particleFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+            25% { transform: translate(20px, -30px) scale(1.1); opacity: 0.5; }
+            50% { transform: translate(-10px, -50px) scale(1); opacity: 0.4; }
+            75% { transform: translate(-30px, -20px) scale(0.9); opacity: 0.5; }
+        }
+
+        /* Counter Animation */
+        .counter {
+            display: inline-block;
+        }
+
+        /* Pulse Glow Effect */
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 107, 107, 0.5); }
+        }
+
+        /* 文字逐字出现动画 */
+        .char-reveal {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: charReveal 0.6s var(--ease-out-expo) forwards;
+            background: linear-gradient(90deg, #FF6B6B, #15AABF, #FAB005, #FF6B6B);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .char-reveal.animated {
+            animation: charReveal 0.6s var(--ease-out-expo) forwards, gradientFlow 4s ease infinite;
+        }
+        @keyframes charReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 文字容器 */
+        .text-reveal-container {
+            overflow: hidden;
+        }
+
+        /* 磁性按钮 */
+        .magnetic-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s var(--ease-out-expo);
+            will-change: transform;
+        }
+        .magnetic-btn-inner {
+            transition: transform 0.3s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        /* 渐变边框卡片 */
+        .gradient-border-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            z-index: 1;
+        }
+        .dark .gradient-border-card {
+            background: rgba(17, 24, 39, 0.8);
+        }
+        .gradient-border-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #FFDCD5, #B8FFE7, #BCD2FF, #FFDCD5);
+            background-size: 300% 300%;
+            animation: borderGradient 4s ease infinite;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .gradient-border-card:hover::before {
+            opacity: 1;
+        }
+        @keyframes borderGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 增强导航栏毛玻璃 */
+        .nav-enhanced {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .dark .nav-enhanced {
+            background: rgba(17, 24, 39, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-enhanced.nav-scrolled {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .dark .nav-enhanced.nav-scrolled {
+            background: rgba(17, 24, 39, 0.85);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 滚动进度指示器 */
+        .scroll-progress {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .scroll-progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(156, 163, 175, 0.4);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+        }
+        .scroll-progress-dot::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            transition: all 0.3s var(--ease-out-expo);
+        }
+        .scroll-progress-dot.active {
+            background: #FF0066;
+            transform: scale(1.3);
+        }
+        .scroll-progress-dot.active::before {
+            border-color: rgba(255, 0, 102, 0.3);
+        }
+        .scroll-progress-dot:hover {
+            background: rgba(255, 0, 102, 0.6);
+            transform: scale(1.2);
+        }
+
+        /* 配色卡片聚光灯效果 */
+        .spotlight-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            top: var(--mouse-y, 50%);
+            left: var(--mouse-x, 50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 0, 102, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .spotlight-card:hover::before {
+            opacity: 1;
+        }
+
+        /* 截图层叠展开 */
+        .screenshot-stack {
+            position: relative;
+            perspective: 1000px;
+        }
+        .screenshot-stack-item {
+            transition: all 0.5s var(--ease-out-expo);
+            transform-style: preserve-3d;
+        }
+        .screenshot-stack:hover .screenshot-stack-item {
+            transform: translateX(var(--offset-x, 0)) rotateY(var(--rotate-y, 0)) scale(var(--scale, 1));
+        }
+
+        /* 浮动圆形 - 初始隐藏，文字动画后显示 */
+        .floating-circle {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+        }
+        .floating-circle.animate {
+            opacity: 1;
+            transform: scale(1);
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.02); }
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-progress hidden lg:flex" id="scroll-progress">
+        <div class="scroll-progress-dot active" data-section="hero" title="首页"></div>
+        <div class="scroll-progress-dot" data-section="features" title="功能特性"></div>
+        <div class="scroll-progress-dot" data-section="screenshots" title="界面预览"></div>
+        <div class="scroll-progress-dot" data-section="palettes" title="配色方案"></div>
+        <div class="scroll-progress-dot" data-section="download" title="下载"></div>
+        <div class="scroll-progress-dot" data-section="changelog" title="更新日志"></div>
+        <div class="scroll-progress-dot" data-section="story" title="项目起源"></div>
+        <div class="scroll-progress-dot" data-section="feedback" title="反馈"></div>
+    </div>
+
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 glass-card border-b-0">
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300">
         <div class="section-container">
             <div class="flex items-center justify-between h-16">
                 <a href="#" class="flex items-center gap-2">
@@ -143,12 +498,19 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        <div class="absolute inset-0 overflow-hidden">
-            <div class="absolute top-20 left-10 w-72 h-72 bg-brand-primary/30 rounded-full blur-3xl animate-float"></div>
-            <div class="absolute bottom-20 right-10 w-96 h-96 bg-brand-secondary/30 rounded-full blur-3xl animate-float" style="animation-delay: 1.5s;"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-accent/20 rounded-full blur-3xl animate-float" style="animation-delay: 0.5s;"></div>
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+        <!-- Linear 风格动态渐变网格背景 -->
+        <div class="gradient-mesh">
+            <div class="grid-lines"></div>
         </div>
+        <!-- 浮动彩色圆形（原有效果）- 文字动画结束后开始 -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none" id="floating-circles">
+            <div class="floating-circle absolute top-20 left-10 w-72 h-72 bg-brand-primary/30 rounded-full blur-3xl" style="animation-delay: 0s;"></div>
+            <div class="floating-circle absolute bottom-20 right-10 w-96 h-96 bg-brand-secondary/30 rounded-full blur-3xl" style="animation-delay: 0.5s;"></div>
+            <div class="floating-circle absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-accent/20 rounded-full blur-3xl" style="animation-delay: 1s;"></div>
+        </div>
+        <!-- Floating Particles -->
+        <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
         <div class="relative z-10 section-container text-center">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-fade-in">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -157,26 +519,30 @@
             <div class="mb-8 animate-fade-in" style="animation-delay: 100ms;">
                 <img src="logo.png" alt="Color Card" class="w-32 h-32 mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
             </div>
-            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 animate-fade-in" style="animation-delay: 200ms;">
-                <span class="gradient-text">一站式配色工具</span>
+            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 text-reveal-container" id="hero-title">
+                <span class="gradient-text-flow">一站式配色工具</span>
             </h1>
             <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 animate-fade-in" style="animation-delay: 300ms;">为摄影师和设计师打造的专业色彩分析工具</p>
             <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in" style="animation-delay: 400ms;">从图片中提取颜色、分析明度分布、生成和谐配色、管理配色方案、预览配色效果，满足从色彩分析到配色应用的全流程需求</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style="animation-delay: 500ms;">
-                <a href="#download" class="btn-primary text-lg px-8 py-4 rounded-xl font-medium">立即下载</a>
-                <a href="#features" class="btn-secondary text-lg px-8 py-4 rounded-xl font-medium">了解更多</a>
+                <a href="#download" class="magnetic-btn btn-primary btn-shine text-lg px-8 py-4 rounded-xl font-medium">
+                    <span class="magnetic-btn-inner">立即下载</span>
+                </a>
+                <a href="#features" class="magnetic-btn btn-secondary btn-shine text-lg px-8 py-4 rounded-xl font-medium">
+                    <span class="magnetic-btn-inner">了解更多</span>
+                </a>
             </div>
             <div class="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto animate-fade-in" style="animation-delay: 500ms;">
                 <div class="text-center">
-                    <div class="text-3xl sm:text-4xl font-bold text-brand-primary">13</div>
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-primary counter" data-target="13">0</div>
                     <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">配色方案</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl sm:text-4xl font-bold text-brand-secondary">661</div>
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-secondary counter" data-target="661">0</div>
                     <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">色卡组</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl sm:text-4xl font-bold text-brand-accent">8</div>
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-accent counter" data-target="8">0</div>
                     <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">预览场景</div>
                 </div>
             </div>
@@ -541,6 +907,9 @@
     </div>
 
     <script>
+        // Check for reduced motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
         // Theme Toggle
         const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
@@ -555,6 +924,171 @@
             html.classList.toggle('dark');
             localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
         });
+
+        // Navigation Scroll Effect
+        const navbar = document.getElementById('navbar');
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > 50) {
+                navbar.classList.add('nav-scrolled');
+            } else {
+                navbar.classList.remove('nav-scrolled');
+            }
+            lastScroll = currentScroll;
+        });
+
+        // Counter Animation
+        function animateCounter(element, target, duration = 2000) {
+            if (prefersReducedMotion) {
+                element.textContent = target;
+                return;
+            }
+            const start = 0;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(start + (target - start) * easeOut);
+                element.textContent = current;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Initialize counters when visible
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = parseInt(entry.target.dataset.target);
+                    animateCounter(entry.target, target);
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.counter').forEach(counter => {
+            counterObserver.observe(counter);
+        });
+
+        // Scroll Reveal Animation
+        const scrollRevealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        // Function to initialize scroll reveal for elements
+        function initScrollReveal() {
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                scrollRevealObserver.observe(el);
+                // 如果元素已经在视口内，立即显示
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    el.classList.add('visible');
+                }
+            });
+        }
+
+        // Floating Particles
+        function createParticles() {
+            if (prefersReducedMotion) return;
+            const container = document.getElementById('particles-container');
+            const colors = ['#FF6B6B', '#15AABF', '#FAB005'];
+            
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 8 + 4;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation-delay: ${Math.random() * 5}s;
+                    animation-duration: ${15 + Math.random() * 10}s;
+                    opacity: ${0.2 + Math.random() * 0.3};
+                `;
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Card 3D Tilt Effect
+        function initTiltCards() {
+            if (prefersReducedMotion) return;
+            document.querySelectorAll('.tilt-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 10;
+                    const rotateY = (centerX - x) / 10;
+                    
+                    card.style.setProperty('--rotateX', `${rotateX}deg`);
+                    card.style.setProperty('--rotateY', `${rotateY}deg`);
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.setProperty('--rotateX', '0deg');
+                    card.style.setProperty('--rotateY', '0deg');
+                });
+            });
+        }
+
+        // Magnetic Button Effect
+        function initMagneticButtons() {
+            if (prefersReducedMotion) return;
+            
+            document.querySelectorAll('.magnetic-btn').forEach(btn => {
+                const inner = btn.querySelector('.magnetic-btn-inner');
+                if (!inner) return;
+                
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    
+                    // 按钮整体移动（较小幅度）
+                    btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+                    // 内部文字反向移动（较大幅度，创造层次感）
+                    inner.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                });
+                
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translate(0, 0)';
+                    inner.style.transform = 'translate(0, 0)';
+                });
+            });
+        }
+
+        // Spotlight Card Effect
+        function initSpotlightCards() {
+            if (prefersReducedMotion) return;
+            
+            document.querySelectorAll('.spotlight-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    
+                    card.style.setProperty('--mouse-x', `${x}%`);
+                    card.style.setProperty('--mouse-y', `${y}%`);
+                });
+            });
+        }
 
         // Features Data
         const features = [
@@ -579,8 +1113,8 @@
         const featuresGrid = document.getElementById('features-grid');
         features.forEach((feature, index) => {
             const div = document.createElement('div');
-            div.className = 'group glass-card rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1';
-            div.style.animationDelay = `${index * 100}ms`;
+            div.className = 'group gradient-border-card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 scroll-reveal tilt-card';
+            div.style.transitionDelay = `${index * 100}ms`;
             div.innerHTML = `
                 <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-primary/20 to-brand-secondary/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 text-brand-primary">
                     ${iconSvg[feature.icon]}
@@ -590,6 +1124,16 @@
             `;
             featuresGrid.appendChild(div);
         });
+        
+        // Initialize scroll reveal and tilt cards after rendering
+        initScrollReveal();
+        initTiltCards();
+
+        // Initialize magnetic buttons
+        initMagneticButtons();
+
+        // Initialize spotlight cards
+        initSpotlightCards();
 
         // Palettes Data
         const paletteFiles = [
@@ -646,13 +1190,12 @@
                         ${paletteSet.palettes.slice(0, 8).map(palette => {
                             const midColor = palette.colors[Math.floor(palette.colors.length / 2)];
                             return `
-                            <div class="palette-card glass-card rounded-xl overflow-hidden cursor-pointer" onclick="copyColor('${midColor}')">
+                            <div class="palette-card glass-card rounded-xl overflow-hidden cursor-pointer spotlight-card">
                                 <div class="flex h-16">
                                     ${palette.colors.slice(0, 5).map(color => `<div class="flex-1" style="background-color: ${color}"></div>`).join('')}
                                 </div>
                                 <div class="p-3">
                                     <p class="font-medium text-gray-900 dark:text-white text-sm truncate">${palette.name}</p>
-                                    <p class="text-xs text-gray-500 mt-1 font-mono">${midColor}</p>
                                 </div>
                             </div>
                             `;
@@ -777,6 +1320,129 @@
 
         // Load changelog on page load
         loadChangelog();
+
+        // Initialize scroll reveal for static elements on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initScrollReveal();
+        });
+
+        // Scroll Progress Indicator
+        function initScrollProgress() {
+            const dots = document.querySelectorAll('.scroll-progress-dot');
+            const sections = ['hero', 'features', 'screenshots', 'palettes', 'download', 'changelog', 'story', 'feedback'];
+            let isScrolling = false;
+            let scrollTimeout;
+
+            // 点击跳转到对应章节
+            dots.forEach((dot) => {
+                dot.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = dot.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        isScrolling = true;
+                        section.scrollIntoView({ behavior: 'smooth' });
+
+                        // 更新 active 状态
+                        dots.forEach(d => d.classList.remove('active'));
+                        dot.classList.add('active');
+
+                        // 滚动结束后恢复检测
+                        clearTimeout(scrollTimeout);
+                        scrollTimeout = setTimeout(() => {
+                            isScrolling = false;
+                        }, 1000);
+                    }
+                });
+            });
+
+            // 滚动时更新当前章节
+            function updateActiveSection() {
+                if (isScrolling) return;
+
+                const scrollPosition = window.scrollY + window.innerHeight / 3;
+                let activeIndex = 0;
+
+                sections.forEach((sectionId, index) => {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const sectionTop = section.offsetTop;
+                        const sectionBottom = sectionTop + section.offsetHeight;
+
+                        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                            activeIndex = index;
+                        }
+                    }
+                });
+
+                dots.forEach(d => d.classList.remove('active'));
+                dots[activeIndex]?.classList.add('active');
+            }
+
+            window.addEventListener('scroll', updateActiveSection, { passive: true });
+            updateActiveSection();
+        }
+
+        initScrollProgress();
+
+        // 文字逐字出现动画
+        function initTextReveal() {
+            const heroTitle = document.getElementById('hero-title');
+            if (!heroTitle) return;
+
+            const text = heroTitle.textContent.trim();
+            heroTitle.innerHTML = '';
+
+            const chars = [...text];
+            const totalChars = chars.length;
+
+            // 将每个字符包装在 span 中
+            chars.forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = 'char-reveal';
+                span.textContent = char === ' ' ? '\u00A0' : char;
+                const delay = 0.3 + index * 0.05;
+                span.style.animationDelay = `${delay}s`;
+                heroTitle.appendChild(span);
+
+                // 在文字动画完成后，添加渐变流动动画
+                setTimeout(() => {
+                    span.classList.add('animated');
+                }, (delay + 0.6) * 1000);
+            });
+        }
+        
+        // 页面加载后启动文字动画
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTextReveal);
+        } else {
+            initTextReveal();
+        }
+
+        // 文字动画结束后启动浮动圆形动画
+        function startFloatingCircles() {
+            const circles = document.querySelectorAll('.floating-circle');
+            const title = document.getElementById('hero-title');
+            if (!title || circles.length === 0) return;
+            
+            // 计算文字动画总时长：0.3s延迟 + 7个字 * 0.05s + 0.6s动画
+            const textAnimationDuration = (0.3 + 7 * 0.05 + 0.6) * 1000;
+            
+            setTimeout(() => {
+                circles.forEach((circle, index) => {
+                    setTimeout(() => {
+                        circle.classList.add('animate');
+                    }, index * 200);
+                });
+            }, textAnimationDuration);
+        }
+        
+        // 启动浮动圆形动画
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startFloatingCircles);
+        } else {
+            startFloatingCircles();
+        }
     </script>
 </body>
 </html>
