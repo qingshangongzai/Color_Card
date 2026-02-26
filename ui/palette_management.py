@@ -1111,7 +1111,7 @@ class PaletteManagementInterface(QWidget):
         header_layout.addWidget(self.clear_all_button)
 
         self.group_combo = ComboBox(self)
-        self.group_combo.setFixedWidth(150)
+        self.group_combo.setFixedWidth(100)
         self.group_combo.currentIndexChanged.connect(self._on_group_changed)
         header_layout.addWidget(self.group_combo)
 

@@ -1,5 +1,6 @@
 # 标准库导入
 import re
+from typing import List, Tuple
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal
@@ -66,7 +67,38 @@ class UpdateCheckThread(QThread):
             self.check_finished.emit(False, "", tr('dialogs.update.error_general', error=str(e)))
 
 
-def compare_versions(current, latest):
+_PRE_RELEASE_ORDER = {"alpha": -3, "beta": -2, "rc": -1}
+
+
+def _parse_version(version_str: str) -> Tuple[List[int], int, int]:
+    """解析版本号为数字列表、预发布标识和预发布版本号
+
+    Args:
+        version_str: 版本号字符串
+
+    Returns:
+        Tuple[List[int], int, int]: (版本号数字列表, 预发布标识, 预发布版本号)
+        预发布标识: 0=正式版, -1=RC, -2=Beta, -3=Alpha
+        预发布版本号: Beta1/Beta2等后面的数字，默认0
+    """
+    version_str = version_str.lstrip("v").lower()
+    parts = re.findall(r"\d+", version_str)
+    nums = [int(p) for p in parts] if parts else [0]
+
+    pre_release = 0
+    pre_release_num = 0
+    for keyword, value in _PRE_RELEASE_ORDER.items():
+        if keyword in version_str:
+            pre_release = value
+            match = re.search(rf"{keyword}(\d+)", version_str)
+            if match:
+                pre_release_num = int(match.group(1))
+            break
+
+    return nums, pre_release, pre_release_num
+
+
+def compare_versions(current: str, latest: str) -> int:
     """比较版本号
 
     Args:
@@ -76,15 +108,8 @@ def compare_versions(current, latest):
     Returns:
         int: 0表示版本相同，1表示当前版本更新，-1表示有新版本
     """
-
-    def parse_version(version_str):
-        """解析版本号为数字列表"""
-        version_str = version_str.lstrip("v")
-        parts = re.findall(r"\d+", version_str)
-        return [int(p) for p in parts] if parts else [0]
-
-    current_parts = parse_version(current)
-    latest_parts = parse_version(latest)
+    current_parts, current_pre, current_pre_num = _parse_version(current)
+    latest_parts, latest_pre, latest_pre_num = _parse_version(latest)
 
     max_len = max(len(current_parts), len(latest_parts))
     current_parts.extend([0] * (max_len - len(current_parts)))
@@ -95,6 +120,16 @@ def compare_versions(current, latest):
             return 1
         elif c < l:
             return -1
+
+    if current_pre > latest_pre:
+        return 1
+    elif current_pre < latest_pre:
+        return -1
+
+    if current_pre_num > latest_pre_num:
+        return 1
+    elif current_pre_num < latest_pre_num:
+        return -1
 
     return 0
 

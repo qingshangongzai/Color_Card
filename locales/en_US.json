@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "Color Extract",
     "luminance_extract": "Luminance Extract",
+    "gradient_extract": "Gradient Extract",
     "color_generation": "Color Generation",
     "palette_management": "Palette Management",
     "preset_color": "Preset Colors",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "Select Image",
     "image_filter": "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "Start Color",
+    "end_color": "End Color",
+    "steps": "Middle Colors",
+    "random": "Random",
+    "favorite": "Save",
+    "select_color": "Select Color",
+    "favorite_success": {
+      "title": "Saved",
+      "content": "Gradient scheme has been added to palette management"
+    }
   },
   "color_generation": {
     "title": "Color Scheme:",
@@ -126,11 +139,37 @@
       "content": "No SVG available for export"
     }
   },
+  "canvases": {
+    "click_to_import": "Click to import image",
+    "importing_image": "Importing image...",
+    "loading_full_image": "Loading full image...",
+    "finishing": "Finishing..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "HSB Color Wheel",
+    "hue_red": "R",
+    "hue_orange_red": "O-R",
+    "hue_yellow": "Y",
+    "hue_yellow_green": "Y-G",
+    "hue_green": "G",
+    "hue_cyan_green": "C-G",
+    "hue_cyan": "C",
+    "hue_cyan_blue": "C-B",
+    "hue_blue": "B",
+    "hue_purple": "P",
+    "hue_magenta": "M",
+    "hue_purple_red": "P-R"
+  },
+  "histograms": {
+    "loading": "Loading...",
+    "hue_distribution_title": "Hue Distribution"
+  },
   "preset_color": {
     "title": "Preset Colors",
     "random_palette": "Random Palette",
     "random": "Random",
     "desc_random": "Randomly filtered from all color schemes",
+    "loading": "Loading...",
     "desc_source": "Based on {name}",
     "copy_success": {
       "title": "Copied",
@@ -169,6 +208,12 @@
     "color_scheme": "Color Scheme Settings",
     "color_scheme_mode": "Color Scheme Mode",
     "color_scheme_mode_desc": "Select color logic for color schemes (RGB: Optical mixing, RYB: Artistic mixing)",
+    "gradient": "Gradient Extract",
+    "gradient_color_space": "Gradient Color Space",
+    "gradient_color_space_desc": "Select color space for gradient interpolation",
+    "gradient_rgb": "RGB Space",
+    "gradient_hsb": "HSB Space",
+    "gradient_lab": "LAB Space",
     "language": "Language Settings",
     "language_title": "Interface Language",
     "language_desc": "Select the display language for the application",
@@ -191,6 +236,7 @@
   "dialogs": {
     "about": {
       "title": "About",
+      "website": "Website",
       "homepage": "Homepage",
       "project": "Project",
       "license": "License",
@@ -374,6 +420,8 @@
     "clear_image": "Clear Image"
   },
   "common": {
-    "delete": "Delete"
+    "delete": "Delete",
+    "group_range": "{start}-{end}",
+    "group_all": "All ({total})"
   }
 }

@@ -10,6 +10,7 @@ from qfluentwidgets import isDarkTheme
 
 # 项目模块导入
 from core import rgb_to_hsb
+from utils import tr
 from utils.theme_colors import (
     get_wheel_bg_color, get_wheel_border_color, get_wheel_text_color,
     get_wheel_selector_border_color, get_wheel_selector_inner_color,
@@ -268,7 +269,7 @@ class HSBColorWheel(QWidget):
         font.setPointSize(9)
         painter.setFont(font)
 
-        title = "HSB色环"
+        title = tr('color_wheel.hsb_wheel_title')
         painter.drawText(10, 20, title)
 
     def _draw_hue_labels(self, painter):
@@ -278,18 +279,18 @@ class HSBColorWheel(QWidget):
 
         # 色相名称映射（12个，每隔30度）
         hue_labels = [
-            (0, "红"),
-            (30, "橙红"),
-            (60, "黄"),
-            (90, "黄绿"),
-            (120, "绿"),
-            (150, "青绿"),
-            (180, "青"),
-            (210, "青蓝"),
-            (240, "蓝"),
-            (270, "紫"),
-            (300, "品红"),
-            (330, "紫红"),
+            (0, tr('color_wheel.hue_red')),
+            (30, tr('color_wheel.hue_orange_red')),
+            (60, tr('color_wheel.hue_yellow')),
+            (90, tr('color_wheel.hue_yellow_green')),
+            (120, tr('color_wheel.hue_green')),
+            (150, tr('color_wheel.hue_cyan_green')),
+            (180, tr('color_wheel.hue_cyan')),
+            (210, tr('color_wheel.hue_cyan_blue')),
+            (240, tr('color_wheel.hue_blue')),
+            (270, tr('color_wheel.hue_purple')),
+            (300, tr('color_wheel.hue_magenta')),
+            (330, tr('color_wheel.hue_purple_red')),
         ]
 
         # 设置字体和颜色
@@ -647,18 +648,18 @@ class InteractiveColorWheel(QWidget):
 
         # 色相名称映射（12个，每隔30度）
         hue_labels = [
-            (0, "红"),
-            (30, "橙红"),
-            (60, "黄"),
-            (90, "黄绿"),
-            (120, "绿"),
-            (150, "青绿"),
-            (180, "青"),
-            (210, "青蓝"),
-            (240, "蓝"),
-            (270, "紫"),
-            (300, "品红"),
-            (330, "紫红"),
+            (0, tr('color_wheel.hue_red')),
+            (30, tr('color_wheel.hue_orange_red')),
+            (60, tr('color_wheel.hue_yellow')),
+            (90, tr('color_wheel.hue_yellow_green')),
+            (120, tr('color_wheel.hue_green')),
+            (150, tr('color_wheel.hue_cyan_green')),
+            (180, tr('color_wheel.hue_cyan')),
+            (210, tr('color_wheel.hue_cyan_blue')),
+            (240, tr('color_wheel.hue_blue')),
+            (270, tr('color_wheel.hue_purple')),
+            (300, tr('color_wheel.hue_magenta')),
+            (330, tr('color_wheel.hue_purple_red')),
         ]
 
         # 设置字体和颜色

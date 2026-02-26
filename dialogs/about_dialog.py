@@ -107,6 +107,14 @@ class AboutDialog(QDialog):
         
         buttons_layout.addStretch()
         
+        # 官网按钮
+        self.website_button = PushButton(tr('dialogs.about.website'))
+        self.website_button.setMinimumWidth(90)
+        self.website_button.clicked.connect(
+            lambda: self._open_url("https://qingshangongzai.github.io/Color_Card/")
+        )
+        buttons_layout.addWidget(self.website_button)
+
         # 个人主页按钮
         self.homepage_button = PushButton(tr('dialogs.about.homepage'))
         self.homepage_button.setMinimumWidth(90)
@@ -200,8 +208,15 @@ class AboutDialog(QDialog):
   • 出品：浮晓 HXiao Studio
   • 开发：青山公仔
   • 代码：Trae、Qoder
-  • logo绘制：青山公仔
+  • logo绘制：智谱清言
   • 联系邮箱：hxiao_studio@163.com
+
+【字体使用说明】
+  • 本程序 LOGO 与标题使用了「得意黑」字体
+    版权所有：© atelier-anchor
+    许可证：SIL Open Font License 1.1
+    项目地址：https://github.com/atelier-anchor/smiley-sans
+    官方网站：https://atelier-anchor.com/typefaces/smiley-sans/
 
 【第三方开源库使用说明】
   • 本程序基于 PySide6 架构开发

@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "色彩提取",
     "luminance_extract": "明度提取",
+    "gradient_extract": "漸變提取",
     "color_generation": "配色生成",
     "palette_management": "配色管理",
     "preset_color": "內置色彩",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "選擇圖片",
     "image_filter": "圖片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "起始顏色",
+    "end_color": "結束顏色",
+    "steps": "中間色數量",
+    "random": "隨機",
+    "favorite": "收藏",
+    "select_color": "選擇顏色",
+    "favorite_success": {
+      "title": "已收藏",
+      "content": "漸變色方案已添加到配色管理"
+    }
   },
   "color_generation": {
     "title": "配色生成:",
@@ -126,11 +139,37 @@
       "content": "當前沒有可導出的SVG"
     }
   },
+  "canvases": {
+    "click_to_import": "點擊導入圖片",
+    "importing_image": "正在導入圖片...",
+    "loading_full_image": "正在加載完整圖片...",
+    "finishing": "正在完成..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "HSB色環",
+    "hue_red": "紅",
+    "hue_orange_red": "橙紅",
+    "hue_yellow": "黃",
+    "hue_yellow_green": "黃綠",
+    "hue_green": "綠",
+    "hue_cyan_green": "青綠",
+    "hue_cyan": "青",
+    "hue_cyan_blue": "青藍",
+    "hue_blue": "藍",
+    "hue_purple": "紫",
+    "hue_magenta": "品紅",
+    "hue_purple_red": "紫紅"
+  },
+  "histograms": {
+    "loading": "加載中...",
+    "hue_distribution_title": "色相分布"
+  },
   "preset_color": {
     "title": "內置色彩",
     "random_palette": "隨機配色",
     "random": "隨機",
     "desc_random": "從全部配色方案中隨機篩選",
+    "loading": "加載中...",
     "desc_source": "基於 {name}",
     "copy_success": {
       "title": "已複製",
@@ -169,6 +208,12 @@
     "color_scheme": "配色生成方案",
     "color_scheme_mode": "配色方案模式",
     "color_scheme_mode_desc": "選擇配色方案使用的色彩邏輯（RGB: 光學混色，RYB: 美術混色）",
+    "gradient": "漸變提取",
+    "gradient_color_space": "漸變顏色空間",
+    "gradient_color_space_desc": "選擇漸變色插值的顏色空間",
+    "gradient_rgb": "RGB 空間",
+    "gradient_hsb": "HSB 空間",
+    "gradient_lab": "LAB 空間",
     "language": "語言設置",
     "language_title": "頁面語言",
     "language_desc": "選擇應用程序的顯示語言",
@@ -191,6 +236,7 @@
   "dialogs": {
     "about": {
       "title": "關於",
+      "website": "官方網站",
       "homepage": "個人主頁",
       "project": "項目地址",
       "license": "開源許可",
@@ -374,6 +420,8 @@
     "clear_image": "清空圖片"
   },
   "common": {
-    "delete": "刪除"
+    "delete": "刪除",
+    "group_range": "{start}-{end}",
+    "group_all": "全部 ({total})"
   }
 }
