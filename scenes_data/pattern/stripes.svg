@@ -1,0 +1,34 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <!-- 横条纹区域 -->
+  <rect id="h-stripe-1" class="primary" x="0" y="0" width="400" height="20" fill="#1a1a1a"/>
+  <rect id="h-stripe-2" class="secondary" x="0" y="20" width="400" height="20" fill="#333333"/>
+  <rect id="h-stripe-3" class="accent" x="0" y="40" width="400" height="20" fill="#ff6b6b"/>
+  <rect id="h-stripe-4" class="primary" x="0" y="60" width="400" height="20" fill="#1a1a1a"/>
+  <rect id="h-stripe-5" class="secondary" x="0" y="80" width="400" height="20" fill="#333333"/>
+  
+  <!-- 中间方块 - 竖条纹 -->
+  <rect id="v-stripe-bg" class="background" x="50" y="110" width="120" height="140" fill="#ffffff"/>
+  <rect id="v-stripe-1" class="primary" x="50" y="110" width="20" height="140" fill="#1a1a1a"/>
+  <rect id="v-stripe-2" class="background" x="70" y="110" width="20" height="140" fill="#f5f5f5"/>
+  <rect id="v-stripe-3" class="accent" x="90" y="110" width="20" height="140" fill="#ff6b6b"/>
+  <rect id="v-stripe-4" class="background" x="110" y="110" width="20" height="140" fill="#f5f5f5"/>
+  <rect id="v-stripe-5" class="secondary" x="130" y="110" width="20" height="140" fill="#333333"/>
+  <rect id="v-stripe-6" class="background" x="150" y="110" width="20" height="140" fill="#f5f5f5"/>
+  
+  <!-- 中间方块 - 斜条纹 -->
+  <rect id="diag-stripe-bg" class="background" x="230" y="110" width="120" height="140" fill="#ffffff"/>
+  <line id="diag-1" class="primary" x1="230" y1="110" x2="290" y2="250" stroke="#1a1a1a" stroke-width="15"/>
+  <line id="diag-2" class="accent" x1="270" y1="110" x2="330" y2="250" stroke="#ff6b6b" stroke-width="15"/>
+  <line id="diag-3" class="secondary" x1="310" y1="110" x2="350" y2="210" stroke="#333333" stroke-width="15"/>
+  <line id="diag-4" class="primary" x1="200" y1="150" x2="250" y2="250" stroke="#1a1a1a" stroke-width="15"/>
+  
+  <!-- 底部渐变宽度条纹 -->
+  <rect id="b-stripe-1" class="accent" x="0" y="260" width="400" height="8" fill="#ff6b6b"/>
+  <rect id="b-stripe-2" class="primary" x="0" y="272" width="400" height="6" fill="#1a1a1a"/>
+  <rect id="b-stripe-3" class="secondary" x="0" y="282" width="400" height="4" fill="#333333"/>
+  <rect id="b-stripe-4" class="accent" x="0" y="290" width="400" height="2" fill="#ff6b6b"/>
+  <rect id="b-stripe-5" class="primary" x="0" y="296" width="400" height="4" fill="#1a1a1a"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#ffffff"/>
+  
+  <!-- 极简装饰线 -->
+  <line id="top-line" class="accent" x1="200" y1="60" x2="200" y2="80" stroke="#ff6b6b" stroke-width="2"/>
+  
+  <!-- 主标题 -->
+  <text id="main-title" class="text" x="200" y="140" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="300" fill="#1a1a1a" data-fixed-color="black">Less</text>
+  <text id="main-title-2" class="accent" x="200" y="180" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="36" font-weight="300" fill="#ff6b6b" data-fixed-color="black">is More</text>
+  
+  <!-- 副标题 -->
+  <text id="subtitle" class="secondary" x="200" y="220" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#999999" data-fixed-color="black">Minimalist Design Philosophy</text>
+  
+  <!-- 底部装饰点 -->
+  <circle id="dot-1" class="primary" cx="185" cy="260" r="3" fill="#1a1a1a"/>
+  <circle id="dot-2" class="accent" cx="200" cy="260" r="3" fill="#ff6b6b"/>
+  <circle id="dot-3" class="secondary" cx="215" cy="260" r="3" fill="#cccccc"/>
+</svg>

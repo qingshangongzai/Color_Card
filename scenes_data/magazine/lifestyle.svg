@@ -1,0 +1,43 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f8f5f0"/>
+  
+  <!-- 顶部装饰 -->
+  <rect id="top-accent" class="accent" x="0" y="0" width="400" height="8" fill="#d4a574"/>
+  
+  <!-- 杂志标题 -->
+  <text id="mag-title" class="text" x="200" y="35" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#5c4a3d" data-fixed-color="black">LIVING</text>
+  <text id="mag-subtitle" class="secondary" x="200" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black">WELLNESS &amp; HOME</text>
+  
+  <!-- 左侧大图区域 -->
+  <rect id="main-image" class="secondary" x="20" y="60" width="180" height="140" rx="4" fill="#e8ddd0"/>
+  <rect id="image-overlay" class="primary" x="20" y="60" width="180" height="40" rx="4" fill="#5c4a3d" opacity="0.8"/>
+  <text id="image-label" class="text" x="110" y="85" text-anchor="middle" font-family="Georgia, serif" font-size="12" fill="#ffffff" data-fixed-color="black">Cozy Spaces</text>
+  
+  <!-- 右侧内容区 -->
+  <text id="feature-title" class="text" x="220" y="80" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#5c4a3d" data-fixed-color="black">The Art of</text>
+  <text id="feature-title-2" class="accent" x="220" y="100" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#d4a574" data-fixed-color="black">Slow Living</text>
+  
+  <!-- 文章列表 -->
+  <rect id="article-bg-1" class="secondary" x="220" y="115" width="160" height="25" rx="3" fill="#f0e8e0"/>
+  <circle id="bullet-1" class="accent" cx="235" cy="127" r="4" fill="#d4a574"/>
+  <rect id="article-1" class="primary" x="245" y="122" width="120" height="5" rx="1" fill="#b8a090"/>
+  
+  <rect id="article-bg-2" class="secondary" x="220" y="145" width="160" height="25" rx="3" fill="#f0e8e0"/>
+  <circle id="bullet-2" class="accent" cx="235" cy="157" r="4" fill="#d4a574"/>
+  <rect id="article-2" class="primary" x="245" y="152" width="100" height="5" rx="1" fill="#b8a090"/>
+  
+  <rect id="article-bg-3" class="secondary" x="220" y="175" width="160" height="25" rx="3" fill="#f0e8e0"/>
+  <circle id="bullet-3" class="accent" cx="235" cy="187" r="4" fill="#d4a574"/>
+  <rect id="article-3" class="primary" x="245" y="182" width="110" height="5" rx="1" fill="#b8a090"/>
+  
+  <!-- 底部小图展示 -->
+  <rect id="thumb-1" class="secondary" x="20" y="210" width="80" height="60" rx="4" fill="#e8ddd0"/>
+  <rect id="thumb-2" class="accent" x="110" y="210" width="80" height="60" rx="4" fill="#d4a574"/>
+  <rect id="thumb-3" class="primary" x="200" y="210" width="80" height="60" rx="4" fill="#5c4a3d"/>
+  <rect id="thumb-4" class="secondary" x="290" y="210" width="80" height="60" rx="4" fill="#e8ddd0"/>
+  
+  <!-- 底部信息 -->
+  <text id="footer-issue" class="text" x="30" y="290" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black">WINTER 2026</text>
+  <text id="footer-price" class="text" x="370" y="290" text-anchor="end" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black">$8.99</text>
+</svg>
