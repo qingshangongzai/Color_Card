@@ -1,0 +1,39 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f5f5f5"/>
+  
+  <!-- 信封 -->
+  <rect id="envelope" class="secondary" x="30" y="30" width="160" height="100" rx="2" fill="#ffffff"/>
+  <rect id="envelope-flap" class="primary" x="30" y="30" width="160" height="40" rx="2" fill="#1a1a1a"/>
+  <polygon id="envelope-triangle" class="primary" points="30,70 110,100 190,70" fill="#333333"/>
+  <rect id="envelope-stripe" class="accent" x="30" y="110" width="160" height="20" rx="2" fill="#ff6b6b"/>
+  
+  <!-- 名片 -->
+  <rect id="card" class="secondary" x="210" y="30" width="160" height="90" rx="4" fill="#ffffff"/>
+  <rect id="card-stripe" class="accent" x="210" y="30" width="8" height="90" rx="2" fill="#ff6b6b"/>
+  <text id="card-name" class="text" x="230" y="60" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">Jane Smith</text>
+  <text id="card-title" class="secondary" x="230" y="78" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">Creative Director</text>
+  <text id="card-contact" class="text" x="230" y="95" font-family="Arial, sans-serif" font-size="8" fill="#999999" data-fixed-color="black">jane@brand.com</text>
+  
+  <!-- 信纸 -->
+  <rect id="letter" class="secondary" x="30" y="150" width="200" height="120" rx="2" fill="#ffffff"/>
+  <rect id="letter-header" class="primary" x="30" y="150" width="200" height="30" rx="2" fill="#1a1a1a"/>
+  <circle id="letter-logo" class="accent" cx="55" cy="165" r="12" fill="#ff6b6b"/>
+  <text id="letter-brand" class="text" x="75" y="170" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">BRAND</text>
+  
+  <!-- 信纸内容线条 -->
+  <rect id="letter-line-1" class="primary" x="45" y="195" width="170" height="6" rx="1" fill="#dddddd"/>
+  <rect id="letter-line-2" class="primary" x="45" y="208" width="160" height="6" rx="1" fill="#dddddd"/>
+  <rect id="letter-line-3" class="primary" x="45" y="221" width="150" height="6" rx="1" fill="#dddddd"/>
+  <rect id="letter-line-4" class="primary" x="45" y="234" width="140" height="6" rx="1" fill="#dddddd"/>
+  <rect id="letter-line-5" class="primary" x="45" y="247" width="100" height="6" rx="1" fill="#dddddd"/>
+  
+  <!-- 右侧色块展示 -->
+  <rect id="color-1" class="primary" x="250" y="150" width="50" height="40" rx="2" fill="#1a1a1a"/>
+  <rect id="color-2" class="secondary" x="305" y="150" width="50" height="40" rx="2" fill="#666666"/>
+  <rect id="color-3" class="accent" x="250" y="195" width="50" height="40" rx="2" fill="#ff6b6b"/>
+  <rect id="color-4" class="text" x="305" y="195" width="50" height="40" rx="2" fill="#999999"/>
+  
+  <!-- 底部文字 -->
+  <text id="stationery-label" class="text" x="280" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">Brand Stationery</text>
+</svg>

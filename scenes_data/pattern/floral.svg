@@ -1,0 +1,55 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f8f8f8"/>
+  
+  <!-- 花朵1 -->
+  <circle id="flower-1-center" class="accent" cx="60" cy="50" r="12" fill="#ff6b6b"/>
+  <circle id="flower-1-petal-1" class="primary" cx="60" cy="30" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-2" class="primary" cx="80" cy="50" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-3" class="primary" cx="60" cy="70" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-4" class="primary" cx="40" cy="50" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-5" class="primary" cx="74" cy="36" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-6" class="primary" cx="74" cy="64" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-7" class="primary" cx="46" cy="64" r="10" fill="#1a1a1a"/>
+  <circle id="flower-1-petal-8" class="primary" cx="46" cy="36" r="10" fill="#1a1a1a"/>
+  
+  <!-- 花朵2 -->
+  <circle id="flower-2-center" class="secondary" cx="180" cy="80" r="10" fill="#333333"/>
+  <ellipse id="flower-2-petal-1" class="accent" cx="180" cy="55" rx="8" ry="15" fill="#ff6b6b"/>
+  <ellipse id="flower-2-petal-2" class="accent" cx="205" cy="80" rx="15" ry="8" fill="#ff6b6b"/>
+  <ellipse id="flower-2-petal-3" class="accent" cx="180" cy="105" rx="8" ry="15" fill="#ff6b6b"/>
+  <ellipse id="flower-2-petal-4" class="accent" cx="155" cy="80" rx="15" ry="8" fill="#ff6b6b"/>
+  
+  <!-- 花朵3 -->
+  <circle id="flower-3-center" class="accent" cx="320" cy="60" r="14" fill="#ff6b6b"/>
+  <path id="flower-3-petal-1" class="primary" d="M320,35 Q340,25 350,45 Q340,55 320,45" fill="#1a1a1a"/>
+  <path id="flower-3-petal-2" class="primary" d="M345,60 Q365,50 355,75 Q345,70 345,60" fill="#1a1a1a"/>
+  <path id="flower-3-petal-3" class="primary" d="M320,85 Q340,95 350,75 Q340,65 320,75" fill="#1a1a1a"/>
+  <path id="flower-3-petal-4" class="primary" d="M295,60 Q275,50 285,75 Q295,70 295,60" fill="#1a1a1a"/>
+  
+  <!-- 叶子装饰 -->
+  <ellipse id="leaf-1" class="secondary" cx="100" cy="120" rx="20" ry="10" fill="#333333" transform="rotate(30 100 120)"/>
+  <ellipse id="leaf-2" class="secondary" cx="250" cy="130" rx="25" ry="12" fill="#333333" transform="rotate(-20 250 130)"/>
+  <ellipse id="leaf-3" class="secondary" cx="350" cy="120" rx="18" ry="9" fill="#333333" transform="rotate(45 350 120)"/>
+  
+  <!-- 藤蔓线条 -->
+  <path id="vine-1" class="secondary" d="M0,180 Q100,150 200,180 T400,160" stroke="#333333" stroke-width="3" fill="none"/>
+  <path id="vine-2" class="primary" d="M0,200 Q100,230 200,200 T400,220" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+  <path id="vine-3" class="accent" d="M0,240 Q150,210 300,240 T400,230" stroke="#ff6b6b" stroke-width="4" fill="none"/>
+  
+  <!-- 小花朵装饰 -->
+  <circle id="small-flower-1" class="accent" cx="50" cy="175" r="6" fill="#ff6b6b"/>
+  <circle id="small-flower-2" class="accent" cx="150" cy="185" r="5" fill="#ff6b6b"/>
+  <circle id="small-flower-3" class="accent" cx="280" cy="170" r="7" fill="#ff6b6b"/>
+  <circle id="small-flower-4" class="accent" cx="380" cy="180" r="5" fill="#ff6b6b"/>
+  
+  <!-- 底部花朵 -->
+  <circle id="bottom-flower-1" class="primary" cx="80" cy="270" r="20" fill="#1a1a1a"/>
+  <circle id="bottom-flower-1-center" class="accent" cx="80" cy="270" r="8" fill="#ff6b6b"/>
+  
+  <circle id="bottom-flower-2" class="secondary" cx="200" cy="280" r="18" fill="#333333"/>
+  <circle id="bottom-flower-2-center" class="accent" cx="200" cy="280" r="7" fill="#ff6b6b"/>
+  
+  <circle id="bottom-flower-3" class="primary" cx="340" cy="265" r="22" fill="#1a1a1a"/>
+  <circle id="bottom-flower-3-center" class="accent" cx="340" cy="265" r="9" fill="#ff6b6b"/>
+</svg>

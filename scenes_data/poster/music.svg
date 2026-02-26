@@ -1,0 +1,49 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#1a1a2e"/>
+
+  <!-- 装饰圆 -->
+  <circle id="deco-circle-1" class="accent" cx="350" cy="50" r="80" fill="#ff6b6b" opacity="0.3"/>
+  <circle id="deco-circle-2" class="primary" cx="50" cy="250" r="60" fill="#16213e" opacity="0.5"/>
+
+  <!-- 唱片图案 -->
+  <circle id="vinyl" class="primary" cx="100" cy="150" r="70" fill="#0f0f23"/>
+  <circle id="vinyl-ring-1" class="secondary" cx="100" cy="150" r="55" fill="none" stroke="#333333" stroke-width="2"/>
+  <circle id="vinyl-ring-2" class="secondary" cx="100" cy="150" r="40" fill="none" stroke="#333333" stroke-width="2"/>
+  <circle id="vinyl-center" class="accent" cx="100" cy="150" r="15" fill="#ff6b6b"/>
+  <circle id="vinyl-hole" cx="100" cy="150" r="5" fill="#1a1a2e"/>
+
+  <!-- 音符装饰 -->
+  <g id="note-1" class="accent">
+    <ellipse cx="250" cy="80" rx="8" ry="6" fill="#ff6b6b"/>
+    <rect x="256" y="80" width="3" height="25" fill="#ff6b6b"/>
+    <path d="M256,105 Q265,100 270,95" stroke="#ff6b6b" stroke-width="3" fill="none"/>
+  </g>
+
+  <g id="note-2" class="accent">
+    <ellipse cx="300" cy="120" rx="8" ry="6" fill="#ff6b6b"/>
+    <rect x="306" y="120" width="3" height="25" fill="#ff6b6b"/>
+  </g>
+
+  <g id="note-3" class="secondary">
+    <ellipse cx="280" cy="180" rx="6" ry="5" fill="#e94560"/>
+    <rect x="284" y="180" width="2" height="20" fill="#e94560"/>
+  </g>
+
+  <!-- 主标题 -->
+  <text id="main-title" class="text" x="220" y="140" font-family="Impact, Arial Black, sans-serif" font-size="42" font-weight="bold" fill="#ffffff" data-fixed-color="black">LIVE</text>
+  <text id="sub-title" class="accent" x="220" y="180" font-family="Impact, Arial Black, sans-serif" font-size="36" font-weight="bold" fill="#ff6b6b" data-fixed-color="black">MUSIC</text>
+
+  <!-- 演出信息 -->
+  <rect id="info-bar" class="secondary" x="220" y="195" width="160" height="2" fill="#e94560"/>
+  <text id="artist-name" class="text" x="220" y="215" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" data-fixed-color="black">The Color Band</text>
+  <text id="venue" class="secondary" x="220" y="235" font-family="Arial, sans-serif" font-size="11" fill="#aaaaaa" data-fixed-color="black">Grand Theater · 8PM</text>
+
+  <!-- 日期 -->
+  <rect id="date-box" class="accent" x="220" y="250" width="80" height="35" rx="4" fill="#ff6b6b"/>
+  <text id="date-month" class="text" x="260" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">MAR</text>
+  <text id="date-day" class="text" x="260" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" data-fixed-color="black">15</text>
+
+  <!-- 底部装饰 -->
+  <text id="ticket-info" class="text" x="320" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaaaaa" data-fixed-color="black">Tickets $25</text>
+</svg>
