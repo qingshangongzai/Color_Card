@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "Извлечение цвета",
     "luminance_extract": "Извлечение яркости",
+    "gradient_extract": "Извлечение градиента",
     "color_generation": "Генерация цвета",
     "palette_management": "Палитры",
     "preset_color": "Предустановленные цвета",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "Выбрать изображение",
     "image_filter": "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "Начальный цвет",
+    "end_color": "Конечный цвет",
+    "steps": "Промежуточные цвета",
+    "random": "Случайный",
+    "favorite": "Сохр.",
+    "select_color": "Выбрать цвет",
+    "favorite_success": {
+      "title": "Сохранено",
+      "content": "Градиентная схема добавлена в управление палитрами"
+    }
   },
   "color_generation": {
     "title": "Цветовая схема:",
@@ -195,6 +208,12 @@
     "color_scheme": "Настройки цветовой схемы",
     "color_scheme_mode": "Режим цветовой схемы",
     "color_scheme_mode_desc": "Выберите цветовую логику (RGB: Оптическое смешение, RYB: Художественное смешение)",
+    "gradient": "Извлечение градиента",
+    "gradient_color_space": "Цветовое пространство градиента",
+    "gradient_color_space_desc": "Выберите цветовое пространство для интерполяции градиента",
+    "gradient_rgb": "RGB пространство - Простое и прямое",
+    "gradient_hsb": "HSB пространство - Естественный переход оттенков",
+    "gradient_lab": "LAB пространство - Перцептивно равномерное (Рекомендуется)",
     "language": "Настройки языка",
     "language_title": "Язык интерфейса",
     "language_desc": "Выберите язык отображения приложения",

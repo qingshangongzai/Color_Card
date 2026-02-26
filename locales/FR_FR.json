@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "Extraction de couleurs",
     "luminance_extract": "Extraction de luminance",
+    "gradient_extract": "Extraction de dégradé",
     "color_generation": "Génération de couleurs",
     "palette_management": "Gestion des palettes",
     "preset_color": "Couleurs prédéfinies",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "Sélectionner une image",
     "image_filter": "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "Couleur de départ",
+    "end_color": "Couleur de fin",
+    "steps": "Couleurs intermédiaires",
+    "random": "Aléatoire",
+    "favorite": "Enregistrer",
+    "select_color": "Sélectionner la couleur",
+    "favorite_success": {
+      "title": "Enregistré",
+      "content": "Le schéma de dégradé a été ajouté à la gestion des palettes"
+    }
   },
   "color_generation": {
     "title": "Schéma de couleurs:",
@@ -195,6 +208,12 @@
     "color_scheme": "Paramètres du schéma de couleurs",
     "color_scheme_mode": "Mode de schéma",
     "color_scheme_mode_desc": "Sélectionner la logique couleur (RVB: Mélange optique, RYB: Mélange artistique)",
+    "gradient": "Extraction de dégradé",
+    "gradient_color_space": "Espace colorimétrique du dégradé",
+    "gradient_color_space_desc": "Sélectionner l'espace colorimétrique pour l'interpolation du dégradé",
+    "gradient_rgb": "Espace RVB - Simple et direct",
+    "gradient_hsb": "Espace HSB - Transition de teinte naturelle",
+    "gradient_lab": "Espace LAB - Uniformité perceptive (Recommandé)",
     "language": "Paramètres de langue",
     "language_title": "Langue de l'interface",
     "language_desc": "Sélectionner la langue d'affichage de l'application",

@@ -737,6 +737,7 @@ class MainWindow(FluentWindow):
         navigation_items = [
             (self.color_extract_interface.objectName(), tr('navigation.color_extract')),
             (self.luminance_extract_interface.objectName(), tr('navigation.luminance_extract')),
+            (self.gradient_extract_interface.objectName(), tr('navigation.gradient_extract')),
             (self.color_generation_interface.objectName(), tr('navigation.color_generation')),
             (self.palette_management_interface.objectName(), tr('navigation.palette_management')),
             (self.preset_color_interface.objectName(), tr('navigation.preset_color')),

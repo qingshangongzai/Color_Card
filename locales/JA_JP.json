@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "カラー抽出",
     "luminance_extract": "輝度抽出",
+    "gradient_extract": "グラデーション抽出",
     "color_generation": "カラー生成",
     "palette_management": "パレット管理",
     "preset_color": "プリセットカラー",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "画像を選択",
     "image_filter": "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "開始色",
+    "end_color": "終了色",
+    "steps": "中間色数",
+    "random": "ランダム",
+    "favorite": "保存",
+    "select_color": "色を選択",
+    "favorite_success": {
+      "title": "保存しました",
+      "content": "グラデーション配色がパレット管理に追加されました"
+    }
   },
   "color_generation": {
     "title": "カラースキーム:",
@@ -195,6 +208,12 @@
     "color_scheme": "カラースキーム設定",
     "color_scheme_mode": "カラースキームモード",
     "color_scheme_mode_desc": "カラースキームで使用するカラーロジックを選択（RGB: 光学混色、RYB: 芸術混色）",
+    "gradient": "グラデーション抽出",
+    "gradient_color_space": "グラデーション色空間",
+    "gradient_color_space_desc": "グラデーション補間に使用する色空間を選択",
+    "gradient_rgb": "RGB空間 - シンプルで直接的",
+    "gradient_hsb": "HSB空間 - 自然な色相遷移",
+    "gradient_lab": "LAB空間 - 知覚的に均一（推奨）",
     "language": "言語設定",
     "language_title": "インターフェース言語",
     "language_desc": "アプリケーションの表示言語を選択",
