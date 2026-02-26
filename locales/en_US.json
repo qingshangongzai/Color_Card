@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "Color Extract",
     "luminance_extract": "Luminance Extract",
+    "gradient_extract": "Gradient Extract",
     "color_generation": "Color Generation",
     "palette_management": "Palette Management",
     "preset_color": "Preset Colors",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "Select Image",
     "image_filter": "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "Start Color",
+    "end_color": "End Color",
+    "steps": "Middle Colors",
+    "random": "Random",
+    "favorite": "Save",
+    "select_color": "Select Color",
+    "favorite_success": {
+      "title": "Saved",
+      "content": "Gradient scheme has been added to palette management"
+    }
   },
   "color_generation": {
     "title": "Color Scheme:",
@@ -195,6 +208,12 @@
     "color_scheme": "Color Scheme Settings",
     "color_scheme_mode": "Color Scheme Mode",
     "color_scheme_mode_desc": "Select color logic for color schemes (RGB: Optical mixing, RYB: Artistic mixing)",
+    "gradient": "Gradient Extract",
+    "gradient_color_space": "Gradient Color Space",
+    "gradient_color_space_desc": "Select color space for gradient interpolation",
+    "gradient_rgb": "RGB Space - Simple & Direct",
+    "gradient_hsb": "HSB Space - Natural Hue Transition",
+    "gradient_lab": "LAB Space - Perceptually Uniform (Recommended)",
     "language": "Language Settings",
     "language_title": "Interface Language",
     "language_desc": "Select the display language for the application",

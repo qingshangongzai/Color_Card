@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "色彩提取",
     "luminance_extract": "明度提取",
+    "gradient_extract": "渐变提取",
     "color_generation": "配色生成",
     "palette_management": "配色管理",
     "preset_color": "内置色彩",
@@ -29,6 +30,18 @@
   "luminance_extract": {
     "select_image": "选择图片",
     "image_filter": "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
+  },
+  "gradient_extract": {
+    "start_color": "起始颜色",
+    "end_color": "结束颜色",
+    "steps": "中间色数量",
+    "random": "随机",
+    "favorite": "收藏",
+    "select_color": "选择颜色",
+    "favorite_success": {
+      "title": "已收藏",
+      "content": "渐变色方案已添加到配色管理"
+    }
   },
   "color_generation": {
     "title": "配色生成:",
@@ -195,6 +208,12 @@
     "color_scheme": "配色生成方案",
     "color_scheme_mode": "配色方案模式",
     "color_scheme_mode_desc": "选择配色方案使用的色彩逻辑（RGB: 光学混色，RYB: 美术混色）",
+    "gradient": "渐变提取",
+    "gradient_color_space": "渐变颜色空间",
+    "gradient_color_space_desc": "选择渐变色插值的颜色空间",
+    "gradient_rgb": "RGB空间 - 简单直接",
+    "gradient_hsb": "HSB空间 - 色相过渡自然",
+    "gradient_lab": "LAB空间 - 感知均匀（推荐）",
     "language": "语言设置",
     "language_title": "页面语言",
     "language_desc": "选择应用程序的显示语言",
