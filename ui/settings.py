@@ -636,7 +636,7 @@ class SettingsInterface(QWidget):
                 combo_box.setCurrentIndex(i)
                 break
 
-        combo_box.setFixedWidth(200)
+        combo_box.setFixedWidth(120)
         combo_box.currentIndexChanged.connect(self._on_gradient_color_space_changed)
 
         card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)

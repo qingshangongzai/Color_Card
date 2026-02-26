@@ -227,7 +227,7 @@ class MainWindow(FluentWindow):
         # 渐变提取界面
         self.gradient_extract_interface = GradientExtractInterface(self)
         self.gradient_extract_interface.setObjectName('gradientExtract')
-        self.gradient_extract_interface._nav_icon = FluentIcon.PALETTE
+        self.gradient_extract_interface._nav_icon = FluentIcon.BRUSH
         self.stackedWidget.addWidget(self.gradient_extract_interface)
 
         # 配色生成界面
@@ -301,7 +301,7 @@ class MainWindow(FluentWindow):
         # 渐变提取
         self.addSubInterface(
             self.gradient_extract_interface,
-            FluentIcon.PALETTE,
+            FluentIcon.BRUSH,
             tr('navigation.gradient_extract'),
             position=NavigationItemPosition.TOP
         )
