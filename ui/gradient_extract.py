@@ -28,8 +28,8 @@ class ColorDot(QWidget):
     def __init__(self, initial_color: str = "#FF0000", parent=None):
         super().__init__(parent)
         self._color = initial_color
-        self._radius = 20
-        self.setFixedSize(40, 40)
+        self._radius = 12
+        self.setFixedSize(24, 24)
         self._update_style()
 
     def _update_style(self):
@@ -43,6 +43,22 @@ class ColorDot(QWidget):
             }}
         """)
 
+    def paintEvent(self, event):
+        """绘制事件，确保背景色显示"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # 绘制背景圆
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(self._color))
+        painter.drawEllipse(self.rect().center(), self._radius, self._radius)
+
+        # 绘制边框
+        border_color = get_border_color()
+        painter.setPen(QColor(border_color))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawEllipse(self.rect().center(), self._radius - 1, self._radius - 1)
+
     def set_color(self, hex_color: str):
         """设置颜色
 
@@ -51,6 +67,7 @@ class ColorDot(QWidget):
         """
         self._color = hex_color
         self._update_style()
+        self.update()
 
     def get_color(self) -> str:
         """获取当前颜色"""
