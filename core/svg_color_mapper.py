@@ -6,7 +6,10 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, Set
+
+# 项目模块导入
+from utils.geometry import Rect, is_rect_fully_covered, get_element_bounding_rect
 
 # 特殊颜色键（用于透明元素映射）
 TRANSPARENT_BACKGROUND_KEY = '__BACKGROUND__'
@@ -286,79 +289,122 @@ class SVGColorMapper:
         """递归提取 SVG 元素"""
         # 可着色标签列表
         colorable_tags = ['rect', 'circle', 'ellipse', 'path', 'polygon', 'polyline', 'line', 'text', 'tspan']
-        
-        # 第一遍：收集所有矩形信息
+
+        # 需要跳过的容器标签（这些容器内的元素不应该被提取）
+        skip_containers = {'defs', 'clipPath', 'mask', 'filter', 'symbol', 'pattern'}
+
+        # 第一遍：收集所有矩形信息（跳过容器内的元素）
         rect_areas = []
         for elem in root.iter():
             tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
             if tag == 'rect':
                 area = self._calculate_element_area(elem)
                 rect_areas.append((elem, area))
-        
+
         # 找出最大矩形
         max_rect_area = max([a for _, a in rect_areas]) if rect_areas else 0
         total_rect_count = len(rect_areas)
-        
-        # 第二遍：提取所有元素
-        for elem in root.iter():
-            tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
 
-            # 跳过非图形元素
-            if tag in ['svg', 'defs', 'metadata', 'title', 'desc', 'filter', 'g', 'clipPath', 'mask', 'style']:
-                continue
+        # 第二遍：使用递归方式提取元素，以便跟踪父元素
+        self._extract_elements_recursive(root, skip_containers, set(),
+                                         max_rect_area, total_rect_count, colorable_tags)
 
-            # 生成唯一 ID
-            elem_id = elem.get('id', f"__generated_id_{self._element_counter}")
-            if not elem.get('id'):
-                elem.set('id', elem_id)
-                self._element_counter += 1
+    def _extract_elements_recursive(self, elem: ET.Element, skip_containers: set,
+                                    parent_tags: set, max_rect_area: float,
+                                    total_rect_count: int, colorable_tags: list):
+        """递归提取元素，跟踪父元素路径
 
-            # 获取元素的所有样式（包括 CSS 类和内联样式）
-            styles = self._get_element_styles(elem)
-            
-            # 提取颜色信息（优先从样式获取，然后是属性）
-            fill = styles.get('fill') or elem.get('fill')
-            stroke = styles.get('stroke') or elem.get('stroke')
+        Args:
+            elem: 当前元素
+            skip_containers: 需要跳过的容器标签集合
+            parent_tags: 父元素标签集合
+            max_rect_area: 最大矩形面积
+            total_rect_count: 矩形总数
+            colorable_tags: 可着色标签列表
+        """
+        tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
 
-            # 判断是否是可见图形元素
-            has_explicit_fill = fill and fill.lower() not in ('none', 'transparent')
-            has_explicit_stroke = stroke and stroke.lower() not in ('none', 'transparent')
+        # 如果当前元素是跳过容器，不处理其子元素
+        if tag in skip_containers:
+            return
 
-            # 判断是否是透明元素（无 fill 但有 stroke）
-            is_transparent = not has_explicit_fill and has_explicit_stroke
+        # 如果当前元素在跳过容器内，跳过
+        if parent_tags & skip_containers:
+            return
 
-            # 跳过真正无颜色的元素（既无 fill 也无 stroke）
-            if tag not in colorable_tags and not has_explicit_fill and not has_explicit_stroke:
-                continue
+        # 处理当前元素（如果是可着色元素）
+        if tag not in ['svg', 'metadata', 'title', 'desc', 'style']:
+            self._process_element(elem, tag, max_rect_area, total_rect_count, colorable_tags)
 
-            # 计算面积（简化版）
-            area = self._calculate_element_area(elem)
+        # 递归处理子元素
+        new_parent_tags = parent_tags | {tag}
+        for child in elem:
+            self._extract_elements_recursive(child, skip_containers, new_parent_tags,
+                                             max_rect_area, total_rect_count, colorable_tags)
 
-            # 提取固定颜色设置
-            fixed_color = elem.get('data-fixed-color')
+    def _process_element(self, elem: ET.Element, tag: str, max_rect_area: float,
+                         total_rect_count: int, colorable_tags: list):
+        """处理单个元素
 
-            # 创建元素信息 - 修复：只有当确实有颜色时才记录，不使用默认值
-            elem_info = SVGElementInfo(
-                element_id=elem_id,
-                tag=tag,
-                element_class=elem.get('class'),
-                fill_color=fill if has_explicit_fill else None,
-                stroke_color=stroke if has_explicit_stroke else None,
-                area=area,
-                fixed_color=fixed_color if fixed_color in ('black', 'original') else None,
-                is_transparent=is_transparent,
-                attributes=dict(elem.attrib)
-            )
+        Args:
+            elem: 元素
+            tag: 标签名
+            max_rect_area: 最大矩形面积
+            total_rect_count: 矩形总数
+            colorable_tags: 可着色标签列表
+        """
+        # 生成唯一 ID
+        elem_id = elem.get('id', f"__generated_id_{self._element_counter}")
+        if not elem.get('id'):
+            elem.set('id', elem_id)
+            self._element_counter += 1
 
-            # 判断是否是最大矩形
-            is_largest_rect = (tag == 'rect' and area == max_rect_area and area > 0)
+        # 获取元素的所有样式（包括 CSS 类和内联样式）
+        styles = self._get_element_styles(elem)
 
-            # 分类元素
-            elem_type, is_semantic = self._classifier.classify(elem, area, is_largest_rect, total_rect_count)
-            elem_info.element_type = elem_type
-            elem_info.is_semantic = is_semantic
+        # 提取颜色信息（优先从样式获取，然后是属性）
+        fill = styles.get('fill') or elem.get('fill')
+        stroke = styles.get('stroke') or elem.get('stroke')
 
-            self._elements.append(elem_info)
+        # 判断是否是可见图形元素
+        has_explicit_fill = fill and fill.lower() not in ('none', 'transparent')
+        has_explicit_stroke = stroke and stroke.lower() not in ('none', 'transparent')
+
+        # 判断是否是透明元素（无 fill 但有 stroke）
+        is_transparent = not has_explicit_fill and has_explicit_stroke
+
+        # 跳过真正无颜色的元素（既无 fill 也无 stroke）
+        if tag not in colorable_tags and not has_explicit_fill and not has_explicit_stroke:
+            return
+
+        # 计算面积（简化版）
+        area = self._calculate_element_area(elem)
+
+        # 提取固定颜色设置
+        fixed_color = elem.get('data-fixed-color')
+
+        # 创建元素信息 - 修复：只有当确实有颜色时才记录，不使用默认值
+        elem_info = SVGElementInfo(
+            element_id=elem_id,
+            tag=tag,
+            element_class=elem.get('class'),
+            fill_color=fill if has_explicit_fill else None,
+            stroke_color=stroke if has_explicit_stroke else None,
+            area=area,
+            fixed_color=fixed_color if fixed_color in ('black', 'original') else None,
+            is_transparent=is_transparent,
+            attributes=dict(elem.attrib)
+        )
+
+        # 判断是否是最大矩形
+        is_largest_rect = (tag == 'rect' and area == max_rect_area and area > 0)
+
+        # 分类元素
+        elem_type, is_semantic = self._classifier.classify(elem, area, is_largest_rect, total_rect_count)
+        elem_info.element_type = elem_type
+        elem_info.is_semantic = is_semantic
+
+        self._elements.append(elem_info)
 
     def _calculate_element_area(self, elem: ET.Element) -> float:
         """计算元素面积（简化计算）"""
@@ -613,6 +659,113 @@ class SVGColorMapper:
             # 使用智能映射（无语义化类型）
             return self._apply_smart_mapping(colors)
 
+    def _get_element_rect(self, elem_info: SVGElementInfo) -> Optional[Rect]:
+        """从元素信息提取矩形区域
+
+        Args:
+            elem_info: SVG元素信息
+
+        Returns:
+            Optional[Rect]: 矩形对象，如果不是矩形或无法提取则返回None
+        """
+        if elem_info.tag != 'rect':
+            return None
+        return get_element_bounding_rect(elem_info.attributes)
+
+    def _is_background_element(self, elem_info: SVGElementInfo, 
+                                 canvas_area: float) -> bool:
+        """判断元素是否是背景元素
+
+        判断标准：
+        1. 面积超过画布面积的80%
+        2. 位于SVG的起始位置附近（x和y接近0）
+
+        Args:
+            elem_info: 元素信息
+            canvas_area: 画布总面积
+
+        Returns:
+            bool: 是否是背景元素
+        """
+        # 面积超过画布80%认为是背景
+        if elem_info.area > canvas_area * 0.8:
+            return True
+
+        # 检查是否位于起始位置
+        x = float(elem_info.attributes.get('x', 0))
+        y = float(elem_info.attributes.get('y', 0))
+        if x < 10 and y < 10 and elem_info.area > canvas_area * 0.5:
+            return True
+
+        return False
+
+    def _calculate_covered_elements(self) -> Set[str]:
+        """计算被完全覆盖的元素集合
+
+        检测逻辑：
+        1. 只处理矩形元素（rect标签）
+        2. 按面积从大到小排序（大面积通常在底层）
+        3. 对每个小面积元素，检查它是否被任何非背景的大面积元素完全覆盖
+        4. 如果被覆盖比例超过90%，标记为被覆盖
+
+        Returns:
+            Set[str]: 被覆盖的元素ID集合
+        """
+        covered_ids: Set[str] = set()
+
+        # 只处理有fill的矩形元素
+        rect_elements = [
+            e for e in self._elements
+            if e.tag == 'rect' and e.fill_color and not e.is_transparent
+        ]
+
+        if len(rect_elements) < 2:
+            return covered_ids
+
+        # 获取画布面积
+        canvas_width, canvas_height = self._get_svg_canvas_size()
+        canvas_area = canvas_width * canvas_height
+
+        # 识别背景元素（不参与覆盖检测）
+        background_ids = set()
+        for elem in rect_elements:
+            if self._is_background_element(elem, canvas_area):
+                background_ids.add(elem.element_id)
+
+        # 按面积从大到小排序（大面积通常在底层，小面积在上层或被覆盖）
+        sorted_elements = sorted(rect_elements, key=lambda e: e.area, reverse=True)
+
+        # 对每个元素（从面积小的开始），检查它是否被任何大面积元素覆盖
+        # 注意：这里从面积小的开始检查，因为小面积元素更有可能被覆盖
+        for i in range(len(sorted_elements) - 1, -1, -1):
+            elem = sorted_elements[i]
+            elem_rect = self._get_element_rect(elem)
+            if not elem_rect:
+                continue
+
+            # 跳过背景元素的覆盖检测（背景不应该被跳过配色）
+            if elem.element_id in background_ids:
+                continue
+
+            # 检查是否被任何非背景的大面积元素覆盖
+            for j in range(i):
+                other = sorted_elements[j]
+
+                # 跳过背景元素作为覆盖源
+                if other.element_id in background_ids:
+                    continue
+
+                other_rect = self._get_element_rect(other)
+                if not other_rect:
+                    continue
+
+                # 检查是否被完全覆盖（90%阈值）
+                if is_rect_fully_covered(elem_rect, other_rect, threshold=0.9):
+                    covered_ids.add(elem.element_id)
+                    break  # 已经被覆盖，不需要检查其他元素
+
+        return covered_ids
+
     def _apply_smart_mapping(self, colors: List[str]) -> str:
         """智能映射（简化版）
 
@@ -620,6 +773,7 @@ class SVGColorMapper:
         1. 有透明元素：透明背景+透明元素 -> colors[0]，有 fill 元素从 colors[1] 开始
         2. 无透明元素：面积最大元素 -> colors[0]，其他从 colors[1] 开始
         3. 不识别背景，所有元素平等处理
+        4. 跳过被完全覆盖的元素
 
         Args:
             colors: 颜色列表
@@ -644,51 +798,67 @@ class SVGColorMapper:
             print("智能映射 - 未找到任何可替换的元素")
             return self._original_content
 
-        # 按面积排序有 fill 的元素
+        # 计算被覆盖的元素
+        covered_ids = self._calculate_covered_elements()
+
+        # 过滤掉被完全覆盖的元素
+        visible_fill_elements = [
+            e for e in fill_elements
+            if e.element_id not in covered_ids
+        ]
+
+        # 按面积排序可见元素
         def sort_key(elem):
             x = float(elem.attributes.get('x', 0))
             y = float(elem.attributes.get('y', 0))
             return (-elem.area, y, x)
 
-        fill_elements.sort(key=sort_key)
+        visible_fill_elements.sort(key=sort_key)
 
-        print(f"智能映射 - 透明元素: {len(transparent_elements)}, 有fill元素: {len(fill_elements)}")
+        if covered_ids:
+            print(f"智能映射 - 跳过 {len(covered_ids)} 个被覆盖的元素，"
+                  f"剩余 {len(visible_fill_elements)} 个可见元素")
 
-        # 透明背景总是映射到 colors[0]
-        color_map[TRANSPARENT_BACKGROUND_KEY] = colors[0]
-        print(f"智能映射 透明背景 -> {colors[0]}")
+        # 判断是否需要添加背景矩形
+        # 如果最大面积元素超过画布面积的80%，认为已有背景，不需要添加
+        need_bg_rect = True
+        start_idx = 0
+
+        if visible_fill_elements:
+            largest_elem = visible_fill_elements[0]  # 已经按面积排序，第一个是最大
+            canvas_width, canvas_height = self._get_svg_canvas_size()
+            canvas_area = canvas_width * canvas_height
+
+            if canvas_area > 0 and largest_elem.area > canvas_area * 0.8:
+                # 已有背景元素，不需要添加背景矩形
+                need_bg_rect = False
+                start_idx = 0
+                print(f"智能映射 - 检测到背景元素，从 colors[0] 开始映射")
+            else:
+                # 没有背景元素，需要添加背景矩形
+                need_bg_rect = True
+                start_idx = 1
+                color_map[TRANSPARENT_BACKGROUND_KEY] = colors[0]
+                print(f"智能映射 - 无背景元素，添加背景矩形 -> {colors[0]}")
 
         if has_transparent:
             # 情况1：有透明元素
-            # 透明元素 -> colors[0]
+            # 透明元素 -> colors[0]（如果没有背景）或 colors[start_idx]
             for i, elem in enumerate(transparent_elements):
                 key = f'{TRANSPARENT_ELEMENT_PREFIX}_{i}'
-                color_map[key] = colors[0]
-                print(f"智能映射 透明元素 {i} -> {colors[0]}")
-
-            # 有 fill 的元素从 colors[1] 开始
-            start_idx = 1
-        else:
-            # 情况2：没有透明元素
-            # 有 fill 的元素从 colors[1] 开始
-            start_idx = 1
-
-        # 总是添加背景矩形
-        need_bg_rect = True
+                color_idx = start_idx if start_idx < len(colors) else 0
+                color_map[key] = colors[color_idx]
 
         # 调试：打印排序后的元素信息
-        print("排序后的有fill元素：")
-        for i, elem in enumerate(fill_elements[:10]):
-            x = elem.attributes.get('x', 'N/A')
-            y = elem.attributes.get('y', 'N/A')
-            fill = elem.fill_color or 'N/A'
-            print(f"  {i}: fill={fill}, area={elem.area:.2f}, x={x}, y={y}")
+        print(f"智能映射 - 处理 {len(visible_fill_elements)} 个可见元素")
 
-        # 映射颜色（从 start_idx 开始）
-        for i, elem in enumerate(fill_elements):
+        # 映射颜色（从 start_idx 开始，使用可见元素列表）
+        for i, elem in enumerate(visible_fill_elements):
             normalized = self._normalize_color(elem.fill_color)
             if normalized and normalized not in color_map:
-                color_idx = (i % (len(colors) - 1)) + start_idx if len(colors) > 1 else 0
+                color_idx = i + start_idx
+                if color_idx >= len(colors):
+                    color_idx = color_idx % len(colors)
                 color_map[normalized] = colors[color_idx]
                 print(f"智能映射 {normalized} -> {colors[color_idx]}")
 
