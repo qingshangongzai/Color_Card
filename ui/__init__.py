@@ -17,7 +17,6 @@ from .color_wheel import HSBColorWheel, InteractiveColorWheel
 from .zoom_viewer import ZoomViewer
 from .color_extract import ColorExtractInterface
 from .luminance_extract import LuminanceExtractInterface
-from .gradient_extract import GradientExtractInterface
 from .color_generation import ColorGenerationInterface, GenerationColorInfoCard, GenerationColorPanel
 from .palette_management import (
     PaletteManagementInterface,
@@ -54,7 +53,6 @@ __all__ = [
     'RGBHistogramWidget',
     'ColorExtractInterface',
     'LuminanceExtractInterface',
-    'GradientExtractInterface',
     'SettingsInterface',
     'ColorGenerationInterface',
     'PaletteManagementInterface',

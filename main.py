@@ -58,7 +58,7 @@ def _create_splash_screen():
         base_path = _get_base_path()
 
         # 构建 logo 路径
-        logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.png')
+        logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
         # 加载启动画面图片
         splash_pixmap = QPixmap(logo_path)
