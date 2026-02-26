@@ -26,6 +26,7 @@
 **一站式色彩解决方案**：从图片分析到配色应用，提供完整的色彩工作流
 - **可视化色彩提取**：通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）
 - **智能配色生成**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择
+- **渐变提取**：支持起始/结束颜色选择，生成RGB/HSB/LAB三种颜色空间的渐变配色，可调整中间色数量
 - **配色方案收藏**：支持收藏、管理配色方案，支持批量导入导出JSON文件
 - **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡
 - **配色预览**：支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG
@@ -123,6 +124,7 @@
 | 色彩提取 | 可拖动取色点、多色彩空间显示、一键复制颜色值 |
 | 明度分析 | 5级明度分区、直方图可视化、区域高亮 |
 | 配色生成 | 5种配色方案、可交互色环、明度调整 |
+| 渐变提取 | 起始/结束颜色选择、三种颜色空间、中间色数量调整 |
 | 配色管理 | 收藏配色、自定义名称、批量导入导出 |
 | 配色预览 | 8种内置场景、自定义SVG、智能配色映射 |
 | 内置色彩库 | 13大开源配色方案、661组色卡 |
@@ -241,6 +243,7 @@ Copyright © 2026 浮晓 HXiao Studio
 **One-stop Color Solution**: Complete color workflow from image analysis to color application
 - **Visual Color Extraction**: Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB)
 - **Intelligent Color Scheme Generation**: 5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel
+- **Gradient Extraction**: Support start/end color selection, generate gradient color schemes in RGB/HSB/LAB color spaces, adjustable intermediate color count
 - **Palette Collection**: Save and manage color schemes, support batch import/export in JSON format
 - **Built-in Color Library**: 13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes
 - **Color Preview**: 8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support
@@ -338,6 +341,7 @@ Copyright © 2026 浮晓 HXiao Studio
 | Color Extraction | Draggable pickers, multiple color spaces, one-click copy |
 | Luminance Analysis | 5-zone segmentation, histogram visualization, zone highlighting |
 | Color Generation | 5 color schemes, interactive color wheel, luminance adjustment |
+| Gradient Extraction | Start/end color selection, three color spaces, adjustable intermediate colors |
 | Palette Management | Save palettes, custom names, batch import/export |
 | Color Preview | 8 built-in scenes, custom SVG, intelligent color mapping |
 | Built-in Library | 13 open-source color schemes, 661 color palettes |

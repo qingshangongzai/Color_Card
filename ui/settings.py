@@ -35,6 +35,7 @@ class SettingsInterface(QWidget):
     saturation_threshold_changed = Signal(int)
     brightness_threshold_changed = Signal(int)
     color_wheel_labels_visible_changed = Signal(bool)
+    gradient_color_space_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -50,6 +51,7 @@ class SettingsInterface(QWidget):
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
         self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
+        self._gradient_color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
@@ -174,6 +176,13 @@ class SettingsInterface(QWidget):
         self.color_scheme_group.addSettingCard(self.color_wheel_mode_card)
 
         layout.addWidget(self.color_scheme_group)
+
+        self.gradient_group = SettingCardGroup(tr('settings.gradient'), self.content_widget)
+
+        self.gradient_color_space_card = self._create_gradient_color_space_card()
+        self.gradient_group.addSettingCard(self.gradient_color_space_card)
+
+        layout.addWidget(self.gradient_group)
 
         self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
 
@@ -322,6 +331,14 @@ class SettingsInterface(QWidget):
         self.color_wheel_mode_card.contentLabel.setText(tr('settings.color_scheme_mode_desc'))
         self.color_wheel_mode_card.combo_box.setItemText(0, tr('settings.rgb_optical'))
         self.color_wheel_mode_card.combo_box.setItemText(1, tr('settings.ryb_artistic'))
+
+        # 更新渐变提取卡片
+        self.gradient_group.titleLabel.setText(tr('settings.gradient'))
+        self.gradient_color_space_card.titleLabel.setText(tr('settings.gradient_color_space'))
+        self.gradient_color_space_card.contentLabel.setText(tr('settings.gradient_color_space_desc'))
+        self.gradient_color_space_card.combo_box.setItemText(0, tr('settings.gradient_rgb'))
+        self.gradient_color_space_card.combo_box.setItemText(1, tr('settings.gradient_hsb'))
+        self.gradient_color_space_card.combo_box.setItemText(2, tr('settings.gradient_lab'))
 
         # 更新帮助卡片
         self.update_card.titleLabel.setText(tr('settings.version_update'))
@@ -594,6 +611,67 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.color_wheel_mode', mode)
         self._config_manager.save()
         self.color_wheel_mode_changed.emit(mode)
+
+    def _create_gradient_color_space_card(self):
+        """创建渐变颜色空间选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            tr('settings.gradient_color_space'),
+            tr('settings.gradient_color_space_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.gradient_rgb'))
+        combo_box.setItemData(0, "rgb")
+        combo_box.addItem(tr('settings.gradient_hsb'))
+        combo_box.setItemData(1, "hsb")
+        combo_box.addItem(tr('settings.gradient_lab'))
+        combo_box.setItemData(2, "lab")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._gradient_color_space:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_gradient_color_space_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_gradient_color_space_changed(self, index):
+        """渐变颜色空间改变"""
+        combo_box = self.gradient_color_space_card.combo_box
+        mode = combo_box.itemData(index)
+        self._gradient_color_space = mode
+        self._config_manager.set('settings.gradient_color_space', mode)
+        self._config_manager.save()
+        self.gradient_color_space_changed.emit(mode)
+
+    def get_gradient_color_space(self):
+        """获取当前渐变颜色空间"""
+        return self._gradient_color_space
+
+    def set_gradient_color_space(self, mode):
+        """设置渐变颜色空间
+
+        Args:
+            mode: 'rgb', 'hsb', 或 'lab'
+        """
+        self._gradient_color_space = mode
+        if hasattr(self.gradient_color_space_card, 'combo_box'):
+            combo_box = self.gradient_color_space_card.combo_box
+            for i in range(combo_box.count()):
+                if combo_box.itemData(i) == mode:
+                    combo_box.setCurrentIndex(i)
+                    break
 
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
