@@ -7,7 +7,6 @@ from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
 from core import get_zone_bounds, HistogramService
-from utils import tr
 from utils.theme_colors import (
     get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
     get_histogram_text_color, get_histogram_highlight_color, get_histogram_highlight_border_color,
@@ -68,7 +67,7 @@ class BaseHistogram(QWidget):
         widget_height = self.height()
 
         # 加载提示文字
-        text = tr('histograms.loading')
+        text = "加载中..."
 
         # 设置字体
         font = QFont()
@@ -1000,4 +999,4 @@ class HueHistogramWidget(BaseHistogram):
         font = QFont()
         font.setPointSize(9)
         painter.setFont(font)
-        painter.drawText(10, 18, tr('histograms.hue_distribution_title'))
+        painter.drawText(10, 18, "色相分布")

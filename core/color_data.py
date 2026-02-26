@@ -11,7 +11,7 @@ class ColorSource:
     def __init__(self, json_data: Dict[str, Any]):
         self._data = json_data
         self._id = json_data.get("id", "")
-        self._name = json_data.get("name", "")
+        self._name = json_data.get("name_zh", json_data.get("name", ""))
         self._description = json_data.get("description", "")
         self._author = json_data.get("author", "")
         self._category = json_data.get("category", "")

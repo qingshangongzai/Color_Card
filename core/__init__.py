@@ -1,10 +1,5 @@
 """核心功能模块"""
 
-from .gradient import (
-    generate_gradient,
-    generate_random_gradient,
-)
-
 from .color import (
     rgb_to_hsb,
     rgb_to_lab,
@@ -102,8 +97,6 @@ from .image_memory_manager import (
 from .service_factory import ServiceFactory
 
 __all__ = [
-    'generate_gradient',
-    'generate_random_gradient',
     'rgb_to_hsb',
     'rgb_to_lab',
     'rgb_to_hex',

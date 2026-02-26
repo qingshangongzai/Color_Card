@@ -473,7 +473,7 @@ class PresetColorList(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
 
-        self._loading_label = QLabel(tr('preset_color.loading'))
+        self._loading_label = QLabel("加载中……")
         self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._loading_label.setStyleSheet(
             f"font-size: 14px; color: {get_secondary_text_color().name()}; padding: 10px;"

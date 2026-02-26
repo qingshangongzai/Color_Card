@@ -103,14 +103,14 @@ class BaseCanvas(QWidget):
         layout.setSpacing(10)
 
         # 加载提示文字
-        self._loading_label = QLabel(tr('canvases.importing_image'), self._loading_widget)
+        self._loading_label = QLabel("正在导入图片...", self._loading_widget)
         self._loading_label.setStyleSheet("color: white; font-size: 14px; background: transparent;")
         self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._loading_label)
 
     def _on_loading_started(self) -> None:
         """加载开始回调"""
-        self.show_loading(tr('canvases.importing_image'))
+        self.show_loading("正在导入图片...")
 
     def show_loading(self, text: str = "正在导入图片...") -> None:
         """显示加载状态
@@ -187,11 +187,11 @@ class BaseCanvas(QWidget):
             progress: 加载进度 (0-100)
         """
         if progress < 50:
-            self._loading_label.setText(f"{tr('canvases.importing_image')} {progress}%")
+            self._loading_label.setText(f"正在导入图片... {progress}%")
         elif progress < 90:
-            self._loading_label.setText(f"{tr('canvases.loading_full_image')} {progress}%")
+            self._loading_label.setText(f"正在加载完整图片... {progress}%")
         else:
-            self._loading_label.setText(f"{tr('canvases.finishing')} {progress}%")
+            self._loading_label.setText(f"正在完成... {progress}%")
 
     def _setup_display_preview(self) -> None:
         """设置显示预览（子类可重写）"""
@@ -541,7 +541,7 @@ class BaseCanvas(QWidget):
             font = QFont()
             font.setPointSize(14)
             painter.setFont(font)
-            text = tr('canvases.click_to_import')
+            text = "点击导入图片"
             text_rect = painter.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
@@ -757,7 +757,7 @@ class ImageCanvas(BaseCanvas):
         """设置显示预览（阶段1：快速显示）"""
         if self._original_pixmap and not self._original_pixmap.isNull():
             self.setCursor(Qt.CursorShape.ArrowCursor)
-            self._loading_label.setText(tr('canvases.loading_full_image'))
+            self._loading_label.setText("正在加载完整图片...")
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """图片加载完成的回调"""
@@ -1218,11 +1218,11 @@ class LuminanceCanvas(BaseCanvas):
         """设置显示预览（阶段1：快速显示）"""
         if self._original_pixmap and not self._original_pixmap.isNull():
             self.setCursor(Qt.CursorShape.ArrowCursor)
-            self._loading_label.setText(tr('canvases.loading_full_image'))
+            self._loading_label.setText("正在加载完整图片...")
 
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
-        print(f"Luminance panel image load failed: {error_msg}")
+        print(f"明度面板图片加载失败: {error_msg}")
 
     def _setup_after_load(self, emit_sync: bool = True) -> None:
         """图片加载完成后的设置（阶段3：完整图片加载完成后）
