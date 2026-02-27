@@ -276,15 +276,15 @@ class EditPaletteDialog(QDialog):
         layout.addWidget(colors_title)
 
         # 颜色输入区域（可滚动）
-        scroll_area = ScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
-        scroll_area.setMaximumHeight(200)
+        self.scroll_area = ScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setMaximumHeight(200)
 
         # 设置滚动条角落为透明（防止出现灰色方块）
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
-        scroll_area.setCornerWidget(corner_widget)
+        self.scroll_area.setCornerWidget(corner_widget)
 
         self.colors_container = QWidget()
         self.colors_container.setStyleSheet("background: transparent;")
@@ -293,8 +293,8 @@ class EditPaletteDialog(QDialog):
         self.colors_layout.setSpacing(10)
         self.colors_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        scroll_area.setWidget(self.colors_container)
-        layout.addWidget(scroll_area)
+        self.scroll_area.setWidget(self.colors_container)
+        layout.addWidget(self.scroll_area)
 
         # 添加颜色按钮
         self.add_color_button = PushButton(FluentIcon.ADD, tr('dialogs.edit_palette.add_color'))
@@ -332,6 +332,15 @@ class EditPaletteDialog(QDialog):
         row = ColorInputRow(len(self._color_rows), self.colors_container)
         self._color_rows.append(row)
         self.colors_layout.addWidget(row)
+        self._scroll_to_bottom()
+
+    def _scroll_to_bottom(self):
+        """滚动到颜色列表底部"""
+        def do_scroll():
+            scroll_bar = self.scroll_area.verticalScrollBar()
+            scroll_bar.setValue(scroll_bar.maximum())
+
+        QTimer.singleShot(50, do_scroll)
 
     def remove_color_row(self, row):
         """移除颜色输入行
