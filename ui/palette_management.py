@@ -849,26 +849,33 @@ class PaletteManagementList(QWidget):
 
     def _load_group_directly(self, group_indices: list):
         """直接加载分组数据（小数据量）
-        
+
         Args:
             group_indices: 分组索引列表
         """
-        for idx in group_indices:
-            if 0 <= idx < len(self._favorites):
-                favorite = self._favorites[idx]
-                card = PaletteManagementCard(favorite)
-                card.set_hex_visible(self._hex_visible)
-                card.set_color_modes(self._color_modes)
-                card.delete_requested.connect(self.favorite_deleted)
-                card.preview_requested.connect(self._on_preview_requested)
-                card.contrast_requested.connect(self._on_contrast_requested)
-                card.color_changed.connect(self._on_color_changed)
-                card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
-                card.edit_requested.connect(self._on_edit_requested)
-                self.content_layout.addWidget(card)
-                self._favorite_cards[favorite.get('id', '')] = card
-        
-        self.content_layout.addStretch()
+        # 禁用UI更新，批量处理
+        self.content_widget.setUpdatesEnabled(False)
+
+        try:
+            for idx in group_indices:
+                if 0 <= idx < len(self._favorites):
+                    favorite = self._favorites[idx]
+                    card = PaletteManagementCard(favorite)
+                    card.set_hex_visible(self._hex_visible)
+                    card.set_color_modes(self._color_modes)
+                    card.delete_requested.connect(self.favorite_deleted)
+                    card.preview_requested.connect(self._on_preview_requested)
+                    card.contrast_requested.connect(self._on_contrast_requested)
+                    card.color_changed.connect(self._on_color_changed)
+                    card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
+                    card.edit_requested.connect(self._on_edit_requested)
+                    self.content_layout.addWidget(card)
+                    self._favorite_cards[favorite.get('id', '')] = card
+
+            self.content_layout.addStretch()
+        finally:
+            # 恢复UI更新
+            self.content_widget.setUpdatesEnabled(True)
 
     def _start_batch_loading(self, group_indices: List[int]):
         """启动分批加载
@@ -1463,7 +1470,9 @@ class PaletteManagementInterface(QWidget):
 
         if self._config_manager.update_favorite(favorite_id, new_palette_data):
             self._config_manager.save()
-            self._load_favorites()
+
+            # 局部刷新：只更新被编辑的卡片，避免重新加载整个列表
+            self._update_favorite_card(favorite_id, new_palette_data)
 
             InfoBar.success(
                 title=tr('messages.update_success.title'),
@@ -1484,6 +1493,23 @@ class PaletteManagementInterface(QWidget):
                 duration=3000,
                 parent=self.window()
             )
+
+    def _update_favorite_card(self, favorite_id: str, new_data: dict):
+        """局部更新指定收藏卡片
+
+        Args:
+            favorite_id: 收藏项ID
+            new_data: 新的收藏数据
+        """
+        # 查找并更新对应卡片
+        card = self.palette_management_list._favorite_cards.get(favorite_id)
+        if card:
+            # 更新卡片数据
+            card._favorite_data = new_data
+            card._load_favorite_data()
+        else:
+            # 如果卡片不在当前视图，重新加载
+            self._load_favorites()
 
     def _on_favorite_contrast(self, favorite_data):
         """收藏对比度检查回调
