@@ -8,7 +8,7 @@ UI层通过ColorService调用业务功能，实现UI与业务逻辑分离。
 from typing import List, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 
 # 项目模块导入
 from .color import extract_dominant_colors, find_dominant_color_positions
@@ -108,6 +108,12 @@ class ColorService(QObject):
         super().__init__(parent)
         self._extractor = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._extractor is not None and self._extractor.isRunning():
+            self._extractor.cancel()
+            self._extractor.wait(1000)  # 等待最多1秒
+
     def extract_dominant_colors(self, image, count: int = 5):
         """开始提取主色调
 
@@ -127,9 +133,15 @@ class ColorService(QObject):
 
         # 创建并启动提取线程
         self._extractor = DominantColorExtractor(image, count, self)
-        self._extractor.extraction_finished.connect(self._on_extraction_finished)
-        self._extractor.extraction_error.connect(self.extraction_error)
-        self._extractor.finished.connect(self._cleanup_extractor)
+        self._extractor.extraction_finished.connect(
+            self._on_extraction_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._extractor.extraction_error.connect(
+            self.extraction_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._extractor.finished.connect(
+            self._cleanup_extractor, Qt.ConnectionType.QueuedConnection
+        )
         self._extractor.start()
 
     def cancel_extraction(self):

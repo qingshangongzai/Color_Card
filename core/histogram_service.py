@@ -142,6 +142,14 @@ class HistogramService(QObject):
         self._colorspace_info: Optional[ColorSpaceInfo] = None
         self._gamma: float = 2.2
 
+    def __del__(self):
+        """析构函数：确保所有线程在对象销毁前停止"""
+        self.cancel_all()
+        # 等待所有线程完全结束
+        for calculator in [self._luminance_calculator, self._rgb_calculator, self._hue_calculator]:
+            if calculator is not None and calculator.isRunning():
+                calculator.wait(1000)  # 等待最多1秒
+
     def set_colorspace_info(self, colorspace_info: Optional[ColorSpaceInfo]) -> None:
         """设置色彩空间信息
 
@@ -382,7 +390,7 @@ class HistogramService(QObject):
         self._hue_calculator = None
 
     def _safe_stop_calculator(self, calculator: Optional[HistogramCalculator]) -> None:
-        """安全地停止计算器线程
+        """安全地停止计算器线程（不使用terminate()）
 
         Args:
             calculator: 要停止的计算器线程
@@ -393,25 +401,22 @@ class HistogramService(QObject):
         # 断开所有信号连接，防止回调触发
         try:
             calculator.finished.disconnect()
-        except:
+        except (TypeError, RuntimeError):
             pass
         try:
             calculator.error.disconnect()
-        except:
+        except (TypeError, RuntimeError):
             pass
 
         # 请求取消
         calculator.cancel()
 
-        # 等待线程结束（非阻塞方式）
+        # 等待线程结束（增加等待时间到500ms）
         if calculator.isRunning():
-            # 使用较短的等待时间，避免阻塞UI
-            calculator.wait(200)
+            calculator.wait(500)
 
-        # 如果线程仍在运行，强制终止（不推荐，但必要时使用）
-        if calculator.isRunning():
-            calculator.terminate()
-            calculator.wait(100)
+        # 注意：如果线程仍在运行，让它在后台自然结束
+        # 不要强制终止，下次创建新计算器时会替换旧实例
 
     def _cancel_luminance_calculator(self) -> None:
         """取消明度直方图计算"""

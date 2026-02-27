@@ -8,7 +8,7 @@ UI层通过LuminanceService调用业务功能，实现UI与业务逻辑分离。
 from typing import Dict, List, Optional, Tuple, Any
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
@@ -35,7 +35,8 @@ class LuminanceCalculator(QThread):
             parent: 父对象
         """
         super().__init__(parent)
-        self._image = image
+        # 复制 QImage 数据，避免主线程修改导致的问题
+        self._image = image.copy() if image and not image.isNull() else None
         self._is_cancelled = False
 
     def cancel(self):
@@ -126,6 +127,12 @@ class LuminanceService(QObject):
         super().__init__(parent)
         self._calculator: Optional[LuminanceCalculator] = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._calculator is not None and self._calculator.isRunning():
+            self._calculator.cancel()
+            self._calculator.wait(1000)  # 等待最多1秒
+
     def calculate_luminance_zones(self, image: QImage) -> None:
         """开始计算明度Zone分布
 
@@ -144,9 +151,15 @@ class LuminanceService(QObject):
 
         # 创建并启动计算线程
         self._calculator = LuminanceCalculator(image, self)
-        self._calculator.calculation_finished.connect(self._on_calculation_finished)
-        self._calculator.calculation_error.connect(self.calculation_error)
-        self._calculator.finished.connect(self._cleanup_calculator)
+        self._calculator.calculation_finished.connect(
+            self._on_calculation_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._calculator.calculation_error.connect(
+            self.calculation_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._calculator.finished.connect(
+            self._cleanup_calculator, Qt.ConnectionType.QueuedConnection
+        )
         self._calculator.start()
 
     def cancel_calculation(self) -> None:

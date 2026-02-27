@@ -199,14 +199,15 @@ class ProgressiveImageLoader(QThread):
     progress = Signal(int)
     error = Signal(str)
 
-    def __init__(self, image_path: str, display_size: int = 1920) -> None:
+    def __init__(self, image_path: str, display_size: int = 1920, parent=None) -> None:
         """初始化加载器
-        
+
         Args:
             image_path: 图片文件路径
             display_size: 显示尺寸上限（默认1920px）
+            parent: 父对象
         """
-        super().__init__()
+        super().__init__(parent)
         self._image_path: str = image_path
         self._display_size: int = display_size
         self._is_cancelled: bool = False
@@ -343,6 +344,12 @@ class ImageService(QObject):
         self._colorspace_info: Optional[ColorSpaceInfo] = None
         self._memory_manager = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._loader is not None and self._loader.isRunning():
+            self._loader.cancel()
+            self._loader.wait(1000)  # 等待最多1秒
+
     def _get_memory_manager(self):
         """延迟获取内存管理器
         
@@ -386,13 +393,25 @@ class ImageService(QObject):
 
         self.loading_started.emit()
 
-        self._loader = ProgressiveImageLoader(path, display_size)
-        self._loader.display_ready.connect(self._on_display_ready)
-        self._loader.full_ready.connect(self._on_full_ready)
-        self._loader.colorspace_ready.connect(self._on_colorspace_ready)
-        self._loader.progress.connect(self.loading_progress)
-        self._loader.error.connect(self._on_load_error)
-        self._loader.finished.connect(self._cleanup_loader)
+        self._loader = ProgressiveImageLoader(path, display_size, self)
+        self._loader.display_ready.connect(
+            self._on_display_ready, Qt.ConnectionType.QueuedConnection
+        )
+        self._loader.full_ready.connect(
+            self._on_full_ready, Qt.ConnectionType.QueuedConnection
+        )
+        self._loader.colorspace_ready.connect(
+            self._on_colorspace_ready, Qt.ConnectionType.QueuedConnection
+        )
+        self._loader.progress.connect(
+            self.loading_progress, Qt.ConnectionType.QueuedConnection
+        )
+        self._loader.error.connect(
+            self._on_load_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._loader.finished.connect(
+            self._cleanup_loader, Qt.ConnectionType.QueuedConnection
+        )
         self._loader.start()
 
     def cancel_loading(self) -> None:
@@ -496,27 +515,27 @@ class ImageService(QObject):
             # 断开信号连接，防止回调触发
             try:
                 self._loader.display_ready.disconnect()
-            except:
+            except (TypeError, RuntimeError):
                 pass
             try:
                 self._loader.full_ready.disconnect()
-            except:
+            except (TypeError, RuntimeError):
                 pass
             try:
                 self._loader.colorspace_ready.disconnect()
-            except:
+            except (TypeError, RuntimeError):
                 pass
             try:
                 self._loader.progress.disconnect()
-            except:
+            except (TypeError, RuntimeError):
                 pass
             try:
                 self._loader.error.disconnect()
-            except:
+            except (TypeError, RuntimeError):
                 pass
             try:
                 self._loader.finished.disconnect()
-            except:
+            except (TypeError, RuntimeError):
                 pass
 
             self._loader.cancel()

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Tuple, Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 
 # 项目模块导入
 from .color import hex_to_rgb, get_color_info
@@ -270,6 +270,15 @@ class PaletteService(QObject):
         self._importer = None
         self._exporter = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._importer is not None and self._importer.isRunning():
+            self._importer.cancel()
+            self._importer.wait(1000)  # 等待最多1秒
+        if self._exporter is not None and self._exporter.isRunning():
+            self._exporter.cancel()
+            self._exporter.wait(1000)  # 等待最多1秒
+
     def import_from_file(self, file_path: str) -> None:
         """从文件导入配色（异步）
 
@@ -288,10 +297,18 @@ class PaletteService(QObject):
 
         # 创建并启动导入线程
         self._importer = PaletteImporter(file_path, self)
-        self._importer.finished.connect(self._on_import_finished)
-        self._importer.error.connect(self.import_error)
-        self._importer.finished.connect(self._cleanup_importer)
-        self._importer.error.connect(self._cleanup_importer)
+        self._importer.finished.connect(
+            self._on_import_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._importer.error.connect(
+            self.import_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._importer.finished.connect(
+            self._cleanup_importer, Qt.ConnectionType.QueuedConnection
+        )
+        self._importer.error.connect(
+            self._cleanup_importer, Qt.ConnectionType.QueuedConnection
+        )
         self._importer.start()
 
     def cancel_import(self) -> None:
@@ -332,10 +349,18 @@ class PaletteService(QObject):
 
         # 创建并启动导出线程
         self._exporter = PaletteExporter(palettes, file_path, self)
-        self._exporter.finished.connect(self._on_export_finished)
-        self._exporter.error.connect(self.export_error)
-        self._exporter.finished.connect(self._cleanup_exporter)
-        self._exporter.error.connect(self._cleanup_exporter)
+        self._exporter.finished.connect(
+            self._on_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._exporter.error.connect(
+            self.export_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._exporter.finished.connect(
+            self._cleanup_exporter, Qt.ConnectionType.QueuedConnection
+        )
+        self._exporter.error.connect(
+            self._cleanup_exporter, Qt.ConnectionType.QueuedConnection
+        )
         self._exporter.start()
 
     def cancel_export(self) -> None:
