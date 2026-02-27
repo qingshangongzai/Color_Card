@@ -7,11 +7,11 @@ from typing import List, Tuple
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea,
+    QApplication, QDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QSizePolicy, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, ToolButton, qconfig, isDarkTheme
+    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, ToolButton, qconfig, isDarkTheme, ScrollArea
 )
 
 # 项目模块导入
@@ -137,17 +137,20 @@ class GradientCardPanel(QWidget):
         self.main_layout.setSpacing(10)
 
         # 创建滚动区域
-        self.scroll_area = QScrollArea()
+        self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
+
+        # 设置滚动条角落为透明（防止出现灰色方块）
+        corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
+        self.scroll_area.setCornerWidget(corner_widget)
 
         # 创建卡片容器
         self.cards_container = QWidget()
         self.cards_container.setStyleSheet("background: transparent; border: none;")
         self.cards_layout = QVBoxLayout(self.cards_container)
-        self.cards_layout.setContentsMargins(0, 0, 0, 0)
+        self.cards_layout.setContentsMargins(0, 0, 10, 0)
         self.cards_layout.setSpacing(10)
 
         self.scroll_area.setWidget(self.cards_container)
