@@ -218,7 +218,7 @@ class LuminanceExtractInterface(QWidget):
         """直方图Zone被按下时调用
 
         Args:
-            zone: Zone编号 (0-7)
+            zone: Zone编号 (0-8)
         """
         # 在画布上高亮显示该Zone的亮度范围
         self.luminance_canvas.highlight_zone(zone)

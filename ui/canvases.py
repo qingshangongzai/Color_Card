@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ServiceFactory
+from core import get_luminance, get_zone, ServiceFactory, ZONE_WIDTH
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -1435,9 +1435,9 @@ class LuminanceCanvas(BaseCanvas):
         """高亮显示指定Zone的亮度范围
 
         Args:
-            zone: Zone编号 (0-7)
+            zone: Zone编号 (0-8)
         """
-        if not (0 <= zone <= 7):
+        if not (0 <= zone <= 8):
             return
 
         if self._image is None or self._image.isNull():
@@ -1511,19 +1511,21 @@ class LuminanceCanvas(BaseCanvas):
             return
 
         # 准备文字 - Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
-        zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8"]
+        zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8", "8-9"]
         zone_names = [
-            "黑色", "黑色", "阴影", "中间调",
-            "中间调", "中间调", "高光", "白色"
+            "黑色", "阴影", "阴影", "中间调",
+            "中间调", "中间调", "高光", "高光", "白色"
+        ]
+        # 硬编码亮度范围，显示更规整
+        zone_ranges = [
+            "0-28", "28-56", "56-85", "85-113", "113-141",
+            "141-170", "170-198", "198-226", "226-255"
         ]
         label = zone_labels[self._highlighted_zone]
         name = zone_names[self._highlighted_zone]
+        lum_range = zone_ranges[self._highlighted_zone]
 
-        # 计算亮度范围
-        min_lum = self._highlighted_zone * 32
-        max_lum = (self._highlighted_zone + 1) * 32 - 1
-
-        text = f"{label} ({name}) | 亮度: {min_lum}-{max_lum}"
+        text = f"{label} ({name}) | 亮度: {lum_range}"
 
         # 获取文字颜色
         text_color = self._zone_highlight_colors[self._highlighted_zone]

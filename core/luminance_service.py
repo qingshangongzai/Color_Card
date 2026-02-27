@@ -12,7 +12,7 @@ from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
-from .color import get_luminance, get_zone
+from .color import get_luminance, get_zone, ZONE_WIDTH
 
 
 class LuminanceCalculator(QThread):
@@ -219,7 +219,7 @@ class LuminanceService(QObject):
 
         Args:
             image: 原始图片
-            zone: Zone编号 (0-7)
+            zone: Zone编号 (0-8)
             canvas_size: 画布尺寸 (width, height)
             display_rect: 图片显示区域 (x, y, w, h)
             zone_color: 高亮颜色
@@ -230,7 +230,7 @@ class LuminanceService(QObject):
         if image is None or image.isNull():
             return None
 
-        if not (0 <= zone <= 7):
+        if not (0 <= zone <= 8):
             return None
 
         canvas_width, canvas_height = canvas_size
@@ -244,8 +244,8 @@ class LuminanceService(QObject):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
         # 计算亮度范围
-        min_lum = zone * 32
-        max_lum = (zone + 1) * 32 - 1
+        min_lum = int(zone * ZONE_WIDTH)
+        max_lum = int((zone + 1) * ZONE_WIDTH) - 1
 
         # 计算缩放比例
         scale_x = image.width() / disp_w

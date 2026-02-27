@@ -151,6 +151,7 @@ def get_zone_colors():
         QColor(55, 55, 55),
         QColor(60, 60, 60),
         QColor(65, 65, 65),
+        QColor(70, 70, 70),
     ]
 
 
@@ -165,6 +166,7 @@ def get_zone_colors_highlight():
         QColor(75, 75, 85),
         QColor(80, 80, 90),
         QColor(85, 85, 95),
+        QColor(90, 90, 100),
     ]
 
 
@@ -210,6 +212,7 @@ def get_picker_colors():
         QColor(255, 204, 0, 100),
         QColor(255, 128, 0, 100),
         QColor(255, 51, 102, 100),
+        QColor(200, 100, 255, 100),
     ]
 
 
