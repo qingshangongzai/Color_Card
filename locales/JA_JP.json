@@ -58,7 +58,11 @@
     "favorite_success": {
       "title": "保存しました",
       "content": "配色「{name}」をパレット管理に追加しました"
-    }
+    },
+    "copied": "コピーしました",
+    "copied_content": "色値 {hex} をクリップボードにコピーしました",
+    "favorite_failed": "保存できません",
+    "no_colors_to_favorite": "保存できる色がありません"
   },
   "palette_management": {
     "title": "パレット管理",

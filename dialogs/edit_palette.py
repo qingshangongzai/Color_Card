@@ -29,7 +29,17 @@ class ColorInputRow(QWidget):
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
+
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        try:
+            qconfig.themeChangedFinished.disconnect(self._theme_connection)
+        except (TypeError, RuntimeError):
+            pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面"""
@@ -190,10 +200,20 @@ class EditPaletteDialog(QDialog):
             self._load_palette_data()
 
         # 修复任务栏图标
-        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
+        QTimer.singleShot(100, lambda: self._fix_taskbar_icon())
 
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_title_bar_theme
+        )
+
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        try:
+            qconfig.themeChangedFinished.disconnect(self._theme_connection)
+        except (TypeError, RuntimeError):
+            pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -399,6 +419,15 @@ class EditPaletteDialog(QDialog):
     def _update_title_bar_theme(self):
         """更新标题栏主题以适配当前主题"""
         set_window_title_bar_theme(self, isDarkTheme())
+
+    def _fix_taskbar_icon(self):
+        """修复任务栏图标"""
+        try:
+            if self and self.isVisible():
+                fix_windows_taskbar_icon_for_window(self)
+        except RuntimeError:
+            # 对象已被销毁
+            pass
 
     def showEvent(self, event):
         """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""
