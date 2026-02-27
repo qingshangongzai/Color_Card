@@ -185,7 +185,19 @@ class ColorModeContainer(QWidget):
         self.setup_ui()
         self._update_styles()
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
+
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        try:
+            if hasattr(self, '_theme_connection'):
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+                delattr(self, '_theme_connection')
+        except (TypeError, RuntimeError):
+            pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面"""
@@ -272,7 +284,19 @@ class ColorCard(BaseCard):
         self._current_color_info = None
         super().__init__(index, parent)
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_color_block_style)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_color_block_style
+        )
+
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        try:
+            if hasattr(self, '_theme_connection'):
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+                delattr(self, '_theme_connection')
+        except (TypeError, RuntimeError):
+            pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         from PySide6.QtWidgets import QSizePolicy

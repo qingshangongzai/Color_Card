@@ -1061,22 +1061,46 @@ class PaletteManagementInterface(QWidget):
             locale_manager.language_changed.connect(self._on_language_changed)
 
     def _get_palette_service(self):
-        """延迟获取配色服务
-        
+        """延迟获取配色服务（保留延迟加载）
+
         Returns:
             PaletteService: 配色服务实例
         """
         if self._palette_service is None:
-            self._palette_service = ServiceFactory.get_palette_service(self)
+            self._palette_service = ServiceFactory.get_palette_service()
             self._setup_service_connections()
         return self._palette_service
 
     def _setup_service_connections(self):
-        """设置配色服务信号连接"""
-        self._palette_service.import_finished.connect(self._on_import_finished)
-        self._palette_service.import_error.connect(self._on_import_error)
-        self._palette_service.export_finished.connect(self._on_export_finished)
-        self._palette_service.export_error.connect(self._on_export_error)
+        """设置配色服务信号连接（使用 QueuedConnection 确保线程安全）"""
+        self._palette_service.import_finished.connect(
+            self._on_import_finished,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._palette_service.import_error.connect(
+            self._on_import_error,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._palette_service.export_finished.connect(
+            self._on_export_finished,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._palette_service.export_error.connect(
+            self._on_export_error,
+            Qt.ConnectionType.QueuedConnection
+        )
+
+    def closeEvent(self, event):
+        """关闭时断开信号连接"""
+        if self._palette_service:
+            try:
+                self._palette_service.import_finished.disconnect(self._on_import_finished)
+                self._palette_service.import_error.disconnect(self._on_import_error)
+                self._palette_service.export_finished.disconnect(self._on_export_finished)
+                self._palette_service.export_error.disconnect(self._on_export_error)
+            except (TypeError, RuntimeError):
+                pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面布局"""

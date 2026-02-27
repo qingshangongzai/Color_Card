@@ -73,23 +73,51 @@ class BaseCanvas(QWidget):
         self._setup_loading_ui()
 
     def _get_image_service(self):
-        """延迟获取图片服务
-        
+        """延迟获取图片服务（保留延迟加载）
+
         Returns:
             ImageService: 图片服务实例
         """
         if self._image_service is None:
-            self._image_service = ServiceFactory.get_image_service(self)
+            self._image_service = ServiceFactory.get_image_service()
             self._setup_image_service_connections()
         return self._image_service
 
     def _setup_image_service_connections(self) -> None:
-        """设置ImageService信号连接"""
-        self._image_service.loading_started.connect(self._on_loading_started)
-        self._image_service.loading_progress.connect(self._on_loading_progress)
-        self._image_service.display_ready.connect(self._on_display_ready)
-        self._image_service.image_loaded.connect(self._on_image_loaded_from_service)
-        self._image_service.error.connect(self._on_image_load_error)
+        """设置ImageService信号连接（使用 QueuedConnection 确保线程安全）"""
+        self._image_service.loading_started.connect(
+            self._on_loading_started,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.loading_progress.connect(
+            self._on_loading_progress,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.display_ready.connect(
+            self._on_display_ready,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.image_loaded.connect(
+            self._on_image_loaded_from_service,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.error.connect(
+            self._on_image_load_error,
+            Qt.ConnectionType.QueuedConnection
+        )
+
+    def closeEvent(self, event):
+        """关闭时断开信号连接"""
+        if self._image_service:
+            try:
+                self._image_service.loading_started.disconnect(self._on_loading_started)
+                self._image_service.loading_progress.disconnect(self._on_loading_progress)
+                self._image_service.display_ready.disconnect(self._on_display_ready)
+                self._image_service.image_loaded.disconnect(self._on_image_loaded_from_service)
+                self._image_service.error.disconnect(self._on_image_load_error)
+            except (TypeError, RuntimeError):
+                pass
+        super().closeEvent(event)
 
     def _setup_loading_ui(self) -> None:
         """设置加载状态UI"""
@@ -1205,13 +1233,13 @@ class LuminanceCanvas(BaseCanvas):
         self.update_picker_positions()
 
     def _get_luminance_service(self):
-        """延迟获取明度服务
-        
+        """延迟获取明度服务（保留延迟加载）
+
         Returns:
             LuminanceService: 明度服务实例
         """
         if self._luminance_service is None:
-            self._luminance_service = ServiceFactory.get_luminance_service(self)
+            self._luminance_service = ServiceFactory.get_luminance_service()
         return self._luminance_service
 
     def _setup_display_preview(self) -> None:

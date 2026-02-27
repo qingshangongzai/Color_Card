@@ -197,8 +197,9 @@ class GradientCardPanel(QWidget):
 
     def _clear_cards(self):
         """清空所有卡片"""
-        # 删除所有卡片
+        # 删除所有卡片前先触发 closeEvent 断开信号
         for card in self._cards:
+            card.close()
             card.deleteLater()
         self._cards.clear()
 
@@ -210,6 +211,7 @@ class GradientCardPanel(QWidget):
                 while item.layout().count():
                     child = item.layout().takeAt(0)
                     if child.widget():
+                        child.widget().close()
                         child.widget().deleteLater()
 
     def set_hex_visible(self, visible: bool):
@@ -494,9 +496,12 @@ class GradientExtractInterface(QWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=2000,
-                parent=self
+                parent=self.window()
             )
             return
+
+        # 复制颜色数据，避免引用问题（与P0修复一致）
+        colors = [color.copy() for color in colors]
 
         # 获取当前收藏数量，生成默认名称（与其他面板一致）
         favorites_count = len(self._config_manager.get_favorites())
@@ -534,7 +539,7 @@ class GradientExtractInterface(QWidget):
                     isClosable=True,
                     position=InfoBarPosition.TOP,
                     duration=2000,
-                    parent=self
+                    parent=self.window()
                 )
 
     def set_color_space(self, color_space: str):

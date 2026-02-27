@@ -398,6 +398,9 @@ class PaletteCard(CardWidget):
         if not colors:
             return
 
+        # 复制颜色数据，避免引用问题
+        colors = [color.copy() for color in colors]
+
         favorite_data = {
             "id": str(uuid.uuid4()),
             "name": self.name_label.text(),

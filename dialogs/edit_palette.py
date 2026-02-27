@@ -36,7 +36,9 @@ class ColorInputRow(QWidget):
     def closeEvent(self, event):
         """关闭事件 - 断开信号连接"""
         try:
-            qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            if hasattr(self, '_theme_connection'):
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+                delattr(self, '_theme_connection')
         except (TypeError, RuntimeError):
             pass
         super().closeEvent(event)
@@ -335,6 +337,7 @@ class EditPaletteDialog(QDialog):
         while self._color_rows:
             row = self._color_rows.pop()
             self.colors_layout.removeWidget(row)
+            row.close()  # 触发 closeEvent 断开信号
             row.hide()
             row.deleteLater()
 

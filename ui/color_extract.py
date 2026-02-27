@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QSplitter, QStackedWidget,
     QSizePolicy, QVBoxLayout, QWidget
@@ -41,21 +41,41 @@ class ColorExtractInterface(QWidget):
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def _get_color_service(self):
-        """延迟获取颜色服务
-        
+        """延迟获取颜色服务（保留延迟加载）
+
         Returns:
             ColorService: 颜色服务实例
         """
         if self._color_service is None:
-            self._color_service = ServiceFactory.get_color_service(self)
+            self._color_service = ServiceFactory.get_color_service()
             self._setup_color_service_connections()
         return self._color_service
 
     def _setup_color_service_connections(self):
-        """设置颜色服务信号连接"""
-        self._color_service.extraction_finished.connect(self._on_extraction_finished)
-        self._color_service.extraction_error.connect(self._on_extraction_error)
-        self._color_service.extraction_started.connect(self._on_extraction_started)
+        """设置颜色服务信号连接（使用 QueuedConnection 确保线程安全）"""
+        self._color_service.extraction_finished.connect(
+            self._on_extraction_finished,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._color_service.extraction_error.connect(
+            self._on_extraction_error,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._color_service.extraction_started.connect(
+            self._on_extraction_started,
+            Qt.ConnectionType.QueuedConnection
+        )
+
+    def closeEvent(self, event):
+        """关闭时断开信号连接"""
+        if self._color_service:
+            try:
+                self._color_service.extraction_finished.disconnect(self._on_extraction_finished)
+                self._color_service.extraction_error.disconnect(self._on_extraction_error)
+                self._color_service.extraction_started.disconnect(self._on_extraction_started)
+            except (TypeError, RuntimeError):
+                pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -257,6 +277,9 @@ class ColorExtractInterface(QWidget):
                 parent=self.window()
             )
             return
+
+        # 复制颜色数据，避免引用问题
+        colors = [color.copy() for color in colors]
 
         # 弹出编辑配色对话框
         default_name = f"{tr('messages.palette')} {len(self._config_manager.get_favorites()) + 1}"
