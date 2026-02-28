@@ -3,7 +3,6 @@ import ctypes
 import os
 import sys
 
-
 def set_app_user_model_id():
     """设置 Windows AppUserModelID
 
@@ -19,6 +18,26 @@ def set_app_user_model_id():
         return True
     except Exception:
         return False
+
+
+def setup_global_exception_handler(logger):
+    """设置全局异常处理器
+
+    Args:
+        logger: 日志记录器
+    """
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        """处理未捕获的异常"""
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logger.critical(
+            "未捕获的异常",
+            exc_info=(exc_type, exc_value, exc_traceback)
+        )
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+    sys.excepthook = handle_exception
 
 
 # 立即调用（在导入 PySide6 之前）
@@ -120,6 +139,9 @@ def main():
 
     logger = get_logger("main")
     logger.info("应用程序启动")
+
+    # 设置全局异常处理器
+    setup_global_exception_handler(logger)
 
     # 立即显示启动画面（在其他模块导入前）
     splash = _create_splash_screen()
