@@ -113,6 +113,14 @@ def main():
 
     app = QApplication(sys.argv)
 
+    # 初始化日志系统
+    from core import get_logger_manager, get_logger
+    logger_manager = get_logger_manager()
+    logger_manager.initialize()
+
+    logger = get_logger("main")
+    logger.info("应用程序启动")
+
     # 立即显示启动画面（在其他模块导入前）
     splash = _create_splash_screen()
 
@@ -181,9 +189,11 @@ def main():
     try:
         sys.exit(app.exec())
     except KeyboardInterrupt:
-        # 用户中断程序（Ctrl+C），正常退出
-        print("\n程序被用户中断")
+        logger.info("程序被用户中断 (Ctrl+C)")
         sys.exit(0)
+    except Exception as e:
+        logger.critical(f"程序发生未捕获异常: {str(e)}", exc_info=True)
+        raise
 
 
 if __name__ == '__main__':
