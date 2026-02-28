@@ -44,3 +44,31 @@ color_card_favorites.json
 文档/color_card_20260221_134235.json
 CHANGELOG.md
 *.pyc
+
+# ====================
+# Website (Node.js)
+# ====================
+# Dependencies
+website/node_modules/
+
+# Build output
+website/dist/
+website/build/
+
+# Logs
+website/npm-debug.log*
+website/yarn-debug.log*
+website/yarn-error.log*
+
+# Editor directories and files
+website/.vscode/
+website/.idea/
+website/*.suo
+website/*.ntvs*
+website/*.njsproj
+website/*.sln
+website/*.sw?
+
+# OS files
+website/.DS_Store
+website/Thumbs.db
