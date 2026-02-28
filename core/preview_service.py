@@ -14,6 +14,9 @@ from PySide6.QtCore import QObject, Signal
 
 # 项目模块导入
 from .config import get_scene_type_manager, get_config_manager
+from .logger import get_logger, log_performance
+
+logger = get_logger("preview_service")
 
 
 class PreviewService(QObject):
@@ -52,10 +55,13 @@ class PreviewService(QObject):
             List[Dict[str, Any]]: 场景类型配置列表
         """
         try:
-            scene_types = self._scene_type_manager.get_all_scene_types()
-            self.scenes_loaded.emit(scene_types)
-            return scene_types
+            with log_performance("load_scene_types"):
+                scene_types = self._scene_type_manager.get_all_scene_types()
+                self.scenes_loaded.emit(scene_types)
+                logger.debug(f"加载场景类型成功，共 {len(scene_types)} 个")
+                return scene_types
         except Exception as e:
+            logger.error(f"加载场景类型失败: {e}", exc_info=True)
             self.error.emit(f"加载场景类型失败: {e}")
             return []
 
@@ -69,8 +75,11 @@ class PreviewService(QObject):
             Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
         """
         try:
-            return self._scene_type_manager.get_scene_type_by_id(scene_id)
+            config = self._scene_type_manager.get_scene_type_by_id(scene_id)
+            logger.debug(f"获取场景配置: scene_id={scene_id}")
+            return config
         except Exception as e:
+            logger.error(f"获取场景配置失败: scene_id={scene_id}, error={e}", exc_info=True)
             self.error.emit(f"获取场景配置失败: {e}")
             return None
 
@@ -84,8 +93,11 @@ class PreviewService(QObject):
             List[Dict[str, Any]]: 模板列表
         """
         try:
-            return self._scene_type_manager.get_all_templates(scene_id)
+            templates = self._scene_type_manager.get_all_templates(scene_id)
+            logger.debug(f"获取场景模板: scene_id={scene_id}, count={len(templates)}")
+            return templates
         except Exception as e:
+            logger.error(f"获取场景模板失败: scene_id={scene_id}, error={e}", exc_info=True)
             self.error.emit(f"获取场景模板失败: {e}")
             return []
 
@@ -99,8 +111,11 @@ class PreviewService(QObject):
             Dict[str, Any]: 布局配置字典
         """
         try:
-            return self._scene_type_manager.get_layout_config(scene_id)
+            config = self._scene_type_manager.get_layout_config(scene_id)
+            logger.debug(f"获取布局配置: scene_id={scene_id}")
+            return config
         except Exception as e:
+            logger.error(f"获取布局配置失败: scene_id={scene_id}, error={e}", exc_info=True)
             self.error.emit(f"获取布局配置失败: {e}")
             return {}
 
@@ -125,11 +140,14 @@ class PreviewService(QObject):
             self._config_manager.save()
 
             if success:
+                logger.info(f"添加用户模板成功: scene_id={scene_id}, path={template_path}")
                 return True, f"已添加模板到 {scene_id} 场景"
             else:
+                logger.warning(f"添加用户模板失败，模板已存在: scene_id={scene_id}, path={template_path}")
                 return False, "该模板已存在"
 
         except Exception as e:
+            logger.error(f"添加用户模板失败: scene_id={scene_id}, path={template_path}, error={e}", exc_info=True)
             return False, f"添加模板失败: {e}"
 
     def remove_user_template(self, scene_id: str, template_path: str) -> Tuple[bool, str]:
@@ -147,11 +165,14 @@ class PreviewService(QObject):
             self._config_manager.save()
 
             if success:
+                logger.info(f"移除用户模板成功: scene_id={scene_id}, path={template_path}")
                 return True, "模板已删除"
             else:
+                logger.warning(f"移除用户模板失败，模板不存在: scene_id={scene_id}, path={template_path}")
                 return False, "模板不存在"
 
         except Exception as e:
+            logger.error(f"移除用户模板失败: scene_id={scene_id}, path={template_path}, error={e}", exc_info=True)
             return False, f"删除模板失败: {e}"
 
     def get_builtin_svg_path(self, scene_type: str) -> Optional[str]:
@@ -164,8 +185,11 @@ class PreviewService(QObject):
             Optional[str]: SVG文件路径，如果不存在则返回None
         """
         try:
-            return self._scene_type_manager.get_builtin_svg_path(scene_type)
+            path = self._scene_type_manager.get_builtin_svg_path(scene_type)
+            logger.debug(f"获取内置SVG路径: scene_type={scene_type}, path={path}")
+            return path
         except Exception as e:
+            logger.error(f"获取内置SVG路径失败: scene_type={scene_type}, error={e}", exc_info=True)
             self.error.emit(f"获取内置SVG路径失败: {e}")
             return None
 
@@ -180,16 +204,20 @@ class PreviewService(QObject):
             Tuple[bool, str]: (是否成功, 处理后的SVG内容或错误信息)
         """
         try:
-            from .svg_color_mapper import SVGColorMapper
+            with log_performance("apply_colors_to_svg", {"color_count": len(colors)}):
+                from .svg_color_mapper import SVGColorMapper
 
-            mapper = SVGColorMapper()
-            if not mapper.load_svg_from_string(svg_content):
-                return False, "无法加载SVG内容"
+                mapper = SVGColorMapper()
+                if not mapper.load_svg_from_string(svg_content):
+                    logger.warning("无法加载SVG内容")
+                    return False, "无法加载SVG内容"
 
-            result = mapper.apply_intelligent_mapping(colors)
-            return True, result
+                result = mapper.apply_intelligent_mapping(colors)
+                logger.debug(f"应用配色成功: color_count={len(colors)}")
+                return True, result
 
         except Exception as e:
+            logger.error(f"应用配色失败: color_count={len(colors)}, error={e}", exc_info=True)
             return False, f"应用配色失败: {e}"
 
     def validate_svg_file(self, file_path: str) -> Tuple[bool, str]:
@@ -204,12 +232,15 @@ class PreviewService(QObject):
         path = Path(file_path)
 
         if not path.exists():
+            logger.warning(f"验证SVG文件失败，文件不存在: {file_path}")
             return False, f"文件不存在: {file_path}"
 
         if not path.is_file():
+            logger.warning(f"验证SVG文件失败，路径不是文件: {file_path}")
             return False, f"路径不是文件: {file_path}"
 
         if path.suffix.lower() != '.svg':
+            logger.warning(f"验证SVG文件失败，文件不是SVG格式: {file_path}")
             return False, f"文件不是SVG格式: {file_path}"
 
         try:
@@ -222,11 +253,14 @@ class PreviewService(QObject):
             if '<svg' not in content.lower():
                 return False, "文件内容不是有效的SVG"
 
+            logger.debug(f"验证SVG文件成功: {file_path}")
             return True, ""
 
         except (IOError, OSError) as e:
+            logger.error(f"验证SVG文件失败，文件读取错误: {file_path}, error={e}", exc_info=True)
             return False, f"文件读取错误: {e}"
         except Exception as e:
+            logger.error(f"验证SVG文件失败: {file_path}, error={e}", exc_info=True)
             return False, f"验证失败: {e}"
 
     def add_background_to_svg(self, svg_content: str, bg_color: str) -> str:
@@ -276,10 +310,11 @@ class PreviewService(QObject):
             bg_rect.set('fill', bg_color)
 
             root.insert(0, bg_rect)
+            logger.debug(f"添加SVG背景成功: bg_color={bg_color}")
             return ET.tostring(root, encoding='unicode')
 
         except Exception as e:
-            print(f"添加背景失败: {e}")
+            logger.error(f"添加SVG背景失败: bg_color={bg_color}, error={e}", exc_info=True)
             return svg_content
 
     def has_fixed_background_element(self, svg_content: str) -> bool:
@@ -306,7 +341,8 @@ class PreviewService(QObject):
                     if fixed_color == 'original':
                         return True
             return False
-        except Exception:
+        except Exception as e:
+            logger.error(f"检查固定背景元素失败: error={e}", exc_info=True)
             return False
 
     def extract_hex_colors_from_favorite(self, favorite: Dict[str, Any]) -> List[str]:
@@ -347,10 +383,13 @@ class PreviewService(QObject):
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(svg_content)
 
+            logger.info(f"保存SVG文件成功: path={file_path}")
             return True, f"已保存到: {file_path}"
         except (IOError, OSError) as e:
+            logger.error(f"保存SVG文件失败，文件写入错误: path={file_path}, error={e}", exc_info=True)
             return False, f"文件写入错误: {e}"
         except Exception as e:
+            logger.error(f"保存SVG文件失败: path={file_path}, error={e}", exc_info=True)
             return False, f"保存失败: {e}"
 
     def generate_export_filename(self, prefix: str = "color_card") -> str:

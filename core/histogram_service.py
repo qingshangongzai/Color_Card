@@ -9,6 +9,9 @@ from PySide6.QtGui import QImage
 from .color import calculate_histogram, calculate_rgb_histogram
 from .histogram_cache import get_histogram_cache, generate_image_fingerprint
 from .image_service import ColorSpaceInfo
+from .logger import get_logger, log_performance
+
+logger = get_logger("histogram_service")
 
 
 class HistogramCalculator(QThread):
@@ -79,22 +82,36 @@ class HistogramCalculator(QThread):
                 return
 
             if self._calc_type == "luminance":
-                result = calculate_histogram(self._image, self._sample_step, self._gamma)
+                with log_performance("calculate_luminance_histogram", {
+                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "sample_step": self._sample_step,
+                    "gamma": self._gamma
+                }):
+                    result = calculate_histogram(self._image, self._sample_step, self._gamma)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
             elif self._calc_type == "rgb":
-                result = calculate_rgb_histogram(self._image, self._sample_step)
+                with log_performance("calculate_rgb_histogram", {
+                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "sample_step": self._sample_step
+                }):
+                    result = calculate_rgb_histogram(self._image, self._sample_step)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
             elif self._calc_type == "hue":
-                result = self._calculate_hue_histogram()
+                with log_performance("calculate_hue_histogram", {
+                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "sample_step": self._sample_step
+                }):
+                    result = self._calculate_hue_histogram()
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
         except Exception as e:
             if not self._check_cancelled():
+                logger.error(f"直方图计算失败: {self._calc_type}, 错误: {e}", exc_info=True)
                 self.error.emit(str(e))
 
     def _calculate_hue_histogram(self) -> List[int]:
@@ -440,12 +457,12 @@ class HistogramService(QObject):
         # 断开所有信号连接，防止回调触发
         try:
             calculator.finished.disconnect()
-        except (TypeError, RuntimeError):
-            pass
+        except (TypeError, RuntimeError) as e:
+            logger.debug(f"断开finished信号时出错: {e}")
         try:
             calculator.error.disconnect()
-        except (TypeError, RuntimeError):
-            pass
+        except (TypeError, RuntimeError) as e:
+            logger.debug(f"断开error信号时出错: {e}")
 
         # 请求取消
         calculator.cancel()

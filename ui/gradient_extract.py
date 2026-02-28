@@ -17,9 +17,12 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import generate_gradient, generate_random_gradient, get_color_info, rgb_to_hex
 from core import get_config_manager
+from core.logger import get_logger, log_user_action
 from ui.cards import ColorCard
 from utils import tr, get_locale_manager, calculate_grid_columns
 from utils.theme_colors import get_border_color, get_card_background_color, get_text_color
+
+logger = get_logger("gradient_extract")
 
 
 class ColorDot(QWidget):
@@ -436,6 +439,7 @@ class GradientExtractInterface(QWidget):
         if self._is_valid_hex(text):
             self._start_color = text.upper()
             self.start_color_dot.set_color(self._start_color)
+            log_user_action("change_start_color", {"color": self._start_color})
             self._generate_gradient()
 
     def _on_end_color_input_changed(self, text: str):
@@ -443,6 +447,7 @@ class GradientExtractInterface(QWidget):
         if self._is_valid_hex(text):
             self._end_color = text.upper()
             self.end_color_dot.set_color(self._end_color)
+            log_user_action("change_end_color", {"color": self._end_color})
             self._generate_gradient()
 
     def _is_valid_hex(self, text: str) -> bool:
@@ -458,6 +463,7 @@ class GradientExtractInterface(QWidget):
         """中间色数量改变"""
         self._steps = value
         self.steps_value_label.setText(str(value))
+        log_user_action("change_steps", {"steps": value})
         self._generate_gradient()
 
     def _generate_gradient(self):
@@ -472,8 +478,9 @@ class GradientExtractInterface(QWidget):
             self._current_colors = colors
             self.gradient_preview.set_colors(colors)
             self.card_panel.set_colors(colors)
+            logger.debug(f"生成渐变成功: start={self._start_color}, end={self._end_color}, steps={self._steps}, color_space={self._color_space}")
         except Exception as e:
-            print(f"生成渐变失败: {e}")
+            logger.error(f"生成渐变失败: start={self._start_color}, end={self._end_color}, steps={self._steps}, error={e}", exc_info=True)
 
     def _on_random_clicked(self):
         """随机按钮点击"""
@@ -487,6 +494,7 @@ class GradientExtractInterface(QWidget):
         self._current_colors = colors
         self.gradient_preview.set_colors(colors)
         self.card_panel.set_colors(colors)
+        log_user_action("random_gradient", {"start": start_hex, "end": end_hex, "steps": self._steps, "color_count": len(colors)})
 
     def _on_favorite_clicked(self):
         """收藏按钮点击"""
@@ -501,6 +509,7 @@ class GradientExtractInterface(QWidget):
                 duration=2000,
                 parent=self.window()
             )
+            logger.warning("收藏失败: 没有可收藏的颜色")
             return
 
         # 复制颜色数据，避免引用问题（与P0修复一致）
@@ -533,6 +542,7 @@ class GradientExtractInterface(QWidget):
             if edited_data:
                 # 发射信号让主窗口处理
                 self.favorite_requested.emit(edited_data)
+                log_user_action("favorite_gradient", {"name": edited_data.get("name"), "color_count": len(colors)})
 
                 # 显示成功提示
                 InfoBar.success(
@@ -552,6 +562,7 @@ class GradientExtractInterface(QWidget):
             color_space: 'rgb', 'hsb', 或 'lab'
         """
         self._color_space = color_space
+        log_user_action("change_color_space", {"color_space": color_space})
         self._generate_gradient()
 
     def set_hex_visible(self, visible: bool):

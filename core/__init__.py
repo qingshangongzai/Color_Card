@@ -102,6 +102,14 @@ from .image_memory_manager import (
 
 from .service_factory import ServiceFactory
 
+from .logger import (
+    LoggerManager,
+    get_logger_manager,
+    get_logger,
+    log_user_action,
+    log_performance,
+)
+
 __all__ = [
     'generate_gradient',
     'generate_random_gradient',
@@ -188,4 +196,9 @@ __all__ = [
     'get_memory_manager',
     'set_memory_limit',
     'ServiceFactory',
+    'LoggerManager',
+    'get_logger_manager',
+    'get_logger',
+    'log_user_action',
+    'log_performance',
 ]

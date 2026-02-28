@@ -12,6 +12,10 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt
 
 # 项目模块导入
 from .color import extract_dominant_colors, find_dominant_color_positions
+from .logger import get_logger, log_performance
+
+
+logger = get_logger("color_service")
 
 
 class DominantColorExtractor(QThread):
@@ -78,27 +82,27 @@ class DominantColorExtractor(QThread):
             if self._check_cancelled() or not self._image or self._image.isNull():
                 return
 
-            # 提取主色调
-            dominant_colors = extract_dominant_colors(self._image, count=self._count)
+            with log_performance("extract_dominant_colors", {"count": self._count}):
+                dominant_colors = extract_dominant_colors(self._image, count=self._count)
 
             if self._check_cancelled():
                 return
 
             if not dominant_colors:
+                logger.error("主色调提取失败: error=无法从图片中提取主色调")
                 self.extraction_error.emit("无法从图片中提取主色调")
                 return
 
-            # 找到每种主色调在图片中的位置
             positions = find_dominant_color_positions(self._image, dominant_colors)
 
             if self._check_cancelled():
                 return
 
-            # 发送成功信号
             self.extraction_finished.emit(dominant_colors, positions)
 
         except Exception as e:
             if not self._check_cancelled():
+                logger.error(f"主色调提取异常: error={str(e)}")
                 self.extraction_error.emit(str(e))
 
 
@@ -167,14 +171,13 @@ class ColorService(QObject):
             image: QImage 对象
             count: 提取颜色数量 (3-8，默认5)
         """
-        # 取消之前的提取
         if self._extractor is not None and self._extractor.isRunning():
             self._extractor.cancel()
             self._extractor = None
 
+        logger.info(f"开始提取主色调: count={count}")
         self.extraction_started.emit()
 
-        # 创建并启动提取线程
         self._extractor = DominantColorExtractor(image, count, self)
         self._extractor.extraction_finished.connect(
             self._on_extraction_finished, Qt.ConnectionType.QueuedConnection
@@ -191,6 +194,7 @@ class ColorService(QObject):
         """取消当前提取任务"""
         if self._extractor is not None and self._extractor.isRunning():
             self._extractor.cancel()
+            logger.debug("提取任务已取消")
 
     def _on_extraction_finished(self, dominant_colors: List[Tuple[int, int, int]],
                                 positions: List[Tuple[float, float]]):
@@ -200,6 +204,7 @@ class ColorService(QObject):
             dominant_colors: 主色调列表 [(r, g, b), ...]
             positions: 颜色位置列表 [(rel_x, rel_y), ...]
         """
+        logger.info(f"主色调提取完成: 颜色数量={len(dominant_colors)}")
         self.extraction_finished.emit(dominant_colors, positions)
 
     def _cleanup_extractor(self):
