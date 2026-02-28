@@ -1,18 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #FF6B6B;
+  --color-brand-secondary: #15AABF;
+  --color-brand-accent: #FAB005;
+}
 
 @layer base {
-  :root {
-    --color-brand-primary: #FF6B6B;
-    --color-brand-secondary: #15AABF;
-    --color-brand-accent: #FAB005;
-  }
-  
   html {
     scroll-behavior: smooth;
   }
-  
+
   body {
     @apply antialiased;
   }
@@ -22,32 +20,32 @@
   .gradient-text {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-primary to-brand-secondary;
   }
-  
+
   .glass-card {
     @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-gray-200 dark:border-gray-800;
   }
-  
+
   .btn-primary {
-    @apply px-6 py-3 bg-brand-primary text-white rounded-xl font-medium 
-           hover:bg-opacity-90 transition-all duration-200 
+    @apply px-6 py-3 bg-brand-primary text-white rounded-xl font-medium
+           hover:bg-opacity-90 transition-all duration-200
            shadow-lg shadow-brand-primary/30 hover:shadow-xl hover:shadow-brand-primary/40
            hover:-translate-y-0.5;
   }
-  
+
   .btn-secondary {
     @apply px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl font-medium
            hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200
            hover:-translate-y-0.5;
   }
-  
+
   .section-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
-  
+
   .section-title {
     @apply text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white text-center;
   }
-  
+
   .section-subtitle {
     @apply text-lg text-gray-600 dark:text-gray-400 text-center mt-4 max-w-2xl mx-auto;
   }
