@@ -43,3 +43,4 @@ color_card_favorites.json
 文档/开发规范 - BetterGI StellTrack.md
 文档/color_card_20260221_134235.json
 CHANGELOG.md
+*.pyc

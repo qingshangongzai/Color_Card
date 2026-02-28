@@ -34,6 +34,7 @@ class GenerationColorInfoCard(BaseCard):
     """配色生成颜色信息卡片（与ColorCard样式一致）"""
 
     clicked = Signal(int)
+    copy_requested = Signal(str)  # 复制请求信号，传递 hex 值
 
     def __init__(self, index: int, parent=None):
         self._hex_value = "--"
@@ -155,16 +156,8 @@ class GenerationColorInfoCard(BaseCard):
         if self._hex_value and self._hex_value != "--":
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
-            # 显示复制成功提示
-            InfoBar.success(
-                title=tr('color_generation.copied'),
-                content=tr('color_generation.copied_content', hex=self._hex_value),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
+            # 发送信号通知父组件显示 InfoBar
+            self.copy_requested.emit(self._hex_value)
 
     def set_color_modes(self, modes):
         """设置显示的色彩模式"""
@@ -256,11 +249,27 @@ class GenerationColorPanel(BaseCardPanel):
         card.set_color_modes(self._color_modes)
         card.set_hex_visible(self._hex_visible)
         card.clicked.connect(self.on_card_clicked)
+        card.copy_requested.connect(self._show_copy_success)
         return card
 
     def on_card_clicked(self, index):
         """卡片点击回调"""
         self.color_clicked.emit(index)
+
+    def _show_copy_success(self, hex_value: str):
+        """显示复制成功提示"""
+        # 获取顶层窗口作为 parent，确保 InfoBar 显示在窗口顶部
+        parent_window = self.window()
+        if parent_window:
+            InfoBar.success(
+                title=tr('color_generation.copied'),
+                content=tr('color_generation.copied_content', hex=hex_value),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=parent_window
+            )
 
     def set_color_modes(self, modes):
         """设置显示的色彩模式"""
@@ -661,17 +670,17 @@ class ColorGenerationInterface(QWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=2000,
-                parent=self.window()
+                parent=self
             )
             return
 
         # 弹出编辑配色对话框
         default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
 
-        # 构造配色数据
+        # 构造配色数据（复制颜色数据避免引用问题）
         palette_data = {
             "name": default_name,
-            "colors": colors
+            "colors": [color.copy() for color in colors]
         }
 
         dialog = EditPaletteDialog(
@@ -710,5 +719,5 @@ class ColorGenerationInterface(QWidget):
             isClosable=True,
             position=InfoBarPosition.TOP,
             duration=2000,
-            parent=self.window()
+            parent=self
         )

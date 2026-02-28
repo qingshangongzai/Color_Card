@@ -31,6 +31,7 @@ from .color import (
     get_scheme_preview_colors_ryb,
     extract_dominant_colors,
     find_dominant_color_positions,
+    ZONE_WIDTH,
 )
 
 from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
@@ -127,6 +128,7 @@ __all__ = [
     'get_scheme_preview_colors_ryb',
     'extract_dominant_colors',
     'find_dominant_color_positions',
+    'ZONE_WIDTH',
     'ConfigManager',
     'get_config_manager',
     'SceneConfigManager',

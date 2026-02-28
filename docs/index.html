@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Color Card - 一站式配色工具，为摄影师和设计师打造的专业色彩分析工具">
+    <meta name="keywords" content="配色工具,色彩分析,色卡,颜色提取,配色方案,Color Card">
+    <title>Color Card - 一站式配色工具</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#FF6B6B',
+                            secondary: '#15AABF',
+                            accent: '#FAB005',
+                        },
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Linear 风格缓动曲线 */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        
+        /* Linear 风格动态渐变网格背景 */
+        .gradient-mesh {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+        .gradient-mesh::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background: 
+                radial-gradient(at 40% 20%, rgba(255, 107, 107, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(21, 170, 191, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(250, 176, 5, 0.3) 0px, transparent 50%),
+                radial-gradient(at 80% 50%, rgba(255, 107, 107, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(21, 170, 191, 0.4) 0px, transparent 50%);
+            animation: meshMove 20s ease infinite;
+            filter: blur(60px);
+        }
+        @keyframes meshMove {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            33% {
+                transform: translate(2%, 2%) rotate(5deg) scale(1.05);
+            }
+            66% {
+                transform: translate(-1%, 1%) rotate(-3deg) scale(0.95);
+            }
+        }
+        
+        /* 网格线效果 */
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridFloat 15s linear infinite;
+        }
+        @keyframes gridFloat {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6B6B 0%, #15AABF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .dark .glass-card {
+            background: rgba(17, 24, 39, 0.8);
+            border-color: rgba(55, 65, 81, 0.5);
+        }
+        .btn-primary {
+            background: #FF6B6B;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(255, 107, 107, 0.4);
+        }
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #111827;
+            transition: all 0.2s;
+        }
+        .dark .btn-secondary {
+            background: #1F2937;
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+        .dark .btn-secondary:hover {
+            background: #374151;
+        }
+        .section-container {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        @media (min-width: 640px) {
+            .section-container { padding: 0 1.5rem; }
+        }
+        @media (min-width: 1024px) {
+            .section-container { padding: 0 2rem; }
+        }
+        .palette-card {
+            transition: all 0.2s;
+        }
+        .palette-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .animation-delay-100 { animation-delay: 100ms; }
+        .animation-delay-200 { animation-delay: 200ms; }
+        .animation-delay-300 { animation-delay: 300ms; }
+        .animation-delay-400 { animation-delay: 400ms; }
+        .animation-delay-500 { animation-delay: 500ms; }
+
+        /* Scroll Reveal Animation */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* 初始可见状态，避免页面加载时内容隐藏 */
+        .scroll-reveal.no-js {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+        /* Gradient Text Flow Animation */
+        .gradient-text-flow {
+            background: linear-gradient(90deg, #FF6B6B, #15AABF, #FAB005, #FF6B6B);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientFlow 4s ease infinite;
+        }
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Button Shine Effect */
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-shine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        .btn-shine:hover::before {
+            left: 100%;
+        }
+
+        /* Navigation Scroll Effect */
+        .nav-scrolled {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .dark .nav-scrolled {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Card 3D Tilt Effect */
+        .tilt-card {
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+        .tilt-card:hover {
+            transform: perspective(1000px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg)) scale(1.02);
+        }
+
+        /* Floating Particles */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 15s infinite ease-in-out;
+        }
+        @keyframes particleFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+            25% { transform: translate(20px, -30px) scale(1.1); opacity: 0.5; }
+            50% { transform: translate(-10px, -50px) scale(1); opacity: 0.4; }
+            75% { transform: translate(-30px, -20px) scale(0.9); opacity: 0.5; }
+        }
+
+        /* Counter Animation */
+        .counter {
+            display: inline-block;
+        }
+
+        /* Pulse Glow Effect */
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 107, 107, 0.5); }
+        }
+
+        /* 文字逐字出现动画 */
+        .char-reveal {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: charReveal 0.6s var(--ease-out-expo) forwards;
+            background: linear-gradient(90deg, #FF6B6B, #15AABF, #FAB005, #FF6B6B);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .char-reveal.animated {
+            animation: charReveal 0.6s var(--ease-out-expo) forwards, gradientFlow 4s ease infinite;
+        }
+        @keyframes charReveal {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 文字容器 */
+        .text-reveal-container {
+            overflow: hidden;
+        }
+
+        /* 磁性按钮 */
+        .magnetic-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s var(--ease-out-expo);
+            will-change: transform;
+        }
+        .magnetic-btn-inner {
+            transition: transform 0.3s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        /* 渐变边框卡片 */
+        .gradient-border-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1rem;
+            z-index: 1;
+        }
+        .dark .gradient-border-card {
+            background: rgba(17, 24, 39, 0.8);
+        }
+        .gradient-border-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #FFDCD5, #B8FFE7, #BCD2FF, #FFDCD5);
+            background-size: 300% 300%;
+            animation: borderGradient 4s ease infinite;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .gradient-border-card:hover::before {
+            opacity: 1;
+        }
+        @keyframes borderGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 增强导航栏毛玻璃 */
+        .nav-enhanced {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .dark .nav-enhanced {
+            background: rgba(17, 24, 39, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-enhanced.nav-scrolled {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .dark .nav-enhanced.nav-scrolled {
+            background: rgba(17, 24, 39, 0.85);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 滚动进度指示器 */
+        .scroll-progress {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .scroll-progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(156, 163, 175, 0.4);
+            cursor: pointer;
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+        }
+        .scroll-progress-dot::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 1px solid transparent;
+            transition: all 0.3s var(--ease-out-expo);
+        }
+        .scroll-progress-dot.active {
+            background: #FF0066;
+            transform: scale(1.3);
+        }
+        .scroll-progress-dot.active::before {
+            border-color: rgba(255, 0, 102, 0.3);
+        }
+        .scroll-progress-dot:hover {
+            background: rgba(255, 0, 102, 0.6);
+            transform: scale(1.2);
+        }
+
+        /* 配色卡片聚光灯效果 */
+        .spotlight-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .spotlight-card::before {
+            content: '';
+            position: absolute;
+            top: var(--mouse-y, 50%);
+            left: var(--mouse-x, 50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 0, 102, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .spotlight-card:hover::before {
+            opacity: 1;
+        }
+
+        /* 截图层叠展开 */
+        .screenshot-stack {
+            position: relative;
+            perspective: 1000px;
+        }
+        .screenshot-stack-item {
+            transition: all 0.5s var(--ease-out-expo);
+            transform-style: preserve-3d;
+        }
+        .screenshot-stack:hover .screenshot-stack-item {
+            transform: translateX(var(--offset-x, 0)) rotateY(var(--rotate-y, 0)) scale(var(--scale, 1));
+        }
+
+        /* 浮动圆形 - 初始隐藏，文字动画后显示 */
+        .floating-circle {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+        }
+        .floating-circle.animate {
+            opacity: 1;
+            transform: scale(1);
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.02); }
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-progress hidden lg:flex" id="scroll-progress">
+        <div class="scroll-progress-dot active" data-section="hero" title="首页"></div>
+        <div class="scroll-progress-dot" data-section="features" title="功能特性"></div>
+        <div class="scroll-progress-dot" data-section="screenshots" title="界面预览"></div>
+        <div class="scroll-progress-dot" data-section="palettes" title="配色方案"></div>
+        <div class="scroll-progress-dot" data-section="download" title="下载"></div>
+        <div class="scroll-progress-dot" data-section="changelog" title="更新日志"></div>
+        <div class="scroll-progress-dot" data-section="story" title="项目起源"></div>
+        <div class="scroll-progress-dot" data-section="feedback" title="反馈"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300">
+        <div class="section-container">
+            <div class="flex items-center justify-between h-16">
+                <a href="#" class="flex items-center gap-2">
+                    <img src="logo.png" alt="Color Card" class="w-8 h-8 rounded-lg">
+                    <span class="font-bold text-lg hidden sm:block">Color Card</span>
+                </a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
+                    <a href="#screenshots" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
+                    <a href="#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
+                    <a href="#changelog" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">更新日志</a>
+                    <a href="#story" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
+                    <a href="#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
+                    <a href="#feedback" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-4 py-2 rounded-xl text-sm font-medium hidden sm:inline-block">立即下载</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+        <!-- Linear 风格动态渐变网格背景 -->
+        <div class="gradient-mesh">
+            <div class="grid-lines"></div>
+        </div>
+        <!-- 浮动彩色圆形（原有效果）- 文字动画结束后开始 -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none" id="floating-circles">
+            <div class="floating-circle absolute top-20 left-10 w-72 h-72 bg-brand-primary/30 rounded-full blur-3xl" style="animation-delay: 0s;"></div>
+            <div class="floating-circle absolute bottom-20 right-10 w-96 h-96 bg-brand-secondary/30 rounded-full blur-3xl" style="animation-delay: 0.5s;"></div>
+            <div class="floating-circle absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-brand-accent/20 rounded-full blur-3xl" style="animation-delay: 1s;"></div>
+        </div>
+        <!-- Floating Particles -->
+        <div id="particles-container" class="absolute inset-0 pointer-events-none"></div>
+        <div class="relative z-10 section-container text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-fade-in">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <span class="text-sm font-medium">开源免费</span>
+            </div>
+            <div class="mb-8 animate-fade-in" style="animation-delay: 100ms;">
+                <img src="logo.png" alt="Color Card" class="w-32 h-32 mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 text-reveal-container" id="hero-title">
+                <span class="gradient-text-flow">一站式配色工具</span>
+            </h1>
+            <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 animate-fade-in" style="animation-delay: 300ms;">为摄影师和设计师打造的专业色彩分析工具</p>
+            <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in" style="animation-delay: 400ms;">从图片中提取颜色、分析明度分布、生成和谐配色、管理配色方案、预览配色效果，满足从色彩分析到配色应用的全流程需求</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style="animation-delay: 500ms;">
+                <a href="#download" class="magnetic-btn btn-primary btn-shine text-lg px-8 py-4 rounded-xl font-medium">
+                    <span class="magnetic-btn-inner">立即下载</span>
+                </a>
+                <a href="#features" class="magnetic-btn btn-secondary btn-shine text-lg px-8 py-4 rounded-xl font-medium">
+                    <span class="magnetic-btn-inner">了解更多</span>
+                </a>
+            </div>
+            <div class="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto animate-fade-in" style="animation-delay: 500ms;">
+                <div class="text-center">
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-primary counter" data-target="13">0</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">配色方案</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-secondary counter" data-target="661">0</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">色卡组</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-accent counter" data-target="8">0</div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">预览场景</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-24 bg-gray-50 dark:bg-gray-950">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">强大功能，一站解决</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">从色彩提取到配色应用，提供完整的色彩工作流</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="features-grid">
+                <!-- Features will be loaded by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="py-24 bg-white dark:bg-gray-950">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">软件界面</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">直观的功能界面，简单易用</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="screenshots-grid">
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-extract.png')">
+                    <img src="screenshots/color-extract.png" alt="色彩提取" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">色彩提取</h3>
+                        <p class="text-sm text-gray-500 mt-1">可视化取色，支持多色彩空间</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-generation.png')">
+                    <img src="screenshots/color-generation.png" alt="配色生成" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">配色生成</h3>
+                        <p class="text-sm text-gray-500 mt-1">5种专业配色方案</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-preview.png')">
+                    <img src="screenshots/color-preview.png" alt="配色预览" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">配色预览</h3>
+                        <p class="text-sm text-gray-500 mt-1">8种场景实时预览</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/luminance-extract.png')">
+                    <img src="screenshots/luminance-extract.png" alt="明度提取" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">明度提取</h3>
+                        <p class="text-sm text-gray-500 mt-1">9级明度分区分析</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/palette-management.png')">
+                    <img src="screenshots/palette-management.png" alt="配色管理" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">配色管理</h3>
+                        <p class="text-sm text-gray-500 mt-1">收藏和管理配色方案</p>
+                    </div>
+                </div>
+                <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/preset-colors.png')">
+                    <img src="screenshots/preset-colors.png" alt="内置色彩" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <div class="p-4">
+                        <h3 class="font-bold text-gray-900 dark:text-white">内置色彩</h3>
+                        <p class="text-sm text-gray-500 mt-1">13套开源配色方案</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden items-center justify-center p-4" onclick="closeLightbox()">
+        <button class="absolute top-4 right-4 text-white/80 hover:text-white p-2" onclick="closeLightbox()">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <img id="lightbox-img" src="" alt="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl">
+    </div>
+
+    <!-- Palettes Section -->
+    <section id="palettes" class="py-24">
+        <div class="section-container">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">13套专业配色方案</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">集成661组精选色卡，涵盖设计系统、终端主题、艺术配色等多种风格</p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-3 mb-12">
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-brand-primary text-white" data-category="all">全部</button>
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all" data-category="design_system">设计系统</button>
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all" data-category="theme">终端主题</button>
+                <button class="category-btn px-5 py-2.5 rounded-full font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all" data-category="palette">精选配色</button>
+            </div>
+            <div id="palettes-container" class="space-y-12">
+                <div class="text-center py-20">
+                    <div class="inline-block w-10 h-10 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+                    <p class="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">立即开始使用</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">无需联网、无需注册、隐私安全、一步即达</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+                <div class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300">
+                    <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Windows 版</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">适用于 Windows 10/11 64位</p>
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        下载安装包
+                    </a>
+                </div>
+                <div class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300">
+                    <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/10 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">源码</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">开源免费，欢迎贡献</p>
+                    <a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="btn-secondary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
+                        <svg class="w-5 h-5" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="45" cy="45" r="45" fill="#FF6B6B"/>
+                            <path d="M67.558546,39.8714292 L42.0857966,39.8714292 C40.8627004,39.8720094 39.8710953,40.8633548 39.8701949,42.0864508 L39.8687448,47.623783 C39.867826,48.8471055 40.8592652,49.8390642 42.0825879,49.8393845 C42.0827874,49.8393846 42.0829869,49.8393846 42.0831864,49.8387862 L57.5909484,49.838657 C58.8142711,49.8386283 59.8059783,50.830319 59.8059885,52.0536417 C59.8059885,52.0536479 59.8059885,52.053654 59.8059701,52.0536602 L59.8059701,52.6073539 L59.8059701,52.6073539 L59.8059701,53.161115 C59.8059701,56.8310831 56.8308731,59.80618 53.160905,59.80618 L32.1165505,59.80618 C30.8934034,59.806119 29.9018373,58.8145802 29.9017425,57.5914331 L29.9011625,36.5491188 C29.9008781,32.8791508 32.8758931,29.9039718 36.5458611,29.9038706 C36.5459222,29.9038706 36.5459833,29.9038706 36.5460443,29.9040538 L67.5523638,29.9040538 C68.77515,29.9026795 69.7666266,28.9118177 69.7687593,27.6890325 L69.7721938,22.1516997 C69.774326,20.928378 68.7832423,19.9360642 67.5599198,19.9353054 C67.5594619,19.9353051 67.5590039,19.935305 67.558546,19.9366784 L36.5479677,19.9366784 C27.3730474,19.9366784 19.935305,27.3744208 19.935305,36.549341 L19.935305,67.558546 C19.935305,68.7818687 20.927004,69.7735676 22.1503267,69.7735676 L54.8224984,69.7735676 C63.079746,69.7735676 69.7735676,63.079746 69.7735676,54.8224984 L69.7735676,42.0864509 C69.7735676,40.8631282 68.7818687,39.8714292 67.558546,39.8714292 Z" fill="#FFFFFF"/>
+                        </svg>
+                        Gitee
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Changelog Section -->
+    <section id="changelog" class="py-24">
+        <div class="section-container">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">更新日志</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">持续迭代，不断优化体验</p>
+            </div>
+            <div class="max-w-3xl mx-auto">
+                <div id="changelog-container" class="space-y-6">
+                    <div class="text-center py-12">
+                        <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+                        <p class="mt-4 text-gray-500">加载中...</p>
+                    </div>
+                </div>
+                <div class="text-center mt-8">
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="text-brand-primary hover:text-brand-primary/80 font-medium inline-flex items-center gap-2">
+                        查看全部更新
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Story Section -->
+    <section id="story" class="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 overflow-hidden">
+        <div class="section-container">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                <!-- Left: Story Content -->
+                <div class="order-2 lg:order-1">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+                        <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">我们的故事</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-bold mb-6 text-gray-900 dark:text-white">项目起源</h2>
+                    
+                    <!-- Origin Story -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-3 text-brand-primary flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                            最初的契机
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            项目最初的想法很简单——想要分析优秀摄影师作品的<span class="text-brand-primary font-medium">色相和明度特点</span>，从中学习他们的色彩运用技巧。但当时市面上缺乏一款好用的、一站式色相和明度分析工具。现有的工具要么功能分散、要么不够直观、要么需要联网。于是，决定自己动手，打造一款真正符合摄影师学习需求的工具。
+                        </p>
+                    </div>
+
+                    <!-- Development Journey -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold mb-3 text-brand-secondary flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                            </svg>
+                            不断演进
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            最开始，取色卡只有<span class="text-brand-secondary font-medium">色彩提取</span>和<span class="text-brand-secondary font-medium">明度分析</span>这两个核心功能。后来随着需求的增加，陆续加入了配色生成、配色管理、配色预览等功能。取色卡逐步从一个简单的学习工具，发展成为一站式的本地配色解决方案。
+                        </p>
+                    </div>
+
+                    <!-- References -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3 text-brand-accent flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            参考与致敬
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                            在项目功能设计中，我们借鉴参考了众多优秀的在线配色工具。感谢这些优秀产品为我们提供的灵感和参考。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right: References Cards -->
+                <div class="order-1 lg:order-2">
+                    <div class="space-y-4">
+                        <!-- Adobe Color -->
+                        <a href="https://color.adobe.com/" target="_blank" class="group block glass-card rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                    Ad
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-900 dark:text-white group-hover:text-brand-primary transition-colors">Adobe Color</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">专业的在线配色工具</p>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 group-hover:text-brand-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                            </div>
+                        </a>
+
+                        <!-- 色采 -->
+                        <a href="https://www.wxsecai.com/" target="_blank" class="group block glass-card rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                    色
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-900 dark:text-white group-hover:text-brand-primary transition-colors">色采</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">中文配色助手</p>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 group-hover:text-brand-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                            </div>
+                        </a>
+
+                        <!-- PaletteMaker -->
+                        <a href="https://palettemaker.com/" target="_blank" class="group block glass-card rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <div class="flex items-center gap-4">
+                                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                    Pm
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-gray-900 dark:text-white group-hover:text-brand-primary transition-colors">PaletteMaker</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">配色预览工具</p>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 group-hover:text-brand-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                            </div>
+                        </a>
+
+                        <!-- Inspiration Note -->
+                        <div class="glass-card rounded-2xl p-6 border-l-4 border-brand-primary">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 italic">
+                                "取色卡的目标是为用户提供一个<span class="text-brand-primary font-medium">无需联网、无需注册、隐私安全、一步即达</span>的本地替代品，同时保持专业级的功能体验。"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section id="feedback" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+        <div class="section-container">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">问题反馈</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">遇到问题或有建议？欢迎联系我们</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                <a href="mailto:hxiao_studio@163.com" class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 group">
+                    <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">发送邮件</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">hxiao_studio@163.com</p>
+                    <span class="text-brand-primary font-medium">联系我们 →</span>
+                </a>
+                <a href="https://gitee.com/qingshangongzai/color_card/issues" target="_blank" class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 group">
+                    <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">提交 Issue</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">在 Gitee 上提交问题</p>
+                    <span class="text-brand-primary font-medium">前往提交 →</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-16">
+        <div class="section-container">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="logo.png" alt="Color Card" class="w-10 h-10 rounded-lg">
+                        <span class="text-xl font-bold">Color Card</span>
+                    </div>
+                    <p class="text-gray-400 max-w-sm">Color Card 是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">产品</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#features" class="hover:text-white transition-colors">功能特性</a></li>
+                        <li><a href="#palettes" class="hover:text-white transition-colors">配色方案</a></li>
+                        <li><a href="#download" class="hover:text-white transition-colors">下载</a></li>
+                        <li><a href="#feedback" class="hover:text-white transition-colors">问题反馈</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">资源</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>GitHub</a></li>
+                        <li><a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/><path d="M18.5 10.5h-8c-.3 0-.5.2-.5.5v1.5c0 .3.2.5.5.5h5c.3 0 .5.2.5.5v.5c0 1-.8 1.8-1.8 1.8H8c-.3 0-.5-.2-.5-.5V9.5c0-1 .8-1.8 1.8-1.8h8.2c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5H8c-2.2 0-4 1.8-4 4v8c0 .3.2.5.5.5h8.5c2.5 0 4.5-2 4.5-4.5V11c0-.3-.2-.5-.5-.5z" fill="#1a1a2e"/></svg>Gitee</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">关注我们</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://space.bilibili.com/1232406878" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>Bilibili</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <p class="text-gray-500 text-sm">&copy; 2026 浮晓 HXiao Studio. 保留所有权利。</p>
+            </div>
+            <div class="mt-4 text-center">
+                <p class="text-gray-600 text-xs">
+                    本站使用 <a href="https://tailwindcss.com" target="_blank" class="hover:text-gray-400 transition-colors">Tailwind CSS</a> (MIT) 和 
+                    <a href="https://fonts.google.com/specimen/Inter" target="_blank" class="hover:text-gray-400 transition-colors">Inter</a> (SIL OFL 1.1) 字体 |
+                    配色方案来自开源社区，详见<a href="https://gitee.com/qingshangongzai/color_card/blob/master/LICENSE" target="_blank" class="hover:text-gray-400 transition-colors">项目许可证</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full shadow-lg z-50 transition-all duration-300 opacity-0 translate-y-2 pointer-events-none">
+        <span id="toast-message">已复制到剪贴板</span>
+    </div>
+
+    <script>
+        // Check for reduced motion preference
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check saved theme or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Navigation Scroll Effect
+        const navbar = document.getElementById('navbar');
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > 50) {
+                navbar.classList.add('nav-scrolled');
+            } else {
+                navbar.classList.remove('nav-scrolled');
+            }
+            lastScroll = currentScroll;
+        });
+
+        // Counter Animation
+        function animateCounter(element, target, duration = 2000) {
+            if (prefersReducedMotion) {
+                element.textContent = target;
+                return;
+            }
+            const start = 0;
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.floor(start + (target - start) * easeOut);
+                element.textContent = current;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Initialize counters when visible
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = parseInt(entry.target.dataset.target);
+                    animateCounter(entry.target, target);
+                    counterObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.counter').forEach(counter => {
+            counterObserver.observe(counter);
+        });
+
+        // Scroll Reveal Animation
+        const scrollRevealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        // Function to initialize scroll reveal for elements
+        function initScrollReveal() {
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                scrollRevealObserver.observe(el);
+                // 如果元素已经在视口内，立即显示
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    el.classList.add('visible');
+                }
+            });
+        }
+
+        // Floating Particles
+        function createParticles() {
+            if (prefersReducedMotion) return;
+            const container = document.getElementById('particles-container');
+            const colors = ['#FF6B6B', '#15AABF', '#FAB005'];
+            
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 8 + 4;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation-delay: ${Math.random() * 5}s;
+                    animation-duration: ${15 + Math.random() * 10}s;
+                    opacity: ${0.2 + Math.random() * 0.3};
+                `;
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Card 3D Tilt Effect
+        function initTiltCards() {
+            if (prefersReducedMotion) return;
+            document.querySelectorAll('.tilt-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = (y - centerY) / 10;
+                    const rotateY = (centerX - x) / 10;
+                    
+                    card.style.setProperty('--rotateX', `${rotateX}deg`);
+                    card.style.setProperty('--rotateY', `${rotateY}deg`);
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.setProperty('--rotateX', '0deg');
+                    card.style.setProperty('--rotateY', '0deg');
+                });
+            });
+        }
+
+        // Magnetic Button Effect
+        function initMagneticButtons() {
+            if (prefersReducedMotion) return;
+            
+            document.querySelectorAll('.magnetic-btn').forEach(btn => {
+                const inner = btn.querySelector('.magnetic-btn-inner');
+                if (!inner) return;
+                
+                btn.addEventListener('mousemove', (e) => {
+                    const rect = btn.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    
+                    // 按钮整体移动（较小幅度）
+                    btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+                    // 内部文字反向移动（较大幅度，创造层次感）
+                    inner.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+                });
+                
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.transform = 'translate(0, 0)';
+                    inner.style.transform = 'translate(0, 0)';
+                });
+            });
+        }
+
+        // Spotlight Card Effect
+        function initSpotlightCards() {
+            if (prefersReducedMotion) return;
+            
+            document.querySelectorAll('.spotlight-card').forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    
+                    card.style.setProperty('--mouse-x', `${x}%`);
+                    card.style.setProperty('--mouse-y', `${y}%`);
+                });
+            });
+        }
+
+        // Features Data
+        const features = [
+            { icon: 'pipette', title: '可视化色彩提取', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）' },
+            { icon: 'palette', title: '智能配色生成', desc: '提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择' },
+            { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出JSON文件，建立个人色彩库' },
+            { icon: 'library', title: '内置色彩库', desc: '集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡' },
+            { icon: 'eye', title: '配色预览', desc: '支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG' },
+            { icon: 'barchart', title: '明度分析', desc: '将图片按明度分为9个区域，提供直方图可视化，辅助调色决策' },
+        ];
+
+        const iconSvg = {
+            pipette: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>',
+            palette: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>',
+            bookmark: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>',
+            library: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>',
+            eye: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>',
+            barchart: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>',
+        };
+
+        // Render Features
+        const featuresGrid = document.getElementById('features-grid');
+        features.forEach((feature, index) => {
+            const div = document.createElement('div');
+            div.className = 'group gradient-border-card p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 scroll-reveal tilt-card';
+            div.style.transitionDelay = `${index * 100}ms`;
+            div.innerHTML = `
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-primary/20 to-brand-secondary/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 text-brand-primary">
+                    ${iconSvg[feature.icon]}
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">${feature.title}</h3>
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">${feature.desc}</p>
+            `;
+            featuresGrid.appendChild(div);
+        });
+        
+        // Initialize scroll reveal and tilt cards after rendering
+        initScrollReveal();
+        initTiltCards();
+
+        // Initialize magnetic buttons
+        initMagneticButtons();
+
+        // Initialize spotlight cards
+        initSpotlightCards();
+
+        // Palettes Data
+        const paletteFiles = [
+            'open_color.json', 'tailwind_colors.json', 'material_design.json', 'radix_colors.json',
+            'colorbrewer.json', 'nord.json', 'dracula.json', 'solarized.json',
+            'gruvbox.json', 'catppuccin.json', 'rose_pine.json', 'tokyo_night.json', 'nice_palettes.json'
+        ];
+
+        let allPalettes = [];
+        let currentCategory = 'all';
+
+        // Load Palettes
+        async function loadPalettes() {
+            const container = document.getElementById('palettes-container');
+            container.innerHTML = '<div class="text-center py-20"><div class="inline-block w-10 h-10 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div><p class="mt-4 text-gray-600 dark:text-gray-400">加载中...</p></div>';
+            
+            allPalettes = [];
+            for (const file of paletteFiles) {
+                try {
+                    const response = await fetch(`palettes/${file}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        allPalettes.push(data);
+                    }
+                } catch (e) {
+                    console.warn(`Failed to load ${file}:`, e);
+                }
+            }
+            renderPalettes();
+        }
+
+        // Render Palettes
+        function renderPalettes() {
+            const container = document.getElementById('palettes-container');
+            const filtered = currentCategory === 'all' 
+                ? allPalettes 
+                : allPalettes.filter(p => p.category === currentCategory);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center py-20 text-gray-500">暂无数据</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(paletteSet => `
+                <div class="glass-card rounded-2xl p-6 sm:p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">${paletteSet.name_zh || paletteSet.name}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${paletteSet.description}</p>
+                        </div>
+                        <span class="text-sm text-gray-400">${paletteSet.palettes.length} 组</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        ${paletteSet.palettes.slice(0, 8).map(palette => {
+                            const midColor = palette.colors[Math.floor(palette.colors.length / 2)];
+                            return `
+                            <div class="palette-card glass-card rounded-xl overflow-hidden cursor-pointer spotlight-card">
+                                <div class="flex h-16">
+                                    ${palette.colors.slice(0, 5).map(color => `<div class="flex-1" style="background-color: ${color}"></div>`).join('')}
+                                </div>
+                                <div class="p-3">
+                                    <p class="font-medium text-gray-900 dark:text-white text-sm truncate">${palette.name}</p>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ${paletteSet.palettes.length > 8 ? `<div class="text-center mt-4"><span class="text-sm text-gray-500">+${paletteSet.palettes.length - 8} 更多</span></div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Category Filter
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => {
+                    b.classList.remove('bg-brand-primary', 'text-white');
+                    b.classList.add('bg-gray-100', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300');
+                });
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'text-gray-700', 'dark:text-gray-300');
+                btn.classList.add('bg-brand-primary', 'text-white');
+                currentCategory = btn.dataset.category;
+                renderPalettes();
+            });
+        });
+
+        // Copy Color
+        async function copyColor(color) {
+            try {
+                await navigator.clipboard.writeText(color);
+                showToast('已复制到剪贴板');
+            } catch (e) {
+                showToast('复制失败');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 2000);
+        }
+
+        // Load palettes on page load
+        loadPalettes();
+
+        // Lightbox functions
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            lightboxImg.src = src;
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        // Close lightbox with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+
+        // Load Changelog from local JSON
+        async function loadChangelog() {
+            const container = document.getElementById('changelog-container');
+            try {
+                const response = await fetch('changelog.json');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                const versions = data.versions;
+                
+                if (versions.length === 0) {
+                    container.innerHTML = '<div class="text-center py-12 text-gray-500">暂无更新记录</div>';
+                    return;
+                }
+                
+                container.innerHTML = versions.map(v => {
+                    const date = new Date(v.date).toLocaleDateString('zh-CN');
+                    // Support both array and string format for changes
+                    let changesHtml;
+                    if (Array.isArray(v.changes)) {
+                        changesHtml = v.changes.map(c => `<li class="flex items-start gap-2"><span class="text-brand-primary mt-1">•</span><span>${c}</span></li>`).join('');
+                    } else {
+                        // String format: split by newline and format
+                        changesHtml = v.changes.split('\n').filter(line => line.trim()).map(c => `<li class="flex items-start gap-2"><span class="text-brand-primary mt-1">•</span><span>${c.trim()}</span></li>`).join('');
+                    }
+                    return `
+                        <div class="glass-card rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">${v.version}</h3>
+                                <span class="text-sm text-gray-500">${date}</span>
+                            </div>
+                            <ul class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed space-y-2">
+                                ${changesHtml}
+                            </ul>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Failed to load changelog:', error);
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 mb-4">无法加载更新日志: ${error.message}</p>
+                        <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
+                            前往 Gitee 查看
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        // Load changelog on page load
+        loadChangelog();
+
+        // Initialize scroll reveal for static elements on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initScrollReveal();
+        });
+
+        // Scroll Progress Indicator
+        function initScrollProgress() {
+            const dots = document.querySelectorAll('.scroll-progress-dot');
+            const sections = ['hero', 'features', 'screenshots', 'palettes', 'download', 'changelog', 'story', 'feedback'];
+            let isScrolling = false;
+            let scrollTimeout;
+
+            // 点击跳转到对应章节
+            dots.forEach((dot) => {
+                dot.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = dot.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        isScrolling = true;
+                        section.scrollIntoView({ behavior: 'smooth' });
+
+                        // 更新 active 状态
+                        dots.forEach(d => d.classList.remove('active'));
+                        dot.classList.add('active');
+
+                        // 滚动结束后恢复检测
+                        clearTimeout(scrollTimeout);
+                        scrollTimeout = setTimeout(() => {
+                            isScrolling = false;
+                        }, 1000);
+                    }
+                });
+            });
+
+            // 滚动时更新当前章节
+            function updateActiveSection() {
+                if (isScrolling) return;
+
+                const scrollPosition = window.scrollY + window.innerHeight / 3;
+                let activeIndex = 0;
+
+                sections.forEach((sectionId, index) => {
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const sectionTop = section.offsetTop;
+                        const sectionBottom = sectionTop + section.offsetHeight;
+
+                        if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                            activeIndex = index;
+                        }
+                    }
+                });
+
+                dots.forEach(d => d.classList.remove('active'));
+                dots[activeIndex]?.classList.add('active');
+            }
+
+            window.addEventListener('scroll', updateActiveSection, { passive: true });
+            updateActiveSection();
+        }
+
+        initScrollProgress();
+
+        // 文字逐字出现动画
+        function initTextReveal() {
+            const heroTitle = document.getElementById('hero-title');
+            if (!heroTitle) return;
+
+            const text = heroTitle.textContent.trim();
+            heroTitle.innerHTML = '';
+
+            const chars = [...text];
+            const totalChars = chars.length;
+
+            // 将每个字符包装在 span 中
+            chars.forEach((char, index) => {
+                const span = document.createElement('span');
+                span.className = 'char-reveal';
+                span.textContent = char === ' ' ? '\u00A0' : char;
+                const delay = 0.3 + index * 0.05;
+                span.style.animationDelay = `${delay}s`;
+                heroTitle.appendChild(span);
+
+                // 在文字动画完成后，添加渐变流动动画
+                setTimeout(() => {
+                    span.classList.add('animated');
+                }, (delay + 0.6) * 1000);
+            });
+        }
+        
+        // 页面加载后启动文字动画
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTextReveal);
+        } else {
+            initTextReveal();
+        }
+
+        // 文字动画结束后启动浮动圆形动画
+        function startFloatingCircles() {
+            const circles = document.querySelectorAll('.floating-circle');
+            const title = document.getElementById('hero-title');
+            if (!title || circles.length === 0) return;
+            
+            // 计算文字动画总时长：0.3s延迟 + 7个字 * 0.05s + 0.6s动画
+            const textAnimationDuration = (0.3 + 7 * 0.05 + 0.6) * 1000;
+            
+            setTimeout(() => {
+                circles.forEach((circle, index) => {
+                    setTimeout(() => {
+                        circle.classList.add('animate');
+                    }, index * 200);
+                });
+            }, textAnimationDuration);
+        }
+        
+        // 启动浮动圆形动画
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startFloatingCircles);
+        } else {
+            startFloatingCircles();
+        }
+    </script>
+</body>
+</html>

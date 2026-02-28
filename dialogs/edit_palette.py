@@ -15,7 +15,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb
+from core import hex_to_rgb
 from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
 
@@ -23,13 +23,34 @@ from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_c
 class ColorInputRow(QWidget):
     """颜色输入行组件"""
 
+    # 防抖延迟时间（毫秒）
+    DEBOUNCE_DELAY = 200
+
     def __init__(self, index: int, parent=None):
         self._index = index
         self._color_info = None
+        self._pending_text = ""
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
+
+        # 添加防抖定时器
+        self._debounce_timer = QTimer()
+        self._debounce_timer.setSingleShot(True)
+        self._debounce_timer.timeout.connect(self._process_hex_input)
+
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        try:
+            if hasattr(self, '_theme_connection'):
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+                delattr(self, '_theme_connection')
+        except (TypeError, RuntimeError):
+            pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面"""
@@ -85,21 +106,29 @@ class ColorInputRow(QWidget):
             )
 
     def _on_hex_changed(self, text: str):
-        """HEX值变化处理"""
+        """HEX值变化处理 - 防抖版本"""
         text = text.strip().upper()
 
-        # 自动添加#前缀
+        # 自动添加#前缀（立即处理）
         if text and not text.startswith('#'):
             text = '#' + text
             self.hex_input.setText(text)
             return
 
+        self._pending_text = text
+        # 启动防抖定时器
+        self._debounce_timer.start(self.DEBOUNCE_DELAY)
+
+    def _process_hex_input(self):
+        """处理HEX输入（防抖后）"""
+        text = self._pending_text
+
         # 验证HEX格式
         if self._is_valid_hex(text):
             try:
                 r, g, b = hex_to_rgb(text)
-                self._color_info = get_color_info(r, g, b)
-                self._color_info['hex'] = text
+                # 只保存基本信息，不调用get_color_info进行完整转换
+                self._color_info = {'rgb': (r, g, b), 'hex': text}
                 self._update_preview_style(self._color_info)
             except ValueError:
                 self._color_info = None
@@ -124,7 +153,18 @@ class ColorInputRow(QWidget):
         self.deleteLater()
 
     def get_color_info(self):
-        """获取颜色信息"""
+        """获取颜色信息（延迟计算完整信息）"""
+        if self._color_info is None:
+            return None
+
+        # 如果只有基本信息，计算完整信息
+        if 'hsb' not in self._color_info:
+            from core import get_color_info as get_full_color_info
+            r, g, b = self._color_info['rgb']
+            hex_value = self._color_info.get('hex', '')
+            self._color_info = get_full_color_info(r, g, b)
+            self._color_info['hex'] = hex_value
+
         return self._color_info
 
     def has_valid_color(self) -> bool:
@@ -190,10 +230,20 @@ class EditPaletteDialog(QDialog):
             self._load_palette_data()
 
         # 修复任务栏图标
-        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
+        QTimer.singleShot(100, lambda: self._fix_taskbar_icon())
 
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_title_bar_theme
+        )
+
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        try:
+            qconfig.themeChangedFinished.disconnect(self._theme_connection)
+        except (TypeError, RuntimeError):
+            pass
+        super().closeEvent(event)
 
     def setup_ui(self):
         """设置界面布局"""
@@ -226,15 +276,15 @@ class EditPaletteDialog(QDialog):
         layout.addWidget(colors_title)
 
         # 颜色输入区域（可滚动）
-        scroll_area = ScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
-        scroll_area.setMaximumHeight(200)
+        self.scroll_area = ScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setMaximumHeight(200)
 
         # 设置滚动条角落为透明（防止出现灰色方块）
         corner_widget = QWidget()
         corner_widget.setStyleSheet("background: transparent;")
-        scroll_area.setCornerWidget(corner_widget)
+        self.scroll_area.setCornerWidget(corner_widget)
 
         self.colors_container = QWidget()
         self.colors_container.setStyleSheet("background: transparent;")
@@ -243,8 +293,8 @@ class EditPaletteDialog(QDialog):
         self.colors_layout.setSpacing(10)
         self.colors_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        scroll_area.setWidget(self.colors_container)
-        layout.addWidget(scroll_area)
+        self.scroll_area.setWidget(self.colors_container)
+        layout.addWidget(self.scroll_area)
 
         # 添加颜色按钮
         self.add_color_button = PushButton(FluentIcon.ADD, tr('dialogs.edit_palette.add_color'))
@@ -282,6 +332,15 @@ class EditPaletteDialog(QDialog):
         row = ColorInputRow(len(self._color_rows), self.colors_container)
         self._color_rows.append(row)
         self.colors_layout.addWidget(row)
+        self._scroll_to_bottom()
+
+    def _scroll_to_bottom(self):
+        """滚动到颜色列表底部"""
+        def do_scroll():
+            scroll_bar = self.scroll_area.verticalScrollBar()
+            scroll_bar.setValue(scroll_bar.maximum())
+
+        QTimer.singleShot(50, do_scroll)
 
     def remove_color_row(self, row):
         """移除颜色输入行
@@ -315,6 +374,7 @@ class EditPaletteDialog(QDialog):
         while self._color_rows:
             row = self._color_rows.pop()
             self.colors_layout.removeWidget(row)
+            row.close()  # 触发 closeEvent 断开信号
             row.hide()
             row.deleteLater()
 
@@ -399,6 +459,15 @@ class EditPaletteDialog(QDialog):
     def _update_title_bar_theme(self):
         """更新标题栏主题以适配当前主题"""
         set_window_title_bar_theme(self, isDarkTheme())
+
+    def _fix_taskbar_icon(self):
+        """修复任务栏图标"""
+        try:
+            if self and self.isVisible():
+                fix_windows_taskbar_icon_for_window(self)
+        except RuntimeError:
+            # 对象已被销毁
+            pass
 
     def showEvent(self, event):
         """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""

@@ -45,7 +45,11 @@
     "favorite_success": {
       "title": "Enregistré",
       "content": "Le schéma de couleurs \"{name}\" a été ajouté à la gestion des palettes"
-    }
+    },
+    "copied": "Copié",
+    "copied_content": "Valeur de couleur {hex} copiée dans le presse-papiers",
+    "favorite_failed": "Impossible de sauver",
+    "no_colors_to_favorite": "Aucune couleur à sauver"
   },
   "palette_management": {
     "title": "Gestion des palettes",

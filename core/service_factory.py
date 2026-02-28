@@ -29,12 +29,9 @@ class ServiceFactory:
         return cls._lock
     
     @classmethod
-    def get_color_service(cls, parent=None):
-        """获取颜色服务实例
-        
-        Args:
-            parent: 父对象（首次创建时使用）
-            
+    def get_color_service(cls):
+        """获取颜色服务实例（延迟加载，不依赖外部 parent）
+
         Returns:
             ColorService: 颜色服务实例
         """
@@ -42,16 +39,14 @@ class ServiceFactory:
             with cls._get_lock():
                 if 'color' not in cls._instances:
                     from .color_service import ColorService
-                    cls._instances['color'] = ColorService(parent)
+                    # 不传递 parent，让服务独立存在
+                    cls._instances['color'] = ColorService(None)
         return cls._instances['color']
     
     @classmethod
-    def get_palette_service(cls, parent=None):
-        """获取配色服务实例
-        
-        Args:
-            parent: 父对象（首次创建时使用）
-            
+    def get_palette_service(cls):
+        """获取配色服务实例（延迟加载，不依赖外部 parent）
+
         Returns:
             PaletteService: 配色服务实例
         """
@@ -59,16 +54,14 @@ class ServiceFactory:
             with cls._get_lock():
                 if 'palette' not in cls._instances:
                     from .palette_service import PaletteService
-                    cls._instances['palette'] = PaletteService(parent)
+                    # 不传递 parent，让服务独立存在
+                    cls._instances['palette'] = PaletteService(None)
         return cls._instances['palette']
     
     @classmethod
-    def get_image_service(cls, parent=None):
-        """获取图片服务实例
-        
-        Args:
-            parent: 父对象（首次创建时使用）
-            
+    def get_image_service(cls):
+        """获取图片服务实例（延迟加载，不依赖外部 parent）
+
         Returns:
             ImageService: 图片服务实例
         """
@@ -76,16 +69,14 @@ class ServiceFactory:
             with cls._get_lock():
                 if 'image' not in cls._instances:
                     from .image_service import ImageService
-                    cls._instances['image'] = ImageService(parent)
+                    # 不传递 parent，让服务独立存在
+                    cls._instances['image'] = ImageService(None)
         return cls._instances['image']
     
     @classmethod
-    def get_luminance_service(cls, parent=None):
-        """获取明度服务实例
-        
-        Args:
-            parent: 父对象（首次创建时使用）
-            
+    def get_luminance_service(cls):
+        """获取明度服务实例（延迟加载，不依赖外部 parent）
+
         Returns:
             LuminanceService: 明度服务实例
         """
@@ -93,7 +84,8 @@ class ServiceFactory:
             with cls._get_lock():
                 if 'luminance' not in cls._instances:
                     from .luminance_service import LuminanceService
-                    cls._instances['luminance'] = LuminanceService(parent)
+                    # 不传递 parent，让服务独立存在
+                    cls._instances['luminance'] = LuminanceService(None)
         return cls._instances['luminance']
     
     @classmethod

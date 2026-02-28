@@ -6,7 +6,8 @@ from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen, QMouse
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from core import get_zone_bounds, HistogramService
+from core import get_zone_bounds, HistogramService, ZONE_WIDTH
+from utils import tr
 from utils.theme_colors import (
     get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
     get_histogram_text_color, get_histogram_highlight_color, get_histogram_highlight_border_color,
@@ -67,7 +68,7 @@ class BaseHistogram(QWidget):
         widget_height = self.height()
 
         # 加载提示文字
-        text = "加载中..."
+        text = tr('histograms.loading')
 
         # 设置字体
         font = QFont()
@@ -275,9 +276,9 @@ class BaseHistogram(QWidget):
 
 class LuminanceHistogramWidget(BaseHistogram):
     """明度直方图组件 - 参考Lightroom风格设计，显示图片的明度分布和Zone分区"""
-    zone_pressed = Signal(int)   # 信号：Zone被按下 (0-7)
+    zone_pressed = Signal(int)   # 信号：Zone被按下 (0-8)
     zone_released = Signal()     # 信号：Zone被释放
-    zone_changed = Signal(int)   # 信号：当前Zone变化 (0-7)
+    zone_changed = Signal(int)   # 信号：当前Zone变化 (0-8)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -316,8 +317,8 @@ class LuminanceHistogramWidget(BaseHistogram):
         self.update()
 
     def set_current_zone(self, zone: int):
-        """设置当前选中的Zone (0-7)"""
-        if 0 <= zone <= 7 and zone != self._current_zone:
+        """设置当前选中的Zone (0-8)"""
+        if 0 <= zone <= 8 and zone != self._current_zone:
             self._current_zone = zone
             self.zone_changed.emit(zone)
             self.update()
@@ -349,13 +350,13 @@ class LuminanceHistogramWidget(BaseHistogram):
         self.clear()
 
     def get_zone_from_luminance(self, luminance: int) -> int:
-        """根据明度值获取Zone (0-7)"""
-        return min(7, luminance // 32)
+        """根据明度值获取Zone (0-8)"""
+        return min(8, int(luminance / ZONE_WIDTH))
 
     def get_zone_label(self, zone: int) -> str:
         """获取Zone的显示标签"""
-        labels = ["0", "1", "2", "3", "4", "5", "6", "7"]
-        return labels[zone] if 0 <= zone <= 7 else "--"
+        labels = ["0", "1", "2", "3", "4", "5", "6", "7", "8"]
+        return labels[zone] if 0 <= zone <= 8 else "--"
 
     def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制直方图曲线 - LR风格"""
@@ -397,7 +398,7 @@ class LuminanceHistogramWidget(BaseHistogram):
 
     def _draw_zone_background(self, painter: QPainter, x: int, y: int, width: int, height: int):
         """绘制Zone背景色块 - LR风格"""
-        zone_width = width / 8.0
+        zone_width = width / 9.0
 
         # Zone颜色配置 - 使用更 subtle 的背景色
         # Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
@@ -406,7 +407,7 @@ class LuminanceHistogramWidget(BaseHistogram):
         # 按下状态或选中状态的Zone背景色（更亮一些）
         zone_active_colors = get_zone_colors_highlight()
 
-        for i in range(8):
+        for i in range(9):
             zone_x = x + i * zone_width
 
             # 如果是按下的Zone，使用高亮背景色
@@ -432,7 +433,7 @@ class LuminanceHistogramWidget(BaseHistogram):
         # 绘制Zone分隔线
         pen = QPen(get_histogram_grid_color(), 1)
         painter.setPen(pen)
-        for i in range(1, 8):
+        for i in range(1, 9):
             line_x = int(x + i * zone_width)
             painter.drawLine(line_x, y, line_x, y + height)
 
@@ -441,11 +442,11 @@ class LuminanceHistogramWidget(BaseHistogram):
         if not self._highlight_zones:
             return
 
-        zone_width = width / 8.0
+        zone_width = width / 9.0
 
         for zone in self._highlight_zones:
             min_lum, max_lum = get_zone_bounds(zone)
-            zone_index = min_lum // 32
+            zone_index = int(min_lum / ZONE_WIDTH)
 
             # 计算区域位置
             start_x = int(x + zone_index * zone_width)
@@ -480,22 +481,22 @@ class LuminanceHistogramWidget(BaseHistogram):
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
     def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
-        """绘制刻度标签 - Zone 0-8 风格"""
+        """绘制刻度标签 - Zone 0-9 风格"""
         font = QFont()
         font.setPointSize(8)
         painter.setFont(font)
 
-        # 绘制底部刻度线和数值 - Zone 0 到 8
-        zone_width = width / 8.0
+        # 绘制底部刻度线和数值 - Zone 0 到 9
+        zone_width = width / 9.0
 
-        for i in range(9):  # 0, 1, 2, 3, 4, 5, 6, 7, 8
+        for i in range(10):  # 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
             tick_x = int(x + i * zone_width)
 
             # 绘制刻度线
             painter.setPen(get_histogram_text_color())
             painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
 
-            # 绘制刻度值 (0-8)
+            # 绘制刻度值 (0-9)
             text = str(i)
             text_rect = painter.boundingRect(
                 tick_x - 15, y + height + 6,
@@ -512,13 +513,13 @@ class LuminanceHistogramWidget(BaseHistogram):
         self._draw_max_label(painter, x, y)
 
     def _get_zone_from_pos(self, pos):
-        """根据鼠标位置获取对应的Zone (0-7)
+        """根据鼠标位置获取对应的Zone (0-8)
 
         Args:
             pos: 鼠标位置 (QPoint)
 
         Returns:
-            Zone编号 (0-7)，如果不在有效区域返回 -1
+            Zone编号 (0-8)，如果不在有效区域返回 -1
         """
         draw_width = self.width() - self._margin_left - self._margin_right
         draw_height = self.height() - self._margin_top - self._margin_bottom
@@ -528,10 +529,10 @@ class LuminanceHistogramWidget(BaseHistogram):
                 self._margin_top <= pos.y() <= self._margin_top + draw_height):
             return -1
 
-        # 计算Zone (0-7)
-        zone_width = draw_width / 8.0
+        # 计算Zone (0-8)
+        zone_width = draw_width / 9.0
         zone_index = int((pos.x() - self._margin_left) / zone_width)
-        return max(0, min(7, zone_index))
+        return max(0, min(8, zone_index))
 
     def mousePressEvent(self, event):
         """鼠标按下事件"""
@@ -833,7 +834,7 @@ class RGBHistogramWidget(BaseHistogram):
             self.set_display_mode(channel)
 
     def _draw_labels(self, painter: QPainter, x: int, y: int, width: int, height: int):
-        """绘制刻度标签 - Zone 0-8 风格"""
+        """绘制刻度标签 - Zone 0-9 风格"""
         # 绘制标题
         self._draw_title(painter)
 
@@ -841,17 +842,17 @@ class RGBHistogramWidget(BaseHistogram):
         font.setPointSize(8)
         painter.setFont(font)
 
-        # 绘制底部刻度线和数值 - Zone 0 到 8
-        zone_width = width / 8.0
+        # 绘制底部刻度线和数值 - Zone 0 到 9
+        zone_width = width / 9.0
 
-        for i in range(9):  # 0, 1, 2, 3, 4, 5, 6, 7, 8
+        for i in range(10):  # 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
             tick_x = int(x + i * zone_width)
 
             # 绘制刻度线
             painter.setPen(get_histogram_text_color())
             painter.drawLine(tick_x, y + height, tick_x, y + height + 4)
 
-            # 绘制刻度值 (0-8)
+            # 绘制刻度值 (0-9)
             text = str(i)
             text_rect = painter.boundingRect(
                 tick_x - 15, y + height + 6,
@@ -999,4 +1000,4 @@ class HueHistogramWidget(BaseHistogram):
         font = QFont()
         font.setPointSize(9)
         painter.setFont(font)
-        painter.drawText(10, 18, "色相分布")
+        painter.drawText(10, 18, tr('histograms.hue_distribution_title'))

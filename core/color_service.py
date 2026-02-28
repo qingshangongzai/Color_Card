@@ -8,7 +8,7 @@ UI层通过ColorService调用业务功能，实现UI与业务逻辑分离。
 from typing import List, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 
 # 项目模块导入
 from .color import extract_dominant_colors, find_dominant_color_positions
@@ -17,8 +17,32 @@ from .color import extract_dominant_colors, find_dominant_color_positions
 class DominantColorExtractor(QThread):
     """主色调提取线程
 
-    在后台线程中执行主色调提取，避免阻塞UI。
+    在后台线程中执行主色调提取，避免阻塞 UI 线程。
     支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - QImage 数据在构造时复制，避免主线程修改
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        extractor = DominantColorExtractor(image, count=5, parent=self)
+        extractor.extraction_finished.connect(
+            self._on_extraction_finished, Qt.ConnectionType.QueuedConnection
+        )
+        extractor.extraction_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        extractor.start()
+
+        # 取消提取
+        extractor.cancel()
+
+    信号:
+        extraction_finished: 提取完成时发射，参数为 (dominant_colors, positions)
+        extraction_error: 提取出错时发射，参数为错误信息
+        extraction_progress: 提取进度（可选），参数为进度百分比
     """
 
     # 信号：提取完成
@@ -86,6 +110,25 @@ class ColorService(QObject):
     - 颜色位置查找
     - 提取任务管理
 
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 提取器线程在构造时复制 QImage，避免主线程修改
+    - 服务析构时会等待线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = ColorService(parent=self)
+        service.extraction_finished.connect(
+            self._on_extraction_finished, Qt.ConnectionType.QueuedConnection
+        )
+        service.extraction_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.extract_dominant_colors(image, count=5)
+
+        # 取消提取
+        service.cancel_extraction()
+
     信号：
         extraction_started: 提取开始
         extraction_progress: 提取进度 (0-100)
@@ -108,6 +151,12 @@ class ColorService(QObject):
         super().__init__(parent)
         self._extractor = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._extractor is not None and self._extractor.isRunning():
+            self._extractor.cancel()
+            self._extractor.wait(1000)  # 等待最多1秒
+
     def extract_dominant_colors(self, image, count: int = 5):
         """开始提取主色调
 
@@ -127,9 +176,15 @@ class ColorService(QObject):
 
         # 创建并启动提取线程
         self._extractor = DominantColorExtractor(image, count, self)
-        self._extractor.extraction_finished.connect(self._on_extraction_finished)
-        self._extractor.extraction_error.connect(self.extraction_error)
-        self._extractor.finished.connect(self._cleanup_extractor)
+        self._extractor.extraction_finished.connect(
+            self._on_extraction_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._extractor.extraction_error.connect(
+            self.extraction_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._extractor.finished.connect(
+            self._cleanup_extractor, Qt.ConnectionType.QueuedConnection
+        )
         self._extractor.start()
 
     def cancel_extraction(self):

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ServiceFactory
+from core import get_luminance, get_zone, ServiceFactory, ZONE_WIDTH
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -73,23 +73,51 @@ class BaseCanvas(QWidget):
         self._setup_loading_ui()
 
     def _get_image_service(self):
-        """延迟获取图片服务
-        
+        """延迟获取图片服务（保留延迟加载）
+
         Returns:
             ImageService: 图片服务实例
         """
         if self._image_service is None:
-            self._image_service = ServiceFactory.get_image_service(self)
+            self._image_service = ServiceFactory.get_image_service()
             self._setup_image_service_connections()
         return self._image_service
 
     def _setup_image_service_connections(self) -> None:
-        """设置ImageService信号连接"""
-        self._image_service.loading_started.connect(self._on_loading_started)
-        self._image_service.loading_progress.connect(self._on_loading_progress)
-        self._image_service.display_ready.connect(self._on_display_ready)
-        self._image_service.image_loaded.connect(self._on_image_loaded_from_service)
-        self._image_service.error.connect(self._on_image_load_error)
+        """设置ImageService信号连接（使用 QueuedConnection 确保线程安全）"""
+        self._image_service.loading_started.connect(
+            self._on_loading_started,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.loading_progress.connect(
+            self._on_loading_progress,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.display_ready.connect(
+            self._on_display_ready,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.image_loaded.connect(
+            self._on_image_loaded_from_service,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.error.connect(
+            self._on_image_load_error,
+            Qt.ConnectionType.QueuedConnection
+        )
+
+    def closeEvent(self, event):
+        """关闭时断开信号连接"""
+        if self._image_service:
+            try:
+                self._image_service.loading_started.disconnect(self._on_loading_started)
+                self._image_service.loading_progress.disconnect(self._on_loading_progress)
+                self._image_service.display_ready.disconnect(self._on_display_ready)
+                self._image_service.image_loaded.disconnect(self._on_image_loaded_from_service)
+                self._image_service.error.disconnect(self._on_image_load_error)
+            except (TypeError, RuntimeError):
+                pass
+        super().closeEvent(event)
 
     def _setup_loading_ui(self) -> None:
         """设置加载状态UI"""
@@ -1205,13 +1233,13 @@ class LuminanceCanvas(BaseCanvas):
         self.update_picker_positions()
 
     def _get_luminance_service(self):
-        """延迟获取明度服务
-        
+        """延迟获取明度服务（保留延迟加载）
+
         Returns:
             LuminanceService: 明度服务实例
         """
         if self._luminance_service is None:
-            self._luminance_service = ServiceFactory.get_luminance_service(self)
+            self._luminance_service = ServiceFactory.get_luminance_service()
         return self._luminance_service
 
     def _setup_display_preview(self) -> None:
@@ -1407,9 +1435,9 @@ class LuminanceCanvas(BaseCanvas):
         """高亮显示指定Zone的亮度范围
 
         Args:
-            zone: Zone编号 (0-7)
+            zone: Zone编号 (0-8)
         """
-        if not (0 <= zone <= 7):
+        if not (0 <= zone <= 8):
             return
 
         if self._image is None or self._image.isNull():
@@ -1483,19 +1511,21 @@ class LuminanceCanvas(BaseCanvas):
             return
 
         # 准备文字 - Adobe标准: 黑色(0-10%), 阴影(10-30%), 中间调(30-70%), 高光(70-90%), 白色(90-100%)
-        zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8"]
+        zone_labels = ["0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8", "8-9"]
         zone_names = [
-            "黑色", "黑色", "阴影", "中间调",
-            "中间调", "中间调", "高光", "白色"
+            "黑色", "阴影", "阴影", "中间调",
+            "中间调", "中间调", "高光", "高光", "白色"
+        ]
+        # 硬编码亮度范围，显示更规整
+        zone_ranges = [
+            "0-28", "28-56", "56-85", "85-113", "113-141",
+            "141-170", "170-198", "198-226", "226-255"
         ]
         label = zone_labels[self._highlighted_zone]
         name = zone_names[self._highlighted_zone]
+        lum_range = zone_ranges[self._highlighted_zone]
 
-        # 计算亮度范围
-        min_lum = self._highlighted_zone * 32
-        max_lum = (self._highlighted_zone + 1) * 32 - 1
-
-        text = f"{label} ({name}) | 亮度: {min_lum}-{max_lum}"
+        text = f"{label} ({name}) | 亮度: {lum_range}"
 
         # 获取文字颜色
         text_color = self._zone_highlight_colors[self._highlighted_zone]

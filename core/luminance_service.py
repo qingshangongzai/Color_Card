@@ -8,18 +8,41 @@ UI层通过LuminanceService调用业务功能，实现UI与业务逻辑分离。
 from typing import Dict, List, Optional, Tuple, Any
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
-from .color import get_luminance, get_zone
+from .color import get_luminance, get_zone, ZONE_WIDTH
 
 
 class LuminanceCalculator(QThread):
     """明度计算线程
 
-    在后台线程中执行明度分布计算，避免阻塞UI。
+    在后台线程中执行明度分布计算，避免阻塞 UI 线程。
     支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - QImage 数据在构造时复制，避免主线程修改
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        calculator = LuminanceCalculator(image, parent=self)
+        calculator.calculation_finished.connect(
+            self._on_finished, Qt.ConnectionType.QueuedConnection
+        )
+        calculator.calculation_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        calculator.start()
+
+        # 取消计算
+        calculator.cancel()
+
+    信号:
+        calculation_finished: 计算完成时发射，参数为结果字典
+        calculation_error: 计算出错时发射，参数为错误信息
     """
 
     # 信号：计算完成
@@ -35,7 +58,8 @@ class LuminanceCalculator(QThread):
             parent: 父对象
         """
         super().__init__(parent)
-        self._image = image
+        # 复制 QImage 数据，避免主线程修改导致的问题
+        self._image = image.copy() if image and not image.isNull() else None
         self._is_cancelled = False
 
     def cancel(self):
@@ -102,9 +126,28 @@ class LuminanceService(QObject):
     """明度服务，管理明度计算相关业务逻辑
 
     职责：
-    - 明度计算和Zone分析
+    - 明度计算和 Zone 分析
     - 亮度分布统计
     - 高亮区域计算
+
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 计算器线程在构造时复制 QImage，避免主线程修改
+    - 服务析构时会等待线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = LuminanceService(parent=self)
+        service.calculation_finished.connect(
+            self._on_calculation_finished, Qt.ConnectionType.QueuedConnection
+        )
+        service.calculation_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.calculate_luminance_zones(image)
+
+        # 取消计算
+        service.cancel_calculation()
 
     信号：
         calculation_started: 计算开始
@@ -126,6 +169,12 @@ class LuminanceService(QObject):
         super().__init__(parent)
         self._calculator: Optional[LuminanceCalculator] = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._calculator is not None and self._calculator.isRunning():
+            self._calculator.cancel()
+            self._calculator.wait(1000)  # 等待最多1秒
+
     def calculate_luminance_zones(self, image: QImage) -> None:
         """开始计算明度Zone分布
 
@@ -144,9 +193,15 @@ class LuminanceService(QObject):
 
         # 创建并启动计算线程
         self._calculator = LuminanceCalculator(image, self)
-        self._calculator.calculation_finished.connect(self._on_calculation_finished)
-        self._calculator.calculation_error.connect(self.calculation_error)
-        self._calculator.finished.connect(self._cleanup_calculator)
+        self._calculator.calculation_finished.connect(
+            self._on_calculation_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._calculator.calculation_error.connect(
+            self.calculation_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._calculator.finished.connect(
+            self._cleanup_calculator, Qt.ConnectionType.QueuedConnection
+        )
         self._calculator.start()
 
     def cancel_calculation(self) -> None:
@@ -219,7 +274,7 @@ class LuminanceService(QObject):
 
         Args:
             image: 原始图片
-            zone: Zone编号 (0-7)
+            zone: Zone编号 (0-8)
             canvas_size: 画布尺寸 (width, height)
             display_rect: 图片显示区域 (x, y, w, h)
             zone_color: 高亮颜色
@@ -230,7 +285,7 @@ class LuminanceService(QObject):
         if image is None or image.isNull():
             return None
 
-        if not (0 <= zone <= 7):
+        if not (0 <= zone <= 8):
             return None
 
         canvas_width, canvas_height = canvas_size
@@ -244,8 +299,8 @@ class LuminanceService(QObject):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
         # 计算亮度范围
-        min_lum = zone * 32
-        max_lum = (zone + 1) * 32 - 1
+        min_lum = int(zone * ZONE_WIDTH)
+        max_lum = int((zone + 1) * ZONE_WIDTH) - 1
 
         # 计算缩放比例
         scale_x = image.width() / disp_w
