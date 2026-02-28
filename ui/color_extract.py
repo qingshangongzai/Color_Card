@@ -20,7 +20,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, ServiceFactory
+from core import get_color_info, get_config_manager, ServiceFactory, log_user_action
 from utils import tr, get_locale_manager
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
@@ -199,6 +199,11 @@ class ColorExtractInterface(QWidget):
         )
 
         if file_path:
+            log_user_action(
+                action="open_image",
+                params={"path": file_path, "source": "color_extract"},
+                result="success"
+            )
             self.image_canvas.set_image(file_path)
 
     def on_image_loaded(self, file_path):
@@ -240,6 +245,7 @@ class ColorExtractInterface(QWidget):
 
     def clear_image(self):
         """清空图片（供外部调用，会发射信号同步到其他面板）"""
+        log_user_action(action="clear_image", params={"source": "color_extract"})
         self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):
@@ -314,7 +320,15 @@ class ColorExtractInterface(QWidget):
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
 
-        # 刷新配色管理面板
+        log_user_action(
+            action="save_favorite",
+            params={
+                "name": favorite_data['name'],
+                "color_count": len(colors),
+                "source": "color_extract"
+            }
+        )
+
         window = self.window()
         if window and hasattr(window, 'refresh_palette_management'):
             window.refresh_palette_management()
@@ -344,10 +358,12 @@ class ColorExtractInterface(QWidget):
             )
             return
 
-        # 获取当前设置的采样点数量
         count = self._config_manager.get('settings.color_sample_count', 5)
+        log_user_action(
+            action="extract_dominant",
+            params={"count": count, "source": "color_extract"}
+        )
 
-        # 使用颜色服务开始提取
         self._get_color_service().extract_dominant_colors(image, count=count)
 
     def _on_extraction_started(self):

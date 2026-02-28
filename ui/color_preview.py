@@ -31,8 +31,11 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_type_manager
+from core.logger import get_logger, log_user_action
 from utils import tr, get_locale_manager
 from utils.theme_colors import get_border_color, get_text_color
+
+logger = get_logger("color_preview")
 
 
 # ============================================================================
@@ -163,6 +166,7 @@ class DraggableColorDot(QWidget):
         """复制HEX值到剪贴板"""
         clipboard = QApplication.clipboard()
         clipboard.setText(self._color.upper())
+        log_user_action("copy_hex_to_clipboard", {"color": self._color.upper()})
 
 
 # ============================================================================
@@ -248,9 +252,11 @@ class ColorDotBar(QWidget):
             index: 要删除的颜色索引
         """
         if 0 <= index < len(self._colors):
+            deleted_color = self._colors[index]
             self._colors.pop(index)
             self._rebuild_dots()
             self.color_deleted.emit(self._colors.copy())
+            log_user_action("delete_color", {"index": index, "color": deleted_color})
 
     def paintEvent(self, event):
         """绘制插入指示器"""
@@ -344,6 +350,7 @@ class ColorDotBar(QWidget):
 
             self._rebuild_dots()
             self.order_changed.emit(self._colors.copy())
+            log_user_action("reorder_colors", {"from_index": source_index, "to_index": target_index})
 
     def _calculate_insert_index(self, pos: QPoint) -> int:
         """计算插入位置索引
@@ -448,7 +455,7 @@ class PreviewSceneFactory:
         if not issubclass(scene_class, BasePreviewScene):
             raise ValueError(f"场景类必须继承 BasePreviewScene: {scene_class}")
         cls._registry[scene_type] = scene_class
-        print(f"已注册场景类型: {scene_type} -> {scene_class.__name__}")
+        logger.debug(f"已注册场景类型: {scene_type} -> {scene_class.__name__}")
 
     @classmethod
     def create(cls, scene_config: Dict[str, Any], parent=None) -> 'BasePreviewScene':
@@ -594,7 +601,7 @@ class SVGPreviewWidget(BasePreviewScene):
             self.update()
             return True
         except Exception as e:
-            print(f"加载 SVG 文件失败: {e}")
+            logger.error(f"加载 SVG 文件失败: {e}", exc_info=True)
             return False
 
     def load_svg_from_string(self, content: str) -> bool:
@@ -622,7 +629,7 @@ class SVGPreviewWidget(BasePreviewScene):
             self.update()
             return True
         except Exception as e:
-            print(f"加载 SVG 字符串失败: {e}")
+            logger.error(f"加载 SVG 字符串失败: {e}", exc_info=True)
             return False
 
     def load_svg_from_resource(self, scene_type: str) -> bool:
@@ -639,14 +646,14 @@ class SVGPreviewWidget(BasePreviewScene):
             svg_path = manager.get_builtin_svg_path(scene_type)
 
             if svg_path is None:
-                print(f"未找到内置SVG: {scene_type}")
+                logger.warning(f"未找到内置SVG: {scene_type}")
                 return False
 
             self._template_mode = True
             return self.load_svg(svg_path)
 
         except Exception as e:
-            print(f"加载内置SVG失败: {e}")
+            logger.error(f"加载内置SVG失败: {e}", exc_info=True)
             return False
 
     def set_colors(self, colors: List[str]):
@@ -735,9 +742,7 @@ class SVGPreviewWidget(BasePreviewScene):
 
         透明背景现在由 SVG 内部处理，不需要额外添加
         """
-        # 调试：打印前200个字符
-        print(f"get_svg_content 返回内容长度: {len(self._svg_content)}")
-        print(f"get_svg_content 前200字符: {self._svg_content[:200]}")
+        logger.debug(f"get_svg_content 返回内容长度: {len(self._svg_content)}")
         return self._svg_content
 
     def has_svg(self) -> bool:
@@ -1220,7 +1225,7 @@ class LayoutFactory:
         layout_class = cls._layout_registry.get(layout_type)
 
         if layout_class is None:
-            print(f"未知的布局类型: {layout_type}")
+            logger.warning(f"未知的布局类型: {layout_type}")
             return None
 
         if layout_type == 'grid_2x2':
@@ -1237,7 +1242,7 @@ class LayoutFactory:
         if not issubclass(layout_class, BaseLayout):
             raise ValueError(f"布局类必须继承 BaseLayout: {layout_class}")
         cls._layout_registry[layout_type] = layout_class
-        print(f"已注册布局类型: {layout_type} -> {layout_class.__name__}")
+        logger.debug(f"已注册布局类型: {layout_type} -> {layout_class.__name__}")
 
     @classmethod
     def get_available_types(cls) -> List[str]:
@@ -1275,7 +1280,7 @@ class PreviewSceneSelector(ComboBox):
             manager = get_scene_type_manager()
             self._scene_types = manager.get_all_scene_types()
         except Exception as e:
-            print(f"加载场景类型失败: {e}")
+            logger.error(f"加载场景类型失败: {e}", exc_info=True)
             self._scene_types = [
                 {"id": "mobile_ui", "name": "手机UI"},
                 {"id": "web", "name": "网页"},
@@ -1387,7 +1392,7 @@ class MixedPreviewPanel(QWidget):
             scene_config = manager.get_scene_type_by_id(scene)
 
             if scene_config is None:
-                print(f"未找到场景配置: {scene}")
+                logger.warning(f"未找到场景配置: {scene}")
                 return
 
             templates = manager.get_all_templates(scene)
@@ -1415,7 +1420,7 @@ class MixedPreviewPanel(QWidget):
                 QTimer.singleShot(100, self._update_layout_sizes)
 
         except Exception as e:
-            print(f"创建布局失败: {e}")
+            logger.error(f"创建布局失败: {e}", exc_info=True)
             self._create_empty_preview()
 
     def _on_template_deleted(self, template_path: str):
@@ -1437,7 +1442,7 @@ class MixedPreviewPanel(QWidget):
         if success:
             self.set_scene(self._current_scene)
         else:
-            print(f"删除模板失败: {message}")
+            logger.error(f"删除模板失败: {message}")
 
     def _create_empty_preview(self):
         """创建空的SVG预览（用于 custom 场景）"""
@@ -1580,9 +1585,12 @@ class PreviewToolbar(QWidget):
         """处理场景变化"""
         self._current_scene = scene
         self.scene_changed.emit(scene)
+        log_user_action("change_scene", {"scene": scene})
 
     def _on_import_clicked(self):
         """处理导入按钮点击"""
+        action = "import_svg" if self._current_scene == "custom" else "import_template"
+        log_user_action(action, {"scene": self._current_scene})
         if self._current_scene == "custom":
             self.import_svg_requested.emit()
         else:
@@ -1590,6 +1598,8 @@ class PreviewToolbar(QWidget):
 
     def _on_export_clicked(self):
         """处理导出按钮点击"""
+        action = "export_svg" if self._current_scene == "custom" else "export_config"
+        log_user_action(action, {"scene": self._current_scene})
         if self._current_scene == "custom":
             self.export_svg_requested.emit()
         else:
@@ -1791,6 +1801,7 @@ class ColorPreviewInterface(QWidget):
             self.preview_panel.set_custom_svg_path(file_path)
             svg_preview.set_template_info(False, file_path)
             svg_preview.set_colors(self._current_colors)
+            log_user_action("import_svg_success", {"file_path": file_path})
 
             InfoBar.success(
                 title=tr('color_preview_messages.import_success.title'),
@@ -1859,6 +1870,7 @@ class ColorPreviewInterface(QWidget):
         success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
 
         if success:
+            log_user_action("export_svg_success", {"file_path": file_path})
             InfoBar.success(
                 title=tr('color_preview_messages.export_success.title'),
                 content=tr('color_preview_messages.export_success.content', message=message),
@@ -1869,6 +1881,7 @@ class ColorPreviewInterface(QWidget):
                 parent=self.window()
             )
         else:
+            logger.error(f"导出SVG失败: {message}")
             InfoBar.error(
                 title=tr('color_preview_messages.export_failed.title'),
                 content=tr('color_preview_messages.export_failed.content', message=message),
@@ -1911,6 +1924,7 @@ class ColorPreviewInterface(QWidget):
         if success:
             self.preview_panel.set_scene(self._current_scene)
             self.preview_panel.set_colors(self._current_colors)
+            log_user_action("import_template_success", {"scene": self._current_scene, "file_path": file_path})
 
             InfoBar.success(
                 title=tr('color_preview_messages.template_import_success.title'),
@@ -1967,6 +1981,7 @@ class ColorPreviewInterface(QWidget):
         success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
 
         if success:
+            log_user_action("export_config_success", {"file_path": file_path})
             InfoBar.success(
                 title=tr('color_preview_messages.export_success.title'),
                 content=tr('color_preview_messages.export_success.content', message=message),
@@ -1977,6 +1992,7 @@ class ColorPreviewInterface(QWidget):
                 parent=self.window()
             )
         else:
+            logger.error(f"导出配置失败: {message}")
             InfoBar.error(
                 title=tr('color_preview_messages.export_failed.title'),
                 content=tr('color_preview_messages.export_failed.content', message=message),

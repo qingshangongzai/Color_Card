@@ -27,6 +27,9 @@ from dialogs import EditPaletteDialog
 from .cards import BaseCard, BaseCardPanel, ColorModeContainer, get_text_color, get_placeholder_color, get_border_color
 from .color_wheel import InteractiveColorWheel
 from utils.theme_colors import get_canvas_empty_bg_color
+from core.logger import get_logger, log_user_action, log_performance
+
+logger = get_logger("color_generation")
 
 
 # ==================== 配色生成组件 ====================
@@ -156,7 +159,7 @@ class GenerationColorInfoCard(BaseCard):
         if self._hex_value and self._hex_value != "--":
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
-            # 发送信号通知父组件显示 InfoBar
+            log_user_action("copy_color", {"hex": self._hex_value, "index": self.index})
             self.copy_requested.emit(self._hex_value)
 
     def set_color_modes(self, modes):
@@ -528,8 +531,8 @@ class ColorGenerationInterface(QWidget):
     def on_scheme_changed(self, index):
         """配色生成改变回调"""
         self._current_scheme = self.scheme_combo.currentData()
+        log_user_action("select_scheme", {"scheme": self._current_scheme, "index": index})
 
-        # 根据配色类型调整卡片数量
         self._update_card_count()
 
         self._generate_scheme_colors()
@@ -539,6 +542,7 @@ class ColorGenerationInterface(QWidget):
         import random
         self._base_hue = random.uniform(0, 360)
         self._base_saturation = random.uniform(60, 100)
+        log_user_action("random_color", {"hue": round(self._base_hue, 2), "saturation": round(self._base_saturation, 2)})
         self.color_wheel.set_base_color(self._base_hue, self._base_saturation, self._base_brightness)
         self._generate_scheme_colors()
 
@@ -615,6 +619,7 @@ class ColorGenerationInterface(QWidget):
         """
         if self._color_wheel_mode != mode:
             self._color_wheel_mode = mode
+            log_user_action("set_color_wheel_mode", {"mode": mode})
             self._generate_scheme_colors()
 
     def _generate_scheme_colors(self):
@@ -623,37 +628,34 @@ class ColorGenerationInterface(QWidget):
             get_scheme_preview_colors, get_scheme_preview_colors_ryb,
         )
 
-        # 根据配色类型确定颜色数量
-        scheme_counts = {
-            'monochromatic': 4,      # 同色系：4个
-            'analogous': 4,          # 邻近色：4个
-            'complementary': 5,      # 互补色：5个
-            'split_complementary': 3, # 分离补色：3个
-            'double_complementary': 4  # 双补色：4个
-        }
-        count = scheme_counts.get(self._current_scheme, 5)
+        try:
+            with log_performance("generate_scheme_colors", {"scheme": self._current_scheme, "mode": self._color_wheel_mode}):
+                scheme_counts = {
+                    'monochromatic': 4,
+                    'analogous': 4,
+                    'complementary': 5,
+                    'split_complementary': 3,
+                    'double_complementary': 4
+                }
+                count = scheme_counts.get(self._current_scheme, 5)
 
-        # 根据色轮模式选择对应的配色生成函数，传入基准饱和度
-        if self._color_wheel_mode == 'RYB':
-            colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count, self._base_saturation)
-        else:
-            colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count, self._base_saturation)
+                if self._color_wheel_mode == 'RYB':
+                    colors = get_scheme_preview_colors_ryb(self._current_scheme, self._base_hue, count, self._base_saturation)
+                else:
+                    colors = get_scheme_preview_colors(self._current_scheme, self._base_hue, count, self._base_saturation)
 
-        # 转换为HSB并应用全局明度值
-        self._scheme_colors = []
-        for i, rgb in enumerate(colors):
-            h, s, b = rgb_to_hsb(*rgb)
-            # 使用全局明度值，忽略原始配色中的B值
-            self._scheme_colors.append((h, s, self._brightness_value))
+                self._scheme_colors = []
+                for i, rgb in enumerate(colors):
+                    h, s, b = rgb_to_hsb(*rgb)
+                    self._scheme_colors.append((h, s, self._brightness_value))
 
-        # 转换为RGB颜色用于显示
-        colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
+                colors = [hsb_to_rgb(h, s, b) for h, s, b in self._scheme_colors]
 
-        # 更新色块面板
-        self.color_panel.set_colors(colors)
+                self.color_panel.set_colors(colors)
 
-        # 更新色环上的配色点
-        self.color_wheel.set_scheme_colors(self._scheme_colors)
+                self.color_wheel.set_scheme_colors(self._scheme_colors)
+        except Exception as e:
+            logger.error(f"生成配色颜色失败: scheme={self._current_scheme}, mode={self._color_wheel_mode}, error={e}", exc_info=True)
 
     def _on_favorite_clicked(self):
         """收藏按钮点击回调"""
@@ -663,6 +665,7 @@ class ColorGenerationInterface(QWidget):
                 colors.append(card._current_color_info)
 
         if not colors:
+            log_user_action("favorite_palette", {"result": "failed", "reason": "no_colors"})
             InfoBar.warning(
                 title=tr('color_generation.favorite_failed'),
                 content=tr('color_generation.no_colors_to_favorite'),
@@ -674,10 +677,8 @@ class ColorGenerationInterface(QWidget):
             )
             return
 
-        # 弹出编辑配色对话框
         default_name = f"配色 {len(self._config_manager.get_favorites()) + 1}"
 
-        # 构造配色数据（复制颜色数据避免引用问题）
         palette_data = {
             "name": default_name,
             "colors": [color.copy() for color in colors]
@@ -690,10 +691,12 @@ class ColorGenerationInterface(QWidget):
         )
 
         if dialog.exec() != EditPaletteDialog.DialogCode.Accepted:
+            log_user_action("favorite_palette", {"result": "cancelled"})
             return
 
         new_palette_data = dialog.get_palette_data()
         if not new_palette_data:
+            log_user_action("favorite_palette", {"result": "failed", "reason": "no_data"})
             return
 
         favorite_data = {
@@ -704,10 +707,23 @@ class ColorGenerationInterface(QWidget):
             "source": "color_scheme"
         }
 
-        self._config_manager.add_favorite(favorite_data)
-        self._config_manager.save()
+        try:
+            self._config_manager.add_favorite(favorite_data)
+            self._config_manager.save()
+            log_user_action("favorite_palette", {"result": "success", "name": favorite_data['name'], "color_count": len(colors)})
+        except Exception as e:
+            logger.error(f"保存收藏配色失败: name={favorite_data['name']}, error={e}", exc_info=True)
+            InfoBar.error(
+                title=tr('color_generation.favorite_failed'),
+                content=str(e),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
+            return
 
-        # 刷新配色管理面板
         window = self.window()
         if window and hasattr(window, 'refresh_palette_management'):
             window.refresh_palette_management()

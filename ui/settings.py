@@ -10,9 +10,12 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager
+from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
 
 from dialogs import AboutDialog, UpdateAvailableDialog
+
+logger = get_logger("settings")
 from version import version_manager
 from utils.theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
 from utils.platform import is_windows_10
@@ -35,6 +38,7 @@ class SettingsInterface(QWidget):
     saturation_threshold_changed = Signal(int)
     brightness_threshold_changed = Signal(int)
     color_wheel_labels_visible_changed = Signal(bool)
+    gradient_color_space_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -50,6 +54,7 @@ class SettingsInterface(QWidget):
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
         self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
+        self._gradient_color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
@@ -175,6 +180,13 @@ class SettingsInterface(QWidget):
 
         layout.addWidget(self.color_scheme_group)
 
+        self.gradient_group = SettingCardGroup(tr('settings.gradient'), self.content_widget)
+
+        self.gradient_color_space_card = self._create_gradient_color_space_card()
+        self.gradient_group.addSettingCard(self.gradient_color_space_card)
+
+        layout.addWidget(self.gradient_group)
+
         self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
 
         self.update_card = PushSettingCard(
@@ -250,7 +262,8 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.language', language_code)
         self._config_manager.save()
         
-        # 切换语言
+        log_user_action("change_language", {"language_code": language_code})
+        
         set_language(language_code)
         
         self.language_changed.emit(language_code)
@@ -322,6 +335,14 @@ class SettingsInterface(QWidget):
         self.color_wheel_mode_card.contentLabel.setText(tr('settings.color_scheme_mode_desc'))
         self.color_wheel_mode_card.combo_box.setItemText(0, tr('settings.rgb_optical'))
         self.color_wheel_mode_card.combo_box.setItemText(1, tr('settings.ryb_artistic'))
+
+        # 更新渐变提取卡片
+        self.gradient_group.titleLabel.setText(tr('settings.gradient'))
+        self.gradient_color_space_card.titleLabel.setText(tr('settings.gradient_color_space'))
+        self.gradient_color_space_card.contentLabel.setText(tr('settings.gradient_color_space_desc'))
+        self.gradient_color_space_card.combo_box.setItemText(0, tr('settings.gradient_rgb'))
+        self.gradient_color_space_card.combo_box.setItemText(1, tr('settings.gradient_hsb'))
+        self.gradient_color_space_card.combo_box.setItemText(2, tr('settings.gradient_lab'))
 
         # 更新帮助卡片
         self.update_card.titleLabel.setText(tr('settings.version_update'))
@@ -439,6 +460,7 @@ class SettingsInterface(QWidget):
         self._hex_visible = checked
         self._config_manager.set('settings.hex_visible', checked)
         self._config_manager.save()
+        log_user_action("toggle_hex_display", {"visible": checked})
         self.hex_display_changed.emit(checked)
 
     def _on_color_mode_changed(self):
@@ -456,6 +478,7 @@ class SettingsInterface(QWidget):
         self._color_modes = [mode1, mode2]
         self._config_manager.set('settings.color_modes', self._color_modes)
         self._config_manager.save()
+        log_user_action("change_color_modes", {"mode1": mode1, "mode2": mode2})
         self.color_modes_changed.emit(self._color_modes)
 
     def _on_color_sample_count_changed(self, value):
@@ -463,6 +486,7 @@ class SettingsInterface(QWidget):
         self._color_sample_count = value
         self._config_manager.set('settings.color_sample_count', value)
         self._config_manager.save()
+        log_user_action("change_color_sample_count", {"count": value})
         self.color_sample_count_changed.emit(value)
 
     def _on_luminance_sample_count_changed(self, value):
@@ -470,6 +494,7 @@ class SettingsInterface(QWidget):
         self._luminance_sample_count = value
         self._config_manager.set('settings.luminance_sample_count', value)
         self._config_manager.save()
+        log_user_action("change_luminance_sample_count", {"count": value})
         self.luminance_sample_count_changed.emit(value)
 
     def _create_histogram_scaling_card(self):
@@ -511,6 +536,7 @@ class SettingsInterface(QWidget):
         self._histogram_scaling_mode = mode
         self._config_manager.set('settings.histogram_scaling_mode', mode)
         self._config_manager.save()
+        log_user_action("change_histogram_scaling_mode", {"mode": mode})
         self.histogram_scaling_mode_changed.emit(mode)
 
     def _create_histogram_mode_card(self):
@@ -552,6 +578,7 @@ class SettingsInterface(QWidget):
         self._histogram_mode = mode
         self._config_manager.set('settings.histogram_mode', mode)
         self._config_manager.save()
+        log_user_action("change_histogram_mode", {"mode": mode})
         self.histogram_mode_changed.emit(mode)
 
     def _create_color_wheel_mode_card(self):
@@ -593,7 +620,70 @@ class SettingsInterface(QWidget):
         self._color_wheel_mode = mode
         self._config_manager.set('settings.color_wheel_mode', mode)
         self._config_manager.save()
+        log_user_action("change_color_wheel_mode", {"mode": mode})
         self.color_wheel_mode_changed.emit(mode)
+
+    def _create_gradient_color_space_card(self):
+        """创建渐变颜色空间选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            tr('settings.gradient_color_space'),
+            tr('settings.gradient_color_space_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.gradient_rgb'))
+        combo_box.setItemData(0, "rgb")
+        combo_box.addItem(tr('settings.gradient_hsb'))
+        combo_box.setItemData(1, "hsb")
+        combo_box.addItem(tr('settings.gradient_lab'))
+        combo_box.setItemData(2, "lab")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._gradient_color_space:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_gradient_color_space_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_gradient_color_space_changed(self, index):
+        """渐变颜色空间改变"""
+        combo_box = self.gradient_color_space_card.combo_box
+        mode = combo_box.itemData(index)
+        self._gradient_color_space = mode
+        self._config_manager.set('settings.gradient_color_space', mode)
+        self._config_manager.save()
+        log_user_action("change_gradient_color_space", {"color_space": mode})
+        self.gradient_color_space_changed.emit(mode)
+
+    def get_gradient_color_space(self):
+        """获取当前渐变颜色空间"""
+        return self._gradient_color_space
+
+    def set_gradient_color_space(self, mode):
+        """设置渐变颜色空间
+
+        Args:
+            mode: 'rgb', 'hsb', 或 'lab'
+        """
+        self._gradient_color_space = mode
+        if hasattr(self.gradient_color_space_card, 'combo_box'):
+            combo_box = self.gradient_color_space_card.combo_box
+            for i in range(combo_box.count()):
+                if combo_box.itemData(i) == mode:
+                    combo_box.setCurrentIndex(i)
+                    break
 
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
@@ -636,11 +726,13 @@ class SettingsInterface(QWidget):
 
     def on_check_update(self):
         """检查更新按钮点击"""
+        log_user_action("check_update")
         current_version = version_manager.get_version()
         UpdateAvailableDialog.check_update(self, current_version)
 
     def on_show_about(self):
         """显示关于对话框"""
+        log_user_action("show_about_dialog")
         dialog = AboutDialog(self)
         dialog.exec()
 
@@ -649,6 +741,7 @@ class SettingsInterface(QWidget):
         self._saturation_threshold = value
         self._config_manager.set('settings.saturation_threshold', value)
         self._config_manager.save()
+        log_user_action("change_saturation_threshold", {"threshold": value})
         self.saturation_threshold_changed.emit(value)
 
     def _on_brightness_threshold_changed(self, value):
@@ -656,6 +749,7 @@ class SettingsInterface(QWidget):
         self._brightness_threshold = value
         self._config_manager.set('settings.brightness_threshold', value)
         self._config_manager.save()
+        log_user_action("change_brightness_threshold", {"threshold": value})
         self.brightness_threshold_changed.emit(value)
 
     def _on_color_wheel_labels_visible_changed(self, checked):
@@ -663,6 +757,7 @@ class SettingsInterface(QWidget):
         self._color_wheel_labels_visible = checked
         self._config_manager.set('settings.color_wheel_labels_visible', checked)
         self._config_manager.save()
+        log_user_action("toggle_color_wheel_labels", {"visible": checked})
         self.color_wheel_labels_visible_changed.emit(checked)
 
     def _update_styles(self):

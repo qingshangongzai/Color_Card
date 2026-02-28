@@ -13,6 +13,9 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
 from .color import get_luminance, get_zone, ZONE_WIDTH
+from .logger import get_logger, log_performance
+
+logger = get_logger("luminance_service")
 
 
 class LuminanceCalculator(QThread):
@@ -76,13 +79,15 @@ class LuminanceCalculator(QThread):
             if self._check_cancelled() or not self._image or self._image.isNull():
                 return
 
-            # 计算明度分布
-            distribution = self._calculate_distribution()
+            with log_performance("calculate_luminance_distribution", {
+                "width": self._image.width(),
+                "height": self._image.height()
+            }):
+                distribution = self._calculate_distribution()
 
             if self._check_cancelled():
                 return
 
-            # 发送成功信号
             result = {
                 'distribution': distribution,
                 'total_pixels': self._image.width() * self._image.height()
@@ -91,6 +96,7 @@ class LuminanceCalculator(QThread):
 
         except Exception as e:
             if not self._check_cancelled():
+                logger.error(f"明度计算失败: {e}", exc_info=True)
                 self.calculation_error.emit(str(e))
 
     def _calculate_distribution(self) -> List[int]:
@@ -246,19 +252,20 @@ class LuminanceService(QObject):
         width = image.width()
         height = image.height()
 
-        # 初始化Zone计数 (Zone 0-7)
-        distribution = [0] * 8
+        with log_performance("get_zone_distribution", {
+            "width": width,
+            "height": height
+        }):
+            distribution = [0] * 8
+            sample_step = 4
 
-        # 采样步长（性能优化）
-        sample_step = 4
-
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                color = image.pixelColor(x, y)
-                luminance = get_luminance(color.red(), color.green(), color.blue())
-                zone_index = luminance // 32
-                zone_index = min(zone_index, 7)  # 确保不越界
-                distribution[zone_index] += 1
+            for y in range(0, height, sample_step):
+                for x in range(0, width, sample_step):
+                    color = image.pixelColor(x, y)
+                    luminance = get_luminance(color.red(), color.green(), color.blue())
+                    zone_index = luminance // 32
+                    zone_index = min(zone_index, 7)
+                    distribution[zone_index] += 1
 
         return distribution
 
@@ -291,50 +298,45 @@ class LuminanceService(QObject):
         canvas_width, canvas_height = canvas_size
         disp_x, disp_y, disp_w, disp_h = display_rect
 
-        # 创建透明遮罩图
-        highlight_pixmap = QPixmap(canvas_width, canvas_height)
-        highlight_pixmap.fill(Qt.GlobalColor.transparent)
+        with log_performance("generate_zone_highlight_pixmap", {
+            "zone": zone,
+            "display_size": f"{disp_w}x{disp_h}"
+        }):
+            highlight_pixmap = QPixmap(canvas_width, canvas_height)
+            highlight_pixmap.fill(Qt.GlobalColor.transparent)
 
-        painter = QPainter(highlight_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+            painter = QPainter(highlight_pixmap)
+            painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
-        # 计算亮度范围
-        min_lum = int(zone * ZONE_WIDTH)
-        max_lum = int((zone + 1) * ZONE_WIDTH) - 1
+            min_lum = int(zone * ZONE_WIDTH)
+            max_lum = int((zone + 1) * ZONE_WIDTH) - 1
 
-        # 计算缩放比例
-        scale_x = image.width() / disp_w
-        scale_y = image.height() / disp_h
+            scale_x = image.width() / disp_w
+            scale_y = image.height() / disp_h
+            sample_step = 4
 
-        # 采样步长（性能优化）
-        sample_step = 4
+            for dy in range(0, disp_h, sample_step):
+                for dx in range(0, disp_w, sample_step):
+                    img_x = int(dx * scale_x)
+                    img_y = int(dy * scale_y)
 
-        # 遍历显示区域的像素
-        for dy in range(0, disp_h, sample_step):
-            for dx in range(0, disp_w, sample_step):
-                # 计算对应的原始图片坐标
-                img_x = int(dx * scale_x)
-                img_y = int(dy * scale_y)
+                    img_x = min(img_x, image.width() - 1)
+                    img_y = min(img_y, image.height() - 1)
 
-                # 边界检查
-                img_x = min(img_x, image.width() - 1)
-                img_y = min(img_y, image.height() - 1)
+                    color = image.pixelColor(img_x, img_y)
+                    luminance = get_luminance(color.red(), color.green(), color.blue())
 
-                # 获取像素颜色并计算亮度
-                color = image.pixelColor(img_x, img_y)
-                luminance = get_luminance(color.red(), color.green(), color.blue())
+                    if min_lum <= luminance <= max_lum:
+                        painter.fillRect(
+                            disp_x + dx,
+                            disp_y + dy,
+                            sample_step,
+                            sample_step,
+                            zone_color
+                        )
 
-                # 如果亮度在当前Zone范围内，绘制遮罩
-                if min_lum <= luminance <= max_lum:
-                    painter.fillRect(
-                        disp_x + dx,
-                        disp_y + dy,
-                        sample_step,
-                        sample_step,
-                        zone_color
-                    )
+            painter.end()
 
-        painter.end()
         return highlight_pixmap
 
     def _on_calculation_finished(self, result: Dict[str, Any]):

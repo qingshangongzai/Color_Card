@@ -20,10 +20,13 @@ from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
 from utils import tr, get_locale_manager, calculate_grid_columns
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
+from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color
 from utils.platform import is_windows_10
 from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
+
+logger = get_logger("palette_management")
 
 
 # =============================================================================
@@ -297,7 +300,8 @@ class PaletteManagementColorCard(QWidget):
             # 保存新颜色到历史记录（在更新后保存）
             self._add_to_history(new_color_info)
 
-        except ValueError:
+        except ValueError as e:
+            logger.warning(f"Invalid hex color input: {text}, error: {e}")
             self.hex_input.setText(self._hex_value)
             InfoBar.warning(
                 title=tr('messages.invalid_input.title'),
@@ -652,7 +656,8 @@ class PaletteManagementCard(CardWidget):
             try:
                 dt = datetime.fromisoformat(created_at)
                 self.time_label.setText(dt.strftime('%Y-%m-%d %H:%M'))
-            except:
+            except (ValueError, TypeError) as e:
+                logger.debug(f"Parse datetime failed: {created_at}, error: {e}")
                 self.time_label.setText(created_at)
         else:
             self.time_label.setText('')
@@ -1018,31 +1023,31 @@ class PaletteManagementList(QWidget):
         if hasattr(self, '_icon_label') and self._icon_label is not None:
             try:
                 self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                logger.debug(f"Icon label already deleted: {e}")
         if hasattr(self, '_text_label') and self._text_label is not None:
             try:
                 self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                logger.debug(f"Text label already deleted: {e}")
         if hasattr(self, '_hint_label') and self._hint_label is not None:
             try:
                 self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                logger.debug(f"Hint label already deleted: {e}")
     
     def update_texts(self):
         """更新界面文本"""
         if hasattr(self, '_text_label') and self._text_label is not None:
             try:
                 self._text_label.setText(tr('palette_management.empty_title'))
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                logger.debug(f"Text label already deleted: {e}")
         if hasattr(self, '_hint_label') and self._hint_label is not None:
             try:
                 self._hint_label.setText(tr('palette_management.empty_hint'))
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                logger.debug(f"Hint label already deleted: {e}")
 
 
 # =============================================================================
@@ -1105,8 +1110,8 @@ class PaletteManagementInterface(QWidget):
                 self._palette_service.import_error.disconnect(self._on_import_error)
                 self._palette_service.export_finished.disconnect(self._on_export_finished)
                 self._palette_service.export_error.disconnect(self._on_export_error)
-            except (TypeError, RuntimeError):
-                pass
+            except (TypeError, RuntimeError) as e:
+                logger.debug(f"Disconnect signals failed: {e}")
         super().closeEvent(event)
 
     def setup_ui(self):
@@ -1193,9 +1198,11 @@ class PaletteManagementInterface(QWidget):
         msg_box.yesButton.setText(tr('dialogs.confirm.confirm_btn'))
         msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
         if msg_box.exec():
+            favorites_count = len(self._config_manager.get_favorites())
             self._config_manager.clear_favorites()
             self._config_manager.save()
             self._load_favorites()
+            log_user_action("clear_all_favorites", {"count": favorites_count}, "success")
 
     def _on_favorite_deleted(self, favorite_id):
         """收藏删除回调"""
@@ -1214,6 +1221,7 @@ class PaletteManagementInterface(QWidget):
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
             self._load_favorites()
+            log_user_action("delete_favorite", {"id": favorite_id, "name": palette_name}, "success")
 
     def _on_import_clicked(self):
         """导入按钮点击"""
@@ -1227,6 +1235,8 @@ class PaletteManagementInterface(QWidget):
         if not file_path:
             return
 
+        log_user_action("import_palette_start", {"file_path": file_path})
+
         self._pending_import_path = file_path
 
         msg_box = MessageBox(
@@ -1237,17 +1247,15 @@ class PaletteManagementInterface(QWidget):
         msg_box.yesButton.setText(tr('dialogs.confirm.append'))
         msg_box.cancelButton.setText(tr('dialogs.confirm.replace'))
 
-        # 获取结果：1=追加, 0=替换
         result = msg_box.exec()
 
-        # 确定导入模式
-        if result == 1:  # 点击了"追加"
+        if result == 1:
             self._pending_import_mode = 'append'
-        else:  # 点击了"替换"
+        else:
             self._pending_import_mode = 'replace'
 
-        # 调用服务开始导入
-        self._get_palette_service().import_from_file(file_path)
+        with log_performance("import_palette", {"file_path": file_path, "mode": self._pending_import_mode}):
+            self._get_palette_service().import_from_file(file_path)
 
     def _on_import_finished(self, palettes: list):
         """导入完成回调
@@ -1263,6 +1271,11 @@ class PaletteManagementInterface(QWidget):
 
         self._config_manager.save()
         self._load_favorites()
+
+        log_user_action("import_palette_finished", {
+            "count": len(palettes),
+            "mode": self._pending_import_mode
+        }, "success")
 
         InfoBar.success(
             title=tr('messages.import_success.title'),
@@ -1280,6 +1293,9 @@ class PaletteManagementInterface(QWidget):
         Args:
             error_msg: 错误信息
         """
+        logger.error(f"Import palette failed: {error_msg}")
+        log_user_action("import_palette_error", {"error": error_msg}, "failed")
+
         InfoBar.error(
             title=tr('messages.import_failed.title'),
             content=tr('messages.import_failed.content', default=error_msg).format(error=error_msg),
@@ -1303,13 +1319,14 @@ class PaletteManagementInterface(QWidget):
         if not file_path:
             return
 
-        # 确保文件扩展名为 .json
         if not file_path.endswith('.json'):
             file_path += '.json'
 
-        # 获取收藏列表并调用服务导出
+        log_user_action("export_palette_start", {"file_path": file_path})
+
         favorites = self._config_manager.get_favorites()
-        self._get_palette_service().export_to_file(favorites, file_path)
+        with log_performance("export_palette", {"file_path": file_path, "count": len(favorites)}):
+            self._get_palette_service().export_to_file(favorites, file_path)
 
     def _on_export_finished(self, file_path: str):
         """导出完成回调
@@ -1317,6 +1334,8 @@ class PaletteManagementInterface(QWidget):
         Args:
             file_path: 导出文件路径
         """
+        log_user_action("export_palette_finished", {"file_path": file_path}, "success")
+
         InfoBar.success(
             title=tr('messages.export_success.title'),
             content=tr('messages.export_success.content', default=f"收藏已导出到：{file_path}").format(path=file_path),
@@ -1333,6 +1352,9 @@ class PaletteManagementInterface(QWidget):
         Args:
             error_msg: 错误信息
         """
+        logger.error(f"Export palette failed: {error_msg}")
+        log_user_action("export_palette_error", {"error": error_msg}, "failed")
+
         InfoBar.error(
             title=tr('messages.export_failed.title'),
             content=tr('messages.export_failed.content', default=error_msg).format(error=error_msg),
@@ -1436,6 +1458,12 @@ class PaletteManagementInterface(QWidget):
 
         self._load_favorites()
 
+        log_user_action("add_favorite", {
+            "id": palette_data.get('id'),
+            "name": palette_data.get('name'),
+            "color_count": len(palette_data.get('colors', []))
+        }, "success")
+
         InfoBar.success(
             title=tr('messages.add_success.title'),
             content=tr('messages.add_success.content', default=f"配色「{palette_data['name']}」已添加").format(name=palette_data['name']),
@@ -1471,8 +1499,13 @@ class PaletteManagementInterface(QWidget):
         if self._config_manager.update_favorite(favorite_id, new_palette_data):
             self._config_manager.save()
 
-            # 局部刷新：只更新被编辑的卡片，避免重新加载整个列表
             self._update_favorite_card(favorite_id, new_palette_data)
+
+            log_user_action("edit_favorite", {
+                "id": favorite_id,
+                "name": new_palette_data.get('name'),
+                "color_count": len(new_palette_data.get('colors', []))
+            }, "success")
 
             InfoBar.success(
                 title=tr('messages.update_success.title'),
@@ -1484,6 +1517,9 @@ class PaletteManagementInterface(QWidget):
                 parent=self.window()
             )
         else:
+            logger.error(f"Update favorite failed: id={favorite_id}")
+            log_user_action("edit_favorite", {"id": favorite_id}, "failed")
+
             InfoBar.error(
                 title=tr('messages.update_failed.title'),
                 content=tr('messages.update_failed.content'),
@@ -1551,6 +1587,12 @@ class PaletteManagementInterface(QWidget):
         if self._config_manager.update_favorite_color(favorite_id, color_index, color_info):
             self._config_manager.save()
 
+            log_user_action("update_favorite_color", {
+                "id": favorite_id,
+                "color_index": color_index,
+                "hex": color_info.get('hex')
+            }, "success")
+
             InfoBar.success(
                 title=tr('messages.color_updated.title'),
                 content=tr('messages.color_updated.content', default=f"配色中的颜色已更新为 {color_info.get('hex', '#------')}").format(hex=color_info.get('hex', '#------')),
@@ -1560,6 +1602,8 @@ class PaletteManagementInterface(QWidget):
                 duration=2000,
                 parent=self.window()
             )
+        else:
+            logger.error(f"Update favorite color failed: id={favorite_id}, index={color_index}")
 
     def _load_settings(self):
         """加载显示设置"""

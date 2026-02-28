@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ServiceFactory, ZONE_WIDTH
+from core import get_luminance, get_zone, ServiceFactory, ZONE_WIDTH, log_user_action
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -730,6 +730,11 @@ class BaseCanvas(QWidget):
                 file_path = urls[0].toLocalFile()
                 valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
                 if file_path.lower().endswith(valid_extensions):
+                    log_user_action(
+                        action="open_image",
+                        params={"path": file_path, "source": "drag_drop"},
+                        result="success"
+                    )
                     self.set_image(file_path)
                     event.acceptProposedAction()
                     return

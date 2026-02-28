@@ -11,9 +11,12 @@ from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 
 # 项目模块导入
 from core import LuminanceService
+from core.logger import get_logger, log_user_action
 from utils import tr, get_locale_manager
 from .canvases import LuminanceCanvas
 from .histograms import LuminanceHistogramWidget
+
+logger = get_logger("luminance_extract")
 
 
 class LuminanceExtractInterface(QWidget):
@@ -90,7 +93,7 @@ class LuminanceExtractInterface(QWidget):
         Args:
             error_msg: 错误信息
         """
-        print(f"明度计算错误: {error_msg}")
+        logger.error(f"明度计算错误: {error_msg}")
 
     def open_image(self):
         """打开图片文件（独立导入）"""
@@ -102,6 +105,7 @@ class LuminanceExtractInterface(QWidget):
         )
 
         if file_path:
+            log_user_action("open_image", {"file_path": file_path})
             self._load_image(file_path)
 
     def change_image(self):
@@ -177,14 +181,13 @@ class LuminanceExtractInterface(QWidget):
             is_dragging: 是否正在拖动
         """
         if is_dragging:
-            # 记录正在拖动的采样点索引
             self._dragging_index = index
-            # 显示当前拖动采样点的区域高亮
             zones = self.luminance_canvas.get_picker_zones()
             if 0 <= index < len(zones):
                 self.histogram_widget.set_highlight_zones([zones[index]])
+                log_user_action("picker_drag_start", {"picker_index": index, "zone": zones[index]})
         else:
-            # 拖动结束，清除记录和高亮
+            log_user_action("picker_drag_end", {"picker_index": index})
             self._dragging_index = -1
             self.histogram_widget.clear_highlight()
 
@@ -206,6 +209,7 @@ class LuminanceExtractInterface(QWidget):
 
     def clear_image(self):
         """清空图片（供外部调用，会发射信号同步到其他面板）"""
+        log_user_action("clear_image", {"source": "luminance_extract"})
         self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):
@@ -220,7 +224,7 @@ class LuminanceExtractInterface(QWidget):
         Args:
             zone: Zone编号 (0-8)
         """
-        # 在画布上高亮显示该Zone的亮度范围
+        log_user_action("histogram_zone_pressed", {"zone": zone})
         self.luminance_canvas.highlight_zone(zone)
 
     def on_histogram_zone_released(self):

@@ -17,6 +17,9 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt
 # 项目模块导入
 from .color import hex_to_rgb, get_color_info
 from .grouping import generate_groups
+from .logger import get_logger, log_performance
+
+logger = get_logger("palette_service")
 
 
 class PaletteImporter(QThread):
@@ -74,87 +77,89 @@ class PaletteImporter(QThread):
 
     def run(self):
         """在子线程中执行配色导入"""
-        try:
-            if self._check_cancelled():
-                return
-
-            # 读取JSON文件
-            with open(self._file_path, 'r', encoding='utf-8') as f:
-                import_data = json.load(f)
-
-            if self._check_cancelled():
-                return
-
-            # 验证数据格式
-            if not isinstance(import_data, dict):
-                self.error.emit("文件格式错误：根对象必须是字典")
-                return
-
-            palettes = import_data.get("palettes", [])
-            if not isinstance(palettes, list):
-                self.error.emit("文件格式错误：palettes 必须是列表")
-                return
-
-            if not palettes:
-                self.error.emit("文件中没有配色数据")
-                return
-
-            if self._check_cancelled():
-                return
-
-            # 转换颜色数据
-            valid_favorites = []
-            for palette in palettes:
+        with log_performance("palette_import", {"file": self._file_path}):
+            try:
                 if self._check_cancelled():
                     return
 
-                if not isinstance(palette, dict):
-                    continue
+                logger.info(f"开始导入配色文件: {self._file_path}")
 
-                colors_data = palette.get("colors", [])
-                if not isinstance(colors_data, list) or not colors_data:
-                    continue
+                with open(self._file_path, 'r', encoding='utf-8') as f:
+                    import_data = json.load(f)
 
-                colors = []
-                for hex_color in colors_data:
-                    if isinstance(hex_color, str) and hex_color.startswith('#'):
-                        try:
-                            r, g, b = hex_to_rgb(hex_color)
-                            color_info = get_color_info(r, g, b)
-                            colors.append(color_info)
-                        except Exception:
-                            # 转换失败时添加基本信息
-                            colors.append({"hex": hex_color, "rgb": (0, 0, 0)})
+                if self._check_cancelled():
+                    return
 
-                if colors:
-                    favorite_data = {
-                        "id": str(uuid.uuid4()),
-                        "name": palette.get("name", "未命名"),
-                        "colors": colors,
-                        "created_at": datetime.now().isoformat(),
-                        "source": "import"
-                    }
-                    valid_favorites.append(favorite_data)
+                if not isinstance(import_data, dict):
+                    self.error.emit("文件格式错误：根对象必须是字典")
+                    return
 
-            if self._check_cancelled():
-                return
+                palettes = import_data.get("palettes", [])
+                if not isinstance(palettes, list):
+                    self.error.emit("文件格式错误：palettes 必须是列表")
+                    return
 
-            if not valid_favorites:
-                self.error.emit("没有有效的配色数据")
-                return
+                if not palettes:
+                    self.error.emit("文件中没有配色数据")
+                    return
 
-            # 发送成功信号
-            self.finished.emit(valid_favorites)
+                if self._check_cancelled():
+                    return
 
-        except json.JSONDecodeError as e:
-            if not self._check_cancelled():
-                self.error.emit(f"JSON 解析错误: {e}")
-        except (IOError, OSError) as e:
-            if not self._check_cancelled():
-                self.error.emit(f"文件读取错误: {e}")
-        except Exception as e:
-            if not self._check_cancelled():
-                self.error.emit(f"导入失败: {e}")
+                valid_favorites = []
+                for palette in palettes:
+                    if self._check_cancelled():
+                        return
+
+                    if not isinstance(palette, dict):
+                        continue
+
+                    colors_data = palette.get("colors", [])
+                    if not isinstance(colors_data, list) or not colors_data:
+                        continue
+
+                    colors = []
+                    for hex_color in colors_data:
+                        if isinstance(hex_color, str) and hex_color.startswith('#'):
+                            try:
+                                r, g, b = hex_to_rgb(hex_color)
+                                color_info = get_color_info(r, g, b)
+                                colors.append(color_info)
+                            except Exception:
+                                colors.append({"hex": hex_color, "rgb": (0, 0, 0)})
+
+                    if colors:
+                        favorite_data = {
+                            "id": str(uuid.uuid4()),
+                            "name": palette.get("name", "未命名"),
+                            "colors": colors,
+                            "created_at": datetime.now().isoformat(),
+                            "source": "import"
+                        }
+                        valid_favorites.append(favorite_data)
+
+                if self._check_cancelled():
+                    return
+
+                if not valid_favorites:
+                    self.error.emit("没有有效的配色数据")
+                    return
+
+                logger.info(f"配色导入成功，共 {len(valid_favorites)} 个配色")
+                self.finished.emit(valid_favorites)
+
+            except json.JSONDecodeError as e:
+                if not self._check_cancelled():
+                    logger.error(f"JSON解析错误: {e}", exc_info=True)
+                    self.error.emit(f"JSON 解析错误: {e}")
+            except (IOError, OSError) as e:
+                if not self._check_cancelled():
+                    logger.error(f"文件读取错误: {e}", exc_info=True)
+                    self.error.emit(f"文件读取错误: {e}")
+            except Exception as e:
+                if not self._check_cancelled():
+                    logger.error(f"导入失败: {e}", exc_info=True)
+                    self.error.emit(f"导入失败: {e}")
 
 
 class PaletteExporter(QThread):
@@ -214,70 +219,71 @@ class PaletteExporter(QThread):
 
     def run(self):
         """在子线程中执行配色导出"""
-        try:
-            if self._check_cancelled():
-                return
-
-            # 转换配色数据为导出格式
-            export_palettes = []
-            for fav in self._palettes:
+        with log_performance("palette_export", {"file": self._file_path}):
+            try:
                 if self._check_cancelled():
                     return
 
-                colors = fav.get("colors", [])
-                hex_colors = []
-                for color_info in colors:
-                    if isinstance(color_info, dict):
-                        hex_color = color_info.get("hex", "")
-                        if hex_color:
-                            hex_colors.append(hex_color)
-                    elif isinstance(color_info, str):
-                        hex_colors.append(color_info)
+                logger.info(f"开始导出配色到文件: {self._file_path}")
 
-                if hex_colors:
-                    export_palettes.append({
-                        "name": fav.get("name", "未命名"),
-                        "colors": hex_colors
-                    })
+                export_palettes = []
+                for fav in self._palettes:
+                    if self._check_cancelled():
+                        return
 
-            if self._check_cancelled():
-                return
+                    colors = fav.get("colors", [])
+                    hex_colors = []
+                    for color_info in colors:
+                        if isinstance(color_info, dict):
+                            hex_color = color_info.get("hex", "")
+                            if hex_color:
+                                hex_colors.append(hex_color)
+                        elif isinstance(color_info, str):
+                            hex_colors.append(color_info)
 
-            # 生成分组配置
-            groups = generate_groups(len(export_palettes))
+                    if hex_colors:
+                        export_palettes.append({
+                            "name": fav.get("name", "未命名"),
+                            "colors": hex_colors
+                        })
 
-            # 构建导出数据
-            now = datetime.now()
-            palette_id = f"user_palettes_{now.strftime('%Y%m%d_%H%M%S')}"
-            export_data = {
-                "version": "1.0",
-                "id": palette_id,
-                "name": "",
-                "name_zh": "",
-                "description": "",
-                "author": "",
-                "created_at": now.isoformat(),
-                "category": "user_palette",
-                "palettes": export_palettes,
-                "groups": groups
-            }
+                if self._check_cancelled():
+                    return
 
-            if self._check_cancelled():
-                return
+                groups = generate_groups(len(export_palettes))
 
-            # 写入JSON文件
-            with open(self._file_path, 'w', encoding='utf-8') as f:
-                json.dump(export_data, f, ensure_ascii=False, indent=4)
+                now = datetime.now()
+                palette_id = f"user_palettes_{now.strftime('%Y%m%d_%H%M%S')}"
+                export_data = {
+                    "version": "1.0",
+                    "id": palette_id,
+                    "name": "",
+                    "name_zh": "",
+                    "description": "",
+                    "author": "",
+                    "created_at": now.isoformat(),
+                    "category": "user_palette",
+                    "palettes": export_palettes,
+                    "groups": groups
+                }
 
-            # 发送成功信号
-            self.finished.emit(self._file_path)
+                if self._check_cancelled():
+                    return
 
-        except (IOError, OSError) as e:
-            if not self._check_cancelled():
-                self.error.emit(f"文件写入错误: {e}")
-        except Exception as e:
-            if not self._check_cancelled():
-                self.error.emit(f"导出失败: {e}")
+                with open(self._file_path, 'w', encoding='utf-8') as f:
+                    json.dump(export_data, f, ensure_ascii=False, indent=4)
+
+                logger.info(f"配色导出成功，共 {len(export_palettes)} 个配色")
+                self.finished.emit(self._file_path)
+
+            except (IOError, OSError) as e:
+                if not self._check_cancelled():
+                    logger.error(f"文件写入错误: {e}", exc_info=True)
+                    self.error.emit(f"文件写入错误: {e}")
+            except Exception as e:
+                if not self._check_cancelled():
+                    logger.error(f"导出失败: {e}", exc_info=True)
+                    self.error.emit(f"导出失败: {e}")
 
 
 class PaletteService(QObject):
@@ -521,8 +527,11 @@ class PaletteService(QObject):
             return True, ""
 
         except json.JSONDecodeError as e:
+            logger.error(f"JSON解析错误: {e}", exc_info=True)
             return False, f"JSON 解析错误: {e}"
         except (IOError, OSError) as e:
+            logger.error(f"文件读取错误: {e}", exc_info=True)
             return False, f"文件读取错误: {e}"
         except Exception as e:
+            logger.error(f"验证失败: {e}", exc_info=True)
             return False, f"验证失败: {e}"
