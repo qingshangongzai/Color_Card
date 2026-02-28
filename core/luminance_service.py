@@ -18,8 +18,31 @@ from .color import get_luminance, get_zone, ZONE_WIDTH
 class LuminanceCalculator(QThread):
     """明度计算线程
 
-    在后台线程中执行明度分布计算，避免阻塞UI。
+    在后台线程中执行明度分布计算，避免阻塞 UI 线程。
     支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - QImage 数据在构造时复制，避免主线程修改
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        calculator = LuminanceCalculator(image, parent=self)
+        calculator.calculation_finished.connect(
+            self._on_finished, Qt.ConnectionType.QueuedConnection
+        )
+        calculator.calculation_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        calculator.start()
+
+        # 取消计算
+        calculator.cancel()
+
+    信号:
+        calculation_finished: 计算完成时发射，参数为结果字典
+        calculation_error: 计算出错时发射，参数为错误信息
     """
 
     # 信号：计算完成
@@ -103,9 +126,28 @@ class LuminanceService(QObject):
     """明度服务，管理明度计算相关业务逻辑
 
     职责：
-    - 明度计算和Zone分析
+    - 明度计算和 Zone 分析
     - 亮度分布统计
     - 高亮区域计算
+
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 计算器线程在构造时复制 QImage，避免主线程修改
+    - 服务析构时会等待线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = LuminanceService(parent=self)
+        service.calculation_finished.connect(
+            self._on_calculation_finished, Qt.ConnectionType.QueuedConnection
+        )
+        service.calculation_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.calculate_luminance_zones(image)
+
+        # 取消计算
+        service.cancel_calculation()
 
     信号：
         calculation_started: 计算开始

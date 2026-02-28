@@ -1,0 +1,8 @@
+# 安装开发依赖
+pip install -r tests/requirements-dev.txt
+
+# 运行测试
+python -m pytest tests/ -v
+
+# 运行测试（带覆盖率报告，需要取消注释 pytest-cov）
+# python -m pytest tests/ -v --cov=core --cov-report=html

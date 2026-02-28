@@ -186,12 +186,38 @@ class ColorSpaceDetector:
 
 class ProgressiveImageLoader(QThread):
     """分阶段图片加载工作线程
-    
+
     实现两阶段加载：
     1. 快速解码显示尺寸图片（用于快速显示）
     2. 后台解码完整图片（用于直方图计算和精确取色）
-    
-    支持取消操作，避免阻塞UI线程
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        loader = ProgressiveImageLoader(image_path, display_size=1920, parent=self)
+        loader.display_ready.connect(
+            self._on_display_ready, Qt.ConnectionType.QueuedConnection
+        )
+        loader.full_ready.connect(
+            self._on_full_ready, Qt.ConnectionType.QueuedConnection
+        )
+        loader.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        loader.start()
+
+        # 取消加载
+        loader.cancel()
+
+    信号:
+        display_ready: 显示尺寸图片就绪，参数为 (image_data, width, height)
+        full_ready: 完整图片就绪，参数为 (image_data, width, height, format)
+        colorspace_ready: 色彩空间检测完成，参数为 ColorSpaceInfo
+        progress: 加载进度 (0-100)
+        error: 加载错误，参数为错误信息
     """
     display_ready = Signal(bytes, int, int)
     full_ready = Signal(bytes, int, int, str)
@@ -214,11 +240,12 @@ class ProgressiveImageLoader(QThread):
         self._colorspace_info: Optional[ColorSpaceInfo] = None
 
     def cancel(self) -> None:
-        """请求取消加载"""
+        """取消任务（异步，不阻塞调用线程）
+
+        设置取消标志位，线程会在检查点检测到后自然退出。
+        不调用 wait()，避免阻塞 UI 线程。
+        """
         self._is_cancelled = True
-        # 等待线程完成，但设置超时避免阻塞UI
-        if self.isRunning():
-            self.wait(200)  # 等待最多200毫秒
 
     def _check_cancelled(self) -> bool:
         """检查是否被取消
@@ -307,13 +334,35 @@ class ProgressiveImageLoader(QThread):
 
 class ImageService(QObject):
     """图片服务，管理图片加载相关业务逻辑
-    
+
     职责：
     - 异步图片加载（支持分阶段加载）
     - 加载任务生命周期管理
     - 缩略图生成
     - 色彩空间检测与管理
-    
+
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 加载器线程通过文件路径工作，不涉及 QImage 共享
+    - 服务析构时会等待线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = ImageService(parent=self)
+        service.image_loaded.connect(
+            self._on_image_loaded, Qt.ConnectionType.QueuedConnection
+        )
+        service.loading_progress.connect(
+            self._on_progress, Qt.ConnectionType.QueuedConnection
+        )
+        service.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.load_image_async(image_path)
+
+        # 取消加载
+        service.cancel_loading()
+
     信号：
         loading_started: 加载开始
         loading_progress: 加载进度 (0-100)

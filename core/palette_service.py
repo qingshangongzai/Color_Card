@@ -22,8 +22,30 @@ from .grouping import generate_groups
 class PaletteImporter(QThread):
     """配色导入线程
 
-    在后台线程中执行配色导入，避免阻塞UI。
+    在后台线程中执行配色导入，避免阻塞 UI 线程。
     支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        importer = PaletteImporter(file_path, parent=self)
+        importer.finished.connect(
+            self._on_import_finished, Qt.ConnectionType.QueuedConnection
+        )
+        importer.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        importer.start()
+
+        # 取消导入
+        importer.cancel()
+
+    信号:
+        finished: 导入完成时发射，参数为导入的配色列表
+        error: 导入出错时发射，参数为错误信息
     """
 
     # 信号：导入完成
@@ -138,7 +160,30 @@ class PaletteImporter(QThread):
 class PaletteExporter(QThread):
     """配色导出线程
 
-    在后台线程中执行配色导出，避免阻塞UI。
+    在后台线程中执行配色导出，避免阻塞 UI 线程。
+    支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        exporter = PaletteExporter(palettes, file_path, parent=self)
+        exporter.finished.connect(
+            self._on_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        exporter.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        exporter.start()
+
+        # 取消导出
+        exporter.cancel()
+
+    信号:
+        finished: 导出完成时发射，参数为导出文件路径
+        error: 导出出错时发射，参数为错误信息
     """
 
     # 信号：导出完成
@@ -242,6 +287,25 @@ class PaletteService(QObject):
     - 配色导入（文件解析、数据验证、格式转换）
     - 配色导出（数据转换、文件生成）
     - 配色数据验证
+
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 导入器/导出器线程不共享数据，通过信号传递结果
+    - 服务析构时会等待所有线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = PaletteService(parent=self)
+        service.import_finished.connect(
+            self._on_import_finished, Qt.ConnectionType.QueuedConnection
+        )
+        service.import_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.import_from_file(file_path)
+
+        # 取消导入
+        service.cancel_import()
 
     信号：
         import_started: 导入开始
