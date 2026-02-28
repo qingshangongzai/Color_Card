@@ -467,6 +467,7 @@
         <div class="scroll-progress-dot" data-section="changelog" title="更新日志"></div>
         <div class="scroll-progress-dot" data-section="story" title="项目起源"></div>
         <div class="scroll-progress-dot" data-section="feedback" title="反馈"></div>
+        <div class="scroll-progress-dot" data-section="about" title="关于我们"></div>
     </div>
 
     <!-- Navigation -->
@@ -485,6 +486,7 @@
                     <a href="#story" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
                     <a href="#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
                     <a href="#feedback" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
+                    <a href="#about" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -854,6 +856,151 @@
                     <span class="text-brand-primary font-medium">前往提交 →</span>
                 </a>
             </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 overflow-hidden">
+        <div class="section-container">
+            <!-- Section Header -->
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+                    <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">关于我们</span>
+                </div>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">与我们一起发光发热</h2>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                    生如蜉蝣，却执意丈量天光的刻度
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
+                <!-- Left: Team Introduction -->
+                <div class="order-2 lg:order-1 flex flex-col gap-8">
+                    <!-- Philosophy -->
+                    <div class="glass-card rounded-2xl p-8 border-l-4 border-brand-primary flex-1">
+                        <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                            </svg>
+                            我们的理念
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                            生如蜉蝣，却执意丈量天光的刻度；仰望星海，亦于深渊回响中听见自己的心跳。
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            我是<span class="text-brand-primary font-medium">浮晓 HXiao</span>：取蜉蝣之浮，记录微小日常的脉搏；取知晓之晓，探寻广阔世界的模样。在这里，我们虽然渺小，但绝不停止思考与远望。
+                        </p>
+                    </div>
+
+                    <!-- Open Source Spirit -->
+                    <div class="glass-card rounded-2xl p-8 flex-1">
+                        <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            开源精神
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
+                            Color Card 采用 GPL-3.0 开源协议，完全免费，无需联网，无需注册，隐私安全。
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+                            我们相信，优秀的工具应该人人可用。从色彩提取到配色应用，我们致力于打造专业级的本地配色解决方案。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right: Join Us -->
+                <div class="order-1 lg:order-2 flex">
+                    <div class="glass-card rounded-2xl p-8 lg:p-10 flex flex-col w-full">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">寻找共鸣 & 共创者</h3>
+                        </div>
+
+                        <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+                            一个人构想的世界是单薄的，一个人的能力是有限的。我们想寻找到与我们有相近价值观的人，与我们一同发光发热。
+                        </p>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">擅长剪辑</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">后期制作交给你</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-brand-secondary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-brand-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">擅长策划</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">创意构思交给你</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-brand-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">擅长开发</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">程序编写交给你</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-900 dark:text-white">擅长统筹</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">甚至"负责人"的位置也可以让给你</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                在这里，身份不重要，能力大小不重要，重要的是我们都认可同一份价值观。
+                            </p>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="mailto:hxiao_studio@163.com" class="btn-primary flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                    联系我们
+                                </a>
+                                <a href="https://space.bilibili.com/1232406878" target="_blank" class="btn-secondary flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/>
+                                    </svg>
+                                    Bilibili
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
 
@@ -1332,7 +1479,7 @@
         // Scroll Progress Indicator
         function initScrollProgress() {
             const dots = document.querySelectorAll('.scroll-progress-dot');
-            const sections = ['hero', 'features', 'screenshots', 'palettes', 'download', 'changelog', 'story', 'feedback'];
+            const sections = ['hero', 'features', 'screenshots', 'palettes', 'download', 'changelog', 'story', 'feedback', 'about'];
             let isScrolling = false;
             let scrollTimeout;
 
