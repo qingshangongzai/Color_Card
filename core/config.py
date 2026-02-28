@@ -1,6 +1,5 @@
 # 标准库导入
 import json
-import logging
 import shutil
 import uuid
 from datetime import datetime
@@ -9,10 +8,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # 项目模块导入
 from version import version_manager
+from .logger import get_logger
 
 
-# 创建模块级日志记录器
-logger = logging.getLogger(__name__)
+logger = get_logger("config")
 
 
 class ConfigLoadError(Exception):
@@ -85,20 +84,22 @@ class ConfigManager:
             Dict[str, Any]: 加载的配置字典
         """
         if not self._config_path.exists():
+            logger.info("配置文件不存在，使用默认配置")
             return self._config
 
         try:
             with open(self._config_path, 'r', encoding='utf-8') as f:
                 loaded_config = json.load(f)
 
-            # 数据迁移：将旧版本的 schemes 和 extracts 合并到 favorites
             self._migrate_favorites_data(loaded_config)
 
-            # 合并加载的配置和默认配置（保留默认值作为后备）
             self._merge_config(self._config, loaded_config)
+            
+            version = self._config.get("version", "unknown")
+            logger.info(f"配置加载完成: version={version}")
 
         except (json.JSONDecodeError, IOError, OSError) as e:
-            logger.error(f"加载配置文件失败: {e}")
+            logger.error(f"加载配置文件失败: error={e}")
             raise ConfigLoadError(f"无法加载配置文件: {e}") from e
 
         return self._config
@@ -114,24 +115,19 @@ class ConfigManager:
 
         favorites = []
 
-        # 迁移 schemes
         if 'schemes' in loaded_config:
             for scheme in loaded_config['schemes']:
                 if isinstance(scheme, dict):
                     favorites.append(scheme)
 
-        # 迁移 extracts
         if 'extracts' in loaded_config:
             for extract in loaded_config['extracts']:
                 if isinstance(extract, dict):
-                    # 确保 extract 有正确的 source 字段
                     extract['source'] = 'color_extract'
                     favorites.append(extract)
 
-        # 更新 favorites
         if favorites:
             loaded_config['favorites'] = favorites
-            # 清理旧数据
             if 'schemes' in loaded_config:
                 del loaded_config['schemes']
             if 'extracts' in loaded_config:
@@ -140,6 +136,7 @@ class ConfigManager:
                 del loaded_config['colors']
             if 'display_settings' in loaded_config:
                 del loaded_config['display_settings']
+            logger.info(f"配置数据迁移完成: 迁移了 {len(favorites)} 条收藏记录")
 
     def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
         """递归合并配置字典
@@ -168,8 +165,9 @@ class ConfigManager:
         try:
             with open(self._config_path, 'w', encoding='utf-8') as f:
                 json.dump(self._config, f, ensure_ascii=False, indent=4)
+            logger.debug("配置保存完成")
         except (IOError, OSError) as e:
-            print(f"保存配置文件失败: {e}")
+            logger.error(f"保存配置文件失败: error={e}")
 
     def get(self, key: str, default: Any = None) -> Any:
         """获取配置项

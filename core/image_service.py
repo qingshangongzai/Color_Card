@@ -16,6 +16,12 @@ from PIL.ExifTags import TAGS
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap
 
+# 项目模块导入
+from .logger import get_logger, log_performance
+
+
+logger = get_logger("image_service")
+
 # 增加 PIL 图片像素限制，支持超大图片（约 5 亿像素）
 Image.MAX_IMAGE_PIXELS = 500_000_000
 
@@ -268,67 +274,69 @@ class ProgressiveImageLoader(QThread):
         try:
             self.progress.emit(5)
 
-            with Image.open(self._image_path) as pil_image:
-                if self._check_cancelled():
-                    return
-                
-                self._colorspace_info = ColorSpaceDetector.detect(pil_image)
-                self.colorspace_ready.emit(self._colorspace_info)
+            with log_performance("load_image", {"path": self._image_path}):
+                with Image.open(self._image_path) as pil_image:
+                    if self._check_cancelled():
+                        return
+                    
+                    self._colorspace_info = ColorSpaceDetector.detect(pil_image)
+                    self.colorspace_ready.emit(self._colorspace_info)
 
-                if pil_image.mode != 'RGB':
-                    pil_image = pil_image.convert('RGB')
+                    if pil_image.mode != 'RGB':
+                        pil_image = pil_image.convert('RGB')
 
-                width, height = pil_image.size
-                max_dim = max(width, height)
-
-                if self._check_cancelled():
-                    return
-
-                if max_dim > self._display_size:
-                    display_img = pil_image.copy()
-                    display_img.thumbnail(
-                        (self._display_size, self._display_size),
-                        Image.Resampling.LANCZOS
-                    )
+                    width, height = pil_image.size
+                    max_dim = max(width, height)
 
                     if self._check_cancelled():
                         return
 
-                    buffer = io.BytesIO()
-                    display_img.save(buffer, format='BMP')
-                    display_data = buffer.getvalue()
+                    if max_dim > self._display_size:
+                        display_img = pil_image.copy()
+                        display_img.thumbnail(
+                            (self._display_size, self._display_size),
+                            Image.Resampling.LANCZOS
+                        )
 
-                    self.display_ready.emit(display_data, width, height)
-                    self.progress.emit(50)
+                        if self._check_cancelled():
+                            return
 
-                    del display_img
-                else:
-                    buffer = io.BytesIO()
-                    pil_image.save(buffer, format='BMP')
-                    display_data = buffer.getvalue()
+                        buffer = io.BytesIO()
+                        display_img.save(buffer, format='BMP')
+                        display_data = buffer.getvalue()
 
-                    self.display_ready.emit(display_data, width, height)
-                    self.progress.emit(50)
+                        self.display_ready.emit(display_data, width, height)
+                        self.progress.emit(50)
 
-                if self._check_cancelled():
-                    return
+                        del display_img
+                    else:
+                        buffer = io.BytesIO()
+                        pil_image.save(buffer, format='BMP')
+                        display_data = buffer.getvalue()
 
-                self.progress.emit(60)
+                        self.display_ready.emit(display_data, width, height)
+                        self.progress.emit(50)
 
-                full_buffer = io.BytesIO()
-                pil_image.save(full_buffer, format='BMP')
-                full_data = full_buffer.getvalue()
+                    if self._check_cancelled():
+                        return
 
-                if self._check_cancelled():
-                    return
+                    self.progress.emit(60)
 
-                self.progress.emit(90)
+                    full_buffer = io.BytesIO()
+                    pil_image.save(full_buffer, format='BMP')
+                    full_data = full_buffer.getvalue()
 
-                self.full_ready.emit(full_data, width, height, 'BMP')
-                self.progress.emit(100)
+                    if self._check_cancelled():
+                        return
+
+                    self.progress.emit(90)
+
+                    self.full_ready.emit(full_data, width, height, 'BMP')
+                    self.progress.emit(100)
 
         except (IOError, OSError, ValueError) as e:
             if not self._check_cancelled():
+                logger.error(f"图片加载异常: path={self._image_path}, error={str(e)}")
                 self.error.emit(str(e))
 
 
@@ -426,20 +434,20 @@ class ImageService(QObject):
         self._current_path = path
         self._colorspace_info = None
 
-        # 检查内存管理器中是否已有该图片
         cached = self._get_memory_manager().get_image(path)
         if cached:
             pixmap, image = cached
+            logger.debug(f"从缓存加载图片: path={path}")
             self.image_loaded.emit(pixmap, image)
             return
 
         if self._loader is not None:
             self._loader.cancel()
-            # 等待线程完全结束
             if self._loader.isRunning():
-                self._loader.wait(500)  # 等待最多500ms
+                self._loader.wait(500)
             self._loader = None
 
+        logger.info(f"开始加载图片: path={path}")
         self.loading_started.emit()
 
         self._loader = ProgressiveImageLoader(path, display_size, self)
@@ -467,6 +475,7 @@ class ImageService(QObject):
         """取消当前加载任务"""
         if self._loader is not None:
             self._loader.cancel()
+            logger.debug("加载任务已取消")
 
     def get_colorspace_info(self) -> Optional[ColorSpaceInfo]:
         """获取当前图片的色彩空间信息
@@ -524,10 +533,11 @@ class ImageService(QObject):
         image = QImage.fromData(image_data, fmt)
         pixmap = QPixmap.fromImage(image)
 
-        # 添加到内存管理器
         if self._current_path:
             self._memory_manager.add_image(self._current_path, pixmap, image)
 
+        colorspace_name = self._colorspace_info.name if self._colorspace_info else "unknown"
+        logger.info(f"图片加载完成: size={width}x{height}, colorspace={colorspace_name}")
         self.image_loaded.emit(pixmap, image)
 
     def _on_colorspace_ready(self, colorspace_info: ColorSpaceInfo) -> None:
@@ -545,6 +555,7 @@ class ImageService(QObject):
         Args:
             error_msg: 错误信息
         """
+        logger.error(f"图片加载失败: path={self._current_path}, error={error_msg}")
         self.error.emit(error_msg)
 
     def _cleanup_loader(self) -> None:
