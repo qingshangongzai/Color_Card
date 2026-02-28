@@ -10,9 +10,12 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager
+from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
 
 from dialogs import AboutDialog, UpdateAvailableDialog
+
+logger = get_logger("settings")
 from version import version_manager
 from utils.theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
 from utils.platform import is_windows_10
@@ -259,7 +262,8 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.language', language_code)
         self._config_manager.save()
         
-        # 切换语言
+        log_user_action("change_language", {"language_code": language_code})
+        
         set_language(language_code)
         
         self.language_changed.emit(language_code)
@@ -456,6 +460,7 @@ class SettingsInterface(QWidget):
         self._hex_visible = checked
         self._config_manager.set('settings.hex_visible', checked)
         self._config_manager.save()
+        log_user_action("toggle_hex_display", {"visible": checked})
         self.hex_display_changed.emit(checked)
 
     def _on_color_mode_changed(self):
@@ -473,6 +478,7 @@ class SettingsInterface(QWidget):
         self._color_modes = [mode1, mode2]
         self._config_manager.set('settings.color_modes', self._color_modes)
         self._config_manager.save()
+        log_user_action("change_color_modes", {"mode1": mode1, "mode2": mode2})
         self.color_modes_changed.emit(self._color_modes)
 
     def _on_color_sample_count_changed(self, value):
@@ -480,6 +486,7 @@ class SettingsInterface(QWidget):
         self._color_sample_count = value
         self._config_manager.set('settings.color_sample_count', value)
         self._config_manager.save()
+        log_user_action("change_color_sample_count", {"count": value})
         self.color_sample_count_changed.emit(value)
 
     def _on_luminance_sample_count_changed(self, value):
@@ -487,6 +494,7 @@ class SettingsInterface(QWidget):
         self._luminance_sample_count = value
         self._config_manager.set('settings.luminance_sample_count', value)
         self._config_manager.save()
+        log_user_action("change_luminance_sample_count", {"count": value})
         self.luminance_sample_count_changed.emit(value)
 
     def _create_histogram_scaling_card(self):
@@ -528,6 +536,7 @@ class SettingsInterface(QWidget):
         self._histogram_scaling_mode = mode
         self._config_manager.set('settings.histogram_scaling_mode', mode)
         self._config_manager.save()
+        log_user_action("change_histogram_scaling_mode", {"mode": mode})
         self.histogram_scaling_mode_changed.emit(mode)
 
     def _create_histogram_mode_card(self):
@@ -569,6 +578,7 @@ class SettingsInterface(QWidget):
         self._histogram_mode = mode
         self._config_manager.set('settings.histogram_mode', mode)
         self._config_manager.save()
+        log_user_action("change_histogram_mode", {"mode": mode})
         self.histogram_mode_changed.emit(mode)
 
     def _create_color_wheel_mode_card(self):
@@ -610,6 +620,7 @@ class SettingsInterface(QWidget):
         self._color_wheel_mode = mode
         self._config_manager.set('settings.color_wheel_mode', mode)
         self._config_manager.save()
+        log_user_action("change_color_wheel_mode", {"mode": mode})
         self.color_wheel_mode_changed.emit(mode)
 
     def _create_gradient_color_space_card(self):
@@ -653,6 +664,7 @@ class SettingsInterface(QWidget):
         self._gradient_color_space = mode
         self._config_manager.set('settings.gradient_color_space', mode)
         self._config_manager.save()
+        log_user_action("change_gradient_color_space", {"color_space": mode})
         self.gradient_color_space_changed.emit(mode)
 
     def get_gradient_color_space(self):
@@ -714,11 +726,13 @@ class SettingsInterface(QWidget):
 
     def on_check_update(self):
         """检查更新按钮点击"""
+        log_user_action("check_update")
         current_version = version_manager.get_version()
         UpdateAvailableDialog.check_update(self, current_version)
 
     def on_show_about(self):
         """显示关于对话框"""
+        log_user_action("show_about_dialog")
         dialog = AboutDialog(self)
         dialog.exec()
 
@@ -727,6 +741,7 @@ class SettingsInterface(QWidget):
         self._saturation_threshold = value
         self._config_manager.set('settings.saturation_threshold', value)
         self._config_manager.save()
+        log_user_action("change_saturation_threshold", {"threshold": value})
         self.saturation_threshold_changed.emit(value)
 
     def _on_brightness_threshold_changed(self, value):
@@ -734,6 +749,7 @@ class SettingsInterface(QWidget):
         self._brightness_threshold = value
         self._config_manager.set('settings.brightness_threshold', value)
         self._config_manager.save()
+        log_user_action("change_brightness_threshold", {"threshold": value})
         self.brightness_threshold_changed.emit(value)
 
     def _on_color_wheel_labels_visible_changed(self, checked):
@@ -741,6 +757,7 @@ class SettingsInterface(QWidget):
         self._color_wheel_labels_visible = checked
         self._config_manager.set('settings.color_wheel_labels_visible', checked)
         self._config_manager.save()
+        log_user_action("toggle_color_wheel_labels", {"visible": checked})
         self.color_wheel_labels_visible_changed.emit(checked)
 
     def _update_styles(self):
