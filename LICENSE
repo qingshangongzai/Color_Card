@@ -1399,31 +1399,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 项目官网 (https://qingshangongzai.github.io/Color_Card/) 使用了以下资源：
 
 1. Tailwind CSS
+   版权所有：Tailwind Labs, Inc.
+   项目地址：https://github.com/tailwindlabs/tailwindcss
+   官网：https://tailwindcss.com
    来源：https://cdn.tailwindcss.com
    许可证：MIT License
    用途：CSS 样式框架
 
-   MIT License
-
-   Copyright (c) Tailwind Labs, Inc.
-
-   Permission is hereby granted, free of charge, to any person obtaining a copy
-   of this software and associated documentation files (the "Software"), to deal
-   in the Software without restriction, including without limitation the rights
-   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-   copies of the Software, and to permit persons to whom the Software is
-   furnished to do so, subject to the following conditions:
-
-   The above copyright notice and this permission notice shall be included in all
-   copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-   SOFTWARE.
+   说明：Tailwind CSS 使用 MIT License 许可证。完整的许可证文本请参考本文档第8节
+   "Tailwind CSS Colors" 中的 MIT License 部分。
 
 2. Inter 字体
    来源：Google Fonts (https://fonts.google.com/specimen/Inter)

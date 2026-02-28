@@ -476,9 +476,11 @@ class SVGColorMapper:
         算法：
         1. 按z_index排序（从大到小，即从上到下）
         2. 维护一个"已覆盖区域"列表
-        3. 对于每个元素，检查是否被已覆盖区域完全包含
+        3. 对于大面积元素（面积 > 10000），检查是否被已覆盖区域完全包含
         4. 如果完全包含，标记为is_covered=True
         5. 将当前元素的边界框加入已覆盖区域
+        
+        注意：只检测大面积元素，避免小元素（如眼睛、圆点等细节）被误判
         """
         if not self._elements:
             return
@@ -495,6 +497,10 @@ class SVGColorMapper:
                 continue
             
             if elem.fixed_color:
+                continue
+            
+            # 只检测大面积元素，避免小元素被误判
+            if elem.area < 10000:
                 continue
             
             if self._is_rect_covered(elem.bounding_box, covered_areas):

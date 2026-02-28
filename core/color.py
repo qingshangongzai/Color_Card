@@ -21,6 +21,9 @@ DEFAULT_BRIGHTNESS_STEPS = [100, 90, 80, 70]
 DEFAULT_ANALOGOUS_ANGLE = 30
 DEFAULT_SPLIT_ANGLE = 30
 
+# Zone分区宽度常量 (255/9 = 28.333...)
+ZONE_WIDTH = 255 / 9
+
 
 def _generate_saturation_steps(base_saturation: float, count: int) -> List[float]:
     """生成饱和度递减序列
@@ -299,15 +302,16 @@ def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
 def get_zone(luminance: int) -> str:
     """根据明度值返回区域编号
 
-    将 0-255 的明度值分为8个区域：
-    Zone 0-1: 0-31    (最暗)
-    Zone 1-2: 32-63
-    Zone 2-3: 64-95
-    Zone 3-4: 96-127
-    Zone 4-5: 128-159
-    Zone 5-6: 160-191
-    Zone 6-7: 192-223
-    Zone 7-8: 224-255 (最亮)
+    将 0-255 的明度值分为9个区域：
+    Zone 0-1: 0-28     (最暗)
+    Zone 1-2: 28-56
+    Zone 2-3: 56-85
+    Zone 3-4: 85-113
+    Zone 4-5: 113-141
+    Zone 5-6: 141-170
+    Zone 6-7: 170-198
+    Zone 7-8: 198-226
+    Zone 8-9: 226-255  (最亮)
 
     Args:
         luminance: 明度值 (0-255)
@@ -315,7 +319,7 @@ def get_zone(luminance: int) -> str:
     Returns:
         str: 区域编号字符串，如 "3-4"
     """
-    zone_index = min(luminance // 32, 7)
+    zone_index = min(int(luminance / ZONE_WIDTH), 8)
     return f"{zone_index}-{zone_index + 1}"
 
 
@@ -329,7 +333,7 @@ def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
         tuple: (min_luminance, max_luminance) 元组
     """
     start = int(zone_str.split('-')[0])
-    return (start * 32, (start + 1) * 32 - 1)
+    return (int(start * ZONE_WIDTH), int((start + 1) * ZONE_WIDTH) - 1)
 
 
 def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:

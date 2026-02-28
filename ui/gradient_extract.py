@@ -7,11 +7,11 @@ from typing import List, Tuple
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea,
+    QApplication, QDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QSizePolicy, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, ToolButton, qconfig, isDarkTheme
+    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, ToolButton, qconfig, isDarkTheme, ScrollArea
 )
 
 # 项目模块导入
@@ -137,17 +137,20 @@ class GradientCardPanel(QWidget):
         self.main_layout.setSpacing(10)
 
         # 创建滚动区域
-        self.scroll_area = QScrollArea()
+        self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
+
+        # 设置滚动条角落为透明（防止出现灰色方块）
+        corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
+        self.scroll_area.setCornerWidget(corner_widget)
 
         # 创建卡片容器
         self.cards_container = QWidget()
         self.cards_container.setStyleSheet("background: transparent; border: none;")
         self.cards_layout = QVBoxLayout(self.cards_container)
-        self.cards_layout.setContentsMargins(0, 0, 0, 0)
+        self.cards_layout.setContentsMargins(0, 0, 10, 0)
         self.cards_layout.setSpacing(10)
 
         self.scroll_area.setWidget(self.cards_container)
@@ -197,8 +200,9 @@ class GradientCardPanel(QWidget):
 
     def _clear_cards(self):
         """清空所有卡片"""
-        # 删除所有卡片
+        # 删除所有卡片前先触发 closeEvent 断开信号
         for card in self._cards:
+            card.close()
             card.deleteLater()
         self._cards.clear()
 
@@ -210,6 +214,7 @@ class GradientCardPanel(QWidget):
                 while item.layout().count():
                     child = item.layout().takeAt(0)
                     if child.widget():
+                        child.widget().close()
                         child.widget().deleteLater()
 
     def set_hex_visible(self, visible: bool):
@@ -494,9 +499,12 @@ class GradientExtractInterface(QWidget):
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=2000,
-                parent=self
+                parent=self.window()
             )
             return
+
+        # 复制颜色数据，避免引用问题（与P0修复一致）
+        colors = [color.copy() for color in colors]
 
         # 获取当前收藏数量，生成默认名称（与其他面板一致）
         favorites_count = len(self._config_manager.get_favorites())
@@ -534,7 +542,7 @@ class GradientExtractInterface(QWidget):
                     isClosable=True,
                     position=InfoBarPosition.TOP,
                     duration=2000,
-                    parent=self
+                    parent=self.window()
                 )
 
     def set_color_space(self, color_space: str):

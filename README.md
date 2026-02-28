@@ -30,7 +30,7 @@
 - **配色方案收藏**：支持收藏、管理配色方案，支持批量导入导出JSON文件
 - **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡
 - **配色预览**：支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG
-- **明度分析**：将图片按明度分为5个区域，提供直方图可视化
+- **明度分析**：将图片按明度分为9个区域（基于Adobe标准：黑色、阴影、中间调、高光、白色），提供直方图可视化
 - **多语言支持**：支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言
 - **现代化界面**：基于 Fluent Design 设计语言，支持深色/浅色主题切换
 
@@ -122,7 +122,7 @@
 | 模块 | 功能 |
 |:---|:---|
 | 色彩提取 | 可拖动取色点、多色彩空间显示、一键复制颜色值 |
-| 明度分析 | 5级明度分区、直方图可视化、区域高亮 |
+| 明度分析 | 9级明度分区（Zone 0-8）、直方图可视化、区域高亮 |
 | 配色生成 | 5种配色方案、可交互色环、明度调整 |
 | 渐变提取 | 起始/结束颜色选择、三种颜色空间、中间色数量调整 |
 | 配色管理 | 收藏配色、自定义名称、批量导入导出 |
@@ -247,7 +247,7 @@ Copyright © 2026 浮晓 HXiao Studio
 - **Palette Collection**: Save and manage color schemes, support batch import/export in JSON format
 - **Built-in Color Library**: 13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes
 - **Color Preview**: 8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support
-- **Luminance Analysis**: 5-zone luminance segmentation with histogram visualization
+- **Luminance Analysis**: 9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization
 - **Multi-language Support**: 6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian
 - **Modern Interface**: Based on Fluent Design, supports dark/light theme switching
 
@@ -339,7 +339,7 @@ Copyright © 2026 浮晓 HXiao Studio
 | Module | Features |
 |:---|:---|
 | Color Extraction | Draggable pickers, multiple color spaces, one-click copy |
-| Luminance Analysis | 5-zone segmentation, histogram visualization, zone highlighting |
+| Luminance Analysis | 9-zone segmentation (Zone 0-8), histogram visualization, zone highlighting |
 | Color Generation | 5 color schemes, interactive color wheel, luminance adjustment |
 | Gradient Extraction | Start/end color selection, three color spaces, adjustable intermediate colors |
 | Palette Management | Save palettes, custom names, batch import/export |

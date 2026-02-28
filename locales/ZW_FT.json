@@ -58,7 +58,11 @@
     "favorite_success": {
       "title": "已收藏",
       "content": "配色「{name}」已添加到配色管理"
-    }
+    },
+    "copied": "已複製",
+    "copied_content": "顏色值 {hex} 已複製到剪貼簿",
+    "favorite_failed": "無法收藏",
+    "no_colors_to_favorite": "沒有可收藏的顏色"
   },
   "palette_management": {
     "title": "配色管理",

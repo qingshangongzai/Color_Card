@@ -12,10 +12,29 @@ from .image_service import ColorSpaceInfo
 
 
 class HistogramCalculator(QThread):
-    """后台直方图计算线程
+    """直方图计算线程
 
-    在子线程中执行直方图计算，避免阻塞UI线程。
-    支持明度直方图、RGB直方图、色相直方图计算。
+    在后台线程中执行直方图计算，避免阻塞 UI 线程。
+    支持明度直方图、RGB 直方图、色相直方图计算。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - QImage 数据在构造时复制，避免主线程修改
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        calculator = HistogramCalculator(image, "luminance", parent=self)
+        calculator.finished.connect(
+            self._on_finished, Qt.ConnectionType.QueuedConnection
+        )
+        calculator.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        calculator.start()
+
+        # 取消计算
+        calculator.cancel()
 
     信号:
         finished: 计算完成时发射，参数为计算结果
@@ -42,11 +61,12 @@ class HistogramCalculator(QThread):
         self._is_cancelled = False
 
     def cancel(self) -> None:
-        """请求取消计算"""
+        """取消任务（异步，不阻塞调用线程）
+
+        设置取消标志位，线程会在检查点检测到后自然退出。
+        不调用 wait()，避免阻塞 UI 线程。
+        """
         self._is_cancelled = True
-        # 等待线程完成，但设置超时避免阻塞
-        if self.isRunning():
-            self.wait(50)  # 等待最多50毫秒，避免阻塞UI
 
     def _check_cancelled(self) -> bool:
         """检查是否被取消"""
@@ -112,6 +132,25 @@ class HistogramService(QObject):
     管理直方图计算任务生命周期，提供异步计算接口。
     支持取消机制、延迟计算和缓存复用。
 
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 计算器线程在构造时复制 QImage，避免主线程修改
+    - 服务析构时会等待所有线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = HistogramService(parent=self)
+        service.luminance_histogram_ready.connect(
+            self._on_histogram_ready, Qt.ConnectionType.QueuedConnection
+        )
+        service.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.calculate_luminance_async(image)
+
+        # 取消所有计算
+        service.cancel_all()
+
     信号:
         luminance_histogram_ready: 明度直方图计算完成
         rgb_histogram_ready: RGB直方图计算完成，参数为 (r_hist, g_hist, b_hist)
@@ -141,6 +180,14 @@ class HistogramService(QObject):
         self._current_image_key: str = ""
         self._colorspace_info: Optional[ColorSpaceInfo] = None
         self._gamma: float = 2.2
+
+    def __del__(self):
+        """析构函数：确保所有线程在对象销毁前停止"""
+        self.cancel_all()
+        # 等待所有线程完全结束
+        for calculator in [self._luminance_calculator, self._rgb_calculator, self._hue_calculator]:
+            if calculator is not None and calculator.isRunning():
+                calculator.wait(1000)  # 等待最多1秒
 
     def set_colorspace_info(self, colorspace_info: Optional[ColorSpaceInfo]) -> None:
         """设置色彩空间信息
@@ -382,7 +429,7 @@ class HistogramService(QObject):
         self._hue_calculator = None
 
     def _safe_stop_calculator(self, calculator: Optional[HistogramCalculator]) -> None:
-        """安全地停止计算器线程
+        """安全地停止计算器线程（不使用terminate()）
 
         Args:
             calculator: 要停止的计算器线程
@@ -393,25 +440,22 @@ class HistogramService(QObject):
         # 断开所有信号连接，防止回调触发
         try:
             calculator.finished.disconnect()
-        except:
+        except (TypeError, RuntimeError):
             pass
         try:
             calculator.error.disconnect()
-        except:
+        except (TypeError, RuntimeError):
             pass
 
         # 请求取消
         calculator.cancel()
 
-        # 等待线程结束（非阻塞方式）
+        # 等待线程结束（增加等待时间到500ms）
         if calculator.isRunning():
-            # 使用较短的等待时间，避免阻塞UI
-            calculator.wait(200)
+            calculator.wait(500)
 
-        # 如果线程仍在运行，强制终止（不推荐，但必要时使用）
-        if calculator.isRunning():
-            calculator.terminate()
-            calculator.wait(100)
+        # 注意：如果线程仍在运行，让它在后台自然结束
+        # 不要强制终止，下次创建新计算器时会替换旧实例
 
     def _cancel_luminance_calculator(self) -> None:
         """取消明度直方图计算"""

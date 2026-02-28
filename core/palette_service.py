@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Tuple, Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 
 # 项目模块导入
 from .color import hex_to_rgb, get_color_info
@@ -22,8 +22,30 @@ from .grouping import generate_groups
 class PaletteImporter(QThread):
     """配色导入线程
 
-    在后台线程中执行配色导入，避免阻塞UI。
+    在后台线程中执行配色导入，避免阻塞 UI 线程。
     支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        importer = PaletteImporter(file_path, parent=self)
+        importer.finished.connect(
+            self._on_import_finished, Qt.ConnectionType.QueuedConnection
+        )
+        importer.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        importer.start()
+
+        # 取消导入
+        importer.cancel()
+
+    信号:
+        finished: 导入完成时发射，参数为导入的配色列表
+        error: 导入出错时发射，参数为错误信息
     """
 
     # 信号：导入完成
@@ -138,7 +160,30 @@ class PaletteImporter(QThread):
 class PaletteExporter(QThread):
     """配色导出线程
 
-    在后台线程中执行配色导出，避免阻塞UI。
+    在后台线程中执行配色导出，避免阻塞 UI 线程。
+    支持取消操作。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        exporter = PaletteExporter(palettes, file_path, parent=self)
+        exporter.finished.connect(
+            self._on_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        exporter.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        exporter.start()
+
+        # 取消导出
+        exporter.cancel()
+
+    信号:
+        finished: 导出完成时发射，参数为导出文件路径
+        error: 导出出错时发射，参数为错误信息
     """
 
     # 信号：导出完成
@@ -243,6 +288,25 @@ class PaletteService(QObject):
     - 配色导出（数据转换、文件生成）
     - 配色数据验证
 
+    线程安全说明：
+    - 所有信号连接使用 QueuedConnection，确保跨线程安全
+    - 导入器/导出器线程不共享数据，通过信号传递结果
+    - 服务析构时会等待所有线程结束，确保资源安全释放
+    - 不使用 terminate()，通过 cancel() 优雅停止线程
+
+    使用示例：
+        service = PaletteService(parent=self)
+        service.import_finished.connect(
+            self._on_import_finished, Qt.ConnectionType.QueuedConnection
+        )
+        service.import_error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        service.import_from_file(file_path)
+
+        # 取消导入
+        service.cancel_import()
+
     信号：
         import_started: 导入开始
         import_finished: 导入完成 (palettes)
@@ -270,6 +334,15 @@ class PaletteService(QObject):
         self._importer = None
         self._exporter = None
 
+    def __del__(self):
+        """析构函数：确保线程在对象销毁前停止"""
+        if self._importer is not None and self._importer.isRunning():
+            self._importer.cancel()
+            self._importer.wait(1000)  # 等待最多1秒
+        if self._exporter is not None and self._exporter.isRunning():
+            self._exporter.cancel()
+            self._exporter.wait(1000)  # 等待最多1秒
+
     def import_from_file(self, file_path: str) -> None:
         """从文件导入配色（异步）
 
@@ -288,10 +361,18 @@ class PaletteService(QObject):
 
         # 创建并启动导入线程
         self._importer = PaletteImporter(file_path, self)
-        self._importer.finished.connect(self._on_import_finished)
-        self._importer.error.connect(self.import_error)
-        self._importer.finished.connect(self._cleanup_importer)
-        self._importer.error.connect(self._cleanup_importer)
+        self._importer.finished.connect(
+            self._on_import_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._importer.error.connect(
+            self.import_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._importer.finished.connect(
+            self._cleanup_importer, Qt.ConnectionType.QueuedConnection
+        )
+        self._importer.error.connect(
+            self._cleanup_importer, Qt.ConnectionType.QueuedConnection
+        )
         self._importer.start()
 
     def cancel_import(self) -> None:
@@ -332,10 +413,18 @@ class PaletteService(QObject):
 
         # 创建并启动导出线程
         self._exporter = PaletteExporter(palettes, file_path, self)
-        self._exporter.finished.connect(self._on_export_finished)
-        self._exporter.error.connect(self.export_error)
-        self._exporter.finished.connect(self._cleanup_exporter)
-        self._exporter.error.connect(self._cleanup_exporter)
+        self._exporter.finished.connect(
+            self._on_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._exporter.error.connect(
+            self.export_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._exporter.finished.connect(
+            self._cleanup_exporter, Qt.ConnectionType.QueuedConnection
+        )
+        self._exporter.error.connect(
+            self._cleanup_exporter, Qt.ConnectionType.QueuedConnection
+        )
         self._exporter.start()
 
     def cancel_export(self) -> None:
