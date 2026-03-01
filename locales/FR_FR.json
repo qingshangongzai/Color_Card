@@ -7,6 +7,7 @@
   "navigation": {
     "color_extract": "Extraction de couleurs",
     "luminance_extract": "Extraction de luminance",
+    "gradient_extract": "Extraction de dégradé",
     "color_generation": "Génération de couleurs",
     "palette_management": "Gestion des palettes",
     "preset_color": "Couleurs prédéfinies",
@@ -18,11 +19,11 @@
     "toggle_fullscreen": "Plein écran/Quitter plein écran (F11)"
   },
   "color_extract": {
-    "favorite": "Enregistrer la palette",
-    "extract_dominant": "Extraire les couleurs dominantes",
+    "favorite": "Enregistrer",
+    "extract_dominant": "Extraire",
     "extracting": "Extraction...",
-    "show_high_saturation": "Afficher zones haute saturation",
-    "show_high_brightness": "Afficher zones haute luminosité",
+    "show_high_saturation": "Haute saturation",
+    "show_high_brightness": "Haute luminosité",
     "select_image": "Sélectionner une image",
     "image_filter": "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
   },
@@ -30,17 +31,29 @@
     "select_image": "Sélectionner une image",
     "image_filter": "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
   },
-  "color_generation": {
-    "title": "Schéma de couleurs:",
+  "gradient_extract": {
+    "start_color": "Couleur de départ",
+    "end_color": "Couleur de fin",
+    "steps": "Couleurs intermédiaires",
     "random": "Aléatoire",
     "favorite": "Enregistrer",
+    "select_color": "Sélectionner la couleur",
+    "favorite_success": {
+      "title": "Enregistré",
+      "content": "Le schéma de dégradé a été ajouté à la gestion des palettes"
+    }
+  },
+  "color_generation": {
+    "title": "Schéma de couleurs:",
+    "random": "Hasard",
+    "favorite": "Sauver",
     "brightness": "Luminosité:",
     "schemes": {
       "monochromatic": "Monochromatique",
       "analogous": "Analogue",
       "complementary": "Complémentaire",
-      "split_complementary": "Complémentaire partagé",
-      "double_complementary": "Double complémentaire"
+      "split_complementary": "Partagée",
+      "double_complementary": "Double"
     },
     "favorite_success": {
       "title": "Enregistré",
@@ -130,11 +143,37 @@
       "content": "Aucun SVG disponible pour l'exportation"
     }
   },
+  "canvases": {
+    "click_to_import": "Cliquez pour importer",
+    "importing_image": "Importation...",
+    "loading_full_image": "Chargement...",
+    "finishing": "Finalisation..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "Roue HSB",
+    "hue_red": "R",
+    "hue_orange_red": "O-R",
+    "hue_yellow": "J",
+    "hue_yellow_green": "J-V",
+    "hue_green": "V",
+    "hue_cyan_green": "C-V",
+    "hue_cyan": "C",
+    "hue_cyan_blue": "C-B",
+    "hue_blue": "B",
+    "hue_purple": "P",
+    "hue_magenta": "M",
+    "hue_purple_red": "P-R"
+  },
+  "histograms": {
+    "loading": "Chargement...",
+    "hue_distribution_title": "Distribution"
+  },
   "preset_color": {
-    "title": "Couleurs prédéfinies",
-    "random_palette": "Palette aléatoire",
-    "random": "Aléatoire",
-    "desc_random": "Filtré aléatoirement parmi tous les schémas de couleurs",
+    "title": "Prédéfinies",
+    "random_palette": "Aléatoire",
+    "random": "Hasard",
+    "desc_random": "Filtrage aléatoire",
+    "loading": "Chargement...",
     "desc_source": "Basé sur {name}",
     "copy_success": {
       "title": "Copié",
@@ -173,18 +212,24 @@
     "color_scheme": "Paramètres du schéma de couleurs",
     "color_scheme_mode": "Mode de schéma",
     "color_scheme_mode_desc": "Sélectionner la logique couleur (RVB: Mélange optique, RYB: Mélange artistique)",
+    "gradient": "Extraction de dégradé",
+    "gradient_color_space": "Espace colorimétrique du dégradé",
+    "gradient_color_space_desc": "Sélectionner l'espace colorimétrique pour l'interpolation du dégradé",
+    "gradient_rgb": "Espace RGB",
+    "gradient_hsb": "Espace HSB",
+    "gradient_lab": "Espace LAB",
     "language": "Paramètres de langue",
     "language_title": "Langue de l'interface",
     "language_desc": "Sélectionner la langue d'affichage de l'application",
     "help": "Aide",
-    "check_update": "Vérifier les mises à jour",
+    "check_update": "Vérifier",
     "version_update": "Mise à jour",
     "version_update_desc": "Vérifier si une nouvelle version est disponible",
     "about": "Voir",
     "about_title": "À propos de Color Card",
     "about_desc": "Voir les informations sur le projet et la documentation",
-    "linear_scaling": "Mise à l'échelle linéaire",
-    "adaptive_scaling": "Mise à l'échelle adaptative",
+    "linear_scaling": "Linéaire",
+    "adaptive_scaling": "Adaptative",
     "rgb_channel": "Canaux RVB",
     "hue_distribution": "Distribution des teintes",
     "rgb_optical": "RVB Optique",
@@ -195,6 +240,7 @@
   "dialogs": {
     "about": {
       "title": "À propos",
+      "website": "Site officiel",
       "homepage": "Page d'accueil",
       "project": "Projet",
       "license": "Licence",
@@ -378,6 +424,8 @@
     "clear_image": "Effacer l'image"
   },
   "common": {
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "group_range": "{start}-{end}",
+    "group_all": "Tous ({total})"
   }
 }
