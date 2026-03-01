@@ -24,6 +24,7 @@
 
 **一站式色彩解决方案**：从图片分析到配色应用，提供完整的色彩工作流
 - **可视化色彩提取**：通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）
+- **渐变色提取**：通过起始色和结束色生成渐变色序列，支持 RGB/HSB/LAB 三种颜色空间插值
 - **智能配色生成**：提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择
 - **配色方案收藏**：支持收藏、管理配色方案，支持批量导入导出JSON文件
 - **内置色彩库**：集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡
@@ -120,6 +121,7 @@
 | 模块 | 功能 |
 |:---|:---|
 | 色彩提取 | 可拖动取色点、多色彩空间显示、一键复制颜色值 |
+| 渐变色提取 | 起始色/结束色设置、RGB/HSB/LAB插值、中间色数量调节 |
 | 明度分析 | 9级明度分区（Zone 0-8）、直方图可视化、区域高亮 |
 | 配色生成 | 5种配色方案、可交互色环、明度调整 |
 | 配色管理 | 收藏配色、自定义名称、批量导入导出 |
@@ -237,6 +239,7 @@ Copyright © 2026 浮晓 HXiao Studio
 
 **One-stop Color Solution**: Complete color workflow from image analysis to color application
 - **Visual Color Extraction**: Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB)
+- **Gradient Extraction**: Generate gradient color sequences from start and end colors, supporting RGB/HSB/LAB color space interpolation
 - **Intelligent Color Scheme Generation**: 5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel
 - **Palette Collection**: Save and manage color schemes, support batch import/export in JSON format
 - **Built-in Color Library**: 13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes
@@ -333,6 +336,7 @@ Copyright © 2026 浮晓 HXiao Studio
 | Module | Features |
 |:---|:---|
 | Color Extraction | Draggable pickers, multiple color spaces, one-click copy |
+| Gradient Extraction | Start/end color selection, RGB/HSB/LAB interpolation, adjustable middle colors |
 | Luminance Analysis | 9-zone segmentation (Zone 0-8), histogram visualization, zone highlighting |
 | Color Generation | 5 color schemes, interactive color wheel, luminance adjustment |
 | Palette Management | Save palettes, custom names, batch import/export |
