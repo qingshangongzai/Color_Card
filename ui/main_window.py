@@ -3,9 +3,9 @@ from typing import List, Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon, QKeySequence, QShortcut
+from PySide6.QtGui import QIcon, QKeySequence, QScreen, QShortcut
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
+    QApplication, QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
@@ -16,6 +16,7 @@ from utils import tr, get_locale_manager
 from version import version_manager
 from .color_extract import ColorExtractInterface
 from .luminance_extract import LuminanceExtractInterface
+from .gradient_extract import GradientExtractInterface
 from .color_generation import ColorGenerationInterface
 from .palette_management import PaletteManagementInterface
 from .preset_color import PresetColorInterface
@@ -170,6 +171,10 @@ class MainWindow(FluentWindow):
         is_fullscreen = window_config.get('is_fullscreen', False)
         self.resize(width, height)
 
+        # 窗口居中显示（仅在非最大化/非全屏时）
+        if not is_maximized and not is_fullscreen:
+            self._center_window()
+
         # 创建所有子界面（避免切换时闪烁），但耗时初始化已延迟
         self.create_sub_interface()
         self.setup_navigation()
@@ -222,6 +227,12 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.image_imported.connect(
             self.on_luminance_image_imported
         )
+
+        # 渐变提取界面
+        self.gradient_extract_interface = GradientExtractInterface(self)
+        self.gradient_extract_interface.setObjectName('gradientExtract')
+        self.gradient_extract_interface._nav_icon = FluentIcon.BRUSH
+        self.stackedWidget.addWidget(self.gradient_extract_interface)
 
         # 配色生成界面
         self.color_generation_interface = ColorGenerationInterface(self)
@@ -288,6 +299,14 @@ class MainWindow(FluentWindow):
             self.luminance_extract_interface,
             FluentIcon.BRIGHTNESS,
             tr('navigation.luminance_extract'),
+            position=NavigationItemPosition.TOP
+        )
+
+        # 渐变提取
+        self.addSubInterface(
+            self.gradient_extract_interface,
+            FluentIcon.BRUSH,
+            tr('navigation.gradient_extract'),
             position=NavigationItemPosition.TOP
         )
 
@@ -473,6 +492,20 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
+    def _on_gradient_extract_favorite(self, favorite_data: dict):
+        """处理渐变提取界面的收藏请求
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
+        # 保存到配置
+        self._config_manager.add_favorite(favorite_data)
+        self._config_manager.save()
+
+        # 刷新配色管理界面和配色预览界面
+        self.refresh_palette_management()
+        self.refresh_color_preview()
+
     def _on_preset_color_preview(self, preview_data: Dict[str, Any]):
         """处理内置色彩界面的预览请求
 
@@ -527,6 +560,16 @@ class MainWindow(FluentWindow):
             lambda modes: self.color_generation_interface.update_display_settings(color_modes=modes)
         )
 
+        # 连接色彩模式改变信号到渐变提取面板
+        self.settings_interface.color_modes_changed.connect(
+            self.gradient_extract_interface.set_color_modes
+        )
+
+        # 连接HEX显示改变信号到渐变提取面板
+        self.settings_interface.hex_display_changed.connect(
+            self.gradient_extract_interface.set_hex_visible
+        )
+
         # 连接色彩提取采样点数改变信号
         self.settings_interface.color_sample_count_changed.connect(
             self._on_color_sample_count_changed
@@ -545,6 +588,11 @@ class MainWindow(FluentWindow):
         # 连接色轮模式改变信号到配色生成界面
         self.settings_interface.color_wheel_mode_changed.connect(
             self.color_generation_interface.set_color_wheel_mode
+        )
+
+        # 连接渐变颜色空间改变信号到渐变提取界面
+        self.settings_interface.gradient_color_space_changed.connect(
+            self.gradient_extract_interface.set_color_space
         )
 
         # 连接直方图模式改变信号到色彩提取界面
@@ -597,6 +645,11 @@ class MainWindow(FluentWindow):
 
         # 连接内置色彩界面的收藏信号
         self.preset_color_interface.favorite_requested.connect(self._on_preset_color_favorite)
+
+        # 连接渐变提取界面的收藏信号
+        self.gradient_extract_interface.favorite_requested.connect(
+            self._on_gradient_extract_favorite
+        )
 
         # 连接内置色彩界面的预览信号
         self.preset_color_interface.preview_in_panel_requested.connect(
@@ -688,6 +741,7 @@ class MainWindow(FluentWindow):
         navigation_items = [
             (self.color_extract_interface.objectName(), tr('navigation.color_extract')),
             (self.luminance_extract_interface.objectName(), tr('navigation.luminance_extract')),
+            (self.gradient_extract_interface.objectName(), tr('navigation.gradient_extract')),
             (self.color_generation_interface.objectName(), tr('navigation.color_generation')),
             (self.palette_management_interface.objectName(), tr('navigation.palette_management')),
             (self.preset_color_interface.objectName(), tr('navigation.preset_color')),
@@ -698,3 +752,15 @@ class MainWindow(FluentWindow):
             widget = self.navigationInterface.widget(route_key)
             if widget:
                 widget.setText(text)
+
+    def _center_window(self):
+        """将窗口居中显示在屏幕上"""
+        screen = QApplication.primaryScreen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            window_geometry = self.frameGeometry()
+
+            center_x = screen_geometry.center().x() - window_geometry.width() // 2
+            center_y = screen_geometry.center().y() - window_geometry.height() // 2
+
+            self.move(center_x, center_y)

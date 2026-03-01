@@ -7,8 +7,9 @@
   "navigation": {
     "color_extract": "Извлечение цвета",
     "luminance_extract": "Извлечение яркости",
+    "gradient_extract": "Извлечение градиента",
     "color_generation": "Генерация цвета",
-    "palette_management": "Управление палитрами",
+    "palette_management": "Палитры",
     "preset_color": "Предустановленные цвета",
     "color_preview": "Предпросмотр цвета",
     "settings": "Настройки"
@@ -18,11 +19,11 @@
     "toggle_fullscreen": "Полноэкранный режим/Выход (F11)"
   },
   "color_extract": {
-    "favorite": "Сохранить палитру",
-    "extract_dominant": "Автоизвлечение доминирующих",
+    "favorite": "Сохранить",
+    "extract_dominant": "Извлечь",
     "extracting": "Извлечение...",
-    "show_high_saturation": "Показать высоконасыщенные области",
-    "show_high_brightness": "Показать высокояркие области",
+    "show_high_saturation": "Высокая насыщенность",
+    "show_high_brightness": "Высокая яркость",
     "select_image": "Выбрать изображение",
     "image_filter": "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
   },
@@ -30,17 +31,29 @@
     "select_image": "Выбрать изображение",
     "image_filter": "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
   },
+  "gradient_extract": {
+    "start_color": "Начальный цвет",
+    "end_color": "Конечный цвет",
+    "steps": "Промежуточные цвета",
+    "random": "Случайный",
+    "favorite": "Сохр.",
+    "select_color": "Выбрать цвет",
+    "favorite_success": {
+      "title": "Сохранено",
+      "content": "Градиентная схема добавлена в управление палитрами"
+    }
+  },
   "color_generation": {
     "title": "Цветовая схема:",
-    "random": "Случайно",
-    "favorite": "Сохранить",
+    "random": "Случай",
+    "favorite": "Сохр.",
     "brightness": "Яркость:",
     "schemes": {
       "monochromatic": "Монохроматическая",
       "analogous": "Аналогичная",
       "complementary": "Комплементарная",
-      "split_complementary": "Разделенная комплементарная",
-      "double_complementary": "Двойная комплементарная"
+      "split_complementary": "Разделенная",
+      "double_complementary": "Двойная"
     },
     "favorite_success": {
       "title": "Сохранено",
@@ -52,11 +65,11 @@
     "no_colors_to_favorite": "Нет цветов для сохранения"
   },
   "palette_management": {
-    "title": "Управление палитрами",
+    "title": "Палитры",
     "add": "Добавить",
     "import": "Импорт",
     "export": "Экспорт",
-    "clear_all": "Очистить все",
+    "clear_all": "Очистить",
     "unnamed": "Без названия",
     "empty_title": "Нет сохраненных палитр",
     "empty_hint": "Нажмите кнопку сохранения в панели извлечения или генерации цвета",
@@ -130,11 +143,37 @@
       "content": "Нет доступных SVG для экспорта"
     }
   },
+  "canvases": {
+    "click_to_import": "Нажмите для импорта",
+    "importing_image": "Импорт...",
+    "loading_full_image": "Загрузка...",
+    "finishing": "Завершение..."
+  },
+  "color_wheel": {
+    "hsb_wheel_title": "HSB колесо",
+    "hue_red": "К",
+    "hue_orange_red": "К-О",
+    "hue_yellow": "Ж",
+    "hue_yellow_green": "Ж-З",
+    "hue_green": "З",
+    "hue_cyan_green": "Б-З",
+    "hue_cyan": "Б",
+    "hue_cyan_blue": "Б-С",
+    "hue_blue": "С",
+    "hue_purple": "Ф",
+    "hue_magenta": "П",
+    "hue_purple_red": "Ф-К"
+  },
+  "histograms": {
+    "loading": "Загрузка...",
+    "hue_distribution_title": "Распределение"
+  },
   "preset_color": {
-    "title": "Предустановленные цвета",
-    "random_palette": "Случайная палитра",
-    "random": "Случайно",
-    "desc_random": "Случайный выбор из всех цветовых схем",
+    "title": "Предустановленные",
+    "random_palette": "Случайная",
+    "random": "Случай",
+    "desc_random": "Случайный выбор",
+    "loading": "Загрузка...",
     "desc_source": "На основе {name}",
     "copy_success": {
       "title": "Скопировано",
@@ -173,20 +212,26 @@
     "color_scheme": "Настройки цветовой схемы",
     "color_scheme_mode": "Режим цветовой схемы",
     "color_scheme_mode_desc": "Выберите цветовую логику (RGB: Оптическое смешение, RYB: Художественное смешение)",
+    "gradient": "Извлечение градиента",
+    "gradient_color_space": "Цветовое пространство градиента",
+    "gradient_color_space_desc": "Выберите цветовое пространство для интерполяции градиента",
+    "gradient_rgb": "RGB пространство",
+    "gradient_hsb": "HSB пространство",
+    "gradient_lab": "LAB пространство",
     "language": "Настройки языка",
     "language_title": "Язык интерфейса",
     "language_desc": "Выберите язык отображения приложения",
     "help": "Справка",
-    "check_update": "Проверить обновления",
+    "check_update": "Проверить",
     "version_update": "Обновление версии",
     "version_update_desc": "Проверить наличие новой версии",
     "about": "Просмотр",
     "about_title": "О Color Card",
     "about_desc": "Просмотр информации о проекте и документации",
-    "linear_scaling": "Линейное масштабирование",
-    "adaptive_scaling": "Адаптивное масштабирование",
+    "linear_scaling": "Линейное",
+    "adaptive_scaling": "Адаптивное",
     "rgb_channel": "RGB каналы",
-    "hue_distribution": "Распределение оттенков",
+    "hue_distribution": "Оттенки",
     "rgb_optical": "RGB Оптический",
     "ryb_artistic": "RYB Художественный",
     "switch_on": "Вкл",
@@ -195,6 +240,7 @@
   "dialogs": {
     "about": {
       "title": "О программе",
+      "website": "Сайт",
       "homepage": "Домашняя страница",
       "project": "Проект",
       "license": "Лицензия",
@@ -378,6 +424,8 @@
     "clear_image": "Очистить изображение"
   },
   "common": {
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "group_range": "{start}-{end}",
+    "group_all": "Все ({total})"
   }
 }

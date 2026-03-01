@@ -72,3 +72,5 @@ website/*.sw?
 # OS files
 website/.DS_Store
 website/Thumbs.db
+文档/著作权登记计划.md
+/宣传图
