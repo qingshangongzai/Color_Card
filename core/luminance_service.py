@@ -179,7 +179,7 @@ class LuminanceService(QObject):
         """析构函数：确保线程在对象销毁前停止"""
         if self._calculator is not None and self._calculator.isRunning():
             self._calculator.cancel()
-            self._calculator.wait(1000)  # 等待最多1秒
+            self._calculator.wait()
 
     def calculate_luminance_zones(self, image: QImage) -> None:
         """开始计算明度Zone分布
@@ -190,9 +190,11 @@ class LuminanceService(QObject):
         Args:
             image: QImage 对象
         """
-        # 取消之前的计算
         if self._calculator is not None and self._calculator.isRunning():
             self._calculator.cancel()
+            if not self._calculator.wait(2000):
+                logger.warning("明度计算线程等待超时，继续等待直到线程结束")
+                self._calculator.wait()
             self._calculator = None
 
         self.calculation_started.emit()
@@ -214,6 +216,9 @@ class LuminanceService(QObject):
         """取消当前计算任务"""
         if self._calculator is not None and self._calculator.isRunning():
             self._calculator.cancel()
+            if not self._calculator.wait(2000):
+                logger.warning("取消计算时线程等待超时，继续等待直到线程结束")
+                self._calculator.wait()
 
     def get_zone_at_position(self, image: QImage, x: int, y: int) -> str:
         """获取指定位置的Zone编号

@@ -192,19 +192,21 @@ class HistogramService(QObject):
         self._rgb_calculator: Optional[HistogramCalculator] = None
         self._hue_calculator: Optional[HistogramCalculator] = None
         self._pending_image: Optional[QImage] = None
-        self._delay_timer: Optional[QTimer] = None
         self._use_cache = use_cache
         self._current_image_key: str = ""
         self._colorspace_info: Optional[ColorSpaceInfo] = None
         self._gamma: float = 2.2
+        
+        self._luminance_delay_timer: Optional[QTimer] = None
+        self._rgb_delay_timer: Optional[QTimer] = None
+        self._hue_delay_timer: Optional[QTimer] = None
 
     def __del__(self):
         """析构函数：确保所有线程在对象销毁前停止"""
         self.cancel_all()
-        # 等待所有线程完全结束
         for calculator in [self._luminance_calculator, self._rgb_calculator, self._hue_calculator]:
             if calculator is not None and calculator.isRunning():
-                calculator.wait(1000)  # 等待最多1秒
+                calculator.wait()
 
     def set_colorspace_info(self, colorspace_info: Optional[ColorSpaceInfo]) -> None:
         """设置色彩空间信息
@@ -266,13 +268,12 @@ class HistogramService(QObject):
                 self.luminance_histogram_ready.emit(cached)
                 return
 
-        # 使用延迟计算
-        if self._delay_timer is None:
-            self._delay_timer = QTimer(self)
-            self._delay_timer.setSingleShot(True)
-            self._delay_timer.timeout.connect(self._start_luminance_calculation)
+        if self._luminance_delay_timer is None:
+            self._luminance_delay_timer = QTimer(self)
+            self._luminance_delay_timer.setSingleShot(True)
+            self._luminance_delay_timer.timeout.connect(self._start_luminance_calculation)
 
-        self._delay_timer.start(delay_ms)
+        self._luminance_delay_timer.start(delay_ms)
 
     def _start_luminance_calculation(self) -> None:
         """开始明度直方图计算"""
@@ -333,13 +334,12 @@ class HistogramService(QObject):
                 self.rgb_histogram_ready.emit(cached[0], cached[1], cached[2])
                 return
 
-        # 使用延迟计算
-        if self._delay_timer is None:
-            self._delay_timer = QTimer(self)
-            self._delay_timer.setSingleShot(True)
-            self._delay_timer.timeout.connect(self._start_rgb_calculation)
+        if self._rgb_delay_timer is None:
+            self._rgb_delay_timer = QTimer(self)
+            self._rgb_delay_timer.setSingleShot(True)
+            self._rgb_delay_timer.timeout.connect(self._start_rgb_calculation)
 
-        self._delay_timer.start(delay_ms)
+        self._rgb_delay_timer.start(delay_ms)
 
     def _start_rgb_calculation(self) -> None:
         """开始RGB直方图计算"""
@@ -401,13 +401,12 @@ class HistogramService(QObject):
                 self.hue_histogram_ready.emit(cached)
                 return
 
-        # 使用延迟计算
-        if self._delay_timer is None:
-            self._delay_timer = QTimer(self)
-            self._delay_timer.setSingleShot(True)
-            self._delay_timer.timeout.connect(self._start_hue_calculation)
+        if self._hue_delay_timer is None:
+            self._hue_delay_timer = QTimer(self)
+            self._hue_delay_timer.setSingleShot(True)
+            self._hue_delay_timer.timeout.connect(self._start_hue_calculation)
 
-        self._delay_timer.start(delay_ms)
+        self._hue_delay_timer.start(delay_ms)
 
     def _start_hue_calculation(self) -> None:
         """开始色相直方图计算"""
@@ -454,7 +453,6 @@ class HistogramService(QObject):
         if calculator is None:
             return
 
-        # 断开所有信号连接，防止回调触发
         try:
             calculator.finished.disconnect()
         except (TypeError, RuntimeError) as e:
@@ -464,15 +462,12 @@ class HistogramService(QObject):
         except (TypeError, RuntimeError) as e:
             logger.debug(f"断开error信号时出错: {e}")
 
-        # 请求取消
         calculator.cancel()
 
-        # 等待线程结束（增加等待时间到500ms）
         if calculator.isRunning():
-            calculator.wait(500)
-
-        # 注意：如果线程仍在运行，让它在后台自然结束
-        # 不要强制终止，下次创建新计算器时会替换旧实例
+            if not calculator.wait(2000):
+                logger.warning("线程等待超时，继续等待直到线程结束")
+                calculator.wait()
 
     def _cancel_luminance_calculator(self) -> None:
         """取消明度直方图计算"""
@@ -491,11 +486,13 @@ class HistogramService(QObject):
 
     def cancel_all(self) -> None:
         """取消所有计算"""
-        # 先停止延迟计时器，防止新的计算开始
-        if self._delay_timer is not None and self._delay_timer.isActive():
-            self._delay_timer.stop()
+        if self._luminance_delay_timer is not None and self._luminance_delay_timer.isActive():
+            self._luminance_delay_timer.stop()
+        if self._rgb_delay_timer is not None and self._rgb_delay_timer.isActive():
+            self._rgb_delay_timer.stop()
+        if self._hue_delay_timer is not None and self._hue_delay_timer.isActive():
+            self._hue_delay_timer.stop()
 
-        # 取消所有进行中的计算
         self._cancel_luminance_calculator()
         self._cancel_rgb_calculator()
         self._cancel_hue_calculator()
