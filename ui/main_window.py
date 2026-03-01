@@ -3,9 +3,9 @@ from typing import List, Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon, QKeySequence, QShortcut
+from PySide6.QtGui import QIcon, QKeySequence, QScreen, QShortcut
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
+    QApplication, QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
@@ -170,6 +170,10 @@ class MainWindow(FluentWindow):
         is_maximized = window_config.get('is_maximized', False)
         is_fullscreen = window_config.get('is_fullscreen', False)
         self.resize(width, height)
+
+        # 窗口居中显示（仅在非最大化/非全屏时）
+        if not is_maximized and not is_fullscreen:
+            self._center_window()
 
         # 创建所有子界面（避免切换时闪烁），但耗时初始化已延迟
         self.create_sub_interface()
@@ -748,3 +752,15 @@ class MainWindow(FluentWindow):
             widget = self.navigationInterface.widget(route_key)
             if widget:
                 widget.setText(text)
+
+    def _center_window(self):
+        """将窗口居中显示在屏幕上"""
+        screen = QApplication.primaryScreen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            window_geometry = self.frameGeometry()
+
+            center_x = screen_geometry.center().x() - window_geometry.width() // 2
+            center_y = screen_geometry.center().y() - window_geometry.height() // 2
+
+            self.move(center_x, center_y)
