@@ -284,3 +284,70 @@ def get_high_brightness_highlight_color():
 def get_high_brightness_border_color():
     """获取高明度区域边框颜色"""
     return QColor(0, 200, 255, 150)
+
+
+# ========== Zone遮罩颜色（按类型统一）==========
+def get_zone_mask_colors():
+    """获取Zone遮罩颜色列表（按类型统一颜色）
+
+    颜色方案：
+    - 黑色: 深灰色半透明
+    - 阴影: 蓝色半透明
+    - 中间调: 绿色半透明
+    - 高光: 黄色半透明
+    - 白色: 白色半透明
+    """
+    # 黑色 - 深蓝色
+    blacks_color = QColor(0, 80, 160, 140)
+    # 阴影 - 蓝色
+    shadows_color = QColor(0, 120, 255, 100)
+    # 中间调 - 绿色
+    midtones_color = QColor(0, 200, 100, 100)
+    # 高光 - 黄色
+    highlights_color = QColor(255, 200, 0, 100)
+    # 白色 - 深黄色
+    whites_color = QColor(200, 160, 0, 140)
+
+    return [
+        blacks_color,      # Zone 0: 黑色
+        shadows_color,     # Zone 1: 阴影
+        shadows_color,     # Zone 2: 阴影
+        midtones_color,    # Zone 3: 中间调
+        midtones_color,    # Zone 4: 中间调
+        midtones_color,    # Zone 5: 中间调
+        highlights_color,  # Zone 6: 高光
+        highlights_color,  # Zone 7: 高光
+        whites_color,      # Zone 8: 白色
+    ]
+
+
+def get_zone_label_bg_color():
+    """获取Zone标注框背景颜色 - 统一使用深色"""
+    return QColor(40, 40, 40, 200)
+
+
+def get_zone_label_text_color():
+    """获取Zone标注框文字颜色 - 统一使用白色"""
+    return QColor(255, 255, 255)
+
+
+def get_zone_info_text_colors():
+    """获取Zone信息提示文字颜色列表（与遮罩颜色对应）"""
+    # 与 get_zone_mask_colors() 对应，但使用不透明颜色
+    blacks_color = QColor(100, 180, 255)  # 黑色区域用蓝色文字
+    shadows_color = QColor(100, 180, 255)  # 阴影区域用蓝色
+    midtones_color = QColor(100, 255, 150)  # 中间调用绿色
+    highlights_color = QColor(255, 220, 100)  # 高光用黄色
+    whites_color = QColor(255, 200, 50)  # 白色区域用深黄色
+
+    return [
+        blacks_color,      # Zone 0
+        shadows_color,     # Zone 1
+        shadows_color,     # Zone 2
+        midtones_color,    # Zone 3
+        midtones_color,    # Zone 4
+        midtones_color,    # Zone 5
+        highlights_color,  # Zone 6
+        highlights_color,  # Zone 7
+        whites_color,      # Zone 8
+    ]
