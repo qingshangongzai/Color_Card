@@ -200,10 +200,18 @@ class HistogramService(QObject):
         self._luminance_delay_timer: Optional[QTimer] = None
         self._rgb_delay_timer: Optional[QTimer] = None
         self._hue_delay_timer: Optional[QTimer] = None
+        
+        self._pending_cleanup: List[HistogramCalculator] = []
+        self._cleanup_timer: Optional[QTimer] = None
 
     def __del__(self):
         """析构函数：确保所有线程在对象销毁前停止"""
         self.cancel_all()
+        
+        for calculator in self._pending_cleanup:
+            if calculator.isRunning():
+                calculator.wait()
+        
         for calculator in [self._luminance_calculator, self._rgb_calculator, self._hue_calculator]:
             if calculator is not None and calculator.isRunning():
                 calculator.wait()
@@ -445,7 +453,7 @@ class HistogramService(QObject):
         self._hue_calculator = None
 
     def _safe_stop_calculator(self, calculator: Optional[HistogramCalculator]) -> None:
-        """安全地停止计算器线程（不使用terminate()）
+        """安全地停止计算器线程（不阻塞等待）
 
         Args:
             calculator: 要停止的计算器线程
@@ -455,19 +463,39 @@ class HistogramService(QObject):
 
         try:
             calculator.finished.disconnect()
-        except (TypeError, RuntimeError) as e:
-            logger.debug(f"断开finished信号时出错: {e}")
+        except (TypeError, RuntimeError):
+            pass
         try:
             calculator.error.disconnect()
-        except (TypeError, RuntimeError) as e:
-            logger.debug(f"断开error信号时出错: {e}")
+        except (TypeError, RuntimeError):
+            pass
 
         calculator.cancel()
 
         if calculator.isRunning():
-            if not calculator.wait(2000):
-                logger.warning("线程等待超时，继续等待直到线程结束")
-                calculator.wait()
+            self._pending_cleanup.append(calculator)
+            self._start_cleanup_timer()
+
+    def _start_cleanup_timer(self) -> None:
+        """启动清理定时器"""
+        if self._cleanup_timer is None:
+            self._cleanup_timer = QTimer(self)
+            self._cleanup_timer.timeout.connect(self._cleanup_pending_threads)
+        
+        if not self._cleanup_timer.isActive():
+            self._cleanup_timer.start(500)
+
+    def _cleanup_pending_threads(self) -> None:
+        """清理已结束的线程"""
+        still_running = []
+        for calculator in self._pending_cleanup:
+            if calculator.isRunning():
+                still_running.append(calculator)
+        
+        self._pending_cleanup = still_running
+        
+        if not self._pending_cleanup:
+            self._cleanup_timer.stop()
 
     def _cancel_luminance_calculator(self) -> None:
         """取消明度直方图计算"""
