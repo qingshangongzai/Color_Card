@@ -299,7 +299,7 @@ class EditPaletteDialog(QDialog):
         # 添加颜色按钮
         self.add_color_button = PushButton(FluentIcon.ADD, tr('dialogs.edit_palette.add_color'))
         self.add_color_button.setFixedHeight(32)
-        self.add_color_button.clicked.connect(self._on_add_color)
+        self.add_color_button.clicked.connect(lambda: self._on_add_color())
         layout.addWidget(self.add_color_button)
 
         # 按钮区域
@@ -324,15 +324,20 @@ class EditPaletteDialog(QDialog):
         self.name_input.setFocus()
         self.name_input.selectAll()
 
-        # 添加第一个颜色输入行
-        self._on_add_color()
+        # 添加第一个颜色输入行（不滚动）
+        self._on_add_color(scroll_to_bottom=False)
 
-    def _on_add_color(self):
-        """添加颜色输入行"""
+    def _on_add_color(self, scroll_to_bottom: bool = True):
+        """添加颜色输入行
+        
+        Args:
+            scroll_to_bottom: 是否滚动到底部（默认True，初始化时传False）
+        """
         row = ColorInputRow(len(self._color_rows), self.colors_container)
         self._color_rows.append(row)
         self.colors_layout.addWidget(row)
-        self._scroll_to_bottom()
+        if scroll_to_bottom:
+            self._scroll_to_bottom()
 
     def _scroll_to_bottom(self):
         """滚动到颜色列表底部"""
