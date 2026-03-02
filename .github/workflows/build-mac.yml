@@ -119,14 +119,11 @@ jobs:
     
     - name: Create DMG
       run: |
-        # 创建临时目录结构
         mkdir -p dist/dmg/ColorCard.app/Contents/MacOS
         mkdir -p dist/dmg/ColorCard.app/Contents/Resources
         
-        # 复制可执行文件
         cp dist/ColorCard dist/dmg/ColorCard.app/Contents/MacOS/
         
-        # 创建 Info.plist
         cat > dist/dmg/ColorCard.app/Contents/Info.plist << EOF
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -152,22 +149,18 @@ jobs:
         </plist>
         EOF
         
-        # 创建 DMG
-        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/ColorCard-${{ steps.version.outputs.version }}-macOS.dmg
+        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: ColorCard-macOS
-        path: |
-          dist/ColorCard-*.dmg
-          dist/ColorCard
+        path: dist/Color_Card_*_mac.dmg
     
     - name: Upload Release Asset
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          dist/ColorCard-*.dmg
+        files: dist/Color_Card_*_mac.dmg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
