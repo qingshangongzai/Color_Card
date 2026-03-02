@@ -15,10 +15,12 @@ from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
 from utils.theme_colors import (
-    get_canvas_background_color, get_canvas_empty_text_color, get_picker_colors,
+    get_canvas_background_color, get_canvas_empty_text_color,
     get_tooltip_bg_color,
     get_high_saturation_highlight_color, get_high_brightness_highlight_color,
-    get_high_saturation_border_color, get_high_brightness_border_color
+    get_high_saturation_border_color, get_high_brightness_border_color,
+    get_zone_mask_colors, get_zone_label_bg_color, get_zone_label_text_color,
+    get_zone_info_text_colors
 )
 
 
@@ -1217,8 +1219,8 @@ class LuminanceCanvas(BaseCanvas):
         self._highlighted_zone: int = -1  # 当前高亮显示的Zone (-1表示无)
         self._zone_highlight_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
 
-        # Zone高亮颜色配置 (Zone 0-7) - Adobe标准映射
-        self._zone_highlight_colors: List[QColor] = get_picker_colors()
+        # Zone高亮颜色配置 (Zone 0-8) - 按类型统一颜色
+        self._zone_highlight_colors: List[QColor] = get_zone_mask_colors()
 
         # 明度服务
         self._luminance_service = None
@@ -1395,11 +1397,11 @@ class LuminanceCanvas(BaseCanvas):
 
                 # 绘制深色填充方框
                 painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(QColor(40, 40, 40, 200))
+                painter.setBrush(get_zone_label_bg_color())
                 painter.drawRect(box_x, box_y, box_width, box_height)
 
                 # 绘制白色文字
-                painter.setPen(QColor(255, 255, 255))
+                painter.setPen(get_zone_label_text_color())
                 text_x = box_x + (box_width - text_width) // 2
                 text_y = box_y + (box_height - text_height) // 2
                 painter.drawText(text_x, text_y + text_height - 2, zone)
@@ -1532,8 +1534,9 @@ class LuminanceCanvas(BaseCanvas):
 
         text = f"{label} ({name}) | 亮度: {lum_range}"
 
-        # 获取文字颜色
-        text_color = self._zone_highlight_colors[self._highlighted_zone]
+        # 获取文字颜色（使用与遮罩类型对应的颜色）
+        info_text_colors = get_zone_info_text_colors()
+        text_color = info_text_colors[self._highlighted_zone]
 
         # 使用通用方法绘制信息框
         self._draw_info_box(painter, text, text_color, display_rect)
