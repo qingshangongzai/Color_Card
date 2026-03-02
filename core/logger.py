@@ -1,9 +1,9 @@
 # 标准库导入
 import logging
-import logging.handlers
 import sys
 import time
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -13,15 +13,14 @@ class LoggerManager:
 
     CONFIG_DIR_NAME: str = ".color_card"
     LOG_DIR_NAME: str = "logs"
-    LOG_FILE_NAME: str = "color_card.log"
-    MAX_BYTES: int = 10 * 1024 * 1024
-    BACKUP_COUNT: int = 7
+    LOG_RETENTION_DAYS: int = 30
 
     def __init__(self) -> None:
         """初始化日志管理器"""
         self._log_dir: Path = self._get_log_dir()
         self._logger: Optional[logging.Logger] = None
         self._initialized: bool = False
+        self._current_log_file: Optional[Path] = None
 
     def _get_log_dir(self) -> Path:
         """获取日志目录路径
@@ -36,6 +35,30 @@ class LoggerManager:
     def _ensure_log_dir(self) -> None:
         """确保日志目录存在"""
         self._log_dir.mkdir(parents=True, exist_ok=True)
+
+    def _generate_log_filename(self) -> str:
+        """生成日志文件名
+        
+        Returns:
+            str: 日志文件名，格式为 Color Card_版本号_YYYYMMDD_HHMMSS.log
+        """
+        from version import version_manager
+        version = version_manager.get_version()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"Color Card_{version}_{timestamp}.log"
+
+    def _cleanup_old_logs(self) -> None:
+        """清理过期的日志文件"""
+        cutoff_time = datetime.now() - timedelta(days=self.LOG_RETENTION_DAYS)
+        for log_file in self._log_dir.glob("Color Card_*.log"):
+            if log_file == self._current_log_file:
+                continue
+            try:
+                file_mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
+                if file_mtime < cutoff_time:
+                    log_file.unlink()
+            except OSError:
+                pass
 
     def initialize(self, level: int = logging.INFO) -> None:
         """初始化日志系统
@@ -53,11 +76,10 @@ class LoggerManager:
 
         self._logger.handlers.clear()
 
-        log_path = self._log_dir / self.LOG_FILE_NAME
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_path,
-            maxBytes=self.MAX_BYTES,
-            backupCount=self.BACKUP_COUNT,
+        log_filename = self._generate_log_filename()
+        self._current_log_file = self._log_dir / log_filename
+        file_handler = logging.FileHandler(
+            self._current_log_file,
             encoding="utf-8"
         )
         file_handler.setLevel(level)
@@ -78,6 +100,8 @@ class LoggerManager:
         self._initialized = True
         self._logger.info("日志系统初始化完成")
 
+        self._cleanup_old_logs()
+
     def get_logger(self, name: str) -> logging.Logger:
         """获取模块级日志记录器
 
@@ -97,7 +121,7 @@ class LoggerManager:
         Returns:
             Path: 日志文件路径
         """
-        return self._log_dir / self.LOG_FILE_NAME
+        return self._current_log_file or self._log_dir
 
     def get_log_dir(self) -> Path:
         """获取日志目录路径

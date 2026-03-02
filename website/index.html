@@ -1454,31 +1454,55 @@
                 if (!response.ok) throw new Error('Failed to fetch');
                 const data = await response.json();
                 const versions = data.versions;
-                
+
                 if (versions.length === 0) {
                     container.innerHTML = '<div class="text-center py-12 text-gray-500">暂无更新记录</div>';
                     return;
                 }
-                
+
                 container.innerHTML = versions.map(v => {
                     const date = new Date(v.date).toLocaleDateString('zh-CN');
-                    // Support both array and string format for changes
-                    let changesHtml;
-                    if (Array.isArray(v.changes)) {
-                        changesHtml = v.changes.map(c => `<li class="flex items-start gap-2"><span class="text-brand-primary mt-1">•</span><span>${c}</span></li>`).join('');
-                    } else {
-                        // String format: split by newline and format
-                        changesHtml = v.changes.split('\n').filter(line => line.trim()).map(c => `<li class="flex items-start gap-2"><span class="text-brand-primary mt-1">•</span><span>${c.trim()}</span></li>`).join('');
-                    }
+
+                    // 生成HTML
+                    const changesHtml = v.changes.map(cat => {
+                        const itemsHtml = cat.items.map(item => {
+                            if (typeof item === 'string') {
+                                // 普通描述项
+                                return `<li class="text-gray-600 dark:text-gray-400">${item}</li>`;
+                            } else if (item.title && item.desc) {
+                                // 有子标题的项
+                                return `
+                                    <li>
+                                        <div class="font-medium text-gray-700 dark:text-gray-300">${item.title}</div>
+                                        <div class="text-gray-500 dark:text-gray-500 text-sm ml-4">${item.desc}</div>
+                                    </li>
+                                `;
+                            }
+                            return '';
+                        }).join('');
+
+                        return `
+                            <div class="mb-4 last:mb-0">
+                                <h4 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                                    ${cat.category}
+                                </h4>
+                                <ul class="space-y-1.5 text-sm leading-relaxed ml-4">
+                                    ${itemsHtml}
+                                </ul>
+                            </div>
+                        `;
+                    }).join('');
+
                     return `
                         <div class="glass-card rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">${v.version}</h3>
                                 <span class="text-sm text-gray-500">${date}</span>
                             </div>
-                            <ul class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed space-y-2">
+                            <div class="text-gray-600 dark:text-gray-400">
                                 ${changesHtml}
-                            </ul>
+                            </div>
                         </div>
                     `;
                 }).join('');

@@ -6,7 +6,7 @@ from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen, QMouse
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from core import get_zone_bounds, HistogramService, ZONE_WIDTH
+from core import HistogramService, ZONE_WIDTH
 from utils import tr
 from utils.theme_colors import (
     get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
@@ -445,8 +445,9 @@ class LuminanceHistogramWidget(BaseHistogram):
         zone_width = width / 9.0
 
         for zone in self._highlight_zones:
-            min_lum, max_lum = get_zone_bounds(zone)
-            zone_index = int(min_lum / ZONE_WIDTH)
+            # 直接从 Zone 字符串解析索引，避免浮点数精度问题
+            # Zone 格式为 "0-1", "1-2", ..., "8-9"
+            zone_index = int(zone.split('-')[0])
 
             # 计算区域位置
             start_x = int(x + zone_index * zone_width)

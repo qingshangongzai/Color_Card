@@ -8,7 +8,7 @@ UI层通过LuminanceService调用业务功能，实现UI与业务逻辑分离。
 from typing import Dict, List, Optional, Tuple, Any
 
 # 第三方库导入
-from PySide6.QtCore import QObject, QThread, Signal, Qt
+from PySide6.QtCore import QObject, QThread, Signal, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
@@ -174,12 +174,19 @@ class LuminanceService(QObject):
         """
         super().__init__(parent)
         self._calculator: Optional[LuminanceCalculator] = None
+        
+        self._pending_cleanup: List[LuminanceCalculator] = []
+        self._cleanup_timer: Optional[QTimer] = None
 
     def __del__(self):
         """析构函数：确保线程在对象销毁前停止"""
         if self._calculator is not None and self._calculator.isRunning():
             self._calculator.cancel()
-            self._calculator.wait(1000)  # 等待最多1秒
+            self._calculator.wait()
+        
+        for calculator in self._pending_cleanup:
+            if calculator.isRunning():
+                calculator.wait()
 
     def calculate_luminance_zones(self, image: QImage) -> None:
         """开始计算明度Zone分布
@@ -190,9 +197,20 @@ class LuminanceService(QObject):
         Args:
             image: QImage 对象
         """
-        # 取消之前的计算
         if self._calculator is not None and self._calculator.isRunning():
+            try:
+                self._calculator.calculation_finished.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+            try:
+                self._calculator.calculation_error.disconnect()
+            except (TypeError, RuntimeError):
+                pass
+            
             self._calculator.cancel()
+            if self._calculator.isRunning():
+                self._pending_cleanup.append(self._calculator)
+                self._start_cleanup_timer()
             self._calculator = None
 
         self.calculation_started.emit()
@@ -214,6 +232,31 @@ class LuminanceService(QObject):
         """取消当前计算任务"""
         if self._calculator is not None and self._calculator.isRunning():
             self._calculator.cancel()
+            if self._calculator.isRunning():
+                self._pending_cleanup.append(self._calculator)
+                self._start_cleanup_timer()
+            self._calculator = None
+
+    def _start_cleanup_timer(self) -> None:
+        """启动清理定时器"""
+        if self._cleanup_timer is None:
+            self._cleanup_timer = QTimer(self)
+            self._cleanup_timer.timeout.connect(self._cleanup_pending_threads)
+        
+        if not self._cleanup_timer.isActive():
+            self._cleanup_timer.start(500)
+
+    def _cleanup_pending_threads(self) -> None:
+        """清理已结束的线程"""
+        still_running = []
+        for calculator in self._pending_cleanup:
+            if calculator.isRunning():
+                still_running.append(calculator)
+        
+        self._pending_cleanup = still_running
+        
+        if not self._pending_cleanup:
+            self._cleanup_timer.stop()
 
     def get_zone_at_position(self, image: QImage, x: int, y: int) -> str:
         """获取指定位置的Zone编号
@@ -352,7 +395,3 @@ class LuminanceService(QObject):
         if self._calculator is not None:
             self._calculator.deleteLater()
             self._calculator = None
-
-
-# 导入Qt常量
-from PySide6.QtCore import Qt
