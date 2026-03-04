@@ -7,6 +7,7 @@
 # 标准库导入
 import uuid
 from datetime import datetime
+from typing import Tuple
 
 # 第三方库导入
 from PySide6.QtWidgets import (
