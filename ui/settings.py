@@ -18,7 +18,6 @@ from dialogs import AboutDialog, UpdateAvailableDialog
 logger = get_logger("settings")
 from version import version_manager
 from utils.theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
-from utils.platform import is_windows_10
 
 
 AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
@@ -65,7 +64,15 @@ class SettingsInterface(QWidget):
         """设置界面布局"""
         self.scroll_area = ScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self.scroll_area.setStyleSheet("""
+            ScrollArea {
+                background-color: transparent;
+                border: none;
+            }
+            ScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+        """)
 
         self.content_widget = QWidget()
         self.content_widget.setStyleSheet("background: transparent;")
@@ -764,63 +771,61 @@ class SettingsInterface(QWidget):
         """更新样式以适配主题"""
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
-        
-        if is_windows_10():
-            bg_color = get_interface_background_color()
-            card_bg = get_card_background_color()
-            border_color = get_border_color()
-            text_color = get_text_color()
-            secondary_text = get_text_color(secondary=True)
-            
-            self.setStyleSheet(f"""
-                SettingsInterface {{
-                    background-color: transparent;
-                }}
-                ScrollArea {{
-                    background-color: transparent;
-                    border: none;
-                }}
-                ScrollArea > QWidget > QWidget {{
-                    background-color: transparent;
-                }}
-                SettingCardGroup {{
-                    background-color: {card_bg.name()};
-                    border: none;
-                }}
-                SettingCardGroup::title {{
-                    color: {text_color.name()};
-                    font-size: 14px;
-                    font-weight: bold;
-                }}
-                PushSettingCard {{
-                    background-color: {card_bg.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 8px;
-                }}
-                PushSettingCard:hover {{
-                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
-                }}
-                PushSettingCard QLabel#titleLabel {{
-                    color: {text_color.name()};
-                    font-size: 13px;
-                }}
-                PushSettingCard QLabel#contentLabel {{
-                    color: {secondary_text.name()};
-                    font-size: 11px;
-                }}
-                ComboBox {{
-                    background-color: {card_bg.name()};
-                    color: {text_color.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 4px;
-                }}
-                SwitchButton {{
-                    background-color: transparent;
-                }}
-                SpinBox {{
-                    background-color: {card_bg.name()};
-                    color: {text_color.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 4px;
-                }}
-            """)
+
+        # 所有平台都应用透明无边框样式
+        bg_color = get_interface_background_color()
+        text_color = get_text_color()
+        secondary_text = get_text_color(secondary=True)
+
+        self.setStyleSheet(f"""
+            SettingsInterface {{
+                background-color: {bg_color.name()};
+            }}
+            ScrollArea {{
+                background-color: transparent;
+                border: none;
+            }}
+            ScrollArea > QWidget > QWidget {{
+                background-color: transparent;
+            }}
+            SettingCardGroup {{
+                background-color: transparent;
+                border: none;
+            }}
+            SettingCardGroup::title {{
+                color: {text_color.name()};
+                font-size: 14px;
+                font-weight: bold;
+            }}
+            PushSettingCard {{
+                background-color: transparent;
+                border: none;
+                border-radius: 0px;
+            }}
+            PushSettingCard:hover {{
+                background-color: rgba(128, 128, 128, 30);
+            }}
+            PushSettingCard QLabel#titleLabel {{
+                color: {text_color.name()};
+                font-size: 13px;
+            }}
+            PushSettingCard QLabel#contentLabel {{
+                color: {secondary_text.name()};
+                font-size: 11px;
+            }}
+            ComboBox {{
+                background-color: transparent;
+                color: {text_color.name()};
+                border: 1px solid {get_border_color().name()};
+                border-radius: 4px;
+            }}
+            SwitchButton {{
+                background-color: transparent;
+            }}
+            SpinBox {{
+                background-color: transparent;
+                color: {text_color.name()};
+                border: 1px solid {get_border_color().name()};
+                border-radius: 4px;
+            }}
+        """)

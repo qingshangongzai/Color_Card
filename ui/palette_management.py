@@ -23,7 +23,6 @@ from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color
-from utils.platform import is_windows_10
 from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
 
 logger = get_logger("palette_management")
@@ -488,6 +487,9 @@ class PaletteManagementCard(CardWidget):
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
+        # 设置透明背景
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
         # 头部信息
         header_layout = QHBoxLayout()
         header_layout.setSpacing(10)
@@ -552,30 +554,27 @@ class PaletteManagementCard(CardWidget):
         """更新样式以适配主题"""
         name_color = get_text_color(secondary=False)
         time_color = get_text_color(secondary=True)
-        card_bg = get_card_background_color()
-        border_color = get_border_color()
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
         self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color.name()};")
-        
-        # 只在 Win10 上应用强制样式（Win11 上 qfluentwidgets 能正常工作）
-        if is_windows_10():
-            self.setStyleSheet(f"""
-                PaletteManagementCard,
-                CardWidget {{
-                    background-color: {card_bg.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 8px;
-                }}
-                ToolButton {{
-                    background-color: transparent;
-                    border: none;
-                }}
-                ToolButton:hover {{
-                    background-color: rgba(128, 128, 128, 30);
-                    border-radius: 4px;
-                }}
-            """)
+
+        # 透明无边框样式 - 所有平台都应用
+        self.setStyleSheet(f"""
+            PaletteManagementCard,
+            CardWidget {{
+                background-color: transparent;
+                border: none;
+                border-radius: 0px;
+            }}
+            ToolButton {{
+                background-color: transparent;
+                border: none;
+            }}
+            ToolButton:hover {{
+                background-color: rgba(128, 128, 128, 30);
+                border-radius: 4px;
+            }}
+        """)
 
     def _clear_color_cards(self):
         """清空所有色卡"""
@@ -760,7 +759,15 @@ class PaletteManagementList(QWidget):
 
         self.scroll_area = ScrollArea()
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self.scroll_area.setStyleSheet("""
+            ScrollArea {
+                background-color: transparent;
+                border: none;
+            }
+            ScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+        """)
 
         # 设置滚动条角落为透明（防止出现灰色方块）
         from PySide6.QtWidgets import QWidget
@@ -1624,43 +1631,41 @@ class PaletteManagementInterface(QWidget):
         """更新样式以适配主题"""
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
-        
-        if is_windows_10():
-            bg_color = get_interface_background_color()
-            card_bg = get_card_background_color()
-            border_color = get_border_color()
-            text_color = get_text_color()
-            
-            self.setStyleSheet(f"""
-                PaletteManagementInterface {{
-                    background-color: {bg_color.name()};
-                }}
-                ScrollArea {{
-                    background-color: transparent;
-                    border: none;
-                }}
-                ScrollArea > QWidget > QWidget {{
-                    background-color: transparent;
-                }}
-                PaletteManagementSchemeCard,
-                CardWidget {{
-                    background-color: {card_bg.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 8px;
-                }}
-                PushButton {{
-                    background-color: {card_bg.name()};
-                    color: {text_color.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 4px;
-                }}
-                PushButton:hover {{
-                    background-color: {card_bg.lighter(110).name() if not isDarkTheme() else card_bg.darker(110).name()};
-                }}
-                QLabel {{
-                    color: {text_color.name()};
-                }}
-            """)
+
+        # 所有平台都应用透明无边框样式
+        bg_color = get_interface_background_color()
+        text_color = get_text_color()
+
+        self.setStyleSheet(f"""
+            PaletteManagementInterface {{
+                background-color: {bg_color.name()};
+            }}
+            ScrollArea {{
+                background-color: transparent;
+                border: none;
+            }}
+            ScrollArea > QWidget > QWidget {{
+                background-color: transparent;
+            }}
+            PaletteManagementCard,
+            CardWidget {{
+                background-color: transparent;
+                border: none;
+                border-radius: 0px;
+            }}
+            PushButton {{
+                background-color: transparent;
+                color: {text_color.name()};
+                border: 1px solid {get_border_color().name()};
+                border-radius: 4px;
+            }}
+            PushButton:hover {{
+                background-color: rgba(128, 128, 128, 30);
+            }}
+            QLabel {{
+                color: {text_color.name()};
+            }}
+        """)
     
     def _on_language_changed(self):
         """语言切换回调"""
