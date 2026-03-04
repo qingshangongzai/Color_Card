@@ -23,7 +23,7 @@
 
 - **主仓库（Gitee）**：https://gitee.com/qingshangongzai/color_card
 - **镜像仓库（GitHub）**：https://github.com/qingshangongzai/Color_Card
-- **官方网站：**https://qingshangongzai.github.io/Color_Card/
+- **官方网站**：https://qingshangongzai.github.io/Color_Card/
 
 ### 核心功能特色
 

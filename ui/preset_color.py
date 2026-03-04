@@ -24,7 +24,6 @@ from core.color_data import (
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color, get_secondary_text_color
-from utils.platform import is_windows_10
 
 
 # =============================================================================
@@ -305,27 +304,9 @@ class PaletteCard(CardWidget):
 
     def _update_styles(self):
         name_color = get_text_color(secondary=False)
-        card_bg = get_card_background_color()
-        border_color = get_border_color()
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
-
-        if is_windows_10():
-            self.setStyleSheet(f"""
-                PaletteCard,
-                CardWidget {{
-                    background-color: {card_bg.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 8px;
-                }}
-                QToolTip {{
-                    background-color: {card_bg.name()};
-                    color: {name_color.name()};
-                    border: 1px solid {border_color.name()};
-                    border-radius: 4px;
-                    padding: 4px 8px;
-                }}
-            """)
+        # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
 
     def _clear_color_cards(self):
         for card in self._color_cards:
@@ -796,14 +777,7 @@ class PresetColorInterface(QWidget):
     def _update_styles(self):
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
-
-        if is_windows_10():
-            bg_color = get_interface_background_color()
-            self.setStyleSheet(f"""
-                PresetColorInterface {{
-                    background-color: {bg_color.name()};
-                }}
-            """)
+        # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
 
     def _on_language_changed(self):
         """语言切换回调"""
