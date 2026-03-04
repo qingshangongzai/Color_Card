@@ -1,4 +1,5 @@
 # 标准库导入
+import sys
 from typing import List, Dict, Any
 
 # 第三方库导入
@@ -148,6 +149,11 @@ class MainWindow(FluentWindow):
 
     def __init__(self):
         super().__init__()
+
+        # Mac 平台：先隐藏系统标题栏按钮，再设置自定义标题栏
+        # 这样 FluentWidget.setTitleBar 不会隐藏自定义按钮
+        if sys.platform == 'darwin':
+            self.setSystemTitleBarButtonVisible(False)
 
         # 设置自定义标题栏
         self.setTitleBar(CustomTitleBar(self))
@@ -764,3 +770,5 @@ class MainWindow(FluentWindow):
             center_y = screen_geometry.center().y() - window_geometry.height() // 2
 
             self.move(center_x, center_y)
+
+
