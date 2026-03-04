@@ -487,9 +487,6 @@ class PaletteManagementCard(CardWidget):
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-        # 设置透明背景
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
         # 头部信息
         header_layout = QHBoxLayout()
         header_layout.setSpacing(10)
@@ -557,24 +554,7 @@ class PaletteManagementCard(CardWidget):
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
         self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color.name()};")
-
-        # 透明无边框样式 - 所有平台都应用
-        self.setStyleSheet(f"""
-            PaletteManagementCard,
-            CardWidget {{
-                background-color: transparent;
-                border: none;
-                border-radius: 0px;
-            }}
-            ToolButton {{
-                background-color: transparent;
-                border: none;
-            }}
-            ToolButton:hover {{
-                background-color: rgba(128, 128, 128, 30);
-                border-radius: 4px;
-            }}
-        """)
+        # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
 
     def _clear_color_cards(self):
         """清空所有色卡"""
@@ -1631,41 +1611,7 @@ class PaletteManagementInterface(QWidget):
         """更新样式以适配主题"""
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
-
-        # 所有平台都应用透明无边框样式
-        bg_color = get_interface_background_color()
-        text_color = get_text_color()
-
-        self.setStyleSheet(f"""
-            PaletteManagementInterface {{
-                background-color: {bg_color.name()};
-            }}
-            ScrollArea {{
-                background-color: transparent;
-                border: none;
-            }}
-            ScrollArea > QWidget > QWidget {{
-                background-color: transparent;
-            }}
-            PaletteManagementCard,
-            CardWidget {{
-                background-color: transparent;
-                border: none;
-                border-radius: 0px;
-            }}
-            PushButton {{
-                background-color: transparent;
-                color: {text_color.name()};
-                border: 1px solid {get_border_color().name()};
-                border-radius: 4px;
-            }}
-            PushButton:hover {{
-                background-color: rgba(128, 128, 128, 30);
-            }}
-            QLabel {{
-                color: {text_color.name()};
-            }}
-        """)
+        # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
     
     def _on_language_changed(self):
         """语言切换回调"""

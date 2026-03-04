@@ -306,16 +306,7 @@ class PaletteCard(CardWidget):
         name_color = get_text_color(secondary=False)
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
-
-        # 所有平台都应用透明无边框样式
-        self.setStyleSheet(f"""
-            PaletteCard,
-            CardWidget {{
-                background-color: transparent;
-                border: none;
-                border-radius: 0px;
-            }}
-        """)
+        # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
 
     def _clear_color_cards(self):
         for card in self._color_cards:
@@ -786,14 +777,7 @@ class PresetColorInterface(QWidget):
     def _update_styles(self):
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
-
-        # 所有平台都应用相同样式
-        bg_color = get_interface_background_color()
-        self.setStyleSheet(f"""
-            PresetColorInterface {{
-                background-color: {bg_color.name()};
-            }}
-        """)
+        # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
 
     def _on_language_changed(self):
         """语言切换回调"""
