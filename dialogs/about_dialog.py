@@ -1,4 +1,6 @@
 # 标准库导入
+import os
+import sys
 from pathlib import Path
 
 # 第三方库导入
@@ -13,6 +15,23 @@ from qfluentwidgets import CaptionLabel, PlainTextEdit, PrimaryPushButton, PushB
 from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
 from version import version_manager
 from utils.theme_colors import get_dialog_bg_color, get_text_color
+
+
+def _get_base_path() -> str:
+    """获取应用程序基础路径
+
+    支持开发环境和 PyInstaller 打包后的环境
+
+    Returns:
+        str: 应用程序基础路径
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的环境
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
+        return os.path.dirname(sys.executable)
+    # 开发环境 - 返回项目根目录
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class AboutDialog(QDialog):
@@ -172,8 +191,9 @@ class AboutDialog(QDialog):
     def _open_license_file(self):
         """打开开源许可文件"""
         # 获取许可证文件路径（相对于项目根目录的 file/LICENSE.html）
-        license_path = Path(__file__).parent.parent / "file" / "LICENSE.html"
-        
+        base_path = _get_base_path()
+        license_path = Path(base_path) / "file" / "LICENSE.html"
+
         if license_path.exists():
             # 转换为文件URL并打开
             file_url = QUrl.fromLocalFile(str(license_path.absolute()))
@@ -185,8 +205,9 @@ class AboutDialog(QDialog):
     def _open_agreement_file(self):
         """打开用户协议文件"""
         # 获取用户协议文件路径（相对于项目根目录的 file/UserAgreement.html）
-        agreement_path = Path(__file__).parent.parent / "file" / "UserAgreement.html"
-        
+        base_path = _get_base_path()
+        agreement_path = Path(base_path) / "file" / "UserAgreement.html"
+
         if agreement_path.exists():
             # 转换为文件URL并打开
             file_url = QUrl.fromLocalFile(str(agreement_path.absolute()))
