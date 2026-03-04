@@ -84,9 +84,9 @@ if [ -n "${MOUNT_POINT}" ]; then
     sleep 2
     
     # 使用 AppleScript 设置窗口布局（如果在本地运行）
-    if command -v osascript &> /dev/null && [ -n "${CI}" ]; then
+    if command -v osascript &> /dev/null && [ -z "${CI}" ]; then
         echo "Setting window layout..."
-        osascript << EOF
+        osascript << 'APPLESCRIPT'
 tell application "Finder"
     tell disk "ColorCard"
         open
@@ -102,7 +102,7 @@ tell application "Finder"
         close
     end tell
 end tell
-EOF
+APPLESCRIPT
     fi
     
     # 卸载 DMG

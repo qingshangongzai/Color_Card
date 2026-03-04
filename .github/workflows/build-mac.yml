@@ -59,7 +59,7 @@ jobs:
     
     - name: Create Info.plist
       run: |
-        cat > Info.plist << EOF
+        cat > Info.plist << 'PLISTEOF'
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -69,17 +69,17 @@ jobs:
             <key>CFBundleIdentifier</key>
             <string>com.hxiaostudio.colorcard</string>
             <key>CFBundleName</key>
-            <string>${{ steps.version.outputs.app_name }}</string>
+            <string>ColorCard</string>
             <key>CFBundlePackageType</key>
             <string>APPL</string>
             <key>CFBundleShortVersionString</key>
-            <string>${{ steps.version.outputs.product_version }}</string>
+            <string>1.4.1</string>
             <key>CFBundleVersion</key>
-            <string>${{ steps.version.outputs.file_version }}</string>
+            <string>2026.3.2.1</string>
             <key>CFBundleGetInfoString</key>
-            <string>${{ steps.version.outputs.app_name }}, ${{ steps.version.outputs.copyright }}</string>
+            <string>取色卡 - Color Card</string>
             <key>NSHumanReadableCopyright</key>
-            <string>${{ steps.version.outputs.copyright }}</string>
+            <string>Copyright 2026 HXiao Studio</string>
             <key>LSMinimumSystemVersion</key>
             <string>10.14</string>
             <key>NSHighResolutionCapable</key>
@@ -90,7 +90,7 @@ jobs:
             <false/>
         </dict>
         </plist>
-        EOF
+        PLISTEOF
     
     - name: Build Mac App with PyInstaller
       run: |
@@ -158,9 +158,13 @@ jobs:
           --exclude-module "tkinter" \
           --exclude-module "_tkinter" \
           --osx-bundle-identifier "com.hxiaostudio.colorcard" \
-          --osx-info-plist "Info.plist" \
           --clean \
           main.py
+    
+    - name: Copy custom Info.plist
+      run: |
+        # 复制自定义的 Info.plist 到生成的 .app 包中
+        cp Info.plist dist/ColorCard.app/Contents/Info.plist
     
     - name: Check build output
       run: |
@@ -178,15 +182,19 @@ jobs:
         # 验证签名
         codesign -dv --verbose=4 dist/ColorCard.app
     
-    - name: Install dependencies for DMG creation
+    - name: Create DMG
       run: |
-        pip install pillow
-    
-    - name: Create DMG with custom layout
-      run: |
-        export VERSION="${{ steps.version.outputs.version }}"
-        chmod +x scripts/create_dmg.sh
-        ./scripts/create_dmg.sh
+        # 创建临时目录用于 DMG
+        mkdir -p dist/dmg
+        
+        # 复制签名后的 .app 到临时目录
+        cp -R dist/ColorCard.app dist/dmg/
+        
+        # 创建 Applications 文件夹快捷方式
+        ln -s /Applications dist/dmg/Applications
+        
+        # 创建 DMG
+        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
