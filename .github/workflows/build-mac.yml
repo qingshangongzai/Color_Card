@@ -41,12 +41,56 @@ jobs:
         VERSION=$(sed -n '1p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         FILE_VERSION=$(sed -n '2p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         PRODUCT_VERSION=$(sed -n '3p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        COMPANY_NAME=$(sed -n '4p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        COPYRIGHT=$(sed -n '5p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        APP_NAME=$(sed -n '6p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         echo "Debug: version content is: '$VERSION'"
         echo "Debug: file version is: '$FILE_VERSION'"
         echo "Debug: product version is: '$PRODUCT_VERSION'"
+        echo "Debug: company name is: '$COMPANY_NAME'"
+        echo "Debug: copyright is: '$COPYRIGHT'"
+        echo "Debug: app name is: '$APP_NAME'"
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
         echo "file_version=$FILE_VERSION" >> "$GITHUB_OUTPUT"
         echo "product_version=$PRODUCT_VERSION" >> "$GITHUB_OUTPUT"
+        echo "company_name=$COMPANY_NAME" >> "$GITHUB_OUTPUT"
+        echo "copyright=$COPYRIGHT" >> "$GITHUB_OUTPUT"
+        echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
+    
+    - name: Create Info.plist
+      run: |
+        cat > Info.plist << EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>ColorCard</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.hxiaostudio.colorcard</string>
+            <key>CFBundleName</key>
+            <string>${{ steps.version.outputs.app_name }}</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>${{ steps.version.outputs.product_version }}</string>
+            <key>CFBundleVersion</key>
+            <string>${{ steps.version.outputs.file_version }}</string>
+            <key>CFBundleGetInfoString</key>
+            <string>${{ steps.version.outputs.app_name }}, ${{ steps.version.outputs.copyright }}</string>
+            <key>NSHumanReadableCopyright</key>
+            <string>${{ steps.version.outputs.copyright }}</string>
+            <key>LSMinimumSystemVersion</key>
+            <string>10.14</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+            <key>LSUIElement</key>
+            <false/>
+            <key>NSRequiresAquaSystemAppearance</key>
+            <false/>
+        </dict>
+        </plist>
+        EOF
     
     - name: Build Mac App with PyInstaller
       run: |
@@ -54,6 +98,7 @@ jobs:
           --name "ColorCard" \
           --windowed \
           --onefile \
+          --icon "logo/ColorCard.icns" \
           --add-data "version.py:." \
           --add-data "core:core" \
           --add-data "dialogs:dialogs" \
@@ -113,6 +158,7 @@ jobs:
           --exclude-module "tkinter" \
           --exclude-module "_tkinter" \
           --osx-bundle-identifier "com.hxiaostudio.colorcard" \
+          --osx-info-plist "Info.plist" \
           --clean \
           main.py
     
@@ -132,16 +178,15 @@ jobs:
         # 验证签名
         codesign -dv --verbose=4 dist/ColorCard.app
     
-    - name: Create DMG
+    - name: Install dependencies for DMG creation
       run: |
-        # 创建临时目录用于 DMG
-        mkdir -p dist/dmg
-        
-        # 复制签名后的 .app 到临时目录
-        cp -R dist/ColorCard.app dist/dmg/
-        
-        # 创建 DMG
-        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
+        pip install pillow
+    
+    - name: Create DMG with custom layout
+      run: |
+        export VERSION="${{ steps.version.outputs.version }}"
+        chmod +x scripts/create_dmg.sh
+        ./scripts/create_dmg.sh
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
