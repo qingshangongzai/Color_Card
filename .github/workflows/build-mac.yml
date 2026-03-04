@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller
+        pip install pyinstaller==6.19.0
         pip install -r requirements.txt
     
     - name: Read version
@@ -120,60 +120,27 @@ jobs:
       run: |
         echo "Checking dist directory..."
         ls -la dist/
-        echo "Checking if ColorCard exists..."
-        ls -la dist/ColorCard || echo "ColorCard not found"
-    
-    - name: Create DMG
-      run: |
-        mkdir -p dist/dmg/ColorCard.app/Contents/MacOS
-        mkdir -p dist/dmg/ColorCard.app/Contents/Resources
-        
-        cp dist/ColorCard dist/dmg/ColorCard.app/Contents/MacOS/
-        
-        cat > dist/dmg/ColorCard.app/Contents/Info.plist << 'EOF'
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>ColorCard</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.hxiaostudio.colorcard</string>
-            <key>CFBundleName</key>
-            <string>ColorCard</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleShortVersionString</key>
-            <string>${{ steps.version.outputs.product_version }}</string>
-            <key>CFBundleVersion</key>
-            <string>${{ steps.version.outputs.file_version }}</string>
-            <key>CFBundleGetInfoString</key>
-            <string>取色卡 - Color Card, © 2026 浮晓 HXiao Studio</string>
-            <key>NSHumanReadableCopyright</key>
-            <string>© 2026 浮晓 HXiao Studio</string>
-            <key>LSMinimumSystemVersion</key>
-            <string>10.14</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-            <key>LSUIElement</key>
-            <false/>
-            <key>NSRequiresAquaSystemAppearance</key>
-            <false/>
-        </dict>
-        </plist>
-        EOF
+        echo "Checking ColorCard.app..."
+        ls -la dist/ColorCard.app/Contents/MacOS/ || echo "ColorCard.app not found"
     
     - name: Sign App (Ad-hoc)
       run: |
         # 使用 ad-hoc 签名（不需要 Apple Developer 证书）
         # 这可以解决 "已损坏" 的问题，但用户仍需在系统偏好设置中允许
-        codesign --force --deep --sign - --timestamp=none dist/dmg/ColorCard.app
+        codesign --force --deep --sign - --timestamp=none dist/ColorCard.app
         
         # 验证签名
-        codesign -dv --verbose=4 dist/dmg/ColorCard.app
+        codesign -dv --verbose=4 dist/ColorCard.app
     
-    - name: Create Signed DMG
+    - name: Create DMG
       run: |
+        # 创建临时目录用于 DMG
+        mkdir -p dist/dmg
+        
+        # 复制签名后的 .app 到临时目录
+        cp -R dist/ColorCard.app dist/dmg/
+        
+        # 创建 DMG
         hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
     
     - name: Upload artifact
