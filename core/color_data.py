@@ -2,7 +2,25 @@
 import json
 import os
 import random
+import sys
 from typing import Dict, List, Any, Optional
+
+
+def get_base_path() -> str:
+    """获取应用程序基础路径
+
+    支持开发环境和 PyInstaller 打包后的环境
+
+    Returns:
+        str: 应用程序基础路径
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的环境
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
+        return os.path.dirname(sys.executable)
+    # 开发环境 - 返回当前文件所在目录的父目录（项目根目录）
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class ColorSource:
@@ -144,9 +162,8 @@ class ColorSourceRegistry:
     
     def _discover_sources(self):
         """自动发现 color_data/ 目录下的 JSON 文件"""
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(current_dir)
-        color_data_dir = os.path.join(project_root, 'color_data')
+        base_path = get_base_path()
+        color_data_dir = os.path.join(base_path, 'color_data')
         
         if not os.path.exists(color_data_dir):
             return
