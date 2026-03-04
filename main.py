@@ -139,6 +139,7 @@ def main():
 
     logger = get_logger("main")
     logger.info("应用程序启动")
+    logger.info(f"运行环境: frozen={getattr(sys, 'frozen', False)}, _MEIPASS={getattr(sys, '_MEIPASS', None)}")
 
     # 设置全局异常处理器
     setup_global_exception_handler(logger)
@@ -146,75 +147,97 @@ def main():
     # 立即显示启动画面（在其他模块导入前）
     splash = _create_splash_screen()
 
-    # 临时重定向 stdout 以屏蔽 QFluentWidgets 的推广提示
-    from io import StringIO
-    _old_stdout = sys.stdout
-    sys.stdout = StringIO()
-
-    # 导入其他模块（在启动画面显示后）
-    from PySide6.QtCore import qInstallMessageHandler
-    from qfluentwidgets import setTheme, setThemeColor, Theme
-
-    # 恢复 stdout
-    sys.stdout = _old_stdout
-
-    # 安装自定义 Qt 消息处理器以过滤 QFont 警告
-    def qt_message_handler(mode, context, message):
-        """自定义 Qt 消息处理器，过滤掉 QFont::setPointSize 警告"""
-        if "QFont::setPointSize: Point size <= 0" in message:
-            return
-        # 调用默认处理器输出其他消息
-        sys.__stdout__.write(message + '\n')
-
-    qInstallMessageHandler(qt_message_handler)
-
-    # 导入项目模块
-    from core import get_config_manager
-    from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, tr, get_locale_manager
-    from ui import MainWindow
-
-    # 设置应用程序图标（重要！）
-    app_icon = load_icon_universal()
-    app.setWindowIcon(app_icon)
-
-    # 加载主题配置并设置初始主题
-    config_manager = get_config_manager()
-    config_manager.load()
-    
-    # 初始化语言管理器并加载用户语言配置
-    locale_manager = get_locale_manager()
-    language_setting = config_manager.get('settings.language', 'ZW_JT')
-    locale_manager.load_language(language_setting)
-    
-    theme_setting = config_manager.get('settings.theme', 'auto')
-
-    if theme_setting == 'light':
-        setTheme(Theme.LIGHT)
-    elif theme_setting == 'dark':
-        setTheme(Theme.DARK)
-    else:
-        setTheme(Theme.AUTO)
-
-    setThemeColor('#0078d4')
-
-    window = MainWindow()
-    window.show()
-
-    # 关闭启动画面并修复任务栏图标（在窗口显示后调用）
-    def _on_window_shown():
-        if splash:
-            splash.finish(window)
-        fix_windows_taskbar_icon_for_window(window)
-
-    QTimer.singleShot(100, _on_window_shown)
-
     try:
-        sys.exit(app.exec())
-    except KeyboardInterrupt:
-        logger.info("程序被用户中断 (Ctrl+C)")
-        sys.exit(0)
+        # 临时重定向 stdout 以屏蔽 QFluentWidgets 的推广提示
+        from io import StringIO
+        _old_stdout = sys.stdout
+        sys.stdout = StringIO()
+
+        # 导入其他模块（在启动画面显示后）
+        logger.info("开始导入 PySide6 模块...")
+        from PySide6.QtCore import qInstallMessageHandler
+        logger.info("PySide6 模块导入完成")
+
+        logger.info("开始导入 qfluentwidgets 模块...")
+        from qfluentwidgets import setTheme, setThemeColor, Theme
+        logger.info("qfluentwidgets 模块导入完成")
+
+        # 恢复 stdout
+        sys.stdout = _old_stdout
+
+        # 安装自定义 Qt 消息处理器以过滤 QFont 警告
+        def qt_message_handler(mode, context, message):
+            """自定义 Qt 消息处理器，过滤掉 QFont::setPointSize 警告"""
+            if "QFont::setPointSize: Point size <= 0" in message:
+                return
+            # 调用默认处理器输出其他消息
+            sys.__stdout__.write(message + '\n')
+
+        qInstallMessageHandler(qt_message_handler)
+
+        # 导入项目模块
+        logger.info("开始导入项目模块...")
+        from core import get_config_manager
+        logger.info("core 模块导入完成")
+
+        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, tr, get_locale_manager
+        logger.info("utils 模块导入完成")
+
+        from ui import MainWindow
+        logger.info("ui 模块导入完成")
+
+        # 设置应用程序图标（重要！）
+        logger.info("设置应用程序图标...")
+        app_icon = load_icon_universal()
+        app.setWindowIcon(app_icon)
+        logger.info("应用程序图标设置完成")
+
+        # 加载主题配置并设置初始主题
+        logger.info("加载配置...")
+        config_manager = get_config_manager()
+        config_manager.load()
+        logger.info("配置加载完成")
+
+        # 初始化语言管理器并加载用户语言配置
+        logger.info("初始化语言管理器...")
+        locale_manager = get_locale_manager()
+        language_setting = config_manager.get('settings.language', 'ZW_JT')
+        locale_manager.load_language(language_setting)
+        logger.info(f"语言设置: {language_setting}")
+
+        theme_setting = config_manager.get('settings.theme', 'auto')
+
+        if theme_setting == 'light':
+            setTheme(Theme.LIGHT)
+        elif theme_setting == 'dark':
+            setTheme(Theme.DARK)
+        else:
+            setTheme(Theme.AUTO)
+
+        setThemeColor('#0078d4')
+
+        logger.info("创建主窗口...")
+        window = MainWindow()
+        window.show()
+        logger.info("主窗口显示完成")
+
+        # 关闭启动画面并修复任务栏图标（在窗口显示后调用）
+        def _on_window_shown():
+            if splash:
+                splash.finish(window)
+            fix_windows_taskbar_icon_for_window(window)
+
+        QTimer.singleShot(100, _on_window_shown)
+
+        logger.info("进入主事件循环...")
+        try:
+            sys.exit(app.exec())
+        except KeyboardInterrupt:
+            logger.info("程序被用户中断 (Ctrl+C)")
+            sys.exit(0)
+
     except Exception as e:
-        logger.critical(f"程序发生未捕获异常: {str(e)}", exc_info=True)
+        logger.critical(f"程序启动失败: {str(e)}", exc_info=True)
         raise
 
 
