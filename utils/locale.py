@@ -4,10 +4,29 @@
 """
 
 import json
+import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from PySide6.QtCore import QObject, Signal
+
+
+def _get_base_path() -> str:
+    """获取应用程序基础路径
+
+    支持开发环境和 PyInstaller 打包后的环境
+
+    Returns:
+        str: 应用程序基础路径
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的环境
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
+        return os.path.dirname(sys.executable)
+    # 开发环境 - 返回项目根目录（utils/ 的父目录）
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class LocaleManager(QObject):
@@ -42,9 +61,8 @@ class LocaleManager(QObject):
         Returns:
             Path: 语言包目录路径
         """
-        current_file = Path(__file__).resolve()
-        project_root = current_file.parent.parent
-        return project_root / 'locales'
+        base_path = _get_base_path()
+        return Path(base_path) / 'locales'
     
     def load_language(self, language_code: str) -> bool:
         """加载指定语言的翻译数据

@@ -1,6 +1,8 @@
 # 标准库导入
 import json
+import os
 import shutil
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -9,6 +11,23 @@ from typing import Any, Dict, List, Optional, Tuple
 # 项目模块导入
 from version import version_manager
 from .logger import get_logger
+
+
+def get_base_path() -> str:
+    """获取应用程序基础路径
+
+    支持开发环境和 PyInstaller 打包后的环境
+
+    Returns:
+        str: 应用程序基础路径
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包后的环境
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
+        return os.path.dirname(sys.executable)
+    # 开发环境 - 返回当前文件所在目录的父目录（项目根目录）
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 logger = get_logger("config")
@@ -485,9 +504,8 @@ class SceneConfigManager:
             Path: 场景配置目录的完整路径
         """
         # 从项目根目录查找
-        current_file = Path(__file__).resolve()
-        project_root = current_file.parent.parent
-        return project_root / self.SCENES_DIR_NAME
+        base_path = get_base_path()
+        return Path(base_path) / self.SCENES_DIR_NAME
 
     def _ensure_user_scenes_dir(self) -> None:
         """确保用户场景目录存在"""
@@ -839,9 +857,8 @@ class SceneTypeManager:
         Returns:
             Path: scenes_data 目录的完整路径
         """
-        current_file = Path(__file__).resolve()
-        project_root = current_file.parent.parent
-        return project_root / self.SCENES_DATA_DIR
+        base_path = get_base_path()
+        return Path(base_path) / self.SCENES_DATA_DIR
 
     def _ensure_loaded(self) -> None:
         """确保场景数据已加载（延迟加载）"""
