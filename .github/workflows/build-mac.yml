@@ -38,9 +38,15 @@ jobs:
     - name: Read version
       id: version
       run: |
-        VERSION=$(head -n 1 version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        VERSION=$(sed -n '1p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        FILE_VERSION=$(sed -n '2p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        PRODUCT_VERSION=$(sed -n '3p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         echo "Debug: version content is: '$VERSION'"
+        echo "Debug: file version is: '$FILE_VERSION'"
+        echo "Debug: product version is: '$PRODUCT_VERSION'"
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "file_version=$FILE_VERSION" >> "$GITHUB_OUTPUT"
+        echo "product_version=$PRODUCT_VERSION" >> "$GITHUB_OUTPUT"
     
     - name: Build Mac App with PyInstaller
       run: |
@@ -124,7 +130,7 @@ jobs:
         
         cp dist/ColorCard dist/dmg/ColorCard.app/Contents/MacOS/
         
-        cat > dist/dmg/ColorCard.app/Contents/Info.plist << EOF
+        cat > dist/dmg/ColorCard.app/Contents/Info.plist << 'EOF'
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -138,17 +144,36 @@ jobs:
             <key>CFBundlePackageType</key>
             <string>APPL</string>
             <key>CFBundleShortVersionString</key>
-            <string>${{ steps.version.outputs.version }}</string>
+            <string>${{ steps.version.outputs.product_version }}</string>
             <key>CFBundleVersion</key>
-            <string>1</string>
+            <string>${{ steps.version.outputs.file_version }}</string>
+            <key>CFBundleGetInfoString</key>
+            <string>取色卡 - Color Card, © 2026 浮晓 HXiao Studio</string>
+            <key>NSHumanReadableCopyright</key>
+            <string>© 2026 浮晓 HXiao Studio</string>
             <key>LSMinimumSystemVersion</key>
             <string>10.14</string>
             <key>NSHighResolutionCapable</key>
             <true/>
+            <key>LSUIElement</key>
+            <false/>
+            <key>NSRequiresAquaSystemAppearance</key>
+            <false/>
         </dict>
         </plist>
         EOF
+    
+    - name: Sign App (Ad-hoc)
+      run: |
+        # 使用 ad-hoc 签名（不需要 Apple Developer 证书）
+        # 这可以解决 "已损坏" 的问题，但用户仍需在系统偏好设置中允许
+        codesign --force --deep --sign - --timestamp=none dist/dmg/ColorCard.app
         
+        # 验证签名
+        codesign -dv --verbose=4 dist/dmg/ColorCard.app
+    
+    - name: Create Signed DMG
+      run: |
         hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
     
     - name: Upload artifact
