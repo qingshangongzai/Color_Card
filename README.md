@@ -8,7 +8,9 @@
   <b>为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</b>
 </p>
 
-[简体中文](#中文版) | [English](#english-version)
+<p align="center">
+  <a href="#中文版">简体中文</a> | <a href="#english-version">English</a>
+</p>
 
 
 ---
