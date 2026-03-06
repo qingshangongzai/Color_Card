@@ -485,6 +485,7 @@ class ColorPickerDialog(QDialog):
             self.hex_input = LineEdit()
             self.hex_input.setFixedWidth(140)
             self.hex_input.setMaxLength(7)
+            self.hex_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
             self.hex_input.textChanged.connect(self._on_hex_changed)
             self._update_hex_input_style()
             hex_layout.addWidget(self.hex_input)
@@ -796,6 +797,7 @@ class ColorInputRow(QWidget):
         self.hex_input.setPlaceholderText("#RRGGBB")
         self.hex_input.setMaxLength(7)
         self.hex_input.setFixedWidth(100)
+        self.hex_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.hex_input.textChanged.connect(self._on_hex_changed)
         layout.addWidget(self.hex_input)
 
@@ -1013,6 +1015,7 @@ class EditPaletteDialog(QDialog):
         self.name_input = LineEdit()
         self.name_input.setText(self._default_name)
         self.name_input.setPlaceholderText("输入配色名称...")
+        self.name_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.name_input.setClearButtonEnabled(True)
         name_layout.addWidget(self.name_input)
         layout.addLayout(name_layout)
