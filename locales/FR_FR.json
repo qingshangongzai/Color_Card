@@ -430,6 +430,7 @@
   },
   "common": {
     "delete": "Supprimer",
+    "edit": "Modifier la palette",
     "group_range": "{start}-{end}",
     "group_all": "Tous ({total})"
   }

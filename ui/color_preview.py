@@ -31,7 +31,9 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_type_manager
+from core.color import get_color_info
 from core.logger import get_logger, log_user_action
+from dialogs.edit_palette import EditPaletteDialog
 from utils import tr, get_locale_manager
 from utils.theme_colors import get_border_color, get_text_color
 
@@ -47,6 +49,7 @@ class DraggableColorDot(QWidget):
 
     clicked = Signal(int)                # 点击信号：索引
     delete_requested = Signal(int)       # 删除请求信号：索引
+    edit_requested = Signal(int)         # 编辑请求信号：索引
 
     def __init__(self, color: str, index: int, parent=None):
         """初始化颜色圆点
@@ -157,10 +160,18 @@ class DraggableColorDot(QWidget):
             menu.addAction(copy_action)
             menu.addSeparator()
 
+        edit_action = Action(FluentIcon.EDIT, tr('common.edit'))
+        edit_action.triggered.connect(self._on_edit_clicked)
+        menu.addAction(edit_action)
+
         delete_action = Action(FluentIcon.DELETE, tr('common.delete'))
         delete_action.triggered.connect(lambda: self.delete_requested.emit(self._index))
         menu.addAction(delete_action)
         menu.exec(event.globalPos())
+
+    def _on_edit_clicked(self):
+        """编辑按钮点击"""
+        self.edit_requested.emit(self._index)
 
     def _copy_hex_to_clipboard(self):
         """复制HEX值到剪贴板"""
@@ -179,6 +190,7 @@ class ColorDotBar(QWidget):
     order_changed = Signal(list)         # 颜色顺序变化信号：新的颜色列表
     color_clicked = Signal(int)          # 颜色点击信号：索引
     color_deleted = Signal(list)         # 颜色删除信号：新的颜色列表
+    color_edited = Signal(list)          # 颜色编辑信号：新的颜色列表
 
     def __init__(self, parent=None):
         """初始化颜色圆点工具栏
@@ -223,6 +235,7 @@ class ColorDotBar(QWidget):
             dot = DraggableColorDot(color, i)
             dot.clicked.connect(self._on_dot_clicked)
             dot.delete_requested.connect(self._on_dot_delete_requested)
+            dot.edit_requested.connect(self._on_dot_edit_requested)
             dot.set_hex_visible(self._hex_visible)
             self._dots.append(dot)
             layout.insertWidget(layout.count() - 1, dot)
@@ -245,6 +258,10 @@ class ColorDotBar(QWidget):
         """处理圆点删除请求"""
         self.delete_color(index)
 
+    def _on_dot_edit_requested(self, index: int):
+        """处理圆点编辑请求"""
+        self.edit_color(index)
+
     def delete_color(self, index: int):
         """删除指定索引的颜色
 
@@ -257,6 +274,41 @@ class ColorDotBar(QWidget):
             self._rebuild_dots()
             self.color_deleted.emit(self._colors.copy())
             log_user_action("delete_color", {"index": index, "color": deleted_color})
+
+    def edit_color(self, index: int):
+        """编辑指定索引的颜色
+
+        Args:
+            index: 要编辑的颜色索引
+        """
+        if 0 <= index < len(self._colors):
+            # 构建当前配色数据
+            colors_info = []
+            for color_hex in self._colors:
+                r, g, b = int(color_hex[1:3], 16), int(color_hex[3:5], 16), int(color_hex[5:7], 16)
+                colors_info.append(get_color_info(r, g, b))
+
+            palette_data = {
+                'name': '',
+                'colors': colors_info
+            }
+
+            # 打开编辑对话框
+            dialog = EditPaletteDialog(palette_data=palette_data, parent=self)
+            if dialog.exec() == EditPaletteDialog.DialogCode.Accepted:
+                new_palette_data = dialog.get_palette_data()
+                if new_palette_data and 'colors' in new_palette_data:
+                    # 提取新的颜色列表
+                    new_colors = []
+                    for color_info in new_palette_data['colors']:
+                        if 'hex' in color_info:
+                            new_colors.append(color_info['hex'])
+
+                    if new_colors:
+                        self._colors = new_colors
+                        self._rebuild_dots()
+                        self.color_edited.emit(self._colors.copy())
+                        log_user_action("edit_palette", {"index": index, "new_colors": new_colors})
 
     def paintEvent(self, event):
         """绘制插入指示器"""
@@ -1692,6 +1744,7 @@ class ColorPreviewInterface(QWidget):
         self.toolbar.scene_changed.connect(self._on_scene_changed)
         self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
         self.toolbar.get_dot_bar().color_deleted.connect(self._on_color_deleted)
+        self.toolbar.get_dot_bar().color_edited.connect(self._on_color_edited)
         self.toolbar.import_svg_requested.connect(self._on_import_svg)
         self.toolbar.export_svg_requested.connect(self._on_export_svg)
         self.toolbar.import_config_requested.connect(self._on_import_config)
@@ -1759,6 +1812,11 @@ class ColorPreviewInterface(QWidget):
 
     def _on_color_deleted(self, colors: list[str]):
         """颜色删除回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def _on_color_edited(self, colors: list[str]):
+        """颜色编辑回调"""
         self._current_colors = colors
         self.preview_panel.set_colors(colors)
 

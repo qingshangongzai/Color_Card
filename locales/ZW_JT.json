@@ -430,6 +430,7 @@
   },
   "common": {
     "delete": "刪除",
+    "edit": "编辑配色",
     "group_range": "{start}-{end}",
     "group_all": "全部 ({total})"
   }
