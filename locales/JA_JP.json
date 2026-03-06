@@ -430,6 +430,7 @@
   },
   "common": {
     "delete": "削除",
+    "edit": "パレットを編集",
     "group_range": "{start}-{end}",
     "group_all": "すべて ({total})"
   }

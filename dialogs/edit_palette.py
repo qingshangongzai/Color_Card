@@ -817,9 +817,9 @@ class ColorInputRow(QWidget):
         layout.addStretch()
 
     def eventFilter(self, obj, event):
-        """事件过滤器处理右键点击"""
+        """事件过滤器处理左键点击"""
         if obj == self.preview_block and event.type() == event.Type.MouseButtonPress:
-            if event.button() == Qt.MouseButton.RightButton:
+            if event.button() == Qt.MouseButton.LeftButton:
                 self._open_color_picker()
                 return True
         return super().eventFilter(obj, event)
