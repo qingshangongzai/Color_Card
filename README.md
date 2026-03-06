@@ -136,26 +136,6 @@
 4. **配色生成**：选择配色方案类型，通过色环选择基准色
 5. **配色预览**：选择场景预览配色效果，支持自定义SVG
 
-### 界面预览
-
-<p align="center">
-  <img src="docs/screenshots/color-extract.png" alt="色彩提取界面" width="80%">
-  <br>
-  <em>色彩提取功能 - 从图片中实时提取颜色</em>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/color-generation.png" alt="配色生成界面" width="80%">
-  <br>
-  <em>配色生成功能 - 通过色环生成专业配色方案</em>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/color-preview.png" alt="配色预览界面" width="80%">
-  <br>
-  <em>配色预览功能 - 在多种场景下预览配色效果</em>
-</p>
-
 ### 功能模块
 
 |模块 |功能 |
@@ -391,26 +371,6 @@ Unlike common color tools or websites that only provide a single function, Color
 3. **Luminance Analysis**: View image luminance distribution histogram, double-click image area to extract corresponding luminance pixels
 4. **Color Scheme Generation**: Select color scheme type, choose base color via color wheel
 5. **Color Preview**: Select scene to preview color effects, supports custom SVG
-
-### Interface Preview
-
-<p align="center">
-  <img src="docs/screenshots/color-extract.png" alt="Color Extraction Interface" width="80%">
-  <br>
-  <em>Color Extraction - Extract colors from images in real-time</em>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/color-generation.png" alt="Color Generation Interface" width="80%">
-  <br>
-  <em>Color Generation - Generate professional color schemes via color wheel</em>
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/color-preview.png" alt="Color Preview Interface" width="80%">
-  <br>
-  <em>Color Preview - Preview color effects in various scenarios</em>
-</p>
 
 ### Feature Modules
 
