@@ -279,6 +279,11 @@
       "confirm": "Confirm",
       "color_label": "Color"
     },
+    "color_picker": {
+      "title": "Select Color",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
     "colorblind": {
       "title": "Colorblind Simulation Preview",
       "window_title": "Colorblind Simulation Preview - {name}",

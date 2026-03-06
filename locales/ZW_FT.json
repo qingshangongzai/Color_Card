@@ -279,6 +279,11 @@
       "confirm": "確認",
       "color_label": "顏色"
     },
+    "color_picker": {
+      "title": "選擇顏色",
+      "confirm": "確認",
+      "cancel": "取消"
+    },
     "colorblind": {
       "title": "色盲模擬預覽",
       "window_title": "色盲模擬預覽 - {name}",

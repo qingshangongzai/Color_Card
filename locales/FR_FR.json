@@ -279,6 +279,11 @@
       "confirm": "Confirmer",
       "color_label": "Couleur"
     },
+    "color_picker": {
+      "title": "Sélectionner une couleur",
+      "confirm": "Confirmer",
+      "cancel": "Annuler"
+    },
     "colorblind": {
       "title": "Aperçu simulation daltonisme",
       "window_title": "Aperçu simulation daltonisme - {name}",

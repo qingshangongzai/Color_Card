@@ -279,6 +279,11 @@
       "confirm": "確認",
       "color_label": "カラー"
     },
+    "color_picker": {
+      "title": "カラーを選択",
+      "confirm": "確認",
+      "cancel": "キャンセル"
+    },
     "colorblind": {
       "title": "色覚シミュレーションプレビュー",
       "window_title": "色覚シミュレーションプレビュー - {name}",

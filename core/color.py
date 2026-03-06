@@ -575,6 +575,110 @@ def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
+def lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
+    """将LAB转换为RGB
+
+    转换步骤：
+    1. 使用D65参考白点反归一化
+    2. 从LAB转换到XYZ
+    3. 从XYZ转换到线性RGB
+    4. 应用sRGB Gamma编码
+    5. 转换到0-255范围
+
+    Args:
+        l: 亮度 (0-100)
+        a: 红绿对立通道 (-128-127)
+        b: 黄蓝对立通道 (-128-127)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+    """
+    # 步骤1: 从LAB转换到XYZ
+    def f_inv(t: float) -> float:
+        """LAB到XYZ的逆转换函数"""
+        delta = 6 / 29
+        if t > delta:
+            return t ** 3
+        else:
+            return 3 * (delta ** 2) * (t - 4 / 29)
+
+    y = (l + 16) / 116
+    x = y + a / 500
+    z = y - b / 200
+
+    # 使用D65参考白点
+    x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
+    x = x_ref * f_inv(x)
+    y = y_ref * f_inv(y)
+    z = z_ref * f_inv(z)
+
+    # 步骤2: 从XYZ转换到线性RGB
+    r_linear = x * 3.2404542 + y * -1.5371385 + z * -0.4985314
+    g_linear = x * -0.9692660 + y * 1.8760108 + z * 0.0415560
+    b_linear = x * 0.0556434 + y * -0.2040259 + z * 1.0572252
+
+    # 步骤3: 应用sRGB Gamma编码
+    def linear_to_srgb(c: float) -> float:
+        if c <= 0.0031308:
+            return c * 12.92
+        else:
+            return 1.055 * (c ** (1 / 2.4)) - 0.055
+
+    r = linear_to_srgb(r_linear)
+    g = linear_to_srgb(g_linear)
+    b_out = linear_to_srgb(b_linear)
+
+    # 步骤4: 限制范围并转换为0-255
+    r = max(0, min(1, r))
+    g = max(0, min(1, g))
+    b_out = max(0, min(1, b_out))
+
+    return round(r * 255), round(g * 255), round(b_out * 255)
+
+
+def hsl_to_rgb(h: float, s: float, l: float) -> Tuple[int, int, int]:
+    """将HSL转换为RGB
+
+    Args:
+        h: 色相 (0-360)
+        s: 饱和度 (0-100)
+        l: 亮度 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+    """
+    h_norm = h / 360.0
+    s_norm = s / 100.0
+    l_norm = l / 100.0
+
+    r, g, b_out = colorsys.hls_to_rgb(h_norm, l_norm, s_norm)
+    return round(r * 255), round(g * 255), round(b_out * 255)
+
+
+def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> Tuple[int, int, int]:
+    """将CMYK转换为RGB
+
+    Args:
+        c: 青色 (0-100)
+        m: 品红 (0-100)
+        y: 黄色 (0-100)
+        k: 黑色 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+    """
+    c_norm = c / 100.0
+    m_norm = m / 100.0
+    y_norm = y / 100.0
+    k_norm = k / 100.0
+
+    r = (1 - c_norm) * (1 - k_norm)
+    g = (1 - m_norm) * (1 - k_norm)
+    b_out = (1 - y_norm) * (1 - k_norm)
+
+    return round(r * 255), round(g * 255), round(b_out * 255)
+
+
 def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
     """生成同色系配色方案
 

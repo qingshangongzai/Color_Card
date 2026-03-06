@@ -279,6 +279,11 @@
       "confirm": "确认",
       "color_label": "颜色"
     },
+    "color_picker": {
+      "title": "选择颜色",
+      "confirm": "确认",
+      "cancel": "取消"
+    },
     "colorblind": {
       "title": "色盲模拟预览",
       "window_title": "色盲模拟预览 - {name}",
