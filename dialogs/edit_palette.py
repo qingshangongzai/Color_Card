@@ -27,20 +27,24 @@ from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_c
 
 # ==================== 颜色选择器对话框组件 ====================
 
-# 48个预设颜色（6行×8列）
+# 48个预设颜色（8行×6列）
 PRESET_COLORS = [
-    # 第1行：基础色（黑、灰、红、橙、黄、绿、青、蓝）
-    ["#000000", "#7F7F7F", "#880015", "#ED1C24", "#FF7F27", "#FFF200", "#22B14C", "#00A2E8"],
-    # 第2行：紫、粉、白、浅灰、棕、浅粉、金、米黄
-    ["#3F48CC", "#A349A4", "#FFFFFF", "#C3C3C3", "#B97A57", "#FFAEC9", "#FFC90E", "#EFE4B0"],
-    # 第3行：浅蓝、钢蓝、淡紫、银灰、赭石、玫瑰粉、琥珀、奶油
-    ["#99D9EA", "#7092BE", "#C8BFE7", "#A0A0A0", "#8B4513", "#FF69B4", "#FFBF00", "#F5F5DC"],
-    # 第4行：天蓝、深蓝、薰衣草、炭灰、巧克力、热粉、柠檬黄、象牙白
-    ["#87CEEB", "#4169E1", "#E6E6FA", "#696969", "#D2691E", "#FF1493", "#FFFFE0", "#FFFFF0"],
-    # 第5行：青绿、海蓝、紫罗兰、暗灰、番茄红、深粉、卡其、亚麻
-    ["#20B2AA", "#4682B4", "#EE82EE", "#505050", "#FF6347", "#FF1493", "#F0E68C", "#FAF0E6"],
-    # 第6行：薄荷绿、天青、洋红、烟灰、珊瑚红、浅玫瑰、金黄、雪白
-    ["#98FF98", "#00CED1", "#FF00FF", "#D3D3D3", "#F08080", "#FFB6C1", "#FFD700", "#FFFAFA"],
+    # 第1行：黑色系（黑、深灰、中灰、浅灰、白、米白）
+    ["#000000", "#333333", "#666666", "#999999", "#CCCCCC", "#FFFFFF"],
+    # 第2行：红色系（深红、红、橙红、浅红、粉红、浅粉）
+    ["#8B0000", "#FF0000", "#FF4500", "#FF6347", "#FFB6C1", "#FFC0CB"],
+    # 第3行：橙色系（深橙、橙、金橙、浅橙、杏色、桃色）
+    ["#CC5500", "#FF8C00", "#FFA500", "#FFAE42", "#FFDAB9", "#FFDAB9"],
+    # 第4行：黄色系（深黄、黄、柠檬黄、浅黄、奶油、象牙）
+    ["#B8860B", "#FFD700", "#FFFF00", "#FFFFE0", "#FFF8DC", "#FFFFF0"],
+    # 第5行：绿色系（深绿、绿、草绿、浅绿、薄荷绿、青绿）
+    ["#006400", "#008000", "#32CD32", "#90EE90", "#98FB98", "#20B2AA"],
+    # 第6行：青色系（深青、青、天青、浅青、水色、薄荷）
+    ["#008B8B", "#00CED1", "#00FFFF", "#AFEEEE", "#E0FFFF", "#40E0D0"],
+    # 第7行：蓝色系（深蓝、蓝、天蓝、浅蓝、冰蓝、钢蓝）
+    ["#00008B", "#0000FF", "#1E90FF", "#87CEEB", "#ADD8E6", "#4682B4"],
+    # 第8行：紫色系（深紫、紫、紫罗兰、浅紫、薰衣草、洋红）
+    ["#4B0082", "#800080", "#8A2BE2", "#9370DB", "#E6E6FA", "#FF00FF"],
 ]
 
 
@@ -62,14 +66,14 @@ class PresetGrid(QWidget):
         layout.setSpacing(6)
 
         # 设置行列拉伸因子，使颜色块均匀分布
-        for row in range(6):
+        for row in range(8):
             layout.setRowStretch(row, 1)
-        for col in range(8):
+        for col in range(6):
             layout.setColumnStretch(col, 1)
 
         # 创建48个颜色块
-        for row in range(6):
-            for col in range(8):
+        for row in range(8):
+            for col in range(6):
                 color_hex = PRESET_COLORS[row][col]
                 btn = self._create_color_button(color_hex)
                 layout.addWidget(btn, row, col)
