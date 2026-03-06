@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Color Card 更新日志 - 查看软件版本更新记录">
+    <meta name="keywords" content="Color Card,更新日志,版本记录,配色工具">
+    <title>更新日志 - Color Card</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            primary: '#FF6B6B',
+                            secondary: '#15AABF',
+                            accent: '#FAB005',
+                        },
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-out forwards',
+                        'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6B6B 0%, #15AABF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229, 231, 235, 0.5);
+        }
+        .dark .glass-card {
+            background: rgba(17, 24, 39, 0.8);
+            border-color: rgba(55, 65, 81, 0.5);
+        }
+        .btn-primary {
+            background: #FF6B6B;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(255, 107, 107, 0.4);
+        }
+        .btn-secondary {
+            background: #F3F4F6;
+            color: #111827;
+            transition: all 0.2s;
+        }
+        .dark .btn-secondary {
+            background: #1F2937;
+            color: white;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+        }
+        .dark .btn-secondary:hover {
+            background: #374151;
+        }
+        .section-container {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        @media (min-width: 640px) {
+            .section-container { padding: 0 1.5rem; }
+        }
+        @media (min-width: 1024px) {
+            .section-container { padding: 0 2rem; }
+        }
+
+        /* Navigation Scroll Effect */
+        .nav-scrolled {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .dark .nav-scrolled {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 增强导航栏毛玻璃 */
+        .nav-enhanced {
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .dark .nav-enhanced {
+            background: rgba(17, 24, 39, 0.7);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-enhanced.nav-scrolled {
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .dark .nav-enhanced.nav-scrolled {
+            background: rgba(17, 24, 39, 0.85);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Scroll Reveal Animation - 逐个出现效果 */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s var(--ease-out-expo), transform 0.6s var(--ease-out-expo);
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .scroll-reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
+        /* 交错动画延迟 */
+        .scroll-reveal-delay-1 { transition-delay: 0.1s; }
+        .scroll-reveal-delay-2 { transition-delay: 0.2s; }
+        .scroll-reveal-delay-3 { transition-delay: 0.3s; }
+        .scroll-reveal-delay-4 { transition-delay: 0.4s; }
+        .scroll-reveal-delay-5 { transition-delay: 0.5s; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300">
+        <div class="section-container">
+            <div class="flex items-center justify-between h-16">
+                <a href="index.html" class="flex items-center gap-2">
+                    <img src="logo.png" alt="Color Card" class="w-8 h-8 rounded-lg">
+                    <span class="font-bold text-lg hidden sm:block">Color Card</span>
+                </a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="index.html#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
+                    <a href="index.html#screenshots" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
+                    <a href="index.html#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
+                    <a href="index.html#story" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
+                    <a href="index.html#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
+                    <a href="changelog.html" class="text-brand-primary font-medium">更新日志</a>
+                    <a href="index.html#feedback" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
+                    <a href="index.html#about" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-4 py-2 rounded-xl text-sm font-medium hidden sm:inline-block">立即下载</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Changelog Section -->
+    <section id="changelog" class="py-24 pt-32 min-h-screen">
+        <div class="section-container">
+            <div class="text-center mb-12">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
+                    <svg class="w-4 h-4 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    <span class="text-sm font-medium">版本记录</span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">更新日志</h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">持续迭代，不断优化体验</p>
+            </div>
+            <div class="max-w-3xl mx-auto">
+                <div id="changelog-container" class="space-y-6">
+                    <div class="text-center py-12">
+                        <div class="inline-block w-8 h-8 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+                        <p class="mt-4 text-gray-500">加载中...</p>
+                    </div>
+                </div>
+                <div class="text-center mt-8">
+                    <button id="show-all-btn" onclick="toggleExpand()" class="btn-secondary px-6 py-3 rounded-xl font-medium inline-flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+                        <span>查看全部更新</span>
+                        <svg class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-16">
+        <div class="section-container">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="logo.png" alt="Color Card" class="w-10 h-10 rounded-lg">
+                        <span class="text-xl font-bold">Color Card</span>
+                    </div>
+                    <p class="text-gray-400 max-w-sm">Color Card 是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">产品</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="index.html#features" class="hover:text-white transition-colors">功能特性</a></li>
+                        <li><a href="index.html#palettes" class="hover:text-white transition-colors">配色方案</a></li>
+                        <li><a href="index.html#download" class="hover:text-white transition-colors">下载</a></li>
+                        <li><a href="index.html#feedback" class="hover:text-white transition-colors">问题反馈</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">资源</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>GitHub</a></li>
+                        <li><a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/><path d="M18.5 10.5h-8c-.3 0-.5.2-.5.5v1.5c0 .3.2.5.5.5h5c.3 0 .5.2.5.5v.5c0 1-.8 1.8-1.8 1.8H8c-.3 0-.5-.2-.5-.5V9.5c0-1 .8-1.8 1.8-1.8h8.2c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5H8c-2.2 0-4 1.8-4 4v8c0 .3.2.5.5.5h8.5c2.5 0 4.5-2 4.5-4.5V11c0-.3-.2-.5-.5-.5z" fill="#1a1a2e"/></svg>Gitee</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">关注我们</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://space.bilibili.com/1232406878" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>Bilibili</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <p class="text-gray-500 text-sm">&copy; 2026 浮晓 HXiao Studio. 保留所有权利。</p>
+            </div>
+            <div class="mt-4 text-center">
+                <p class="text-gray-600 text-xs">
+                    本站使用 <a href="https://tailwindcss.com" target="_blank" class="hover:text-gray-400 transition-colors">Tailwind CSS</a> (MIT) 和 
+                    <a href="https://fonts.google.com/specimen/Inter" target="_blank" class="hover:text-gray-400 transition-colors">Inter</a> (SIL OFL 1.1) 字体 |
+                    配色方案来自开源社区，详见<a href="https://gitee.com/qingshangongzai/color_card/blob/master/LICENSE" target="_blank" class="hover:text-gray-400 transition-colors">项目许可证</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check saved theme or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Navigation Scroll Effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > 50) {
+                navbar.classList.add('nav-scrolled');
+            } else {
+                navbar.classList.remove('nav-scrolled');
+            }
+        });
+
+        // Load Changelog from local JSON
+        let allVersions = [];
+        let isExpanded = false;
+        const DEFAULT_SHOW_COUNT = 3;
+
+        function renderVersionCard(v, index) {
+            const date = new Date(v.date).toLocaleDateString('zh-CN');
+            // 计算交错延迟类名 (1-5循环)
+            const delayClass = `scroll-reveal-delay-${(index % 5) + 1}`;
+
+            // 生成HTML
+            const changesHtml = v.changes.map(cat => {
+                const itemsHtml = cat.items.map(item => {
+                    if (typeof item === 'string') {
+                        // 普通描述项
+                        return `<li class="text-gray-600 dark:text-gray-400">${item}</li>`;
+                    } else if (item.title && item.desc) {
+                        // 有子标题的项
+                        return `
+                            <li>
+                                <div class="font-medium text-gray-700 dark:text-gray-300">${item.title}</div>
+                                <div class="text-gray-500 dark:text-gray-500 text-sm ml-4">${item.desc}</div>
+                            </li>
+                        `;
+                    }
+                    return '';
+                }).join('');
+
+                return `
+                    <div class="mb-4 last:mb-0">
+                        <h4 class="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+                            ${cat.category}
+                        </h4>
+                        <ul class="space-y-1.5 text-sm leading-relaxed ml-4">
+                            ${itemsHtml}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="glass-card rounded-2xl p-6 hover:shadow-lg transition-all duration-300 scroll-reveal ${delayClass}">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">${v.version}</h3>
+                        <span class="text-sm text-gray-500">${date}</span>
+                    </div>
+                    <div class="text-gray-600 dark:text-gray-400">
+                        ${changesHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderChangelog() {
+            const container = document.getElementById('changelog-container');
+            const showAllBtn = document.getElementById('show-all-btn');
+            
+            if (allVersions.length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500">暂无更新记录</div>';
+                if (showAllBtn) showAllBtn.style.display = 'none';
+                return;
+            }
+
+            const displayCount = isExpanded ? allVersions.length : Math.min(DEFAULT_SHOW_COUNT, allVersions.length);
+            const displayVersions = allVersions.slice(0, displayCount);
+            
+            container.innerHTML = displayVersions.map((v, i) => renderVersionCard(v, i)).join('');
+
+            // 初始化 scroll reveal 动画
+            initScrollReveal();
+
+            // 更新按钮显示状态
+            if (showAllBtn) {
+                if (allVersions.length <= DEFAULT_SHOW_COUNT) {
+                    showAllBtn.style.display = 'none';
+                } else {
+                    showAllBtn.style.display = 'inline-flex';
+                    const btnText = showAllBtn.querySelector('span');
+                    const btnIcon = showAllBtn.querySelector('svg');
+                    if (isExpanded) {
+                        btnText.textContent = '收起';
+                        btnIcon.style.transform = 'rotate(180deg)';
+                    } else {
+                        btnText.textContent = '查看全部更新';
+                        btnIcon.style.transform = 'rotate(0deg)';
+                    }
+                }
+            }
+        }
+
+        // Scroll Reveal Animation
+        const scrollRevealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        function initScrollReveal() {
+            document.querySelectorAll('.scroll-reveal').forEach(el => {
+                scrollRevealObserver.observe(el);
+                // 如果元素已经在视口内，立即显示
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    el.classList.add('visible');
+                }
+            });
+        }
+
+        function toggleExpand() {
+            isExpanded = !isExpanded;
+            renderChangelog();
+            // 滚动到按钮位置
+            if (!isExpanded) {
+                document.getElementById('changelog').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function loadChangelog() {
+            const container = document.getElementById('changelog-container');
+            try {
+                const response = await fetch('changelog.json');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                allVersions = data.versions || [];
+                renderChangelog();
+            } catch (error) {
+                console.error('Failed to load changelog:', error);
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500 mb-4">无法加载更新日志: ${error.message}</p>
+                        <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
+                            前往 Gitee 查看
+                        </a>
+                    </div>
+                `;
+                const showAllBtn = document.getElementById('show-all-btn');
+                if (showAllBtn) showAllBtn.style.display = 'none';
+            }
+        }
+
+        // Load changelog on page load
+        loadChangelog();
+    </script>
+</body>
+</html>
