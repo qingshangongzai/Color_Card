@@ -1,4 +1,4 @@
-# 取色卡 (Color Card)
+<h1 align="center">取色卡 (Color Card)</h1>
 
 <p align="center">
   <img src="./docs/logo.png" alt="Color Card Logo" width="180">
