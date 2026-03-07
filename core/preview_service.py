@@ -45,8 +45,18 @@ class PreviewService(QObject):
             parent: 父对象
         """
         super().__init__(parent)
-        self._scene_type_manager = get_scene_type_manager()
+        self._scene_type_manager = None  # 延迟获取
         self._config_manager = get_config_manager()
+
+    def _get_scene_type_manager(self):
+        """延迟获取场景类型管理器
+
+        Returns:
+            SceneTypeManager: 场景类型管理器实例
+        """
+        if self._scene_type_manager is None:
+            self._scene_type_manager = get_scene_type_manager()
+        return self._scene_type_manager
 
     def load_scene_types(self) -> List[Dict[str, Any]]:
         """加载所有场景类型
@@ -56,7 +66,7 @@ class PreviewService(QObject):
         """
         try:
             with log_performance("load_scene_types"):
-                scene_types = self._scene_type_manager.get_all_scene_types()
+                scene_types = self._get_scene_type_manager().get_all_scene_types()
                 self.scenes_loaded.emit(scene_types)
                 logger.debug(f"加载场景类型成功，共 {len(scene_types)} 个")
                 return scene_types
@@ -75,7 +85,7 @@ class PreviewService(QObject):
             Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
         """
         try:
-            config = self._scene_type_manager.get_scene_type_by_id(scene_id)
+            config = self._get_scene_type_manager().get_scene_type_by_id(scene_id)
             logger.debug(f"获取场景配置: scene_id={scene_id}")
             return config
         except Exception as e:
@@ -93,7 +103,7 @@ class PreviewService(QObject):
             List[Dict[str, Any]]: 模板列表
         """
         try:
-            templates = self._scene_type_manager.get_all_templates(scene_id)
+            templates = self._get_scene_type_manager().get_all_templates(scene_id)
             logger.debug(f"获取场景模板: scene_id={scene_id}, count={len(templates)}")
             return templates
         except Exception as e:
@@ -111,7 +121,7 @@ class PreviewService(QObject):
             Dict[str, Any]: 布局配置字典
         """
         try:
-            config = self._scene_type_manager.get_layout_config(scene_id)
+            config = self._get_scene_type_manager().get_layout_config(scene_id)
             logger.debug(f"获取布局配置: scene_id={scene_id}")
             return config
         except Exception as e:
@@ -185,7 +195,7 @@ class PreviewService(QObject):
             Optional[str]: SVG文件路径，如果不存在则返回None
         """
         try:
-            path = self._scene_type_manager.get_builtin_svg_path(scene_type)
+            path = self._get_scene_type_manager().get_builtin_svg_path(scene_type)
             logger.debug(f"获取内置SVG路径: scene_type={scene_type}, path={path}")
             return path
         except Exception as e:
