@@ -42,9 +42,10 @@ class ExportSettingsDialog(QDialog):
 
         # 设置窗口标志 - 只保留关闭按钮
         self.setWindowFlags(
-            Qt.WindowType.Dialog |
+            Qt.WindowType.Window |
             Qt.WindowType.WindowTitleHint |
-            Qt.WindowType.WindowCloseButtonHint
+            Qt.WindowType.WindowCloseButtonHint |
+            Qt.WindowType.CustomizeWindowHint
         )
 
         # 设置背景色
