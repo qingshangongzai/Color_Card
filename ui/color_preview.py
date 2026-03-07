@@ -1414,8 +1414,17 @@ class MixedPreviewPanel(QWidget):
         self._custom_svg_path: Optional[str] = None
         self._preview_service: Optional[PreviewService] = None
         super().__init__(parent)
-        self._preview_service = PreviewService(self)
         self.setup_ui()
+
+    def _get_preview_service(self):
+        """延迟获取预览服务
+
+        Returns:
+            PreviewService: 预览服务实例
+        """
+        if self._preview_service is None:
+            self._preview_service = PreviewService(self)
+        return self._preview_service
 
     def setup_ui(self):
         """创建UI"""
@@ -1440,7 +1449,7 @@ class MixedPreviewPanel(QWidget):
             self._svg_preview = None
 
         try:
-            manager = get_scene_type_manager()
+            manager = self._get_preview_service()._get_scene_type_manager()
             scene_config = manager.get_scene_type_by_id(scene)
 
             if scene_config is None:
@@ -1487,7 +1496,7 @@ class MixedPreviewPanel(QWidget):
             self.set_scene(self._current_scene)
             return
 
-        success, message = self._preview_service.remove_user_template(
+        success, message = self._get_preview_service().remove_user_template(
             self._current_scene, template_path
         )
 
@@ -1630,8 +1639,8 @@ class PreviewToolbar(QWidget):
 
         self.setFixedHeight(100)
 
-        current_scene = self._scene_selector.get_current_scene()
-        self._on_scene_changed(current_scene)
+        # 初始化当前场景，但不触发信号（避免在界面初始化时加载场景配置）
+        self._current_scene = self._scene_selector.get_current_scene()
 
     def _on_scene_changed(self, scene: str):
         """处理场景变化"""
@@ -1720,7 +1729,7 @@ class ColorPreviewInterface(QWidget):
         super().__init__(parent)
         self.setObjectName('colorPreviewInterface')
         self._config_manager = get_config_manager()
-        self._preview_service = PreviewService(self)
+        self._preview_service = None  # 延迟获取
         self._favorites = []
         self._current_index = 0
         self._current_colors: list[str] = []
@@ -1733,6 +1742,16 @@ class ColorPreviewInterface(QWidget):
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
         get_locale_manager().language_changed.connect(self._on_language_changed)
+
+    def _get_preview_service(self):
+        """延迟获取预览服务
+
+        Returns:
+            PreviewService: 预览服务实例
+        """
+        if self._preview_service is None:
+            self._preview_service = PreviewService(self)
+        return self._preview_service
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1783,7 +1802,7 @@ class ColorPreviewInterface(QWidget):
             return
 
         favorite = self._favorites[self._current_index]
-        self._current_colors = self._preview_service.extract_hex_colors_from_favorite(favorite)
+        self._current_colors = self._get_preview_service().extract_hex_colors_from_favorite(favorite)
         self._update_preview()
 
     def _update_preview(self):
@@ -1909,7 +1928,7 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        default_name = self._preview_service.generate_export_filename(tr('color_preview.export_default_name'))
+        default_name = self._get_preview_service().generate_export_filename(tr('color_preview.export_default_name'))
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -1925,7 +1944,7 @@ class ColorPreviewInterface(QWidget):
             file_path += '.svg'
 
         svg_content = svg_preview.get_svg_content()
-        success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
+        success, message = self._get_preview_service().save_svg_to_file(svg_content, file_path)
 
         if success:
             log_user_action("export_svg_success", {"file_path": file_path})
@@ -1962,7 +1981,7 @@ class ColorPreviewInterface(QWidget):
         if not file_path:
             return
 
-        is_valid, error_msg = self._preview_service.validate_svg_file(file_path)
+        is_valid, error_msg = self._get_preview_service().validate_svg_file(file_path)
         if not is_valid:
             InfoBar.error(
                 title=tr('color_preview_messages.template_import_failed.title'),
@@ -1975,7 +1994,7 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        success, message = self._preview_service.add_user_template(
+        success, message = self._get_preview_service().add_user_template(
             self._current_scene, file_path
         )
 
@@ -2020,7 +2039,7 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        default_name = self._preview_service.generate_export_filename(tr('color_preview.export_default_name'))
+        default_name = self._get_preview_service().generate_export_filename(tr('color_preview.export_default_name'))
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -2036,7 +2055,7 @@ class ColorPreviewInterface(QWidget):
             file_path += '.svg'
 
         svg_content = svg_preview.get_svg_content()
-        success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
+        success, message = self._get_preview_service().save_svg_to_file(svg_content, file_path)
 
         if success:
             log_user_action("export_config_success", {"file_path": file_path})
