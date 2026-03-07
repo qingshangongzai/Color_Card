@@ -6,6 +6,7 @@ UI层通过PaletteService调用业务功能，实现UI与业务逻辑分离。
 
 # 标准库导入
 import json
+import struct
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -286,12 +287,210 @@ class PaletteExporter(QThread):
                     self.error.emit(f"导出失败: {e}")
 
 
+class AseExporter(QThread):
+    """ASE 格式导出线程
+
+    在后台线程中执行 ASE 格式导出，避免阻塞 UI 线程。
+    支持取消操作。
+
+    ASE (Adobe Swatch Exchange) 是 Adobe 软件通用的色板交换格式。
+
+    线程安全说明：
+    - 所有信号都使用 QueuedConnection，确保跨线程安全
+    - cancel() 方法设置标志位，不阻塞调用线程
+    - 不使用 terminate()，通过标志位优雅退出
+
+    使用示例：
+        exporter = AseExporter(palette, file_path, parent=self)
+        exporter.finished.connect(
+            self._on_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        exporter.error.connect(
+            self._on_error, Qt.ConnectionType.QueuedConnection
+        )
+        exporter.start()
+
+        # 取消导出
+        exporter.cancel()
+
+    信号:
+        finished: 导出完成时发射，参数为导出文件路径
+        error: 导出出错时发射，参数为错误信息
+    """
+
+    # 信号：导出完成
+    finished = Signal(str)    # 导出文件路径
+    # 信号：导出失败
+    error = Signal(str)       # 错误信息
+
+    def __init__(self, palette: Dict[str, Any], file_path: str, parent=None):
+        """初始化 ASE 导出线程
+
+        Args:
+            palette: 配色数据字典
+            file_path: 导出文件路径
+            parent: 父对象
+        """
+        super().__init__(parent)
+        self._palette = palette
+        self._file_path = file_path
+        self._is_cancelled = False
+
+    def cancel(self):
+        """请求取消导出"""
+        self._is_cancelled = True
+
+    def _check_cancelled(self) -> bool:
+        """检查是否被取消"""
+        return self._is_cancelled
+
+    def run(self):
+        """在子线程中执行 ASE 导出"""
+        with log_performance("ase_export", {"file": self._file_path}):
+            try:
+                if self._check_cancelled():
+                    return
+
+                logger.info(f"开始导出 ASE 文件: {self._file_path}")
+
+                colors = self._palette.get("colors", [])
+                palette_name = self._palette.get("name", "")
+
+                if not colors:
+                    self.error.emit("配色中没有颜色数据")
+                    return
+
+                if self._check_cancelled():
+                    return
+
+                # 生成 ASE 数据
+                ase_data = self._create_ase_data(colors, palette_name)
+
+                if self._check_cancelled():
+                    return
+
+                # 写入文件
+                with open(self._file_path, 'wb') as f:
+                    f.write(ase_data)
+
+                logger.info(f"ASE 导出成功，共 {len(colors)} 个颜色")
+                self.finished.emit(self._file_path)
+
+            except (IOError, OSError) as e:
+                if not self._check_cancelled():
+                    logger.error(f"文件写入错误: {e}", exc_info=True)
+                    self.error.emit(f"文件写入错误: {e}")
+            except Exception as e:
+                if not self._check_cancelled():
+                    logger.error(f"ASE 导出失败: {e}", exc_info=True)
+                    self.error.emit(f"ASE 导出失败: {e}")
+
+    def _create_ase_data(self, colors: List[Dict[str, Any]], palette_name: str) -> bytes:
+        """创建 ASE 格式二进制数据
+
+        Args:
+            colors: 颜色列表
+            palette_name: 配色名称
+
+        Returns:
+            bytes: ASE 格式二进制数据
+        """
+        data = bytearray()
+
+        # 文件头: ASEF 签名 + 版本
+        data.extend(b'ASEF')
+        data.extend(struct.pack('>HH', 1, 0))  # 版本 1.0
+
+        # 计算块数量
+        block_count = len(colors)
+        if palette_name:
+            block_count += 2  # 组开始 + 组结束
+        data.extend(struct.pack('>I', block_count))
+
+        # 组开始块
+        if palette_name:
+            data.extend(self._create_group_start_block(palette_name))
+
+        # 颜色块
+        for i, color in enumerate(colors):
+            if self._check_cancelled():
+                return bytes(data)
+            color_name = f"Color {i + 1}"
+            rgb = color.get('rgb', [0, 0, 0])
+            data.extend(self._create_color_block(color_name, rgb))
+
+        # 组结束块
+        if palette_name:
+            data.extend(self._create_group_end_block())
+
+        return bytes(data)
+
+    def _create_group_start_block(self, name: str) -> bytes:
+        """创建组开始块
+
+        Args:
+            name: 组名称
+
+        Returns:
+            bytes: 组开始块数据
+        """
+        # 名称转 UTF-16 BE，以 null 结尾
+        name_bytes = name.encode('utf-16-be') + b'\x00\x00'
+        name_len = len(name_bytes) // 2
+
+        block_data = struct.pack('>H', name_len) + name_bytes
+        block_len = len(block_data)
+
+        return struct.pack('>H', 0xC001) + struct.pack('>I', block_len) + block_data
+
+    def _create_group_end_block(self) -> bytes:
+        """创建组结束块
+
+        Returns:
+            bytes: 组结束块数据
+        """
+        return struct.pack('>H', 0xC002) + struct.pack('>I', 0)
+
+    def _create_color_block(self, name: str, rgb: List[int]) -> bytes:
+        """创建颜色块
+
+        Args:
+            name: 颜色名称
+            rgb: RGB 值列表 [r, g, b]
+
+        Returns:
+            bytes: 颜色块数据
+        """
+        # 名称转 UTF-16 BE，以 null 结尾
+        name_bytes = name.encode('utf-16-be') + b'\x00\x00'
+        name_len = len(name_bytes) // 2
+
+        # 颜色模式: RGB
+        mode = b'RGB '
+
+        # RGB 值转为 float32 (0.0 - 1.0)
+        r_val = rgb[0] / 255.0 if len(rgb) > 0 else 0.0
+        g_val = rgb[1] / 255.0 if len(rgb) > 1 else 0.0
+        b_val = rgb[2] / 255.0 if len(rgb) > 2 else 0.0
+
+        rgb_bytes = struct.pack('>fff', r_val, g_val, b_val)
+
+        # 颜色类型: 2 = 常规 (Normal)
+        color_type = struct.pack('>H', 2)
+
+        block_data = struct.pack('>H', name_len) + name_bytes + mode + rgb_bytes + color_type
+        block_len = len(block_data)
+
+        return struct.pack('>H', 0x0001) + struct.pack('>I', block_len) + block_data
+
+
 class PaletteService(QObject):
     """配色服务，管理配色的导入导出业务逻辑
 
     职责：
     - 配色导入（文件解析、数据验证、格式转换）
     - 配色导出（数据转换、文件生成）
+    - ASE 格式导出（Adobe Swatch Exchange）
     - 配色数据验证
 
     线程安全说明：
@@ -320,6 +519,9 @@ class PaletteService(QObject):
         export_started: 导出开始
         export_finished: 导出完成 (file_path)
         export_error: 导出错误 (error_message)
+        ase_export_started: ASE 导出开始
+        ase_export_finished: ASE 导出完成 (file_path)
+        ase_export_error: ASE 导出错误 (error_message)
     """
 
     # 信号
@@ -329,6 +531,9 @@ class PaletteService(QObject):
     export_started = Signal()
     export_finished = Signal(str)   # 导出文件路径
     export_error = Signal(str)      # 错误信息
+    ase_export_started = Signal()
+    ase_export_finished = Signal(str)   # ASE 导出文件路径
+    ase_export_error = Signal(str)      # ASE 错误信息
 
     def __init__(self, parent=None):
         """初始化配色服务
@@ -339,6 +544,7 @@ class PaletteService(QObject):
         super().__init__(parent)
         self._importer = None
         self._exporter = None
+        self._ase_exporter = None
 
     def __del__(self):
         """析构函数：确保线程在对象销毁前停止"""
@@ -348,6 +554,9 @@ class PaletteService(QObject):
         if self._exporter is not None and self._exporter.isRunning():
             self._exporter.cancel()
             self._exporter.wait(1000)  # 等待最多1秒
+        if self._ase_exporter is not None and self._ase_exporter.isRunning():
+            self._ase_exporter.cancel()
+            self._ase_exporter.wait(1000)  # 等待最多1秒
 
     def import_from_file(self, file_path: str) -> None:
         """从文件导入配色（异步）
@@ -451,6 +660,58 @@ class PaletteService(QObject):
         if self._exporter is not None:
             self._exporter.deleteLater()
             self._exporter = None
+
+    def export_to_ase(self, palette: Dict[str, Any], file_path: str) -> None:
+        """导出配色到 ASE 文件（异步）
+
+        异步执行 ASE 格式导出，通过信号通知结果。
+        如果已有 ASE 导出任务在进行，会先取消旧任务。
+
+        Args:
+            palette: 配色数据字典
+            file_path: 导出文件路径
+        """
+        # 取消之前的 ASE 导出
+        if self._ase_exporter is not None and self._ase_exporter.isRunning():
+            self._ase_exporter.cancel()
+            self._ase_exporter = None
+
+        self.ase_export_started.emit()
+
+        # 创建并启动 ASE 导出线程
+        self._ase_exporter = AseExporter(palette, file_path, self)
+        self._ase_exporter.finished.connect(
+            self._on_ase_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._ase_exporter.error.connect(
+            self.ase_export_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._ase_exporter.finished.connect(
+            self._cleanup_ase_exporter, Qt.ConnectionType.QueuedConnection
+        )
+        self._ase_exporter.error.connect(
+            self._cleanup_ase_exporter, Qt.ConnectionType.QueuedConnection
+        )
+        self._ase_exporter.start()
+
+    def cancel_ase_export(self) -> None:
+        """取消当前 ASE 导出任务"""
+        if self._ase_exporter is not None and self._ase_exporter.isRunning():
+            self._ase_exporter.cancel()
+
+    def _on_ase_export_finished(self, file_path: str):
+        """ASE 导出完成处理
+
+        Args:
+            file_path: 导出文件路径
+        """
+        self.ase_export_finished.emit(file_path)
+
+    def _cleanup_ase_exporter(self):
+        """清理 ASE 导出器"""
+        if self._ase_exporter is not None:
+            self._ase_exporter.deleteLater()
+            self._ase_exporter = None
 
     @staticmethod
     def validate_palette(palette: Dict[str, Any]) -> Tuple[bool, str]:

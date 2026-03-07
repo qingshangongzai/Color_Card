@@ -75,7 +75,9 @@
     "empty_hint": "カラー抽出またはカラー生成パネルで保存ボタンをクリックしてください",
     "import_title": "パレットをインポート",
     "export_title": "パレットをエクスポート",
-    "json_filter": "JSONファイル (*.json);;すべてのファイル (*)"
+    "json_filter": "JSONファイル (*.json);;すべてのファイル (*)",
+    "export_ase_title": "ASEスウォッチをエクスポート",
+    "ase_filter": "ASEファイル (*.ase);;すべてのファイル (*)"
   },
   "color_preview": {
     "title": "カラープレビュー",
@@ -413,6 +415,18 @@
     "export_failed": {
       "title": "エクスポート失敗",
       "content": "{error}"
+    },
+    "export_ase_success": {
+      "title": "エクスポート成功",
+      "content": "パレットをエクスポートしました: {path}"
+    },
+    "export_ase_failed": {
+      "title": "エクスポート失敗",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "エクスポート失敗",
+      "content": "パレットにカラーデータがありません"
     },
     "add_success": {
       "title": "追加成功",

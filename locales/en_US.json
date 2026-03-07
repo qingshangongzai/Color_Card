@@ -75,7 +75,9 @@
     "empty_hint": "Click the save button in Color Extract or Color Generation panel",
     "import_title": "Import Palettes",
     "export_title": "Export Palettes",
-    "json_filter": "JSON Files (*.json);;All Files (*)"
+    "json_filter": "JSON Files (*.json);;All Files (*)",
+    "export_ase_title": "Export ASE Swatch",
+    "ase_filter": "ASE Files (*.ase);;All Files (*)"
   },
   "color_preview": {
     "title": "Color Preview",
@@ -413,6 +415,18 @@
     "export_failed": {
       "title": "Export Failed",
       "content": "{error}"
+    },
+    "export_ase_success": {
+      "title": "Export Successful",
+      "content": "Palette exported to: {path}"
+    },
+    "export_ase_failed": {
+      "title": "Export Failed",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "Export Failed",
+      "content": "No colors in palette"
     },
     "add_success": {
       "title": "Added Successfully",

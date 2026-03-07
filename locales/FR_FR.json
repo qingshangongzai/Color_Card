@@ -75,7 +75,9 @@
     "empty_hint": "Cliquez sur le bouton d'enregistrement dans le panneau d'extraction ou de génération de couleurs",
     "import_title": "Importer des palettes",
     "export_title": "Exporter des palettes",
-    "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)"
+    "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)",
+    "export_ase_title": "Exporter la nuance ASE",
+    "ase_filter": "Fichiers ASE (*.ase);;Tous les fichiers (*)"
   },
   "color_preview": {
     "title": "Aperçu des couleurs",
@@ -413,6 +415,18 @@
     "export_failed": {
       "title": "Échec de l'exportation",
       "content": "{error}"
+    },
+    "export_ase_success": {
+      "title": "Exportation réussie",
+      "content": "Palette exportée vers: {path}"
+    },
+    "export_ase_failed": {
+      "title": "Échec de l'exportation",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "Échec de l'exportation",
+      "content": "Aucune donnée de couleur dans la palette"
     },
     "add_success": {
       "title": "Ajout réussi",

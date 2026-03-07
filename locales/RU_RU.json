@@ -75,7 +75,9 @@
     "empty_hint": "Нажмите кнопку сохранения в панели извлечения или генерации цвета",
     "import_title": "Импорт палитр",
     "export_title": "Экспорт палитр",
-    "json_filter": "JSON файлы (*.json);;Все файлы (*)"
+    "json_filter": "JSON файлы (*.json);;Все файлы (*)",
+    "export_ase_title": "Экспорт ASE палитры",
+    "ase_filter": "ASE файлы (*.ase);;Все файлы (*)"
   },
   "color_preview": {
     "title": "Предпросмотр цвета",
@@ -413,6 +415,18 @@
     "export_failed": {
       "title": "Ошибка экспорта",
       "content": "{error}"
+    },
+    "export_ase_success": {
+      "title": "Экспорт успешен",
+      "content": "Палитра экспортирована в: {path}"
+    },
+    "export_ase_failed": {
+      "title": "Ошибка экспорта",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "Ошибка экспорта",
+      "content": "В палитре нет данных о цветах"
     },
     "add_success": {
       "title": "Успешно добавлено",
