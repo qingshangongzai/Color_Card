@@ -22,7 +22,7 @@ from PySide6.QtGui import (
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFileDialog,
-    QSizePolicy, QPushButton, QLabel, QApplication
+    QSizePolicy, QPushButton, QLabel, QApplication, QDialog
 )
 from qfluentwidgets import (
     ComboBox, PushButton, SubtitleLabel, FluentIcon, isDarkTheme, qconfig,
@@ -34,6 +34,7 @@ from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_t
 from core.color import get_color_info
 from core.logger import get_logger, log_user_action
 from dialogs.edit_palette import EditPaletteDialog
+from dialogs.export_settings_dialog import ExportSettingsDialog
 from utils import tr, get_locale_manager
 from utils.theme_colors import get_border_color, get_text_color
 
@@ -1548,6 +1549,25 @@ class MixedPreviewPanel(QWidget):
                 return widgets[0]
         return None
 
+    def get_all_svg_widgets(self) -> List[SVGPreviewWidget]:
+        """获取所有 SVG 预览组件
+
+        Returns:
+            List[SVGPreviewWidget]: SVG预览组件列表
+        """
+        widgets = []
+
+        if self._svg_preview is not None:
+            widgets.append(self._svg_preview)
+
+        if self._current_layout:
+            layout_widgets = self._current_layout.get_svg_widgets()
+            for widget in layout_widgets:
+                if widget and widget.has_svg():
+                    widgets.append(widget)
+
+        return widgets
+
     def set_custom_svg_path(self, path: str):
         """设置 custom 场景的 SVG 路径
 
@@ -1899,13 +1919,14 @@ class ColorPreviewInterface(QWidget):
             )
 
     def _on_export_svg(self):
-        """导出 SVG 文件"""
-        svg_preview = self.preview_panel.get_svg_preview()
+        """导出 SVG/PNG 文件"""
+        # 获取所有 SVG 预览组件
+        svg_widgets = self.preview_panel.get_all_svg_widgets()
 
-        if svg_preview is None:
+        if not svg_widgets:
             InfoBar.warning(
-                title=tr('color_preview_messages.cannot_export.title'),
-                content=tr('color_preview_messages.cannot_export.content'),
+                title=tr('color_preview_messages.no_svg_available.title'),
+                content=tr('color_preview_messages.no_svg_available.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1914,52 +1935,129 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        if not svg_preview.has_svg():
-            InfoBar.warning(
-                title=tr('color_preview_messages.no_svg_to_export.title'),
-                content=tr('color_preview_messages.no_svg_to_export.content'),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
+        # 弹出导出设置对话框
+        dialog = ExportSettingsDialog(svg_widgets, self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
             return
 
-        default_name = self._get_preview_service().generate_export_filename(tr('color_preview.export_default_name'))
+        # 获取用户选择
+        selected_indices = dialog.get_selected_indices()
+        filename_prefix = dialog.get_filename_prefix()
+        export_format = dialog.get_export_format()
+
+        if not selected_indices:
+            return
+
+        # 打开文件保存对话框（获取保存目录）
+        if len(selected_indices) == 1:
+            # 单张图片
+            default_name = f"{filename_prefix}.{export_format}"
+        else:
+            # 多张图片
+            default_name = filename_prefix
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             tr('color_preview.export_svg'),
             default_name,
-            tr('color_preview.svg_filter')
+            tr(f'color_preview.{export_format}_filter')
         )
 
         if not file_path:
             return
 
-        if not file_path.endswith('.svg'):
-            file_path += '.svg'
+        # 执行导出
+        success_count = 0
+        failed_messages = []
 
-        svg_content = svg_preview.get_svg_content()
-        success, message = self._get_preview_service().save_svg_to_file(svg_content, file_path)
+        for i, index in enumerate(selected_indices):
+            if index >= len(svg_widgets):
+                continue
 
-        if success:
-            log_user_action("export_svg_success", {"file_path": file_path})
+            svg_widget = svg_widgets[index]
+            if not svg_widget or not svg_widget.has_svg():
+                continue
+
+            svg_content = svg_widget.get_svg_content()
+
+            # 生成文件名
+            if len(selected_indices) == 1:
+                # 单张图片：直接使用前缀
+                current_file_path = file_path
+                # 确保有正确的扩展名
+                if not current_file_path.endswith(f'.{export_format}'):
+                    current_file_path += f'.{export_format}'
+            else:
+                # 多张图片：前缀 + 序号
+                base_path = file_path
+                # 移除可能的扩展名
+                for ext in ['.svg', '.png']:
+                    if base_path.lower().endswith(ext):
+                        base_path = base_path[:-len(ext)]
+                        break
+                # 获取保存目录
+                from pathlib import Path
+                path_obj = Path(file_path)
+                parent_dir = path_obj.parent
+                # 生成带序号的文件名
+                current_file_path = str(parent_dir / f"{filename_prefix}_{i + 1:02d}.{export_format}")
+
+            # 根据格式导出
+            if export_format == 'png':
+                success, message = self._get_preview_service().save_svg_as_png(
+                    svg_content, current_file_path
+                )
+            else:
+                success, message = self._get_preview_service().save_svg_to_file(
+                    svg_content, current_file_path
+                )
+
+            if success:
+                success_count += 1
+            else:
+                failed_messages.append(f"图片 {index + 1}: {message}")
+
+        # 显示导出结果
+        if success_count == len(selected_indices):
+            # 全部成功
+            log_user_action(f"export_{export_format}_success", {
+                "count": success_count,
+                "format": export_format
+            })
             InfoBar.success(
                 title=tr('color_preview_messages.export_success.title'),
-                content=tr('color_preview_messages.export_success.content', message=message),
+                content=tr('color_preview_messages.export_success.content',
+                          message=f"成功导出 {success_count} 个文件"),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=3000,
                 parent=self.window()
             )
+        elif success_count > 0:
+            # 部分成功
+            log_user_action(f"export_{export_format}_partial", {
+                "success": success_count,
+                "failed": len(selected_indices) - success_count,
+                "format": export_format
+            })
+            InfoBar.warning(
+                title=tr('color_preview_messages.export_partial.title'),
+                content=tr('color_preview_messages.export_partial.content',
+                          success=success_count, failed=len(selected_indices) - success_count),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
         else:
-            logger.error(f"导出SVG失败: {message}")
+            # 全部失败
+            logger.error(f"导出失败: {failed_messages}")
             InfoBar.error(
                 title=tr('color_preview_messages.export_failed.title'),
-                content=tr('color_preview_messages.export_failed.content', message=message),
+                content=tr('color_preview_messages.export_failed.content',
+                          message=failed_messages[0] if failed_messages else "导出失败"),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -2022,61 +2120,9 @@ class ColorPreviewInterface(QWidget):
             )
 
     def _on_export_config(self):
-        """导出当前配色下的SVG"""
-        svg_preview = self.preview_panel.get_svg_preview()
-
-        if not svg_preview or not svg_preview.has_svg():
-            InfoBar.warning(
-                title=tr('color_preview_messages.no_svg_available.title'),
-                content=tr('color_preview_messages.no_svg_available.content'),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
-            return
-
-        default_name = self._get_preview_service().generate_export_filename(tr('color_preview.export_default_name'))
-
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            tr('color_preview.export_svg_title'),
-            default_name,
-            tr('color_preview.svg_filter')
-        )
-
-        if not file_path:
-            return
-
-        if not file_path.endswith('.svg'):
-            file_path += '.svg'
-
-        svg_content = svg_preview.get_svg_content()
-        success, message = self._get_preview_service().save_svg_to_file(svg_content, file_path)
-
-        if success:
-            log_user_action("export_config_success", {"file_path": file_path})
-            InfoBar.success(
-                title=tr('color_preview_messages.export_success.title'),
-                content=tr('color_preview_messages.export_success.content', message=message),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self.window()
-            )
-        else:
-            logger.error(f"导出配置失败: {message}")
-            InfoBar.error(
-                title=tr('color_preview_messages.export_failed.title'),
-                content=tr('color_preview_messages.export_failed.content', message=message),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self.window()
-            )
+        """导出当前配色下的SVG（使用导出设置对话框）"""
+        # 复用 _on_export_svg 的逻辑，统一导出流程
+        self._on_export_svg()
 
     def refresh_favorites(self):
         """刷新收藏列表（由主窗口调用）"""

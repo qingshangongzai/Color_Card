@@ -87,6 +87,7 @@
     "loading": "Загрузка...",
     "import_svg": "Импорт SVG файла",
     "svg_filter": "SVG файлы (*.svg);;Все файлы (*)",
+    "png_filter": "PNG файлы (*.png);;Все файлы (*)",
     "import_template": "Импорт SVG шаблона",
     "export_svg": "Экспорт SVG файла",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +142,10 @@
     "no_svg_available": {
       "title": "Невозможно экспортировать",
       "content": "Нет доступных SVG для экспорта"
+    },
+    "export_partial": {
+      "title": "Частичный успех экспорта",
+      "content": "Успешно экспортировано {success} файлов, {failed} не удалось"
     }
   },
   "canvases": {
@@ -314,6 +319,21 @@
       "pass_aa": "✓ Пройдено AA",
       "large_only": "△ Только крупный текст",
       "fail": "✗ Не пройдено"
+    },
+    "export_settings": {
+      "title": "Настройки экспорта",
+      "select_images": "Выбрать изображения:",
+      "image_item": "Изображение {index}",
+      "select_all": "Выбрать все",
+      "deselect_all": "Снять выделение",
+      "filename_prefix": "Префикс имени файла:",
+      "export_format": "Формат экспорта:",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "Отмена",
+      "export": "Экспорт",
+      "no_selection_title": "Изображения не выбраны",
+      "no_selection_content": "Пожалуйста, выберите хотя бы одно изображение для экспорта"
     },
     "confirm": {
       "clear_title": "Подтвердить очистку",

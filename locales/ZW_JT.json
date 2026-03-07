@@ -87,6 +87,7 @@
     "loading": "加载中...",
     "import_svg": "导入 SVG 文件",
     "svg_filter": "SVG 文件 (*.svg);;所有文件 (*)",
+    "png_filter": "PNG 文件 (*.png);;所有文件 (*)",
     "import_template": "导入 SVG 模板",
     "export_svg": "导出 SVG 文件",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +142,10 @@
     "no_svg_available": {
       "title": "无法导出",
       "content": "当前没有可导出的SVG"
+    },
+    "export_partial": {
+      "title": "部分导出成功",
+      "content": "成功导出 {success} 个文件，失败 {failed} 个"
     }
   },
   "canvases": {
@@ -314,6 +319,21 @@
       "pass_aa": "✓ 通过 AA",
       "large_only": "△ 仅大号通过",
       "fail": "✗ 不通过"
+    },
+    "export_settings": {
+      "title": "导出设置",
+      "select_images": "选择图片：",
+      "image_item": "图片 {index}",
+      "select_all": "全选",
+      "deselect_all": "取消全选",
+      "filename_prefix": "文件名前缀：",
+      "export_format": "导出格式：",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "取消",
+      "export": "导出",
+      "no_selection_title": "未选择图片",
+      "no_selection_content": "请至少选择一张图片进行导出"
     },
     "confirm": {
       "clear_title": "确认清空",
