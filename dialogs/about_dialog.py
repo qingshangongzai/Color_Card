@@ -354,8 +354,9 @@ class AboutDialog(QDialog):
     官网：https://jrsoftware.org/isinfo.php
 
 【字体使用说明】
-  • 本程序 LOGO 与标题使用了「得意黑」字体
+  • 本程序 LOGO 的标题使用了「得意黑」字体
     版权所有：© atelier-anchor
+    设计师：oooooohmygosh
     许可证：SIL Open Font License 1.1
     项目地址：https://github.com/atelier-anchor/smiley-sans
     官方网站：https://atelier-anchor.com/typefaces/smiley-sans/
