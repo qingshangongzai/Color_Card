@@ -1793,8 +1793,6 @@ class ColorPreviewInterface(QWidget):
     def _load_favorites(self):
         """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
         self._favorites = self._config_manager.get_favorites()
-        self._current_colors = []
-        self._update_preview()
 
     def _load_current_scheme(self):
         """加载当前配色"""

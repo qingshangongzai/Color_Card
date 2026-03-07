@@ -144,45 +144,45 @@
     }
   },
   "canvases": {
-    "click_to_import": "點擊導入圖片",
-    "importing_image": "正在導入圖片...",
-    "loading_full_image": "正在加載完整圖片...",
+    "click_to_import": "点击导入图片",
+    "importing_image": "正在导入图片...",
+    "loading_full_image": "正在加载完整图片...",
     "finishing": "正在完成..."
   },
   "color_wheel": {
-    "hsb_wheel_title": "HSB色環",
-    "hue_red": "紅",
-    "hue_orange_red": "橙紅",
-    "hue_yellow": "黃",
-    "hue_yellow_green": "黃綠",
-    "hue_green": "綠",
-    "hue_cyan_green": "青綠",
+    "hsb_wheel_title": "HSB色环",
+    "hue_red": "红",
+    "hue_orange_red": "橙红",
+    "hue_yellow": "黄",
+    "hue_yellow_green": "黄绿",
+    "hue_green": "绿",
+    "hue_cyan_green": "青绿",
     "hue_cyan": "青",
-    "hue_cyan_blue": "青藍",
-    "hue_blue": "藍",
+    "hue_cyan_blue": "青蓝",
+    "hue_blue": "蓝",
     "hue_purple": "紫",
-    "hue_magenta": "品紅",
-    "hue_purple_red": "紫紅"
+    "hue_magenta": "品红",
+    "hue_purple_red": "紫红"
   },
   "histograms": {
-    "loading": "加載中...",
+    "loading": "加载中...",
     "hue_distribution_title": "色相分布"
   },
   "preset_color": {
-    "title": "預設顏色",
-    "random_palette": "隨機配色",
-    "random": "隨機",
-    "desc_random": "從所有配色方案中隨機篩選",
-    "desc_source": "基於 {name}",
+    "title": "预设颜色",
+    "random_palette": "随机配色",
+    "random": "随机",
+    "desc_random": "从所有配色方案中随机筛选",
+    "desc_source": "基于 {name}",
     "copy_success": {
-      "title": "已複製",
-      "content": "顏色值 {value} 已複製到剪貼板"
+      "title": "已复制",
+      "content": "颜色值 {value} 已复制到剪贴板"
     },
     "favorite_success": {
       "title": "已收藏",
       "content": "配色「{name}」已添加到配色管理"
     },
-    "loading": "加載中..."
+    "loading": "加载中..."
   },
   "settings": {
     "title": "设置",
@@ -429,7 +429,7 @@
     "clear_image": "清空图片"
   },
   "common": {
-    "delete": "刪除",
+    "delete": "删除",
     "edit": "编辑配色",
     "group_range": "{start}-{end}",
     "group_all": "全部 ({total})"
