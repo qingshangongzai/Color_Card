@@ -87,6 +87,7 @@
     "loading": "Chargement...",
     "import_svg": "Importer un fichier SVG",
     "svg_filter": "Fichiers SVG (*.svg);;Tous les fichiers (*)",
+    "png_filter": "Fichiers PNG (*.png);;Tous les fichiers (*)",
     "import_template": "Importer un modèle SVG",
     "export_svg": "Exporter un fichier SVG",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +142,10 @@
     "no_svg_available": {
       "title": "Impossible d'exporter",
       "content": "Aucun SVG disponible pour l'exportation"
+    },
+    "export_partial": {
+      "title": "Exportation partielle réussie",
+      "content": "{success} fichiers exportés avec succès, {failed} échecs"
     }
   },
   "canvases": {
@@ -314,6 +319,21 @@
       "pass_aa": "✓ Réussite AA",
       "large_only": "△ Grand texte seulement",
       "fail": "✗ Échec"
+    },
+    "export_settings": {
+      "title": "Paramètres d'exportation",
+      "select_images": "Sélectionner les images :",
+      "image_item": "Image {index}",
+      "select_all": "Tout sélectionner",
+      "deselect_all": "Tout désélectionner",
+      "filename_prefix": "Préfixe du nom de fichier :",
+      "export_format": "Format d'exportation :",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "Annuler",
+      "export": "Exporter",
+      "no_selection_title": "Aucune image sélectionnée",
+      "no_selection_content": "Veuillez sélectionner au moins une image à exporter"
     },
     "confirm": {
       "clear_title": "Confirmer l'effacement",

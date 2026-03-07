@@ -87,6 +87,7 @@
     "loading": "読み込み中...",
     "import_svg": "SVGファイルをインポート",
     "svg_filter": "SVGファイル (*.svg);;すべてのファイル (*)",
+    "png_filter": "PNGファイル (*.png);;すべてのファイル (*)",
     "import_template": "SVGテンプレートをインポート",
     "export_svg": "SVGファイルをエクスポート",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +142,10 @@
     "no_svg_available": {
       "title": "エクスポートできません",
       "content": "エクスポート可能なSVGがありません"
+    },
+    "export_partial": {
+      "title": "部分的にエクスポート成功",
+      "content": "{success}個のファイルをエクスポート成功、{failed}個が失敗しました"
     }
   },
   "canvases": {
@@ -314,6 +319,21 @@
       "pass_aa": "✓ AA合格",
       "large_only": "△ 大きなテキストのみ",
       "fail": "✗ 不合格"
+    },
+    "export_settings": {
+      "title": "エクスポート設定",
+      "select_images": "画像を選択：",
+      "image_item": "画像 {index}",
+      "select_all": "すべて選択",
+      "deselect_all": "選択解除",
+      "filename_prefix": "ファイル名プレフィックス：",
+      "export_format": "エクスポート形式：",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "キャンセル",
+      "export": "エクスポート",
+      "no_selection_title": "画像が選択されていません",
+      "no_selection_content": "エクスポートする画像を少なくとも1つ選択してください"
     },
     "confirm": {
       "clear_title": "クリアの確認",
