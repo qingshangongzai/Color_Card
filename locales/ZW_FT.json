@@ -75,7 +75,9 @@
     "empty_hint": "在色彩提取或配色生成面板點擊收藏按鈕",
     "import_title": "導入收藏",
     "export_title": "導出收藏",
-    "json_filter": "JSON 文件 (*.json);;所有文件 (*)"
+    "json_filter": "JSON 文件 (*.json);;所有文件 (*)",
+    "export_ase_title": "導出 ASE 色板",
+    "ase_filter": "ASE 文件 (*.ase);;所有文件 (*)"
   },
   "color_preview": {
     "title": "配色預覽",
@@ -413,6 +415,18 @@
     "export_failed": {
       "title": "導出失敗",
       "content": "{error}"
+    },
+    "export_ase_success": {
+      "title": "導出成功",
+      "content": "配色已導出到：{path}"
+    },
+    "export_ase_failed": {
+      "title": "導出失敗",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "導出失敗",
+      "content": "配色中沒有顏色數據"
     },
     "add_success": {
       "title": "添加成功",
