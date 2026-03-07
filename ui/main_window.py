@@ -284,6 +284,9 @@ class MainWindow(FluentWindow):
         # 隐藏返回按钮
         self.navigationInterface.setReturnButtonVisible(False)
 
+        # 禁用菜单按钮的悬停提示（通过拦截展开/折叠时的tooltip设置）
+        self._disable_menu_button_tooltip()
+
         # 设置导航栏默认展开宽度
         self.navigationInterface.setExpandWidth(200)
 
@@ -768,5 +771,19 @@ class MainWindow(FluentWindow):
             center_y = screen_geometry.center().y() - window_geometry.height() // 2
 
             self.move(center_x, center_y)
+
+    def _disable_menu_button_tooltip(self):
+        """禁用导航栏菜单按钮的悬停提示"""
+        panel = self.navigationInterface.panel
+        menu_button = panel.menuButton
+
+        # 清空tooltip
+        menu_button.setToolTip("")
+
+        # 连接导航面板的展开/折叠信号，在状态变化后清空tooltip
+        def clear_tooltip():
+            menu_button.setToolTip("")
+
+        panel.displayModeChanged.connect(clear_tooltip)
 
 
