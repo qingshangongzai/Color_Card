@@ -75,7 +75,9 @@
     "empty_hint": "Cliquez sur le bouton d'enregistrement dans le panneau d'extraction ou de génération de couleurs",
     "import_title": "Importer des palettes",
     "export_title": "Exporter des palettes",
-    "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)"
+    "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)",
+    "export_ase_title": "Exporter la nuance ASE",
+    "ase_filter": "Fichiers ASE (*.ase);;Tous les fichiers (*)"
   },
   "color_preview": {
     "title": "Aperçu des couleurs",
@@ -87,6 +89,7 @@
     "loading": "Chargement...",
     "import_svg": "Importer un fichier SVG",
     "svg_filter": "Fichiers SVG (*.svg);;Tous les fichiers (*)",
+    "png_filter": "Fichiers PNG (*.png);;Tous les fichiers (*)",
     "import_template": "Importer un modèle SVG",
     "export_svg": "Exporter un fichier SVG",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +144,10 @@
     "no_svg_available": {
       "title": "Impossible d'exporter",
       "content": "Aucun SVG disponible pour l'exportation"
+    },
+    "export_partial": {
+      "title": "Exportation partielle réussie",
+      "content": "{success} fichiers exportés avec succès, {failed} échecs"
     }
   },
   "canvases": {
@@ -279,6 +286,11 @@
       "confirm": "Confirmer",
       "color_label": "Couleur"
     },
+    "color_picker": {
+      "title": "Sélectionner une couleur",
+      "confirm": "Confirmer",
+      "cancel": "Annuler"
+    },
     "colorblind": {
       "title": "Aperçu simulation daltonisme",
       "window_title": "Aperçu simulation daltonisme - {name}",
@@ -309,6 +321,21 @@
       "pass_aa": "✓ Réussite AA",
       "large_only": "△ Grand texte seulement",
       "fail": "✗ Échec"
+    },
+    "export_settings": {
+      "title": "Paramètres d'exportation",
+      "select_images": "Sélectionner les images :",
+      "image_item": "Image {index}",
+      "select_all": "Tout sélectionner",
+      "deselect_all": "Tout désélectionner",
+      "filename_prefix": "Préfixe du nom de fichier :",
+      "export_format": "Format d'exportation :",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "Annuler",
+      "export": "Exporter",
+      "no_selection_title": "Aucune image sélectionnée",
+      "no_selection_content": "Veuillez sélectionner au moins une image à exporter"
     },
     "confirm": {
       "clear_title": "Confirmer l'effacement",
@@ -389,6 +416,18 @@
       "title": "Échec de l'exportation",
       "content": "{error}"
     },
+    "export_ase_success": {
+      "title": "Exportation réussie",
+      "content": "Palette exportée vers: {path}"
+    },
+    "export_ase_failed": {
+      "title": "Échec de l'exportation",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "Échec de l'exportation",
+      "content": "Aucune donnée de couleur dans la palette"
+    },
     "add_success": {
       "title": "Ajout réussi",
       "content": "La palette \"{name}\" a été ajoutée"
@@ -425,6 +464,7 @@
   },
   "common": {
     "delete": "Supprimer",
+    "edit": "Modifier la palette",
     "group_range": "{start}-{end}",
     "group_all": "Tous ({total})"
   }

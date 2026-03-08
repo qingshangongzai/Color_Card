@@ -75,7 +75,9 @@
     "empty_hint": "Click the save button in Color Extract or Color Generation panel",
     "import_title": "Import Palettes",
     "export_title": "Export Palettes",
-    "json_filter": "JSON Files (*.json);;All Files (*)"
+    "json_filter": "JSON Files (*.json);;All Files (*)",
+    "export_ase_title": "Export ASE Swatch",
+    "ase_filter": "ASE Files (*.ase);;All Files (*)"
   },
   "color_preview": {
     "title": "Color Preview",
@@ -87,6 +89,7 @@
     "loading": "Loading...",
     "import_svg": "Import SVG File",
     "svg_filter": "SVG Files (*.svg);;All Files (*)",
+    "png_filter": "PNG Files (*.png);;All Files (*)",
     "import_template": "Import SVG Template",
     "export_svg": "Export SVG File",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +144,10 @@
     "no_svg_available": {
       "title": "Cannot Export",
       "content": "No SVG available for export"
+    },
+    "export_partial": {
+      "title": "Partial Export Success",
+      "content": "Successfully exported {success} files, {failed} failed"
     }
   },
   "canvases": {
@@ -279,6 +286,11 @@
       "confirm": "Confirm",
       "color_label": "Color"
     },
+    "color_picker": {
+      "title": "Select Color",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
     "colorblind": {
       "title": "Colorblind Simulation Preview",
       "window_title": "Colorblind Simulation Preview - {name}",
@@ -309,6 +321,21 @@
       "pass_aa": "✓ Pass AA",
       "large_only": "△ Large text only",
       "fail": "✗ Fail"
+    },
+    "export_settings": {
+      "title": "Export Settings",
+      "select_images": "Select Images:",
+      "image_item": "Image {index}",
+      "select_all": "Select All",
+      "deselect_all": "Deselect All",
+      "filename_prefix": "Filename Prefix:",
+      "export_format": "Export Format:",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "Cancel",
+      "export": "Export",
+      "no_selection_title": "No Image Selected",
+      "no_selection_content": "Please select at least one image to export"
     },
     "confirm": {
       "clear_title": "Confirm Clear",
@@ -389,6 +416,18 @@
       "title": "Export Failed",
       "content": "{error}"
     },
+    "export_ase_success": {
+      "title": "Export Successful",
+      "content": "Palette exported to: {path}"
+    },
+    "export_ase_failed": {
+      "title": "Export Failed",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "Export Failed",
+      "content": "No colors in palette"
+    },
     "add_success": {
       "title": "Added Successfully",
       "content": "Palette \"{name}\" has been added"
@@ -425,6 +464,7 @@
   },
   "common": {
     "delete": "Delete",
+    "edit": "Edit Palette",
     "group_range": "{start}-{end}",
     "group_all": "All ({total})"
   }

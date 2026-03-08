@@ -45,8 +45,18 @@ class PreviewService(QObject):
             parent: 父对象
         """
         super().__init__(parent)
-        self._scene_type_manager = get_scene_type_manager()
+        self._scene_type_manager = None  # 延迟获取
         self._config_manager = get_config_manager()
+
+    def _get_scene_type_manager(self):
+        """延迟获取场景类型管理器
+
+        Returns:
+            SceneTypeManager: 场景类型管理器实例
+        """
+        if self._scene_type_manager is None:
+            self._scene_type_manager = get_scene_type_manager()
+        return self._scene_type_manager
 
     def load_scene_types(self) -> List[Dict[str, Any]]:
         """加载所有场景类型
@@ -56,7 +66,7 @@ class PreviewService(QObject):
         """
         try:
             with log_performance("load_scene_types"):
-                scene_types = self._scene_type_manager.get_all_scene_types()
+                scene_types = self._get_scene_type_manager().get_all_scene_types()
                 self.scenes_loaded.emit(scene_types)
                 logger.debug(f"加载场景类型成功，共 {len(scene_types)} 个")
                 return scene_types
@@ -75,7 +85,7 @@ class PreviewService(QObject):
             Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
         """
         try:
-            config = self._scene_type_manager.get_scene_type_by_id(scene_id)
+            config = self._get_scene_type_manager().get_scene_type_by_id(scene_id)
             logger.debug(f"获取场景配置: scene_id={scene_id}")
             return config
         except Exception as e:
@@ -93,7 +103,7 @@ class PreviewService(QObject):
             List[Dict[str, Any]]: 模板列表
         """
         try:
-            templates = self._scene_type_manager.get_all_templates(scene_id)
+            templates = self._get_scene_type_manager().get_all_templates(scene_id)
             logger.debug(f"获取场景模板: scene_id={scene_id}, count={len(templates)}")
             return templates
         except Exception as e:
@@ -111,7 +121,7 @@ class PreviewService(QObject):
             Dict[str, Any]: 布局配置字典
         """
         try:
-            config = self._scene_type_manager.get_layout_config(scene_id)
+            config = self._get_scene_type_manager().get_layout_config(scene_id)
             logger.debug(f"获取布局配置: scene_id={scene_id}")
             return config
         except Exception as e:
@@ -185,7 +195,7 @@ class PreviewService(QObject):
             Optional[str]: SVG文件路径，如果不存在则返回None
         """
         try:
-            path = self._scene_type_manager.get_builtin_svg_path(scene_type)
+            path = self._get_scene_type_manager().get_builtin_svg_path(scene_type)
             logger.debug(f"获取内置SVG路径: scene_type={scene_type}, path={path}")
             return path
         except Exception as e:
@@ -402,3 +412,82 @@ class PreviewService(QObject):
             str: 生成的文件名
         """
         return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
+
+    def save_svg_as_png(self, svg_content: str, file_path: str,
+                        width: int = None, height: int = None) -> Tuple[bool, str]:
+        """将 SVG 内容保存为 PNG 文件
+
+        使用 QSvgRenderer 将 SVG 渲染为 QImage，然后保存为 PNG 格式。
+        默认使用 SVG 的原始尺寸，保持原始比例。
+
+        Args:
+            svg_content: SVG 内容
+            file_path: 保存路径
+            width: 输出图片宽度（默认使用 SVG 原始宽度）
+            height: 输出图片高度（默认使用 SVG 原始高度）
+
+        Returns:
+            Tuple[bool, str]: (是否成功, 消息)
+        """
+        try:
+            from PySide6.QtSvg import QSvgRenderer
+            from PySide6.QtGui import QImage, QPainter
+            from PySide6.QtCore import QRectF
+
+            # 创建 QSvgRenderer
+            renderer = QSvgRenderer(svg_content.encode('utf-8'))
+            if not renderer.isValid():
+                return False, "SVG 内容无效，无法渲染"
+
+            # 获取 SVG 原始尺寸
+            view_box = renderer.viewBoxF()
+            if view_box.isValid():
+                svg_width = int(view_box.width())
+                svg_height = int(view_box.height())
+            else:
+                default_size = renderer.defaultSize()
+                svg_width = default_size.width()
+                svg_height = default_size.height()
+
+            # 如果没有指定尺寸，使用 SVG 原始尺寸
+            if width is None:
+                width = svg_width if svg_width > 0 else 800
+            if height is None:
+                height = svg_height if svg_height > 0 else 600
+
+            # 确保尺寸至少为 1x1
+            width = max(1, width)
+            height = max(1, height)
+
+            # 创建 QImage（使用 SVG 原始尺寸）
+            image = QImage(width, height, QImage.Format.Format_ARGB32)
+            image.fill(0xFFFFFFFF)  # 白色背景
+
+            # 使用 QPainter 渲染 SVG 到 QImage
+            painter = QPainter(image)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+            # 渲染 SVG 到整个图像区域（保持原始比例）
+            target_rect = QRectF(0, 0, width, height)
+            renderer.render(painter, target_rect)
+            painter.end()
+
+            # 保存为 PNG
+            path = Path(file_path)
+            path.parent.mkdir(parents=True, exist_ok=True)
+
+            if image.save(file_path, "PNG"):
+                logger.info(f"保存 PNG 文件成功: path={file_path}, size={width}x{height}")
+                return True, f"已保存到: {file_path} ({width}x{height})"
+            else:
+                return False, "PNG 保存失败"
+
+        except ImportError as e:
+            logger.error(f"保存 PNG 失败，缺少必要的模块: error={e}", exc_info=True)
+            return False, f"缺少必要的模块: {e}"
+        except (IOError, OSError) as e:
+            logger.error(f"保存 PNG 失败，文件写入错误: path={file_path}, error={e}", exc_info=True)
+            return False, f"文件写入错误: {e}"
+        except Exception as e:
+            logger.error(f"保存 PNG 失败: path={file_path}, error={e}", exc_info=True)
+            return False, f"保存失败: {e}"

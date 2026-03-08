@@ -465,6 +465,7 @@ class PaletteManagementCard(CardWidget):
     color_changed = Signal(str, int, dict)
     preview_in_panel_requested = Signal(dict)
     edit_requested = Signal(dict)
+    export_ase_requested = Signal(dict)
     MAX_COLORS_PER_ROW = 6
 
     def __init__(self, favorite_data: Dict[str, Any], parent=None):
@@ -538,6 +539,12 @@ class PaletteManagementCard(CardWidget):
         self.edit_button.setFixedSize(28, 28)
         self.edit_button.clicked.connect(self._on_edit_clicked)
         button_layout.addWidget(self.edit_button)
+
+        # ASE 导出按钮
+        self.export_ase_button = ToolButton(FluentIcon.SHARE)
+        self.export_ase_button.setFixedSize(28, 28)
+        self.export_ase_button.clicked.connect(self._on_export_ase_clicked)
+        button_layout.addWidget(self.export_ase_button)
 
         # 删除按钮
         self.delete_button = ToolButton(FluentIcon.DELETE)
@@ -677,6 +684,10 @@ class PaletteManagementCard(CardWidget):
         """管理按钮点击（编辑配色）"""
         self.edit_requested.emit(self._favorite_data)
 
+    def _on_export_ase_clicked(self):
+        """ASE 导出按钮点击"""
+        self.export_ase_requested.emit(self._favorite_data)
+
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
         self._hex_visible = visible
@@ -713,6 +724,7 @@ class PaletteManagementList(QWidget):
     favorite_color_changed = Signal(str, int, dict)
     favorite_preview_in_panel = Signal(dict)
     favorite_edit = Signal(dict)
+    favorite_export_ase = Signal(dict)
     group_changed = Signal(int)
     groups_updated = Signal(list)
 
@@ -861,6 +873,7 @@ class PaletteManagementList(QWidget):
                     card.color_changed.connect(self._on_color_changed)
                     card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
                     card.edit_requested.connect(self._on_edit_requested)
+                    card.export_ase_requested.connect(self._on_export_ase_requested)
                     self.content_layout.addWidget(card)
                     self._favorite_cards[favorite.get('id', '')] = card
 
@@ -899,6 +912,7 @@ class PaletteManagementList(QWidget):
             card.color_changed.connect(self._on_color_changed)
             card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
             card.edit_requested.connect(self._on_edit_requested)
+            card.export_ase_requested.connect(self._on_export_ase_requested)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
         
@@ -982,6 +996,14 @@ class PaletteManagementList(QWidget):
             favorite_data: 收藏项数据
         """
         self.favorite_edit.emit(favorite_data)
+
+    def _on_export_ase_requested(self, favorite_data):
+        """ASE 导出请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_export_ase.emit(favorite_data)
 
     def set_hex_visible(self, visible):
         """设置是否显示16进制颜色值"""
@@ -1088,6 +1110,14 @@ class PaletteManagementInterface(QWidget):
             self._on_export_error,
             Qt.ConnectionType.QueuedConnection
         )
+        self._palette_service.ase_export_finished.connect(
+            self._on_ase_export_finished,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._palette_service.ase_export_error.connect(
+            self._on_ase_export_error,
+            Qt.ConnectionType.QueuedConnection
+        )
 
     def closeEvent(self, event):
         """关闭时断开信号连接"""
@@ -1097,6 +1127,8 @@ class PaletteManagementInterface(QWidget):
                 self._palette_service.import_error.disconnect(self._on_import_error)
                 self._palette_service.export_finished.disconnect(self._on_export_finished)
                 self._palette_service.export_error.disconnect(self._on_export_error)
+                self._palette_service.ase_export_finished.disconnect(self._on_ase_export_finished)
+                self._palette_service.ase_export_error.disconnect(self._on_ase_export_error)
             except (TypeError, RuntimeError) as e:
                 logger.debug(f"Disconnect signals failed: {e}")
         super().closeEvent(event)
@@ -1147,6 +1179,7 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
         self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
+        self.palette_management_list.favorite_export_ase.connect(self._on_favorite_export_ase)
         self.palette_management_list.groups_updated.connect(self._on_groups_updated)
         layout.addWidget(self.palette_management_list, stretch=1)
 
@@ -1345,6 +1378,83 @@ class PaletteManagementInterface(QWidget):
         InfoBar.error(
             title=tr('messages.export_failed.title'),
             content=tr('messages.export_failed.content', default=error_msg).format(error=error_msg),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=5000,
+            parent=self
+        )
+
+    def _on_favorite_export_ase(self, favorite_data: dict):
+        """收藏 ASE 导出回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        colors = favorite_data.get('colors', [])
+        if not colors:
+            InfoBar.warning(
+                title=tr('messages.export_ase_failed.title', default='导出失败'),
+                content=tr('messages.export_ase_no_colors', default='配色中没有颜色数据'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+            return
+
+        palette_name = favorite_data.get('name', tr('palette_management.unnamed'))
+        default_name = f"{palette_name}.ase"
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            tr('palette_management.export_ase_title', default='导出 ASE 色板'),
+            default_name,
+            tr('palette_management.ase_filter', default='ASE 文件 (*.ase);;所有文件 (*)')
+        )
+
+        if not file_path:
+            return
+
+        if not file_path.endswith('.ase'):
+            file_path += '.ase'
+
+        log_user_action("export_ase_start", {"file_path": file_path, "palette_name": palette_name})
+
+        with log_performance("export_ase", {"file_path": file_path, "color_count": len(colors)}):
+            self._get_palette_service().export_to_ase(favorite_data, file_path)
+
+    def _on_ase_export_finished(self, file_path: str):
+        """ASE 导出完成回调
+
+        Args:
+            file_path: 导出文件路径
+        """
+        log_user_action("export_ase_finished", {"file_path": file_path}, "success")
+
+        InfoBar.success(
+            title=tr('messages.export_ase_success.title', default='导出成功'),
+            content=tr('messages.export_ase_success.content', default='配色已导出到：{path}').format(path=file_path),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=3000,
+            parent=self
+        )
+
+    def _on_ase_export_error(self, error_msg: str):
+        """ASE 导出错误回调
+
+        Args:
+            error_msg: 错误信息
+        """
+        logger.error(f"Export ASE failed: {error_msg}")
+        log_user_action("export_ase_error", {"error": error_msg}, "failed")
+
+        InfoBar.error(
+            title=tr('messages.export_ase_failed.title', default='导出失败'),
+            content=tr('messages.export_ase_failed.content', default=error_msg).format(error=error_msg),
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,

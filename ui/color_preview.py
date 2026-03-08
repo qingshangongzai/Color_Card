@@ -22,7 +22,7 @@ from PySide6.QtGui import (
 from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFileDialog,
-    QSizePolicy, QPushButton, QLabel, QApplication
+    QSizePolicy, QPushButton, QLabel, QApplication, QDialog
 )
 from qfluentwidgets import (
     ComboBox, PushButton, SubtitleLabel, FluentIcon, isDarkTheme, qconfig,
@@ -31,7 +31,10 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_type_manager
+from core.color import get_color_info
 from core.logger import get_logger, log_user_action
+from dialogs.edit_palette import EditPaletteDialog
+from dialogs.export_settings_dialog import ExportSettingsDialog
 from utils import tr, get_locale_manager
 from utils.theme_colors import get_border_color, get_text_color
 
@@ -47,6 +50,7 @@ class DraggableColorDot(QWidget):
 
     clicked = Signal(int)                # 点击信号：索引
     delete_requested = Signal(int)       # 删除请求信号：索引
+    edit_requested = Signal(int)         # 编辑请求信号：索引
 
     def __init__(self, color: str, index: int, parent=None):
         """初始化颜色圆点
@@ -157,10 +161,18 @@ class DraggableColorDot(QWidget):
             menu.addAction(copy_action)
             menu.addSeparator()
 
+        edit_action = Action(FluentIcon.EDIT, tr('common.edit'))
+        edit_action.triggered.connect(self._on_edit_clicked)
+        menu.addAction(edit_action)
+
         delete_action = Action(FluentIcon.DELETE, tr('common.delete'))
         delete_action.triggered.connect(lambda: self.delete_requested.emit(self._index))
         menu.addAction(delete_action)
         menu.exec(event.globalPos())
+
+    def _on_edit_clicked(self):
+        """编辑按钮点击"""
+        self.edit_requested.emit(self._index)
 
     def _copy_hex_to_clipboard(self):
         """复制HEX值到剪贴板"""
@@ -179,6 +191,7 @@ class ColorDotBar(QWidget):
     order_changed = Signal(list)         # 颜色顺序变化信号：新的颜色列表
     color_clicked = Signal(int)          # 颜色点击信号：索引
     color_deleted = Signal(list)         # 颜色删除信号：新的颜色列表
+    color_edited = Signal(list)          # 颜色编辑信号：新的颜色列表
 
     def __init__(self, parent=None):
         """初始化颜色圆点工具栏
@@ -223,6 +236,7 @@ class ColorDotBar(QWidget):
             dot = DraggableColorDot(color, i)
             dot.clicked.connect(self._on_dot_clicked)
             dot.delete_requested.connect(self._on_dot_delete_requested)
+            dot.edit_requested.connect(self._on_dot_edit_requested)
             dot.set_hex_visible(self._hex_visible)
             self._dots.append(dot)
             layout.insertWidget(layout.count() - 1, dot)
@@ -245,6 +259,10 @@ class ColorDotBar(QWidget):
         """处理圆点删除请求"""
         self.delete_color(index)
 
+    def _on_dot_edit_requested(self, index: int):
+        """处理圆点编辑请求"""
+        self.edit_color(index)
+
     def delete_color(self, index: int):
         """删除指定索引的颜色
 
@@ -257,6 +275,41 @@ class ColorDotBar(QWidget):
             self._rebuild_dots()
             self.color_deleted.emit(self._colors.copy())
             log_user_action("delete_color", {"index": index, "color": deleted_color})
+
+    def edit_color(self, index: int):
+        """编辑指定索引的颜色
+
+        Args:
+            index: 要编辑的颜色索引
+        """
+        if 0 <= index < len(self._colors):
+            # 构建当前配色数据
+            colors_info = []
+            for color_hex in self._colors:
+                r, g, b = int(color_hex[1:3], 16), int(color_hex[3:5], 16), int(color_hex[5:7], 16)
+                colors_info.append(get_color_info(r, g, b))
+
+            palette_data = {
+                'name': '',
+                'colors': colors_info
+            }
+
+            # 打开编辑对话框
+            dialog = EditPaletteDialog(palette_data=palette_data, parent=self)
+            if dialog.exec() == EditPaletteDialog.DialogCode.Accepted:
+                new_palette_data = dialog.get_palette_data()
+                if new_palette_data and 'colors' in new_palette_data:
+                    # 提取新的颜色列表
+                    new_colors = []
+                    for color_info in new_palette_data['colors']:
+                        if 'hex' in color_info:
+                            new_colors.append(color_info['hex'])
+
+                    if new_colors:
+                        self._colors = new_colors
+                        self._rebuild_dots()
+                        self.color_edited.emit(self._colors.copy())
+                        log_user_action("edit_palette", {"index": index, "new_colors": new_colors})
 
     def paintEvent(self, event):
         """绘制插入指示器"""
@@ -1362,8 +1415,17 @@ class MixedPreviewPanel(QWidget):
         self._custom_svg_path: Optional[str] = None
         self._preview_service: Optional[PreviewService] = None
         super().__init__(parent)
-        self._preview_service = PreviewService(self)
         self.setup_ui()
+
+    def _get_preview_service(self):
+        """延迟获取预览服务
+
+        Returns:
+            PreviewService: 预览服务实例
+        """
+        if self._preview_service is None:
+            self._preview_service = PreviewService(self)
+        return self._preview_service
 
     def setup_ui(self):
         """创建UI"""
@@ -1388,7 +1450,7 @@ class MixedPreviewPanel(QWidget):
             self._svg_preview = None
 
         try:
-            manager = get_scene_type_manager()
+            manager = self._get_preview_service()._get_scene_type_manager()
             scene_config = manager.get_scene_type_by_id(scene)
 
             if scene_config is None:
@@ -1435,7 +1497,7 @@ class MixedPreviewPanel(QWidget):
             self.set_scene(self._current_scene)
             return
 
-        success, message = self._preview_service.remove_user_template(
+        success, message = self._get_preview_service().remove_user_template(
             self._current_scene, template_path
         )
 
@@ -1486,6 +1548,25 @@ class MixedPreviewPanel(QWidget):
             if widgets:
                 return widgets[0]
         return None
+
+    def get_all_svg_widgets(self) -> List[SVGPreviewWidget]:
+        """获取所有 SVG 预览组件
+
+        Returns:
+            List[SVGPreviewWidget]: SVG预览组件列表
+        """
+        widgets = []
+
+        if self._svg_preview is not None:
+            widgets.append(self._svg_preview)
+
+        if self._current_layout:
+            layout_widgets = self._current_layout.get_svg_widgets()
+            for widget in layout_widgets:
+                if widget and widget.has_svg():
+                    widgets.append(widget)
+
+        return widgets
 
     def set_custom_svg_path(self, path: str):
         """设置 custom 场景的 SVG 路径
@@ -1578,8 +1659,8 @@ class PreviewToolbar(QWidget):
 
         self.setFixedHeight(100)
 
-        current_scene = self._scene_selector.get_current_scene()
-        self._on_scene_changed(current_scene)
+        # 初始化当前场景，但不触发信号（避免在界面初始化时加载场景配置）
+        self._current_scene = self._scene_selector.get_current_scene()
 
     def _on_scene_changed(self, scene: str):
         """处理场景变化"""
@@ -1668,7 +1749,7 @@ class ColorPreviewInterface(QWidget):
         super().__init__(parent)
         self.setObjectName('colorPreviewInterface')
         self._config_manager = get_config_manager()
-        self._preview_service = PreviewService(self)
+        self._preview_service = None  # 延迟获取
         self._favorites = []
         self._current_index = 0
         self._current_colors: list[str] = []
@@ -1682,6 +1763,16 @@ class ColorPreviewInterface(QWidget):
         qconfig.themeChangedFinished.connect(self._update_styles)
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
+    def _get_preview_service(self):
+        """延迟获取预览服务
+
+        Returns:
+            PreviewService: 预览服务实例
+        """
+        if self._preview_service is None:
+            self._preview_service = PreviewService(self)
+        return self._preview_service
+
     def setup_ui(self):
         """设置界面布局"""
         layout = QVBoxLayout(self)
@@ -1692,6 +1783,7 @@ class ColorPreviewInterface(QWidget):
         self.toolbar.scene_changed.connect(self._on_scene_changed)
         self.toolbar.get_dot_bar().order_changed.connect(self._on_color_order_changed)
         self.toolbar.get_dot_bar().color_deleted.connect(self._on_color_deleted)
+        self.toolbar.get_dot_bar().color_edited.connect(self._on_color_edited)
         self.toolbar.import_svg_requested.connect(self._on_import_svg)
         self.toolbar.export_svg_requested.connect(self._on_export_svg)
         self.toolbar.import_config_requested.connect(self._on_import_config)
@@ -1721,8 +1813,6 @@ class ColorPreviewInterface(QWidget):
     def _load_favorites(self):
         """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
         self._favorites = self._config_manager.get_favorites()
-        self._current_colors = []
-        self._update_preview()
 
     def _load_current_scheme(self):
         """加载当前配色"""
@@ -1730,7 +1820,7 @@ class ColorPreviewInterface(QWidget):
             return
 
         favorite = self._favorites[self._current_index]
-        self._current_colors = self._preview_service.extract_hex_colors_from_favorite(favorite)
+        self._current_colors = self._get_preview_service().extract_hex_colors_from_favorite(favorite)
         self._update_preview()
 
     def _update_preview(self):
@@ -1759,6 +1849,11 @@ class ColorPreviewInterface(QWidget):
 
     def _on_color_deleted(self, colors: list[str]):
         """颜色删除回调"""
+        self._current_colors = colors
+        self.preview_panel.set_colors(colors)
+
+    def _on_color_edited(self, colors: list[str]):
+        """颜色编辑回调"""
         self._current_colors = colors
         self.preview_panel.set_colors(colors)
 
@@ -1824,13 +1919,14 @@ class ColorPreviewInterface(QWidget):
             )
 
     def _on_export_svg(self):
-        """导出 SVG 文件"""
-        svg_preview = self.preview_panel.get_svg_preview()
+        """导出 SVG/PNG 文件"""
+        # 获取所有 SVG 预览组件
+        svg_widgets = self.preview_panel.get_all_svg_widgets()
 
-        if svg_preview is None:
+        if not svg_widgets:
             InfoBar.warning(
-                title=tr('color_preview_messages.cannot_export.title'),
-                content=tr('color_preview_messages.cannot_export.content'),
+                title=tr('color_preview_messages.no_svg_available.title'),
+                content=tr('color_preview_messages.no_svg_available.content'),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1839,52 +1935,129 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        if not svg_preview.has_svg():
-            InfoBar.warning(
-                title=tr('color_preview_messages.no_svg_to_export.title'),
-                content=tr('color_preview_messages.no_svg_to_export.content'),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
+        # 弹出导出设置对话框
+        dialog = ExportSettingsDialog(svg_widgets, self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
             return
 
-        default_name = self._preview_service.generate_export_filename(tr('color_preview.export_default_name'))
+        # 获取用户选择
+        selected_indices = dialog.get_selected_indices()
+        filename_prefix = dialog.get_filename_prefix()
+        export_format = dialog.get_export_format()
+
+        if not selected_indices:
+            return
+
+        # 打开文件保存对话框（获取保存目录）
+        if len(selected_indices) == 1:
+            # 单张图片
+            default_name = f"{filename_prefix}.{export_format}"
+        else:
+            # 多张图片
+            default_name = filename_prefix
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             tr('color_preview.export_svg'),
             default_name,
-            tr('color_preview.svg_filter')
+            tr(f'color_preview.{export_format}_filter')
         )
 
         if not file_path:
             return
 
-        if not file_path.endswith('.svg'):
-            file_path += '.svg'
+        # 执行导出
+        success_count = 0
+        failed_messages = []
 
-        svg_content = svg_preview.get_svg_content()
-        success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
+        for i, index in enumerate(selected_indices):
+            if index >= len(svg_widgets):
+                continue
 
-        if success:
-            log_user_action("export_svg_success", {"file_path": file_path})
+            svg_widget = svg_widgets[index]
+            if not svg_widget or not svg_widget.has_svg():
+                continue
+
+            svg_content = svg_widget.get_svg_content()
+
+            # 生成文件名
+            if len(selected_indices) == 1:
+                # 单张图片：直接使用前缀
+                current_file_path = file_path
+                # 确保有正确的扩展名
+                if not current_file_path.endswith(f'.{export_format}'):
+                    current_file_path += f'.{export_format}'
+            else:
+                # 多张图片：前缀 + 序号
+                base_path = file_path
+                # 移除可能的扩展名
+                for ext in ['.svg', '.png']:
+                    if base_path.lower().endswith(ext):
+                        base_path = base_path[:-len(ext)]
+                        break
+                # 获取保存目录
+                from pathlib import Path
+                path_obj = Path(file_path)
+                parent_dir = path_obj.parent
+                # 生成带序号的文件名
+                current_file_path = str(parent_dir / f"{filename_prefix}_{i + 1:02d}.{export_format}")
+
+            # 根据格式导出
+            if export_format == 'png':
+                success, message = self._get_preview_service().save_svg_as_png(
+                    svg_content, current_file_path
+                )
+            else:
+                success, message = self._get_preview_service().save_svg_to_file(
+                    svg_content, current_file_path
+                )
+
+            if success:
+                success_count += 1
+            else:
+                failed_messages.append(f"图片 {index + 1}: {message}")
+
+        # 显示导出结果
+        if success_count == len(selected_indices):
+            # 全部成功
+            log_user_action(f"export_{export_format}_success", {
+                "count": success_count,
+                "format": export_format
+            })
             InfoBar.success(
                 title=tr('color_preview_messages.export_success.title'),
-                content=tr('color_preview_messages.export_success.content', message=message),
+                content=tr('color_preview_messages.export_success.content',
+                          message=f"成功导出 {success_count} 个文件"),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
                 duration=3000,
                 parent=self.window()
             )
+        elif success_count > 0:
+            # 部分成功
+            log_user_action(f"export_{export_format}_partial", {
+                "success": success_count,
+                "failed": len(selected_indices) - success_count,
+                "format": export_format
+            })
+            InfoBar.warning(
+                title=tr('color_preview_messages.export_partial.title'),
+                content=tr('color_preview_messages.export_partial.content',
+                          success=success_count, failed=len(selected_indices) - success_count),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self.window()
+            )
         else:
-            logger.error(f"导出SVG失败: {message}")
+            # 全部失败
+            logger.error(f"导出失败: {failed_messages}")
             InfoBar.error(
                 title=tr('color_preview_messages.export_failed.title'),
-                content=tr('color_preview_messages.export_failed.content', message=message),
+                content=tr('color_preview_messages.export_failed.content',
+                          message=failed_messages[0] if failed_messages else "导出失败"),
                 orient=Qt.Orientation.Horizontal,
                 isClosable=True,
                 position=InfoBarPosition.TOP,
@@ -1904,7 +2077,7 @@ class ColorPreviewInterface(QWidget):
         if not file_path:
             return
 
-        is_valid, error_msg = self._preview_service.validate_svg_file(file_path)
+        is_valid, error_msg = self._get_preview_service().validate_svg_file(file_path)
         if not is_valid:
             InfoBar.error(
                 title=tr('color_preview_messages.template_import_failed.title'),
@@ -1917,7 +2090,7 @@ class ColorPreviewInterface(QWidget):
             )
             return
 
-        success, message = self._preview_service.add_user_template(
+        success, message = self._get_preview_service().add_user_template(
             self._current_scene, file_path
         )
 
@@ -1947,61 +2120,9 @@ class ColorPreviewInterface(QWidget):
             )
 
     def _on_export_config(self):
-        """导出当前配色下的SVG"""
-        svg_preview = self.preview_panel.get_svg_preview()
-
-        if not svg_preview or not svg_preview.has_svg():
-            InfoBar.warning(
-                title=tr('color_preview_messages.no_svg_available.title'),
-                content=tr('color_preview_messages.no_svg_available.content'),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=2000,
-                parent=self.window()
-            )
-            return
-
-        default_name = self._preview_service.generate_export_filename(tr('color_preview.export_default_name'))
-
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            tr('color_preview.export_svg_title'),
-            default_name,
-            tr('color_preview.svg_filter')
-        )
-
-        if not file_path:
-            return
-
-        if not file_path.endswith('.svg'):
-            file_path += '.svg'
-
-        svg_content = svg_preview.get_svg_content()
-        success, message = self._preview_service.save_svg_to_file(svg_content, file_path)
-
-        if success:
-            log_user_action("export_config_success", {"file_path": file_path})
-            InfoBar.success(
-                title=tr('color_preview_messages.export_success.title'),
-                content=tr('color_preview_messages.export_success.content', message=message),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self.window()
-            )
-        else:
-            logger.error(f"导出配置失败: {message}")
-            InfoBar.error(
-                title=tr('color_preview_messages.export_failed.title'),
-                content=tr('color_preview_messages.export_failed.content', message=message),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self.window()
-            )
+        """导出当前配色下的SVG（使用导出设置对话框）"""
+        # 复用 _on_export_svg 的逻辑，统一导出流程
+        self._on_export_svg()
 
     def refresh_favorites(self):
         """刷新收藏列表（由主窗口调用）"""

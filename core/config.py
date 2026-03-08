@@ -486,14 +486,12 @@ class SceneConfigManager:
     """场景配置管理器，处理预览场景配置的加载、保存和导入导出"""
 
     SCENES_DIR_NAME: str = "scenes_data"
-    SCENES_FILE_NAME: str = "scenes.json"
     USER_SCENES_DIR_NAME: str = "user_scenes"
 
     def __init__(self) -> None:
         """初始化场景配置管理器"""
         self._scenes_dir: Path = self._get_scenes_dir()
         self._user_scenes_dir: Path = self._scenes_dir / self.USER_SCENES_DIR_NAME
-        self._builtin_scenes: List[Dict[str, Any]] = []
         self._user_scenes: List[Dict[str, Any]] = []
         self._loaded: bool = False  # 延迟加载标志
 
@@ -518,25 +516,8 @@ class SceneConfigManager:
             self._loaded = True
 
     def _load_all_scenes(self) -> None:
-        """加载所有场景配置（内置 + 用户自定义）"""
-        self._load_builtin_scenes()
+        """加载所有场景配置"""
         self._load_user_scenes()
-
-    def _load_builtin_scenes(self) -> None:
-        """加载内置场景配置"""
-        scenes_file = self._scenes_dir / self.SCENES_FILE_NAME
-        if not scenes_file.exists():
-            print(f"内置场景配置文件不存在: {scenes_file}")
-            return
-
-        try:
-            with open(scenes_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            self._builtin_scenes = data.get("scenes", [])
-            print(f"已加载 {len(self._builtin_scenes)} 个内置场景")
-        except (json.JSONDecodeError, IOError, OSError) as e:
-            print(f"加载内置场景配置失败: {e}")
-            self._builtin_scenes = []
 
     def _load_user_scenes(self) -> None:
         """加载用户自定义场景配置"""
@@ -577,33 +558,13 @@ class SceneConfigManager:
         return all(field in config for field in required_fields)
 
     def get_all_scenes(self) -> List[Dict[str, Any]]:
-        """获取所有场景配置（内置 + 用户自定义）
+        """获取所有场景配置
 
         Returns:
             List[Dict[str, Any]]: 所有场景配置列表
         """
         self._ensure_loaded()
-        # 合并内置场景和用户场景
-        all_scenes = self._builtin_scenes.copy()
-
-        # 检查用户场景ID是否与内置场景冲突
-        builtin_ids = {scene["id"] for scene in all_scenes}
-        for user_scene in self._user_scenes:
-            if user_scene["id"] not in builtin_ids:
-                all_scenes.append(user_scene)
-            else:
-                print(f"用户场景ID '{user_scene['id']}' 与内置场景冲突，已跳过")
-
-        return all_scenes
-
-    def get_builtin_scenes(self) -> List[Dict[str, Any]]:
-        """获取内置场景配置
-
-        Returns:
-            List[Dict[str, Any]]: 内置场景配置列表
-        """
-        self._ensure_loaded()
-        return self._builtin_scenes.copy()
+        return self._user_scenes.copy()
 
     def get_user_scenes(self) -> List[Dict[str, Any]]:
         """获取用户自定义场景配置
@@ -624,12 +585,6 @@ class SceneConfigManager:
             Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
         """
         self._ensure_loaded()
-        # 先在内置场景中查找
-        for scene in self._builtin_scenes:
-            if scene["id"] == scene_id:
-                return scene.copy()
-
-        # 再在用户场景中查找
         for scene in self._user_scenes:
             if scene["id"] == scene_id:
                 return scene.copy()
@@ -662,11 +617,8 @@ class SceneConfigManager:
             scene_id = scene_config["id"]
             existing_scene = self.get_scene_by_id(scene_id)
             if existing_scene:
-                if existing_scene.get("builtin"):
-                    return False, f"场景ID '{scene_id}' 与内置场景冲突"
-                else:
-                    # 覆盖现有用户场景
-                    self.delete_user_scene(scene_id)
+                # 覆盖现有用户场景
+                self.delete_user_scene(scene_id)
 
             # 确保用户场景目录存在
             self._ensure_user_scenes_dir()
@@ -743,17 +695,9 @@ class SceneConfigManager:
 
         scene_id = scene_config["id"]
 
-        # 检查是否与内置场景冲突
-        for builtin_scene in self._builtin_scenes:
-            if builtin_scene["id"] == scene_id:
-                return False, f"场景ID '{scene_id}' 与内置场景冲突"
-
         try:
             # 确保用户场景目录存在
             self._ensure_user_scenes_dir()
-
-            # 标记为用户场景
-            scene_config["builtin"] = False
 
             # 生成文件名
             file_name = f"{scene_id}.json"
@@ -782,12 +726,6 @@ class SceneConfigManager:
             bool: 是否删除成功
         """
         self._ensure_loaded()
-        # 检查是否为内置场景
-        for builtin_scene in self._builtin_scenes:
-            if builtin_scene["id"] == scene_id:
-                print(f"不能删除内置场景: {scene_id}")
-                return False
-
         # 查找并删除用户场景文件
         for scene in self._user_scenes:
             if scene["id"] == scene_id:

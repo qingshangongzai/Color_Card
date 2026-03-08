@@ -75,7 +75,9 @@
     "empty_hint": "在色彩提取或配色生成面板点击收藏按钮",
     "import_title": "导入收藏",
     "export_title": "导出收藏",
-    "json_filter": "JSON 文件 (*.json);;所有文件 (*)"
+    "json_filter": "JSON 文件 (*.json);;所有文件 (*)",
+    "export_ase_title": "导出 ASE 色板",
+    "ase_filter": "ASE 文件 (*.ase);;所有文件 (*)"
   },
   "color_preview": {
     "title": "配色预览",
@@ -87,6 +89,7 @@
     "loading": "加载中...",
     "import_svg": "导入 SVG 文件",
     "svg_filter": "SVG 文件 (*.svg);;所有文件 (*)",
+    "png_filter": "PNG 文件 (*.png);;所有文件 (*)",
     "import_template": "导入 SVG 模板",
     "export_svg": "导出 SVG 文件",
     "export_svg_default": "colored_preview.svg",
@@ -141,48 +144,52 @@
     "no_svg_available": {
       "title": "无法导出",
       "content": "当前没有可导出的SVG"
+    },
+    "export_partial": {
+      "title": "部分导出成功",
+      "content": "成功导出 {success} 个文件，失败 {failed} 个"
     }
   },
   "canvases": {
-    "click_to_import": "點擊導入圖片",
-    "importing_image": "正在導入圖片...",
-    "loading_full_image": "正在加載完整圖片...",
+    "click_to_import": "点击导入图片",
+    "importing_image": "正在导入图片...",
+    "loading_full_image": "正在加载完整图片...",
     "finishing": "正在完成..."
   },
   "color_wheel": {
-    "hsb_wheel_title": "HSB色環",
-    "hue_red": "紅",
-    "hue_orange_red": "橙紅",
-    "hue_yellow": "黃",
-    "hue_yellow_green": "黃綠",
-    "hue_green": "綠",
-    "hue_cyan_green": "青綠",
+    "hsb_wheel_title": "HSB色环",
+    "hue_red": "红",
+    "hue_orange_red": "橙红",
+    "hue_yellow": "黄",
+    "hue_yellow_green": "黄绿",
+    "hue_green": "绿",
+    "hue_cyan_green": "青绿",
     "hue_cyan": "青",
-    "hue_cyan_blue": "青藍",
-    "hue_blue": "藍",
+    "hue_cyan_blue": "青蓝",
+    "hue_blue": "蓝",
     "hue_purple": "紫",
-    "hue_magenta": "品紅",
-    "hue_purple_red": "紫紅"
+    "hue_magenta": "品红",
+    "hue_purple_red": "紫红"
   },
   "histograms": {
-    "loading": "加載中...",
+    "loading": "加载中...",
     "hue_distribution_title": "色相分布"
   },
   "preset_color": {
-    "title": "預設顏色",
-    "random_palette": "隨機配色",
-    "random": "隨機",
-    "desc_random": "從所有配色方案中隨機篩選",
-    "desc_source": "基於 {name}",
+    "title": "预设颜色",
+    "random_palette": "随机配色",
+    "random": "随机",
+    "desc_random": "从所有配色方案中随机筛选",
+    "desc_source": "基于 {name}",
     "copy_success": {
-      "title": "已複製",
-      "content": "顏色值 {value} 已複製到剪貼板"
+      "title": "已复制",
+      "content": "颜色值 {value} 已复制到剪贴板"
     },
     "favorite_success": {
       "title": "已收藏",
       "content": "配色「{name}」已添加到配色管理"
     },
-    "loading": "加載中..."
+    "loading": "加载中..."
   },
   "settings": {
     "title": "设置",
@@ -279,6 +286,11 @@
       "confirm": "确认",
       "color_label": "颜色"
     },
+    "color_picker": {
+      "title": "选择颜色",
+      "confirm": "确认",
+      "cancel": "取消"
+    },
     "colorblind": {
       "title": "色盲模拟预览",
       "window_title": "色盲模拟预览 - {name}",
@@ -309,6 +321,21 @@
       "pass_aa": "✓ 通过 AA",
       "large_only": "△ 仅大号通过",
       "fail": "✗ 不通过"
+    },
+    "export_settings": {
+      "title": "导出设置",
+      "select_images": "选择图片：",
+      "image_item": "图片 {index}",
+      "select_all": "全选",
+      "deselect_all": "取消全选",
+      "filename_prefix": "文件名前缀：",
+      "export_format": "导出格式：",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "取消",
+      "export": "导出",
+      "no_selection_title": "未选择图片",
+      "no_selection_content": "请至少选择一张图片进行导出"
     },
     "confirm": {
       "clear_title": "确认清空",
@@ -389,6 +416,18 @@
       "title": "导出失败",
       "content": "{error}"
     },
+    "export_ase_success": {
+      "title": "导出成功",
+      "content": "配色已导出到：{path}"
+    },
+    "export_ase_failed": {
+      "title": "导出失败",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "导出失败",
+      "content": "配色中没有颜色数据"
+    },
     "add_success": {
       "title": "添加成功",
       "content": "配色「{name}」已添加"
@@ -424,7 +463,8 @@
     "clear_image": "清空图片"
   },
   "common": {
-    "delete": "刪除",
+    "delete": "删除",
+    "edit": "编辑配色",
     "group_range": "{start}-{end}",
     "group_all": "全部 ({total})"
   }

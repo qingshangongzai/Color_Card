@@ -26,13 +26,16 @@ logger = get_logger("gradient_extract")
 
 
 class ColorDot(QWidget):
-    """颜色圆点，仅用于显示"""
+    """颜色圆点，用于显示和点击选择颜色"""
+
+    clicked = Signal()  # 点击信号
 
     def __init__(self, initial_color: str = "#FF0000", parent=None):
         super().__init__(parent)
         self._color = initial_color
         self._radius = 12
         self.setFixedSize(24, 24)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._update_style()
 
     def _update_style(self):
@@ -75,6 +78,12 @@ class ColorDot(QWidget):
     def get_color(self) -> str:
         """获取当前颜色"""
         return self._color
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit()
+        super().mousePressEvent(event)
 
 
 class GradientPreviewWidget(QWidget):
@@ -298,7 +307,9 @@ class GradientExtractInterface(QWidget):
         self.start_color_input.setFixedWidth(105)
         self.start_color_input.setFixedHeight(28)
         self.start_color_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.start_color_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.start_color_input.textChanged.connect(self._on_start_color_input_changed)
+        self.start_color_dot.clicked.connect(self._open_start_color_picker)
         start_color_layout.addStretch()
         start_color_layout.addWidget(self.start_color_dot)
         start_color_layout.addWidget(self.start_color_label)
@@ -316,7 +327,9 @@ class GradientExtractInterface(QWidget):
         self.end_color_input.setFixedWidth(105)
         self.end_color_input.setFixedHeight(28)
         self.end_color_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.end_color_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.end_color_input.textChanged.connect(self._on_end_color_input_changed)
+        self.end_color_dot.clicked.connect(self._open_end_color_picker)
         end_color_layout.addStretch()
         end_color_layout.addWidget(self.end_color_dot)
         end_color_layout.addWidget(self.end_color_label)
@@ -449,6 +462,63 @@ class GradientExtractInterface(QWidget):
             self.end_color_dot.set_color(self._end_color)
             log_user_action("change_end_color", {"color": self._end_color})
             self._generate_gradient()
+
+    def _open_start_color_picker(self):
+        """打开起始颜色选择器"""
+        self._open_color_picker(self._start_color, self._on_start_color_selected)
+
+    def _open_end_color_picker(self):
+        """打开结束颜色选择器"""
+        self._open_color_picker(self._end_color, self._on_end_color_selected)
+
+    def _open_color_picker(self, current_color: str, callback):
+        """打开颜色选择器对话框
+
+        Args:
+            current_color: 当前HEX颜色值
+            callback: 选择完成后的回调函数
+        """
+        from dialogs import ColorPickerDialog
+        from PySide6.QtWidgets import QDialog
+
+        # 将HEX转换为RGB
+        r, g, b = self._hex_to_rgb(current_color)
+
+        dialog = ColorPickerDialog((r, g, b), self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            color_info = dialog.get_color_info()
+            if color_info:
+                callback(color_info)
+
+    def _on_start_color_selected(self, color_info: dict):
+        """起始颜色选择完成回调"""
+        hex_color = color_info.get('hex', '')
+        self._start_color = hex_color
+        self.start_color_dot.set_color(hex_color)
+        self.start_color_input.setText(hex_color)
+        self._generate_gradient()
+        log_user_action("change_start_color", {"color": hex_color, "source": "color_picker"})
+
+    def _on_end_color_selected(self, color_info: dict):
+        """结束颜色选择完成回调"""
+        hex_color = color_info.get('hex', '')
+        self._end_color = hex_color
+        self.end_color_dot.set_color(hex_color)
+        self.end_color_input.setText(hex_color)
+        self._generate_gradient()
+        log_user_action("change_end_color", {"color": hex_color, "source": "color_picker"})
+
+    def _hex_to_rgb(self, hex_color: str) -> tuple:
+        """HEX颜色转换为RGB
+
+        Args:
+            hex_color: HEX颜色值，如"#FF5733"
+
+        Returns:
+            tuple: RGB元组 (r, g, b)
+        """
+        hex_color = hex_color.lstrip('#')
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
     def _is_valid_hex(self, text: str) -> bool:
         """检查是否为有效的HEX颜色值"""

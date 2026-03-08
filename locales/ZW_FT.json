@@ -75,7 +75,9 @@
     "empty_hint": "在色彩提取或配色生成面板點擊收藏按鈕",
     "import_title": "導入收藏",
     "export_title": "導出收藏",
-    "json_filter": "JSON 文件 (*.json);;所有文件 (*)"
+    "json_filter": "JSON 文件 (*.json);;所有文件 (*)",
+    "export_ase_title": "導出 ASE 色板",
+    "ase_filter": "ASE 文件 (*.ase);;所有文件 (*)"
   },
   "color_preview": {
     "title": "配色預覽",
@@ -87,6 +89,7 @@
     "loading": "載入中...",
     "import_svg": "導入 SVG 文件",
     "svg_filter": "SVG 文件 (*.svg);;所有文件 (*)",
+    "png_filter": "PNG 文件 (*.png);;所有文件 (*)",
     "import_template": "導入 SVG 範本",
     "export_svg": "導出 SVG 文件",
     "export_svg_default": "colored_preview.svg",
@@ -141,6 +144,10 @@
     "no_svg_available": {
       "title": "無法導出",
       "content": "當前沒有可導出的SVG"
+    },
+    "export_partial": {
+      "title": "部分導出成功",
+      "content": "成功導出 {success} 個文件，失敗 {failed} 個"
     }
   },
   "canvases": {
@@ -279,6 +286,11 @@
       "confirm": "確認",
       "color_label": "顏色"
     },
+    "color_picker": {
+      "title": "選擇顏色",
+      "confirm": "確認",
+      "cancel": "取消"
+    },
     "colorblind": {
       "title": "色盲模擬預覽",
       "window_title": "色盲模擬預覽 - {name}",
@@ -309,6 +321,21 @@
       "pass_aa": "✓ 通過 AA",
       "large_only": "△ 僅大號通過",
       "fail": "✗ 不通過"
+    },
+    "export_settings": {
+      "title": "導出設置",
+      "select_images": "選擇圖片：",
+      "image_item": "圖片 {index}",
+      "select_all": "全選",
+      "deselect_all": "取消全選",
+      "filename_prefix": "文件名前綴：",
+      "export_format": "導出格式：",
+      "format_svg": "SVG",
+      "format_png": "PNG",
+      "cancel": "取消",
+      "export": "導出",
+      "no_selection_title": "未選擇圖片",
+      "no_selection_content": "請至少選擇一張圖片進行導出"
     },
     "confirm": {
       "clear_title": "確認清空",
@@ -389,6 +416,18 @@
       "title": "導出失敗",
       "content": "{error}"
     },
+    "export_ase_success": {
+      "title": "導出成功",
+      "content": "配色已導出到：{path}"
+    },
+    "export_ase_failed": {
+      "title": "導出失敗",
+      "content": "{error}"
+    },
+    "export_ase_no_colors": {
+      "title": "導出失敗",
+      "content": "配色中沒有顏色數據"
+    },
     "add_success": {
       "title": "添加成功",
       "content": "配色「{name}」已添加"
@@ -425,6 +464,7 @@
   },
   "common": {
     "delete": "刪除",
+    "edit": "編輯配色",
     "group_range": "{start}-{end}",
     "group_all": "全部 ({total})"
   }
