@@ -43,7 +43,7 @@
 | **明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 | ![明度分析](docs/screenshots/luminance-extract.png) |
 | **渐变色提取**<br>通过起始色和结束色生成渐变色序列，支持 RGB/HSB/LAB 三种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
 | **配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 | ![配色生成](docs/screenshots/color-generation.png) |
-| **配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出JSON文件 | ![配色管理](docs/screenshots/palette-management.png) |
+| **配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出JSON文件，支持导出为 Adobe ASE 格式 | ![配色管理](docs/screenshots/palette-management.png) |
 | **内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 | ![内置色彩库](docs/screenshots/preset-colors.png) |
 | **配色预览**<br>支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG | ![配色预览](docs/screenshots/color-preview.png) |
 | **多语言支持**<br>支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言 | ![多语言支持](docs/screenshots/locales.png) |
@@ -142,7 +142,7 @@
 |明度分析 |9级明度分区（Zone 0-8）、直方图可视化、区域高亮 |
 |渐变色提取 |起始色/结束色设置、RGB/HSB/LAB插值、中间色数量调节 |
 |配色生成 |5种配色方案、可交互色环、明度调整 |
-|配色管理 |收藏配色、自定义名称、批量导入导出 |
+|配色管理 |收藏配色、自定义名称、批量导入导出、ASE格式导出（支持Adobe软件） |
 |配色预览 |8种内置场景、自定义SVG、智能配色映射 |
 |内置色彩库 |13大开源配色方案、661组色卡 |
 
@@ -279,7 +279,7 @@ Unlike common color tools or websites that only provide a single function, Color
 | **Luminance Analysis**<br>9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization | ![Luminance Analysis](docs/screenshots/luminance-extract.png) |
 | **Gradient Extraction**<br>Generate gradient color sequences from start and end colors, supporting RGB/HSB/LAB color space interpolation | ![Gradient Extraction](docs/screenshots/Gradient%20Extract.png) |
 | **Color Scheme Generation**<br>5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel | ![Color Generation](docs/screenshots/color-generation.png) |
-| **Palette Collection**<br>Save and manage color schemes, support batch import/export in JSON format | ![Palette Management](docs/screenshots/palette-management.png) |
+| **Palette Collection**<br>Save and manage color schemes, support batch import/export in JSON format, export to Adobe ASE format | ![Palette Management](docs/screenshots/palette-management.png) |
 | **Built-in Color Library**<br>13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes | ![Preset Colors](docs/screenshots/preset-colors.png) |
 | **Color Preview**<br>8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support | ![Color Preview](docs/screenshots/color-preview.png) |
 | **Multi-language Support**<br>6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian | ![Multi-language](docs/screenshots/locales.png) |
@@ -378,7 +378,7 @@ Unlike common color tools or websites that only provide a single function, Color
 |Gradient Extraction |Start/end color selection, RGB/HSB/LAB interpolation, adjustable middle colors |
 |Luminance Analysis |9-zone segmentation (Zone 0-8), histogram visualization, zone highlighting |
 |Color Generation |5 color schemes, interactive color wheel, luminance adjustment |
-|Palette Management |Save palettes, custom names, batch import/export |
+|Palette Management |Save palettes, custom names, batch import/export, ASE format export (Adobe software compatible) |
 |Color Preview |8 built-in scenes, custom SVG, intelligent color mapping |
 |Built-in Library |13 open-source color schemes, 661 color palettes |
 
