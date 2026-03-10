@@ -412,7 +412,8 @@
         async function loadChangelog() {
             const container = document.getElementById('changelog-container');
             try {
-                const response = await fetch('changelog.json');
+                const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
+                const response = await fetch(basePath + 'changelog.json', { cache: 'no-store' });
                 if (!response.ok) throw new Error('Failed to fetch');
                 const data = await response.json();
                 allVersions = data.versions || [];

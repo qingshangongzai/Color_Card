@@ -1306,10 +1306,11 @@
             const container = document.getElementById('palettes-container');
             container.innerHTML = '<div class="text-center py-20"><div class="inline-block w-10 h-10 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div><p class="mt-4 text-gray-600 dark:text-gray-400">加载中...</p></div>';
             
+            const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
             allPalettes = [];
             for (const file of paletteFiles) {
                 try {
-                    const response = await fetch(`palettes/${file}`);
+                    const response = await fetch(basePath + `palettes/${file}`, { cache: 'no-store' });
                     if (response.ok) {
                         const data = await response.json();
                         allPalettes.push(data);
@@ -1429,7 +1430,8 @@
         async function loadChangelog() {
             const container = document.getElementById('changelog-container');
             try {
-                const response = await fetch('changelog.json');
+                const basePath = window.location.pathname.replace(/\/[^/]*$/, '/');
+                const response = await fetch(basePath + 'changelog.json', { cache: 'no-store' });
                 if (!response.ok) throw new Error('Failed to fetch');
                 const data = await response.json();
                 const versions = data.versions;
