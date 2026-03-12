@@ -308,7 +308,10 @@ class GradientExtractInterface(QWidget):
         self.start_color_input.setFixedHeight(28)
         self.start_color_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.start_color_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        self.start_color_input.textChanged.connect(self._on_start_color_input_changed)
+        self.start_color_input.setMaxLength(7)  # #RRGGBB 格式
+        self.start_color_input.setPlaceholderText("#RRGGBB")
+        self.start_color_input.textChanged.connect(self._on_start_color_text_changed)
+        self.start_color_input.editingFinished.connect(self._on_start_color_editing_finished)
         self.start_color_dot.clicked.connect(self._open_start_color_picker)
         start_color_layout.addStretch()
         start_color_layout.addWidget(self.start_color_dot)
@@ -328,7 +331,10 @@ class GradientExtractInterface(QWidget):
         self.end_color_input.setFixedHeight(28)
         self.end_color_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.end_color_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        self.end_color_input.textChanged.connect(self._on_end_color_input_changed)
+        self.end_color_input.setMaxLength(7)  # #RRGGBB 格式
+        self.end_color_input.setPlaceholderText("#RRGGBB")
+        self.end_color_input.textChanged.connect(self._on_end_color_text_changed)
+        self.end_color_input.editingFinished.connect(self._on_end_color_editing_finished)
         self.end_color_dot.clicked.connect(self._open_end_color_picker)
         end_color_layout.addStretch()
         end_color_layout.addWidget(self.end_color_dot)
@@ -447,21 +453,115 @@ class GradientExtractInterface(QWidget):
         self.random_button.setText(tr('gradient_extract.random'))
         self.favorite_button.setText(tr('gradient_extract.favorite'))
 
-    def _on_start_color_input_changed(self, text: str):
-        """起始颜色输入框改变"""
-        if self._is_valid_hex(text):
-            self._start_color = text.upper()
-            self.start_color_dot.set_color(self._start_color)
-            log_user_action("change_start_color", {"color": self._start_color})
-            self._generate_gradient()
+    def _on_start_color_text_changed(self, text: str):
+        """起始颜色文本变化处理（自动格式化为大写并确保#前缀）"""
+        if not text:
+            return
 
-    def _on_end_color_input_changed(self, text: str):
-        """结束颜色输入框改变"""
-        if self._is_valid_hex(text):
-            self._end_color = text.upper()
-            self.end_color_dot.set_color(self._end_color)
-            log_user_action("change_end_color", {"color": self._end_color})
-            self._generate_gradient()
+        # 自动转大写
+        upper_text = text.upper()
+
+        # 只允许有效的十六进制字符和#
+        valid_chars = '#0123456789ABCDEF'
+        filtered_text = ''.join(c for c in upper_text if c in valid_chars)
+
+        # 确保以#开头
+        if not filtered_text.startswith('#'):
+            filtered_text = '#' + filtered_text
+
+        # 限制长度（# + 6位十六进制）
+        if len(filtered_text) > 7:
+            filtered_text = filtered_text[:7]
+
+        # 更新文本（如果发生变化）
+        if text != filtered_text:
+            cursor_pos = self.start_color_input.cursorPosition()
+            self.start_color_input.setText(filtered_text)
+            # 保持光标位置
+            new_pos = min(len(filtered_text), cursor_pos + (1 if not text.startswith('#') else 0))
+            self.start_color_input.setCursorPosition(new_pos)
+
+    def _on_start_color_editing_finished(self):
+        """起始颜色编辑完成处理（验证并更新颜色）"""
+        text = self.start_color_input.text().strip().upper()
+
+        if not text:
+            return
+
+        # 添加 # 前缀
+        if not text.startswith('#'):
+            text = '#' + text
+
+        # 验证HEX格式
+        if not self._is_valid_hex(text):
+            # 无效则恢复原值
+            self.start_color_input.setText(self._start_color)
+            return
+
+        # 如果颜色没有变化，不进行处理
+        if text == self._start_color:
+            return
+
+        # 更新颜色
+        self._start_color = text
+        self.start_color_dot.set_color(self._start_color)
+        log_user_action("change_start_color", {"color": self._start_color})
+        self._generate_gradient()
+
+    def _on_end_color_text_changed(self, text: str):
+        """结束颜色文本变化处理（自动格式化为大写并确保#前缀）"""
+        if not text:
+            return
+
+        # 自动转大写
+        upper_text = text.upper()
+
+        # 只允许有效的十六进制字符和#
+        valid_chars = '#0123456789ABCDEF'
+        filtered_text = ''.join(c for c in upper_text if c in valid_chars)
+
+        # 确保以#开头
+        if not filtered_text.startswith('#'):
+            filtered_text = '#' + filtered_text
+
+        # 限制长度（# + 6位十六进制）
+        if len(filtered_text) > 7:
+            filtered_text = filtered_text[:7]
+
+        # 更新文本（如果发生变化）
+        if text != filtered_text:
+            cursor_pos = self.end_color_input.cursorPosition()
+            self.end_color_input.setText(filtered_text)
+            # 保持光标位置
+            new_pos = min(len(filtered_text), cursor_pos + (1 if not text.startswith('#') else 0))
+            self.end_color_input.setCursorPosition(new_pos)
+
+    def _on_end_color_editing_finished(self):
+        """结束颜色编辑完成处理（验证并更新颜色）"""
+        text = self.end_color_input.text().strip().upper()
+
+        if not text:
+            return
+
+        # 添加 # 前缀
+        if not text.startswith('#'):
+            text = '#' + text
+
+        # 验证HEX格式
+        if not self._is_valid_hex(text):
+            # 无效则恢复原值
+            self.end_color_input.setText(self._end_color)
+            return
+
+        # 如果颜色没有变化，不进行处理
+        if text == self._end_color:
+            return
+
+        # 更新颜色
+        self._end_color = text
+        self.end_color_dot.set_color(self._end_color)
+        log_user_action("change_end_color", {"color": self._end_color})
+        self._generate_gradient()
 
     def _open_start_color_picker(self):
         """打开起始颜色选择器"""
