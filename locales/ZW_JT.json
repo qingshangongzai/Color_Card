@@ -252,6 +252,7 @@
       "project": "项目地址",
       "license": "开源许可",
       "agreement": "用户协议",
+      "tutorial": "使用说明",
       "copyright": "版权所有",
       "license_note": "基于 GPL v3 开源，仅供学习交流使用"
     },

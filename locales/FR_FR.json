@@ -251,7 +251,8 @@
       "homepage": "Page d'accueil",
       "project": "Projet",
       "license": "Licence",
-      "agreement": "Contrat utilisateur",
+      "agreement": "Accord utilisateur",
+      "tutorial": "Tutoriel",
       "copyright": "Droits d'auteur",
       "license_note": "Sous licence GPL v3, uniquement à des fins éducatives"
     },

@@ -252,6 +252,7 @@
       "project": "Project",
       "license": "License",
       "agreement": "User Agreement",
+      "tutorial": "Tutorial",
       "copyright": "Copyright",
       "license_note": "Licensed under GPL v3, for educational purposes only"
     },

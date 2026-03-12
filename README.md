@@ -126,6 +126,8 @@
 
 ## 使用说明
 
+📺 **视频教程**：[取色卡（Color Card）使用说明](https://www.bilibili.com/video/BV1vpckzhEH8/)
+
 ### 基本操作
 
 1. **导入图片**：点击「色彩提取」或「明度提取」面板中的图片显示区域即可导入图片，也支持拖拽导入
@@ -361,6 +363,8 @@ Unlike common color tools or websites that only provide a single function, Color
 ---
 
 ## Usage
+
+📺 **Video Tutorial**: [Color Card Tutorial (in Chinese)](https://www.bilibili.com/video/BV1vpckzhEH8/)
 
 ### Basic Operations
 
