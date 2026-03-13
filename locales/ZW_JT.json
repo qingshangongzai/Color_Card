@@ -176,7 +176,7 @@
     "hue_distribution_title": "色相分布"
   },
   "preset_color": {
-    "title": "预设颜色",
+    "title": "内置色彩",
     "random_palette": "随机配色",
     "random": "随机",
     "desc_random": "从所有配色方案中随机筛选",
