@@ -1058,6 +1058,57 @@ class PaletteManagementList(QWidget):
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
 
+    def remove_favorite_card(self, favorite_id: str) -> bool:
+        """局部删除指定收藏卡片
+
+        从列表中移除指定卡片，不触发完整的重新加载。
+
+        Args:
+            favorite_id: 收藏项ID
+
+        Returns:
+            bool: 是否成功删除
+        """
+        card = self._favorite_cards.get(favorite_id)
+        if not card:
+            return False
+
+        # 获取被删除项在 _favorites 中的索引
+        deleted_idx = next((i for i, fav in enumerate(self._favorites)
+                           if fav.get('id', '') == favorite_id), -1)
+        if deleted_idx < 0:
+            return False
+
+        # 从布局和数据结构中移除
+        self.content_layout.removeWidget(card)
+        card.deleteLater()
+        del self._favorite_cards[favorite_id]
+        self._favorites.pop(deleted_idx)
+
+        # 调整所有分组的索引
+        for group in self._groups:
+            indices = group.get("indices", [])
+            if deleted_idx in indices:
+                indices.remove(deleted_idx)
+            for i, idx in enumerate(indices):
+                if idx > deleted_idx:
+                    indices[i] = idx - 1
+
+        # 检查当前分组是否为空，切换到其他分组或显示空状态
+        if (self._groups and self._current_group_index < len(self._groups)
+                and not self._groups[self._current_group_index].get("indices", [])):
+            if self._current_group_index > 0:
+                self._current_group_index -= 1
+            elif self._current_group_index < len(self._groups) - 1:
+                self._current_group_index += 1
+            else:
+                self._show_empty_state()
+                return True
+            self.group_changed.emit(self._current_group_index)
+            self._load_current_group()
+
+        return True
+
 
 # =============================================================================
 # 配色管理界面
@@ -1225,7 +1276,10 @@ class PaletteManagementInterface(QWidget):
             log_user_action("clear_all_favorites", {"count": favorites_count}, "success")
 
     def _on_favorite_deleted(self, favorite_id):
-        """收藏删除回调"""
+        """收藏删除回调（优化版）
+
+        使用局部刷新替代完整重新加载，避免卡顿。
+        """
         favorite = self._config_manager.get_favorite(favorite_id)
         palette_name = favorite.get('name', tr('palette_management.unnamed')) if favorite else tr('palette_management.unnamed')
 
@@ -1240,7 +1294,14 @@ class PaletteManagementInterface(QWidget):
         if msg_box.exec():
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
-            self._load_favorites()
+
+            # 局部刷新：仅移除对应卡片，不重新加载
+            success = self.palette_management_list.remove_favorite_card(favorite_id)
+
+            if not success:
+                # 局部删除失败时回退到完整刷新
+                self._load_favorites()
+
             log_user_action("delete_favorite", {"id": favorite_id, "name": palette_name}, "success")
 
     def _on_import_clicked(self):
