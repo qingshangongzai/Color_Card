@@ -193,7 +193,8 @@
   },
   "settings": {
     "title": "Paramètres",
-    "card_display": "Paramètres d'affichage des cartes",
+    "card_display": "Infos couleur",
+    "card_display_desc": "Configurer l'affichage des valeurs et modes de couleur",
     "hex_display": "Afficher la valeur HEX",
     "hex_display_desc": "Afficher la valeur HEX et le bouton de copie dans les cartes de couleurs",
     "color_mode": "Affichage du mode couleur",
