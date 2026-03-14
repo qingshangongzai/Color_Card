@@ -177,8 +177,19 @@ class DraggableColorDot(QWidget):
     def _copy_hex_to_clipboard(self):
         """复制HEX值到剪贴板"""
         clipboard = QApplication.clipboard()
-        clipboard.setText(self._color.upper())
-        log_user_action("copy_hex_to_clipboard", {"color": self._color.upper()})
+        hex_value = self._color.upper()
+        clipboard.setText(hex_value)
+        log_user_action("copy_hex_to_clipboard", {"color": hex_value})
+
+        InfoBar.success(
+            title=tr('messages.copy_success.title'),
+            content=tr('messages.copy_success.content', value=hex_value),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
 
 
 # ============================================================================
