@@ -193,7 +193,7 @@
   },
   "settings": {
     "title": "設定",
-    "card_display": "カラー情報",
+    "card_display": "カラー情報設定",
     "card_display_desc": "カラー値とカラーモードの表示方法を設定",
     "hex_display": "HEXカラー値を表示",
     "hex_display_desc": "カラーカードにHEXカラー値とコピーボタンを表示",

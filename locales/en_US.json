@@ -193,7 +193,7 @@
   },
   "settings": {
     "title": "Settings",
-    "card_display": "Color Info",
+    "card_display": "Color Info Settings",
     "card_display_desc": "Configure how color values and color modes are displayed",
     "hex_display": "Show HEX Color Value",
     "hex_display_desc": "Display HEX color value and copy button in color cards",

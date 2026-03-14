@@ -193,7 +193,7 @@
   },
   "settings": {
     "title": "设置",
-    "card_display": "颜色信息",
+    "card_display": "颜色信息设置",
     "card_display_desc": "配置颜色值和色彩模式的显示方式",
     "hex_display": "显示16进制颜色值",
     "hex_display_desc": "在色彩提取面板的色卡中显示16进制颜色值和复制按钮",
