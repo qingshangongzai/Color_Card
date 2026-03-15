@@ -468,8 +468,9 @@ class PaletteManagementCard(CardWidget):
     export_ase_requested = Signal(dict)
     MAX_COLORS_PER_ROW = 6
 
-    def __init__(self, favorite_data: Dict[str, Any], parent=None):
+    def __init__(self, favorite_data: Dict[str, Any], card_index: int = 0, parent=None):
         self._favorite_data = favorite_data
+        self._card_index = card_index
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
         self._color_cards = []
@@ -635,7 +636,8 @@ class PaletteManagementCard(CardWidget):
 
     def _load_favorite_data(self):
         """加载收藏数据"""
-        self.name_label.setText(self._favorite_data.get('name', tr('palette_management.unnamed')))
+        name = self._favorite_data.get('name', tr('palette_management.unnamed'))
+        self.name_label.setText(f"{self._card_index + 1}.{name}")
 
         created_at = self._favorite_data.get('created_at', '')
         if created_at:
@@ -739,6 +741,7 @@ class PaletteManagementList(QWidget):
         self._groups = []
         self._current_group_index = 0
         self._loader = None
+        self._current_group_indices = []  # 当前分组的索引列表
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -839,47 +842,52 @@ class PaletteManagementList(QWidget):
         """加载当前分组的数据"""
         self._cancel_loader()
         self._clear_cards()
-        
+
         if not self._groups or self._current_group_index >= len(self._groups):
             return
-        
-        current_group = self._groups[self._current_group_index]
-        group_indices = current_group.get("indices", [])
-        
-        if len(group_indices) > self.BATCH_THRESHOLD:
-            self._start_batch_loading(group_indices)
-        else:
-            self._load_group_directly(group_indices)
 
-    def _load_group_directly(self, group_indices: list):
-        """直接加载分组数据（小数据量）
+        current_group = self._groups[self._current_group_index]
+        self._current_group_indices = current_group.get("indices", [])
+
+        if len(self._current_group_indices) > self.BATCH_THRESHOLD:
+            self._start_batch_loading(self._current_group_indices)
+        else:
+            self._load_group_directly(self._current_group_indices)
+
+    def _create_palette_card(self, favorite: Dict[str, Any], card_index: int) -> PaletteManagementCard:
+        """创建配色卡片并设置连接
 
         Args:
-            group_indices: 分组索引列表
-        """
-        # 禁用UI更新，批量处理
-        self.content_widget.setUpdatesEnabled(False)
+            favorite: 收藏数据
+            card_index: 卡片索引（用于显示序号）
 
+        Returns:
+            PaletteManagementCard: 创建的卡片
+        """
+        card = PaletteManagementCard(favorite, card_index=card_index)
+        card.set_hex_visible(self._hex_visible)
+        card.set_color_modes(self._color_modes)
+        card.delete_requested.connect(self.favorite_deleted)
+        card.preview_requested.connect(self._on_preview_requested)
+        card.contrast_requested.connect(self._on_contrast_requested)
+        card.color_changed.connect(self._on_color_changed)
+        card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
+        card.edit_requested.connect(self._on_edit_requested)
+        card.export_ase_requested.connect(self._on_export_ase_requested)
+        return card
+
+    def _load_group_directly(self, group_indices: list):
+        """直接加载分组数据（小数据量）"""
+        self.content_widget.setUpdatesEnabled(False)
         try:
             for idx in group_indices:
                 if 0 <= idx < len(self._favorites):
                     favorite = self._favorites[idx]
-                    card = PaletteManagementCard(favorite)
-                    card.set_hex_visible(self._hex_visible)
-                    card.set_color_modes(self._color_modes)
-                    card.delete_requested.connect(self.favorite_deleted)
-                    card.preview_requested.connect(self._on_preview_requested)
-                    card.contrast_requested.connect(self._on_contrast_requested)
-                    card.color_changed.connect(self._on_color_changed)
-                    card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
-                    card.edit_requested.connect(self._on_edit_requested)
-                    card.export_ase_requested.connect(self._on_export_ase_requested)
+                    card = self._create_palette_card(favorite, idx)
                     self.content_layout.addWidget(card)
                     self._favorite_cards[favorite.get('id', '')] = card
-
             self.content_layout.addStretch()
         finally:
-            # 恢复UI更新
             self.content_widget.setUpdatesEnabled(True)
 
     def _start_batch_loading(self, group_indices: List[int]):
@@ -896,26 +904,13 @@ class PaletteManagementList(QWidget):
         self._loader.start()
 
     def _on_batch_data_ready(self, batch_idx: int, batch_data: List[Dict[str, Any]]):
-        """批次数据就绪回调
-        
-        Args:
-            batch_idx: 批次索引
-            batch_data: 批次数据列表
-        """
-        for favorite in batch_data:
-            card = PaletteManagementCard(favorite)
-            card.set_hex_visible(self._hex_visible)
-            card.set_color_modes(self._color_modes)
-            card.delete_requested.connect(self.favorite_deleted)
-            card.preview_requested.connect(self._on_preview_requested)
-            card.contrast_requested.connect(self._on_contrast_requested)
-            card.color_changed.connect(self._on_color_changed)
-            card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
-            card.edit_requested.connect(self._on_edit_requested)
-            card.export_ase_requested.connect(self._on_export_ase_requested)
+        """批次数据就绪回调"""
+        start_index = batch_idx * self.BATCH_SIZE
+        for i, favorite in enumerate(batch_data):
+            global_index = self._current_group_indices[start_index + i]
+            card = self._create_palette_card(favorite, global_index)
             self.content_layout.addWidget(card)
             self._favorite_cards[favorite.get('id', '')] = card
-        
         QApplication.processEvents()
 
     def _on_loading_finished(self):
@@ -1057,6 +1052,38 @@ class PaletteManagementList(QWidget):
                 self._hint_label.setText(tr('palette_management.empty_hint'))
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
+
+    def remove_favorite_card(self, favorite_id: str) -> bool:
+        """局部删除指定收藏卡片，其他卡片序号保持不变"""
+        card = self._favorite_cards.get(favorite_id)
+        if not card:
+            return False
+
+        deleted_idx = next((i for i, fav in enumerate(self._favorites)
+                           if fav.get('id', '') == favorite_id), -1)
+        if deleted_idx < 0:
+            return False
+
+        self.content_layout.removeWidget(card)
+        card.deleteLater()
+        del self._favorite_cards[favorite_id]
+        self._favorites.pop(deleted_idx)
+
+        if deleted_idx in self._current_group_indices:
+            self._current_group_indices.remove(deleted_idx)
+
+        if not self._current_group_indices:
+            if self._current_group_index > 0:
+                self._current_group_index -= 1
+            elif self._current_group_index < len(self._groups) - 1:
+                self._current_group_index += 1
+            else:
+                self._show_empty_state()
+                return True
+            self.group_changed.emit(self._current_group_index)
+            self._load_current_group()
+
+        return True
 
 
 # =============================================================================
@@ -1225,7 +1252,10 @@ class PaletteManagementInterface(QWidget):
             log_user_action("clear_all_favorites", {"count": favorites_count}, "success")
 
     def _on_favorite_deleted(self, favorite_id):
-        """收藏删除回调"""
+        """收藏删除回调（优化版）
+
+        使用局部刷新替代完整重新加载，避免卡顿。
+        """
         favorite = self._config_manager.get_favorite(favorite_id)
         palette_name = favorite.get('name', tr('palette_management.unnamed')) if favorite else tr('palette_management.unnamed')
 
@@ -1240,7 +1270,14 @@ class PaletteManagementInterface(QWidget):
         if msg_box.exec():
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
-            self._load_favorites()
+
+            # 局部刷新：仅移除对应卡片，不重新加载
+            success = self.palette_management_list.remove_favorite_card(favorite_id)
+
+            if not success:
+                # 局部删除失败时回退到完整刷新
+                self._load_favorites()
+
             log_user_action("delete_favorite", {"id": favorite_id, "name": palette_name}, "success")
 
     def _on_import_clicked(self):

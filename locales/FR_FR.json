@@ -193,7 +193,8 @@
   },
   "settings": {
     "title": "Paramètres",
-    "card_display": "Paramètres d'affichage des cartes",
+    "card_display": "Paramètres d'infos couleur",
+    "card_display_desc": "Configurer l'affichage des valeurs et modes de couleur",
     "hex_display": "Afficher la valeur HEX",
     "hex_display_desc": "Afficher la valeur HEX et le bouton de copie dans les cartes de couleurs",
     "color_mode": "Affichage du mode couleur",
@@ -251,7 +252,8 @@
       "homepage": "Page d'accueil",
       "project": "Projet",
       "license": "Licence",
-      "agreement": "Contrat utilisateur",
+      "agreement": "Accord utilisateur",
+      "tutorial": "Tutoriel",
       "copyright": "Droits d'auteur",
       "license_note": "Sous licence GPL v3, uniquement à des fins éducatives"
     },

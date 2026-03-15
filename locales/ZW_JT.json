@@ -176,7 +176,7 @@
     "hue_distribution_title": "色相分布"
   },
   "preset_color": {
-    "title": "预设颜色",
+    "title": "内置色彩",
     "random_palette": "随机配色",
     "random": "随机",
     "desc_random": "从所有配色方案中随机筛选",
@@ -193,7 +193,8 @@
   },
   "settings": {
     "title": "设置",
-    "card_display": "色卡显示设置",
+    "card_display": "颜色信息设置",
+    "card_display_desc": "配置颜色值和色彩模式的显示方式",
     "hex_display": "显示16进制颜色值",
     "hex_display_desc": "在色彩提取面板的色卡中显示16进制颜色值和复制按钮",
     "color_mode": "色彩模式显示",
@@ -252,6 +253,7 @@
       "project": "项目地址",
       "license": "开源许可",
       "agreement": "用户协议",
+      "tutorial": "使用说明",
       "copyright": "版权所有",
       "license_note": "基于 GPL v3 开源，仅供学习交流使用"
     },
