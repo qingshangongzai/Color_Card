@@ -193,7 +193,8 @@
   },
   "settings": {
     "title": "設定",
-    "card_display": "カード表示設定",
+    "card_display": "カラー情報設定",
+    "card_display_desc": "カラー値とカラーモードの表示方法を設定",
     "hex_display": "HEXカラー値を表示",
     "hex_display_desc": "カラーカードにHEXカラー値とコピーボタンを表示",
     "color_mode": "カラーモード表示",
@@ -252,6 +253,7 @@
       "project": "プロジェクト",
       "license": "ライセンス",
       "agreement": "利用規約",
+      "tutorial": "使い方",
       "copyright": "著作権",
       "license_note": "GPL v3の下でライセンスされています。教育目的のみです"
     },

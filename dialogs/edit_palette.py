@@ -951,17 +951,19 @@ class ColorInputRow(QWidget):
 class EditPaletteDialog(QDialog):
     """编辑配色对话框"""
 
-    def __init__(self, default_name="", palette_data=None, parent=None):
+    def __init__(self, default_name="", palette_data=None, parent=None, show_name_input=True):
         """初始化添加/编辑配色对话框
 
         Args:
             default_name: 默认配色名称
             palette_data: 已有配色数据（编辑模式），None表示添加模式
             parent: 父窗口
+            show_name_input: 是否显示名称输入区域（默认True）
         """
         super().__init__(parent)
         self._palette_data = palette_data
         self._is_edit_mode = palette_data is not None
+        self._show_name_input = show_name_input
         self.setWindowTitle("编辑配色" if self._is_edit_mode else "添加配色")
         self.setFixedSize(300, 400)
         self._default_name = default_name
@@ -1010,25 +1012,26 @@ class EditPaletteDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
-        # 名称输入区域
-        name_layout = QHBoxLayout()
-        name_label = QLabel("配色名称：")
-        name_label.setStyleSheet(f"color: {get_text_color().name()}; font-size: 13px;")
-        name_layout.addWidget(name_label)
+        # 名称输入区域（根据参数决定是否显示）
+        if self._show_name_input:
+            name_layout = QHBoxLayout()
+            name_label = QLabel("配色名称：")
+            name_label.setStyleSheet(f"color: {get_text_color().name()}; font-size: 13px;")
+            name_layout.addWidget(name_label)
 
-        self.name_input = LineEdit()
-        self.name_input.setText(self._default_name)
-        self.name_input.setPlaceholderText("输入配色名称...")
-        self.name_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        self.name_input.setClearButtonEnabled(True)
-        name_layout.addWidget(self.name_input)
-        layout.addLayout(name_layout)
+            self.name_input = LineEdit()
+            self.name_input.setText(self._default_name)
+            self.name_input.setPlaceholderText("输入配色名称...")
+            self.name_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+            self.name_input.setClearButtonEnabled(True)
+            name_layout.addWidget(self.name_input)
+            layout.addLayout(name_layout)
 
-        # 分隔线
-        separator = QLabel()
-        separator.setFixedHeight(1)
-        separator.setStyleSheet(f"background-color: {get_border_color().name()};")
-        layout.addWidget(separator)
+            # 分隔线
+            separator = QLabel()
+            separator.setFixedHeight(1)
+            separator.setStyleSheet(f"background-color: {get_border_color().name()};")
+            layout.addWidget(separator)
 
         # 颜色列表标题
         colors_title = QLabel(tr('dialogs.edit_palette.colors_title'))
@@ -1080,9 +1083,10 @@ class EditPaletteDialog(QDialog):
 
         layout.addLayout(buttons_layout)
 
-        # 设置焦点到名称输入框
-        self.name_input.setFocus()
-        self.name_input.selectAll()
+        # 设置焦点到名称输入框（如果存在）
+        if self._show_name_input:
+            self.name_input.setFocus()
+            self.name_input.selectAll()
 
         # 添加第一个颜色输入行（不滚动）
         self._on_add_color(scroll_to_bottom=False)
@@ -1126,7 +1130,7 @@ class EditPaletteDialog(QDialog):
 
         # 设置名称
         name = self._palette_data.get('name', '')
-        if name:
+        if name and self._show_name_input:
             self.name_input.setText(name)
 
         # 获取已有颜色
@@ -1168,7 +1172,7 @@ class EditPaletteDialog(QDialog):
             return
 
         # 获取名称
-        name = self.name_input.text().strip()
+        name = self.name_input.text().strip() if self._show_name_input else ""
         if not name:
             name = self._default_name
 

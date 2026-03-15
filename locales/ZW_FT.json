@@ -193,7 +193,8 @@
   },
   "settings": {
     "title": "設置",
-    "card_display": "色卡顯示設置",
+    "card_display": "顏色信息設置",
+    "card_display_desc": "配置顏色值和色彩模式的顯示方式",
     "hex_display": "顯示16進制顏色值",
     "hex_display_desc": "在色彩提取面板的色卡中顯示16進制顏色值和複製按鈕",
     "color_mode": "色彩模式顯示",
@@ -252,6 +253,7 @@
       "project": "項目地址",
       "license": "開源許可",
       "agreement": "用戶協議",
+      "tutorial": "使用說明",
       "copyright": "版權所有",
       "license_note": "基於 GPL v3 開源，僅供學習交流使用"
     },

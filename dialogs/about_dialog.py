@@ -9,7 +9,7 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QDialog, QFrame, QHBoxLayout, QVBoxLayout, QWidget
 )
-from qfluentwidgets import CaptionLabel, PlainTextEdit, PrimaryPushButton, PushButton, isDarkTheme, qconfig
+from qfluentwidgets import CaptionLabel, PlainTextEdit, PushButton, isDarkTheme, qconfig
 
 # 项目模块导入
 from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
@@ -44,7 +44,7 @@ class AboutDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(tr('dialogs.about.title'))
-        self.setFixedSize(600, 550)
+        self.setFixedSize(700, 550)
 
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
@@ -142,8 +142,8 @@ class AboutDialog(QDialog):
         )
         buttons_layout.addWidget(self.homepage_button)
         
-        # 项目地址按钮（主题色）
-        self.project_button = PrimaryPushButton(tr('dialogs.about.project'))
+        # 项目地址按钮
+        self.project_button = PushButton(tr('dialogs.about.project'))
         self.project_button.setMinimumWidth(90)
         self.project_button.clicked.connect(
             lambda: self._open_url("https://gitee.com/qingshangongzai/color_card")
@@ -161,7 +161,15 @@ class AboutDialog(QDialog):
         self.agreement_button.setMinimumWidth(90)
         self.agreement_button.clicked.connect(self._open_agreement_file)
         buttons_layout.addWidget(self.agreement_button)
-        
+
+        # 使用说明按钮
+        self.tutorial_button = PushButton(tr('dialogs.about.tutorial'))
+        self.tutorial_button.setMinimumWidth(90)
+        self.tutorial_button.clicked.connect(
+            lambda: self._open_url("https://www.bilibili.com/video/BV1vpckzhEH8/")
+        )
+        buttons_layout.addWidget(self.tutorial_button)
+
         buttons_layout.addStretch()
         
         parent_layout.addWidget(buttons_container)

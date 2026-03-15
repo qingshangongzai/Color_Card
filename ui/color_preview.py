@@ -177,8 +177,19 @@ class DraggableColorDot(QWidget):
     def _copy_hex_to_clipboard(self):
         """复制HEX值到剪贴板"""
         clipboard = QApplication.clipboard()
-        clipboard.setText(self._color.upper())
-        log_user_action("copy_hex_to_clipboard", {"color": self._color.upper()})
+        hex_value = self._color.upper()
+        clipboard.setText(hex_value)
+        log_user_action("copy_hex_to_clipboard", {"color": hex_value})
+
+        InfoBar.success(
+            title=tr('messages.copy_success.title'),
+            content=tr('messages.copy_success.content', value=hex_value),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
 
 
 # ============================================================================
@@ -294,8 +305,8 @@ class ColorDotBar(QWidget):
                 'colors': colors_info
             }
 
-            # 打开编辑对话框
-            dialog = EditPaletteDialog(palette_data=palette_data, parent=self)
+            # 打开编辑对话框（预览配色场景不显示名称输入）
+            dialog = EditPaletteDialog(palette_data=palette_data, parent=self, show_name_input=False)
             if dialog.exec() == EditPaletteDialog.DialogCode.Accepted:
                 new_palette_data = dialog.get_palette_data()
                 if new_palette_data and 'colors' in new_palette_data:
