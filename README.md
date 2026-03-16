@@ -44,7 +44,19 @@
 | 总更新项 | **102 项** |
 | 平均每版本 | 12.75 项 |
 
-**更新分类统计**：新增功能 23 项 | 问题修复 25 项 | 界面优化 25 项 | 性能提升 8 项 | 其他优化 21 项
+**详细分类统计**：
+
+| 分类 | 数量 | 说明 |
+| :-- | :--: | :-- |
+| ✨ 新增功能 | **32** | 包含首次发布的 9 项核心功能 |
+| 🔧 问题修复 | **25** | 持续修复 Bug，提升稳定性 |
+| 🎨 界面优化 | **25** | 用户体验打磨 |
+| ⚡ 性能提升 | **8** | 缓存机制、启动优化等 |
+| 📝 内容调整 | **5** | 文本、名称等调整 |
+| 🏗️ 代码重构 | **3** | 代码结构优化 |
+| 🔮 逻辑优化 | **2** | 算法逻辑改进 |
+| 📜 许可证完善 | **1** | 开源合规性 |
+| 🚀 功能优化 | **1** | 功能增强 |
 
 ### 核心功能特色
 
@@ -295,7 +307,19 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | Total Updates | **102 items** |
 | Average per Version | 12.75 items |
 
-**Update Category Statistics**: New Features 23 | Bug Fixes 25 | UI Improvements 25 | Performance 8 | Other 21
+**Detailed Category Statistics**:
+
+| Category | Count | Description |
+| :-- | :--: | :-- |
+| ✨ New Features | **32** | Including 9 core features from v1.0.0 launch |
+| 🔧 Bug Fixes | **25** | Continuous bug fixes for stability |
+| 🎨 UI Improvements | **25** | User experience refinements |
+| ⚡ Performance | **8** | Cache mechanism, startup optimization |
+| 📝 Content Adjustments | **5** | Text, naming adjustments |
+| 🏗️ Code Refactoring | **3** | Code structure optimization |
+| 🔮 Logic Optimization | **2** | Algorithm improvements |
+| 📜 License Compliance | **1** | Open source compliance |
+| 🚀 Feature Enhancement | **1** | Feature enhancements |
 
 ### Key Features
 
