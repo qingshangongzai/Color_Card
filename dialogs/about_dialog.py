@@ -1,40 +1,19 @@
 # 标准库导入
-import os
-import sys
 from pathlib import Path
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import (
-    QDialog, QFrame, QHBoxLayout, QVBoxLayout, QWidget
-)
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 from qfluentwidgets import CaptionLabel, PlainTextEdit, PushButton, isDarkTheme, qconfig
 
 # 项目模块导入
-from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils import tr, load_icon_universal, get_base_path
 from version import version_manager
-from utils.theme_colors import get_dialog_bg_color, get_text_color
+from dialogs.base_frameless_dialog import BaseFramelessDialog
 
 
-def _get_base_path() -> str:
-    """获取应用程序基础路径
-
-    支持开发环境和 PyInstaller 打包后的环境
-
-    Returns:
-        str: 应用程序基础路径
-    """
-    if getattr(sys, 'frozen', False):
-        # PyInstaller 打包后的环境
-        if hasattr(sys, '_MEIPASS'):
-            return sys._MEIPASS
-        return os.path.dirname(sys.executable)
-    # 开发环境 - 返回项目根目录
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-class AboutDialog(QDialog):
+class AboutDialog(BaseFramelessDialog):
     """关于对话框
 
     显示应用程序信息、版本信息、开发团队信息、
@@ -49,30 +28,24 @@ class AboutDialog(QDialog):
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
 
-        # 设置窗口标志：只保留关闭按钮（必须在设置窗口标题之后）
-        self.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.WindowTitleHint |
-            Qt.WindowType.WindowCloseButtonHint |
-            Qt.WindowType.CustomizeWindowHint
-        )
+        # 设置自定义标题栏
+        self._setup_title_bar()
 
-        # 设置窗口背景色（与 FluentWindow 一致）
-        bg_color = get_dialog_bg_color()
-        self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
+        # 初始化样式
+        self._update_styles()
 
+        # 设置界面
         self.setup_ui()
 
-        # 修复任务栏图标（在窗口显示后调用）
-        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
-
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
 
     def setup_ui(self):
         """设置界面布局"""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setContentsMargins(20, 40, 20, 20)
         layout.setSpacing(15)
 
         # 内容区域
@@ -86,7 +59,7 @@ class AboutDialog(QDialog):
 
     def _create_content_area(self, parent_layout):
         """创建内容显示区域
-        
+
         Args:
             parent_layout: 父布局对象
         """
@@ -94,24 +67,24 @@ class AboutDialog(QDialog):
         self.text_edit.setReadOnly(True)
         self.text_edit.setPlainText(self._get_about_text())
         self.text_edit.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        # 禁用焦点，去除底部蓝色条
         self.text_edit.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        
-        # 设置主题感知的样式
-        bg_color = get_dialog_bg_color()
-        text_color = get_text_color()
-        self.text_edit.setStyleSheet(
-            f"PlainTextEdit {{ background-color: {bg_color.name()}; "
-            f"color: {text_color.name()}; border: none; }}\n"
-            f"PlainTextEdit:focus {{ border: none; outline: none; }}\n"
-            f"PlainTextEdit::focus {{ border: none; }}\n"
-            f"QPlainTextEdit {{ border: none; }}\n"
-            f"QPlainTextEdit:focus {{ border: none; outline: none; }}"
-        )
-        
+
+        # 设置背景和边框透明，文字颜色根据主题变化
+        text_color = "#ffffff" if isDarkTheme() else "#333333"
+        self.text_edit.setStyleSheet(f"""
+            PlainTextEdit {{
+                background-color: transparent;
+                border: none;
+                color: {text_color};
+            }}
+            QPlainTextEdit {{
+                background-color: transparent;
+                border: none;
+                color: {text_color};
+            }}
+        """)
+
         parent_layout.addWidget(self.text_edit, stretch=1)
-
-
 
     def _create_buttons_area(self, parent_layout):
         """创建按钮区域
@@ -196,33 +169,27 @@ class AboutDialog(QDialog):
         """
         QDesktopServices.openUrl(QUrl(url))
 
-    def _open_license_file(self):
+    def _open_file_or_url(self, filename: str, fallback_url: str) -> None:
+        """打开本地文件，不存在则打开URL
+
+        Args:
+            filename: 文件名（位于 file/ 目录下）
+            fallback_url: 文件不存在时的备用URL
+        """
+        file_path = Path(get_base_path()) / "file" / filename
+
+        if file_path.exists():
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path.absolute())))
+        else:
+            self._open_url(fallback_url)
+
+    def _open_license_file(self) -> None:
         """打开开源许可文件"""
-        # 获取许可证文件路径（相对于项目根目录的 file/LICENSE.html）
-        base_path = _get_base_path()
-        license_path = Path(base_path) / "file" / "LICENSE.html"
+        self._open_file_or_url("LICENSE.html", "https://gitee.com/qingshangongzai/color_card")
 
-        if license_path.exists():
-            # 转换为文件URL并打开
-            file_url = QUrl.fromLocalFile(str(license_path.absolute()))
-            QDesktopServices.openUrl(file_url)
-        else:
-            # 如果文件不存在，打开项目地址
-            self._open_url("https://gitee.com/qingshangongzai/color_card")
-
-    def _open_agreement_file(self):
+    def _open_agreement_file(self) -> None:
         """打开用户协议文件"""
-        # 获取用户协议文件路径（相对于项目根目录的 file/UserAgreement.html）
-        base_path = _get_base_path()
-        agreement_path = Path(base_path) / "file" / "UserAgreement.html"
-
-        if agreement_path.exists():
-            # 转换为文件URL并打开
-            file_url = QUrl.fromLocalFile(str(agreement_path.absolute()))
-            QDesktopServices.openUrl(file_url)
-        else:
-            # 如果文件不存在，打开项目地址
-            self._open_url("https://gitee.com/qingshangongzai/color-card")
+        self._open_file_or_url("UserAgreement.html", "https://gitee.com/qingshangongzai/color-card")
 
     def _get_about_text(self):
         """获取关于页面的文本内容"""
@@ -380,16 +347,15 @@ class AboutDialog(QDialog):
   • 感谢Adobe Color、色采、palettemakel等优秀产品为我们提供的灵感和参考
 """
 
-    def _update_title_bar_theme(self):
-        """更新标题栏主题以适配当前主题"""
-        set_window_title_bar_theme(self, isDarkTheme())
-
-    def showEvent(self, event):
-        """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""
-        # 先设置标题栏主题（在父类 showEvent 之前）
-        self._update_title_bar_theme()
-        # 调用父类的 showEvent
-        super().showEvent(event)
+    def closeEvent(self, event):
+        """关闭事件 - 断开信号连接"""
+        if hasattr(self, '_theme_connection'):
+            try:
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            except (TypeError, RuntimeError):
+                pass
+            delattr(self, '_theme_connection')
+        super().closeEvent(event)
 
     def contextMenuEvent(self, event):
         """屏蔽原生右键菜单"""
