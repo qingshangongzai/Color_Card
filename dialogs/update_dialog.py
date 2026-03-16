@@ -3,10 +3,10 @@ import re
 from typing import List, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QThread, QTimer, QUrl, Signal
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, isDarkTheme, qconfig
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, qconfig
 
 try:
     import requests
@@ -14,8 +14,8 @@ except ImportError:
     requests = None
 
 # 项目模块导入
-from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
-from utils.theme_colors import get_dialog_bg_color, get_text_color
+from utils import tr, load_icon_universal
+from dialogs import BaseFramelessDialog
 
 
 class UpdateCheckThread(QThread):
@@ -134,7 +134,7 @@ def compare_versions(current: str, latest: str) -> int:
     return 0
 
 
-class UpdateAvailableDialog(QDialog):
+class UpdateAvailableDialog(BaseFramelessDialog):
     """新版本可用提示对话框
 
     当检测到有新版本时弹出，提供跳转到发行页面的功能。
@@ -159,45 +159,33 @@ class UpdateAvailableDialog(QDialog):
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
 
-        # 设置窗口标志
-        self.setWindowFlags(
-            Qt.WindowType.Window
-            | Qt.WindowType.WindowTitleHint
-            | Qt.WindowType.WindowCloseButtonHint
-            | Qt.WindowType.CustomizeWindowHint
-        )
-
-        # 设置窗口背景色
-        bg_color = get_dialog_bg_color()
-        self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
-
+        # 设置界面
         self.setup_ui()
 
-        # 修复任务栏图标
-        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
+        # 设置标题栏和样式（基类提供）
+        self._setup_title_bar()
+        self._update_styles()
 
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
 
     def setup_ui(self):
         """设置界面布局"""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        # 顶部边距40px为标题栏留出空间
+        layout.setContentsMargins(20, 40, 20, 20)
         layout.setSpacing(15)
 
-        # 提示文本
-        text_color = get_text_color()
+        # 提示文本（基类统一处理文字颜色）
         info_label = QLabel(tr('dialogs.update.new_version'))
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_label.setStyleSheet(
-            f"QLabel {{ color: {text_color.name()}; font-size: 16px; font-weight: bold; }}"
-        )
         layout.addWidget(info_label)
 
-        # 版本信息
+        # 版本信息（基类统一处理文字颜色）
         version_label = QLabel(tr('dialogs.update.version_info', current=self.current_version, latest=self.latest_version))
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        version_label.setStyleSheet(f"QLabel {{ color: {text_color.name()}; font-size: 12px; }}")
         layout.addWidget(version_label)
 
         layout.addStretch()
@@ -232,16 +220,9 @@ class UpdateAvailableDialog(QDialog):
         QDesktopServices.openUrl(QUrl(url))
         self.accept()
 
-    def _update_title_bar_theme(self):
-        """更新标题栏主题以适配当前主题"""
-        set_window_title_bar_theme(self, isDarkTheme())
-
-    def showEvent(self, event):
-        """窗口显示事件 - 在显示前设置标题栏主题避免闪烁"""
-        # 先设置标题栏主题（在父类 showEvent 之前）
-        self._update_title_bar_theme()
-        # 调用父类的 showEvent
-        super().showEvent(event)
+    def closeEvent(self, event):
+        """关闭事件"""
+        super().closeEvent(event)  # 基类处理信号断开
 
     @staticmethod
     def check_update(parent, current_version):
@@ -278,7 +259,9 @@ class UpdateAvailableDialog(QDialog):
                     )
                 else:
                     # 有新版本可用，显示对话框
-                    dialog = UpdateAvailableDialog(parent, current_version, latest_version)
+                    # 使用 window() 获取顶层窗口，确保无边框对话框正常显示
+                    top_parent = parent.window() if parent else None
+                    dialog = UpdateAvailableDialog(top_parent, current_version, latest_version)
                     dialog.exec()
             else:
                 InfoBar.warning(

@@ -248,6 +248,21 @@ def get_dialog_bg_color():
     return QColor(32, 32, 32) if isDarkTheme() else QColor(255, 255, 255)
 
 
+def get_close_button_hover_bg_color():
+    """获取关闭按钮悬停背景颜色"""
+    return QColor(196, 43, 28) if isDarkTheme() else QColor(232, 17, 35)
+
+
+def get_close_button_hover_color():
+    """获取关闭按钮悬停图标颜色"""
+    return QColor(255, 255, 255)
+
+
+def get_close_button_pressed_color():
+    """获取关闭按钮按下图标颜色"""
+    return QColor(255, 255, 255)
+
+
 # ========== Zone框颜色 ==========
 def get_zone_background_color():
     """获取Zone框背景颜色"""

@@ -8,25 +8,26 @@
 from typing import List, Dict, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, Signal, QPointF
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget,
-    QFrame, QGridLayout, QScrollArea
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget,
+    QFrame, QScrollArea
 )
-from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QFont
+from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QFont, QPolygonF
 from qfluentwidgets import (
     ComboBox, PushButton, ToolButton, FluentIcon,
     isDarkTheme, qconfig, CardWidget
 )
 
 # 项目模块导入
-from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils import tr, load_icon_universal
+from dialogs import BaseFramelessDialog
 from core.contrast import (
     calculate_contrast_ratio, get_contrast_info,
     rgb_to_hex, get_contrast_status_color
 )
 from utils.theme_colors import (
-    get_dialog_bg_color, get_text_color, get_border_color,
+    get_text_color, get_border_color,
     get_secondary_text_color, get_title_color, get_card_background_color
 )
 
@@ -272,8 +273,6 @@ class GraphicWidget(QWidget):
         painter.drawEllipse(50, 20, 20, 20)
         
         # 绘制三角形
-        from PySide6.QtGui import QPolygonF
-        from PySide6.QtCore import QPointF
         triangle = QPolygonF([
             QPointF(90, 20),
             QPointF(80, 40),
@@ -350,16 +349,16 @@ class GraphicPreviewCard(QWidget):
         painter.drawRoundedRect(0, 0, self.width() - 1, self.height() - 1, 8, 8)
 
 
-class ContrastCheckDialog(QDialog):
+class ContrastCheckDialog(BaseFramelessDialog):
     """对比度检查对话框
-    
+
     允许用户选择配色方案中的两种颜色进行对比度检查，
     并实时预览文字可读性效果。
     """
-    
+
     def __init__(self, scheme_name: str, colors: List[Dict], parent=None):
         """初始化对比度检查对话框
-        
+
         Args:
             scheme_name: 配色方案名称
             colors: 颜色列表，每个颜色是一个字典，包含 'rgb' 键
@@ -368,43 +367,34 @@ class ContrastCheckDialog(QDialog):
         super().__init__(parent)
         self._scheme_name = scheme_name
         self._colors = colors
-        
+
         self.setWindowTitle(tr('dialogs.contrast.window_title', name=scheme_name))
-        
+
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
-        
-        # 设置窗口标志 - 使用 MSWindowsFixedSizeDialogHint 防止 Windows 自动调整大小
-        self.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.WindowTitleHint |
-            Qt.WindowType.WindowCloseButtonHint |
-            Qt.WindowType.CustomizeWindowHint |
-            Qt.WindowType.MSWindowsFixedSizeDialogHint
-        )
-        
-        # 设置固定大小（使用最小/最大尺寸确保不被压缩）
-        self.setMinimumSize(480, 420)
-        self.setMaximumSize(480, 420)
-        self.resize(480, 420)
-        
-        # 设置窗口背景色
-        bg_color = get_dialog_bg_color()
-        self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
-        
+
+        # 设置固定大小
+        self.setFixedSize(480, 580)
+
+        # 设置界面
         self.setup_ui()
+
+        # 设置标题栏和样式
+        self._setup_title_bar()
+        self._update_styles()
+
+        # 更新对比度
         self._update_contrast()
-        
-        # 修复任务栏图标
-        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
-        
+
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
     
     def setup_ui(self):
         """设置界面布局"""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setContentsMargins(20, 40, 20, 20)
         main_layout.setSpacing(15)
         
         # 获取主题颜色
@@ -591,12 +581,7 @@ class ContrastCheckDialog(QDialog):
         self.normal_preview.set_colors(bg_rgb, text_rgb)
         self.large_preview.set_colors(bg_rgb, text_rgb)
         self.graphic_preview.set_colors(bg_rgb, text_rgb)
-    
-    def _update_title_bar_theme(self):
-        """更新标题栏主题以适配当前主题"""
-        set_window_title_bar_theme(self, isDarkTheme())
-    
-    def showEvent(self, event):
-        """窗口显示事件"""
-        self._update_title_bar_theme()
-        super().showEvent(event)
+
+    def closeEvent(self, event):
+        """关闭事件"""
+        super().closeEvent(event)  # 基类处理信号断开
