@@ -4,21 +4,20 @@ from typing import List, Optional
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget,
-    QFrame, QFileDialog, QMessageBox
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget,
+    QFileDialog, QMessageBox
 )
-from PySide6.QtGui import QPixmap
 from qfluentwidgets import (
-    PushButton, LineEdit, RadioButton, isDarkTheme, qconfig,
+    PushButton, LineEdit, RadioButton, qconfig,
     PrimaryPushButton, CheckBox, ScrollArea
 )
 
 # 项目模块导入
-from utils import tr, set_window_title_bar_theme
-from utils.theme_colors import get_text_color, get_card_background_color, get_dialog_bg_color
+from dialogs import BaseFramelessDialog
+from utils import tr
 
 
-class ExportSettingsDialog(QDialog):
+class ExportSettingsDialog(BaseFramelessDialog):
     """导出设置对话框
 
     用于配置配色预览导出选项，包括选择图片、设置文件名前缀、选择导出格式等。
@@ -39,32 +38,25 @@ class ExportSettingsDialog(QDialog):
         self._png_radio: Optional[RadioButton] = None
 
         self.setWindowTitle(tr('dialogs.export_settings.title'))
+        self.setFixedSize(400, 450)
 
-        # 设置窗口标志 - 只保留关闭按钮
-        self.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.WindowTitleHint |
-            Qt.WindowType.WindowCloseButtonHint |
-            Qt.WindowType.CustomizeWindowHint
-        )
-
-        # 设置背景色
-        bg_color = get_dialog_bg_color()
-        self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
-
+        # 设置界面
         self.setup_ui()
+
+        # 设置标题栏和样式（基类提供）
+        self._setup_title_bar()
         self._update_styles()
 
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
-
-        # 设置固定大小（必须在 setup_ui 之后）
-        self.setFixedSize(400, 450)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
 
     def setup_ui(self):
         """设置界面"""
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
+        # 顶部边距40px为标题栏留出空间
+        layout.setContentsMargins(20, 40, 20, 20)
         layout.setSpacing(16)
 
         # 选择图片区域
@@ -227,20 +219,12 @@ class ExportSettingsDialog(QDialog):
             return "png"
         return "svg"
 
-    def showEvent(self, event):
-        """窗口显示前设置标题栏主题，避免闪烁"""
-        self._update_title_bar_theme()
-        super().showEvent(event)
-
-    def _update_title_bar_theme(self):
-        """更新标题栏主题"""
-        set_window_title_bar_theme(self, isDarkTheme())
-
-    def _update_styles(self):
-        """更新样式以适配主题"""
-        text_color = get_text_color()
-        text_color_hex = text_color.name()
-
-        # 更新所有标签的文字颜色
-        for widget in self.findChildren(QLabel):
-            widget.setStyleSheet(f"color: {text_color_hex};")
+    def closeEvent(self, event):
+        """关闭事件：断开信号连接"""
+        if hasattr(self, '_theme_connection'):
+            try:
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            except (TypeError, RuntimeError):
+                pass
+            delattr(self, '_theme_connection')
+        super().closeEvent(event)
