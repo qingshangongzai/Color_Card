@@ -33,6 +33,19 @@
 - **镜像仓库（GitHub）**：https://github.com/qingshangongzai/Color_Card
 - **官方网站**：https://qingshangongzai.github.io/Color_Card/
 
+### 开发历程
+
+自 2026-02-05 发布 v1.0.0 以来，项目保持快速稳定的迭代节奏：
+
+| 指标 | 数据 |
+| :-- | :-- |
+| 发布版本 | 8 个版本（v1.0.0 → v1.5.1） |
+| 开发周期 | 38 天 |
+| 总更新项 | **102 项** |
+| 平均每版本 | 12.75 项 |
+
+**更新分类统计**：新增功能 23 项 | 问题修复 25 项 | 界面优化 25 项 | 性能提升 8 项 | 其他优化 21 项
+
 ### 核心功能特色
 
 **一站式色彩解决方案**：从图片分析到配色应用，提供完整的色彩工作流
@@ -270,6 +283,19 @@ Unlike common color tools or websites that only provide a single function, Color
 - **Primary Repository (Gitee)**: https://gitee.com/qingshangongzai/color_card
 - **Mirror Repository (GitHub)**: https://github.com/qingshangongzai/Color_Card
 - **Official Website**: https://qingshangongzai.github.io/Color_Card/
+
+### Development Journey
+
+Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and stable iteration pace:
+
+| Metric | Data |
+| :-- | :-- |
+| Released Versions | 8 versions (v1.0.0 → v1.5.1) |
+| Development Period | 38 days |
+| Total Updates | **102 items** |
+| Average per Version | 12.75 items |
+
+**Update Category Statistics**: New Features 23 | Bug Fixes 25 | UI Improvements 25 | Performance 8 | Other 21
 
 ### Key Features
 
