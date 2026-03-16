@@ -584,7 +584,8 @@ class GradientExtractInterface(QWidget):
         # 将HEX转换为RGB
         r, g, b = self._hex_to_rgb(current_color)
 
-        dialog = ColorPickerDialog((r, g, b), self)
+        # 使用顶层窗口作为父窗口，避免背景色异常和两套窗口控制器
+        dialog = ColorPickerDialog((r, g, b), self.window())
         if dialog.exec() == QDialog.DialogCode.Accepted:
             color_info = dialog.get_color_info()
             if color_info:

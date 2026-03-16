@@ -11,10 +11,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent
 from qfluentwidgets import (
     LineEdit, PrimaryPushButton, PushButton, ToolButton, FluentIcon,
-    ScrollArea, isDarkTheme, qconfig
+    ScrollArea, qconfig
 )
-from qframelesswindow import FramelessDialog
-
 # 项目模块导入
 from core import (
     hex_to_rgb, rgb_to_hex, rgb_to_hsb, hsb_to_rgb,
@@ -22,8 +20,11 @@ from core import (
     rgb_to_cmyk, cmyk_to_rgb, get_color_info
 )
 from core.config import get_config_manager
-from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal
+from utils import tr, load_icon_universal
 from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
+
+# 对话框模块导入
+from .base_frameless_dialog import BaseFramelessDialog
 
 
 # ==================== 颜色选择器对话框组件 ====================
@@ -389,7 +390,7 @@ class ColorModeSliders(QWidget):
             self._sliders[3].set_gradient(gradient_k)
 
 
-class ColorPickerDialog(QDialog):
+class ColorPickerDialog(BaseFramelessDialog):
     """颜色选择器对话框"""
 
     def __init__(self, initial_color: Optional[Tuple[int, int, int]] = None, parent=None):
@@ -402,27 +403,18 @@ class ColorPickerDialog(QDialog):
         self.setWindowTitle(tr('dialogs.color_picker.title'))
         self.setFixedSize(520, 420)
 
-        # 设置窗口标志
-        self.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.WindowTitleHint |
-            Qt.WindowType.WindowCloseButtonHint |
-            Qt.WindowType.CustomizeWindowHint
-        )
+        # 设置自定义标题栏
+        self._setup_title_bar()
 
-        # 设置背景色
-        bg_color = get_dialog_bg_color()
-        self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
+        # 初始化样式（包含窗口背景色和标题颜色）
+        self._update_styles()
 
         self.setup_ui()
         self._update_from_rgb()
 
-        # 修复任务栏图标
-        QTimer.singleShot(100, lambda: self._fix_taskbar_icon())
-
         # 监听主题变化
         self._theme_connection = qconfig.themeChangedFinished.connect(
-            self._update_title_bar_theme
+            self._update_styles
         )
 
     def closeEvent(self, event):
@@ -436,7 +428,8 @@ class ColorPickerDialog(QDialog):
     def setup_ui(self):
         """设置界面布局"""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        # 顶部边距设置为40，为无边框窗口的标题栏留出空间
+        main_layout.setContentsMargins(20, 40, 20, 20)
         main_layout.setSpacing(15)
 
         # 内容区域（左右分割）
@@ -736,22 +729,7 @@ class ColorPickerDialog(QDialog):
         """获取选择的颜色信息"""
         return self._color_info
 
-    def _update_title_bar_theme(self):
-        """更新标题栏主题"""
-        set_window_title_bar_theme(self, isDarkTheme())
 
-    def _fix_taskbar_icon(self):
-        """修复任务栏图标"""
-        try:
-            if self and self.isVisible():
-                fix_windows_taskbar_icon_for_window(self)
-        except RuntimeError:
-            pass
-
-    def showEvent(self, event):
-        """窗口显示事件"""
-        self._update_title_bar_theme()
-        super().showEvent(event)
 
 
 class ColorInputRow(QWidget):
@@ -839,7 +817,8 @@ class ColorInputRow(QWidget):
         else:
             initial = (128, 128, 128)  # 默认灰色
 
-        dialog = ColorPickerDialog(initial, self)
+        # 使用顶层窗口作为父窗口，避免背景色异常和两套窗口控制器
+        dialog = ColorPickerDialog(initial, self.window())
         if dialog.exec() == QDialog.DialogCode.Accepted:
             color_info = dialog.get_color_info()
             if color_info:
@@ -949,7 +928,7 @@ class ColorInputRow(QWidget):
             self._update_preview_style(color_info)
 
 
-class EditPaletteDialog(FramelessDialog):
+class EditPaletteDialog(BaseFramelessDialog):
     """编辑配色对话框"""
 
     def __init__(self, default_name="", palette_data=None, parent=None, show_name_input=True):
@@ -999,107 +978,6 @@ class EditPaletteDialog(FramelessDialog):
         except (TypeError, RuntimeError):
             pass
         super().closeEvent(event)
-
-    def _setup_title_bar(self):
-        """设置自定义 Fluent Design 风格标题栏"""
-        from PySide6.QtWidgets import QLabel
-        from PySide6.QtCore import Qt
-        from PySide6.QtGui import QPixmap
-        from utils.icon import get_icon_path
-        from utils.theme_colors import get_text_color
-
-        # 获取 FramelessDialog 内置的标题栏
-        title_bar = self.titleBar
-        h_layout = title_bar.layout()
-        if not h_layout:
-            return
-
-        # 获取主题颜色
-        text_color = get_text_color()
-        text_color_str = text_color.name()
-
-        # 创建标题栏控件：左边距、Logo、间距、标题
-        # 1. 左边距
-        left_spacer = QLabel(title_bar)
-        left_spacer.setFixedWidth(10)
-
-        # 2. Logo
-        icon_path = get_icon_path()
-        logo_label = None
-        if icon_path:
-            logo_label = QLabel(title_bar)
-            pixmap = QPixmap(icon_path)
-            if not pixmap.isNull():
-                logo_label.setPixmap(pixmap.scaled(20, 20, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-
-        # 3. Logo和标题之间的间距
-        spacer_label = QLabel(title_bar)
-        spacer_label.setFixedWidth(8)
-
-        # 4. 标题
-        title_label = QLabel(self.windowTitle(), title_bar)
-        title_label.setStyleSheet(f"color: {text_color_str}; font-size: 13px; font-weight: 500;")
-
-        # 按顺序插入到布局开头（倒序插入）
-        for widget in [title_label, spacer_label, logo_label, left_spacer]:
-            if widget:
-                h_layout.insertWidget(0, widget)
-                h_layout.setAlignment(widget, Qt.AlignmentFlag.AlignVCenter)
-
-        # 保存标题标签引用，以便主题切换时更新
-        self._title_label = title_label
-
-    def _update_close_button_color(self, text_color):
-        """更新关闭按钮颜色以适配主题
-
-        Args:
-            text_color: 文本颜色 (QColor)
-        """
-        from utils.theme_colors import (
-            get_close_button_hover_bg_color,
-            get_close_button_hover_color,
-            get_close_button_pressed_color
-        )
-
-        title_bar = self.titleBar
-        if hasattr(title_bar, 'closeBtn') and title_bar.closeBtn:
-            close_btn = title_bar.closeBtn
-            # 设置正常状态颜色
-            close_btn.setNormalColor(text_color)
-            # 设置悬停状态颜色
-            close_btn.setHoverColor(get_close_button_hover_color())
-            close_btn.setHoverBackgroundColor(get_close_button_hover_bg_color())
-            # 设置按下状态颜色
-            close_btn.setPressedColor(get_close_button_pressed_color())
-
-    def _update_styles(self):
-        """更新样式以适配主题"""
-        from PySide6.QtGui import QPalette, QColor
-        from utils.theme_colors import get_text_color, get_dialog_bg_color
-
-        text_color = get_text_color()
-        text_color_str = text_color.name()
-        bg_color = get_dialog_bg_color()
-
-        # 设置 QLabel 文字颜色样式表
-        self.setStyleSheet(f"""
-            QLabel {{
-                color: {text_color_str};
-            }}
-        """)
-
-        # 使用 QPalette 设置窗口背景色
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(bg_color.name()))
-        self.setPalette(palette)
-        self.setAutoFillBackground(True)
-
-        # 更新标题标签颜色（如果存在）
-        if hasattr(self, '_title_label') and self._title_label:
-            self._title_label.setStyleSheet(f"color: {text_color_str}; font-size: 13px; font-weight: 500;")
-
-        # 更新关闭按钮颜色
-        self._update_close_button_color(text_color)
 
     def setup_ui(self):
         """设置界面布局"""
