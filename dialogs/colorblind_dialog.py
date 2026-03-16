@@ -7,23 +7,24 @@
 from typing import List, Dict, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget,
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget,
     QFrame
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    ComboBox, isDarkTheme, qconfig, ScrollArea
+    ComboBox, qconfig, ScrollArea
 )
 
 # 项目模块导入
-from utils import tr, fix_windows_taskbar_icon_for_window, load_icon_universal, set_window_title_bar_theme
+from utils import tr, load_icon_universal
+from dialogs import BaseFramelessDialog
 from core.colorblind import (
     simulate_colorblind, get_colorblind_info, get_all_colorblind_types
 )
 from utils.theme_colors import (
-    get_dialog_bg_color, get_text_color, get_border_color,
+    get_text_color, get_border_color,
     get_secondary_text_color, get_title_color
 )
 
@@ -62,13 +63,11 @@ class ColorBlock(QWidget):
 
 class ColorComparisonRow(QWidget):
     """颜色对比行组件 - 显示原颜色和模拟颜色"""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
-        # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
     
     def setup_ui(self):
         """设置界面"""
@@ -140,15 +139,15 @@ class ColorComparisonRow(QWidget):
         self.simulated_hex.setText(f"{tr('dialogs.colorblind.simulated')}: {simulated_hex}")
 
 
-class ColorblindPreviewDialog(QDialog):
+class ColorblindPreviewDialog(BaseFramelessDialog):
     """色盲模拟预览对话框
-    
+
     显示配色方案在不同色盲类型下的视觉效果。
     """
-    
+
     def __init__(self, scheme_name: str, colors: List[Dict], parent=None):
         """初始化色盲预览对话框
-        
+
         Args:
             scheme_name: 配色方案名称
             colors: 颜色列表，每个颜色是一个字典，包含 'rgb' 键
@@ -158,38 +157,32 @@ class ColorblindPreviewDialog(QDialog):
         self._scheme_name = scheme_name
         self._colors = colors
         self._current_type = 'normal'
-        
+
         self.setWindowTitle(tr('dialogs.colorblind.window_title', name=scheme_name))
         self.setFixedSize(320, 420)
-        
+
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
-        
-        # 设置窗口标志
-        self.setWindowFlags(
-            Qt.WindowType.Window |
-            Qt.WindowType.WindowTitleHint |
-            Qt.WindowType.WindowCloseButtonHint |
-            Qt.WindowType.CustomizeWindowHint
-        )
-        
-        # 设置窗口背景色
-        bg_color = get_dialog_bg_color()
-        self.setStyleSheet(f"QDialog {{ background-color: {bg_color.name()}; }}")
-        
+
+        # 设置界面
         self.setup_ui()
+
+        # 设置标题栏和样式
+        self._setup_title_bar()
+        self._update_styles()
+
+        # 更新预览
         self.update_preview()
-        
-        # 修复任务栏图标
-        QTimer.singleShot(100, lambda: fix_windows_taskbar_icon_for_window(self))
-        
+
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_title_bar_theme)
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
     
     def setup_ui(self):
         """设置界面布局"""
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(20, 20, 20, 20)
+        main_layout.setContentsMargins(20, 40, 20, 20)
         main_layout.setSpacing(15)
         
         # 获取主题颜色
@@ -281,9 +274,8 @@ class ColorblindPreviewDialog(QDialog):
             }
         """)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        
+
         self.comparison_container = QWidget()
-        self.comparison_container.setStyleSheet("background: transparent;")
         self.comparison_layout = QVBoxLayout(self.comparison_container)
         self.comparison_layout.setContentsMargins(0, 0, 0, 0)
         self.comparison_layout.setSpacing(5)
@@ -328,12 +320,13 @@ class ColorblindPreviewDialog(QDialog):
         # 更新说明文字
         info = get_colorblind_info(self._current_type)
         self.description_label.setText(tr('dialogs.colorblind.description', text=info['description']))
-    
-    def _update_title_bar_theme(self):
-        """更新标题栏主题以适配当前主题"""
-        set_window_title_bar_theme(self, isDarkTheme())
-    
-    def showEvent(self, event):
-        """窗口显示事件"""
-        self._update_title_bar_theme()
-        super().showEvent(event)
+
+    def closeEvent(self, event):
+        """关闭事件：断开信号连接"""
+        if hasattr(self, '_theme_connection'):
+            try:
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            except (TypeError, RuntimeError):
+                pass
+            delattr(self, '_theme_connection')
+        super().closeEvent(event)

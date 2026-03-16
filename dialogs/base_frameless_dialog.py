@@ -119,23 +119,27 @@ class BaseFramelessDialog(FramelessDialog):
         text_color = get_text_color()
         text_color_str = text_color.name()
         bg_color = get_dialog_bg_color()
-
-        # 设置 QLabel 文字颜色样式表
-        self.setStyleSheet(f"""
-            QLabel {{
-                color: {text_color_str};
-            }}
-        """)
+        bg_color_str = bg_color.name()
 
         # 使用 QPalette 设置窗口背景色
         palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(bg_color.name()))
+        palette.setColor(QPalette.ColorRole.Window, bg_color)
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
+        # 设置样式表 - QLabel 文字颜色
+        self.setStyleSheet(f"""
+            QLabel {{
+                color: {text_color_str};
+                background-color: transparent;
+            }}
+        """)
+
         # 更新标题标签颜色（如果存在）
         if hasattr(self, '_title_label') and self._title_label:
-            self._title_label.setStyleSheet(f"color: {text_color_str}; font-size: 13px; font-weight: 500;")
+            self._title_label.setStyleSheet(
+                f"color: {text_color_str}; font-size: 13px; font-weight: 500;"
+            )
 
         # 更新关闭按钮颜色
         self._update_close_button_color(text_color)
