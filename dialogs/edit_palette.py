@@ -6,7 +6,7 @@ from typing import Dict, Any, List, Tuple, Optional
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication
 )
 from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent
 from qfluentwidgets import (
@@ -21,7 +21,7 @@ from core import (
 )
 from core.config import get_config_manager
 from utils import tr, load_icon_universal
-from utils.theme_colors import get_dialog_bg_color, get_text_color, get_border_color
+from utils.theme_colors import get_text_color, get_border_color
 
 # 对话框模块导入
 from .base_frameless_dialog import BaseFramelessDialog
@@ -754,15 +754,7 @@ class ColorInputRow(QWidget):
         self._debounce_timer.setSingleShot(True)
         self._debounce_timer.timeout.connect(self._process_hex_input)
 
-    def closeEvent(self, event):
-        """关闭事件 - 断开信号连接"""
-        try:
-            if hasattr(self, '_theme_connection'):
-                qconfig.themeChangedFinished.disconnect(self._theme_connection)
-                delattr(self, '_theme_connection')
-        except (TypeError, RuntimeError):
-            pass
-        super().closeEvent(event)
+
 
     def setup_ui(self):
         """设置界面"""
@@ -972,12 +964,8 @@ class EditPaletteDialog(BaseFramelessDialog):
         )
 
     def closeEvent(self, event):
-        """关闭事件 - 断开信号连接"""
-        try:
-            qconfig.themeChangedFinished.disconnect(self._theme_connection)
-        except (TypeError, RuntimeError):
-            pass
-        super().closeEvent(event)
+        """关闭事件"""
+        super().closeEvent(event)  # 基类处理信号断开
 
     def setup_ui(self):
         """设置界面布局"""
@@ -1199,11 +1187,4 @@ class EditPaletteDialog(BaseFramelessDialog):
         """
         return getattr(self, '_palette_data', None)
 
-    def _fix_taskbar_icon(self):
-        """修复任务栏图标"""
-        try:
-            if self and self.isVisible():
-                fix_windows_taskbar_icon_for_window(self)
-        except RuntimeError:
-            # 对象已被销毁
-            pass
+

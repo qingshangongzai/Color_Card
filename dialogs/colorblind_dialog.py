@@ -322,11 +322,5 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
         self.description_label.setText(tr('dialogs.colorblind.description', text=info['description']))
 
     def closeEvent(self, event):
-        """关闭事件：断开信号连接"""
-        if hasattr(self, '_theme_connection'):
-            try:
-                qconfig.themeChangedFinished.disconnect(self._theme_connection)
-            except (TypeError, RuntimeError):
-                pass
-            delattr(self, '_theme_connection')
-        super().closeEvent(event)
+        """关闭事件"""
+        super().closeEvent(event)  # 基类处理信号断开

@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QPalette, QColor
 from qframelesswindow import FramelessDialog
+from qfluentwidgets import qconfig
 
 # 项目模块导入
 from utils.icon import get_icon_path
@@ -143,3 +144,17 @@ class BaseFramelessDialog(FramelessDialog):
 
         # 更新关闭按钮颜色
         self._update_close_button_color(text_color)
+
+    def closeEvent(self, event):
+        """关闭事件：断开主题变化信号连接
+
+        子类可以重写此方法，但应调用 super().closeEvent(event)
+        以确保信号正确断开。
+        """
+        if hasattr(self, '_theme_connection'):
+            try:
+                qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            except (TypeError, RuntimeError):
+                pass
+            delattr(self, '_theme_connection')
+        super().closeEvent(event)
