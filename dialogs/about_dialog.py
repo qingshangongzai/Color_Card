@@ -268,6 +268,11 @@ class AboutDialog(QDialog):
     项目地址：https://github.com/numpy/numpy
     官网：https://numpy.org/
 
+  • 本程序使用 PySideSix-Frameless-Window 实现对话框无边框窗口
+    版权所有：zhiyiYo
+    许可证：GPLv3
+    项目地址：https://github.com/zhiyiYo/PyQt-Frameless-Window
+
 【开源配色方案使用说明】
   • Open Color 配色方案
     版权所有：heeyeun (Yeun)

@@ -306,7 +306,7 @@ class ColorDotBar(QWidget):
             }
 
             # 打开编辑对话框（预览配色场景不显示名称输入）
-            dialog = EditPaletteDialog(palette_data=palette_data, parent=self, show_name_input=False)
+            dialog = EditPaletteDialog(palette_data=palette_data, parent=self.window(), show_name_input=False)
             if dialog.exec() == EditPaletteDialog.DialogCode.Accepted:
                 new_palette_data = dialog.get_palette_data()
                 if new_palette_data and 'colors' in new_palette_data:
