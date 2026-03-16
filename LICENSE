@@ -1032,12 +1032,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 版权所有：zhiyiYo
 项目地址：https://github.com/zhiyiYo/PyQt-Frameless-Window
-许可证：GNU General Public License v3.0
+许可证：GNU Lesser General Public License v3.0
 
 说明：
-PySideSix-Frameless-Window 使用 GPLv3 许可证。由于本项目主许可证也为 GPLv3，
-完整的 GPLv3 许可证文本请参考本文档前面的 "GNU GENERAL PUBLIC LICENSE
-Version 3" 章节。
+PySideSix-Frameless-Window 使用 LGPLv3 许可证。由于本项目主许可证为 GPLv3，
+而 LGPLv3 是 GPLv3 的补充版本，完整的 LGPLv3 许可证文本请参考本文档
+"PySide6" 章节中的 "GNU LESSER GENERAL PUBLIC LICENSE Version 3" 部分。
 
 
 ================================================================================
