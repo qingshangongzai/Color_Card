@@ -145,7 +145,8 @@ def fix_windows_taskbar_icon_for_window(window) -> bool:
 
     try:
         # 确保窗口已经显示
-        if not window.isVisible():
+        # 注意：全屏窗口的 isVisible 可能返回 False，需要特殊处理
+        if not window.isVisible() and not window.isFullScreen():
             window.show()
         window.raise_()
         window.activateWindow()
