@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import (
     CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
-    InfoBar, InfoBarPosition, isDarkTheme, qconfig,
+    InfoBar, InfoBarPosition, qconfig,
     PushButton, SubtitleLabel, MessageBox
 )
 
@@ -22,7 +22,7 @@ from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color
+from utils.theme_colors import get_title_color
 from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
 
 logger = get_logger("palette_management")

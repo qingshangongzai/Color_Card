@@ -1074,7 +1074,7 @@ class SVGColorMapper:
 
                 if modified_css != css_text:
                     style_elem.text = modified_css
-                    print(f"已更新 CSS 样式中的颜色映射")
+                    print("已更新 CSS 样式中的颜色映射")
 
     def set_element_color(self, element_id: str, color: str, color_type: str = 'fill') -> bool:
         """设置单个元素的颜色

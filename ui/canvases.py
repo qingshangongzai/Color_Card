@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ServiceFactory, ZONE_WIDTH, log_user_action
+from core import get_luminance, get_zone, ServiceFactory, log_user_action
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer

@@ -5,7 +5,7 @@ import sys
 from typing import Dict, Optional
 
 # 第三方库导入
-from PySide6.QtCore import QObject, Qt, QTimer, Signal
+from PySide6.QtCore import QObject, QTimer, Signal
 
 # 项目模块导入
 from .icon import get_icon_path

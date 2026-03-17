@@ -12,7 +12,6 @@ from typing import Optional
 
 # 第三方库导入
 from PIL import Image
-from PIL.ExifTags import TAGS
 from PySide6.QtCore import QObject, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap
 

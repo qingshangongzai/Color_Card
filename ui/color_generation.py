@@ -15,16 +15,14 @@ from PySide6.QtWidgets import (
     QSplitter
 )
 from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    CardWidget, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition,
+    PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition,
     qconfig, isDarkTheme, ComboBox, PrimaryPushButton, Slider
 )
 
 # 项目模块导入
 from core import (
-    get_color_info, get_config_manager, hsb_to_rgb, rgb_to_hsb, adjust_brightness,
-    rgb_hue_to_ryb_hue, ryb_hue_to_rgb_hue
+    get_color_info, get_config_manager, hsb_to_rgb, rgb_to_hsb, rgb_hue_to_ryb_hue, ryb_hue_to_rgb_hue
 )
 from utils import tr, get_locale_manager
 from dialogs import EditPaletteDialog

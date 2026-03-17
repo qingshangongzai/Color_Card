@@ -180,7 +180,7 @@ def main():
         from core import get_config_manager
         logger.info("core 模块导入完成")
 
-        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, tr, get_locale_manager
+        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager
         logger.info("utils 模块导入完成")
 
         from ui import MainWindow

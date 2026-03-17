@@ -7,20 +7,19 @@ from typing import List, Tuple
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton,
-    QSizePolicy, QSplitter, QVBoxLayout, QWidget
+    QDialog, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, ToolButton, qconfig, isDarkTheme, ScrollArea
+    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, qconfig, ScrollArea
 )
 
 # 项目模块导入
-from core import generate_gradient, generate_random_gradient, get_color_info, rgb_to_hex
+from core import generate_gradient, generate_random_gradient, get_color_info
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from ui.cards import ColorCard
 from utils import tr, get_locale_manager, calculate_grid_columns
-from utils.theme_colors import get_border_color, get_card_background_color, get_text_color
+from utils.theme_colors import get_border_color, get_text_color
 
 logger = get_logger("gradient_extract")
 
