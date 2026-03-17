@@ -68,6 +68,7 @@ class AboutDialog(BaseFramelessDialog):
         self.text_edit.setPlainText(self._get_about_text())
         self.text_edit.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
         self.text_edit.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
 
         # 设置背景和边框透明，文字颜色根据主题变化
         text_color = "#ffffff" if isDarkTheme() else "#333333"
