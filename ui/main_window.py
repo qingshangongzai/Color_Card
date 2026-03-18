@@ -24,6 +24,20 @@ from .settings import SettingsInterface
 from .color_preview import ColorPreviewInterface
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
 
+# 工具按钮统一样式
+_TOOLBUTTON_STYLE = """
+    ToolButton {
+        background-color: transparent !important;
+        border: none !important;
+    }
+    ToolButton:hover {
+        background-color: rgba(128, 128, 128, 30) !important;
+    }
+    ToolButton:pressed {
+        background-color: rgba(128, 128, 128, 50) !important;
+    }
+"""
+
 
 class CustomTitleBar(FluentTitleBar):
     """自定义标题栏，添加深色模式切换按钮和全屏切换按钮"""
@@ -35,18 +49,7 @@ class CustomTitleBar(FluentTitleBar):
         self.themeButton = ToolButton(self)
         self.themeButton.setFixedSize(40, 32)
         self.themeButton.setToolTip(tr('title_bar.toggle_theme'))
-        self.themeButton.setStyleSheet("""
-            ToolButton {
-                background-color: transparent !important;
-                border: none !important;
-            }
-            ToolButton:hover {
-                background-color: rgba(128, 128, 128, 30) !important;
-            }
-            ToolButton:pressed {
-                background-color: rgba(128, 128, 128, 50) !important;
-            }
-        """)
+        self.themeButton.setStyleSheet(_TOOLBUTTON_STYLE)
         self._update_theme_icon()
 
         # 连接点击事件
@@ -56,18 +59,7 @@ class CustomTitleBar(FluentTitleBar):
         self.fullscreenButton = ToolButton(self)
         self.fullscreenButton.setFixedSize(40, 32)
         self.fullscreenButton.setToolTip(tr('title_bar.toggle_fullscreen'))
-        self.fullscreenButton.setStyleSheet("""
-            ToolButton {
-                background-color: transparent !important;
-                border: none !important;
-            }
-            ToolButton:hover {
-                background-color: rgba(128, 128, 128, 30) !important;
-            }
-            ToolButton:pressed {
-                background-color: rgba(128, 128, 128, 50) !important;
-            }
-        """)
+        self.fullscreenButton.setStyleSheet(_TOOLBUTTON_STYLE)
         self._update_fullscreen_icon()
 
         # 连接点击事件
