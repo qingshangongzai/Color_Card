@@ -127,9 +127,10 @@ class HSBColorWheel(QWidget):
         """
         import math
 
-        # 色相转换为角度（0°在上方12点钟方向，逆时针增加）
+        # 色相转换为角度（0°在上方12点钟方向，顺时针增加）
         # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
-        angle_rad = ((h + 90) * math.pi / 180.0)
+        # 360-h实现水平翻转，使色相顺时针排列
+        angle_rad = ((360 - h + 90) * math.pi / 180.0)
 
         # 饱和度转换为半径（0%在中心，100%在边缘）
         # 使用完整的色轮半径，让采样点可以到达圆周
@@ -175,6 +176,7 @@ class HSBColorWheel(QWidget):
                     # 减90度偏移，使0°色相（红色）位于12点钟方向
                     angle = math.atan2(-dy, dx) - math.pi / 2
                     hue = (angle / (2 * math.pi)) % 1.0
+                    hue = (1.0 - hue) % 1.0  # 水平翻转：色相取反，实现顺时针排列
 
                     # 计算饱和度（距离中心的远近）
                     saturation = min(distance / self._wheel_radius, 1.0)
@@ -306,7 +308,8 @@ class HSBColorWheel(QWidget):
         for angle, label in hue_labels:
             # 计算标签位置（注意Y轴翻转）
             # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
-            adjusted_angle = angle + 90
+            # 360-angle实现水平翻转，使标签顺时针排列
+            adjusted_angle = (360 - angle) + 90
             rad = math.radians(adjusted_angle)
             x = self._center_x + label_radius * math.cos(rad)
             y = self._center_y - label_radius * math.sin(rad)
@@ -457,7 +460,8 @@ class InteractiveColorWheel(QWidget):
             (x, y) 坐标
         """
         # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
-        angle_rad = ((h + 90) * math.pi / 180.0)
+        # 360-h实现水平翻转，使色相顺时针排列
+        angle_rad = ((360 - h + 90) * math.pi / 180.0)
         # 使用完整的色轮半径，让采样点可以到达圆周
         max_radius = self._wheel_radius
 
@@ -491,6 +495,7 @@ class InteractiveColorWheel(QWidget):
         angle = math.atan2(-dy, dx)
         # 减90度偏移，使0°色相（红色）位于12点钟方向
         hue = ((angle - math.pi / 2) / (2 * math.pi)) % 1.0 * 360
+        hue = (360 - hue) % 360  # 水平翻转：色相取反，实现顺时针排列
 
         return hue, saturation
 
@@ -596,6 +601,7 @@ class InteractiveColorWheel(QWidget):
                     angle = math.atan2(-dy, dx)
                     # 减90度偏移，使0°色相（红色）位于12点钟方向
                     hue = ((angle - math.pi / 2) / (2 * math.pi)) % 1.0
+                    hue = (1.0 - hue) % 1.0  # 水平翻转：色相取反，实现顺时针排列
                     saturation = min(distance / self._wheel_radius, 1.0)
                     # 使用全局明度值
                     value = brightness_value
@@ -675,7 +681,8 @@ class InteractiveColorWheel(QWidget):
         for angle, label in hue_labels:
             # 计算标签位置（注意Y轴翻转）
             # 加上90度将0°从右侧(3点钟)旋转到上方(12点钟)
-            adjusted_angle = angle + 90
+            # 360-angle实现水平翻转，使标签顺时针排列
+            adjusted_angle = (360 - angle) + 90
             rad = math.radians(adjusted_angle)
             x = self._center_x + label_radius * math.cos(rad)
             y = self._center_y - label_radius * math.sin(rad)
