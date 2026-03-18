@@ -9,7 +9,26 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QLocale, QObject, Signal
+
+
+SYSTEM_LANGUAGE_MAPPING: Dict[str, str] = {
+    'zh_CN': 'ZW_JT',
+    'zh_Hans': 'ZW_JT',
+    'zh': 'ZW_JT',
+    'zh_TW': 'ZW_FT',
+    'zh_HK': 'ZW_FT',
+    'zh_Hant': 'ZW_FT',
+    'en': 'EN_US',
+    'en_US': 'EN_US',
+    'en_GB': 'EN_US',
+    'ja': 'JA_JP',
+    'ja_JP': 'JA_JP',
+    'fr': 'FR_FR',
+    'fr_FR': 'FR_FR',
+    'ru': 'RU_RU',
+    'ru_RU': 'RU_RU',
+}
 
 
 def _get_base_path() -> str:
@@ -38,6 +57,7 @@ class LocaleManager(QObject):
     language_changed = Signal(str)
     
     SUPPORTED_LANGUAGES = {
+        'auto': '跟随系统',
         'ZW_JT': '简体中文',
         'ZW_FT': '繁體中文',
         'EN_US': 'English',
@@ -46,7 +66,8 @@ class LocaleManager(QObject):
         'RU_RU': 'Русский'
     }
     
-    DEFAULT_LANGUAGE = 'ZW_JT'
+    DEFAULT_LANGUAGE = 'auto'
+    FALLBACK_LANGUAGE = 'ZW_JT'
     
     def __init__(self):
         """初始化多语言管理器"""
@@ -68,19 +89,21 @@ class LocaleManager(QObject):
         """加载指定语言的翻译数据
         
         Args:
-            language_code: 语言代码（如 'ZW_JT', 'EN_US'）
+            language_code: 语言代码（如 'ZW_JT', 'EN_US', 'auto'）
             
         Returns:
             bool: 是否加载成功
         """
-        if language_code not in self.SUPPORTED_LANGUAGES:
-            language_code = self.DEFAULT_LANGUAGE
+        resolved_code = self.resolve_language(language_code)
+        
+        if resolved_code not in self.SUPPORTED_LANGUAGES:
+            resolved_code = self.FALLBACK_LANGUAGE
             
-        locale_file = self._locales_dir / f'{language_code}.json'
+        locale_file = self._locales_dir / f'{resolved_code}.json'
         
         if not locale_file.exists():
-            if language_code != self.DEFAULT_LANGUAGE:
-                return self.load_language(self.DEFAULT_LANGUAGE)
+            if resolved_code != self.FALLBACK_LANGUAGE:
+                return self.load_language(self.FALLBACK_LANGUAGE)
             return False
             
         try:
@@ -90,6 +113,36 @@ class LocaleManager(QObject):
             return True
         except (json.JSONDecodeError, IOError, OSError):
             return False
+    
+    def resolve_language(self, language_code: str) -> str:
+        """解析语言代码，如果是 'auto' 则返回系统语言
+        
+        Args:
+            language_code: 语言代码（如 'auto', 'ZW_JT', 'EN_US'）
+            
+        Returns:
+            str: 实际的语言代码
+        """
+        if language_code == 'auto':
+            return self.get_system_language()
+        return language_code
+    
+    def get_system_language(self) -> str:
+        """获取系统语言并映射到项目支持的语言代码
+        
+        Returns:
+            str: 映射后的语言代码，未匹配则返回默认语言
+        """
+        try:
+            system_locale = QLocale.system().name()
+            if system_locale in SYSTEM_LANGUAGE_MAPPING:
+                return SYSTEM_LANGUAGE_MAPPING[system_locale]
+            base_locale = system_locale.split('_')[0]
+            if base_locale in SYSTEM_LANGUAGE_MAPPING:
+                return SYSTEM_LANGUAGE_MAPPING[base_locale]
+        except (AttributeError, ValueError):
+            pass
+        return self.FALLBACK_LANGUAGE
     
     def set_language(self, language_code: str) -> bool:
         """设置当前语言

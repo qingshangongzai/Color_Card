@@ -229,6 +229,7 @@
     "language": "Paramètres de langue",
     "language_title": "Langue de l'interface",
     "language_desc": "Sélectionner la langue d'affichage de l'application",
+    "language_auto": "Suivre le système",
     "help": "Aide",
     "check_update": "Vérifier",
     "version_update": "Mise à jour",
