@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QSplitter, QStackedWidget,
     QSizePolicy, QVBoxLayout, QWidget

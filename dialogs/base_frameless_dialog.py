@@ -1,7 +1,7 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QPalette, QColor
+from PySide6.QtGui import QPixmap, QPalette
 from qframelesswindow import FramelessDialog
 from qfluentwidgets import qconfig
 

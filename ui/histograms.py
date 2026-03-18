@@ -1,6 +1,6 @@
 # 第三方库导入
 import math
-from typing import List, Optional
+from typing import List
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen, QMouseEvent
 from PySide6.QtWidgets import QWidget

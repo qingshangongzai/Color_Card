@@ -3,15 +3,14 @@ import sys
 from typing import List, Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon, QKeySequence, QScreen, QShortcut
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QApplication, QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
+    QApplication, QLabel
 )
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
 # 项目模块导入
-from core import get_color_info
 from core import get_config_manager, ImageMediator
 from utils import tr, get_locale_manager
 from version import version_manager
@@ -23,10 +22,7 @@ from .palette_management import PaletteManagementInterface
 from .preset_color import PresetColorInterface
 from .settings import SettingsInterface
 from .color_preview import ColorPreviewInterface
-from .cards import ColorCardPanel
-from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
-from .canvases import ImageCanvas, LuminanceCanvas
 
 
 class CustomTitleBar(FluentTitleBar):

@@ -2,10 +2,10 @@
 from typing import List, Optional
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget,
-    QFileDialog, QMessageBox
+    QMessageBox
 )
 from qfluentwidgets import (
     PushButton, LineEdit, RadioButton, qconfig,

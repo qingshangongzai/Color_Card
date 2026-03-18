@@ -1,11 +1,10 @@
 # 标准库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    ComboBox, FluentIcon, InfoBar, InfoBarPosition,
-    PushButton, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig, isDarkTheme
+    ComboBox, FluentIcon, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
 )
 
 # 项目模块导入
@@ -17,7 +16,7 @@ from dialogs import AboutDialog, UpdateAvailableDialog
 
 logger = get_logger("settings")
 from version import version_manager
-from utils.theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
+from utils.theme_colors import get_title_color
 
 
 AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']

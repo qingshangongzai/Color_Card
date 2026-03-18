@@ -679,6 +679,204 @@ def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> Tuple[int, int, int]:
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
+# ========== 配色方案内部实现（私有函数）==========
+
+def _build_monochromatic_colors(rgb_hue: float, count: int, base_saturation: float) -> List[Tuple[float, float, float]]:
+    """构建同色系颜色（与色彩空间无关的内部实现）
+
+    Args:
+        rgb_hue: RGB色相值 (0-360)
+        count: 生成颜色数量
+        base_saturation: 基准饱和度 (0-100)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    saturations = _generate_saturation_steps(base_saturation, count)
+    brightnesses = _generate_brightness_steps(count)
+
+    for i in range(count):
+        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
+        b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
+        colors.append((rgb_hue % 360, s, b))
+
+    return colors
+
+
+def _calculate_analogous_hues(base_hue: float, angle: float, count: int) -> List[float]:
+    """计算邻近色的色相值列表
+
+    Args:
+        base_hue: 基准色相
+        angle: 邻近角度范围
+        count: 颜色数量
+
+    Returns:
+        list: 色相值列表
+    """
+    if count == 4:
+        return [
+            (base_hue - angle) % 360,
+            (base_hue - angle / 2) % 360,
+            base_hue % 360,
+            (base_hue + angle / 2) % 360
+        ]
+    else:
+        step = (2 * angle) / max(count - 1, 1)
+        return [(base_hue - angle + i * step) % 360 for i in range(count)]
+
+
+def _build_analogous_colors(
+    rgb_hues: List[float],
+    base_saturation: float
+) -> List[Tuple[float, float, float]]:
+    """构建邻近色颜色（与色彩空间无关的内部实现）
+
+    Args:
+        rgb_hues: RGB色相值列表 (已计算好的邻近色相)
+        base_saturation: 基准饱和度 (0-100)
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+    for i, h in enumerate(rgb_hues):
+        distance_from_center = abs(i - len(rgb_hues) / 2) / (len(rgb_hues) / 2)
+        saturation_variation = 1 - distance_from_center * 0.3
+        s = max(60, min(100, base_saturation * saturation_variation))
+        colors.append((h % 360, s, 90))
+    return colors
+
+
+def _build_complementary_colors(
+    base_hue: float,
+    comp_hue: float,
+    count: int,
+    base_saturation: float
+) -> List[Tuple[float, float, float]]:
+    """构建互补色颜色（与色彩空间无关的内部实现）
+
+    Args:
+        base_hue: 基准RGB色相
+        comp_hue: 互补RGB色相
+        count: 生成颜色数量
+        base_saturation: 基准饱和度
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+
+    if count == 5:
+        base_saturations = _generate_saturation_steps(base_saturation, 3)
+        comp_saturations = _generate_saturation_steps(base_saturation, 2)
+        colors = [
+            (base_hue, base_saturations[0], 100),
+            (base_hue, max(30, base_saturations[1]), 90),
+            (base_hue, max(30, base_saturations[2]), 80),
+            (comp_hue, comp_saturations[0], 100),
+            (comp_hue, max(30, comp_saturations[1]), 90),
+        ]
+    else:
+        base_count = (count + 1) // 2
+        comp_count = count - base_count
+
+        base_saturations = _generate_saturation_steps(base_saturation, base_count)
+        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
+
+        for i in range(base_count):
+            s = max(30, base_saturations[i])
+            b = 100 - i * (20 / max(base_count, 1))
+            colors.append((base_hue, s, max(80, b)))
+
+        for i in range(comp_count):
+            s = max(30, comp_saturations[i])
+            b = 100 - i * (20 / max(comp_count, 1))
+            colors.append((comp_hue, s, max(80, b)))
+
+    return colors
+
+
+def _build_split_complementary_colors(
+    base_hue: float,
+    left_hue: float,
+    right_hue: float,
+    count: int,
+    base_saturation: float
+) -> List[Tuple[float, float, float]]:
+    """构建分离补色颜色（与色彩空间无关的内部实现）
+
+    Args:
+        base_hue: 基准RGB色相
+        left_hue: 左侧分离补色RGB色相
+        right_hue: 右侧分离补色RGB色相
+        count: 生成颜色数量
+        base_saturation: 基准饱和度
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+
+    if count == 3:
+        colors = [
+            (base_hue, base_saturation, 100),
+            (left_hue, max(50, base_saturation * 0.9), 100),
+            (right_hue, max(50, base_saturation * 0.9), 100)
+        ]
+    else:
+        colors.extend([
+            (base_hue, base_saturation, 100),
+            (left_hue, max(50, base_saturation * 0.9), 100),
+            (right_hue, max(50, base_saturation * 0.9), 100)
+        ])
+        remaining = count - 3
+        for i in range(remaining):
+            blend_hue = (base_hue + (i + 1) * 60) % 360
+            s = max(50, base_saturation * (0.7 - i * 0.1))
+            colors.append((blend_hue, s, 85))
+
+    return colors
+
+
+def _build_double_complementary_colors(
+    hues: List[float],
+    saturations: List[float],
+    count: int
+) -> List[Tuple[float, float, float]]:
+    """构建双补色颜色（与色彩空间无关的内部实现）
+
+    Args:
+        hues: RGB色相值列表 [基准色, 互补色, 第二色, 第二互补色]
+        saturations: 饱和度列表
+        count: 生成颜色数量
+
+    Returns:
+        list: HSB颜色列表 [(h, s, b), ...]
+    """
+    colors = []
+
+    if count == 4:
+        colors = [
+            (hues[0], saturations[0], 100),
+            (hues[1], max(50, saturations[1] * 0.9), 100),
+            (hues[2], max(50, saturations[2] * 0.9), 100),
+            (hues[3], max(50, saturations[3] * 0.8), 100)
+        ]
+    else:
+        for i in range(min(count, 4)):
+            colors.append((hues[i], saturations[i], 95))
+        for i in range(4, count):
+            blend_hue = (hues[0] + i * 45) % 360
+            s = max(50, saturations[0] * (0.7 - (i - 4) * 0.1))
+            colors.append((blend_hue, s, 85))
+
+    return colors
+
+
+# ========== RGB配色方案公共API ==========
+
 def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
     """生成同色系配色方案
 
@@ -692,16 +890,7 @@ def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 
     Returns:
         list: HSB颜色列表 [(h, s, b), ...]
     """
-    colors = []
-    saturations = _generate_saturation_steps(base_saturation, count)
-    brightnesses = _generate_brightness_steps(count)
-
-    for i in range(count):
-        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
-        b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
-        colors.append((hue % 360, s, b))
-
-    return colors
+    return _build_monochromatic_colors(hue, count, base_saturation)
 
 
 def generate_analogous(hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -718,28 +907,8 @@ def generate_analogous(hue: float, angle: float = 30, count: int = 4, base_satur
     Returns:
         list: HSB颜色列表 [(h, s, b), ...]
     """
-    colors = []
-    if count == 4:
-        # 4个颜色：基准色两侧各1个，加上基准色和另一个过渡色
-        hues = [
-            (hue - angle) % 360,
-            (hue - angle / 2) % 360,
-            hue % 360,
-            (hue + angle / 2) % 360
-        ]
-    else:
-        step = (2 * angle) / max(count - 1, 1)
-        hues = [(hue - angle + i * step) % 360 for i in range(count)]
-
-    # 基于基准饱和度生成变化的饱和度
-    for i, h in enumerate(hues):
-        # 距离基准色越远，饱和度略有变化
-        distance_from_center = abs(i - len(hues) / 2) / (len(hues) / 2)
-        saturation_variation = 1 - distance_from_center * 0.3  # 变化范围30%
-        s = max(60, min(100, base_saturation * saturation_variation))
-        colors.append((h, s, 90))
-
-    return colors
+    hues = _calculate_analogous_hues(hue, angle, count)
+    return _build_analogous_colors(hues, base_saturation)
 
 
 def generate_complementary(hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -756,37 +925,8 @@ def generate_complementary(hue: float, count: int = 5, base_saturation: float = 
     Returns:
         list: HSB颜色列表 [(h, s, b), ...]
     """
-    colors = []
     comp_hue = (hue + 180) % 360
-
-    if count == 5:
-        base_saturations = _generate_saturation_steps(base_saturation, 3)
-        comp_saturations = _generate_saturation_steps(base_saturation, 2)
-        colors = [
-            (hue, base_saturations[0], 100),
-            (hue, max(30, base_saturations[1]), 90),
-            (hue, max(30, base_saturations[2]), 80),
-            (comp_hue, comp_saturations[0], 100),
-            (comp_hue, max(30, comp_saturations[1]), 90),
-        ]
-    else:
-        base_count = (count + 1) // 2
-        comp_count = count - base_count
-
-        base_saturations = _generate_saturation_steps(base_saturation, base_count)
-        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
-
-        for i in range(base_count):
-            s = max(30, base_saturations[i])
-            b = 100 - i * (20 / max(base_count, 1))
-            colors.append((hue, s, max(80, b)))
-
-        for i in range(comp_count):
-            s = max(30, comp_saturations[i])
-            b = 100 - i * (20 / max(comp_count, 1))
-            colors.append((comp_hue, s, max(80, b)))
-
-    return colors
+    return _build_complementary_colors(hue, comp_hue, count, base_saturation)
 
 
 def generate_split_complementary(hue: float, angle: float = 30, count: int = 3, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -803,29 +943,10 @@ def generate_split_complementary(hue: float, angle: float = 30, count: int = 3, 
     Returns:
         list: HSB颜色列表 [(h, s, b), ...]
     """
-    colors = []
     comp_hue = (hue + 180) % 360
     left_comp = (comp_hue - angle) % 360
     right_comp = (comp_hue + angle) % 360
-
-    if count == 3:
-        # 3个颜色：基准色 + 两个分离补色
-        colors = [
-            (hue, base_saturation, 100),
-            (left_comp, max(50, base_saturation * 0.9), 100),
-            (right_comp, max(50, base_saturation * 0.9), 100)
-        ]
-    else:
-        colors.append((hue, base_saturation, 100))
-        colors.append((left_comp, max(50, base_saturation * 0.9), 100))
-        colors.append((right_comp, max(50, base_saturation * 0.9), 100))
-        remaining = count - 3
-        for i in range(remaining):
-            blend_hue = (hue + (i + 1) * 60) % 360
-            s = max(50, base_saturation * (0.7 - i * 0.1))
-            colors.append((blend_hue, s, 85))
-
-    return colors
+    return _build_split_complementary_colors(hue, left_comp, right_comp, count, base_saturation)
 
 
 def generate_double_complementary(hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -842,35 +963,18 @@ def generate_double_complementary(hue: float, angle: float = 30, count: int = 4,
     Returns:
         list: HSB颜色列表 [(h, s, b), ...]
     """
-    colors = []
     comp_hue = (hue + 180) % 360
     second_hue = (hue + angle) % 360
     second_comp = (second_hue + 180) % 360
 
-    if count == 4:
-        # 4个颜色：两组互补色，使用基准饱和度
-        colors = [
-            (hue, base_saturation, 100),
-            (comp_hue, max(50, base_saturation * 0.9), 100),
-            (second_hue, max(50, base_saturation * 0.9), 100),
-            (second_comp, max(50, base_saturation * 0.8), 100)
-        ]
-    else:
-        hues = [hue, comp_hue, second_hue, second_comp]
-        saturations = [
-            base_saturation,
-            max(50, base_saturation * 0.9),
-            max(50, base_saturation * 0.9),
-            max(50, base_saturation * 0.8)
-        ]
-        for i in range(min(count, 4)):
-            colors.append((hues[i], saturations[i], 95))
-        for i in range(4, count):
-            blend_hue = (hue + i * 45) % 360
-            s = max(50, base_saturation * (0.7 - (i - 4) * 0.1))
-            colors.append((blend_hue, s, 85))
-
-    return colors
+    hues = [hue, comp_hue, second_hue, second_comp]
+    saturations = [
+        base_saturation,
+        max(50, base_saturation * 0.9),
+        max(50, base_saturation * 0.9),
+        max(50, base_saturation * 0.8)
+    ]
+    return _build_double_complementary_colors(hues, saturations, count)
 
 
 def adjust_brightness(hsb_colors: List[Tuple[float, float, float]], brightness_delta: float) -> List[Tuple[float, float, float]]:
@@ -1540,6 +1644,8 @@ def ryb_hue_to_rgb_hue(ryb_hue: float) -> float:
         return hue
 
 
+# ========== RYB配色方案公共API ==========
+
 def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
     """生成 RYB 同色系配色方案
 
@@ -1551,18 +1657,8 @@ def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: 
     Returns:
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
-    colors = []
-    saturations = _generate_saturation_steps(base_saturation, count)
-    brightnesses = _generate_brightness_steps(count)
-
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
-
-    for i in range(count):
-        s = max(MIN_SATURATION, min(100, saturations[i] if i < len(saturations) else 50))
-        b = max(40, min(100, brightnesses[i] if i < len(brightnesses) else 70))
-        colors.append((rgb_hue % 360, s, b))
-
-    return colors
+    return _build_monochromatic_colors(rgb_hue, count, base_saturation)
 
 
 def generate_ryb_analogous(ryb_hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -1577,30 +1673,11 @@ def generate_ryb_analogous(ryb_hue: float, angle: float = 30, count: int = 4, ba
     Returns:
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
-    colors = []
-    if count == 4:
-        # 4个颜色：基准色两侧各1个，加上基准色和另一个过渡色
-        ryb_hues = [
-            (ryb_hue - angle) % 360,
-            (ryb_hue - angle / 2) % 360,
-            ryb_hue % 360,
-            (ryb_hue + angle / 2) % 360
-        ]
-    else:
-        step = (2 * angle) / max(count - 1, 1)
-        ryb_hues = [(ryb_hue - angle + i * step) % 360 for i in range(count)]
-
-    # 基于基准饱和度生成变化的饱和度
-    for i, h in enumerate(ryb_hues):
-        # 距离基准色越远，饱和度略有变化
-        distance_from_center = abs(i - len(ryb_hues) / 2) / (len(ryb_hues) / 2)
-        saturation_variation = 1 - distance_from_center * 0.3  # 变化范围30%
-        s = max(60, min(100, base_saturation * saturation_variation))
-        # 转换 RYB 色相到 RGB 色相
-        rgb_hue = ryb_hue_to_rgb_hue(h)
-        colors.append((rgb_hue, s, 90))
-
-    return colors
+    # 在RYB空间计算邻近色相
+    ryb_hues = _calculate_analogous_hues(ryb_hue, angle, count)
+    # 转换为RGB色相
+    rgb_hues = [ryb_hue_to_rgb_hue(h) for h in ryb_hues]
+    return _build_analogous_colors(rgb_hues, base_saturation)
 
 
 def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -1616,40 +1693,12 @@ def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: 
     Returns:
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
-    colors = []
+    # 在RYB空间计算互补色
     ryb_comp_hue = (ryb_hue + 180) % 360
-
+    # 转换为RGB色相
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
     rgb_comp_hue = ryb_hue_to_rgb_hue(ryb_comp_hue)
-
-    if count == 5:
-        base_saturations = _generate_saturation_steps(base_saturation, 3)
-        comp_saturations = _generate_saturation_steps(base_saturation, 2)
-        colors = [
-            (rgb_hue, base_saturations[0], 100),
-            (rgb_hue, max(30, base_saturations[1]), 90),
-            (rgb_hue, max(30, base_saturations[2]), 80),
-            (rgb_comp_hue, comp_saturations[0], 100),
-            (rgb_comp_hue, max(30, comp_saturations[1]), 90),
-        ]
-    else:
-        base_count = (count + 1) // 2
-        comp_count = count - base_count
-
-        base_saturations = _generate_saturation_steps(base_saturation, base_count)
-        comp_saturations = _generate_saturation_steps(base_saturation, comp_count)
-
-        for i in range(base_count):
-            s = max(30, base_saturations[i])
-            b = 100 - i * (20 / max(base_count, 1))
-            colors.append((rgb_hue, s, max(80, b)))
-
-        for i in range(comp_count):
-            s = max(30, comp_saturations[i])
-            b = 100 - i * (20 / max(comp_count, 1))
-            colors.append((rgb_comp_hue, s, max(80, b)))
-
-    return colors
+    return _build_complementary_colors(rgb_hue, rgb_comp_hue, count, base_saturation)
 
 
 def generate_ryb_split_complementary(ryb_hue: float, angle: float = 30, count: int = 3, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -1664,34 +1713,17 @@ def generate_ryb_split_complementary(ryb_hue: float, angle: float = 30, count: i
     Returns:
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
-    colors = []
+    # 在RYB空间计算
     ryb_comp_hue = (ryb_hue + 180) % 360
-    ryb_left_comp = (ryb_comp_hue - angle) % 360
-    ryb_right_comp = (ryb_comp_hue + angle) % 360
+    ryb_left = (ryb_comp_hue - angle) % 360
+    ryb_right = (ryb_comp_hue + angle) % 360
 
-    # 转换到 RGB 色相
+    # 转换为RGB色相
     rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
-    rgb_left = ryb_hue_to_rgb_hue(ryb_left_comp)
-    rgb_right = ryb_hue_to_rgb_hue(ryb_right_comp)
+    rgb_left = ryb_hue_to_rgb_hue(ryb_left)
+    rgb_right = ryb_hue_to_rgb_hue(ryb_right)
 
-    if count == 3:
-        colors = [
-            (rgb_hue, base_saturation, 100),
-            (rgb_left, max(50, base_saturation * 0.9), 100),
-            (rgb_right, max(50, base_saturation * 0.9), 100)
-        ]
-    else:
-        colors.append((rgb_hue, base_saturation, 100))
-        colors.append((rgb_left, max(50, base_saturation * 0.9), 100))
-        colors.append((rgb_right, max(50, base_saturation * 0.9), 100))
-        remaining = count - 3
-        for i in range(remaining):
-            blend_hue = (ryb_hue + (i + 1) * 60) % 360
-            rgb_blend = ryb_hue_to_rgb_hue(blend_hue)
-            s = max(50, base_saturation * (0.7 - i * 0.1))
-            colors.append((rgb_blend, s, 85))
-
-    return colors
+    return _build_split_complementary_colors(rgb_hue, rgb_left, rgb_right, count, base_saturation)
 
 
 def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
@@ -1706,41 +1738,26 @@ def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: 
     Returns:
         list: HSB颜色列表 [(h, s, b), ...] (RGB色相)
     """
-    colors = []
+    # 在RYB空间计算
     ryb_comp_hue = (ryb_hue + 180) % 360
     ryb_second_hue = (ryb_hue + angle) % 360
     ryb_second_comp = (ryb_second_hue + 180) % 360
 
-    # 转换到 RGB 色相
-    rgb_hue = ryb_hue_to_rgb_hue(ryb_hue)
-    rgb_comp = ryb_hue_to_rgb_hue(ryb_comp_hue)
-    rgb_second = ryb_hue_to_rgb_hue(ryb_second_hue)
-    rgb_second_comp = ryb_hue_to_rgb_hue(ryb_second_comp)
+    # 转换为RGB色相
+    rgb_hues = [
+        ryb_hue_to_rgb_hue(ryb_hue),
+        ryb_hue_to_rgb_hue(ryb_comp_hue),
+        ryb_hue_to_rgb_hue(ryb_second_hue),
+        ryb_hue_to_rgb_hue(ryb_second_comp)
+    ]
+    saturations = [
+        base_saturation,
+        max(50, base_saturation * 0.9),
+        max(50, base_saturation * 0.9),
+        max(50, base_saturation * 0.8)
+    ]
 
-    if count == 4:
-        colors = [
-            (rgb_hue, base_saturation, 100),
-            (rgb_comp, max(50, base_saturation * 0.9), 100),
-            (rgb_second, max(50, base_saturation * 0.9), 100),
-            (rgb_second_comp, max(50, base_saturation * 0.8), 100)
-        ]
-    else:
-        hues = [rgb_hue, rgb_comp, rgb_second, rgb_second_comp]
-        saturations = [
-            base_saturation,
-            max(50, base_saturation * 0.9),
-            max(50, base_saturation * 0.9),
-            max(50, base_saturation * 0.8)
-        ]
-        for i in range(min(count, 4)):
-            colors.append((hues[i], saturations[i], 95))
-        for i in range(4, count):
-            blend_ryb = (ryb_hue + i * 45) % 360
-            rgb_blend = ryb_hue_to_rgb_hue(blend_ryb)
-            s = max(50, base_saturation * (0.7 - (i - 4) * 0.1))
-            colors.append((rgb_blend, s, 85))
-
-    return colors
+    return _build_double_complementary_colors(rgb_hues, saturations, count)
 
 
 def get_scheme_preview_colors_ryb(

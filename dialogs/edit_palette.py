@@ -1,7 +1,7 @@
 # 标准库导入
 import re
 from datetime import datetime
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, Tuple, Optional
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect

@@ -11,9 +11,9 @@ from typing import List, Dict, Tuple
 from PySide6.QtCore import Qt, Signal, QPointF
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget,
-    QFrame, QScrollArea
+    QFrame
 )
-from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QFont, QPolygonF
+from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QPolygonF
 from qfluentwidgets import (
     ComboBox, PushButton, ToolButton, FluentIcon,
     isDarkTheme, qconfig, CardWidget
@@ -23,12 +23,12 @@ from qfluentwidgets import (
 from utils import tr, load_icon_universal
 from dialogs import BaseFramelessDialog
 from core.contrast import (
-    calculate_contrast_ratio, get_contrast_info,
+    get_contrast_info,
     rgb_to_hex, get_contrast_status_color
 )
 from utils.theme_colors import (
     get_text_color, get_border_color,
-    get_secondary_text_color, get_title_color, get_card_background_color
+    get_secondary_text_color, get_title_color
 )
 
 
@@ -476,7 +476,7 @@ class ContrastCheckDialog(BaseFramelessDialog):
         
         # 等级标签
         self.level_label = QLabel("--")
-        self.level_label.setStyleSheet(f"font-size: 16px; font-weight: bold;")
+        self.level_label.setStyleSheet("font-size: 16px; font-weight: bold;")
         result_layout.addWidget(self.level_label)
         
         result_layout.addStretch()

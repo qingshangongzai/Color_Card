@@ -2,7 +2,7 @@
 import math
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -23,7 +23,7 @@ from core.color_data import (
     get_color_source, get_all_color_sources, get_random_palettes, ColorSource
 )
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
-from utils.theme_colors import get_card_background_color, get_title_color, get_interface_background_color, get_secondary_text_color
+from utils.theme_colors import get_title_color, get_secondary_text_color
 
 
 # =============================================================================
