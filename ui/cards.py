@@ -285,8 +285,13 @@ class ColorCard(BaseCard):
         super().__init__(index, parent)
         # 监听主题变化
         self._theme_connection = qconfig.themeChangedFinished.connect(
-            self._update_color_block_style
+            self._update_styles
         )
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        self._update_hex_button_style()
+        self._update_color_block_style()
 
     def closeEvent(self, event):
         """关闭事件 - 断开信号连接"""

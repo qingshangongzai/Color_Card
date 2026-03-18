@@ -48,7 +48,12 @@ class GenerationColorInfoCard(BaseCard):
         self._hex_visible = True
         super().__init__(index, parent)
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_color_block_style)
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        self._update_hex_button_style()
+        self._update_color_block_style()
 
     def setup_ui(self):
         """设置界面"""
