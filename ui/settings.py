@@ -239,12 +239,17 @@ class SettingsInterface(QWidget):
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
+        
+        combo_box.addItem(tr('settings.language_auto'))
+        combo_box.setItemData(0, 'auto')
+        
         supported_languages = get_supported_languages()
         for code, name in supported_languages.items():
+            if code == 'auto':
+                continue
             combo_box.addItem(name)
             combo_box.setItemData(combo_box.count() - 1, code)
         
-        # 设置当前语言
         for i in range(combo_box.count()):
             if combo_box.itemData(i) == self._language:
                 combo_box.setCurrentIndex(i)
@@ -296,6 +301,8 @@ class SettingsInterface(QWidget):
         # 更新语言卡片
         self.language_card.titleLabel.setText(tr('settings.language_title'))
         self.language_card.contentLabel.setText(tr('settings.language_desc'))
+        # 更新"跟随系统"选项文本
+        self.language_card.combo_box.setItemText(0, tr('settings.language_auto'))
 
         # 更新16进制显示卡片
         self.hex_display_card.titleLabel.setText(tr('settings.hex_display'))

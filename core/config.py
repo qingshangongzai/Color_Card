@@ -79,7 +79,7 @@ class ConfigManager:
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
                 "color_wheel_labels_visible": True,
-                "language": "ZW_JT"
+                "language": "auto"
             },
             "scheme": {
                 "default_scheme": "monochromatic",

@@ -229,6 +229,7 @@
     "language": "語言設置",
     "language_title": "頁面語言",
     "language_desc": "選擇應用程序的顯示語言",
+    "language_auto": "跟隨系統",
     "help": "幫助",
     "check_update": "檢查更新",
     "version_update": "版本更新",

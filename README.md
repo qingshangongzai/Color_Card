@@ -70,7 +70,7 @@
 | **配色收藏**支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式              | !\[配色管理]\(docs/screenshots/palette-management.png null)              |
 | **内置色彩库**集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 | !\[内置色彩库]\(docs/screenshots/preset-colors.png null)                  |
 | **配色预览**支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG                  | !\[配色预览]\(docs/screenshots/color-preview\.png null)                  |
-| **多语言支持**支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言                                   | !\[多语言支持]\(docs/screenshots/locales.png null)                        |
+| **多语言支持**支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言，支持跟随系统语言自动切换                                   | !\[多语言支持]\(docs/screenshots/locales.png null)                        |
 | **现代化界面**基于 Fluent Design 设计语言，支持深色/浅色主题切换                              | !\[深色/浅色模式]\(./docs/screenshots/Dark%20mode%26light%20mode.png null) |
 
 ### 适用场景
@@ -319,7 +319,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | **Palette Collection**Save and manage color schemes, support batch import/export in JSON format, support single palette export to Adobe ASE format                        | !\[Palette Management]\(docs/screenshots/palette-management.png null)        |
 | **Built-in Color Library**13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes                             | !\[Preset Colors]\(docs/screenshots/preset-colors.png null)                  |
 | **Color Preview**8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support                           | !\[Color Preview]\(docs/screenshots/color-preview\.png null)                 |
-| **Multi-language Support**6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian                                           | !\[Multi-language]\(docs/screenshots/locales.png null)                       |
+| **Multi-language Support**6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian, with system language auto-detection                                           | !\[Multi-language]\(docs/screenshots/locales.png null)                       |
 | **Modern Interface**Based on Fluent Design, supports dark/light theme switching                                                                                           | !\[Dark/Light Mode]\(./docs/screenshots/Dark%20mode%26light%20mode.png null) |
 
 ### Use Cases
