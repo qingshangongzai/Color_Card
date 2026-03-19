@@ -6,7 +6,7 @@ from typing import Dict, Any, Tuple, Optional
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication, QDialog
 )
 from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent
 from qfluentwidgets import (

@@ -3,11 +3,7 @@ import colorsys
 from typing import Any, Dict, List, Tuple
 
 # 第三方库导入
-try:
-    import numpy as np
-    NUMPY_AVAILABLE = True
-except ImportError:
-    NUMPY_AVAILABLE = False
+import numpy as np
 
 # 项目模块导入
 from .color_scheme_cache import get_color_scheme_cache
@@ -353,7 +349,7 @@ def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List
     width = image.width()
     height = image.height()
 
-    if NUMPY_AVAILABLE and hasattr(image, 'bits'):
+    if hasattr(image, 'bits'):
         try:
             return _calculate_histogram_numpy(image, width, height, sample_step, gamma)
         except Exception:
@@ -468,8 +464,8 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
     width = image.width()
     height = image.height()
 
-    # 使用NumPy向量化计算（如果可用）
-    if NUMPY_AVAILABLE and hasattr(image, 'bits'):
+    # 使用NumPy向量化计算
+    if hasattr(image, 'bits'):
         try:
             return _calculate_rgb_histogram_numpy(image, width, height, sample_step)
         except Exception:
@@ -1054,7 +1050,7 @@ class _ColorCube:
             use_numpy: 是否使用 numpy 优化
         """
         self.pixels = pixels
-        self._use_numpy = use_numpy and NUMPY_AVAILABLE
+        self._use_numpy = use_numpy
         self._cache_volume = None
         self._cache_avg_color = None
         self._cache_ranges = None
@@ -1197,7 +1193,7 @@ def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_Colo
         return []
 
     # 判断是否使用 numpy 优化（像素数量较多时）
-    use_numpy = NUMPY_AVAILABLE and len(pixels) > 1000
+    use_numpy = len(pixels) > 1000
 
     # 初始立方体包含所有像素
     cubes = [_ColorCube(pixels, use_numpy)]
@@ -1249,7 +1245,7 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
         width = image.width()
         height = image.height()
 
-        if NUMPY_AVAILABLE and hasattr(image, 'bits'):
+        if hasattr(image, 'bits'):
             # 使用 numpy 批量读取像素（QImage 格式）
             try:
                 # 将 QImage 转换为 numpy 数组
@@ -1292,10 +1288,9 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
         width, height = image.size
 
-        if NUMPY_AVAILABLE and hasattr(image, 'convert'):
+        if hasattr(image, 'convert'):
             # 使用 numpy 批量读取像素（PIL Image 格式）
             try:
-                import numpy as np
                 arr = np.array(image.convert('RGB'))
 
                 # 采样像素
@@ -1383,7 +1378,7 @@ def _extract_pixels_with_positions_fast(
         width = image.width()
         height = image.height()
 
-        if NUMPY_AVAILABLE and hasattr(image, 'bits'):
+        if hasattr(image, 'bits'):
             # 使用 numpy 批量读取像素
             try:
                 image = image.convertToFormat(image.Format.Format_RGB888)
@@ -1416,7 +1411,7 @@ def _extract_pixels_with_positions_fast(
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
         width, height = image.size
 
-        if NUMPY_AVAILABLE and hasattr(image, 'convert'):
+        if hasattr(image, 'convert'):
             # 使用 numpy 批量读取像素
             try:
                 arr = np.array(image.convert('RGB'))
@@ -1475,7 +1470,7 @@ def find_dominant_color_positions(
         return [(0.5, 0.5)] * len(dominant_colors)
 
     # 使用 numpy 加速聚类计算
-    if NUMPY_AVAILABLE and len(pixel_data) > 100:
+    if len(pixel_data) > 100:
         try:
             # 转换为 numpy 数组
             pixel_array = np.array(pixel_data, dtype=np.float32)  # [x, y, r, g, b]

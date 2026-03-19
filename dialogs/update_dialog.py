@@ -3,7 +3,7 @@ import re
 from typing import List, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, qconfig
