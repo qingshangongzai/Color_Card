@@ -218,19 +218,7 @@ def main():
 
         logger.info("创建主窗口...")
         window = MainWindow()
-
-        # 根据保存的窗口状态决定如何显示
-        # 如果窗口已经在 __init__ 中被最大化或全屏，则不需要再调用 show()
-        if not window.isMaximized() and not window.isFullScreen():
-            window.show()
-            logger.info("主窗口以普通模式显示")
-        else:
-            logger.info(f"主窗口以 {'全屏' if window.isFullScreen() else '最大化'} 模式显示")
-
-        # 确保窗口在前台显示
-        window.raise_()
-        window.activateWindow()
-
+        window.show()
         logger.info("主窗口显示完成")
 
         # 关闭启动画面并修复任务栏图标（在窗口显示后调用）
