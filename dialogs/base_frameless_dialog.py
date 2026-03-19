@@ -120,7 +120,6 @@ class BaseFramelessDialog(FramelessDialog):
         text_color = get_text_color()
         text_color_str = text_color.name()
         bg_color = get_dialog_bg_color()
-        bg_color_str = bg_color.name()
 
         # 使用 QPalette 设置窗口背景色
         palette = self.palette()

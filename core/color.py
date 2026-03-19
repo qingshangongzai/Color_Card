@@ -130,11 +130,11 @@ def rgb_to_lab(r: int, g: int, b: int) -> Tuple[float, float, float]:
     # L = 116*f(Y) - 16 (亮度分量)
     # A = 500*(f(X) - f(Y)) (红绿对立分量)
     # B = 200*(f(Y) - f(Z)) (黄蓝对立分量)
-    l = 116 * f(y) - 16
-    a_val = 500 * (f(x) - f(y))
-    b_val = 200 * (f(y) - f(z))
+    L = 116 * f(y) - 16
+    A = 500 * (f(x) - f(y))
+    B = 200 * (f(y) - f(z))
 
-    return l, a_val, b_val
+    return L, A, B
 
 
 def rgb_to_hex(r: int, g: int, b: int) -> str:
@@ -194,8 +194,8 @@ def rgb_to_hsl(r: int, g: int, b: int) -> Tuple[float, float, float]:
         tuple: (色相 0-360, 饱和度 0-100, 亮度 0-100)
     """
     r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
-    h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
-    return h * 360, s * 100, l * 100
+    H, L, S = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+    return H * 360, S * 100, L * 100
 
 
 def rgb_to_cmyk(r: int, g: int, b: int) -> Tuple[float, float, float, float]:
@@ -233,17 +233,17 @@ def get_color_info(r: int, g: int, b: int) -> Dict[str, Any]:
     Returns:
         dict: 包含RGB、HSB、LAB、HEX、HSL、CMYK颜色信息的字典
     """
-    h, s, b_val = rgb_to_hsb(r, g, b)
-    l, a, b_lab = rgb_to_lab(r, g, b)
-    h_hsl, s_hsl, l_hsl = rgb_to_hsl(r, g, b)
-    c, m, y, k = rgb_to_cmyk(r, g, b)
+    H, S, B = rgb_to_hsb(r, g, b)
+    L, A, B_lab = rgb_to_lab(r, g, b)
+    H2, S2, L2 = rgb_to_hsl(r, g, b)
+    C, M, Y, K = rgb_to_cmyk(r, g, b)
 
     return {
         'rgb': (r, g, b),
-        'hsb': (round(h), round(s), round(b_val)),
-        'lab': (round(l), round(a), round(b_lab)),
-        'hsl': (round(h_hsl), round(s_hsl), round(l_hsl)),
-        'cmyk': (round(c), round(m), round(y), round(k)),
+        'hsb': (round(H), round(S), round(B)),
+        'lab': (round(L), round(A), round(B_lab)),
+        'hsl': (round(H2), round(S2), round(L2)),
+        'cmyk': (round(C), round(M), round(Y), round(K)),
         'rgb_display': (r, g, b),
         'hex': rgb_to_hex(r, g, b)
     }
@@ -575,7 +575,7 @@ def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
-def lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
+def lab_to_rgb(L: float, A: float, B: float) -> Tuple[int, int, int]:
     """将LAB转换为RGB
 
     转换步骤：
@@ -586,9 +586,9 @@ def lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
     5. 转换到0-255范围
 
     Args:
-        l: 亮度 (0-100)
-        a: 红绿对立通道 (-128-127)
-        b: 黄蓝对立通道 (-128-127)
+        L: 亮度 (0-100)
+        A: 红绿对立通道 (-128-127)
+        B: 黄蓝对立通道 (-128-127)
 
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
@@ -602,9 +602,9 @@ def lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
         else:
             return 3 * (delta ** 2) * (t - 4 / 29)
 
-    y = (l + 16) / 116
-    x = y + a / 500
-    z = y - b / 200
+    y = (L + 16) / 116
+    x = y + A / 500
+    z = y - B / 200
 
     # 使用D65参考白点
     x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
@@ -636,23 +636,23 @@ def lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
-def hsl_to_rgb(h: float, s: float, l: float) -> Tuple[int, int, int]:
+def hsl_to_rgb(H: float, S: float, L: float) -> Tuple[int, int, int]:
     """将HSL转换为RGB
 
     Args:
-        h: 色相 (0-360)
-        s: 饱和度 (0-100)
-        l: 亮度 (0-100)
+        H: 色相 (0-360)
+        S: 饱和度 (0-100)
+        L: 亮度 (0-100)
 
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    h_norm = h / 360.0
-    s_norm = s / 100.0
-    l_norm = l / 100.0
+    H_norm = H / 360.0
+    S_norm = S / 100.0
+    L_norm = L / 100.0
 
-    r, g, b_out = colorsys.hls_to_rgb(h_norm, l_norm, s_norm)
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    R, G, B_out = colorsys.hls_to_rgb(H_norm, L_norm, S_norm)
+    return round(R * 255), round(G * 255), round(B_out * 255)
 
 
 def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> Tuple[int, int, int]:

@@ -424,7 +424,6 @@ class GradientExtractInterface(QWidget):
     def _update_hex_input_style(self):
         """更新16进制输入框样式（与配色管理一致）"""
         primary_color = get_text_color(secondary=False)
-        secondary_color = get_text_color(secondary=True)
         border_color = get_border_color()
 
         input_style = f"""

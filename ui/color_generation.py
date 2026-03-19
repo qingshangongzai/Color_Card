@@ -488,8 +488,7 @@ class ColorGenerationInterface(QWidget):
         self.random_btn.setText(tr('color_generation.random'))
         self.favorite_button.setText(tr('color_generation.favorite'))
         self.brightness_label.setText(tr('color_generation.brightness'))
-        
-        current_index = self.scheme_combo.currentIndex()
+
         self.scheme_combo.setItemText(0, tr('color_generation.schemes.monochromatic'))
         self.scheme_combo.setItemText(1, tr('color_generation.schemes.analogous'))
         self.scheme_combo.setItemText(2, tr('color_generation.schemes.complementary'))
@@ -613,7 +612,6 @@ class ColorGenerationInterface(QWidget):
             self._scheme_colors[index] = (h, s, b)
 
             # 转换为RGB并更新色块面板
-            rgb = hsb_to_rgb(h, s, b)
             self.color_panel.set_colors([hsb_to_rgb(*c) for c in self._scheme_colors])
 
     def on_brightness_changed(self, value):

@@ -80,9 +80,7 @@ class BaseCardPanel(QWidget):
         
         old_count = self._card_count
         self._card_count = count
-        
-        layout = self.layout()
-        
+
         if count > old_count:
             self._add_cards(old_count, count)
         else:

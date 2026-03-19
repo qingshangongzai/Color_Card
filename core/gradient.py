@@ -101,36 +101,36 @@ def _interpolate_lab(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
         List[Tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
     """
     # 转换为LAB
-    l1, a1, b1 = rgb_to_lab(*start_rgb)
-    l2, a2, b2 = rgb_to_lab(*end_rgb)
+    L1, A1, B1 = rgb_to_lab(*start_rgb)
+    L2, A2, B2 = rgb_to_lab(*end_rgb)
 
     colors = [start_rgb]
     total_segments = steps + 1
 
     for i in range(1, steps + 1):
         t = i / total_segments
-        l = l1 + (l2 - l1) * t
-        a = a1 + (a2 - a1) * t
-        b = b1 + (b2 - b1) * t
+        L = L1 + (L2 - L1) * t
+        A = A1 + (A2 - A1) * t
+        B = B1 + (B2 - B1) * t
         # 转换回RGB
-        colors.append(_lab_to_rgb(l, a, b))
+        colors.append(_lab_to_rgb(L, A, B))
 
     colors.append(end_rgb)
     return colors
 
 
-def _lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
+def _lab_to_rgb(L: float, A: float, B: float) -> Tuple[int, int, int]:
     """将LAB颜色空间转换为RGB
 
     这是rgb_to_lab的逆运算
 
     Args:
-        l: 亮度分量 (0-100)
-        a: 红绿对立分量 (-128-127)
-        b: 黄蓝对立分量 (-128-127)
+        L: 亮度分量 (0-100)
+        A: 红绿对立分量 (-128-127)
+        B: 黄蓝对立分量 (-128-127)
 
     Returns:
-        Tuple[int, int, int]: RGB颜色值 (r, g, b)，每个值范围0-255
+        Tuple[int, int, int]: RGB颜色值 (R, G, B)，每个值范围0-255
     """
     # 步骤1: 从LAB转换到XYZ
     def f_inv(t: float) -> float:
@@ -144,9 +144,9 @@ def _lab_to_rgb(l: float, a: float, b: float) -> Tuple[int, int, int]:
     x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
 
     # 计算f(Y), f(X), f(Z)
-    fy = (l + 16) / 116
-    fx = fy + a / 500
-    fz = fy - b / 200
+    fy = (L + 16) / 116
+    fx = fy + A / 500
+    fz = fy - B / 200
 
     # 计算XYZ
     x = x_ref * f_inv(fx)
