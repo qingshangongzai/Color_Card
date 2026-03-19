@@ -162,10 +162,18 @@ class BaseCanvas(QWidget):
         self.update()
 
     def resizeEvent(self, event) -> None:
-        """窗口大小改变时更新加载状态组件位置"""
+        """窗口大小改变时处理相关逻辑"""
         super().resizeEvent(event)
+
+        # 更新加载状态组件位置
         if self._is_loading:
             self._loading_widget.setGeometry(self.rect())
+
+        # 重新调整图片
+        if self._image and not self._image.isNull():
+            self.update_picker_positions()
+            self.extract_all()
+            self.update()
 
     def set_image(self, image_path: str) -> None:
         """异步加载并显示图片（使用ImageService分阶段加载，非阻塞）
@@ -637,15 +645,6 @@ class BaseCanvas(QWidget):
             if self._original_pixmap is None or self._original_pixmap.isNull():
                 self.open_image_requested.emit()
             event.accept()
-
-    def resizeEvent(self, event) -> None:
-        """窗口大小改变时重新调整图片"""
-        super().resizeEvent(event)
-        if self._image and not self._image.isNull():
-            # 窗口大小改变时，更新取色点位置并重新提取数据
-            self.update_picker_positions()
-            self.extract_all()
-            self.update()
 
     def contextMenuEvent(self, event) -> None:
         """右键菜单事件"""
