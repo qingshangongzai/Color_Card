@@ -96,7 +96,8 @@ def _create_splash_screen():
         splash.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
             Qt.WindowType.WindowStaysOnTopHint |
-            Qt.WindowType.SplashScreen
+            Qt.WindowType.SplashScreen |
+            Qt.WindowType.WindowDoesNotAcceptFocus
         )
 
         # 居中显示
@@ -226,6 +227,9 @@ def main():
             if splash:
                 splash.finish(window)
             fix_windows_taskbar_icon_for_window(window)
+            # 强制激活主窗口，确保在其他窗口操作后仍能弹出
+            window.activateWindow()
+            window.raise_()
 
         QTimer.singleShot(100, _on_window_shown)
 
