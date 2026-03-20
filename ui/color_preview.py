@@ -12,6 +12,7 @@
 - 配色预览界面
 """
 # 标准库导入
+from pathlib import Path
 from typing import List, Optional, Dict, Any, Type
 
 # 第三方库导入
@@ -35,7 +36,7 @@ from core.color import get_color_info
 from core.logger import get_logger, log_user_action
 from dialogs.edit_palette import EditPaletteDialog
 from dialogs.export_settings_dialog import ExportSettingsDialog
-from utils import tr, get_locale_manager, get_default_image_directory
+from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from utils.theme_colors import get_border_color, get_text_color
 
 logger = get_logger("color_preview")
@@ -1882,12 +1883,14 @@ class ColorPreviewInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('color_preview.import_svg'),
-            get_default_image_directory(),
+            get_last_directory("svg_import", get_default_image_directory()),
             tr('color_preview.svg_filter')
         )
 
         if not file_path:
             return
+
+        set_last_directory("svg_import", str(Path(file_path).parent))
 
         svg_preview = self.preview_panel.get_svg_preview()
         if svg_preview is None:
@@ -1960,12 +1963,13 @@ class ColorPreviewInterface(QWidget):
             return
 
         # 打开文件保存对话框（获取保存目录）
+        last_dir = get_last_directory("svg_export", get_default_image_directory())
         if len(selected_indices) == 1:
             # 单张图片
-            default_name = f"{filename_prefix}.{export_format}"
+            default_name = str(Path(last_dir) / f"{filename_prefix}.{export_format}")
         else:
             # 多张图片
-            default_name = filename_prefix
+            default_name = str(Path(last_dir) / filename_prefix)
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -1976,6 +1980,8 @@ class ColorPreviewInterface(QWidget):
 
         if not file_path:
             return
+
+        set_last_directory("svg_export", str(Path(file_path).parent))
 
         # 执行导出
         success_count = 0
@@ -2007,7 +2013,6 @@ class ColorPreviewInterface(QWidget):
                         base_path = base_path[:-len(ext)]
                         break
                 # 获取保存目录
-                from pathlib import Path
                 path_obj = Path(file_path)
                 parent_dir = path_obj.parent
                 # 生成带序号的文件名
@@ -2081,12 +2086,14 @@ class ColorPreviewInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('color_preview.import_template'),
-            get_default_image_directory(),
+            get_last_directory("svg_import", get_default_image_directory()),
             tr('color_preview.svg_filter')
         )
 
         if not file_path:
             return
+
+        set_last_directory("svg_import", str(Path(file_path).parent))
 
         is_valid, error_msg = self._get_preview_service().validate_svg_file(file_path)
         if not is_valid:
