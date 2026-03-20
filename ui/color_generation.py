@@ -571,11 +571,16 @@ class ColorGenerationInterface(QWidget):
         if delta_h != 0 and self._scheme_colors:
             if self._color_wheel_mode == 'RYB':
                 # RYB模式下需要在RYB色轮上进行偏移，保持RYB角度关系
+                # 将RGB的delta_h转换为RYB的delta_h
+                old_base_ryb = rgb_hue_to_ryb_hue(self._base_hue - delta_h)
+                new_base_ryb = rgb_hue_to_ryb_hue(self._base_hue)
+                ryb_delta_h = new_base_ryb - old_base_ryb
+
                 for i in range(len(self._scheme_colors)):
                     old_h, old_s, old_b = self._scheme_colors[i]
                     # RGB -> RYB -> 偏移 -> RGB
                     ryb_h = rgb_hue_to_ryb_hue(old_h)
-                    new_ryb_h = (ryb_h + delta_h) % 360
+                    new_ryb_h = (ryb_h + ryb_delta_h) % 360
                     new_h = ryb_hue_to_rgb_hue(new_ryb_h)
                     self._scheme_colors[i] = (new_h, old_s, old_b)
             else:
