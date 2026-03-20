@@ -74,9 +74,7 @@ class ColorSelector(QWidget):
         # 颜色下拉选择
         self.color_combo = ComboBox()
         self.color_combo.setFixedWidth(100)
-        for i, color_data in enumerate(self._colors):
-            rgb = color_data.get('rgb', [128, 128, 128])
-            hex_val = rgb_to_hex(tuple(rgb))
+        for i, _ in enumerate(self._colors):
             self.color_combo.addItem(tr('dialogs.contrast.color_index', index=i+1))
             self.color_combo.setItemData(i, i)
         self.color_combo.currentIndexChanged.connect(self._on_combo_changed)

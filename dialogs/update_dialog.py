@@ -3,7 +3,7 @@ import re
 from typing import List, Tuple
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, qconfig
@@ -115,10 +115,10 @@ def compare_versions(current: str, latest: str) -> int:
     current_parts.extend([0] * (max_len - len(current_parts)))
     latest_parts.extend([0] * (max_len - len(latest_parts)))
 
-    for c, l in zip(current_parts, latest_parts):
-        if c > l:
+    for c, latest_part in zip(current_parts, latest_parts):
+        if c > latest_part:
             return 1
-        elif c < l:
+        elif c < latest_part:
             return -1
 
     if current_pre > latest_pre:

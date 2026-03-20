@@ -6,7 +6,7 @@ from typing import Dict, Any, Tuple, Optional
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication, QDialog
 )
 from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent
 from qfluentwidgets import (
@@ -333,7 +333,7 @@ class ColorModeSliders(QWidget):
             self._sliders[2].set_gradient(gradient_b)
 
         elif self._mode == 'HSL':
-            h, s, l = rgb_to_hsl(r, g, b)
+            H, S, L = rgb_to_hsl(r, g, b)
             # H滑块：色相渐变
             gradient_h = QLinearGradient(0, 0, 200, 0)
             for i in range(7):
@@ -344,15 +344,15 @@ class ColorModeSliders(QWidget):
 
             # S滑块：从灰到纯色
             gradient_s = QLinearGradient(0, 0, 200, 0)
-            gradient_s.setColorAt(0.0, QColor.fromHsl(int(h / 360 * 359), 0, int(l / 100 * 255)))
-            gradient_s.setColorAt(1.0, QColor.fromHsl(int(h / 360 * 359), 255, int(l / 100 * 255)))
+            gradient_s.setColorAt(0.0, QColor.fromHsl(int(H / 360 * 359), 0, int(L / 100 * 255)))
+            gradient_s.setColorAt(1.0, QColor.fromHsl(int(H / 360 * 359), 255, int(L / 100 * 255)))
             self._sliders[1].set_gradient(gradient_s)
 
             # L滑块：从黑到白
             gradient_l = QLinearGradient(0, 0, 200, 0)
-            gradient_l.setColorAt(0.0, QColor.fromHsl(int(h / 360 * 359), int(s / 100 * 255), 0))
-            gradient_l.setColorAt(0.5, QColor.fromHsl(int(h / 360 * 359), int(s / 100 * 255), 128))
-            gradient_l.setColorAt(1.0, QColor.fromHsl(int(h / 360 * 359), int(s / 100 * 255), 255))
+            gradient_l.setColorAt(0.0, QColor.fromHsl(int(H / 360 * 359), int(S / 100 * 255), 0))
+            gradient_l.setColorAt(0.5, QColor.fromHsl(int(H / 360 * 359), int(S / 100 * 255), 128))
+            gradient_l.setColorAt(1.0, QColor.fromHsl(int(H / 360 * 359), int(S / 100 * 255), 255))
             self._sliders[2].set_gradient(gradient_l)
 
         elif self._mode == 'CMYK':

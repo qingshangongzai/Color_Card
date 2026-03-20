@@ -771,8 +771,6 @@ class SVGColorMapper:
         # 为所有可见元素分配颜色
         print("排序后的元素：")
         for i, elem in enumerate(visible_elements[:10]):
-            x = elem.attributes.get('x', 'N/A')
-            y = elem.attributes.get('y', 'N/A')
             fill = elem.fill_color or 'N/A'
             print(f"  {i}: fill={fill}, area={elem.area:.2f}")
 

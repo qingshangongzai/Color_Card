@@ -1,6 +1,7 @@
 # 标准库导入
 import math
 from datetime import datetime
+from pathlib import Path
 from typing import List, Dict, Any
 
 # 第三方库导入
@@ -17,7 +18,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
-from utils import tr, get_locale_manager, calculate_grid_columns
+from utils import tr, get_locale_manager, calculate_grid_columns, get_default_data_directory, get_last_directory, set_last_directory
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
@@ -1285,13 +1286,14 @@ class PaletteManagementInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('palette_management.import_title'),
-            "",
+            get_last_directory("palette_import", get_default_data_directory()),
             tr('palette_management.json_filter')
         )
 
         if not file_path:
             return
 
+        set_last_directory("palette_import", str(Path(file_path).parent))
         log_user_action("import_palette_start", {"file_path": file_path})
 
         self._pending_import_path = file_path
@@ -1365,7 +1367,8 @@ class PaletteManagementInterface(QWidget):
 
     def _on_export_clicked(self):
         """导出按钮点击"""
-        default_name = f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        last_dir = get_last_directory("palette_export", get_default_data_directory())
+        default_name = str(Path(last_dir) / f"color_card_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             tr('palette_management.export_title'),
@@ -1379,6 +1382,7 @@ class PaletteManagementInterface(QWidget):
         if not file_path.endswith('.json'):
             file_path += '.json'
 
+        set_last_directory("palette_export", str(Path(file_path).parent))
         log_user_action("export_palette_start", {"file_path": file_path})
 
         favorites = self._config_manager.get_favorites()
@@ -1442,7 +1446,8 @@ class PaletteManagementInterface(QWidget):
             return
 
         palette_name = favorite_data.get('name', tr('palette_management.unnamed'))
-        default_name = f"{palette_name}.ase"
+        last_dir = get_last_directory("palette_export", get_default_data_directory())
+        default_name = str(Path(last_dir) / f"{palette_name}.ase")
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
@@ -1457,6 +1462,7 @@ class PaletteManagementInterface(QWidget):
         if not file_path.endswith('.ase'):
             file_path += '.ase'
 
+        set_last_directory("palette_export", str(Path(file_path).parent))
         log_user_action("export_ase_start", {"file_path": file_path, "palette_name": palette_name})
 
         with log_performance("export_ase", {"file_path": file_path, "color_count": len(colors)}):
