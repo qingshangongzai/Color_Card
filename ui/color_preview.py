@@ -35,7 +35,7 @@ from core.color import get_color_info
 from core.logger import get_logger, log_user_action
 from dialogs.edit_palette import EditPaletteDialog
 from dialogs.export_settings_dialog import ExportSettingsDialog
-from utils import tr, get_locale_manager
+from utils import tr, get_locale_manager, get_default_image_directory
 from utils.theme_colors import get_border_color, get_text_color
 
 logger = get_logger("color_preview")
@@ -1882,7 +1882,7 @@ class ColorPreviewInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('color_preview.import_svg'),
-            "",
+            get_default_image_directory(),
             tr('color_preview.svg_filter')
         )
 
@@ -2081,7 +2081,7 @@ class ColorPreviewInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('color_preview.import_template'),
-            "",
+            get_default_image_directory(),
             tr('color_preview.svg_filter')
         )
 

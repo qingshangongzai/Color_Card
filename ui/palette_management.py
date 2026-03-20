@@ -17,7 +17,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
-from utils import tr, get_locale_manager, calculate_grid_columns
+from utils import tr, get_locale_manager, calculate_grid_columns, get_default_image_directory
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
@@ -1285,7 +1285,7 @@ class PaletteManagementInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('palette_management.import_title'),
-            "",
+            get_default_image_directory(),
             tr('palette_management.json_filter')
         )
 

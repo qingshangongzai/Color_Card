@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 # 项目模块导入
 from core import LuminanceService
 from core.logger import get_logger, log_user_action
-from utils import tr, get_locale_manager
+from utils import tr, get_locale_manager, get_default_image_directory
 from .canvases import LuminanceCanvas
 from .histograms import LuminanceHistogramWidget
 
@@ -100,7 +100,7 @@ class LuminanceExtractInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('luminance_extract.select_image'),
-            "",
+            get_default_image_directory(),
             tr('luminance_extract.image_filter')
         )
 

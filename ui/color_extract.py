@@ -21,7 +21,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, get_config_manager, ServiceFactory, log_user_action
-from utils import tr, get_locale_manager
+from utils import tr, get_locale_manager, get_default_image_directory
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
 from .cards import ColorCardPanel
@@ -194,7 +194,7 @@ class ColorExtractInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('color_extract.select_image'),
-            "",
+            get_default_image_directory(),
             tr('color_extract.image_filter')
         )
 
