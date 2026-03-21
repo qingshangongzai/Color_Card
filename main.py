@@ -169,7 +169,7 @@ def main():
         sys.stdout = _old_stdout
 
         # 安装自定义 Qt 消息处理器以过滤 QFont 警告
-        def qt_message_handler(mode, context, message):
+        def qt_message_handler(mode, _context, message):
             """自定义 Qt 消息处理器，过滤掉 QFont::setPointSize 警告"""
             if "QFont::setPointSize: Point size <= 0" in message:
                 return
