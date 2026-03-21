@@ -12,16 +12,6 @@ def get_canvas_background_color():
     return QColor(42, 42, 42)
 
 
-def get_card_background_color():
-    """获取卡片背景颜色"""
-    return QColor(42, 42, 42) if isDarkTheme() else QColor(255, 255, 255)
-
-
-def get_interface_background_color():
-    """获取界面背景颜色（与FluentWindow一致）"""
-    return QColor(32, 32, 32) if isDarkTheme() else QColor(243, 243, 243)
-
-
 def get_histogram_background_color():
     """获取直方图背景颜色 - 固定灰黑色 #2a2a2a"""
     return QColor(42, 42, 42)
@@ -50,11 +40,6 @@ def get_secondary_text_color():
 def get_border_color():
     """获取边框颜色"""
     return QColor(80, 80, 80) if isDarkTheme() else QColor(221, 221, 221)
-
-
-def get_border_color_secondary():
-    """获取次要边框颜色"""
-    return QColor(120, 120, 120) if isDarkTheme() else QColor(200, 200, 200)
 
 
 # ========== 占位符/空状态颜色 ==========
@@ -201,34 +186,9 @@ def get_canvas_empty_text_color():
     return QColor(150, 150, 150)
 
 
-def get_picker_colors():
-    """获取取色点颜色列表"""
-    return [
-        QColor(0, 102, 255, 100),
-        QColor(0, 128, 255, 100),
-        QColor(0, 153, 255, 100),
-        QColor(0, 204, 102, 100),
-        QColor(102, 255, 102, 100),
-        QColor(255, 204, 0, 100),
-        QColor(255, 128, 0, 100),
-        QColor(255, 51, 102, 100),
-        QColor(200, 100, 255, 100),
-    ]
-
-
 def get_tooltip_bg_color():
     """获取提示框背景颜色"""
     return QColor(0, 0, 0, 180)
-
-
-def get_tooltip_border_color():
-    """获取提示框边框颜色"""
-    return QColor(255, 255, 255)
-
-
-def get_tooltip_text_color():
-    """获取提示框文本颜色"""
-    return QColor(0, 0, 0)
 
 
 # ========== 缩放查看器颜色 ==========
@@ -272,12 +232,6 @@ def get_zone_background_color():
 def get_zone_text_color():
     """获取Zone框文字颜色"""
     return QColor(255, 255, 255) if isDarkTheme() else QColor(0, 0, 0)
-
-
-# ========== 收藏组件颜色 ==========
-def get_favorite_icon_color():
-    """获取收藏界面图标颜色"""
-    return QColor(153, 153, 153)
 
 
 # ========== 高饱和度区域高亮颜色 ==========
