@@ -16,7 +16,8 @@ def set_app_user_model_id():
         app_id = 'HXiaoStudio.ColorCard.1.0.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
         return True
-    except Exception:
+    except Exception as e:
+        logger.debug(f"设置 AppUserModelID 失败: {e}")
         return False
 
 
@@ -119,7 +120,8 @@ def _create_splash_screen():
         )
 
         return splash
-    except Exception:
+    except Exception as e:
+        logger.debug(f"创建启动画面失败: {e}")
         return None
 
 

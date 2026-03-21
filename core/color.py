@@ -1267,7 +1267,8 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
 
                 return pixels
             except Exception:
-                pass  # 失败时回退到普通方法
+                # NumPy 加速失败，静默回退到普通方法
+                pass
 
         # 普通方法（逐个读取）
         for y in range(0, height, sample_step):
