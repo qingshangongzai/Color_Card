@@ -1,0 +1,125 @@
+name: Build Windows App with Nuitka
+
+on:
+  push:
+    branches: [ main, master, Dev ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, master, dev ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14.3'
+    
+    - name: Cache pip packages
+      uses: actions/cache@v4
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install nuitka
+        pip install -r requirements.txt
+    
+    - name: Read version
+      id: version
+      shell: pwsh
+      run: |
+        $lines = Get-Content version.txt
+        $VERSION = $lines[0].Trim()
+        $FILE_VERSION = $lines[1].Trim()
+        $PRODUCT_VERSION = $lines[2].Trim()
+        $COMPANY_NAME = $lines[3].Trim()
+        $COPYRIGHT = $lines[4].Trim()
+        $APP_NAME = $lines[5].Trim()
+        
+        Write-Host "Debug: version content is: '$VERSION'"
+        Write-Host "Debug: file version is: '$FILE_VERSION'"
+        Write-Host "Debug: product version is: '$PRODUCT_VERSION'"
+        Write-Host "Debug: company name is: '$COMPANY_NAME'"
+        Write-Host "Debug: copyright is: '$COPYRIGHT'"
+        Write-Host "Debug: app name is: '$APP_NAME'"
+        
+        "version=$VERSION" >> $env:GITHUB_OUTPUT
+        "file_version=$FILE_VERSION" >> $env:GITHUB_OUTPUT
+        "product_version=$PRODUCT_VERSION" >> $env:GITHUB_OUTPUT
+        "company_name=$COMPANY_NAME" >> $env:GITHUB_OUTPUT
+        "copyright=$COPYRIGHT" >> $env:GITHUB_OUTPUT
+        "app_name=$APP_NAME" >> $env:GITHUB_OUTPUT
+    
+    - name: Build Windows EXE with Nuitka
+      run: |
+        python -m nuitka `
+          --standalone `
+          --onefile `
+          --windows-console-mode=disable `
+          --windows-icon-from-ico=logo/Color Card_logo.ico `
+          --windows-company-name="${{ steps.version.outputs.company_name }}" `
+          --windows-product-name="${{ steps.version.outputs.app_name }}" `
+          --windows-file-version="${{ steps.version.outputs.file_version }}" `
+          --windows-product-version="${{ steps.version.outputs.product_version }}" `
+          --windows-file-description="取色卡 - Color Card" `
+          --windows-copy-right="${{ steps.version.outputs.copyright }}" `
+          --include-data-files=version.py=version.py `
+          --include-data-dir=color_data=color_data `
+          --include-data-dir=core=core `
+          --include-data-dir=dialogs=dialogs `
+          --include-data-dir=file=file `
+          --include-data-dir=locales=locales `
+          --include-data-dir=logo=logo `
+          --include-data-dir=scenes_data=scenes_data `
+          --include-data-dir=ui=ui `
+          --include-data-dir=utils=utils `
+          --enable-plugin=pyside6 `
+          --lto=yes `
+          --jobs=4 `
+          --output-filename="Color Card" `
+          main.py
+    
+    - name: Check build output
+      shell: pwsh
+      run: |
+        Write-Host "Checking build directory..."
+        Get-ChildItem -Path "main.dist" -ErrorAction SilentlyContinue
+        Get-ChildItem -Path "main.build" -ErrorAction SilentlyContinue
+        Get-ChildItem -Path "*.exe" -ErrorAction SilentlyContinue
+    
+    - name: Create distribution folder
+      shell: pwsh
+      run: |
+        $distDir = "dist"
+        New-Item -ItemType Directory -Force -Path $distDir
+        
+        # 复制生成的 exe 文件
+        Copy-Item "Color Card.exe" -Destination "$distDir\Color Card.exe"
+        
+        Write-Host "Distribution folder contents:"
+        Get-ChildItem -Path $distDir
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ColorCard-Windows-Nuitka
+        path: dist/*.exe
+    
+    - name: Upload Release Asset
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/*.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
