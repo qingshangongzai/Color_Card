@@ -62,32 +62,33 @@ jobs:
         "app_name=$APP_NAME" >> $env:GITHUB_OUTPUT
     
     - name: Build Windows EXE with Nuitka
+      shell: cmd
       run: |
-        python -m nuitka `
-          --standalone `
-          --onefile `
-          --windows-console-mode=disable `
-          --windows-icon-from-ico=logo/Color Card_logo.ico `
-          --windows-company-name="${{ steps.version.outputs.company_name }}" `
-          --windows-product-name="${{ steps.version.outputs.app_name }}" `
-          --windows-file-version="${{ steps.version.outputs.file_version }}" `
-          --windows-product-version="${{ steps.version.outputs.product_version }}" `
-          --windows-file-description="取色卡 - Color Card" `
-          --windows-copyright="${{ steps.version.outputs.copyright }}" \`
-          --include-data-files=version.py=version.py `
-          --include-data-dir=color_data=color_data `
-          --include-data-dir=core=core `
-          --include-data-dir=dialogs=dialogs `
-          --include-data-dir=file=file `
-          --include-data-dir=locales=locales `
-          --include-data-dir=logo=logo `
-          --include-data-dir=scenes_data=scenes_data `
-          --include-data-dir=ui=ui `
-          --include-data-dir=utils=utils `
-          --enable-plugin=pyside6 `
-          --lto=yes `
-          --jobs=4 `
-          --output-filename="Color Card" `
+        python -m nuitka ^
+          --standalone ^
+          --onefile ^
+          --windows-console-mode=disable ^
+          --windows-icon-from-ico="logo/Color Card_logo.ico" ^
+          --windows-company-name="${{ steps.version.outputs.company_name }}" ^
+          --windows-product-name="${{ steps.version.outputs.app_name }}" ^
+          --windows-file-version="${{ steps.version.outputs.file_version }}" ^
+          --windows-product-version="${{ steps.version.outputs.product_version }}" ^
+          --windows-file-description="取色卡 - Color Card" ^
+          --windows-copyright="${{ steps.version.outputs.copyright }}" ^
+          --include-data-files=version.py=version.py ^
+          --include-data-dir=color_data=color_data ^
+          --include-data-dir=core=core ^
+          --include-data-dir=dialogs=dialogs ^
+          --include-data-dir=file=file ^
+          --include-data-dir=locales=locales ^
+          --include-data-dir=logo=logo ^
+          --include-data-dir=scenes_data=scenes_data ^
+          --include-data-dir=ui=ui ^
+          --include-data-dir=utils=utils ^
+          --enable-plugin=pyside6 ^
+          --lto=yes ^
+          --jobs=4 ^
+          --output-filename="Color Card" ^
           main.py
     
     - name: Check build output
