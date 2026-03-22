@@ -73,7 +73,7 @@ jobs:
           --windows-file-version="${{ steps.version.outputs.file_version }}" `
           --windows-product-version="${{ steps.version.outputs.product_version }}" `
           --windows-file-description="取色卡 - Color Card" `
-          --windows-copy-right="${{ steps.version.outputs.copyright }}" `
+          --windows-copyright="${{ steps.version.outputs.copyright }}" \`
           --include-data-files=version.py=version.py `
           --include-data-dir=color_data=color_data `
           --include-data-dir=core=core `
