@@ -19,7 +19,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.14.3'
+        python-version: '3.13'
     
     - name: Cache pip packages
       uses: actions/cache@v4
@@ -32,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nuitka
+        pip install nuitka[onefile]
         pip install -r requirements.txt
     
     - name: Read version
@@ -67,14 +67,13 @@ jobs:
         python -m nuitka ^
           --standalone ^
           --onefile ^
+          --assume-yes-for-downloads ^
           --windows-console-mode=disable ^
           --windows-icon-from-ico="logo/Color Card_logo.ico" ^
-          --windows-company-name="${{ steps.version.outputs.company_name }}" ^
           --windows-product-name="${{ steps.version.outputs.app_name }}" ^
           --windows-file-version="${{ steps.version.outputs.file_version }}" ^
           --windows-product-version="${{ steps.version.outputs.product_version }}" ^
           --windows-file-description="取色卡 - Color Card" ^
-          --windows-copyright="${{ steps.version.outputs.copyright }}" ^
           --include-data-files=version.py=version.py ^
           --include-data-dir=color_data=color_data ^
           --include-data-dir=core=core ^
