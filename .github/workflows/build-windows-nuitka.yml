@@ -2,7 +2,7 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, master, Dev ]
+    branches: [ main, master ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ main, master, dev ]
@@ -19,7 +19,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.14.3'
+        python-version: '3.13'
     
     - name: Cache pip packages
       uses: actions/cache@v4
@@ -54,12 +54,12 @@ jobs:
         Write-Host "Debug: copyright is: '$COPYRIGHT'"
         Write-Host "Debug: app name is: '$APP_NAME'"
         
-        "version=$VERSION" >> $env:GITHUB_OUTPUT
-        "file_version=$FILE_VERSION" >> $env:GITHUB_OUTPUT
-        "product_version=$PRODUCT_VERSION" >> $env:GITHUB_OUTPUT
-        "company_name=$COMPANY_NAME" >> $env:GITHUB_OUTPUT
-        "copyright=$COPYRIGHT" >> $env:GITHUB_OUTPUT
-        "app_name=$APP_NAME" >> $env:GITHUB_OUTPUT
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$VERSION"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "file_version=$FILE_VERSION"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "product_version=$PRODUCT_VERSION"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "company_name=$COMPANY_NAME"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
     
     - name: Build Windows EXE with Nuitka
       shell: cmd
@@ -70,12 +70,12 @@ jobs:
           --assume-yes-for-downloads ^
           --windows-console-mode=disable ^
           --windows-icon-from-ico="logo/Color Card_logo.ico" ^
-          --windows-company-name="${{ steps.version.outputs.company_name }}" ^
-          --windows-product-name="${{ steps.version.outputs.app_name }}" ^
-          --windows-file-version="${{ steps.version.outputs.file_version }}" ^
-          --windows-product-version="${{ steps.version.outputs.product_version }}" ^
-          --windows-file-description="取色卡 - Color Card" ^
-          --windows-copyright="${{ steps.version.outputs.copyright }}" ^
+          --company-name="${{ steps.version.outputs.company_name }}" ^
+          --product-name="${{ steps.version.outputs.app_name }}" ^
+          --file-version="${{ steps.version.outputs.file_version }}" ^
+          --product-version="${{ steps.version.outputs.product_version }}" ^
+          --file-description="取色卡 - Color Card" ^
+          --copyright="${{ steps.version.outputs.copyright }}" ^
           --include-data-files=version.py=version.py ^
           --include-data-dir=color_data=color_data ^
           --include-data-dir=core=core ^
