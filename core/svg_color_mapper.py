@@ -35,7 +35,7 @@ class SVGElementInfo:
     stroke_color: Optional[str] = None       # 原始 stroke 颜色
     area: float = 0.0                        # 元素面积（用于排序）
     is_visible: bool = True                  # 是否可见
-    fixed_color: Optional[str] = None        # 固定颜色设置（black/original）
+    fixed_color: Optional[str] = None        # 固定颜色设置（black/original），仅语义化映射使用
     is_semantic: bool = False                # 是否通过语义化标识（class/id关键词）分类
     is_transparent: bool = False             # 是否是透明元素（无 fill 但有 stroke）
     z_index: int = 0                         # 绘制顺序（文档顺序，越大越在上层）
@@ -104,47 +104,12 @@ class SVGElementClassifier:
         """
         tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
 
-        # 1. 检查 class 属性（最高优先级）
+        # 检查 class 属性
         element_class = element.get('class', '')
         if element_class:
             for keyword, elem_type in self.CLASS_KEYWORDS.items():
                 if keyword in element_class.lower():
-                    return elem_type, True  # 通过语义化标识分类
-
-        # 2. 检查 id 属性
-        element_id = element.get('id', '')
-        if element_id:
-            for keyword, elem_type in self.CLASS_KEYWORDS.items():
-                if keyword in element_id.lower():
-                    return elem_type, True  # 通过语义化标识分类
-
-        # 3. 根据标签类型和上下文智能判断（非语义化，是启发式规则）
-        if tag == 'rect':
-            # 矩形分类策略：
-            # - 如果只有一个矩形或面积最大 -> 可能是背景
-            # - 如果有多个矩形且不是最大的 -> 可能是装饰/主元素
-            # - 大面积矩形（>10000）-> 背景
-            if is_largest_rect and area > 5000:
-                return ElementType.BACKGROUND, False
-            elif area > 10000:
-                return ElementType.BACKGROUND, False
-            elif total_rect_count > 1:
-                # 多个矩形时，小矩形作为装饰元素
-                return (ElementType.PRIMARY if area < 5000 else ElementType.BACKGROUND), False
-            else:
-                return ElementType.BACKGROUND, False
-
-        elif tag in ['path', 'polygon', 'polyline']:
-            return ElementType.PRIMARY, False
-
-        elif tag in ['circle', 'ellipse']:
-            return ElementType.PRIMARY, False
-
-        elif tag == 'line':
-            return ElementType.SECONDARY, False
-
-        elif tag in ['text', 'tspan']:
-            return ElementType.TEXT, False
+                    return elem_type, True
 
         return ElementType.UNKNOWN, False
 
@@ -492,13 +457,10 @@ class SVGColorMapper:
         for elem in sorted_elements:
             if elem.bounding_box is None:
                 continue
-            
+
             if elem.is_transparent:
                 continue
-            
-            if elem.fixed_color:
-                continue
-            
+
             # 只检测大面积元素，避免小元素被误判
             if elem.area < 10000:
                 continue
@@ -602,14 +564,8 @@ class SVGColorMapper:
                 continue
 
             # 应用颜色 - 直接设置内联属性，这会覆盖 CSS 类样式
-            # 1. 处理 fill
-            should_apply_fill = (
-                elem_info.fill_color is not None or  # 有显式 fill
-                elem_info.tag in ['text', 'tspan'] or  # 文字元素
-                elem_info.element_type in [ElementType.PRIMARY, ElementType.SECONDARY, ElementType.ACCENT, ElementType.BACKGROUND]  # 图形元素
-            )
-
-            if should_apply_fill:
+            # 处理 fill
+            if elem_info.fill_color is not None:
                 elem.set('fill', color)
 
             # 2. 处理 stroke
@@ -771,8 +727,6 @@ class SVGColorMapper:
         # 为所有可见元素分配颜色
         print("排序后的元素：")
         for i, elem in enumerate(visible_elements[:10]):
-            x = elem.attributes.get('x', 'N/A')
-            y = elem.attributes.get('y', 'N/A')
             fill = elem.fill_color or 'N/A'
             print(f"  {i}: fill={fill}, area={elem.area:.2f}")
 
@@ -844,14 +798,6 @@ class SVGColorMapper:
         for elem_info in self._elements:
             elem = self._find_element_by_id(root, elem_info.element_id)
             if elem is None:
-                continue
-
-            # 处理固定颜色元素
-            if elem_info.fixed_color:
-                if elem_info.fixed_color == 'black':
-                    # 固定为黑色
-                    self._apply_color_to_element(elem, elem_info, '#000000')
-                # fixed_color == 'original' 时保持原色，不做任何操作
                 continue
 
             # 应用 fill 颜色映射
@@ -1074,7 +1020,7 @@ class SVGColorMapper:
 
                 if modified_css != css_text:
                     style_elem.text = modified_css
-                    print(f"已更新 CSS 样式中的颜色映射")
+                    print("已更新 CSS 样式中的颜色映射")
 
     def set_element_color(self, element_id: str, color: str, color_type: str = 'fill') -> bool:
         """设置单个元素的颜色

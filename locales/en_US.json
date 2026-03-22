@@ -229,6 +229,7 @@
     "language": "Language Settings",
     "language_title": "Interface Language",
     "language_desc": "Select the display language for the application",
+    "language_auto": "Follow System",
     "help": "Help",
     "check_update": "Check for Updates",
     "version_update": "Version Update",

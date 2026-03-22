@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 import sys
-import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -80,7 +79,7 @@ class ConfigManager:
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
                 "color_wheel_labels_visible": True,
-                "language": "ZW_JT"
+                "language": "auto"
             },
             "scheme": {
                 "default_scheme": "monochromatic",

@@ -15,14 +15,15 @@ from PySide6.QtWidgets import (
     QSplitter
 )
 from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    CardWidget, PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition,
+    PushButton, ToolButton, FluentIcon, InfoBar, InfoBarPosition,
     qconfig, isDarkTheme, ComboBox, PrimaryPushButton, Slider
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, hsb_to_rgb, rgb_to_hsb, adjust_brightness
+from core import (
+    get_color_info, get_config_manager, hsb_to_rgb, rgb_to_hsb, rgb_hue_to_ryb_hue, ryb_hue_to_rgb_hue
+)
 from utils import tr, get_locale_manager
 from dialogs import EditPaletteDialog
 from .cards import BaseCard, BaseCardPanel, ColorModeContainer, get_text_color, get_placeholder_color, get_border_color
@@ -47,7 +48,12 @@ class GenerationColorInfoCard(BaseCard):
         self._hex_visible = True
         super().__init__(index, parent)
         # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_color_block_style)
+        qconfig.themeChangedFinished.connect(self._update_styles)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        self._update_hex_button_style()
+        self._update_color_block_style()
 
     def setup_ui(self):
         """设置界面"""
@@ -482,8 +488,7 @@ class ColorGenerationInterface(QWidget):
         self.random_btn.setText(tr('color_generation.random'))
         self.favorite_button.setText(tr('color_generation.favorite'))
         self.brightness_label.setText(tr('color_generation.brightness'))
-        
-        current_index = self.scheme_combo.currentIndex()
+
         self.scheme_combo.setItemText(0, tr('color_generation.schemes.monochromatic'))
         self.scheme_combo.setItemText(1, tr('color_generation.schemes.analogous'))
         self.scheme_combo.setItemText(2, tr('color_generation.schemes.complementary'))
@@ -550,7 +555,7 @@ class ColorGenerationInterface(QWidget):
     def on_base_color_changed(self, h, s, b):
         """基准颜色改变回调
 
-        色相变化时，所有采样点跟随旋转；
+        色相变化时，所有采样点跟随旋转，保持相对角度关系；
         饱和度变化时，仅基准点变化，其他采样点保持原位。
         """
         # 计算色相变化量
@@ -562,17 +567,28 @@ class ColorGenerationInterface(QWidget):
         self._base_hue = h
         self._base_saturation = s
 
-        # RYB模式下，重新生成配色以保持RYB色轮上的相对角度关系
-        if self._color_wheel_mode == 'RYB' and delta_h != 0:
-            self._generate_scheme_colors()
-            return
-
-        # 色相变化：所有采样点跟着旋转（仅RGB模式）
+        # 色相变化：所有采样点跟着旋转
         if delta_h != 0 and self._scheme_colors:
-            for i in range(len(self._scheme_colors)):
-                old_h, old_s, old_b = self._scheme_colors[i]
-                new_h = (old_h + delta_h) % 360
-                self._scheme_colors[i] = (new_h, old_s, old_b)
+            if self._color_wheel_mode == 'RYB':
+                # RYB模式下需要在RYB色轮上进行偏移，保持RYB角度关系
+                # 将RGB的delta_h转换为RYB的delta_h
+                old_base_ryb = rgb_hue_to_ryb_hue(self._base_hue - delta_h)
+                new_base_ryb = rgb_hue_to_ryb_hue(self._base_hue)
+                ryb_delta_h = new_base_ryb - old_base_ryb
+
+                for i in range(len(self._scheme_colors)):
+                    old_h, old_s, old_b = self._scheme_colors[i]
+                    # RGB -> RYB -> 偏移 -> RGB
+                    ryb_h = rgb_hue_to_ryb_hue(old_h)
+                    new_ryb_h = (ryb_h + ryb_delta_h) % 360
+                    new_h = ryb_hue_to_rgb_hue(new_ryb_h)
+                    self._scheme_colors[i] = (new_h, old_s, old_b)
+            else:
+                # RGB模式下直接在RGB色轮上偏移
+                for i in range(len(self._scheme_colors)):
+                    old_h, old_s, old_b = self._scheme_colors[i]
+                    new_h = (old_h + delta_h) % 360
+                    self._scheme_colors[i] = (new_h, old_s, old_b)
 
         # 饱和度变化：更新 _scheme_colors[0]（基准点）
         if delta_s != 0 and self._scheme_colors:
@@ -601,7 +617,6 @@ class ColorGenerationInterface(QWidget):
             self._scheme_colors[index] = (h, s, b)
 
             # 转换为RGB并更新色块面板
-            rgb = hsb_to_rgb(h, s, b)
             self.color_panel.set_colors([hsb_to_rgb(*c) for c in self._scheme_colors])
 
     def on_brightness_changed(self, value):

@@ -229,6 +229,7 @@
     "language": "语言设置",
     "language_title": "页面语言",
     "language_desc": "选择应用程序的显示语言",
+    "language_auto": "跟随系统",
     "help": "帮助",
     "check_update": "检查更新",
     "version_update": "版本更新",

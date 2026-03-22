@@ -1,23 +1,21 @@
 # 标准库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QFileDialog, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    ComboBox, FluentIcon, InfoBar, InfoBarPosition,
-    PushButton, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig, isDarkTheme
+    ComboBox, FluentIcon, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
 )
 
 # 项目模块导入
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
-
+from utils.theme_colors import get_title_color
 from dialogs import AboutDialog, UpdateAvailableDialog
+from version import version_manager
 
 logger = get_logger("settings")
-from version import version_manager
-from utils.theme_colors import get_title_color, get_text_color, get_interface_background_color, get_card_background_color, get_border_color
 
 
 AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
@@ -240,12 +238,17 @@ class SettingsInterface(QWidget):
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
+        
+        combo_box.addItem(tr('settings.language_auto'))
+        combo_box.setItemData(0, 'auto')
+        
         supported_languages = get_supported_languages()
         for code, name in supported_languages.items():
+            if code == 'auto':
+                continue
             combo_box.addItem(name)
             combo_box.setItemData(combo_box.count() - 1, code)
         
-        # 设置当前语言
         for i in range(combo_box.count()):
             if combo_box.itemData(i) == self._language:
                 combo_box.setCurrentIndex(i)
@@ -297,6 +300,8 @@ class SettingsInterface(QWidget):
         # 更新语言卡片
         self.language_card.titleLabel.setText(tr('settings.language_title'))
         self.language_card.contentLabel.setText(tr('settings.language_desc'))
+        # 更新"跟随系统"选项文本
+        self.language_card.combo_box.setItemText(0, tr('settings.language_auto'))
 
         # 更新16进制显示卡片
         self.hex_display_card.titleLabel.setText(tr('settings.hex_display'))

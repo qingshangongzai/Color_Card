@@ -7,20 +7,19 @@ from typing import List, Tuple
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
-    QApplication, QDialog, QHBoxLayout, QLabel, QLineEdit, QPushButton,
-    QSizePolicy, QSplitter, QVBoxLayout, QWidget
+    QDialog, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, ToolButton, qconfig, isDarkTheme, ScrollArea
+    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, qconfig, ScrollArea
 )
 
 # 项目模块导入
-from core import generate_gradient, generate_random_gradient, get_color_info, rgb_to_hex
+from core import generate_gradient, generate_random_gradient, get_color_info
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from ui.cards import ColorCard
 from utils import tr, get_locale_manager, calculate_grid_columns
-from utils.theme_colors import get_border_color, get_card_background_color, get_text_color
+from utils.theme_colors import get_border_color, get_text_color
 
 logger = get_logger("gradient_extract")
 
@@ -425,7 +424,6 @@ class GradientExtractInterface(QWidget):
     def _update_hex_input_style(self):
         """更新16进制输入框样式（与配色管理一致）"""
         primary_color = get_text_color(secondary=False)
-        secondary_color = get_text_color(secondary=True)
         border_color = get_border_color()
 
         input_style = f"""
@@ -584,7 +582,8 @@ class GradientExtractInterface(QWidget):
         # 将HEX转换为RGB
         r, g, b = self._hex_to_rgb(current_color)
 
-        dialog = ColorPickerDialog((r, g, b), self)
+        # 使用顶层窗口作为父窗口，避免背景色异常和两套窗口控制器
+        dialog = ColorPickerDialog((r, g, b), self.window())
         if dialog.exec() == QDialog.DialogCode.Accepted:
             color_info = dialog.get_color_info()
             if color_info:

@@ -1,0 +1,12 @@
+# 定期代码检查
+
+# 安装依赖
+pip install ruff mypy radon bandit vulture
+
+# 日常检查
+ruff check . --fix
+mypy .
+radon cc . -a -s
+
+# 发布前检查
+vulture core ui dialogs utils main.py --min-confidence 60

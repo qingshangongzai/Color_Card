@@ -3,15 +3,14 @@ import sys
 from typing import List, Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon, QKeySequence, QScreen, QShortcut
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QApplication, QFileDialog, QHBoxLayout, QLabel, QSplitter, QVBoxLayout, QWidget
+    QApplication, QLabel
 )
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
 # 项目模块导入
-from core import get_color_info
 from core import get_config_manager, ImageMediator
 from utils import tr, get_locale_manager
 from version import version_manager
@@ -23,10 +22,21 @@ from .palette_management import PaletteManagementInterface
 from .preset_color import PresetColorInterface
 from .settings import SettingsInterface
 from .color_preview import ColorPreviewInterface
-from .cards import ColorCardPanel
-from .histograms import LuminanceHistogramWidget, RGBHistogramWidget
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
-from .canvases import ImageCanvas, LuminanceCanvas
+
+# 工具按钮统一样式
+_TOOLBUTTON_STYLE = """
+    ToolButton {
+        background-color: transparent !important;
+        border: none !important;
+    }
+    ToolButton:hover {
+        background-color: rgba(128, 128, 128, 30) !important;
+    }
+    ToolButton:pressed {
+        background-color: rgba(128, 128, 128, 50) !important;
+    }
+"""
 
 
 class CustomTitleBar(FluentTitleBar):
@@ -39,18 +49,7 @@ class CustomTitleBar(FluentTitleBar):
         self.themeButton = ToolButton(self)
         self.themeButton.setFixedSize(40, 32)
         self.themeButton.setToolTip(tr('title_bar.toggle_theme'))
-        self.themeButton.setStyleSheet("""
-            ToolButton {
-                background-color: transparent !important;
-                border: none !important;
-            }
-            ToolButton:hover {
-                background-color: rgba(128, 128, 128, 30) !important;
-            }
-            ToolButton:pressed {
-                background-color: rgba(128, 128, 128, 50) !important;
-            }
-        """)
+        self.themeButton.setStyleSheet(_TOOLBUTTON_STYLE)
         self._update_theme_icon()
 
         # 连接点击事件
@@ -60,18 +59,7 @@ class CustomTitleBar(FluentTitleBar):
         self.fullscreenButton = ToolButton(self)
         self.fullscreenButton.setFixedSize(40, 32)
         self.fullscreenButton.setToolTip(tr('title_bar.toggle_fullscreen'))
-        self.fullscreenButton.setStyleSheet("""
-            ToolButton {
-                background-color: transparent !important;
-                border: none !important;
-            }
-            ToolButton:hover {
-                background-color: rgba(128, 128, 128, 30) !important;
-            }
-            ToolButton:pressed {
-                background-color: rgba(128, 128, 128, 50) !important;
-            }
-        """)
+        self.fullscreenButton.setStyleSheet(_TOOLBUTTON_STYLE)
         self._update_fullscreen_icon()
 
         # 连接点击事件

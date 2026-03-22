@@ -5,19 +5,18 @@
 
 # 标准库导入
 import time
-from typing import List, Tuple
 
 # 第三方库导入
 import pytest
-from PySide6.QtCore import Qt, QCoreApplication, QThread
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage
 
 # 项目模块导入
 from core.histogram_service import HistogramCalculator, HistogramService
 from core.luminance_service import LuminanceCalculator, LuminanceService
 from core.color_service import DominantColorExtractor, ColorService
-from core.image_service import ProgressiveImageLoader, ImageService
-from core.palette_service import PaletteImporter, PaletteExporter, PaletteService
+from core.image_service import ProgressiveImageLoader
+from core.palette_service import PaletteImporter, PaletteExporter
 
 
 class TestHistogramCalculator:

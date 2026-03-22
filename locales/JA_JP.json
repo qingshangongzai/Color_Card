@@ -229,6 +229,7 @@
     "language": "言語設定",
     "language_title": "インターフェース言語",
     "language_desc": "アプリケーションの表示言語を選択",
+    "language_auto": "システムに従う",
     "help": "ヘルプ",
     "check_update": "更新を確認",
     "version_update": "バージョン更新",

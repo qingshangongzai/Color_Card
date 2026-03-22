@@ -4,6 +4,7 @@
 """
 
 # 标准库导入
+from pathlib import Path
 from typing import Dict, Any
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -12,7 +13,7 @@ from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 # 项目模块导入
 from core import LuminanceService
 from core.logger import get_logger, log_user_action
-from utils import tr, get_locale_manager
+from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from .canvases import LuminanceCanvas
 from .histograms import LuminanceHistogramWidget
 
@@ -100,12 +101,13 @@ class LuminanceExtractInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('luminance_extract.select_image'),
-            "",
+            get_last_directory("image_import", get_default_image_directory()),
             tr('luminance_extract.image_filter')
         )
 
         if file_path:
             log_user_action("open_image", {"file_path": file_path})
+            set_last_directory("image_import", str(Path(file_path).parent))
             self._load_image(file_path)
 
     def change_image(self):

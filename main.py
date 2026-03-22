@@ -16,7 +16,8 @@ def set_app_user_model_id():
         app_id = 'HXiaoStudio.ColorCard.1.0.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
         return True
-    except Exception:
+    except Exception as e:
+        logger.debug(f"设置 AppUserModelID 失败: {e}")
         return False
 
 
@@ -96,7 +97,8 @@ def _create_splash_screen():
         splash.setWindowFlags(
             Qt.WindowType.FramelessWindowHint |
             Qt.WindowType.WindowStaysOnTopHint |
-            Qt.WindowType.SplashScreen
+            Qt.WindowType.SplashScreen |
+            Qt.WindowType.WindowDoesNotAcceptFocus
         )
 
         # 居中显示
@@ -118,7 +120,8 @@ def _create_splash_screen():
         )
 
         return splash
-    except Exception:
+    except Exception as e:
+        logger.debug(f"创建启动画面失败: {e}")
         return None
 
 
@@ -166,7 +169,7 @@ def main():
         sys.stdout = _old_stdout
 
         # 安装自定义 Qt 消息处理器以过滤 QFont 警告
-        def qt_message_handler(mode, context, message):
+        def qt_message_handler(mode, _context, message):
             """自定义 Qt 消息处理器，过滤掉 QFont::setPointSize 警告"""
             if "QFont::setPointSize: Point size <= 0" in message:
                 return
@@ -180,7 +183,7 @@ def main():
         from core import get_config_manager
         logger.info("core 模块导入完成")
 
-        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, tr, get_locale_manager
+        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager
         logger.info("utils 模块导入完成")
 
         from ui import MainWindow
@@ -226,6 +229,9 @@ def main():
             if splash:
                 splash.finish(window)
             fix_windows_taskbar_icon_for_window(window)
+            # 强制激活主窗口，确保在其他窗口操作后仍能弹出
+            window.activateWindow()
+            window.raise_()
 
         QTimer.singleShot(100, _on_window_shown)
 

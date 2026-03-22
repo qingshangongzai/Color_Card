@@ -7,9 +7,10 @@
 # 标准库导入
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QSplitter, QStackedWidget,
     QSizePolicy, QVBoxLayout, QWidget
@@ -21,7 +22,7 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_color_info, get_config_manager, ServiceFactory, log_user_action
-from utils import tr, get_locale_manager
+from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
 from .cards import ColorCardPanel
@@ -194,7 +195,7 @@ class ColorExtractInterface(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             tr('color_extract.select_image'),
-            "",
+            get_last_directory("image_import", get_default_image_directory()),
             tr('color_extract.image_filter')
         )
 
@@ -204,10 +205,12 @@ class ColorExtractInterface(QWidget):
                 params={"path": file_path, "source": "color_extract"},
                 result="success"
             )
+            set_last_directory("image_import", str(Path(file_path).parent))
             self.image_canvas.set_image(file_path)
 
     def on_image_loaded(self, file_path):
-        """图片加载完成回调"""
+        """图片加载完成回调（由主窗口同步时调用）"""
+        # 图片数据处理已在 on_image_data_loaded 中完成
         pass
 
     def on_image_data_loaded(self, pixmap, image):
