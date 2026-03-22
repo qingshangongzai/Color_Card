@@ -309,22 +309,21 @@ class AboutDialog(BaseFramelessDialog):
     项目地址：https://github.com/enkia/tokyo-night-vscode-theme
 
 【开发工具链】
-  • 本程序使用 auto-py-to-exe 工具打包为独立的可执行文件
-    版权所有：Brent Vollebregt
-    许可证：MIT
-    项目地址：https://github.com/brentvollebregt/auto-py-to-exe
+  • 本程序使用 GitHub Actions 进行自动化构建
+    服务提供：GitHub, Inc.
+    官网：https://github.com/features/actions
 
-  • 本程序使用 PyInstaller 进行打包（auto-py-to-exe 的底层引擎）
+  • 本程序 Windows 版本使用 Nuitka 进行打包
+    版权所有：Kay Hayen
+    许可证：AGPLv3
+    项目地址：https://github.com/Nuitka/Nuitka
+    官网：https://nuitka.net/
+
+  • 本程序 macOS 版本使用 PyInstaller 进行打包
     版权所有：PyInstaller Development Team
     许可证：GPL-2.0+ with Bootloader Exception
     项目地址：https://github.com/pyinstaller/pyinstaller
     官网：https://pyinstaller.org/
-
-  • 本程序使用 UPX 工具压缩可执行文件体积
-    版权所有：Markus Oberhumer, Laszlo Molnar, John Reiser
-    许可证：GPL-2.0+ with special exceptions
-    项目地址：https://github.com/upx/upx
-    官网：https://upx.github.io/
 
   • 本程序使用 Inno Setup 工具将独立的可执行文件打包为安装程序
     版权所有：Jordan Russell
@@ -343,6 +342,7 @@ class AboutDialog(BaseFramelessDialog):
   • 感谢 PySide6 和 PyQt-Fluent-Widgets 开发团队提供的优秀框架
   • 感谢 Trae IDE 提供的 AI 辅助编程支持
   • 感谢Adobe Color、色采、palettemakel等优秀产品为我们提供的灵感和参考
+  • 感谢Github 提供GitHub Actions 自动化构建服务
 """
 
     def closeEvent(self, event):
