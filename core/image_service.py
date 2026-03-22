@@ -12,7 +12,7 @@ from typing import Optional
 
 # 第三方库导入
 from PIL import Image
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtGui import QImage, QPixmap
 
 # 项目模块导入
@@ -611,6 +611,3 @@ class ImageService(QObject):
             dict: 内存统计信息
         """
         return self._get_memory_manager().get_memory_stats()
-
-
-from PySide6.QtCore import Qt

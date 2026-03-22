@@ -209,7 +209,8 @@ class ColorExtractInterface(QWidget):
             self.image_canvas.set_image(file_path)
 
     def on_image_loaded(self, file_path):
-        """图片加载完成回调"""
+        """图片加载完成回调（由主窗口同步时调用）"""
+        # 图片数据处理已在 on_image_data_loaded 中完成
         pass
 
     def on_image_data_loaded(self, pixmap, image):

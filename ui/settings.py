@@ -11,12 +11,11 @@ from qfluentwidgets import (
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
-
+from utils.theme_colors import get_title_color
 from dialogs import AboutDialog, UpdateAvailableDialog
+from version import version_manager
 
 logger = get_logger("settings")
-from version import version_manager
-from utils.theme_colors import get_title_color
 
 
 AVAILABLE_COLOR_MODES = ['HSB', 'LAB', 'HSL', 'CMYK', 'RGB']
