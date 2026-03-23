@@ -389,6 +389,33 @@ class ColorModeSliders(QWidget):
             gradient_k.setColorAt(1.0, QColor(r2, g2, b2))
             self._sliders[3].set_gradient(gradient_k)
 
+        elif self._mode == 'LAB':
+            L, A, B = rgb_to_lab(r, g, b)
+
+            # L滑块：从黑到白（灰度）
+            gradient_l = QLinearGradient(0, 0, 200, 0)
+            l_start = lab_to_rgb(0, A, B)
+            l_end = lab_to_rgb(100, A, B)
+            gradient_l.setColorAt(0.0, QColor(*l_start))
+            gradient_l.setColorAt(1.0, QColor(*l_end))
+            self._sliders[0].set_gradient(gradient_l)
+
+            # A滑块：从绿到红
+            gradient_a = QLinearGradient(0, 0, 200, 0)
+            a_start = lab_to_rgb(L, -128, B)
+            a_end = lab_to_rgb(L, 127, B)
+            gradient_a.setColorAt(0.0, QColor(*a_start))
+            gradient_a.setColorAt(1.0, QColor(*a_end))
+            self._sliders[1].set_gradient(gradient_a)
+
+            # B滑块：从蓝到黄
+            gradient_b = QLinearGradient(0, 0, 200, 0)
+            b_start = lab_to_rgb(L, A, -128)
+            b_end = lab_to_rgb(L, A, 127)
+            gradient_b.setColorAt(0.0, QColor(*b_start))
+            gradient_b.setColorAt(1.0, QColor(*b_end))
+            self._sliders[2].set_gradient(gradient_b)
+
 
 class ColorPickerDialog(BaseFramelessDialog):
     """颜色选择器对话框"""
