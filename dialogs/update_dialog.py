@@ -3,15 +3,11 @@ import re
 from typing import List, Tuple
 
 # 第三方库导入
+import requests
 from PySide6.QtCore import Qt, QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, qconfig
-
-try:
-    import requests
-except ImportError:
-    requests = None
 
 # 项目模块导入
 from utils import tr, load_icon_universal
@@ -39,10 +35,6 @@ class UpdateCheckThread(QThread):
     def run(self):
         """在后台线程中检查更新"""
         try:
-            if requests is None:
-                self.check_finished.emit(False, "", tr('dialogs.update.error_missing_requests'))
-                return
-
             api_url = "https://gitee.com/api/v5/repos/qingshangongzai/color_card/releases/latest"
             response = requests.get(api_url, timeout=10)
 
@@ -232,16 +224,6 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             parent: 父窗口对象
             current_version: 当前版本号
         """
-        if requests is None:
-            InfoBar.warning(
-                title=tr('dialogs.update.warning'),
-                content=tr('dialogs.update.missing_requests'),
-                parent=parent,
-                duration=3000,
-                position=InfoBarPosition.TOP,
-            )
-            return
-
         # 创建并启动检查线程
         UpdateAvailableDialog._check_thread = UpdateCheckThread(current_version)
 
