@@ -182,19 +182,10 @@ class ColorModeContainer(QWidget):
         self._labels = []
         self.setup_ui()
         self._update_styles()
-        # 监听主题变化
-        self._theme_connection = qconfig.themeChangedFinished.connect(
-            self._update_styles
-        )
+        # 主题变化由父组件统一处理
 
     def closeEvent(self, event):
-        """关闭事件 - 断开信号连接"""
-        try:
-            if hasattr(self, '_theme_connection'):
-                qconfig.themeChangedFinished.disconnect(self._theme_connection)
-                delattr(self, '_theme_connection')
-        except (TypeError, RuntimeError):
-            pass
+        """关闭事件"""
         super().closeEvent(event)
 
     def setup_ui(self):

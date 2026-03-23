@@ -105,13 +105,15 @@ class PaletteManagementColorCard(QWidget):
         self._history_index = -1  # 当前历史索引
         super().__init__(parent)
         self.setup_ui()
-        # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def _update_styles(self):
         """更新样式以适配主题"""
         self._update_hex_input_style()
         self._update_color_block_style()
+        # 更新色彩模式容器的样式
+        self.mode_container_1._update_styles()
+        self.mode_container_2._update_styles()
 
     def setup_ui(self):
         """设置界面"""
@@ -479,8 +481,7 @@ class PaletteManagementCard(CardWidget):
         self.setup_ui()
         self._load_favorite_data()
         self._update_styles()
-        # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def setup_ui(self):
         """设置界面"""
@@ -564,6 +565,15 @@ class PaletteManagementCard(CardWidget):
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
         self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color.name()};")
         # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
+
+        # 批量更新所有色卡（使用 setUpdatesEnabled 减少重绘）
+        if self._color_cards:
+            self.cards_panel.setUpdatesEnabled(False)
+            try:
+                for card in self._color_cards:
+                    card._update_styles()
+            finally:
+                self.cards_panel.setUpdatesEnabled(True)
 
     def _clear_color_cards(self):
         """清空所有色卡"""
@@ -1024,7 +1034,8 @@ class PaletteManagementList(QWidget):
             self.set_color_modes(color_modes)
 
     def _update_styles(self):
-        """更新样式以适配主题"""
+        """更新样式以适配主题 - 同时通知所有子卡片"""
+        # 更新空状态标签
         if hasattr(self, '_icon_label') and self._icon_label is not None:
             try:
                 self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
@@ -1040,6 +1051,15 @@ class PaletteManagementList(QWidget):
                 self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
+
+        # 批量更新所有子卡片（使用 setUpdatesEnabled 减少重绘，符合规范7.3节）
+        if hasattr(self, 'content_widget') and self._favorite_cards:
+            self.content_widget.setUpdatesEnabled(False)
+            try:
+                for card in self._favorite_cards.values():
+                    card._update_styles()
+            finally:
+                self.content_widget.setUpdatesEnabled(True)
     
     def update_texts(self):
         """更新界面文本"""
