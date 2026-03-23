@@ -8,7 +8,7 @@ from PySide6.QtCore import QSettings
 
 # 项目模块导入
 from .icon import load_icon_universal, get_icon_path, create_fallback_icon, get_base_path
-from .platform import set_app_user_model_id, fix_windows_taskbar_icon_for_window, set_window_title_bar_theme, force_window_to_front
+from .platform import set_app_user_model_id, fix_windows_taskbar_icon_for_window, force_window_to_front
 from .layout import calculate_grid_columns
 from .locale import (
     LocaleManager,
@@ -73,7 +73,6 @@ __all__ = [
     'get_base_path',
     'set_app_user_model_id',
     'fix_windows_taskbar_icon_for_window',
-    'set_window_title_bar_theme',
     'force_window_to_front',
     'calculate_grid_columns',
     'LocaleManager',
