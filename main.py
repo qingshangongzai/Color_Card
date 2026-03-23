@@ -183,7 +183,7 @@ def main():
         from core import get_config_manager
         logger.info("core 模块导入完成")
 
-        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager
+        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager, force_window_to_front
         logger.info("utils 模块导入完成")
 
         from ui import MainWindow
@@ -228,10 +228,13 @@ def main():
         def _on_window_shown():
             if splash:
                 splash.finish(window)
+
+            # 修复任务栏图标
             fix_windows_taskbar_icon_for_window(window)
-            # 强制激活主窗口，确保在其他窗口操作后仍能弹出
-            window.activateWindow()
-            window.raise_()
+
+            # 使用 Windows API 强制将窗口带到最前
+            # 这是解决启动期间用户操作其他窗口导致主窗口不弹出的关键
+            force_window_to_front(window)
 
         QTimer.singleShot(100, _on_window_shown)
 

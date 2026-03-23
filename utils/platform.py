@@ -14,6 +14,17 @@ from .icon import get_icon_path
 # Windows DWM API 常量
 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
 
+# Windows 窗口常量
+HWND_TOPMOST = -1
+HWND_NOTOPMOST = -2
+SWP_NOSIZE = 0x0001
+SWP_NOMOVE = 0x0002
+SWP_SHOWWINDOW = 0x0040
+SWP_FRAMECHANGED = 0x0020
+
+# AllowSetForegroundWindow 常量
+ASFW_ANY = -1  # 允许任何进程设置前台窗口
+
 
 def is_windows_10() -> bool:
     """检测是否为 Windows 10 系统
@@ -193,6 +204,38 @@ def fix_windows_taskbar_icon_for_window(window) -> bool:
             return True
 
         return False
+
+    except (AttributeError, OSError, RuntimeError):
+        return False
+
+
+def force_window_to_front(window) -> bool:
+    """强制将窗口带到最前并激活"""
+    if os.name != 'nt':
+        return False
+
+    try:
+        hwnd = int(window.winId())
+        user32 = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+
+        user32.AllowSetForegroundWindow(ASFW_ANY)
+        user32.SwitchToThisWindow(hwnd, True)
+
+        fg_hwnd = user32.GetForegroundWindow()
+        fg_thread = user32.GetWindowThreadProcessId(fg_hwnd, None)
+        cur_thread = kernel32.GetCurrentThreadId()
+
+        if fg_thread != cur_thread:
+            user32.AttachThreadInput(fg_thread, cur_thread, True)
+            user32.SetForegroundWindow(hwnd)
+            user32.AttachThreadInput(fg_thread, cur_thread, False)
+        else:
+            user32.SetForegroundWindow(hwnd)
+
+        window.raise_()
+        window.activateWindow()
+        return True
 
     except (AttributeError, OSError, RuntimeError):
         return False
