@@ -90,11 +90,15 @@ class PresetColorCard(QWidget):
         self._current_color_info = None
         super().__init__(parent)
         self.setup_ui()
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def _update_styles(self):
+        """更新样式以适配主题"""
         self._update_hex_button_style()
         self._update_color_block_style()
+        # 更新色彩模式容器的样式
+        self.mode_container_1._update_styles()
+        self.mode_container_2._update_styles()
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -264,7 +268,7 @@ class PaletteCard(CardWidget):
         self.setup_ui()
         self._load_color_data()
         self._update_styles()
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -303,10 +307,20 @@ class PaletteCard(CardWidget):
         layout.addWidget(self.cards_container, stretch=1)
 
     def _update_styles(self):
+        """更新样式以适配主题 - 同时通知所有色卡"""
         name_color = get_text_color(secondary=False)
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
         # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
+
+        # 批量更新所有色卡（使用 setUpdatesEnabled 减少重绘）
+        if self._color_cards:
+            self.cards_container.setUpdatesEnabled(False)
+            try:
+                for card in self._color_cards:
+                    card._update_styles()
+            finally:
+                self.cards_container.setUpdatesEnabled(True)
 
     def _clear_color_cards(self):
         for card in self._color_cards:
@@ -450,7 +464,7 @@ class PresetColorList(QWidget):
         self._palette_counter = 0
         super().__init__(parent)
         self.setup_ui()
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -616,10 +630,21 @@ class PresetColorList(QWidget):
             self.set_color_modes(color_modes)
 
     def _update_styles(self):
+        """更新样式以适配主题 - 同时通知所有配色卡片"""
+        # 更新加载标签样式
         if hasattr(self, '_loading_label'):
             self._loading_label.setStyleSheet(
                 f"font-size: 14px; color: {get_secondary_text_color().name()}; padding: 10px;"
             )
+
+        # 批量更新所有配色卡片（使用 setUpdatesEnabled 减少重绘）
+        if self._scheme_cards:
+            self.content_widget.setUpdatesEnabled(False)
+            try:
+                for card in self._scheme_cards.values():
+                    card._update_styles()
+            finally:
+                self.content_widget.setUpdatesEnabled(True)
 
 
 # =============================================================================
@@ -775,9 +800,18 @@ class PresetColorInterface(QWidget):
         self.preset_color_list.update_display_settings(hex_visible, color_modes)
 
     def _update_styles(self):
+        """更新样式以适配主题 - 同时通知子列表"""
         title_color = get_title_color()
         self.title_label.setStyleSheet(f"color: {title_color.name()};")
+        # 更新描述标签样式
+        self.desc_label.setStyleSheet(
+            f"font-size: 12px; color: {get_secondary_text_color().name()};"
+        )
         # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
+
+        # 批量更新子列表（使用 setUpdatesEnabled 减少重绘，符合规范7.3节）
+        if hasattr(self, 'preset_color_list'):
+            self.preset_color_list._update_styles()
 
     def _on_language_changed(self):
         """语言切换回调"""
