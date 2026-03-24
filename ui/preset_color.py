@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QWidget, QLabel,
     QSizePolicy, QApplication
@@ -193,7 +193,7 @@ class PresetColorCard(QWidget):
         if self._hex_value and self._hex_value != "--":
             clipboard = QApplication.clipboard()
             clipboard.setText(self._hex_value)
-            InfoBar.success(
+            QTimer.singleShot(0, lambda: InfoBar.success(
                 title=tr('preset_color.copy_success.title'),
                 content=tr('preset_color.copy_success.content', default='颜色值 {value} 已复制到剪贴板').format(value=self._hex_value),
                 orient=Qt.Orientation.Horizontal,
@@ -201,7 +201,7 @@ class PresetColorCard(QWidget):
                 position=InfoBarPosition.TOP,
                 duration=2000,
                 parent=self.window()
-            )
+            ))
 
     def set_color_modes(self, modes):
         if len(modes) < 2:
@@ -406,7 +406,7 @@ class PaletteCard(CardWidget):
 
         self.favorite_requested.emit(favorite_data)
 
-        InfoBar.success(
+        QTimer.singleShot(0, lambda: InfoBar.success(
             title=tr('preset_color.favorite_success.title'),
             content=tr('preset_color.favorite_success.content', default='配色「{name}」已添加到配色管理').format(name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
@@ -414,7 +414,7 @@ class PaletteCard(CardWidget):
             position=InfoBarPosition.TOP,
             duration=2000,
             parent=self.window()
-        )
+        ))
 
     def _load_color_data(self):
         self.name_label.setText(self._name)
