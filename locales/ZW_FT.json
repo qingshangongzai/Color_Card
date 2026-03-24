@@ -463,7 +463,9 @@
   },
   "context_menu": {
     "change_image": "更換圖片",
-    "clear_image": "清空圖片"
+    "clear_image": "清空圖片",
+    "add_picker": "增加採樣點",
+    "remove_picker": "減少採樣點"
   },
   "common": {
     "delete": "刪除",

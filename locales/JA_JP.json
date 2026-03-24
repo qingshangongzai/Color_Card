@@ -463,7 +463,9 @@
   },
   "context_menu": {
     "change_image": "画像を変更",
-    "clear_image": "画像をクリア"
+    "clear_image": "画像をクリア",
+    "add_picker": "サンプルポイントを追加",
+    "remove_picker": "サンプルポイントを削除"
   },
   "common": {
     "delete": "削除",

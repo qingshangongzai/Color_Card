@@ -463,7 +463,9 @@
   },
   "context_menu": {
     "change_image": "Change Image",
-    "clear_image": "Clear Image"
+    "clear_image": "Clear Image",
+    "add_picker": "Add Sample Point",
+    "remove_picker": "Remove Sample Point"
   },
   "common": {
     "delete": "Delete",

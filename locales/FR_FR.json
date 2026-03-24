@@ -463,7 +463,9 @@
   },
   "context_menu": {
     "change_image": "Changer l'image",
-    "clear_image": "Effacer l'image"
+    "clear_image": "Effacer l'image",
+    "add_picker": "Ajouter un point d'échantillon",
+    "remove_picker": "Supprimer un point d'échantillon"
   },
   "common": {
     "delete": "Supprimer",
