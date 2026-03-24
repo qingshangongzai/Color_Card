@@ -420,12 +420,10 @@ class BaseCanvas(QWidget):
 
                 # 将画布坐标转换为相对坐标
                 # 公式：相对坐标 = (画布坐标 - 显示区域起点) / 显示区域尺寸
+                # 注意：画布坐标已在 ColorPicker.mouseMoveEvent 中限制在显示区域内
+                # 因此相对坐标必然在 [0.0, 1.0] 范围内，无需二次限制
                 rel_x = (new_pos.x() - disp_x) / disp_w
                 rel_y = (new_pos.y() - disp_y) / disp_h
-
-                # 限制在图片范围内（防止取色点超出图片边界）
-                rel_x = max(0.0, min(1.0, rel_x))
-                rel_y = max(0.0, min(1.0, rel_y))
 
                 # 更新相对坐标
                 self._picker_rel_positions[index] = QPointF(rel_x, rel_y)
