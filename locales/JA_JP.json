@@ -346,9 +346,9 @@
       "delete_title": "削除の確認",
       "delete_content": "「{name}」を削除してもよろしいですか？この操作は元に戻せません。",
       "import_mode_title": "インポートモードを選択",
-      "import_mode_content": "インポート方法を選択してください:\n\n「はい」をクリックすると既存のパレットに追加\n「いいえ」をクリックすると既存のパレットを置き換え",
-      "append": "追加",
-      "replace": "置き換え",
+      "import_mode_hint": "インポート方法を選択してください:",
+      "append_option": "既存のパレットに追加",
+      "replace_option": "既存のパレットを置き換え",
       "confirm_btn": "確認",
       "delete_btn": "削除",
       "cancel_btn": "キャンセル"

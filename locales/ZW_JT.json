@@ -346,10 +346,10 @@
       "delete_title": "确认删除",
       "delete_content": "确定要删除「{name}」吗？此操作不可撤销。",
       "import_mode_title": "选择导入模式",
-      "import_mode_content": "请选择导入方式：\n\n点击「是」追加到现有收藏\n点击「否」替换现有收藏",
-      "append": "追加",
-      "replace": "替换",
-      "confirm_btn": "确定",
+      "import_mode_hint": "请选择导入方式：",
+      "append_option": "追加到现有收藏",
+      "replace_option": "替换现有收藏",
+      "confirm_btn": "确认",
       "delete_btn": "删除",
       "cancel_btn": "取消"
     }

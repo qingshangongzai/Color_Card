@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
     InfoBar, InfoBarPosition, qconfig,
-    PushButton, SubtitleLabel, MessageBox
+    PushButton, SubtitleLabel
 )
 
 # 项目模块导入
@@ -24,7 +24,7 @@ from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_title_color
-from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
+from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, ImportModeDialog
 
 logger = get_logger("palette_management")
 
@@ -1258,14 +1258,12 @@ class PaletteManagementInterface(QWidget):
 
     def _on_clear_all_clicked(self):
         """清空所有按钮点击"""
-        msg_box = MessageBox(
-            tr('dialogs.confirm.clear_title'),
-            tr('dialogs.confirm.clear_content'),
+        dialog = DeleteConfirmDialog(
+            tr('palette_management.clear_all_target', default='所有收藏的配色'),
             self
         )
-        msg_box.yesButton.setText(tr('dialogs.confirm.confirm_btn'))
-        msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
-        if msg_box.exec():
+        dialog.setWindowTitle(tr('dialogs.confirm.clear_title'))
+        if dialog.exec():
             favorites_count = len(self._config_manager.get_favorites())
             self._config_manager.clear_favorites()
             self._config_manager.save()
@@ -1280,15 +1278,9 @@ class PaletteManagementInterface(QWidget):
         favorite = self._config_manager.get_favorite(favorite_id)
         palette_name = favorite.get('name', tr('palette_management.unnamed')) if favorite else tr('palette_management.unnamed')
 
-        msg_box = MessageBox(
-            tr('dialogs.confirm.delete_title'),
-            tr('dialogs.confirm.delete_content', default=f"确定要删除「{palette_name}」吗？此操作不可撤销。").format(name=palette_name),
-            self
-        )
-        msg_box.yesButton.setText(tr('dialogs.confirm.delete_btn'))
-        msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
+        dialog = DeleteConfirmDialog(palette_name, self)
 
-        if msg_box.exec():
+        if dialog.exec():
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
 
@@ -1318,20 +1310,14 @@ class PaletteManagementInterface(QWidget):
 
         self._pending_import_path = file_path
 
-        msg_box = MessageBox(
-            tr('dialogs.confirm.import_mode_title'),
-            tr('dialogs.confirm.import_mode_content'),
-            self
-        )
-        msg_box.yesButton.setText(tr('dialogs.confirm.append'))
-        msg_box.cancelButton.setText(tr('dialogs.confirm.replace'))
-
-        result = msg_box.exec()
-
-        if result == 1:
-            self._pending_import_mode = 'append'
-        else:
+        # 如果没有配色数据，直接导入（替换模式）
+        if not self._config_manager.get_favorites():
             self._pending_import_mode = 'replace'
+        else:
+            dialog = ImportModeDialog(self)
+            if not dialog.exec():
+                return
+            self._pending_import_mode = 'append' if dialog.is_append_mode() else 'replace'
 
         with log_performance("import_palette", {"file_path": file_path, "mode": self._pending_import_mode}):
             self._get_palette_service().import_from_file(file_path)

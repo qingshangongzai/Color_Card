@@ -346,9 +346,9 @@
       "delete_title": "Confirm Delete",
       "delete_content": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
       "import_mode_title": "Select Import Mode",
-      "import_mode_content": "Choose import method:\n\nClick \"Yes\" to append to existing palettes\nClick \"No\" to replace existing palettes",
-      "append": "Append",
-      "replace": "Replace",
+      "import_mode_hint": "Choose import method:",
+      "append_option": "Append to existing palettes",
+      "replace_option": "Replace existing palettes",
       "confirm_btn": "Confirm",
       "delete_btn": "Delete",
       "cancel_btn": "Cancel"
