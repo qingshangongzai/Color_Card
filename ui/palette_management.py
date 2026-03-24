@@ -675,11 +675,11 @@ class PaletteManagementCard(CardWidget):
     def _on_delete_clicked(self):
         """删除按钮点击"""
         favorite_id = self._favorite_data.get('id', '')
-        # 如果没有id，使用name作为备选标识
+        # 防御性检查：如果确实没有id，记录错误
         if not favorite_id:
-            favorite_id = self._favorite_data.get('name', '')
-        if favorite_id:
-            self.delete_requested.emit(favorite_id)
+            logger.error(f"收藏数据缺少id字段: {self._favorite_data.get('name', 'unnamed')}")
+            return
+        self.delete_requested.emit(favorite_id)
 
     def _on_preview_clicked(self):
         """预览按钮点击（色盲模拟）"""
