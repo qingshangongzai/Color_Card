@@ -346,9 +346,9 @@
       "delete_title": "Confirmer la suppression",
       "delete_content": "Voulez-vous vraiment supprimer \"{name}\"? Cette action est irréversible.",
       "import_mode_title": "Sélectionner le mode d'importation",
-      "import_mode_content": "Choisir la méthode d'importation:\n\nCliquez \"Oui\" pour ajouter aux palettes existantes\nCliquez \"Non\" pour remplacer les palettes existantes",
-      "append": "Ajouter",
-      "replace": "Remplacer",
+      "import_mode_hint": "Choisir la méthode d'importation:",
+      "append_option": "Ajouter aux palettes existantes",
+      "replace_option": "Remplacer les palettes existantes",
       "confirm_btn": "Confirmer",
       "delete_btn": "Supprimer",
       "cancel_btn": "Annuler"

@@ -346,10 +346,10 @@
       "delete_title": "確認刪除",
       "delete_content": "確定要刪除「{name}」嗎？此操作不可復原。",
       "import_mode_title": "選擇導入模式",
-      "import_mode_content": "請選擇導入方式：\n\n點擊「是」追加到現有收藏\n點擊「否」取代現有收藏",
-      "append": "追加",
-      "replace": "取代",
-      "confirm_btn": "確定",
+      "import_mode_hint": "請選擇導入方式：",
+      "append_option": "追加到現有收藏",
+      "replace_option": "取代現有收藏",
+      "confirm_btn": "確認",
       "delete_btn": "刪除",
       "cancel_btn": "取消"
     }
