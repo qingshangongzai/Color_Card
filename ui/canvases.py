@@ -46,6 +46,7 @@ class BaseCanvas(QWidget):
     change_image_requested = Signal()  # 信号：请求更换图片
     clear_image_requested = Signal()  # 信号：请求清空图片
     image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
+    picker_count_changed = Signal(int)  # 信号：采样点数量改变
 
     def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
         super().__init__(parent)
@@ -372,6 +373,9 @@ class BaseCanvas(QWidget):
         if self._image and not self._image.isNull():
             self.extract_all()
 
+        # 发射采样点数量改变信号
+        self.picker_count_changed.emit(count)
+
     def _on_picker_added(self, index: int) -> None:
         """添加取色点时的回调
 
@@ -646,7 +650,6 @@ class BaseCanvas(QWidget):
 
     def contextMenuEvent(self, event) -> None:
         """右键菜单事件"""
-        # 只有在有图片时才显示右键菜单
         if self._original_pixmap is None or self._original_pixmap.isNull():
             return
 
@@ -659,6 +662,18 @@ class BaseCanvas(QWidget):
         clear_action = Action(FluentIcon.DELETE, tr('context_menu.clear_image'))
         clear_action.triggered.connect(self.clear_image_requested.emit)
         menu.addAction(clear_action)
+
+        menu.addSeparator()
+
+        if self._picker_count < 6:
+            add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
+            add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
+            menu.addAction(add_action)
+
+        if self._picker_count > 2:
+            remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
+            remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
+            menu.addAction(remove_action)
 
         menu.exec(event.globalPos())
 

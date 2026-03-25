@@ -575,6 +575,14 @@ class MainWindow(FluentWindow):
             self._on_luminance_sample_count_changed
         )
 
+        # 连接画布采样点数量改变信号（从右键菜单调整）
+        self.color_extract_interface.image_canvas.picker_count_changed.connect(
+            self._on_canvas_picker_count_changed
+        )
+        self.luminance_extract_interface.luminance_canvas.picker_count_changed.connect(
+            self._on_luminance_canvas_picker_count_changed
+        )
+
         # 连接直方图缩放模式改变信号
         self.settings_interface.histogram_scaling_mode_changed.connect(
             self._on_histogram_scaling_mode_changed
@@ -703,6 +711,31 @@ class MainWindow(FluentWindow):
         self.luminance_extract_interface.luminance_canvas.set_picker_count(count)
         self.luminance_extract_interface.histogram_widget.clear()
         # 如果有图片，重新计算直方图
+        image = self.luminance_extract_interface.luminance_canvas.get_image()
+        if image and not image.isNull():
+            self.luminance_extract_interface.histogram_widget.set_image(image)
+
+    def _on_canvas_picker_count_changed(self, count):
+        """画布采样点数量改变（从右键菜单调整）"""
+        # 更新配置
+        self._config_manager.set('settings.color_sample_count', count)
+        # 更新设置界面显示
+        self.settings_interface.color_sample_count_card.combo_box.setCurrentText(str(count))
+        # 更新色卡面板（必须先于重新提取颜色）
+        self.color_extract_interface.color_card_panel.set_card_count(count)
+        # 更新HSB色环
+        self.color_extract_interface.hsb_color_wheel.set_sample_count(count)
+        # 重新提取所有颜色（新添加的采样点需要更新颜色）
+        self.color_extract_interface.image_canvas.extract_all()
+
+    def _on_luminance_canvas_picker_count_changed(self, count):
+        """明度画布采样点数量改变（从右键菜单调整）"""
+        # 更新配置
+        self._config_manager.set('settings.luminance_sample_count', count)
+        # 更新设置界面显示
+        self.settings_interface.luminance_sample_count_card.combo_box.setCurrentText(str(count))
+        # 更新直方图
+        self.luminance_extract_interface.histogram_widget.clear()
         image = self.luminance_extract_interface.luminance_canvas.get_image()
         if image and not image.isNull():
             self.luminance_extract_interface.histogram_widget.set_image(image)
