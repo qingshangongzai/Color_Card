@@ -268,30 +268,22 @@ class ConfigManager:
         """获取单个收藏项
 
         Args:
-            favorite_id: 收藏ID或名称（当没有id时）
+            favorite_id: 收藏ID
 
         Returns:
             Optional[Dict[str, Any]]: 收藏数据字典，未找到返回None
         """
         favorites = self._config.get("favorites", [])
-
-        # 先尝试根据id查找
         for favorite in favorites:
             if favorite.get("id") == favorite_id:
                 return favorite
-
-        # 如果没有找到，尝试根据name查找（兼容旧数据）
-        for favorite in favorites:
-            if favorite.get("name") == favorite_id:
-                return favorite
-
         return None
 
     def add_favorite(self, favorite_data: Dict[str, Any]) -> str:
         """添加收藏
 
         Args:
-            favorite_data: 收藏数据字典
+            favorite_data: 收藏数据字典，必须包含id字段
 
         Returns:
             str: 收藏ID
@@ -299,11 +291,13 @@ class ConfigManager:
         if "favorites" not in self._config:
             self._config["favorites"] = []
 
-        favorites = self._config["favorites"]
-        favorite_id = favorite_data.get("id", "")
+        favorite_id = favorite_data["id"]
 
-        if favorite_id and any(f.get("id") == favorite_id for f in favorites):
-            return favorite_id
+        # 检查是否已存在
+        for i, existing in enumerate(self._config["favorites"]):
+            if existing.get("id") == favorite_id:
+                self._config["favorites"][i] = favorite_data
+                return favorite_id
 
         self._config["favorites"].append(favorite_data)
         return favorite_id
@@ -312,7 +306,7 @@ class ConfigManager:
         """删除收藏
 
         Args:
-            favorite_id: 收藏ID或名称（当没有id时）
+            favorite_id: 收藏ID
 
         Returns:
             bool: 是否删除成功
@@ -320,15 +314,11 @@ class ConfigManager:
         if "favorites" not in self._config:
             return False
 
-        favorites = self._config["favorites"]
-        original_count = len(favorites)
-
-        # 先尝试根据id删除
-        self._config["favorites"] = [f for f in favorites if f.get("id") != favorite_id]
-
-        # 如果没有删除任何项，尝试根据name删除（兼容旧数据）
-        if len(self._config["favorites"]) == original_count:
-            self._config["favorites"] = [f for f in favorites if f.get("name") != favorite_id]
+        original_count = len(self._config["favorites"])
+        self._config["favorites"] = [
+            f for f in self._config["favorites"]
+            if f.get("id") != favorite_id
+        ]
 
         return len(self._config["favorites"]) < original_count
 
