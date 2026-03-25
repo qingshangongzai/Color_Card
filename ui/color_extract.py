@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 # 第三方库导入
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QSplitter, QStackedWidget,
     QSizePolicy, QVBoxLayout, QWidget
@@ -276,7 +276,7 @@ class ColorExtractInterface(QWidget):
                 colors.append(card._current_color_info)
 
         if not colors:
-            InfoBar.warning(
+            QTimer.singleShot(0, lambda: InfoBar.warning(
                 title=tr('messages.favorite_failed.title'),
                 content=tr('messages.favorite_failed.content'),
                 orient=Qt.Orientation.Horizontal,
@@ -284,7 +284,7 @@ class ColorExtractInterface(QWidget):
                 position=InfoBarPosition.TOP,
                 duration=2000,
                 parent=self.window()
-            )
+            ))
             return
 
         # 复制颜色数据，避免引用问题
@@ -336,7 +336,7 @@ class ColorExtractInterface(QWidget):
         if window and hasattr(window, 'refresh_palette_management'):
             window.refresh_palette_management()
 
-        InfoBar.success(
+        QTimer.singleShot(0, lambda: InfoBar.success(
             title=tr('messages.favorite_success.title'),
             content=tr('messages.favorite_success.content').format(name=favorite_data['name']),
             orient=Qt.Orientation.Horizontal,
@@ -344,13 +344,13 @@ class ColorExtractInterface(QWidget):
             position=InfoBarPosition.TOP,
             duration=2000,
             parent=self.window()
-        )
+        ))
 
     def _on_extract_dominant_clicked(self):
         """主色调提取按钮点击回调"""
         image = self.image_canvas.get_image()
         if not image or image.isNull():
-            InfoBar.warning(
+            QTimer.singleShot(0, lambda: InfoBar.warning(
                 title=tr('messages.extract_failed.title'),
                 content=tr('messages.extract_failed.content'),
                 orient=Qt.Orientation.Horizontal,
@@ -358,7 +358,7 @@ class ColorExtractInterface(QWidget):
                 position=InfoBarPosition.TOP,
                 duration=2000,
                 parent=self.window()
-            )
+            ))
             return
 
         count = self._config_manager.get('settings.color_sample_count', 5)
@@ -371,7 +371,7 @@ class ColorExtractInterface(QWidget):
 
     def _on_extraction_started(self):
         """提取开始回调"""
-        InfoBar.info(
+        QTimer.singleShot(0, lambda: InfoBar.info(
             title=tr('messages.extracting.title'),
             content=tr('messages.extracting.content'),
             orient=Qt.Orientation.Horizontal,
@@ -379,7 +379,7 @@ class ColorExtractInterface(QWidget):
             position=InfoBarPosition.TOP,
             duration=2000,
             parent=self.window()
-        )
+        ))
 
         self.extract_dominant_button.setEnabled(False)
         self.extract_dominant_button.setText(tr('color_extract.extracting'))
@@ -408,7 +408,7 @@ class ColorExtractInterface(QWidget):
             if i < count:
                 self.hsb_color_wheel.update_sample_point(i, rgb)
 
-        InfoBar.success(
+        QTimer.singleShot(0, lambda: InfoBar.success(
             title=tr('messages.extract_success.title'),
             content=tr('messages.extract_success.content').format(count=len(dominant_colors)),
             orient=Qt.Orientation.Horizontal,
@@ -416,7 +416,7 @@ class ColorExtractInterface(QWidget):
             position=InfoBarPosition.TOP,
             duration=2000,
             parent=self.window()
-        )
+        ))
 
     def _on_extraction_error(self, error_message):
         """主色调提取失败回调
@@ -426,7 +426,7 @@ class ColorExtractInterface(QWidget):
         """
         self._reset_extract_button()
 
-        InfoBar.error(
+        QTimer.singleShot(0, lambda: InfoBar.error(
             title=tr('messages.extract_error.title'),
             content=tr('messages.extract_error.content').format(error=error_message),
             orient=Qt.Orientation.Horizontal,
@@ -434,13 +434,13 @@ class ColorExtractInterface(QWidget):
             position=InfoBarPosition.TOP,
             duration=3000,
             parent=self.window()
-        )
+        ))
 
     def _on_high_saturation_pressed(self):
         """高饱和度区域按钮按下回调"""
         image = self.image_canvas.get_image()
         if not image or image.isNull():
-            InfoBar.warning(
+            QTimer.singleShot(0, lambda: InfoBar.warning(
                 title=tr('messages.display_failed.title'),
                 content=tr('messages.display_failed.content'),
                 orient=Qt.Orientation.Horizontal,
@@ -448,7 +448,7 @@ class ColorExtractInterface(QWidget):
                 position=InfoBarPosition.TOP,
                 duration=2000,
                 parent=self.window()
-            )
+            ))
             return
 
         self.image_canvas.toggle_high_saturation_highlight(True)
@@ -461,7 +461,7 @@ class ColorExtractInterface(QWidget):
         """高明度区域按钮按下回调"""
         image = self.image_canvas.get_image()
         if not image or image.isNull():
-            InfoBar.warning(
+            QTimer.singleShot(0, lambda: InfoBar.warning(
                 title=tr('messages.display_failed.title'),
                 content=tr('messages.display_failed.content'),
                 orient=Qt.Orientation.Horizontal,
@@ -469,7 +469,7 @@ class ColorExtractInterface(QWidget):
                 position=InfoBarPosition.TOP,
                 duration=2000,
                 parent=self.window()
-            )
+            ))
             return
 
         self.image_canvas.toggle_high_brightness_highlight(True)
