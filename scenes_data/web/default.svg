@@ -36,5 +36,5 @@
 
   <!-- 页脚 -->
   <rect id="footer" class="primary" x="0" y="195" width="400" height="25" fill="#2a2a2a"/>
-  <text id="footer-text" class="text" x="200" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">© 2026 Color Card. All rights reserved.</text>
+  <text id="footer-text" class="text" x="200" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">© 2026 色卡工具. 保留所有权利.</text>
 </svg>

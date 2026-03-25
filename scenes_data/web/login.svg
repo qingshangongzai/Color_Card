@@ -17,7 +17,7 @@
   <!-- 右侧登录表单区域 -->
   <!-- Logo -->
   <rect id="logo" class="accent" x="260" y="40" width="60" height="24" rx="4" fill="#6c5ce7"/>
-  <text id="logo-text" class="text" x="290" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">LOGIN</text>
+  <text id="logo-text" class="text" x="290" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">登录</text>
 
   <!-- 标题 -->
   <text id="form-title" class="text" x="290" y="100" text-anchor="middle" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="#2d3436" data-fixed-color="black">账号登录</text>

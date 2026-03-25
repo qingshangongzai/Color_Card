@@ -3,7 +3,7 @@
   <rect id="background" class="background" width="400" height="300" fill="#ffffff"/>
 
   <!-- 极简头部 -->
-  <text id="logo" class="text" x="40" y="40" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#2d3436" data-fixed-color="black">PORTFOLIO</text>
+  <text id="logo" class="text" x="40" y="40" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#2d3436" data-fixed-color="black">作品集</text>
 
   <!-- 导航 -->
   <text id="nav-work" class="text" x="280" y="40" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">作品</text>

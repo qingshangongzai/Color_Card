@@ -17,10 +17,10 @@
   <rect id="product-deco-3" class="secondary" x="115" y="118" width="20" height="6" rx="2" fill="#b2bec3"/>
 
   <!-- 右侧内容区 -->
-  <text id="brand-name" class="text" x="240" y="60" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#636e72" data-fixed-color="black">TECHBRAND</text>
+  <text id="brand-name" class="text" x="240" y="60" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#636e72" data-fixed-color="black">科技品牌</text>
 
-  <text id="product-name" class="text" x="240" y="95" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#2d3436" data-fixed-color="black">Smart</text>
-  <text id="product-name-2" class="accent" x="240" y="125" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#ff6b6b" data-fixed-color="black">Device X</text>
+  <text id="product-name" class="text" x="240" y="95" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#2d3436" data-fixed-color="black">智能</text>
+  <text id="product-name-2" class="accent" x="240" y="125" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#ff6b6b" data-fixed-color="black">设备 X</text>
 
   <!-- 卖点列表 -->
   <g id="feature-1">
@@ -39,14 +39,14 @@
   </g>
 
   <!-- 价格区 -->
-  <text id="price-label" class="secondary" x="240" y="235" font-family="Arial, sans-serif" font-size="10" fill="#636e72" data-fixed-color="black">Starting at</text>
-  <text id="price-value" class="text" x="240" y="260" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#2d3436" data-fixed-color="black">$299</text>
-  <text id="price-old" class="secondary" x="330" y="255" font-family="Arial, sans-serif" font-size="12" fill="#b2bec3" data-fixed-color="black">$399</text>
+  <text id="price-label" class="secondary" x="240" y="235" font-family="Arial, sans-serif" font-size="10" fill="#636e72" data-fixed-color="black">起售价</text>
+  <text id="price-value" class="text" x="240" y="260" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#2d3436" data-fixed-color="black">¥2,199</text>
+  <text id="price-old" class="secondary" x="330" y="255" font-family="Arial, sans-serif" font-size="12" fill="#b2bec3" data-fixed-color="black">¥2,999</text>
   <line id="price-strike" x1="325" y1="250" x2="355" y2="250" stroke="#b2bec3" stroke-width="1"/>
 
   <!-- 购买按钮 -->
   <rect id="buy-btn" class="accent" x="240" y="270" width="120" height="25" rx="4" fill="#ff6b6b"/>
-  <text id="buy-text" class="text" x="300" y="287" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" data-fixed-color="black">BUY NOW</text>
+  <text id="buy-text" class="text" x="300" y="287" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#ffffff" data-fixed-color="black">立即购买</text>
 
   <!-- 底部装饰 -->
   <rect id="bottom-accent" class="accent" x="0" y="290" width="400" height="10" fill="#ff6b6b"/>

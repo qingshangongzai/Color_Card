@@ -13,7 +13,7 @@
   
   <!-- 包装盒1上的文字 -->
   <text id="box-1-brand" class="text" x="110" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">BRAND</text>
-  <text id="box-1-product" class="secondary" x="110" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">Premium Product</text>
+  <text id="box-1-product" class="secondary" x="110" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">优质产品</text>
   
   <!-- 包装盒1底部装饰 -->
   <rect id="box-1-bottom-bar" class="primary" x="60" y="170" width="100" height="8" rx="2" fill="#dddddd"/>
@@ -26,8 +26,8 @@
   
   <!-- 包装盒2上的文字 -->
   <text id="box-2-brand" class="text" x="265" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">BRAND</text>
-  <text id="box-2-size" class="secondary" x="265" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">Size: M</text>
-  <text id="box-2-weight" class="text" x="265" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#999999" data-fixed-color="black">250g / 8.8oz</text>
+  <text id="box-2-size" class="secondary" x="265" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">尺寸: M</text>
+  <text id="box-2-weight" class="text" x="265" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#999999" data-fixed-color="black">250克</text>
   
   <!-- 购物袋 -->
   <rect id="bag" class="secondary" x="320" y="80" width="70" height="100" rx="4" fill="#ffffff"/>
@@ -40,18 +40,18 @@
   
   <!-- 购物袋上的文字 -->
   <text id="bag-brand" class="text" x="355" y="135" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">BRAND</text>
-  <text id="bag-tagline" class="secondary" x="355" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">Thank You</text>
+  <text id="bag-tagline" class="secondary" x="355" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">感谢您的惠顾</text>
   
   <!-- 底部标签展示 -->
   <rect id="label-1" class="secondary" x="40" y="240" width="100" height="40" rx="4" fill="#ffffff"/>
   <rect id="label-1-bar" class="accent" x="40" y="240" width="8" height="40" rx="2" fill="#ff6b6b"/>
-  <text id="label-1-text" class="text" x="90" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">Product Label</text>
+  <text id="label-1-text" class="text" x="90" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">产品标签</text>
   
   <rect id="label-2" class="secondary" x="160" y="240" width="100" height="40" rx="4" fill="#ffffff"/>
   <rect id="label-2-bar" class="primary" x="160" y="240" width="8" height="40" rx="2" fill="#1a1a1a"/>
-  <text id="label-2-text" class="text" x="210" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">Sticker Label</text>
+  <text id="label-2-text" class="text" x="210" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">贴纸标签</text>
   
   <rect id="label-3" class="secondary" x="280" y="240" width="100" height="40" rx="20" fill="#ffffff"/>
   <circle id="label-3-dot" class="accent" cx="300" cy="260" r="8" fill="#ff6b6b"/>
-  <text id="label-3-text" class="text" x="340" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">Seal</text>
+  <text id="label-3-text" class="text" x="340" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">封条</text>
 </svg>

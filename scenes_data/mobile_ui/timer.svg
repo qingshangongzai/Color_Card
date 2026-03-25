@@ -15,8 +15,8 @@
   <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
 
   <!-- 页面标题 -->
-  <text id="page-title" class="text" x="150" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333333" data-fixed-color="black">Current Session</text>
-  <text id="page-subtitle" class="text" x="150" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">Medium Intensity</text>
+  <text id="page-title" class="text" x="150" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#333333" data-fixed-color="black">当前训练</text>
+  <text id="page-subtitle" class="text" x="150" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">中等强度</text>
 
   <!-- 中央大圆形进度条 - 缩小半径确保在屏幕内 -->
   <circle id="timer-bg" class="secondary" cx="150" cy="195" r="48" fill="none" stroke="#e8e8e8" stroke-width="8"/>
@@ -34,12 +34,12 @@
   <rect id="pause-r" x="152" y="219" width="3" height="12" rx="1" fill="#666666" data-fixed-color="black"/>
 
   <!-- 目标时间 -->
-  <text id="target-label" class="text" x="150" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">Target</text>
-  <text id="target-time" class="text" x="150" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333333" data-fixed-color="black">45 min</text>
+  <text id="target-label" class="text" x="150" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">目标</text>
+  <text id="target-time" class="text" x="150" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#333333" data-fixed-color="black">45 分钟</text>
 
   <!-- 底部取消按钮 - 调整位置 -->
   <rect id="cancel-btn" class="primary" x="105" y="320" width="90" height="30" rx="15" fill="#4a4a4a"/>
-  <text id="cancel-text" class="text" x="150" y="339" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" data-fixed-color="black">Cancel</text>
+  <text id="cancel-text" class="text" x="150" y="339" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" data-fixed-color="black">取消</text>
 
   <!-- 装饰性背景色块 - 左下角 -->
   <path id="deco-left" class="secondary" d="M 80 250 Q 105 270 80 300 Z" fill="#c8e0c8" opacity="0.5"/>

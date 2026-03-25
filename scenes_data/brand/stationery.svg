@@ -12,7 +12,7 @@
   <rect id="card" class="secondary" x="210" y="30" width="160" height="90" rx="4" fill="#ffffff"/>
   <rect id="card-stripe" class="accent" x="210" y="30" width="8" height="90" rx="2" fill="#ff6b6b"/>
   <text id="card-name" class="text" x="230" y="60" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">Jane Smith</text>
-  <text id="card-title" class="secondary" x="230" y="78" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">Creative Director</text>
+  <text id="card-title" class="secondary" x="230" y="78" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">创意总监</text>
   <text id="card-contact" class="text" x="230" y="95" font-family="Arial, sans-serif" font-size="8" fill="#999999" data-fixed-color="black">jane@brand.com</text>
   
   <!-- 信纸 -->
@@ -35,5 +35,5 @@
   <rect id="color-4" class="text" x="305" y="195" width="50" height="40" rx="2" fill="#999999"/>
   
   <!-- 底部文字 -->
-  <text id="stationery-label" class="text" x="280" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">Brand Stationery</text>
+  <text id="stationery-label" class="text" x="280" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">品牌文具</text>
 </svg>
