@@ -4,14 +4,14 @@ from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect
+from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect, QMimeData
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication, QDialog
 )
-from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent
+from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent, QDrag, QPixmap
 from qfluentwidgets import (
     LineEdit, PrimaryPushButton, PushButton, ToolButton, FluentIcon,
-    ScrollArea, qconfig
+    ScrollArea, qconfig, isDarkTheme
 )
 # 项目模块导入
 from core import (
@@ -759,6 +759,160 @@ class ColorPickerDialog(BaseFramelessDialog):
 
 
 
+class ColorInputContainer(QWidget):
+    """颜色输入容器，支持拖拽排序"""
+
+    def __init__(self, dialog, parent=None):
+        self._dialog = dialog
+        self._target_row_index = -1  # 当前高亮的目标行索引
+        super().__init__(parent)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        """接受拖拽进入"""
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+            self._target_row_index = -1
+            self.update()
+
+    def dragMoveEvent(self, event):
+        """处理拖拽移动，更新高亮行"""
+        if not event.mimeData().hasText():
+            return
+
+        event.acceptProposedAction()
+
+        drop_pos = event.position().toPoint()
+        target_index = self._calculate_target_index(drop_pos)
+
+        if target_index != self._target_row_index:
+            self._target_row_index = target_index
+            self.update()
+
+    def dragLeaveEvent(self, event):
+        """拖拽离开，隐藏高亮"""
+        self._target_row_index = -1
+        self.update()
+
+    def dropEvent(self, event):
+        """处理放置，交换颜色信息"""
+        event.acceptProposedAction()
+
+        self._target_row_index = -1
+        self.update()
+
+        mime_data = event.mimeData()
+        if not mime_data.hasText():
+            return
+
+        try:
+            source_index = int(mime_data.text())
+        except ValueError:
+            return
+
+        # 计算目标索引（放置在哪一行的颜色块上）
+        drop_pos = event.position().toPoint()
+        target_index = self._calculate_target_index(drop_pos)
+
+        # 执行颜色交换
+        if target_index != source_index and 0 <= target_index < len(self._dialog._color_rows):
+            self._dialog._swap_colors(source_index, target_index)
+
+    def paintEvent(self, event):
+        """绘制高亮指示器"""
+        super().paintEvent(event)
+
+        if 0 <= self._target_row_index < len(self._dialog._color_rows):
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+            target_row = self._dialog._color_rows[self._target_row_index]
+            row_rect = target_row.geometry()
+
+            # 高亮颜色（蓝色系）
+            indicator_color = QColor(0, 120, 215) if not isDarkTheme() else QColor(0, 150, 255)
+
+            # 绘制行高亮背景
+            highlight_rect = row_rect.adjusted(-4, -2, 4, 2)
+            glow_color = QColor(indicator_color)
+            glow_color.setAlpha(40)
+            painter.fillRect(highlight_rect, glow_color)
+
+            # 绘制边框
+            painter.setPen(QPen(indicator_color, 2))
+            painter.drawRoundedRect(highlight_rect, 4, 4)
+
+    def _calculate_target_index(self, pos: QPoint) -> int:
+        """计算目标行索引
+
+        Args:
+            pos: 放置位置（相对于容器的局部坐标）
+
+        Returns:
+            int: 目标行索引
+        """
+        if not self._dialog._color_rows:
+            return 0
+
+        for i, row in enumerate(self._dialog._color_rows):
+            row_rect = row.geometry()
+            # 检查是否在该行的垂直范围内
+            if row_rect.top() <= pos.y() <= row_rect.bottom():
+                return i
+
+        # 如果不在任何行内，返回最后一行
+        return len(self._dialog._color_rows) - 1
+
+
+class DraggableColorBlock(QLabel):
+    """可拖拽的颜色块组件"""
+
+    drag_started = Signal()  # 拖拽开始信号
+
+    def __init__(self, row_index: int, parent=None):
+        self._row_index = row_index
+        self._drag_start_pos = QPoint()
+        super().__init__(parent)
+        self.setFixedSize(28, 28)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_start_pos = event.pos()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动事件 - 处理拖拽"""
+        if not (event.buttons() & Qt.MouseButton.LeftButton):
+            return
+
+        if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
+            return
+
+        drag = QDrag(self)
+        mime_data = QMimeData()
+        mime_data.setText(str(self._row_index))
+        drag.setMimeData(mime_data)
+
+        # 创建拖拽时的预览图像
+        pixmap = QPixmap(self.size())
+        self.render(pixmap)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(QPoint(self.width() // 2, self.height() // 2))
+
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        drag.exec(Qt.DropAction.MoveAction)
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
+            # 短按触发点击，打开颜色选择器
+            if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
+                self.drag_started.emit()
+
+
 class ColorInputRow(QWidget):
     """颜色输入行组件"""
 
@@ -803,13 +957,10 @@ class ColorInputRow(QWidget):
         self.hex_input.textChanged.connect(self._on_hex_changed)
         layout.addWidget(self.hex_input)
 
-        # 颜色预览块
-        self.preview_block = QLabel()
-        self.preview_block.setFixedSize(28, 28)
+        # 颜色预览块（可拖拽）
+        self.preview_block = DraggableColorBlock(self._index)
+        self.preview_block.drag_started.connect(self._on_color_block_clicked)
         self._update_preview_style(None)
-        # 安装事件过滤器以捕获右键点击
-        self.preview_block.installEventFilter(self)
-        self.preview_block.setCursor(Qt.CursorShape.PointingHandCursor)
         layout.addWidget(self.preview_block)
 
         # 删除按钮
@@ -820,13 +971,9 @@ class ColorInputRow(QWidget):
 
         layout.addStretch()
 
-    def eventFilter(self, obj, event):
-        """事件过滤器处理左键点击"""
-        if obj == self.preview_block and event.type() == event.Type.MouseButtonPress:
-            if event.button() == Qt.MouseButton.LeftButton:
-                self._open_color_picker()
-                return True
-        return super().eventFilter(obj, event)
+    def _on_color_block_clicked(self):
+        """颜色块被点击（短按）"""
+        self._open_color_picker()
 
     def _open_color_picker(self):
         """打开颜色选择器对话框"""
@@ -1037,7 +1184,7 @@ class EditPaletteDialog(BaseFramelessDialog):
         corner_widget.setStyleSheet("background: transparent;")
         self.scroll_area.setCornerWidget(corner_widget)
 
-        self.colors_container = QWidget()
+        self.colors_container = ColorInputContainer(self)
         self.colors_container.setStyleSheet("background: transparent;")
         self.colors_layout = QVBoxLayout(self.colors_container)
         self.colors_layout.setContentsMargins(0, 0, 0, 0)
@@ -1110,6 +1257,31 @@ class EditPaletteDialog(BaseFramelessDialog):
         # 更新剩余行的序号
         for i, r in enumerate(self._color_rows):
             r.set_index(i)
+
+    def _swap_colors(self, from_index: int, to_index: int):
+        """交换两行颜色信息
+
+        Args:
+            from_index: 源行索引
+            to_index: 目标行索引
+        """
+        if not (0 <= from_index < len(self._color_rows)):
+            return
+        if not (0 <= to_index < len(self._color_rows)):
+            return
+        if from_index == to_index:
+            return
+
+        # 获取两行的颜色信息
+        source_row = self._color_rows[from_index]
+        target_row = self._color_rows[to_index]
+
+        source_color_info = source_row.get_color_info()
+        target_color_info = target_row.get_color_info()
+
+        # 交换颜色信息
+        target_row.set_color_info(source_color_info) if source_color_info else target_row.set_color_info({})
+        source_row.set_color_info(target_color_info) if target_color_info else source_row.set_color_info({})
 
     def _load_palette_data(self):
         """加载已有配色数据（编辑模式）"""
