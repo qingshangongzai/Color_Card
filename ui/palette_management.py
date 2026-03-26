@@ -1445,9 +1445,9 @@ class PaletteManagementInterface(QWidget):
         self.group_combo.setVisible(True)
         self.batch_toolbar.setVisible(False)
 
-        # 恢复到之前的分组，不重新加载
-        if hasattr(self, '_batch_mode_group_index') and self._batch_mode_group_index >= 0:
-            self.group_combo.setCurrentIndex(self._batch_mode_group_index)
+        # 同步批量模式下拉框的当前索引到普通模式
+        batch_current_index = self.group_combo_batch.currentIndex()
+        self.group_combo.setCurrentIndex(batch_current_index)
 
     def _on_delete_selected_clicked(self):
         """删除选中按钮点击"""
