@@ -851,16 +851,15 @@ class ColorInputRow(QWidget):
 
     def _update_preview_style(self, color_info):
         """更新预览块样式"""
-        border_color = get_border_color()
         if color_info:
             rgb = color_info.get('rgb', [0, 0, 0])
             color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
             self.preview_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
         else:
             self.preview_block.setStyleSheet(
-                f"background-color: transparent; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: transparent; border-radius: 4px;"
             )
 
     def _on_hex_changed(self, text: str):

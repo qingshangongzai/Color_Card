@@ -161,9 +161,8 @@ class PresetColorCard(QWidget):
         if self._current_color_info:
             rgb = self._current_color_info.get('rgb', [0, 0, 0])
             color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-            border_color = get_border_color()
             self.color_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
         else:
             self._update_placeholder_style()
@@ -219,9 +218,8 @@ class PresetColorCard(QWidget):
 
         rgb = color_info.get('rgb', [0, 0, 0])
         color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            f"background-color: {color_str}; border-radius: 4px;"
         )
 
         hex_value = color_info.get('hex', '--')
