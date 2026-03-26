@@ -337,9 +337,9 @@ class BaseCanvas(QWidget):
         """设置取色点数量
 
         Args:
-            count: 取色点数量 (2-6)
+            count: 取色点数量 (2-8)
         """
-        if count < 2 or count > 6:
+        if count < 2 or count > 8:
             return
 
         if count == self._picker_count:
@@ -665,7 +665,7 @@ class BaseCanvas(QWidget):
 
         menu.addSeparator()
 
-        if self._picker_count < 6:
+        if self._picker_count < 8:
             add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
             add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
             menu.addAction(add_action)
@@ -1245,7 +1245,7 @@ class LuminanceCanvas(BaseCanvas):
             picker.drag_finished.connect(self._on_picker_drag_finished)
             picker.hide()  # 初始隐藏
             self._pickers.append(picker)
-            self._picker_positions.append(QPoint(100 + i * 100, 100))
+            self._picker_positions.append(QPoint(100 + i * 80, 100))
             self._picker_rel_positions.append(QPointF(0.5, 0.5))  # 默认在图片中心
             self._picker_zones.append("0-1")
 
