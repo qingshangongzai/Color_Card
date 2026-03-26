@@ -77,7 +77,16 @@
     "export_title": "パレットをエクスポート",
     "json_filter": "JSONファイル (*.json);;すべてのファイル (*)",
     "export_ase_title": "ASEスウォッチをエクスポート",
-    "ase_filter": "ASEファイル (*.ase);;すべてのファイル (*)"
+    "ase_filter": "ASEファイル (*.ase);;すべてのファイル (*)",
+    "batch_manage": "一括管理",
+    "select_all": "すべて選択",
+    "clear_selection": "選択解除",
+    "delete_selected": "選択項目を削除",
+    "done": "完了",
+    "delete_confirm_title": "削除の確認",
+    "delete_confirm_content": "選択した {count} 個のパレットを削除してもよろしいですか？",
+    "delete_success": "{count} 個のパレットを削除しました",
+    "no_selection": "削除するパレットを選択してください"
   },
   "color_preview": {
     "title": "カラープレビュー",
@@ -459,7 +468,13 @@
       "title": "情報",
       "content": "requestsライブラリがありません。更新を確認できません"
     },
-    "palette": "パレット"
+    "palette": "パレット",
+    "success": {
+      "title": "成功"
+    },
+    "warning": {
+      "title": "警告"
+    }
   },
   "context_menu": {
     "change_image": "画像を変更",

@@ -77,7 +77,17 @@
     "export_title": "Экспорт палитр",
     "json_filter": "JSON файлы (*.json);;Все файлы (*)",
     "export_ase_title": "Экспорт ASE палитры",
-    "ase_filter": "ASE файлы (*.ase);;Все файлы (*)"
+    "ase_filter": "ASE файлы (*.ase);;Все файлы (*)",
+    "palette": "Палитра",
+    "batch_manage": "Пакетное управление",
+    "select_all": "Выбрать все",
+    "clear_selection": "Снять выделение",
+    "delete_selected": "Удалить выбранное",
+    "done": "Готово",
+    "delete_confirm_title": "Подтвердить удаление",
+    "delete_confirm_content": "Вы уверены, что хотите удалить {count} выбранных палитр?",
+    "delete_success": "Удалено {count} палитр",
+    "no_selection": "Пожалуйста, сначала выберите палитры для удаления"
   },
   "color_preview": {
     "title": "Предпросмотр цвета",
@@ -459,7 +469,13 @@
       "title": "Информация",
       "content": "Отсутствует библиотека requests, невозможно проверить обновления"
     },
-    "palette": "Палитра"
+    "palette": "Палитра",
+    "success": {
+      "title": "Успех"
+    },
+    "warning": {
+      "title": "Предупреждение"
+    }
   },
   "context_menu": {
     "change_image": "Изменить изображение",

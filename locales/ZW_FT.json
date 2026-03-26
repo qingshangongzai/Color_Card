@@ -77,7 +77,16 @@
     "export_title": "導出收藏",
     "json_filter": "JSON 文件 (*.json);;所有文件 (*)",
     "export_ase_title": "導出 ASE 色板",
-    "ase_filter": "ASE 文件 (*.ase);;所有文件 (*)"
+    "ase_filter": "ASE 文件 (*.ase);;所有文件 (*)",
+    "batch_manage": "批量管理",
+    "select_all": "全選",
+    "clear_selection": "取消全選",
+    "delete_selected": "刪除選中",
+    "done": "完成",
+    "delete_confirm_title": "確認刪除",
+    "delete_confirm_content": "確定要刪除選中的 {count} 個配色嗎？",
+    "delete_success": "已刪除 {count} 個配色",
+    "no_selection": "請先選擇要刪除的配色"
   },
   "color_preview": {
     "title": "配色預覽",
@@ -459,7 +468,13 @@
       "title": "提示",
       "content": "缺少 requests 庫，無法檢查更新"
     },
-    "palette": "配色"
+    "palette": "配色",
+    "success": {
+      "title": "成功"
+    },
+    "warning": {
+      "title": "警告"
+    }
   },
   "context_menu": {
     "change_image": "更換圖片",

@@ -469,6 +469,7 @@ class PaletteManagementCard(CardWidget):
     preview_in_panel_requested = Signal(dict)
     edit_requested = Signal(dict)
     export_ase_requested = Signal(dict)
+    card_clicked = Signal(str)  # 信号：卡片被点击，传递favorite_id
     MAX_COLORS_PER_ROW = 6
 
     def __init__(self, favorite_data: Dict[str, Any], card_index: int = 0, parent=None):
@@ -477,6 +478,8 @@ class PaletteManagementCard(CardWidget):
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
         self._color_cards = []
+        self._batch_mode = False
+        self._selected = False
         super().__init__(parent)
         self.setup_ui()
         self._load_favorite_data()
@@ -723,6 +726,51 @@ class PaletteManagementCard(CardWidget):
         if color_modes is not None:
             self.set_color_modes(color_modes)
 
+    def set_batch_mode(self, enabled: bool):
+        """设置批量模式
+
+        Args:
+            enabled: 是否启用批量模式
+        """
+        self._batch_mode = enabled
+        # 批量模式下隐藏操作按钮
+        self.preview_panel_button.setVisible(not enabled)
+        self.contrast_button.setVisible(not enabled)
+        self.preview_button.setVisible(not enabled)
+        self.edit_button.setVisible(not enabled)
+        self.export_ase_button.setVisible(not enabled)
+        self.delete_button.setVisible(not enabled)
+        # 重置选中状态
+        if not enabled:
+            self.set_selected(False)
+
+    def set_selected(self, selected: bool):
+        """设置选中状态
+
+        Args:
+            selected: 是否选中
+        """
+        self._selected = selected
+        self._update_selection_style()
+
+    def _update_selection_style(self):
+        """更新选中样式"""
+        if self._selected:
+            # 选中状态：蓝色边框
+            self.setStyleSheet(f"CardWidget {{ border: 2px solid #0078d4; border-radius: 8px; }}")
+        else:
+            # 非选中状态：清除自定义样式，使用默认
+            self.setStyleSheet("")
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if self._batch_mode and event.button() == Qt.MouseButton.LeftButton:
+            # 发射点击信号
+            favorite_id = self._favorite_data.get('id', '')
+            if favorite_id:
+                self.card_clicked.emit(favorite_id)
+        super().mousePressEvent(event)
+
 
 # =============================================================================
 # 配色管理列表容器
@@ -740,6 +788,7 @@ class PaletteManagementList(QWidget):
     favorite_export_ase = Signal(dict)
     group_changed = Signal(int)
     groups_updated = Signal(list)
+    selection_changed = Signal(set)  # 信号：选中项变化
 
     BATCH_THRESHOLD = 50
     BATCH_SIZE = 10
@@ -753,6 +802,8 @@ class PaletteManagementList(QWidget):
         self._current_group_index = 0
         self._loader = None
         self._current_group_indices = []  # 当前分组的索引列表
+        self._batch_mode = False
+        self._selected_ids = set()
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -878,6 +929,7 @@ class PaletteManagementList(QWidget):
         card = PaletteManagementCard(favorite, card_index=card_index)
         card.set_hex_visible(self._hex_visible)
         card.set_color_modes(self._color_modes)
+        card.set_batch_mode(self._batch_mode)
         card.delete_requested.connect(self.favorite_deleted)
         card.preview_requested.connect(self._on_preview_requested)
         card.contrast_requested.connect(self._on_contrast_requested)
@@ -885,6 +937,7 @@ class PaletteManagementList(QWidget):
         card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
         card.edit_requested.connect(self._on_edit_requested)
         card.export_ase_requested.connect(self._on_export_ase_requested)
+        card.card_clicked.connect(self._on_card_clicked)
         return card
 
     def _load_group_directly(self, group_indices: list):
@@ -1075,7 +1128,7 @@ class PaletteManagementList(QWidget):
                 logger.debug(f"Hint label already deleted: {e}")
 
     def remove_favorite_card(self, favorite_id: str) -> bool:
-        """局部删除指定收藏卡片，其他卡片序号保持不变"""
+        """局部删除指定收藏卡片"""
         card = self._favorite_cards.get(favorite_id)
         if not card:
             return False
@@ -1093,18 +1146,87 @@ class PaletteManagementList(QWidget):
         if deleted_idx in self._current_group_indices:
             self._current_group_indices.remove(deleted_idx)
 
+        # 如果当前分组为空，尝试加载其他分组
         if not self._current_group_indices:
-            if self._current_group_index > 0:
+            if self._current_group_index < len(self._groups) - 1:
+                # 还有下一页，加载下一页（序号会自动调整）
+                self._load_current_group()
+            elif self._current_group_index > 0:
+                # 没有下一页但有上一页，回到上一页
                 self._current_group_index -= 1
-            elif self._current_group_index < len(self._groups) - 1:
-                self._current_group_index += 1
+                self.group_changed.emit(self._current_group_index)
+                self._load_current_group()
             else:
+                # 没有任何页面了，显示空状态
                 self._show_empty_state()
-                return True
-            self.group_changed.emit(self._current_group_index)
-            self._load_current_group()
 
         return True
+
+    def set_batch_mode(self, enabled: bool):
+        """设置批量模式
+
+        Args:
+            enabled: 是否启用批量模式
+        """
+        self._batch_mode = enabled
+        if not enabled:
+            self.clear_selection()
+        # 通知所有卡片切换模式
+        for card in self._favorite_cards.values():
+            card.set_batch_mode(enabled)
+
+    def toggle_selection(self, favorite_id: str):
+        """切换选中状态
+
+        Args:
+            favorite_id: 收藏ID
+        """
+        if favorite_id in self._selected_ids:
+            self._selected_ids.discard(favorite_id)
+        else:
+            self._selected_ids.add(favorite_id)
+        # 更新卡片显示
+        card = self._favorite_cards.get(favorite_id)
+        if card:
+            card.set_selected(favorite_id in self._selected_ids)
+        self.selection_changed.emit(self._selected_ids.copy())
+
+    def select_all(self):
+        """全选"""
+        self._selected_ids = set(self._favorite_cards.keys())
+        for card in self._favorite_cards.values():
+            card.set_selected(True)
+        self.selection_changed.emit(self._selected_ids.copy())
+
+    def clear_selection(self):
+        """取消全选"""
+        self._selected_ids.clear()
+        for card in self._favorite_cards.values():
+            card.set_selected(False)
+        self.selection_changed.emit(self._selected_ids.copy())
+
+    def delete_selected(self) -> int:
+        """批量删除选中的收藏
+
+        Returns:
+            int: 删除的数量
+        """
+        deleted_count = 0
+        for favorite_id in list(self._selected_ids):
+            if self.remove_favorite_card(favorite_id):
+                deleted_count += 1
+        self._selected_ids.clear()
+        self.selection_changed.emit(set())
+        return deleted_count
+
+    def _on_card_clicked(self, favorite_id: str):
+        """卡片点击处理
+
+        Args:
+            favorite_id: 收藏ID
+        """
+        if self._batch_mode:
+            self.toggle_selection(favorite_id)
 
 
 # =============================================================================
@@ -1187,6 +1309,7 @@ class PaletteManagementInterface(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
+        # 头部工具栏
         header_layout = QHBoxLayout()
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
@@ -1196,6 +1319,12 @@ class PaletteManagementInterface(QWidget):
 
         header_layout.addStretch()
 
+        # 批量管理按钮
+        self.batch_manage_button = PushButton(FluentIcon.CHECKBOX, tr('palette_management.batch_manage'), self)
+        self.batch_manage_button.clicked.connect(self._on_batch_manage_clicked)
+        header_layout.addWidget(self.batch_manage_button)
+
+        # 正常模式按钮
         self.add_button = PushButton(FluentIcon.ADD, tr('palette_management.add'), self)
         self.add_button.clicked.connect(self._on_add_clicked)
         header_layout.addWidget(self.add_button)
@@ -1220,6 +1349,35 @@ class PaletteManagementInterface(QWidget):
 
         layout.addLayout(header_layout)
 
+        # 批量模式工具栏（初始隐藏）
+        self.batch_toolbar = QWidget()
+        batch_toolbar_layout = QHBoxLayout(self.batch_toolbar)
+        batch_toolbar_layout.setSpacing(15)
+        batch_toolbar_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.select_all_button = PushButton(tr('palette_management.select_all'), self)
+        self.select_all_button.clicked.connect(lambda: self.palette_management_list.select_all())
+        batch_toolbar_layout.addWidget(self.select_all_button)
+
+        self.clear_selection_button = PushButton(tr('palette_management.clear_selection'), self)
+        self.clear_selection_button.clicked.connect(lambda: self.palette_management_list.clear_selection())
+        batch_toolbar_layout.addWidget(self.clear_selection_button)
+
+        self.delete_selected_button = PushButton(FluentIcon.DELETE, tr('palette_management.delete_selected'), self)
+        self.delete_selected_button.clicked.connect(self._on_delete_selected_clicked)
+        batch_toolbar_layout.addWidget(self.delete_selected_button)
+
+        batch_toolbar_layout.addStretch()
+
+        self.group_combo_batch = ComboBox(self)
+        self.group_combo_batch.setFixedWidth(100)
+        self.group_combo_batch.currentIndexChanged.connect(self._on_group_changed)
+        batch_toolbar_layout.addWidget(self.group_combo_batch)
+
+        layout.addWidget(self.batch_toolbar)
+        self.batch_toolbar.setVisible(False)
+
+        # 配色列表
         self.palette_management_list = PaletteManagementList(self)
         self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
         self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
@@ -1229,18 +1387,133 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
         self.palette_management_list.favorite_export_ase.connect(self._on_favorite_export_ase)
         self.palette_management_list.groups_updated.connect(self._on_groups_updated)
+        self.palette_management_list.selection_changed.connect(self._on_selection_changed)
         layout.addWidget(self.palette_management_list, stretch=1)
+
+    def _on_batch_manage_clicked(self):
+        """批量管理按钮点击"""
+        if self.palette_management_list._batch_mode:
+            self._exit_batch_mode()
+        else:
+            self._enter_batch_mode()
+
+    def _enter_batch_mode(self):
+        """进入批量模式"""
+        # 记录当前分组索引
+        self._batch_mode_group_index = self.group_combo.currentIndex()
+
+        # 同步批量工具栏的分组下拉框
+        self.group_combo_batch.setCurrentIndex(self._batch_mode_group_index)
+
+        # 启用批量模式
+        self.palette_management_list.set_batch_mode(True)
+
+        # 切换UI
+        self.batch_manage_button.setText(tr('palette_management.done'))
+        self.batch_manage_button.setIcon(FluentIcon.ACCEPT)
+        self.add_button.setVisible(False)
+        self.import_button.setVisible(False)
+        self.export_button.setVisible(False)
+        self.clear_all_button.setVisible(False)
+        self.group_combo.setVisible(False)
+        self.batch_toolbar.setVisible(True)
+
+        self._update_batch_toolbar()
+
+    def _exit_batch_mode(self):
+        """退出批量模式"""
+        # 退出批量模式
+        self.palette_management_list.set_batch_mode(False)
+
+        # 恢复UI
+        self.batch_manage_button.setText(tr('palette_management.batch_manage'))
+        self.batch_manage_button.setIcon(FluentIcon.CHECKBOX)
+        self.add_button.setVisible(True)
+        self.import_button.setVisible(True)
+        self.export_button.setVisible(True)
+        self.clear_all_button.setVisible(True)
+        self.group_combo.setVisible(True)
+        self.batch_toolbar.setVisible(False)
+
+        # 恢复到之前的分组，不重新加载
+        if hasattr(self, '_batch_mode_group_index') and self._batch_mode_group_index >= 0:
+            self.group_combo.setCurrentIndex(self._batch_mode_group_index)
+
+    def _on_delete_selected_clicked(self):
+        """删除选中按钮点击"""
+        selected_ids = self.palette_management_list._selected_ids
+        if not selected_ids:
+            InfoBar.warning(
+                title=tr('messages.warning.title'),
+                content=tr('palette_management.no_selection'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
+            return
+
+        # 确认对话框
+        from dialogs import DeleteConfirmDialog
+        dialog = DeleteConfirmDialog(
+            tr('palette_management.delete_confirm_content', count=len(selected_ids)),
+            self
+        )
+        dialog.setWindowTitle(tr('palette_management.delete_confirm_title'))
+
+        if dialog.exec():
+            # 从配置中删除
+            for favorite_id in selected_ids:
+                self._config_manager.delete_favorite(favorite_id)
+            self._config_manager.save()
+
+            # 从列表中删除
+            deleted_count = self.palette_management_list.delete_selected()
+
+            InfoBar.success(
+                title=tr('messages.success.title'),
+                content=tr('palette_management.delete_success', count=deleted_count),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
+
+    def _on_done_clicked(self):
+        """完成按钮点击"""
+        self._exit_batch_mode()
+
+    def _on_selection_changed(self, selected_ids: set):
+        """选中项变化回调
+
+        Args:
+            selected_ids: 选中的ID集合
+        """
+        self._update_batch_toolbar()
+
+    def _update_batch_toolbar(self):
+        """更新批量工具栏状态"""
+        selected_count = len(self.palette_management_list._selected_ids)
+        self.delete_selected_button.setText(
+            tr('palette_management.delete_selected') +
+            (f" ({selected_count})" if selected_count > 0 else "")
+        )
 
     def _on_groups_updated(self, groups: list):
         """分组列表更新回调
-        
+
         Args:
             groups: 分组配置列表
         """
         self.group_combo.clear()
+        self.group_combo_batch.clear()
         for i, group in enumerate(groups):
             self.group_combo.addItem(group["name"])
             self.group_combo.setItemData(i, i)
+            self.group_combo_batch.addItem(group["name"])
+            self.group_combo_batch.setItemData(i, i)
 
     def _on_group_changed(self, index: int):
         """分组切换回调
