@@ -1355,20 +1355,30 @@ class PaletteManagementInterface(QWidget):
         batch_toolbar_layout.setSpacing(15)
         batch_toolbar_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.select_all_button = PushButton(tr('palette_management.select_all'), self)
-        self.select_all_button.clicked.connect(lambda: self.palette_management_list.select_all())
-        batch_toolbar_layout.addWidget(self.select_all_button)
-
-        self.clear_selection_button = PushButton(tr('palette_management.clear_selection'), self)
-        self.clear_selection_button.clicked.connect(lambda: self.palette_management_list.clear_selection())
-        batch_toolbar_layout.addWidget(self.clear_selection_button)
-
-        self.delete_selected_button = PushButton(FluentIcon.DELETE, tr('palette_management.delete_selected'), self)
-        self.delete_selected_button.clicked.connect(self._on_delete_selected_clicked)
-        batch_toolbar_layout.addWidget(self.delete_selected_button)
+        # 标题
+        self.title_label_batch = SubtitleLabel(tr('palette_management.title'))
+        batch_toolbar_layout.addWidget(self.title_label_batch)
 
         batch_toolbar_layout.addStretch()
 
+        # 批量操作按钮（右侧对齐）
+        self._toggle_select_btn = PushButton(FluentIcon.CHECKBOX, tr('palette_management.select_all'), self)
+        self._toggle_select_btn.setFixedWidth(140)
+        self._toggle_select_btn.clicked.connect(self._on_toggle_select_clicked)
+        batch_toolbar_layout.addWidget(self._toggle_select_btn)
+
+        self.delete_selected_button = PushButton(FluentIcon.DELETE, tr('palette_management.delete_selected'), self)
+        self.delete_selected_button.setFixedWidth(140)
+        self.delete_selected_button.clicked.connect(self._on_delete_selected_clicked)
+        batch_toolbar_layout.addWidget(self.delete_selected_button)
+
+        # 完成按钮
+        self.done_button = PushButton(FluentIcon.ACCEPT, tr('palette_management.done'), self)
+        self.done_button.setFixedWidth(140)
+        self.done_button.clicked.connect(self._on_done_clicked)
+        batch_toolbar_layout.addWidget(self.done_button)
+
+        # 分组下拉框（与普通模式位置对应）
         self.group_combo_batch = ComboBox(self)
         self.group_combo_batch.setFixedWidth(100)
         self.group_combo_batch.currentIndexChanged.connect(self._on_group_changed)
@@ -1409,8 +1419,8 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.set_batch_mode(True)
 
         # 切换UI
-        self.batch_manage_button.setText(tr('palette_management.done'))
-        self.batch_manage_button.setIcon(FluentIcon.ACCEPT)
+        self.title_label.setVisible(False)
+        self.batch_manage_button.setVisible(False)
         self.add_button.setVisible(False)
         self.import_button.setVisible(False)
         self.export_button.setVisible(False)
@@ -1426,8 +1436,8 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.set_batch_mode(False)
 
         # 恢复UI
-        self.batch_manage_button.setText(tr('palette_management.batch_manage'))
-        self.batch_manage_button.setIcon(FluentIcon.CHECKBOX)
+        self.title_label.setVisible(True)
+        self.batch_manage_button.setVisible(True)
         self.add_button.setVisible(True)
         self.import_button.setVisible(True)
         self.export_button.setVisible(True)
@@ -1493,13 +1503,29 @@ class PaletteManagementInterface(QWidget):
         """
         self._update_batch_toolbar()
 
+    def _on_toggle_select_clicked(self):
+        """全选/取消全选切换"""
+        if self._toggle_select_btn.text() == tr('palette_management.select_all'):
+            self.palette_management_list.select_all()
+        else:
+            self.palette_management_list.clear_selection()
+
     def _update_batch_toolbar(self):
         """更新批量工具栏状态"""
         selected_count = len(self.palette_management_list._selected_ids)
+        total_count = len(self.palette_management_list._favorite_cards)
+
+        # 更新删除按钮文本
         self.delete_selected_button.setText(
             tr('palette_management.delete_selected') +
             (f" ({selected_count})" if selected_count > 0 else "")
         )
+
+        # 更新全选/取消全选按钮文本
+        if selected_count == total_count and total_count > 0:
+            self._toggle_select_btn.setText(tr('palette_management.clear_selection'))
+        else:
+            self._toggle_select_btn.setText(tr('palette_management.select_all'))
 
     def _on_groups_updated(self, groups: list):
         """分组列表更新回调
