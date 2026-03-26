@@ -401,6 +401,40 @@ class ConfigManager:
 
         return False
 
+    def reorder_favorites(self, new_order_ids: List[str]) -> bool:
+        """根据ID列表重新排序收藏
+
+        Args:
+            new_order_ids: 新的排序ID列表
+
+        Returns:
+            bool: 是否排序成功
+        """
+        if "favorites" not in self._config:
+            return False
+
+        favorites = self._config["favorites"]
+        if not favorites:
+            return True
+
+        # 创建ID到收藏的映射
+        id_to_fav = {f.get('id'): f for f in favorites if f.get('id')}
+
+        # 按新顺序重建列表
+        new_favorites = []
+        for fid in new_order_ids:
+            if fid in id_to_fav:
+                new_favorites.append(id_to_fav[fid])
+
+        # 添加可能遗漏的收藏（防万一）
+        existing_ids = set(new_order_ids)
+        for fav in favorites:
+            if fav.get('id') not in existing_ids:
+                new_favorites.append(fav)
+
+        self._config["favorites"] = new_favorites
+        return True
+
     def get_scene_templates(self) -> Dict[str, List[Dict[str, Any]]]:
         """获取用户场景模板索引
 

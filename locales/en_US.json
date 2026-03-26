@@ -77,7 +77,16 @@
     "export_title": "Export Palettes",
     "json_filter": "JSON Files (*.json);;All Files (*)",
     "export_ase_title": "Export ASE Swatch",
-    "ase_filter": "ASE Files (*.ase);;All Files (*)"
+    "ase_filter": "ASE Files (*.ase);;All Files (*)",
+    "batch_manage": "Batch Manage",
+    "select_all": "Select All",
+    "clear_selection": "Clear Selection",
+    "delete_selected": "Delete Selected",
+    "done": "Done",
+    "delete_confirm_title": "Confirm Delete",
+    "delete_confirm_content": "Are you sure you want to delete {count} selected palettes?",
+    "delete_success": "Deleted {count} palettes",
+    "no_selection": "Please select palettes to delete first"
   },
   "color_preview": {
     "title": "Color Preview",
@@ -459,7 +468,13 @@
       "title": "Info",
       "content": "Missing requests library, cannot check for updates"
     },
-    "palette": "Palette"
+    "palette": "Palette",
+    "success": {
+      "title": "Success"
+    },
+    "warning": {
+      "title": "Warning"
+    }
   },
   "context_menu": {
     "change_image": "Change Image",

@@ -77,7 +77,16 @@
     "export_title": "Exporter des palettes",
     "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)",
     "export_ase_title": "Exporter la nuance ASE",
-    "ase_filter": "Fichiers ASE (*.ase);;Tous les fichiers (*)"
+    "ase_filter": "Fichiers ASE (*.ase);;Tous les fichiers (*)",
+    "batch_manage": "Gestion par lot",
+    "select_all": "Tout sélectionner",
+    "clear_selection": "Désélectionner",
+    "delete_selected": "Supprimer la sélection",
+    "done": "Terminé",
+    "delete_confirm_title": "Confirmer la suppression",
+    "delete_confirm_content": "Êtes-vous sûr de vouloir supprimer {count} palettes sélectionnées ?",
+    "delete_success": "{count} palettes supprimées",
+    "no_selection": "Veuillez d'abord sélectionner des palettes à supprimer"
   },
   "color_preview": {
     "title": "Aperçu des couleurs",
@@ -459,7 +468,13 @@
       "title": "Info",
       "content": "Bibliothèque requests manquante, impossible de vérifier les mises à jour"
     },
-    "palette": "Palette"
+    "palette": "Palette",
+    "success": {
+      "title": "Succès"
+    },
+    "warning": {
+      "title": "Avertissement"
+    }
   },
   "context_menu": {
     "change_image": "Changer l'image",
