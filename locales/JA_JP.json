@@ -73,6 +73,8 @@
     "unnamed": "名前なし",
     "empty_title": "保存されたパレットはありません",
     "empty_hint": "カラー抽出またはカラー生成パネルで保存ボタンをクリックしてください",
+    "group_cleared_title": "現在のページがクリアされました",
+    "group_cleared_hint": "再起動後に再ソートされます",
     "import_title": "パレットをインポート",
     "export_title": "パレットをエクスポート",
     "json_filter": "JSONファイル (*.json);;すべてのファイル (*)",

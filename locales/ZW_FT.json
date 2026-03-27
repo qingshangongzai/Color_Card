@@ -73,6 +73,8 @@
     "unnamed": "未命名",
     "empty_title": "還沒有收藏的配色",
     "empty_hint": "在色彩提取或配色生成面板點擊收藏按鈕",
+    "group_cleared_title": "當前頁面已被清空",
+    "group_cleared_hint": "重啟後會重新進行排序",
     "import_title": "導入收藏",
     "export_title": "導出收藏",
     "json_filter": "JSON 文件 (*.json);;所有文件 (*)",

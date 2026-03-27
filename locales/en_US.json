@@ -73,6 +73,8 @@
     "unnamed": "Unnamed",
     "empty_title": "No saved palettes yet",
     "empty_hint": "Click the save button in Color Extract or Color Generation panel",
+    "group_cleared_title": "Current page has been cleared",
+    "group_cleared_hint": "Will be re-sorted after restart",
     "import_title": "Import Palettes",
     "export_title": "Export Palettes",
     "json_filter": "JSON Files (*.json);;All Files (*)",
