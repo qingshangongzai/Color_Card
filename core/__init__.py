@@ -44,6 +44,19 @@ from .color import (
 
 from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
 
+from .app_mode import (
+    AppMode,
+    Platform,
+    detect_mode,
+    get_app_mode,
+    get_config_dir,
+    detect_platform,
+    get_platform,
+    is_portable_mode,
+    is_installed_mode,
+    is_development_mode,
+)
+
 from .svg_color_mapper import (
     ElementType,
     SVGElementInfo,
@@ -157,6 +170,16 @@ __all__ = [
     'SceneTypeManager',
     'get_scene_type_manager',
     'ConfigLoadError',
+    'AppMode',
+    'Platform',
+    'detect_mode',
+    'get_app_mode',
+    'get_config_dir',
+    'detect_platform',
+    'get_platform',
+    'is_portable_mode',
+    'is_installed_mode',
+    'is_development_mode',
     'ElementType',
     'SVGElementInfo',
     'ColorMappingConfig',

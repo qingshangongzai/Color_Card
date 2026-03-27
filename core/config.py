@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # 项目模块导入
 from version import version_manager
 from .logger import get_logger
+from .app_mode import get_config_dir
 
 
 def get_base_path() -> str:
@@ -56,8 +57,7 @@ class ConfigManager:
         Returns:
             Path: 配置文件的完整路径
         """
-        home_dir = Path.home()
-        config_dir = home_dir / self.CONFIG_DIR_NAME
+        config_dir = get_config_dir()
         return config_dir / self.CONFIG_FILE_NAME
 
     def _ensure_config_dir(self) -> None:
