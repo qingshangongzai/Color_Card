@@ -12,6 +12,7 @@ from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButt
 # 项目模块导入
 from utils import tr, load_icon_universal
 from dialogs import BaseFramelessDialog
+from core import get_app_mode, get_platform, AppMode, Platform
 
 
 class UpdateCheckThread(QThread):
@@ -21,7 +22,7 @@ class UpdateCheckThread(QThread):
     避免阻塞主线程。
     """
 
-    check_finished = Signal(bool, str, str)
+    check_finished = Signal(bool, str, str, str)
 
     def __init__(self, current_version):
         """初始化检查更新线程
@@ -41,22 +42,61 @@ class UpdateCheckThread(QThread):
             if response.status_code == 200:
                 data = response.json()
                 latest_version = data.get("tag_name", "").lstrip("v")
+                download_url = self._select_asset(data.get("assets", []))
 
                 if latest_version:
-                    self.check_finished.emit(True, latest_version, "")
+                    self.check_finished.emit(True, latest_version, "", download_url)
                 else:
-                    self.check_finished.emit(False, "", tr('dialogs.update.error_parse_version'))
+                    self.check_finished.emit(False, "", tr('dialogs.update.error_parse_version'), "")
             else:
                 self.check_finished.emit(
-                    False, "", tr('dialogs.update.error_http', status_code=response.status_code)
+                    False, "", tr('dialogs.update.error_http', status_code=response.status_code), ""
                 )
 
         except requests.exceptions.Timeout:
-            self.check_finished.emit(False, "", tr('dialogs.update.error_timeout'))
+            self.check_finished.emit(False, "", tr('dialogs.update.error_timeout'), "")
         except requests.exceptions.ConnectionError:
-            self.check_finished.emit(False, "", tr('dialogs.update.error_connection'))
+            self.check_finished.emit(False, "", tr('dialogs.update.error_connection'), "")
         except Exception as e:
-            self.check_finished.emit(False, "", tr('dialogs.update.error_general', error=str(e)))
+            self.check_finished.emit(False, "", tr('dialogs.update.error_general', error=str(e)), "")
+
+    def _select_asset(self, assets):
+        """选择对应安装包
+
+        Args:
+            assets: 资源列表
+
+        Returns:
+            str: 下载链接，未找到返回空字符串
+        """
+        if not assets:
+            return ""
+
+        mode = get_app_mode()
+        platform = get_platform()
+
+        for asset in assets:
+            name = asset.get("name", "").lower()
+            url = asset.get("browser_download_url", "")
+
+            if not url:
+                continue
+
+            # macOS: 匹配 .dmg 文件
+            if platform == Platform.MACOS and name.endswith(".dmg"):
+                return url
+
+            # Windows: 根据模式匹配
+            if platform == Platform.WINDOWS:
+                # 安装版: 匹配包含 setup 的 .exe
+                if mode == AppMode.INSTALLED and "setup" in name and name.endswith(".exe"):
+                    return url
+                # 便携版/其他: 匹配以 x64.exe 结尾且不含 setup 的
+                if mode != AppMode.INSTALLED and name.endswith("x64.exe") and "setup" not in name:
+                    return url
+
+        # 默认返回第一个
+        return assets[0].get("browser_download_url", "") if assets else ""
 
 
 _PRE_RELEASE_ORDER = {"alpha": -3, "beta": -2, "rc": -1}
@@ -129,24 +169,26 @@ def compare_versions(current: str, latest: str) -> int:
 class UpdateAvailableDialog(BaseFramelessDialog):
     """新版本可用提示对话框
 
-    当检测到有新版本时弹出，提供跳转到发行页面的功能。
+    当检测到有新版本时弹出，提供直接下载或跳转到发行页面的功能。
     """
 
     _check_thread = None  # 类变量，用于保存检查更新的线程对象
 
-    def __init__(self, parent=None, current_version="", latest_version=""):
+    def __init__(self, parent=None, current_version="", latest_version="", download_url=""):
         """初始化新版本提示对话框
 
         Args:
             parent: 父窗口对象
             current_version: 当前版本号
             latest_version: 最新版本号
+            download_url: 下载链接
         """
         super().__init__(parent)
         self.setWindowTitle(tr('dialogs.update.title'))
         self.setFixedSize(400, 200)
         self.current_version = current_version
         self.latest_version = latest_version
+        self.download_url = download_url
 
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
@@ -190,25 +232,37 @@ class UpdateAvailableDialog(BaseFramelessDialog):
 
         buttons_layout.addStretch()
 
-        # 取消按钮
-        cancel_button = PushButton(tr('dialogs.update.cancel'))
-        cancel_button.setMinimumWidth(90)
-        cancel_button.clicked.connect(self.reject)
-        buttons_layout.addWidget(cancel_button)
-
-        # 发行页面按钮（主题色）
-        release_button = PrimaryPushButton(tr('dialogs.update.release_page'))
+        # 发行页面按钮
+        release_button = PushButton(tr('dialogs.update.release_page'))
         release_button.setMinimumWidth(90)
         release_button.clicked.connect(self.open_release_page)
         buttons_layout.addWidget(release_button)
+
+        # 下载按钮（主题色）
+        download_button = PrimaryPushButton(tr('dialogs.update.download'))
+        download_button.setMinimumWidth(90)
+        download_button.clicked.connect(self.on_download_clicked)
+        buttons_layout.addWidget(download_button)
 
         buttons_layout.addStretch()
 
         layout.addWidget(buttons_container)
 
+    def on_download_clicked(self):
+        """处理下载按钮点击"""
+        if self.download_url:
+            QDesktopServices.openUrl(QUrl(self.download_url))
+        else:
+            # 降级到发行页面
+            self.open_release_page()
+        self.accept()
+
     def open_release_page(self):
         """打开 Gitee 发行版页面"""
-        url = "https://gitee.com/qingshangongzai/color_card/releases"
+        if self.latest_version:
+            url = f"https://gitee.com/qingshangongzai/color_card/releases/tag/{self.latest_version}"
+        else:
+            url = "https://gitee.com/qingshangongzai/color_card/releases"
         QDesktopServices.openUrl(QUrl(url))
         self.accept()
 
@@ -227,7 +281,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         # 创建并启动检查线程
         UpdateAvailableDialog._check_thread = UpdateCheckThread(current_version)
 
-        def on_check_finished(success, latest_version, error_msg):
+        def on_check_finished(success, latest_version, error_msg, download_url):
             if success:
                 result = compare_versions(current_version, latest_version)
                 if result >= 0:
@@ -243,7 +297,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
                     # 有新版本可用，显示对话框
                     # 使用 window() 获取顶层窗口，确保无边框对话框正常显示
                     top_parent = parent.window() if parent else None
-                    dialog = UpdateAvailableDialog(top_parent, current_version, latest_version)
+                    dialog = UpdateAvailableDialog(top_parent, current_version, latest_version, download_url)
                     dialog.exec()
             else:
                 InfoBar.warning(

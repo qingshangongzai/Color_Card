@@ -100,3 +100,4 @@ bandit_project_report.html
 /.idea
 文档/过度防御性设计报告.md
 /logs
+文档/区分安装版与便携版实现计划.md

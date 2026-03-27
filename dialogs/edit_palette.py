@@ -4,14 +4,14 @@ from datetime import datetime
 from typing import Dict, Any, Tuple, Optional
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect
+from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect, QMimeData
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication, QDialog
 )
-from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent
+from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent, QDrag, QPixmap
 from qfluentwidgets import (
     LineEdit, PrimaryPushButton, PushButton, ToolButton, FluentIcon,
-    ScrollArea, qconfig
+    ScrollArea, qconfig, isDarkTheme
 )
 # 项目模块导入
 from core import (
@@ -759,6 +759,213 @@ class ColorPickerDialog(BaseFramelessDialog):
 
 
 
+class ColorInputContainer(QWidget):
+    """颜色输入容器，支持拖拽排序"""
+
+    # 自动滚动边距（像素）
+    AUTO_SCROLL_MARGIN = 20
+    # 自动滚动速度
+    AUTO_SCROLL_SPEED = 10
+
+    def __init__(self, dialog, parent=None):
+        self._dialog = dialog
+        self._insert_index = -1  # 插入位置索引（-1表示不显示）
+        self._auto_scroll_timer = QTimer()
+        self._auto_scroll_timer.timeout.connect(self._do_auto_scroll)
+        super().__init__(parent)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event):
+        """接受拖拽进入"""
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
+            self._insert_index = -1
+            self.update()
+
+    def dragMoveEvent(self, event):
+        """处理拖拽移动，更新插入位置"""
+        if not event.mimeData().hasText():
+            return
+
+        event.acceptProposedAction()
+
+        drop_pos = event.position().toPoint()
+        insert_index = self._calculate_insert_index(drop_pos)
+
+        if insert_index != self._insert_index:
+            self._insert_index = insert_index
+            self.update()
+
+        # 检查是否需要自动滚动
+        self._check_auto_scroll(drop_pos.y())
+
+    def _check_auto_scroll(self, y_pos: int):
+        """检查并启动自动滚动"""
+        scroll_area = self._dialog.scroll_area
+        viewport = scroll_area.viewport()
+        viewport_rect = viewport.geometry()
+
+        container_pos = self.mapTo(viewport, QPoint(0, 0))
+        relative_y = y_pos + container_pos.y()
+
+        if relative_y < self.AUTO_SCROLL_MARGIN:
+            self._scroll_direction = -1
+            if not self._auto_scroll_timer.isActive():
+                self._auto_scroll_timer.start(50)
+        elif relative_y > viewport_rect.height() - self.AUTO_SCROLL_MARGIN:
+            self._scroll_direction = 1
+            if not self._auto_scroll_timer.isActive():
+                self._auto_scroll_timer.start(50)
+        else:
+            self._auto_scroll_timer.stop()
+
+    def _do_auto_scroll(self):
+        """执行自动滚动"""
+        scroll_bar = self._dialog.scroll_area.verticalScrollBar()
+        current_value = scroll_bar.value()
+        new_value = current_value + self._scroll_direction * self.AUTO_SCROLL_SPEED
+        scroll_bar.setValue(new_value)
+
+    def dragLeaveEvent(self, event):
+        """拖拽离开，隐藏指示器"""
+        self._insert_index = -1
+        self._auto_scroll_timer.stop()
+        self.update()
+
+    def dropEvent(self, event):
+        """处理放置，重新排序"""
+        event.acceptProposedAction()
+
+        self._insert_index = -1
+        self._auto_scroll_timer.stop()
+        self.update()
+
+        mime_data = event.mimeData()
+        if not mime_data.hasText():
+            return
+
+        try:
+            source_index = int(mime_data.text())
+        except ValueError:
+            return
+
+        insert_index = self._calculate_insert_index(event.position().toPoint())
+
+        if insert_index != source_index:
+            self._dialog._reorder_colors(source_index, insert_index)
+
+    def paintEvent(self, event):
+        """绘制插入位置指示器"""
+        super().paintEvent(event)
+
+        if self._insert_index < 0:
+            return
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # 计算指示器位置
+        if self._insert_index < len(self._dialog._color_rows):
+            y = self._dialog._color_rows[self._insert_index].geometry().top()
+        else:
+            y = self._dialog._color_rows[-1].geometry().bottom()
+
+        # 指示器颜色
+        indicator_color = QColor(0, 120, 215) if not isDarkTheme() else QColor(0, 150, 255)
+
+        # 绘制横线
+        margin = 10
+        painter.setPen(QPen(indicator_color, 2))
+        painter.drawLine(margin, y, self.width() - margin, y)
+
+        # 绘制端点圆点
+        painter.setBrush(QBrush(indicator_color))
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.drawEllipse(QPoint(margin, y), 4, 4)
+        painter.drawEllipse(QPoint(self.width() - margin, y), 4, 4)
+
+    def _calculate_insert_index(self, pos: QPoint) -> int:
+        """计算插入位置索引
+
+        Args:
+            pos: 放置位置（相对于容器的局部坐标）
+
+        Returns:
+            int: 插入位置索引（0 到 len(rows)）
+        """
+        if not self._dialog._color_rows:
+            return 0
+
+        for i, row in enumerate(self._dialog._color_rows):
+            row_rect = row.geometry()
+            row_center = row_rect.center().y()
+            # 如果在行的上半部分，插入到当前行之前
+            if pos.y() < row_center:
+                return i
+
+        # 如果在最后一行的下半部分或更下方，插入到最后
+        return len(self._dialog._color_rows)
+
+
+class DraggableColorBlock(QLabel):
+    """可拖拽的颜色块组件"""
+
+    drag_started = Signal()  # 拖拽开始信号
+
+    def __init__(self, parent=None):
+        self._drag_start_pos = QPoint()
+        super().__init__(parent)
+        self.setFixedSize(28, 28)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+
+    def _get_row_index(self) -> int:
+        """获取当前所在行的索引"""
+        parent = self.parent()
+        if parent and hasattr(parent, '_index'):
+            return parent._index
+        return -1
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self._drag_start_pos = event.pos()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动事件 - 处理拖拽"""
+        if not (event.buttons() & Qt.MouseButton.LeftButton):
+            return
+
+        if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
+            return
+
+        row_index = self._get_row_index()
+        if row_index < 0:
+            return
+
+        drag = QDrag(self)
+        mime_data = QMimeData()
+        mime_data.setText(str(row_index))
+        drag.setMimeData(mime_data)
+
+        # 创建拖拽时的预览图像
+        pixmap = QPixmap(self.size())
+        self.render(pixmap)
+        drag.setPixmap(pixmap)
+        drag.setHotSpot(QPoint(self.width() // 2, self.height() // 2))
+
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        drag.exec(Qt.DropAction.MoveAction)
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.setCursor(Qt.CursorShape.OpenHandCursor)
+            # 短按触发点击，打开颜色选择器
+            if (event.pos() - self._drag_start_pos).manhattanLength() < 10:
+                self.drag_started.emit()
+
+
 class ColorInputRow(QWidget):
     """颜色输入行组件"""
 
@@ -803,13 +1010,10 @@ class ColorInputRow(QWidget):
         self.hex_input.textChanged.connect(self._on_hex_changed)
         layout.addWidget(self.hex_input)
 
-        # 颜色预览块
-        self.preview_block = QLabel()
-        self.preview_block.setFixedSize(28, 28)
+        # 颜色预览块（可拖拽）
+        self.preview_block = DraggableColorBlock()
+        self.preview_block.drag_started.connect(self._on_color_block_clicked)
         self._update_preview_style(None)
-        # 安装事件过滤器以捕获右键点击
-        self.preview_block.installEventFilter(self)
-        self.preview_block.setCursor(Qt.CursorShape.PointingHandCursor)
         layout.addWidget(self.preview_block)
 
         # 删除按钮
@@ -820,13 +1024,9 @@ class ColorInputRow(QWidget):
 
         layout.addStretch()
 
-    def eventFilter(self, obj, event):
-        """事件过滤器处理左键点击"""
-        if obj == self.preview_block and event.type() == event.Type.MouseButtonPress:
-            if event.button() == Qt.MouseButton.LeftButton:
-                self._open_color_picker()
-                return True
-        return super().eventFilter(obj, event)
+    def _on_color_block_clicked(self):
+        """颜色块被点击（短按）"""
+        self._open_color_picker()
 
     def _open_color_picker(self):
         """打开颜色选择器对话框"""
@@ -851,16 +1051,15 @@ class ColorInputRow(QWidget):
 
     def _update_preview_style(self, color_info):
         """更新预览块样式"""
-        border_color = get_border_color()
         if color_info:
             rgb = color_info.get('rgb', [0, 0, 0])
             color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
             self.preview_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
         else:
             self.preview_block.setStyleSheet(
-                f"background-color: transparent; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: transparent; border-radius: 4px;"
             )
 
     def _on_hex_changed(self, text: str):
@@ -1038,7 +1237,7 @@ class EditPaletteDialog(BaseFramelessDialog):
         corner_widget.setStyleSheet("background: transparent;")
         self.scroll_area.setCornerWidget(corner_widget)
 
-        self.colors_container = QWidget()
+        self.colors_container = ColorInputContainer(self)
         self.colors_container.setStyleSheet("background: transparent;")
         self.colors_layout = QVBoxLayout(self.colors_container)
         self.colors_layout.setContentsMargins(0, 0, 0, 0)
@@ -1109,6 +1308,44 @@ class EditPaletteDialog(BaseFramelessDialog):
         if row in self._color_rows:
             self._color_rows.remove(row)
         # 更新剩余行的序号
+        for i, r in enumerate(self._color_rows):
+            r.set_index(i)
+
+    def _reorder_colors(self, from_index: int, to_index: int):
+        """重新排序颜色行
+
+        将 from_index 位置的颜色行移动到 to_index 位置，
+        其他行依次移位
+
+        Args:
+            from_index: 源行索引
+            to_index: 目标插入位置索引
+        """
+        if not (0 <= from_index < len(self._color_rows)):
+            return
+        if not (0 <= to_index <= len(self._color_rows)):
+            return
+        if from_index == to_index:
+            return
+
+        # 从列表中移除源行
+        row = self._color_rows.pop(from_index)
+
+        # 调整目标索引（如果源索引在目标索引之前）
+        if from_index < to_index:
+            to_index -= 1
+
+        # 插入到目标位置
+        self._color_rows.insert(to_index, row)
+
+        # 更新布局
+        for r in self._color_rows:
+            self.colors_layout.removeWidget(r)
+
+        for r in self._color_rows:
+            self.colors_layout.addWidget(r)
+
+        # 更新所有行的序号
         for i, r in enumerate(self._color_rows):
             r.set_index(i)
 

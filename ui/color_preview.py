@@ -98,8 +98,7 @@ class DraggableColorDot(QWidget):
         color = QColor(self._color)
         painter.setBrush(QBrush(color))
 
-        border_color = get_border_color()
-        painter.setPen(QPen(border_color, 1))
+        painter.setPen(Qt.PenStyle.NoPen)
 
         rect = self.rect().adjusted(2, 2, -2, -2)
         painter.drawEllipse(rect)

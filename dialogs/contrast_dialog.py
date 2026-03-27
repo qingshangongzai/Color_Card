@@ -101,11 +101,7 @@ class ColorSelector(QWidget):
             self.color_block.setStyleSheet(f"""
                 PushButton {{
                     background-color: {hex_val};
-                    border: 2px solid {get_border_color().name()};
                     border-radius: 6px;
-                }}
-                PushButton:hover {{
-                    border: 2px solid {get_text_color().name()};
                 }}
             """)
             
@@ -234,12 +230,6 @@ class PreviewCard(QWidget):
         painter.setBrush(QBrush(bg_color))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(0, 0, self.width(), self.height(), 8, 8)
-        
-        # 绘制边框
-        border_color = get_border_color()
-        painter.setPen(QPen(border_color, 1))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(0, 0, self.width() - 1, self.height() - 1, 8, 8)
 
 
 class GraphicWidget(QWidget):
@@ -339,12 +329,6 @@ class GraphicPreviewCard(QWidget):
         painter.setBrush(QBrush(bg_color))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(0, 0, self.width(), self.height(), 8, 8)
-        
-        # 绘制边框
-        border_color = get_border_color()
-        painter.setPen(QPen(border_color, 1))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(0, 0, self.width() - 1, self.height() - 1, 8, 8)
 
 
 class ContrastCheckDialog(BaseFramelessDialog):
