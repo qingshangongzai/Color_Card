@@ -232,11 +232,11 @@ class UpdateAvailableDialog(BaseFramelessDialog):
 
         buttons_layout.addStretch()
 
-        # 取消按钮
-        cancel_button = PushButton(tr('dialogs.update.cancel'))
-        cancel_button.setMinimumWidth(90)
-        cancel_button.clicked.connect(self.reject)
-        buttons_layout.addWidget(cancel_button)
+        # 发行页面按钮
+        release_button = PushButton(tr('dialogs.update.release_page'))
+        release_button.setMinimumWidth(90)
+        release_button.clicked.connect(self.open_release_page)
+        buttons_layout.addWidget(release_button)
 
         # 下载按钮（主题色）
         download_button = PrimaryPushButton(tr('dialogs.update.download'))
@@ -259,7 +259,10 @@ class UpdateAvailableDialog(BaseFramelessDialog):
 
     def open_release_page(self):
         """打开 Gitee 发行版页面"""
-        url = "https://gitee.com/qingshangongzai/color_card/releases"
+        if self.latest_version:
+            url = f"https://gitee.com/qingshangongzai/color_card/releases/tag/{self.latest_version}"
+        else:
+            url = "https://gitee.com/qingshangongzai/color_card/releases"
         QDesktopServices.openUrl(QUrl(url))
         self.accept()
 
