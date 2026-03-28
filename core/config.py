@@ -109,8 +109,6 @@ class ConfigManager:
             with open(self._config_path, 'r', encoding='utf-8') as f:
                 loaded_config = json.load(f)
 
-            self._migrate_favorites_data(loaded_config)
-
             self._merge_config(self._config, loaded_config)
             
             version = self._config.get("version", "unknown")
@@ -121,40 +119,6 @@ class ConfigManager:
             raise ConfigLoadError(f"无法加载配置文件: {e}") from e
 
         return self._config
-
-    def _migrate_favorites_data(self, loaded_config: Dict[str, Any]) -> None:
-        """迁移旧版本的收藏数据到新格式
-
-        Args:
-            loaded_config: 从文件加载的配置字典
-        """
-        if 'favorites' in loaded_config and loaded_config['favorites']:
-            return
-
-        favorites = []
-
-        if 'schemes' in loaded_config:
-            for scheme in loaded_config['schemes']:
-                if isinstance(scheme, dict):
-                    favorites.append(scheme)
-
-        if 'extracts' in loaded_config:
-            for extract in loaded_config['extracts']:
-                if isinstance(extract, dict):
-                    extract['source'] = 'color_extract'
-                    favorites.append(extract)
-
-        if favorites:
-            loaded_config['favorites'] = favorites
-            if 'schemes' in loaded_config:
-                del loaded_config['schemes']
-            if 'extracts' in loaded_config:
-                del loaded_config['extracts']
-            if 'colors' in loaded_config:
-                del loaded_config['colors']
-            if 'display_settings' in loaded_config:
-                del loaded_config['display_settings']
-            logger.info(f"配置数据迁移完成: 迁移了 {len(favorites)} 条收藏记录")
 
     def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
         """递归合并配置字典
