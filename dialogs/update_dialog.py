@@ -483,7 +483,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
                 result = compare_versions(current_version, latest_version)
                 if result >= 0:
                     # 当前版本已是最新
-                    InfoBar.info(
+                    InfoBar.success(
                         title=tr('dialogs.update.info'),
                         content=tr('dialogs.update.latest_version'),
                         parent=parent,
