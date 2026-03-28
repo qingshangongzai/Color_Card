@@ -195,11 +195,10 @@ def main():
         app.setWindowIcon(app_icon)
         logger.info("应用程序图标设置完成")
 
-        # 加载主题配置并设置初始主题
+        # 加载配置
         logger.info("加载配置...")
         config_manager = get_config_manager()
         config_manager.load()
-        logger.info("配置加载完成")
 
         # 初始化语言管理器并加载用户语言配置
         logger.info("初始化语言管理器...")
@@ -208,15 +207,14 @@ def main():
         locale_manager.load_language(language_setting)
         logger.info(f"语言设置: {language_setting}")
 
+        # 设置主题
         theme_setting = config_manager.get('settings.theme', 'auto')
-
         if theme_setting == 'light':
             setTheme(Theme.LIGHT)
         elif theme_setting == 'dark':
             setTheme(Theme.DARK)
         else:
             setTheme(Theme.AUTO)
-
         setThemeColor('#0078d4')
 
         logger.info("创建主窗口...")

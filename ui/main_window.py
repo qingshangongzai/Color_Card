@@ -150,9 +150,9 @@ class MainWindow(FluentWindow):
         self.setWindowTitle(f"取色卡 · Color Card · {self._version}")
         self.setMinimumSize(1095, 600)
 
-        # 加载配置
+        # 获取配置管理器（配置已在 main.py 中加载）
         self._config_manager = get_config_manager()
-        self._config = self._config_manager.load()
+        self._config = self._config_manager._config
 
         # 创建图片状态中介者
         self._image_mediator = ImageMediator(self)
