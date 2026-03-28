@@ -801,6 +801,7 @@ class PaletteManagementList(QWidget):
         self._current_group_indices = []  # 当前分组的索引列表
         self._batch_mode = False
         self._selected_ids = set()
+        self._config_manager = get_config_manager()
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -899,8 +900,8 @@ class PaletteManagementList(QWidget):
     def set_favorites(self, favorites):
         """设置收藏列表"""
         self._favorites = favorites
-        # 预计算有效（未删除）数据的索引集合，提高查找性能
-        self._valid_indices = {i for i, f in enumerate(favorites) if not f.get('_deleted')}
+        # 从业务层获取有效索引，而不是自己计算
+        self._valid_indices = self._config_manager.get_valid_indices()
         self._groups = generate_groups(len(favorites))
         self._current_group_index = 0
         self.groups_updated.emit(self._groups)
@@ -1156,24 +1157,27 @@ class PaletteManagementList(QWidget):
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
 
-    def remove_favorite_card(self, favorite_id: str) -> bool:
-        """标记删除指定收藏卡片（软删除）"""
+    def remove_favorite_card(self, favorite_id: str, deleted_index: int) -> bool:
+        """从UI移除卡片（纯UI操作，不处理数据）
+
+        Args:
+            favorite_id: 收藏ID
+            deleted_index: 被删除项的索引（由业务层提供）
+
+        Returns:
+            bool: 是否成功移除
+        """
         card = self._favorite_cards.get(favorite_id)
         if not card:
             return False
 
-        # 从UI移除卡片
+        # 只做UI操作
         self.content_layout.removeWidget(card)
         card.deleteLater()
         del self._favorite_cards[favorite_id]
 
-        # 标记数据为已删除（不从 _favorites 中移除，保持索引不变）
-        for idx, fav in enumerate(self._favorites):
-            if fav.get('id') == favorite_id:
-                fav['_deleted'] = True
-                # 从有效索引集合中移除
-                self._valid_indices.discard(idx)
-                break
+        # 从有效索引集合中移除（业务层已处理数据标记）
+        self._valid_indices.discard(deleted_index)
 
         # 如果当前分组没有可见卡片了，显示"分组已清空"状态
         if not self._favorite_cards:
@@ -1224,15 +1228,19 @@ class PaletteManagementList(QWidget):
             card.set_selected(False)
         self.selection_changed.emit(self._selected_ids.copy())
 
-    def delete_selected(self) -> int:
+    def delete_selected(self, deleted_indices: Dict[str, int]) -> int:
         """批量删除选中的收藏
+
+        Args:
+            deleted_indices: ID到索引的映射（由业务层提供）
 
         Returns:
             int: 删除的数量
         """
         deleted_count = 0
         for favorite_id in list(self._selected_ids):
-            if self.remove_favorite_card(favorite_id):
+            index = deleted_indices.get(favorite_id, -1)
+            if index >= 0 and self.remove_favorite_card(favorite_id, index):
                 deleted_count += 1
         self._selected_ids.clear()
         self.selection_changed.emit(set())
@@ -1492,13 +1500,17 @@ class PaletteManagementInterface(QWidget):
         dialog.setWindowTitle(tr('palette_management.delete_confirm_title'))
 
         if dialog.exec():
-            # 从配置中删除
+            # 获取索引映射并标记删除
+            deleted_indices = {}
             for favorite_id in selected_ids:
-                self._config_manager.delete_favorite(favorite_id)
+                idx = self._config_manager.get_favorite_index(favorite_id)
+                if idx >= 0:
+                    deleted_indices[favorite_id] = idx
+                    self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
 
             # 从列表中删除
-            deleted_count = self.palette_management_list.delete_selected()
+            deleted_count = self.palette_management_list.delete_selected(deleted_indices)
 
             InfoBar.success(
                 title=tr('messages.success.title'),
@@ -1603,18 +1615,32 @@ class PaletteManagementInterface(QWidget):
         dialog = DeleteConfirmDialog(palette_name, self)
 
         if dialog.exec():
+            # 获取删除前的索引（用于UI层更新）
+            deleted_index = self._config_manager.get_favorite_index(favorite_id)
+
             # 标记删除
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
 
             # 局部刷新：仅移除对应卡片，不重新加载
-            success = self.palette_management_list.remove_favorite_card(favorite_id)
+            success = self.palette_management_list.remove_favorite_card(favorite_id, deleted_index)
 
             if not success:
                 # 局部删除失败时回退到完整刷新
                 self._load_favorites()
 
             log_user_action("delete_favorite", {"id": favorite_id, "name": palette_name}, "success")
+
+            # 显示删除成功提示
+            InfoBar.success(
+                title=tr('messages.success.title'),
+                content=tr('palette_management.delete_single_success', name=palette_name),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
 
     def _on_import_clicked(self):
         """导入按钮点击"""

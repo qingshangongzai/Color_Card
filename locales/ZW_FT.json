@@ -88,6 +88,7 @@
     "delete_confirm_title": "確認刪除",
     "delete_confirm_content": "確定要刪除選中的 {count} 個配色嗎？",
     "delete_success": "已刪除 {count} 個配色",
+    "delete_single_success": "配色「{name}」已刪除",
     "no_selection": "請先選擇要刪除的配色"
   },
   "color_preview": {

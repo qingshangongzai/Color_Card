@@ -88,6 +88,7 @@
     "delete_confirm_title": "削除の確認",
     "delete_confirm_content": "選択した {count} 個のパレットを削除してもよろしいですか？",
     "delete_success": "{count} 個のパレットを削除しました",
+    "delete_single_success": "パレット「{name}」を削除しました",
     "no_selection": "削除するパレットを選択してください"
   },
   "color_preview": {

@@ -88,6 +88,7 @@
     "delete_confirm_title": "Confirm Delete",
     "delete_confirm_content": "Are you sure you want to delete {count} selected palettes?",
     "delete_success": "Deleted {count} palettes",
+    "delete_single_success": "Palette \"{name}\" deleted",
     "no_selection": "Please select palettes to delete first"
   },
   "color_preview": {

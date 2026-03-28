@@ -89,6 +89,7 @@
     "delete_confirm_title": "Подтвердить удаление",
     "delete_confirm_content": "Вы уверены, что хотите удалить {count} выбранных палитр?",
     "delete_success": "Удалено {count} палитр",
+    "delete_single_success": "Палитра \"{name}\" удалена",
     "no_selection": "Пожалуйста, сначала выберите палитры для удаления"
   },
   "color_preview": {

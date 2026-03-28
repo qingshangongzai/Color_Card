@@ -5,7 +5,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # 项目模块导入
 from version import version_manager
@@ -334,6 +334,30 @@ class ConfigManager:
         original_count = len(favorites)
         self._config['favorites'] = [f for f in favorites if not f.get('_deleted')]
         return original_count - len(self._config['favorites'])
+
+    def get_valid_indices(self) -> Set[int]:
+        """获取有效（未删除）数据的索引集合
+
+        Returns:
+            Set[int]: 有效数据的索引集合
+        """
+        favorites = self._config.get('favorites', [])
+        return {i for i, f in enumerate(favorites) if not f.get('_deleted')}
+
+    def get_favorite_index(self, favorite_id: str) -> int:
+        """获取指定收藏在原始列表中的索引
+
+        Args:
+            favorite_id: 收藏ID
+
+        Returns:
+            int: 索引位置，未找到返回 -1
+        """
+        favorites = self._config.get('favorites', [])
+        for i, f in enumerate(favorites):
+            if f.get('id') == favorite_id:
+                return i
+        return -1
 
     def rename_favorite(self, favorite_id: str, new_name: str) -> bool:
         """重命名收藏
