@@ -289,7 +289,8 @@
       "error_http": "HTTPエラー、ステータスコード: {status_code}",
       "error_timeout": "リクエストがタイムアウトしました。ネットワーク接続を確認してください",
       "error_connection": "接続に失敗しました。ネットワーク接続を確認してください",
-      "error_general": "更新確認中にエラーが発生しました: {error}"
+      "error_general": "更新確認中にエラーが発生しました: {error}",
+      "changelog": "更新内容"
     },
     "edit_palette": {
       "add_title": "パレットを追加",

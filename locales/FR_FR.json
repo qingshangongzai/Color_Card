@@ -289,7 +289,8 @@
       "error_http": "Erreur HTTP, code d'état: {status_code}",
       "error_timeout": "Délai d'attente dépassé, veuillez vérifier votre connexion réseau",
       "error_connection": "Échec de la connexion, veuillez vérifier votre connexion réseau",
-      "error_general": "Une erreur s'est produite lors de la vérification: {error}"
+      "error_general": "Une erreur s'est produite lors de la vérification: {error}",
+      "changelog": "Notes de mise à jour"
     },
     "edit_palette": {
       "add_title": "Ajouter une palette",
