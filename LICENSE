@@ -1417,16 +1417,19 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------------
 项目官网 (https://qingshangongzai.github.io/Color_Card/) 使用了以下资源：
 
-1. Tailwind CSS
-   版权所有：Tailwind Labs, Inc.
-   项目地址：https://github.com/tailwindlabs/tailwindcss
-   官网：https://tailwindcss.com
-   来源：https://cdn.tailwindcss.com
-   许可证：MIT License
-   用途：CSS 样式框架
+1. Tailwind CSS (MIT License)
+---------------------------------------------------------------------------------
+版权所有：Tailwind Labs, Inc.
+项目地址：https://github.com/tailwindlabs/tailwindcss
+官网：https://tailwindcss.com
+来源：https://cdn.tailwindcss.com
+许可证：MIT License
+用途：CSS 样式框架
 
    说明：Tailwind CSS 使用 MIT License 许可证。完整的许可证文本请参考本文档第8节
    "Tailwind CSS Colors" 中的 MIT License 部分。
+
+================================================================================
 
 2. Inter 字体
    来源：Google Fonts (https://fonts.google.com/specimen/Inter)
@@ -1434,9 +1437,87 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    许可证：SIL Open Font License 1.1
    用途：网站正文字体
 
-3. 开源配色方案展示
-   官网展示了13套开源配色方案（详见上文第6-18节）
-   所有配色方案均遵循各自的开源许可证
+================================================================================
+3. Vue.js (MIT License)
+---------------------------------------------------------------------------------
+版权所有：Yuxi (Evan) You and Vue contributors
+项目地址：https://github.com/vuejs/core
+官网：https://vuejs.org/
+许可证：MIT License
+用途：网站前端框架（仅用于开发，不包含在最终产品中）
+
+---------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2018-present, Yuxi (Evan) You and Vue contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+================================================================================
+4. TypeScript (Apache License 2.0)
+---------------------------------------------------------------------------------
+版权所有：Microsoft Corporation
+项目地址：https://github.com/microsoft/TypeScript
+官网：https://www.typescriptlang.org/
+许可证：Apache License 2.0
+用途：网站开发类型系统（仅用于开发，不包含在最终产品中）
+
+说明：
+TypeScript 使用 Apache License 2.0 许可证。完整的许可证文本请参考本文档第4节
+"requests" 中的 "Apache License Version 2.0" 部分。
+
+================================================================================
+5. Vite (MIT License)
+---------------------------------------------------------------------------------
+版权所有：Yuxi (Evan) You and Vite contributors
+项目地址：https://github.com/vitejs/vite
+官网：https://vitejs.dev/
+许可证：MIT License
+用途：网站开发构建工具（仅用于开发，不包含在最终产品中）
+
+---------------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2019-present, VoidZero Inc. and Vite contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+6. 开源配色方案展示
+---------------------------------------------------------------------------------
+官网展示了13套开源配色方案（详见上文第6-18节）
+所有配色方案均遵循各自的开源许可证
 
 ================================================================================
 开发工具链许可证
