@@ -289,7 +289,8 @@
       "error_http": "HTTP 錯誤，狀態碼: {status_code}",
       "error_timeout": "請求超時，請檢查網路連接",
       "error_connection": "連接失敗，請檢查網路連接",
-      "error_general": "檢查更新時發生錯誤: {error}"
+      "error_general": "檢查更新時發生錯誤: {error}",
+      "changelog": "更新內容"
     },
     "edit_palette": {
       "add_title": "添加配色",
