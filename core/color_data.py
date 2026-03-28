@@ -156,6 +156,10 @@ class ColorSourceRegistry:
         return cls._instance
     
     def __init__(self):
+        pass  # 延迟加载，不在初始化时扫描
+
+    def _ensure_loaded(self):
+        """确保数据已加载（延迟加载）"""
         if not ColorSourceRegistry._loaded:
             self._discover_sources()
             ColorSourceRegistry._loaded = True
@@ -182,29 +186,32 @@ class ColorSourceRegistry:
     
     def get(self, source_id: str) -> ColorSource:
         """获取指定配色源
-        
+
         Args:
             source_id: 配色源ID
-        
+
         Returns:
             ColorSource: 配色源对象，不存在则返回 None
         """
+        self._ensure_loaded()  # 首次访问时才加载
         return ColorSourceRegistry._sources.get(source_id)
     
     def get_all_ids(self) -> list:
         """获取所有配色源ID
-        
+
         Returns:
             list: 配色源ID列表
         """
+        self._ensure_loaded()  # 首次访问时才加载
         return list(ColorSourceRegistry._sources.keys())
     
     def get_all_sources(self) -> list:
         """获取所有配色源
-        
+
         Returns:
             list: ColorSource 对象列表
         """
+        self._ensure_loaded()  # 首次访问时才加载
         return list(ColorSourceRegistry._sources.values())
 
 

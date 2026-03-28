@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ServiceFactory, log_user_action
+from core import get_luminance, get_zone, get_service_factory, log_user_action
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -82,7 +82,7 @@ class BaseCanvas(QWidget):
             ImageService: 图片服务实例
         """
         if self._image_service is None:
-            self._image_service = ServiceFactory.get_image_service()
+            self._image_service = get_service_factory().get_image_service()
             self._setup_image_service_connections()
         return self._image_service
 
@@ -1258,7 +1258,7 @@ class LuminanceCanvas(BaseCanvas):
             LuminanceService: 明度服务实例
         """
         if self._luminance_service is None:
-            self._luminance_service = ServiceFactory.get_luminance_service()
+            self._luminance_service = get_service_factory().get_luminance_service()
         return self._luminance_service
 
     def _setup_display_preview(self) -> None:

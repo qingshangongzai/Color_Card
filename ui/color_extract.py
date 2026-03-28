@@ -21,7 +21,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, ServiceFactory, log_user_action
+from core import get_color_info, get_config_manager, get_service_factory, log_user_action
 from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
@@ -48,7 +48,7 @@ class ColorExtractInterface(QWidget):
             ColorService: 颜色服务实例
         """
         if self._color_service is None:
-            self._color_service = ServiceFactory.get_color_service()
+            self._color_service = get_service_factory().get_color_service()
             self._setup_color_service_connections()
         return self._color_service
 

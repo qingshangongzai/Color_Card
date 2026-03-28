@@ -17,7 +17,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
+from core import get_color_info, hex_to_rgb, get_config_manager, get_service_factory
 from utils import tr, get_locale_manager, calculate_grid_columns, get_default_data_directory, get_last_directory, set_last_directory
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
@@ -1285,7 +1285,7 @@ class PaletteManagementInterface(QWidget):
             PaletteService: 配色服务实例
         """
         if self._palette_service is None:
-            self._palette_service = ServiceFactory.get_palette_service()
+            self._palette_service = get_service_factory().get_palette_service()
             self._setup_service_connections()
         return self._palette_service
 
