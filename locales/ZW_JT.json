@@ -73,6 +73,8 @@
     "unnamed": "未命名",
     "empty_title": "还没有收藏的配色",
     "empty_hint": "在色彩提取或配色生成面板点击收藏按钮",
+    "group_cleared_title": "当前页面已被清空",
+    "group_cleared_hint": "重启后会重新进行排序",
     "import_title": "导入收藏",
     "export_title": "导出收藏",
     "json_filter": "JSON 文件 (*.json);;所有文件 (*)",
@@ -86,6 +88,7 @@
     "delete_confirm_title": "确认删除",
     "delete_confirm_content": "确定要删除选中的 {count} 个配色吗？",
     "delete_success": "已删除 {count} 个配色",
+    "delete_single_success": "配色「{name}」已删除",
     "no_selection": "请先选择要删除的配色"
   },
   "color_preview": {

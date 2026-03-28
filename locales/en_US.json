@@ -73,6 +73,8 @@
     "unnamed": "Unnamed",
     "empty_title": "No saved palettes yet",
     "empty_hint": "Click the save button in Color Extract or Color Generation panel",
+    "group_cleared_title": "Current page has been cleared",
+    "group_cleared_hint": "Will be re-sorted after restart",
     "import_title": "Import Palettes",
     "export_title": "Export Palettes",
     "json_filter": "JSON Files (*.json);;All Files (*)",
@@ -86,6 +88,7 @@
     "delete_confirm_title": "Confirm Delete",
     "delete_confirm_content": "Are you sure you want to delete {count} selected palettes?",
     "delete_success": "Deleted {count} palettes",
+    "delete_single_success": "Palette \"{name}\" deleted",
     "no_selection": "Please select palettes to delete first"
   },
   "color_preview": {

@@ -21,7 +21,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, ServiceFactory, log_user_action
+from core import get_color_info, get_config_manager, get_service_factory, log_user_action
 from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
@@ -37,8 +37,8 @@ class ColorExtractInterface(QWidget):
         super().__init__(parent)
         self._config_manager = get_config_manager()
         self._color_service = None
-        self.setup_ui()
-        self.setup_connections()
+        self._setup_basic_ui()
+        self._setup_delayed_ui()
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
     def _get_color_service(self):
@@ -48,7 +48,7 @@ class ColorExtractInterface(QWidget):
             ColorService: 颜色服务实例
         """
         if self._color_service is None:
-            self._color_service = ServiceFactory.get_color_service()
+            self._color_service = get_service_factory().get_color_service()
             self._setup_color_service_connections()
         return self._color_service
 
@@ -78,63 +78,34 @@ class ColorExtractInterface(QWidget):
                 pass
         super().closeEvent(event)
 
-    def setup_ui(self):
-        """设置界面布局"""
+    def _setup_basic_ui(self):
+        """设置基本界面（快速）"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
         # 主分割器（垂直）
-        main_splitter = QSplitter(Qt.Orientation.Vertical)
-        main_splitter.setMinimumHeight(300)
-        main_splitter.setHandleWidth(0)  # 隐藏分隔条
-        layout.addWidget(main_splitter, stretch=1)
+        self.main_splitter = QSplitter(Qt.Orientation.Vertical)
+        self.main_splitter.setMinimumHeight(300)
+        self.main_splitter.setHandleWidth(0)
+        layout.addWidget(self.main_splitter, stretch=1)
 
         # 上半部分：水平分割器（图片 + 右侧组件）
-        top_splitter = QSplitter(Qt.Orientation.Horizontal)
-        top_splitter.setMinimumHeight(180)
-        top_splitter.setHandleWidth(0)  # 隐藏分隔条
-
-        # 左侧：图片画布
-        self.image_canvas = ImageCanvas()
-        self.image_canvas.setMinimumWidth(300)
-        self.image_canvas.setMinimumHeight(150)
-        top_splitter.addWidget(self.image_canvas)
+        self.top_splitter = QSplitter(Qt.Orientation.Horizontal)
+        self.top_splitter.setMinimumHeight(180)
+        self.top_splitter.setHandleWidth(0)
+        self.main_splitter.addWidget(self.top_splitter)
 
         # 右侧：垂直分割器（HSB色环 + 直方图堆叠窗口）
-        right_splitter = QSplitter(Qt.Orientation.Vertical)
-        right_splitter.setMinimumWidth(180)
-        right_splitter.setMaximumWidth(350)
-        right_splitter.setMinimumHeight(150)
-        right_splitter.setHandleWidth(0)  # 隐藏分隔条
-
-        # HSB色环
-        self.hsb_color_wheel = HSBColorWheel()
-        self.hsb_color_wheel.setMinimumHeight(100)
-        self.hsb_color_wheel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        right_splitter.addWidget(self.hsb_color_wheel)
-
-        # 直方图堆叠窗口（RGB/色相切换）
-        self.histogram_stack = QStackedWidget()
-        self.histogram_stack.setMinimumHeight(60)
-        self.histogram_stack.setMaximumHeight(150)
-        self.histogram_stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-
-        # RGB直方图（按钮已内置在组件内部）
-        self.rgb_histogram_widget = RGBHistogramWidget()
-        self.histogram_stack.addWidget(self.rgb_histogram_widget)
-
-        # 色相直方图
-        self.hue_histogram_widget = HueHistogramWidget()
-        self.histogram_stack.addWidget(self.hue_histogram_widget)
-
-        right_splitter.addWidget(self.histogram_stack)
-        right_splitter.setSizes([200, 100])
-        top_splitter.addWidget(right_splitter)
+        self.right_splitter = QSplitter(Qt.Orientation.Vertical)
+        self.right_splitter.setMinimumWidth(180)
+        self.right_splitter.setMaximumWidth(350)
+        self.right_splitter.setMinimumHeight(150)
+        self.right_splitter.setHandleWidth(0)
+        self.top_splitter.addWidget(self.right_splitter)
 
         # 设置左右比例（图片区域:右侧组件区域）
-        top_splitter.setSizes([550, 280])
-        main_splitter.addWidget(top_splitter)
+        self.top_splitter.setSizes([550, 280])
 
         # 收藏工具栏
         favorite_toolbar = QWidget()
@@ -171,16 +142,50 @@ class ColorExtractInterface(QWidget):
 
         favorite_toolbar_layout.addStretch()
 
-        main_splitter.addWidget(favorite_toolbar)
+        self.main_splitter.addWidget(favorite_toolbar)
 
         # 下半部分：色卡面板
         self.color_card_panel = ColorCardPanel()
         self.color_card_panel.setMinimumHeight(130)
-        main_splitter.addWidget(self.color_card_panel)
+        self.main_splitter.addWidget(self.color_card_panel)
 
-        main_splitter.setSizes([350, 36, 180])
+        self.main_splitter.setSizes([350, 36, 180])
 
-    def setup_connections(self):
+    def _setup_delayed_ui(self):
+        """延迟初始化（复杂组件）"""
+        # 左侧：图片画布
+        self.image_canvas = ImageCanvas()
+        self.image_canvas.setMinimumWidth(300)
+        self.image_canvas.setMinimumHeight(150)
+        self.top_splitter.insertWidget(0, self.image_canvas)
+
+        # HSB色环
+        self.hsb_color_wheel = HSBColorWheel()
+        self.hsb_color_wheel.setMinimumHeight(100)
+        self.hsb_color_wheel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.right_splitter.addWidget(self.hsb_color_wheel)
+
+        # 直方图堆叠窗口（RGB/色相切换）
+        self.histogram_stack = QStackedWidget()
+        self.histogram_stack.setMinimumHeight(60)
+        self.histogram_stack.setMaximumHeight(150)
+        self.histogram_stack.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+
+        # RGB直方图
+        self.rgb_histogram_widget = RGBHistogramWidget()
+        self.histogram_stack.addWidget(self.rgb_histogram_widget)
+
+        # 色相直方图
+        self.hue_histogram_widget = HueHistogramWidget()
+        self.histogram_stack.addWidget(self.hue_histogram_widget)
+
+        self.right_splitter.addWidget(self.histogram_stack)
+        self.right_splitter.setSizes([200, 100])
+
+        # 设置信号连接
+        self._setup_connections()
+
+    def _setup_connections(self):
         """设置信号连接"""
         self.image_canvas.color_picked.connect(self.on_color_picked)
         self.image_canvas.image_loaded.connect(self.on_image_loaded)

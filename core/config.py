@@ -5,7 +5,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # 项目模块导入
 from version import version_manager
@@ -256,24 +256,31 @@ class ConfigManager:
         """
         self._config["window"] = window_config
 
-    def get_favorites(self) -> List[Dict[str, Any]]:
+    def get_favorites(self, include_deleted: bool = False) -> List[Dict[str, Any]]:
         """获取收藏列表
+
+        Args:
+            include_deleted: 是否包含已删除的收藏
 
         Returns:
             List[Dict[str, Any]]: 收藏配色方案列表
         """
-        return self._config.get("favorites", [])
+        favorites = self._config.get("favorites", [])
+        if include_deleted:
+            return favorites
+        return [f for f in favorites if not f.get('_deleted')]
 
-    def get_favorite(self, favorite_id: str) -> Optional[Dict[str, Any]]:
+    def get_favorite(self, favorite_id: str, include_deleted: bool = False) -> Optional[Dict[str, Any]]:
         """获取单个收藏项
 
         Args:
             favorite_id: 收藏ID
+            include_deleted: 是否包含已删除的收藏
 
         Returns:
             Optional[Dict[str, Any]]: 收藏数据字典，未找到返回None
         """
-        favorites = self._config.get("favorites", [])
+        favorites = self.get_favorites(include_deleted=include_deleted)
         for favorite in favorites:
             if favorite.get("id") == favorite_id:
                 return favorite
@@ -303,24 +310,54 @@ class ConfigManager:
         return favorite_id
 
     def delete_favorite(self, favorite_id: str) -> bool:
-        """删除收藏
+        """标记删除收藏（软删除）
 
         Args:
             favorite_id: 收藏ID
 
         Returns:
-            bool: 是否删除成功
+            bool: 是否成功标记删除
         """
-        if "favorites" not in self._config:
-            return False
+        favorite = self.get_favorite(favorite_id, include_deleted=True)
+        if favorite:
+            favorite['_deleted'] = True
+            return True
+        return False
 
-        original_count = len(self._config["favorites"])
-        self._config["favorites"] = [
-            f for f in self._config["favorites"]
-            if f.get("id") != favorite_id
-        ]
+    def cleanup_deleted_favorites(self) -> int:
+        """清理所有标记为删除的收藏
 
-        return len(self._config["favorites"]) < original_count
+        Returns:
+            int: 清理的数量
+        """
+        favorites = self._config.get('favorites', [])
+        original_count = len(favorites)
+        self._config['favorites'] = [f for f in favorites if not f.get('_deleted')]
+        return original_count - len(self._config['favorites'])
+
+    def get_valid_indices(self) -> Set[int]:
+        """获取有效（未删除）数据的索引集合
+
+        Returns:
+            Set[int]: 有效数据的索引集合
+        """
+        favorites = self._config.get('favorites', [])
+        return {i for i, f in enumerate(favorites) if not f.get('_deleted')}
+
+    def get_favorite_index(self, favorite_id: str) -> int:
+        """获取指定收藏在原始列表中的索引
+
+        Args:
+            favorite_id: 收藏ID
+
+        Returns:
+            int: 索引位置，未找到返回 -1
+        """
+        favorites = self._config.get('favorites', [])
+        for i, f in enumerate(favorites):
+            if f.get('id') == favorite_id:
+                return i
+        return -1
 
     def rename_favorite(self, favorite_id: str, new_name: str) -> bool:
         """重命名收藏

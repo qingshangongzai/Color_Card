@@ -17,7 +17,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
+from core import get_color_info, hex_to_rgb, get_config_manager, get_service_factory
 from utils import tr, get_locale_manager, calculate_grid_columns, get_default_data_directory, get_last_directory, set_last_directory
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
@@ -415,9 +415,8 @@ class PaletteManagementColorCard(QWidget):
         # 更新颜色块
         rgb = color_info.get('rgb', [0, 0, 0])
         color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            f"background-color: {color_str}; border-radius: 4px;"
         )
 
         # 更新16进制值（确保带#前缀）
@@ -801,6 +800,7 @@ class PaletteManagementList(QWidget):
         self._current_group_indices = []  # 当前分组的索引列表
         self._batch_mode = False
         self._selected_ids = set()
+        self._config_manager = get_config_manager()
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -841,8 +841,12 @@ class PaletteManagementList(QWidget):
 
         self._show_empty_state()
 
-    def _show_empty_state(self):
-        """显示空状态"""
+    def _show_empty_state(self, is_group_cleared: bool = False):
+        """显示空状态
+
+        Args:
+            is_group_cleared: 是否是分组被清空的状态（软删除后）
+        """
         self._clear_cards()
 
         self._empty_widget = QWidget()
@@ -853,16 +857,24 @@ class PaletteManagementList(QWidget):
 
         self._icon_label = QLabel()
         self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
-        self._icon_label.setText("⭐")
+        self._icon_label.setText("🗑️" if is_group_cleared else "⭐")
         self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._icon_label)
 
-        self._text_label = QLabel(tr('palette_management.empty_title'))
+        # 根据状态选择不同的文本
+        if is_group_cleared:
+            text_key = 'palette_management.group_cleared_title'
+            hint_key = 'palette_management.group_cleared_hint'
+        else:
+            text_key = 'palette_management.empty_title'
+            hint_key = 'palette_management.empty_hint'
+
+        self._text_label = QLabel(tr(text_key))
         self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
         self._text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._text_label)
 
-        self._hint_label = QLabel(tr('palette_management.empty_hint'))
+        self._hint_label = QLabel(tr(hint_key))
         self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
         self._hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._hint_label)
@@ -887,14 +899,16 @@ class PaletteManagementList(QWidget):
     def set_favorites(self, favorites):
         """设置收藏列表"""
         self._favorites = favorites
+        # 从业务层获取有效索引，而不是自己计算
+        self._valid_indices = self._config_manager.get_valid_indices()
         self._groups = generate_groups(len(favorites))
         self._current_group_index = 0
         self.groups_updated.emit(self._groups)
-        
+
         if not favorites:
             self._show_empty_state()
             return
-        
+
         self._load_current_group()
 
     def _load_current_group(self):
@@ -938,16 +952,24 @@ class PaletteManagementList(QWidget):
         return card
 
     def _load_group_directly(self, group_indices: list):
-        """直接加载分组数据（小数据量）"""
+        """直接加载分组数据（小数据量），跳过已删除的数据"""
         self.content_widget.setUpdatesEnabled(False)
         try:
             for idx in group_indices:
-                if 0 <= idx < len(self._favorites):
+                # 使用集合查找，O(1) 复杂度
+                if idx in self._valid_indices:
                     favorite = self._favorites[idx]
                     card = self._create_palette_card(favorite, idx)
                     self.content_layout.addWidget(card)
                     self._favorite_cards[favorite.get('id', '')] = card
-            self.content_layout.addStretch()
+
+            # 如果没有可见数据，显示空状态
+            if not self._favorite_cards:
+                # 检查分组内是否有被标记删除的数据
+                has_deleted = any(idx not in self._valid_indices for idx in group_indices)
+                self._show_empty_state(is_group_cleared=has_deleted)
+            else:
+                self.content_layout.addStretch()
         finally:
             self.content_widget.setUpdatesEnabled(True)
 
@@ -965,18 +987,28 @@ class PaletteManagementList(QWidget):
         self._loader.start()
 
     def _on_batch_data_ready(self, batch_idx: int, batch_data: List[Dict[str, Any]]):
-        """批次数据就绪回调"""
+        """批次数据就绪回调，跳过已删除的数据"""
         start_index = batch_idx * self.BATCH_SIZE
         for i, favorite in enumerate(batch_data):
             global_index = self._current_group_indices[start_index + i]
-            card = self._create_palette_card(favorite, global_index)
-            self.content_layout.addWidget(card)
-            self._favorite_cards[favorite.get('id', '')] = card
+            # 使用集合查找，O(1) 复杂度
+            if global_index in self._valid_indices:
+                card = self._create_palette_card(favorite, global_index)
+                self.content_layout.addWidget(card)
+                self._favorite_cards[favorite.get('id', '')] = card
         QApplication.processEvents()
 
     def _on_loading_finished(self):
         """加载完成回调"""
-        self.content_layout.addStretch()
+        if not self._favorite_cards:
+            # 检查当前分组是否所有数据都被标记删除
+            has_deleted = any(idx not in self._valid_indices for idx in self._current_group_indices)
+            if has_deleted:
+                self._show_empty_state(is_group_cleared=True)
+            else:
+                self.content_layout.addStretch()
+        else:
+            self.content_layout.addStretch()
         if self._loader is not None:
             self._loader.deleteLater()
             self._loader = None
@@ -1124,38 +1156,31 @@ class PaletteManagementList(QWidget):
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
 
-    def remove_favorite_card(self, favorite_id: str) -> bool:
-        """局部删除指定收藏卡片"""
+    def remove_favorite_card(self, favorite_id: str, deleted_index: int) -> bool:
+        """从UI移除卡片（纯UI操作，不处理数据）
+
+        Args:
+            favorite_id: 收藏ID
+            deleted_index: 被删除项的索引（由业务层提供）
+
+        Returns:
+            bool: 是否成功移除
+        """
         card = self._favorite_cards.get(favorite_id)
         if not card:
             return False
 
-        deleted_idx = next((i for i, fav in enumerate(self._favorites)
-                           if fav.get('id', '') == favorite_id), -1)
-        if deleted_idx < 0:
-            return False
-
+        # 只做UI操作
         self.content_layout.removeWidget(card)
         card.deleteLater()
         del self._favorite_cards[favorite_id]
-        self._favorites.pop(deleted_idx)
 
-        if deleted_idx in self._current_group_indices:
-            self._current_group_indices.remove(deleted_idx)
+        # 从有效索引集合中移除（业务层已处理数据标记）
+        self._valid_indices.discard(deleted_index)
 
-        # 如果当前分组为空，尝试加载其他分组
-        if not self._current_group_indices:
-            if self._current_group_index < len(self._groups) - 1:
-                # 还有下一页，加载下一页（序号会自动调整）
-                self._load_current_group()
-            elif self._current_group_index > 0:
-                # 没有下一页但有上一页，回到上一页
-                self._current_group_index -= 1
-                self.group_changed.emit(self._current_group_index)
-                self._load_current_group()
-            else:
-                # 没有任何页面了，显示空状态
-                self._show_empty_state()
+        # 如果当前分组没有可见卡片了，显示"分组已清空"状态
+        if not self._favorite_cards:
+            self._show_empty_state(is_group_cleared=True)
 
         return True
 
@@ -1202,15 +1227,19 @@ class PaletteManagementList(QWidget):
             card.set_selected(False)
         self.selection_changed.emit(self._selected_ids.copy())
 
-    def delete_selected(self) -> int:
+    def delete_selected(self, deleted_indices: Dict[str, int]) -> int:
         """批量删除选中的收藏
+
+        Args:
+            deleted_indices: ID到索引的映射（由业务层提供）
 
         Returns:
             int: 删除的数量
         """
         deleted_count = 0
         for favorite_id in list(self._selected_ids):
-            if self.remove_favorite_card(favorite_id):
+            index = deleted_indices.get(favorite_id, -1)
+            if index >= 0 and self.remove_favorite_card(favorite_id, index):
                 deleted_count += 1
         self._selected_ids.clear()
         self.selection_changed.emit(set())
@@ -1255,7 +1284,7 @@ class PaletteManagementInterface(QWidget):
             PaletteService: 配色服务实例
         """
         if self._palette_service is None:
-            self._palette_service = ServiceFactory.get_palette_service()
+            self._palette_service = get_service_factory().get_palette_service()
             self._setup_service_connections()
         return self._palette_service
 
@@ -1470,13 +1499,17 @@ class PaletteManagementInterface(QWidget):
         dialog.setWindowTitle(tr('palette_management.delete_confirm_title'))
 
         if dialog.exec():
-            # 从配置中删除
+            # 获取索引映射并标记删除
+            deleted_indices = {}
             for favorite_id in selected_ids:
-                self._config_manager.delete_favorite(favorite_id)
+                idx = self._config_manager.get_favorite_index(favorite_id)
+                if idx >= 0:
+                    deleted_indices[favorite_id] = idx
+                    self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
 
             # 从列表中删除
-            deleted_count = self.palette_management_list.delete_selected()
+            deleted_count = self.palette_management_list.delete_selected(deleted_indices)
 
             InfoBar.success(
                 title=tr('messages.success.title'),
@@ -1548,7 +1581,11 @@ class PaletteManagementInterface(QWidget):
             self.palette_management_list.set_current_group(index)
 
     def _load_favorites(self):
-        """加载收藏列表"""
+        """加载收藏列表，启动时清理已删除的数据"""
+        # 启动时清理已删除的数据
+        self._config_manager.cleanup_deleted_favorites()
+        self._config_manager.save()
+
         favorites = self._config_manager.get_favorites()
         self.palette_management_list.set_favorites(favorites)
 
@@ -1567,27 +1604,42 @@ class PaletteManagementInterface(QWidget):
             log_user_action("clear_all_favorites", {"count": favorites_count}, "success")
 
     def _on_favorite_deleted(self, favorite_id):
-        """收藏删除回调（优化版）
+        """收藏删除回调（软删除）
 
-        使用局部刷新替代完整重新加载，避免卡顿。
+        使用标记删除替代物理删除，保持分组结构不变。
         """
-        favorite = self._config_manager.get_favorite(favorite_id)
+        favorite = self._config_manager.get_favorite(favorite_id, include_deleted=True)
         palette_name = favorite.get('name', tr('palette_management.unnamed')) if favorite else tr('palette_management.unnamed')
 
         dialog = DeleteConfirmDialog(palette_name, self)
 
         if dialog.exec():
+            # 获取删除前的索引（用于UI层更新）
+            deleted_index = self._config_manager.get_favorite_index(favorite_id)
+
+            # 标记删除
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
 
             # 局部刷新：仅移除对应卡片，不重新加载
-            success = self.palette_management_list.remove_favorite_card(favorite_id)
+            success = self.palette_management_list.remove_favorite_card(favorite_id, deleted_index)
 
             if not success:
                 # 局部删除失败时回退到完整刷新
                 self._load_favorites()
 
             log_user_action("delete_favorite", {"id": favorite_id, "name": palette_name}, "success")
+
+            # 显示删除成功提示
+            InfoBar.success(
+                title=tr('messages.success.title'),
+                content=tr('palette_management.delete_single_success', name=palette_name),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
 
     def _on_import_clicked(self):
         """导入按钮点击"""

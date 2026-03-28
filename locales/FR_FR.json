@@ -73,6 +73,8 @@
     "unnamed": "Sans nom",
     "empty_title": "Aucune palette enregistrée",
     "empty_hint": "Cliquez sur le bouton d'enregistrement dans le panneau d'extraction ou de génération de couleurs",
+    "group_cleared_title": "La page actuelle a été vidée",
+    "group_cleared_hint": "Sera réorganisée après le redémarrage",
     "import_title": "Importer des palettes",
     "export_title": "Exporter des palettes",
     "json_filter": "Fichiers JSON (*.json);;Tous les fichiers (*)",
@@ -86,6 +88,7 @@
     "delete_confirm_title": "Confirmer la suppression",
     "delete_confirm_content": "Êtes-vous sûr de vouloir supprimer {count} palettes sélectionnées ?",
     "delete_success": "{count} palettes supprimées",
+    "delete_single_success": "Palette \"{name}\" supprimée",
     "no_selection": "Veuillez d'abord sélectionner des palettes à supprimer"
   },
   "color_preview": {

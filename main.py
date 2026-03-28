@@ -2,6 +2,10 @@
 import ctypes
 import os
 import sys
+import time
+
+# 记录启动开始时间
+_startup_start_time = time.perf_counter()
 
 def set_app_user_model_id():
     """设置 Windows AppUserModelID
@@ -195,11 +199,10 @@ def main():
         app.setWindowIcon(app_icon)
         logger.info("应用程序图标设置完成")
 
-        # 加载主题配置并设置初始主题
+        # 加载配置
         logger.info("加载配置...")
         config_manager = get_config_manager()
         config_manager.load()
-        logger.info("配置加载完成")
 
         # 初始化语言管理器并加载用户语言配置
         logger.info("初始化语言管理器...")
@@ -208,15 +211,14 @@ def main():
         locale_manager.load_language(language_setting)
         logger.info(f"语言设置: {language_setting}")
 
+        # 设置主题
         theme_setting = config_manager.get('settings.theme', 'auto')
-
         if theme_setting == 'light':
             setTheme(Theme.LIGHT)
         elif theme_setting == 'dark':
             setTheme(Theme.DARK)
         else:
             setTheme(Theme.AUTO)
-
         setThemeColor('#0078d4')
 
         logger.info("创建主窗口...")
@@ -237,6 +239,10 @@ def main():
             force_window_to_front(window)
 
         QTimer.singleShot(100, _on_window_shown)
+
+        # 计算并输出启动时间
+        startup_time = (time.perf_counter() - _startup_start_time) * 1000
+        logger.info(f"启动完成，总耗时: {startup_time:.2f}ms")
 
         logger.info("进入主事件循环...")
         try:

@@ -101,3 +101,5 @@ bandit_project_report.html
 文档/过度防御性设计报告.md
 /logs
 文档/区分安装版与便携版实现计划.md
+文档/启动速度分析报告.md
+文档/收藏数据延迟加载优化方案.md
