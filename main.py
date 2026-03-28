@@ -2,6 +2,10 @@
 import ctypes
 import os
 import sys
+import time
+
+# 记录启动开始时间
+_startup_start_time = time.perf_counter()
 
 def set_app_user_model_id():
     """设置 Windows AppUserModelID
@@ -235,6 +239,10 @@ def main():
             force_window_to_front(window)
 
         QTimer.singleShot(100, _on_window_shown)
+
+        # 计算并输出启动时间
+        startup_time = (time.perf_counter() - _startup_start_time) * 1000
+        logger.info(f"启动完成，总耗时: {startup_time:.2f}ms")
 
         logger.info("进入主事件循环...")
         try:
