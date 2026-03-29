@@ -32,8 +32,8 @@ def _is_bundled() -> bool:
     # PyInstaller
     if getattr(sys, 'frozen', False):
         return True
-    # Nuitka - 检查 sys 模块是否有 __compiled__ 属性
-    if hasattr(sys, '__compiled__'):
+    # Nuitka - __compiled__ 是当前模块的全局变量
+    if "__compiled__" in globals():
         return True
     return False
 
