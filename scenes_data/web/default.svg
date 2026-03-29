@@ -1,6 +1,6 @@
-<svg viewBox="0 0 600 220" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
   <!-- 页面背景 -->
-  <rect id="background" class="background" width="600" height="220" fill="#f8f8f8"/>
+  <rect id="background" class="background" width="600" height="300" fill="#f8f8f8"/>
 
   <!-- 导航栏 -->
   <rect id="navbar" class="primary" x="0" y="0" width="600" height="35" fill="#2a2a2a"/>
@@ -20,21 +20,21 @@
 
   <!-- 卡片区域 - 横向排列 -->
   <!-- 卡片1 -->
-  <rect id="card-1" class="accent" x="80" y="130" width="130" height="55" rx="6" fill="#ff6b6b"/>
-  <circle id="card-1-icon" class="primary" cx="145" cy="148" r="10" fill="#4a4a4a"/>
-  <text id="card-1-title" class="text" x="145" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">功能 1</text>
+  <rect id="card-1" class="accent" x="80" y="145" width="130" height="70" rx="6" fill="#ff6b6b"/>
+  <circle id="card-1-icon" class="primary" cx="145" cy="168" r="12" fill="#4a4a4a"/>
+  <text id="card-1-title" class="text" x="145" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">功能 1</text>
 
   <!-- 卡片2 -->
-  <rect id="card-2" class="primary" x="235" y="130" width="130" height="55" rx="6" fill="#4a4a4a"/>
-  <circle id="card-2-icon" class="secondary" cx="300" cy="148" r="10" fill="#6a6a6a"/>
-  <text id="card-2-title" class="text" x="300" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">功能 2</text>
+  <rect id="card-2" class="primary" x="235" y="145" width="130" height="70" rx="6" fill="#4a4a4a"/>
+  <circle id="card-2-icon" class="secondary" cx="300" cy="168" r="12" fill="#6a6a6a"/>
+  <text id="card-2-title" class="text" x="300" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">功能 2</text>
 
   <!-- 卡片3 -->
-  <rect id="card-3" class="secondary" x="390" y="130" width="130" height="55" rx="6" fill="#6a6a6a"/>
-  <circle id="card-3-icon" class="accent" cx="455" cy="148" r="10" fill="#ff6b6b"/>
-  <text id="card-3-title" class="text" x="455" y="172" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">功能 3</text>
+  <rect id="card-3" class="secondary" x="390" y="145" width="130" height="70" rx="6" fill="#6a6a6a"/>
+  <circle id="card-3-icon" class="accent" cx="455" cy="168" r="12" fill="#ff6b6b"/>
+  <text id="card-3-title" class="text" x="455" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">功能 3</text>
 
   <!-- 页脚 -->
-  <rect id="footer" class="primary" x="0" y="195" width="600" height="25" fill="#2a2a2a"/>
-  <text id="footer-text" class="text" x="300" y="212" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">© 2026 色卡工具. 保留所有权利.</text>
+  <rect id="footer" class="primary" x="0" y="245" width="600" height="55" fill="#2a2a2a"/>
+  <text id="footer-text" class="text" x="300" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">© 2026 色卡工具. 保留所有权利.</text>
 </svg>

@@ -20,7 +20,7 @@
   <rect id="main-content" class="background" x="80" y="0" width="520" height="300" fill="#f5f7fa"/>
 
   <!-- 顶部标题栏 -->
-  <text id="welcome-title" class="text" x="100" y="25" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333" data-fixed-color="black">欢迎回来！</text>
+  <text id="welcome-title" class="text" x="100" y="25" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333333" data-fixed-color="black">欢迎回来！</text>
 
   <!-- 顶部图标 -->
   <circle id="icon-notify" class="secondary" cx="520" cy="20" r="6" fill="#d0d0d0"/>
@@ -30,7 +30,7 @@
 
   <!-- 日历卡片 -->
   <rect id="calendar-card" class="secondary" x="100" y="45" width="110" height="75" rx="8" fill="#ffffff"/>
-  <text id="calendar-title" class="text" x="155" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#333333" data-fixed-color="black">2021年12月</text>
+  <text id="calendar-title" class="text" x="155" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#333333" data-fixed-color="black">2021年12月</text>
   <!-- 日历网格 -->
   <rect id="cal-day-15" class="accent" x="112" y="72" width="12" height="12" rx="2" fill="#ff8a8a"/>
   <rect id="cal-day-16" class="secondary" x="127" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
@@ -43,10 +43,10 @@
 
   <!-- 账户菜单卡片 -->
   <rect id="account-card" class="secondary" x="225" y="45" width="110" height="75" rx="8" fill="#ffffff"/>
-  <text id="account-item-1" class="text" x="240" y="62" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">账户</text>
-  <text id="account-item-2" class="text" x="240" y="78" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">设置</text>
-  <text id="account-item-3" class="text" x="240" y="94" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">帮助中心</text>
-  <text id="account-item-4" class="text" x="240" y="110" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">退出登录</text>
+  <text id="account-item-1" class="text" x="240" y="62" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">账户</text>
+  <text id="account-item-2" class="text" x="240" y="78" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">设置</text>
+  <text id="account-item-3" class="text" x="240" y="94" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">帮助中心</text>
+  <text id="account-item-4" class="text" x="240" y="110" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">退出登录</text>
 
   <!-- 销售标签页 -->
   <rect id="tabs-card" class="secondary" x="350" y="45" width="120" height="40" rx="8" fill="#ffffff"/>
@@ -57,37 +57,34 @@
 
   <!-- 用户选择器 -->
   <rect id="user-select" class="secondary" x="350" y="92" width="120" height="28" rx="4" fill="#ffffff"/>
-  <text id="user-select-text" class="text" x="365" y="110" font-family="Arial, sans-serif" font-size="7" fill="#666666" data-fixed-color="black">选择用户</text>
+  <text id="user-select-text" class="text" x="365" y="110" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">选择用户</text>
 
-  <!-- 用户列表 -->
-  <rect id="user-list-card" class="secondary" x="350" y="128" width="120" height="85" rx="8" fill="#ffffff"/>
+  <!-- 用户列表 - 进一步缩小高度 -->
+  <rect id="user-list-card" class="secondary" x="350" y="125" width="120" height="58" rx="8" fill="#ffffff"/>
   <!-- 用户1 -->
-  <circle id="user1-avatar" class="primary" cx="368" cy="150" r="8" fill="#6a6a6a"/>
-  <text id="user1-name" class="text" x="385" y="150" font-family="Arial, sans-serif" font-size="7" fill="#333333" data-fixed-color="black">Martin Boss</text>
-  <text id="user1-role" class="text" x="385" y="160" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">市场</text>
+  <circle id="user1-avatar" class="primary" cx="368" cy="138" r="6" fill="#6a6a6a"/>
+  <text id="user1-name" class="text" x="380" y="141" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Martin Boss</text>
   <!-- 用户2 -->
-  <circle id="user2-avatar" class="accent" cx="368" cy="178" r="8" fill="#ff8a8a"/>
-  <text id="user2-name" class="text" x="385" y="178" font-family="Arial, sans-serif" font-size="7" fill="#333333" data-fixed-color="black">Hannah Doe</text>
-  <text id="user2-role" class="text" x="385" y="188" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">市场</text>
+  <circle id="user2-avatar" class="accent" cx="368" cy="156" r="6" fill="#ff8a8a"/>
+  <text id="user2-name" class="text" x="380" y="159" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Hannah Doe</text>
   <!-- 用户3 -->
-  <circle id="user3-avatar" class="primary" cx="368" cy="206" r="8" fill="#8fa8c0"/>
-  <text id="user3-name" class="text" x="385" y="206" font-family="Arial, sans-serif" font-size="7" fill="#333333" data-fixed-color="black">Joe Black</text>
-  <text id="user3-role" class="text" x="385" y="216" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">经理</text>
+  <circle id="user3-avatar" class="primary" cx="368" cy="174" r="6" fill="#8fa8c0"/>
+  <text id="user3-name" class="text" x="380" y="177" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Joe Black</text>
 
   <!-- 登录表单卡片 -->
   <rect id="login-card" class="secondary" x="100" y="130" width="110" height="80" rx="8" fill="#ffffff"/>
-  <text id="login-title" class="text" x="115" y="148" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#333333" data-fixed-color="black">登录</text>
+  <text id="login-title" class="text" x="115" y="148" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#333333" data-fixed-color="black">登录</text>
   <rect id="login-input-1" class="secondary" x="115" y="160" width="80" height="12" rx="2" fill="#f5f5f5"/>
   <rect id="login-input-2" class="secondary" x="115" y="180" width="80" height="12" rx="2" fill="#f5f5f5"/>
   <rect id="login-btn" class="accent" x="115" y="200" width="80" height="10" rx="2" fill="#ff8a8a"/>
 
   <!-- 字体展示卡片 -->
   <rect id="font-card" class="secondary" x="225" y="130" width="110" height="80" rx="8" fill="#ffffff"/>
-  <text id="font-demo" class="text" x="280" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#333333" data-fixed-color="black">Aa</text>
+  <text id="font-demo" class="text" x="280" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#333333" data-fixed-color="black">Aa</text>
 
   <!-- 按钮展示 -->
   <rect id="btn-primary" class="accent" x="225" y="220" width="110" height="22" rx="4" fill="#ffb3b3"/>
-  <text id="btn-text" class="text" x="280" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#ffffff" data-fixed-color="black">按钮</text>
+  <text id="btn-text" class="text" x="280" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" fill="#ffffff" data-fixed-color="black">按钮</text>
 
   <rect id="btn-secondary" class="secondary" x="225" y="250" width="110" height="22" rx="4" fill="#ffffff"/>
   <rect id="btn-secondary-border" x="225" y="250" width="110" height="22" rx="4" fill="none" stroke="#ffb3b3" stroke-width="1"/>
@@ -103,38 +100,38 @@
   <rect id="suggest-item-1" class="accent" x="115" y="260" width="80" height="10" rx="2" fill="#ffe0e0"/>
   <rect id="suggest-item-2" class="secondary" x="115" y="278" width="80" height="6" rx="2" fill="#f5f5f5"/>
 
-  <!-- 统计卡片1 -->
-  <rect id="stat-card-1" class="secondary" x="350" y="220" width="120" height="40" rx="8" fill="#ffffff"/>
-  <text id="stat-num-1" class="text" x="368" y="240" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333333" data-fixed-color="black">51,099</text>
-  <text id="stat-label-1" class="text" x="368" y="252" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">总用户数</text>
+  <!-- 统计卡片1 - 位置上移 -->
+  <rect id="stat-card-1" class="secondary" x="350" y="192" width="120" height="38" rx="8" fill="#ffffff"/>
+  <text id="stat-num-1" class="text" x="368" y="212" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#333333" data-fixed-color="black">51,099</text>
+  <text id="stat-label-1" class="text" x="368" y="222" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">总用户数</text>
 
-  <!-- 统计卡片2 -->
-  <rect id="stat-card-2" class="secondary" x="350" y="270" width="120" height="40" rx="8" fill="#ffffff"/>
-  <text id="stat-num-2" class="text" x="368" y="290" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333333" data-fixed-color="black">800k</text>
-  <text id="stat-label-2" class="text" x="368" y="302" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">数据库</text>
+  <!-- 统计卡片2 - 位置上移 -->
+  <rect id="stat-card-2" class="secondary" x="350" y="237" width="120" height="38" rx="8" fill="#ffffff"/>
+  <text id="stat-num-2" class="text" x="368" y="257" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#333333" data-fixed-color="black">800k</text>
+  <text id="stat-label-2" class="text" x="368" y="267" font-family="Arial, sans-serif" font-size="5" fill="#888888" data-fixed-color="black">数据库</text>
 
-  <!-- 复选框组 -->
-  <rect id="checkbox-card" class="secondary" x="490" y="45" width="100" height="120" rx="8" fill="#ffffff"/>
-  <text id="sort-title" class="text" x="505" y="65" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">排序方式</text>
-  <circle id="radio-1" class="secondary" cx="515" cy="85" r="4" fill="#ffffff" stroke="#d0d0d0"/>
-  <text id="radio-1-text" class="text" x="528" y="88" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">从低到高</text>
-  <circle id="radio-2" class="accent" cx="515" cy="110" r="4" fill="#ff8a8a"/>
-  <text id="radio-2-text" class="text" x="528" y="113" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">从高到低</text>
-  <circle id="radio-3" class="secondary" cx="515" cy="135" r="4" fill="#ffffff" stroke="#d0d0d0"/>
-  <text id="radio-3-text" class="text" x="528" y="138" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">按名称</text>
-  <circle id="radio-4" class="secondary" cx="515" cy="160" r="4" fill="#ffffff" stroke="#d0d0d0"/>
-  <text id="radio-4-text" class="text" x="528" y="163" font-family="Arial, sans-serif" font-size="6" fill="#666666" data-fixed-color="black">按日期</text>
+  <!-- 复选框组 - 缩小高度 -->
+  <rect id="checkbox-card" class="secondary" x="490" y="45" width="100" height="105" rx="8" fill="#ffffff"/>
+  <text id="sort-title" class="text" x="505" y="62" font-family="Arial, sans-serif" font-size="6" fill="#888888" data-fixed-color="black">排序方式</text>
+  <circle id="radio-1" class="secondary" cx="515" cy="80" r="4" fill="#ffffff" stroke="#d0d0d0"/>
+  <text id="radio-1-text" class="text" x="528" y="83" font-family="Arial, sans-serif" font-size="5" fill="#666666" data-fixed-color="black">从低到高</text>
+  <circle id="radio-2" class="accent" cx="515" cy="100" r="4" fill="#ff8a8a"/>
+  <text id="radio-2-text" class="text" x="528" y="103" font-family="Arial, sans-serif" font-size="5" fill="#333333" data-fixed-color="black">从高到低</text>
+  <circle id="radio-3" class="secondary" cx="515" cy="120" r="4" fill="#ffffff" stroke="#d0d0d0"/>
+  <text id="radio-3-text" class="text" x="528" y="123" font-family="Arial, sans-serif" font-size="5" fill="#666666" data-fixed-color="black">按名称</text>
+  <circle id="radio-4" class="secondary" cx="515" cy="140" r="4" fill="#ffffff" stroke="#d0d0d0"/>
+  <text id="radio-4-text" class="text" x="528" y="143" font-family="Arial, sans-serif" font-size="5" fill="#666666" data-fixed-color="black">按日期</text>
 
   <!-- 底部统计图表区 -->
-  <rect id="chart-card" class="secondary" x="490" y="175" width="100" height="135" rx="8" fill="#ffffff"/>
-  <text id="chart-title" class="text" x="505" y="195" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#333333" data-fixed-color="black">总销售额</text>
-  <text id="chart-value" class="text" x="505" y="225" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333" data-fixed-color="black">248,500</text>
-  <text id="chart-growth" class="text" x="505" y="245" font-family="Arial, sans-serif" font-size="7" fill="#4caf50" data-fixed-color="black">12.6% ↑</text>
+  <rect id="chart-card" class="secondary" x="490" y="158" width="100" height="117" rx="8" fill="#ffffff"/>
+  <text id="chart-title" class="text" x="505" y="178" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#333333" data-fixed-color="black">总销售额</text>
+  <text id="chart-value" class="text" x="505" y="203" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333" data-fixed-color="black">248,500</text>
+  <text id="chart-growth" class="text" x="505" y="221" font-family="Arial, sans-serif" font-size="6" fill="#4caf50" data-fixed-color="black">12.6% ↑</text>
 
   <!-- 迷你柱状图 -->
-  <rect id="bar-1" class="accent" x="510" y="265" width="8" height="30" rx="2" fill="#ff8a8a"/>
-  <rect id="bar-2" class="secondary" x="525" y="280" width="8" height="15" rx="2" fill="#c8e0c8"/>
-  <rect id="bar-3" class="accent" x="540" y="270" width="8" height="25" rx="2" fill="#ff8a8a"/>
-  <rect id="bar-4" class="secondary" x="555" y="285" width="8" height="10" rx="2" fill="#c8e0c8"/>
-  <rect id="bar-5" class="accent" x="570" y="268" width="8" height="27" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-1" class="accent" x="510" y="238" width="8" height="25" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-2" class="secondary" x="525" y="251" width="8" height="12" rx="2" fill="#c8e0c8"/>
+  <rect id="bar-3" class="accent" x="540" y="243" width="8" height="20" rx="2" fill="#ff8a8a"/>
+  <rect id="bar-4" class="secondary" x="555" y="256" width="8" height="7" rx="2" fill="#c8e0c8"/>
+  <rect id="bar-5" class="accent" x="570" y="241" width="8" height="22" rx="2" fill="#ff8a8a"/>
 </svg>

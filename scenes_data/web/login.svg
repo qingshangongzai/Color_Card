@@ -14,28 +14,28 @@
   <text id="hero-title" class="text" x="140" y="260" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#ffffff" data-fixed-color="black">欢迎回来</text>
   <text id="hero-subtitle" class="text" x="140" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#e8e8e8" data-fixed-color="black">登录以继续探索</text>
 
-  <!-- 右侧登录表单区域 -->
+  <!-- 右侧登录表单区域 - 整体向上移动 -->
   <!-- Logo -->
-  <rect id="logo" class="accent" x="410" y="40" width="80" height="30" rx="4" fill="#6c5ce7"/>
-  <text id="logo-text" class="text" x="450" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">登录</text>
+  <rect id="logo" class="accent" x="410" y="30" width="80" height="30" rx="4" fill="#6c5ce7"/>
+  <text id="logo-text" class="text" x="450" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">登录</text>
 
   <!-- 标题 -->
-  <text id="form-title" class="text" x="450" y="110" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">账号登录</text>
+  <text id="form-title" class="text" x="450" y="90" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">账号登录</text>
 
   <!-- 邮箱输入框 -->
-  <rect id="input-email" class="secondary" x="340" y="140" width="220" height="40" rx="6" fill="#ffffff"/>
-  <text id="email-label" class="text" x="355" y="165" font-family="Arial, sans-serif" font-size="11" fill="#b2bec3" data-fixed-color="black">邮箱地址</text>
+  <rect id="input-email" class="secondary" x="340" y="115" width="220" height="40" rx="6" fill="#ffffff"/>
+  <text id="email-label" class="text" x="355" y="140" font-family="Arial, sans-serif" font-size="11" fill="#b2bec3" data-fixed-color="black">邮箱地址</text>
 
   <!-- 密码输入框 -->
-  <rect id="input-password" class="secondary" x="340" y="195" width="220" height="40" rx="6" fill="#ffffff"/>
-  <text id="password-label" class="text" x="355" y="220" font-family="Arial, sans-serif" font-size="11" fill="#b2bec3" data-fixed-color="black">密码</text>
+  <rect id="input-password" class="secondary" x="340" y="165" width="220" height="40" rx="6" fill="#ffffff"/>
+  <text id="password-label" class="text" x="355" y="190" font-family="Arial, sans-serif" font-size="11" fill="#b2bec3" data-fixed-color="black">密码</text>
 
   <!-- 记住我和忘记密码 -->
-  <circle id="checkbox" class="secondary" cx="355" cy="260" r="7" fill="#dfe6e9"/>
-  <text id="remember-text" class="text" x="375" y="264" font-family="Arial, sans-serif" font-size="9" fill="#636e72" data-fixed-color="black">记住我</text>
-  <text id="forgot-text" class="text" x="545" y="264" text-anchor="end" font-family="Arial, sans-serif" font-size="9" fill="#6c5ce7" data-fixed-color="black">忘记密码？</text>
+  <circle id="checkbox" class="secondary" cx="355" cy="220" r="7" fill="#dfe6e9"/>
+  <text id="remember-text" class="text" x="375" y="224" font-family="Arial, sans-serif" font-size="9" fill="#636e72" data-fixed-color="black">记住我</text>
+  <text id="forgot-text" class="text" x="545" y="224" text-anchor="end" font-family="Arial, sans-serif" font-size="9" fill="#6c5ce7" data-fixed-color="black">忘记密码？</text>
 
   <!-- 登录按钮 -->
-  <rect id="login-btn" class="accent" x="340" y="285" width="220" height="40" rx="6" fill="#6c5ce7"/>
-  <text id="login-text" class="text" x="450" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">登录</text>
+  <rect id="login-btn" class="accent" x="340" y="245" width="220" height="40" rx="6" fill="#6c5ce7"/>
+  <text id="login-text" class="text" x="450" y="270" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">登录</text>
 </svg>
