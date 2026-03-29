@@ -127,13 +127,21 @@ class LocaleManager(QObject):
             return self.get_system_language()
         return language_code
     
+    def _get_system_locale_name(self) -> str:
+        """获取系统语言代码（封装以便测试时模拟）
+
+        Returns:
+            str: 系统语言代码（如 'zh_CN', 'en_US'）
+        """
+        return QLocale.system().name()
+
     def get_system_language(self) -> str:
         """获取系统语言并映射到项目支持的语言代码
 
         Returns:
             str: 映射后的语言代码，未匹配则返回默认语言
         """
-        system_locale = QLocale.system().name()
+        system_locale = self._get_system_locale_name()
         return SYSTEM_LANGUAGE_MAPPING.get(
             system_locale,
             SYSTEM_LANGUAGE_MAPPING.get(system_locale.split('_')[0], self.FALLBACK_LANGUAGE)
