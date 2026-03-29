@@ -475,9 +475,6 @@ class BaseCanvas(QWidget):
         Returns:
             QPoint: 原始图片坐标，如果不在图片范围内则返回 None
         """
-        if self._image is None or self._image.isNull():
-            return None
-
         display_rect = self.get_display_rect()
         if display_rect is None:
             return None
