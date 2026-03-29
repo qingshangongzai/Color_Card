@@ -1096,10 +1096,7 @@ class ColorInputRow(QWidget):
 
     def _is_valid_hex(self, text: str) -> bool:
         """验证HEX格式"""
-        if not text:
-            return False
-        pattern = r'^#[0-9A-F]{6}$'
-        return bool(re.match(pattern, text.upper()))
+        return bool(re.match(r'^#[0-9A-F]{6}$', text.upper()))
 
     def _on_delete_clicked(self):
         """删除按钮点击"""
