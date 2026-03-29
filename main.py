@@ -20,8 +20,8 @@ def set_app_user_model_id():
         app_id = 'HXiaoStudio.ColorCard.1.0.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
         return True
-    except Exception as e:
-        logger.debug(f"设置 AppUserModelID 失败: {e}")
+    except Exception:
+        # 日志系统尚未初始化，静默处理
         return False
 
 
