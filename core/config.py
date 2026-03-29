@@ -555,31 +555,14 @@ class SceneConfigManager:
                 with open(scene_file, 'r', encoding='utf-8') as f:
                     scene_config = json.load(f)
 
-                # 验证场景配置格式
-                if self._validate_scene_config(scene_config):
-                    # 标记为用户场景
-                    scene_config["builtin"] = False
-                    scene_config["_source_file"] = scene_file.name
-                    self._user_scenes.append(scene_config)
-                else:
-                    print(f"用户场景配置格式无效: {scene_file.name}")
+                scene_config["builtin"] = False
+                scene_config["_source_file"] = scene_file.name
+                self._user_scenes.append(scene_config)
 
             except (json.JSONDecodeError, IOError, OSError) as e:
                 print(f"加载用户场景失败 {scene_file.name}: {e}")
 
         print(f"已加载 {len(self._user_scenes)} 个用户场景")
-
-    def _validate_scene_config(self, config: Dict[str, Any]) -> bool:
-        """验证场景配置格式
-
-        Args:
-            config: 场景配置字典
-
-        Returns:
-            bool: 是否有效
-        """
-        required_fields = ["id", "name", "type"]
-        return all(field in config for field in required_fields)
 
     def get_all_scenes(self) -> List[Dict[str, Any]]:
         """获取所有场景配置
