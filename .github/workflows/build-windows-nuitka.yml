@@ -2,10 +2,10 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, master]
+    branches: [ main, master, Dev ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, Dev ]
   workflow_dispatch:
 
 jobs:
