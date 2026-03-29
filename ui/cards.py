@@ -286,12 +286,9 @@ class ColorCard(BaseCard):
 
     def closeEvent(self, event):
         """关闭事件 - 断开信号连接"""
-        try:
-            if hasattr(self, '_theme_connection'):
-                qconfig.themeChangedFinished.disconnect(self._theme_connection)
-                delattr(self, '_theme_connection')
-        except (TypeError, RuntimeError):
-            pass
+        if hasattr(self, '_theme_connection'):
+            qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            delattr(self, '_theme_connection')
         super().closeEvent(event)
 
     def setup_ui(self):
