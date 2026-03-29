@@ -31,19 +31,19 @@
   </g>
 
   <!-- 主标题 -->
-  <text id="main-title" class="text" x="220" y="140" font-family="Impact, Arial Black, sans-serif" font-size="42" font-weight="bold" fill="#ffffff" data-fixed-color="black">LIVE</text>
-  <text id="sub-title" class="accent" x="220" y="180" font-family="Impact, Arial Black, sans-serif" font-size="36" font-weight="bold" fill="#ff6b6b" data-fixed-color="black">MUSIC</text>
+  <text id="main-title" class="text" x="220" y="140" font-family="Impact, Arial Black, sans-serif" font-size="42" font-weight="bold" fill="#ffffff" data-fixed-color="black">现场</text>
+  <text id="sub-title" class="accent" x="220" y="180" font-family="Impact, Arial Black, sans-serif" font-size="36" font-weight="bold" fill="#ff6b6b" data-fixed-color="black">音乐</text>
 
   <!-- 演出信息 -->
   <rect id="info-bar" class="secondary" x="220" y="195" width="160" height="2" fill="#e94560"/>
-  <text id="artist-name" class="text" x="220" y="215" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" data-fixed-color="black">The Color Band</text>
-  <text id="venue" class="secondary" x="220" y="235" font-family="Arial, sans-serif" font-size="11" fill="#aaaaaa" data-fixed-color="black">Grand Theater · 8PM</text>
+  <text id="artist-name" class="text" x="220" y="215" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" data-fixed-color="black">色彩乐队</text>
+  <text id="venue" class="secondary" x="220" y="235" font-family="Arial, sans-serif" font-size="11" fill="#aaaaaa" data-fixed-color="black">大剧院 · 晚上8点</text>
 
   <!-- 日期 -->
   <rect id="date-box" class="accent" x="220" y="250" width="80" height="35" rx="4" fill="#ff6b6b"/>
-  <text id="date-month" class="text" x="260" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">MAR</text>
+  <text id="date-month" class="text" x="260" y="265" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">3月</text>
   <text id="date-day" class="text" x="260" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" data-fixed-color="black">15</text>
 
   <!-- 底部装饰 -->
-  <text id="ticket-info" class="text" x="320" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaaaaa" data-fixed-color="black">Tickets $25</text>
+  <text id="ticket-info" class="text" x="320" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaaaaa" data-fixed-color="black">票价 ¥180</text>
 </svg>
