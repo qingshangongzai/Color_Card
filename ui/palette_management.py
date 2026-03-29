@@ -1947,10 +1947,18 @@ class PaletteManagementInterface(QWidget):
         if not palette_data:
             return
 
+        # 记录当前分组索引
+        current_group = self.palette_management_list.get_current_group_index()
+
         self._config_manager.add_favorite(palette_data)
         self._config_manager.save()
 
         self._load_favorites()
+
+        # 恢复之前的分组位置
+        if current_group < len(self.palette_management_list.get_groups()):
+            self.palette_management_list.set_current_group(current_group)
+            self.group_combo.setCurrentIndex(current_group)
 
         log_user_action("add_favorite", {
             "id": palette_data.get('id'),
