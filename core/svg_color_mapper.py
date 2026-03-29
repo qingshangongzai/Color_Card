@@ -102,8 +102,6 @@ class SVGElementClassifier:
         Returns:
             tuple[ElementType, bool]: (元素类型, 是否通过语义化标识分类)
         """
-        tag = element.tag.split('}')[-1] if '}' in element.tag else element.tag
-
         # 检查 class 属性
         element_class = element.get('class', '')
         if element_class:

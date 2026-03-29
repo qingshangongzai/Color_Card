@@ -171,7 +171,7 @@ class BaseCanvas(QWidget):
             self._loading_widget.setGeometry(self.rect())
 
         # 重新调整图片
-        if self._image and not self._image.isNull():
+        if self._image:
             self.update_picker_positions()
             self.extract_all()
             self.update()
@@ -297,7 +297,7 @@ class BaseCanvas(QWidget):
         - 便于保存和恢复取色点位置
         """
         # 如果有图片，使用相对坐标计算画布坐标
-        if self._image and not self._image.isNull():
+        if self._image:
             display_rect = self.get_display_rect()
             if display_rect:
                 disp_x, disp_y, disp_w, disp_h = display_rect
@@ -370,7 +370,7 @@ class BaseCanvas(QWidget):
         self.update_picker_positions()
 
         # 如果有图片，重新提取数据
-        if self._image and not self._image.isNull():
+        if self._image:
             self.extract_all()
 
         # 发射采样点数量改变信号
@@ -417,7 +417,7 @@ class BaseCanvas(QWidget):
         self._picker_positions[index] = new_pos
 
         # 如果有图片，将画布坐标转换为相对坐标并存储
-        if self._image and not self._image.isNull():
+        if self._image:
             display_rect = self.get_display_rect()
             if display_rect:
                 disp_x, disp_y, disp_w, disp_h = display_rect
@@ -475,9 +475,6 @@ class BaseCanvas(QWidget):
         Returns:
             QPoint: 原始图片坐标，如果不在图片范围内则返回 None
         """
-        if self._image is None or self._image.isNull():
-            return None
-
         display_rect = self.get_display_rect()
         if display_rect is None:
             return None
@@ -879,7 +876,7 @@ class ImageCanvas(BaseCanvas):
         picker.drag_started.connect(self._on_picker_drag_started)
         picker.drag_finished.connect(self._on_picker_drag_finished)
         # 如果有图片，显示取色点
-        if self._image and not self._image.isNull():
+        if self._image:
             picker.show()
         else:
             picker.hide()
@@ -1326,7 +1323,7 @@ class LuminanceCanvas(BaseCanvas):
         picker.drag_started.connect(self._on_picker_drag_started)
         picker.drag_finished.connect(self._on_picker_drag_finished)
         # 如果有图片，显示取色点
-        if self._image and not self._image.isNull():
+        if self._image:
             picker.show()
         else:
             picker.hide()

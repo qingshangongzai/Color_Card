@@ -63,12 +63,8 @@ class HSBColorWheel(QWidget):
             index: 采样点索引
             rgb: (r, g, b) 元组
         """
-        if index < 0:
+        if not (0 <= index < len(self._sample_colors)):
             return
-
-        # 确保列表足够长
-        while len(self._sample_colors) <= index:
-            self._sample_colors.append((128, 128, 128))  # 默认灰色
 
         self._sample_colors[index] = rgb
         self.update()  # 只重绘采样点，背景使用缓存

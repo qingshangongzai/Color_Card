@@ -76,7 +76,7 @@ class LuminanceCalculator(QThread):
     def run(self):
         """在子线程中执行明度计算"""
         try:
-            if self._check_cancelled() or not self._image or self._image.isNull():
+            if self._check_cancelled() or not self._image:
                 return
 
             with log_performance("calculate_luminance_distribution", {

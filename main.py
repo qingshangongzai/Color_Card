@@ -20,8 +20,8 @@ def set_app_user_model_id():
         app_id = 'HXiaoStudio.ColorCard.1.0.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
         return True
-    except Exception as e:
-        logger.debug(f"设置 AppUserModelID 失败: {e}")
+    except Exception:
+        # 日志系统尚未初始化，静默处理
         return False
 
 
@@ -72,61 +72,43 @@ def _get_base_path() -> str:
 
 
 def _create_splash_screen():
-    """创建并显示启动画面
+    """创建并显示启动画面"""
+    base_path = _get_base_path()
+    logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
-    Returns:
-        QSplashScreen: 启动画面对象，如果创建失败返回 None
-    """
-    try:
-        # 获取基础路径
-        base_path = _get_base_path()
-
-        # 构建 logo 路径
-        logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
-
-        # 加载启动画面图片
-        splash_pixmap = QPixmap(logo_path)
-        if splash_pixmap.isNull():
-            return None
-
-        # 缩放到 250x250
-        splash_pixmap = splash_pixmap.scaled(
-            250, 250,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        )
-
-        # 创建启动画面
-        splash = QSplashScreen(splash_pixmap)
-        splash.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowStaysOnTopHint |
-            Qt.WindowType.SplashScreen |
-            Qt.WindowType.WindowDoesNotAcceptFocus
-        )
-
-        # 居中显示
-        screen = QApplication.primaryScreen()
-        if screen:
-            screen_geometry = screen.geometry()
-            x = (screen_geometry.width() - splash_pixmap.width()) // 2
-            y = (screen_geometry.height() - splash_pixmap.height()) // 2
-            splash.move(x, y)
-
-        # 显示启动画面
-        splash.show()
-
-        # 添加"启动中……"文字
-        splash.showMessage(
-            "启动中……",
-            alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter,
-            color=QColor(128, 128, 128)
-        )
-
-        return splash
-    except Exception as e:
-        logger.debug(f"创建启动画面失败: {e}")
+    splash_pixmap = QPixmap(logo_path)
+    if splash_pixmap.isNull():
         return None
+
+    splash_pixmap = splash_pixmap.scaled(
+        250, 250,
+        Qt.AspectRatioMode.KeepAspectRatio,
+        Qt.TransformationMode.SmoothTransformation
+    )
+
+    splash = QSplashScreen(splash_pixmap)
+    splash.setWindowFlags(
+        Qt.WindowType.FramelessWindowHint |
+        Qt.WindowType.WindowStaysOnTopHint |
+        Qt.WindowType.SplashScreen |
+        Qt.WindowType.WindowDoesNotAcceptFocus
+    )
+
+    screen = QApplication.primaryScreen()
+    if screen:
+        screen_geometry = screen.geometry()
+        x = (screen_geometry.width() - splash_pixmap.width()) // 2
+        y = (screen_geometry.height() - splash_pixmap.height()) // 2
+        splash.move(x, y)
+
+    splash.show()
+    splash.showMessage(
+        "启动中……",
+        alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter,
+        color=QColor(128, 128, 128)
+    )
+
+    return splash
 
 
 def main():

@@ -109,8 +109,6 @@ class ConfigManager:
             with open(self._config_path, 'r', encoding='utf-8') as f:
                 loaded_config = json.load(f)
 
-            self._migrate_favorites_data(loaded_config)
-
             self._merge_config(self._config, loaded_config)
             
             version = self._config.get("version", "unknown")
@@ -121,40 +119,6 @@ class ConfigManager:
             raise ConfigLoadError(f"无法加载配置文件: {e}") from e
 
         return self._config
-
-    def _migrate_favorites_data(self, loaded_config: Dict[str, Any]) -> None:
-        """迁移旧版本的收藏数据到新格式
-
-        Args:
-            loaded_config: 从文件加载的配置字典
-        """
-        if 'favorites' in loaded_config and loaded_config['favorites']:
-            return
-
-        favorites = []
-
-        if 'schemes' in loaded_config:
-            for scheme in loaded_config['schemes']:
-                if isinstance(scheme, dict):
-                    favorites.append(scheme)
-
-        if 'extracts' in loaded_config:
-            for extract in loaded_config['extracts']:
-                if isinstance(extract, dict):
-                    extract['source'] = 'color_extract'
-                    favorites.append(extract)
-
-        if favorites:
-            loaded_config['favorites'] = favorites
-            if 'schemes' in loaded_config:
-                del loaded_config['schemes']
-            if 'extracts' in loaded_config:
-                del loaded_config['extracts']
-            if 'colors' in loaded_config:
-                del loaded_config['colors']
-            if 'display_settings' in loaded_config:
-                del loaded_config['display_settings']
-            logger.info(f"配置数据迁移完成: 迁移了 {len(favorites)} 条收藏记录")
 
     def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
         """递归合并配置字典
@@ -591,31 +555,14 @@ class SceneConfigManager:
                 with open(scene_file, 'r', encoding='utf-8') as f:
                     scene_config = json.load(f)
 
-                # 验证场景配置格式
-                if self._validate_scene_config(scene_config):
-                    # 标记为用户场景
-                    scene_config["builtin"] = False
-                    scene_config["_source_file"] = scene_file.name
-                    self._user_scenes.append(scene_config)
-                else:
-                    print(f"用户场景配置格式无效: {scene_file.name}")
+                scene_config["builtin"] = False
+                scene_config["_source_file"] = scene_file.name
+                self._user_scenes.append(scene_config)
 
             except (json.JSONDecodeError, IOError, OSError) as e:
                 print(f"加载用户场景失败 {scene_file.name}: {e}")
 
         print(f"已加载 {len(self._user_scenes)} 个用户场景")
-
-    def _validate_scene_config(self, config: Dict[str, Any]) -> bool:
-        """验证场景配置格式
-
-        Args:
-            config: 场景配置字典
-
-        Returns:
-            bool: 是否有效
-        """
-        required_fields = ["id", "name", "type"]
-        return all(field in config for field in required_fields)
 
     def get_all_scenes(self) -> List[Dict[str, Any]]:
         """获取所有场景配置

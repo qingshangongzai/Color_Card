@@ -678,7 +678,7 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            self._color_mapper = SVGColorMapper()
+            self._color_mapper = get_svg_color_mapper()
 
             if not self._color_mapper.load_svg_from_string(content):
                 return False

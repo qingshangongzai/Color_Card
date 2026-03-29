@@ -85,9 +85,6 @@ class DominantColorExtractor(QThread):
             with log_performance("extract_dominant_colors", {"count": self._count}):
                 dominant_colors = extract_dominant_colors(self._image, count=self._count)
 
-            if self._check_cancelled():
-                return
-
             if not dominant_colors:
                 logger.error("主色调提取失败: error=无法从图片中提取主色调")
                 self.extraction_error.emit("无法从图片中提取主色调")
