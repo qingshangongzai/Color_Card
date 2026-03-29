@@ -27,6 +27,17 @@ _mode_cache: Optional[AppMode] = None
 _platform_cache: Optional[Platform] = None
 
 
+def _is_bundled() -> bool:
+    """检测是否为打包环境（PyInstaller 或 Nuitka）"""
+    # PyInstaller
+    if getattr(sys, 'frozen', False):
+        return True
+    # Nuitka
+    if "__compiled__" in globals():
+        return True
+    return False
+
+
 def detect_mode() -> AppMode:
     """检测应用运行模式
 
@@ -38,7 +49,7 @@ def detect_mode() -> AppMode:
         return _mode_cache
 
     # 非打包环境 = 开发模式
-    if not getattr(sys, 'frozen', False):
+    if not _is_bundled():
         _mode_cache = AppMode.DEVELOPMENT
         return _mode_cache
 
