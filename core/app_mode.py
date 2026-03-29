@@ -32,9 +32,12 @@ def _is_bundled() -> bool:
     # PyInstaller
     if getattr(sys, 'frozen', False):
         return True
-    # Nuitka
-    if "__compiled__" in globals():
+    # Nuitka - 检查 __compiled__ 模块属性
+    try:
+        import __compiled__
         return True
+    except ImportError:
+        pass
     return False
 
 
