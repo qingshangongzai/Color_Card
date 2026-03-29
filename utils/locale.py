@@ -3,9 +3,9 @@
 提供应用程序的多语言支持，包括语言包加载、切换和翻译文本获取。
 """
 
-import json
 import os
 import sys
+import tomllib
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -99,19 +99,19 @@ class LocaleManager(QObject):
         if resolved_code not in self.SUPPORTED_LANGUAGES:
             resolved_code = self.FALLBACK_LANGUAGE
             
-        locale_file = self._locales_dir / f'{resolved_code}.json'
-        
+        locale_file = self._locales_dir / f'{resolved_code}.toml'
+
         if not locale_file.exists():
             if resolved_code != self.FALLBACK_LANGUAGE:
                 return self.load_language(self.FALLBACK_LANGUAGE)
             return False
-            
+
         try:
-            with open(locale_file, 'r', encoding='utf-8') as f:
-                self._translations = json.load(f)
+            with open(locale_file, 'rb') as f:
+                self._translations = tomllib.load(f)
             self._current_language = language_code
             return True
-        except (json.JSONDecodeError, IOError, OSError):
+        except (tomllib.TOMLDecodeError, IOError, OSError):
             return False
     
     def resolve_language(self, language_code: str) -> str:
@@ -174,47 +174,44 @@ class LocaleManager(QObject):
     
     def tr(self, key: str, default: Optional[str] = None, **kwargs) -> str:
         """获取翻译文本
-        
+
         Args:
             key: 翻译键（支持点号分隔的嵌套路径）
             default: 默认文本，如果未提供则返回key
             **kwargs: 用于格式化翻译文本的参数
-            
+
         Returns:
             str: 翻译后的文本
         """
         keys = key.split('.')
         value: Any = self._translations
-        
+
         for k in keys:
             if isinstance(value, dict) and k in value:
                 value = value[k]
             else:
-                text = default if default is not None else key
-                if kwargs:
-                    try:
-                        return text.format(**kwargs)
-                    except (KeyError, ValueError):
-                        return text
-                return text
-                
+                return self._format_text(default if default is not None else key, **kwargs)
+
         text = str(value) if isinstance(value, str) else key
-        if kwargs:
-            try:
-                return text.format(**kwargs)
-            except (KeyError, ValueError):
-                return text
-        return text
-    
-    def get_translations(self) -> Dict[str, str]:
-        """获取当前所有翻译数据
-        
+        return self._format_text(text, **kwargs)
+
+    def _format_text(self, text: str, **kwargs) -> str:
+        """格式化文本
+
+        Args:
+            text: 要格式化的文本
+            **kwargs: 格式化参数
+
         Returns:
-            Dict[str, str]: 翻译数据字典
+            str: 格式化后的文本
         """
-        return self._translations.copy()
-
-
+        if not kwargs:
+            return text
+        try:
+            return text.format(**kwargs)
+        except (KeyError, ValueError):
+            return text
+    
 _locale_manager: Optional[LocaleManager] = None
 
 
