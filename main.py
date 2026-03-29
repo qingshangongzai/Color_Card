@@ -128,7 +128,9 @@ def main():
 
     logger = get_logger("main")
     logger.info("应用程序启动")
-    logger.info(f"运行环境: frozen={getattr(sys, 'frozen', False)}, _MEIPASS={getattr(sys, '_MEIPASS', None)}")
+    from core import get_app_mode
+    app_mode = get_app_mode()
+    logger.info(f"运行环境: frozen={getattr(sys, 'frozen', False)}, _MEIPASS={getattr(sys, '_MEIPASS', None)}, __compiled__={getattr(sys, '__compiled__', None)}, app_mode={app_mode.value}")
 
     # 设置全局异常处理器
     setup_global_exception_handler(logger)
