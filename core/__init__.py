@@ -11,9 +11,6 @@ from .app_mode import (
     get_config_dir,
     detect_platform,
     get_platform,
-    is_portable_mode,
-    is_installed_mode,
-    is_development_mode,
 )
 
 from .logger import (
@@ -175,9 +172,6 @@ __all__ = [
     'get_config_dir',
     'detect_platform',
     'get_platform',
-    'is_portable_mode',
-    'is_installed_mode',
-    'is_development_mode',
     # 配色数据
     'ColorSource',
     'ColorSourceRegistry',

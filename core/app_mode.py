@@ -198,28 +198,4 @@ def get_platform() -> Platform:
     return detect_platform()
 
 
-def is_portable_mode() -> bool:
-    """是否为便携模式
 
-    Returns:
-        bool: 便携模式返回True
-    """
-    return detect_mode() == AppMode.PORTABLE
-
-
-def is_installed_mode() -> bool:
-    """是否为安装版模式
-
-    Returns:
-        bool: 安装版返回True
-    """
-    return detect_mode() == AppMode.INSTALLED
-
-
-def is_development_mode() -> bool:
-    """是否为开发模式
-
-    Returns:
-        bool: 开发模式返回True
-    """
-    return detect_mode() == AppMode.DEVELOPMENT
