@@ -5,6 +5,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+# Windows 注册表支持
+if sys.platform == 'win32':
+    import winreg
+
 
 class AppMode(Enum):
     """应用运行模式"""
@@ -27,17 +31,35 @@ _mode_cache: Optional[AppMode] = None
 _platform_cache: Optional[Platform] = None
 
 
-def _is_bundled() -> bool:
-    """检测是否为打包环境（PyInstaller 或 Nuitka）"""
-    # PyInstaller
-    if getattr(sys, 'frozen', False):
-        return True
-    # Nuitka - 检查 sys.executable 是否为 python 解释器
-    # Nuitka 编译后 sys.executable 指向生成的 exe，不是 python.exe
-    exe = sys.executable.lower()
-    if not (exe.endswith('python.exe') or exe.endswith('pythonw.exe') or 'python' in os.path.basename(exe)):
-        return True
-    return False
+def _check_registry_install() -> Optional[Path]:
+    """从注册表检查安装路径
+
+    Returns:
+        Optional[Path]: 安装路径，未找到返回 None
+    """
+    if sys.platform != 'win32':
+        return None
+
+    # 尝试读取注册表
+    registry_paths = [
+        # 当前用户（优先）
+        (winreg.HKEY_CURRENT_USER, r"Software\Color Card"),
+        # 本地机器（需要管理员权限安装）
+        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Color Card"),
+        # 32位程序在64位系统上
+        (winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\WOW6432Node\Color Card"),
+    ]
+
+    for hkey, key_path in registry_paths:
+        try:
+            with winreg.OpenKey(hkey, key_path) as key:
+                install_path, _ = winreg.QueryValueEx(key, "InstallPath")
+                if install_path and os.path.exists(install_path):
+                    return Path(install_path)
+        except (OSError, FileNotFoundError):
+            continue
+
+    return None
 
 
 def detect_mode() -> AppMode:
@@ -50,32 +72,61 @@ def detect_mode() -> AppMode:
     if _mode_cache is not None:
         return _mode_cache
 
+    # 调试信息
+    print(f"[AppMode] sys.frozen={getattr(sys, 'frozen', False)}")
+    print(f"[AppMode] sys.argv[0]={sys.argv[0]}")
+    print(f"[AppMode] sys.executable={sys.executable}")
+
     # 非打包环境 = 开发模式
-    if not _is_bundled():
+    if not getattr(sys, 'frozen', False):
         _mode_cache = AppMode.DEVELOPMENT
+        print(f"[AppMode] 判定为开发模式")
         return _mode_cache
 
-    exe_path = sys.executable.lower()
+    exe_path = Path(sys.argv[0]).resolve()
     temp = os.environ.get('TEMP', '').lower()
 
+    print(f"[AppMode] exe_path={exe_path}")
+    print(f"[AppMode] TEMP={temp}")
+
     # 在临时目录运行 = 安装程序运行中
-    if temp and exe_path.startswith(temp):
+    if temp and str(exe_path).lower().startswith(temp):
         _mode_cache = AppMode.INSTALLER
+        print(f"[AppMode] 判定为安装程序模式")
         return _mode_cache
 
-    # 在系统目录运行 = 安装版
+    # 检查注册表（Windows 安装版）
+    if sys.platform == 'win32':
+        reg_install_path = _check_registry_install()
+        print(f"[AppMode] 注册表安装路径={reg_install_path}")
+        if reg_install_path:
+            # 检查当前 exe 是否在注册表记录的安装目录下
+            try:
+                exe_relative = exe_path.relative_to(reg_install_path)
+                # 成功相对化，说明在安装目录内
+                _mode_cache = AppMode.INSTALLED
+                print(f"[AppMode] 判定为安装版（注册表匹配）")
+                return _mode_cache
+            except ValueError:
+                # 不在注册表记录的安装目录中
+                print(f"[AppMode] 不在注册表记录的安装目录中")
+                pass
+
+    # 在系统目录运行 = 安装版（备用检测）
     system_paths = [
         os.environ.get('PROGRAMFILES', '').lower(),
         os.environ.get('PROGRAMFILES(X86)', '').lower(),
         os.environ.get('LOCALAPPDATA', '').lower(),
     ]
     for path in system_paths:
-        if path and path in exe_path:
+        if path and path in str(exe_path).lower():
             _mode_cache = AppMode.INSTALLED
+            print(f"[AppMode] 判定为安装版（系统目录匹配）")
             return _mode_cache
 
     # 其他情况 = 便携版
     _mode_cache = AppMode.PORTABLE
+    print(f"[AppMode] 判定为便携版")
     return _mode_cache
 
 
@@ -101,9 +152,13 @@ def get_config_dir() -> Path:
     mode = detect_mode()
 
     if mode in (AppMode.INSTALLED, AppMode.DEVELOPMENT):
-        return Path.home() / ".color_card"
+        config_path = Path.home() / ".color_card"
+        print(f"[AppMode] 配置目录={config_path}（安装版/开发模式）")
+        return config_path
     else:
-        return Path(sys.executable).parent / "config"
+        config_path = Path(sys.argv[0]).parent / "config"
+        print(f"[AppMode] 配置目录={config_path}（便携版/安装程序）")
+        return config_path
 
 
 def detect_platform() -> Platform:
