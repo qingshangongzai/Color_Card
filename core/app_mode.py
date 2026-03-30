@@ -32,8 +32,10 @@ def _is_bundled() -> bool:
     # PyInstaller
     if getattr(sys, 'frozen', False):
         return True
-    # Nuitka - __compiled__ 是当前模块的全局变量
-    if "__compiled__" in globals():
+    # Nuitka - 检查 sys.executable 是否为 python 解释器
+    # Nuitka 编译后 sys.executable 指向生成的 exe，不是 python.exe
+    exe = sys.executable.lower()
+    if not (exe.endswith('python.exe') or exe.endswith('pythonw.exe') or 'python' in os.path.basename(exe)):
         return True
     return False
 
