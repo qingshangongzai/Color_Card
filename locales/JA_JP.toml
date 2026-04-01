@@ -370,6 +370,7 @@ delete_btn = "削除"
 cancel_btn = "キャンセル"
 
 [messages]
+palette = "パレット"
 
 [messages.favorite_failed]
 title = "保存できません"
@@ -473,8 +474,7 @@ content = "最新バージョンを使用しています"
 
 [messages.no_requests]
 title = "情報"
-content = "requestsライブラリがありません。更新を確認できません"
-palette = "パレット"
+content = "requestsライブラリがありません、アップデートを確認できません"
 
 [messages.success]
 title = "成功"

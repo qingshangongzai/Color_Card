@@ -370,6 +370,7 @@ delete_btn = "Supprimer"
 cancel_btn = "Annuler"
 
 [messages]
+palette = "Palette"
 
 [messages.favorite_failed]
 title = "Impossible d'enregistrer"
@@ -474,7 +475,6 @@ content = "Vous utilisez la dernière version"
 [messages.no_requests]
 title = "Info"
 content = "Bibliothèque requests manquante, impossible de vérifier les mises à jour"
-palette = "Palette"
 
 [messages.success]
 title = "Succès"

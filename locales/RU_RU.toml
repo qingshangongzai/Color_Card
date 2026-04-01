@@ -371,6 +371,7 @@ delete_btn = "Удалить"
 cancel_btn = "Отмена"
 
 [messages]
+palette = "Палитра"
 
 [messages.favorite_failed]
 title = "Невозможно сохранить"
@@ -475,7 +476,6 @@ content = "Вы используете последнюю версию"
 [messages.no_requests]
 title = "Информация"
 content = "Отсутствует библиотека requests, невозможно проверить обновления"
-palette = "Палитра"
 
 [messages.success]
 title = "Успех"

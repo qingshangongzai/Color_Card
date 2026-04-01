@@ -370,6 +370,7 @@ delete_btn = "Delete"
 cancel_btn = "Cancel"
 
 [messages]
+palette = "Palette"
 
 [messages.favorite_failed]
 title = "Cannot Save"
@@ -474,7 +475,6 @@ content = "You are using the latest version"
 [messages.no_requests]
 title = "Info"
 content = "Missing requests library, cannot check for updates"
-palette = "Palette"
 
 [messages.success]
 title = "Success"

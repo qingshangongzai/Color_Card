@@ -192,6 +192,7 @@ random_palette = "随机配色"
 random = "随机"
 desc_random = "从所有配色方案中随机筛选"
 desc_source = "基于 {name}"
+loading = "加载中..."
 
 [preset_color.copy_success]
 title = "已复制"
@@ -200,7 +201,6 @@ content = "颜色值 {value} 已复制到剪贴板"
 [preset_color.favorite_success]
 title = "已收藏"
 content = "配色「{name}」已添加到配色管理"
-loading = "加载中..."
 
 [settings]
 title = "设置"
@@ -371,6 +371,7 @@ delete_btn = "删除"
 cancel_btn = "取消"
 
 [messages]
+palette = "配色"
 
 [messages.favorite_failed]
 title = "无法收藏"
@@ -475,7 +476,6 @@ content = "当前已是最新版本"
 [messages.no_requests]
 title = "提示"
 content = "缺少 requests 库，无法检查更新"
-palette = "配色"
 
 [messages.success]
 title = "成功"
