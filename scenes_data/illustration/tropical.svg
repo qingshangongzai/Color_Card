@@ -1,0 +1,183 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f0f8f5"/>
+
+  <!-- 天空渐变 -->
+  <rect id="sky" class="secondary" width="400" height="150" fill="#b8e0d8" opacity="0.4"/>
+
+  <!-- 太阳 -->
+  <circle id="sun" class="accent" cx="320" cy="60" r="35" fill="#f4d03f" opacity="0.9"/>
+  <circle id="sun-glow" class="accent" cx="320" cy="60" r="50" fill="#f4d03f" opacity="0.2"/>
+
+  <!-- 太阳光芒 -->
+  <g id="sun-rays" class="accent" opacity="0.3">
+    <line x1="320" y1="15" x2="320" y2="5" stroke="#f4d03f" stroke-width="3" stroke-linecap="round"/>
+    <line x1="320" y1="105" x2="320" y2="115" stroke="#f4d03f" stroke-width="3" stroke-linecap="round"/>
+    <line x1="275" y1="60" x2="265" y2="60" stroke="#f4d03f" stroke-width="3" stroke-linecap="round"/>
+    <line x1="365" y1="60" x2="375" y2="60" stroke="#f4d03f" stroke-width="3" stroke-linecap="round"/>
+    <line x1="288" y1="28" x2="281" y2="21" stroke="#f4d03f" stroke-width="2" stroke-linecap="round"/>
+    <line x1="352" y1="28" x2="359" y2="21" stroke="#f4d03f" stroke-width="2" stroke-linecap="round"/>
+    <line x1="288" y1="92" x2="281" y2="99" stroke="#f4d03f" stroke-width="2" stroke-linecap="round"/>
+    <line x1="352" y1="92" x2="359" y2="99" stroke="#f4d03f" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- 云朵 -->
+  <g id="cloud-1" class="text" opacity="0.7">
+    <ellipse cx="80" cy="50" rx="28" ry="14" fill="#ffffff"/>
+    <ellipse cx="105" cy="42" rx="22" ry="18" fill="#ffffff"/>
+    <ellipse cx="130" cy="50" rx="25" ry="13" fill="#ffffff"/>
+  </g>
+
+  <g id="cloud-2" class="text" opacity="0.5">
+    <ellipse cx="200" cy="40" rx="20" ry="10" fill="#ffffff"/>
+    <ellipse cx="215" cy="35" rx="16" ry="13" fill="#ffffff"/>
+    <ellipse cx="230" cy="40" rx="18" ry="9" fill="#ffffff"/>
+  </g>
+
+  <!-- 远山 -->
+  <path id="mountain-1" class="secondary" d="M0 150 L60 80 L120 150 Z" fill="#7fb3a0" opacity="0.5"/>
+  <path id="mountain-2" class="secondary" d="M100 150 L160 70 L220 150 Z" fill="#6fa090" opacity="0.4"/>
+  <path id="mountain-3" class="secondary" d="M280 150 L340 85 L400 150 Z" fill="#7fb3a0" opacity="0.5"/>
+
+  <!-- 海洋 -->
+  <path id="ocean" class="primary" d="M0 150 Q100 140 200 150 Q300 160 400 150 L400 300 L0 300 Z" fill="#4a90a4" opacity="0.6"/>
+  <path id="ocean-wave" class="secondary" d="M0 170 Q100 160 200 170 Q300 180 400 170" stroke="#5ba0b4" stroke-width="2" fill="none" opacity="0.5"/>
+
+  <!-- 沙滩 -->
+  <path id="beach" class="secondary" d="M0 250 Q150 230 300 250 Q350 260 400 250 L400 300 L0 300 Z" fill="#e8d5b5" opacity="0.7"/>
+
+  <!-- 大棕榈树 - 左侧 -->
+  <g id="palm-left" transform="translate(60, 180)">
+    <!-- 树干 -->
+    <path id="trunk-left" class="primary" d="M0 120 Q5 60 0 0 Q-5 60 -10 120" fill="#8b6914"/>
+    <!-- 树干纹理 -->
+    <line x1="-2" y1="100" x2="2" y2="100" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="-3" y1="80" x2="3" y2="80" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="-4" y1="60" x2="4" y2="60" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="-3" y1="40" x2="3" y2="40" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="-2" y1="20" x2="2" y2="20" stroke="#6b4e0a" stroke-width="1"/>
+    <!-- 树叶 -->
+    <g id="leaves-left" class="accent">
+      <path d="M0 0 Q-30 -20 -50 -10 Q-30 -5 0 0" fill="#2d8a4e"/>
+      <path d="M0 0 Q-25 -35 -40 -45 Q-20 -25 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q0 -40 5 -55 Q5 -30 0 0" fill="#2ecc71"/>
+      <path d="M0 0 Q25 -35 45 -40 Q25 -20 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q35 -15 55 -5 Q30 -5 0 0" fill="#2d8a4e"/>
+      <path d="M0 0 Q30 5 50 20 Q25 10 0 0" fill="#229954"/>
+      <path d="M0 0 Q10 25 15 45 Q5 25 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q-20 20 -35 35 Q-15 15 0 0" fill="#229954"/>
+    </g>
+  </g>
+
+  <!-- 大棕榈树 - 右侧 -->
+  <g id="palm-right" transform="translate(340, 170)">
+    <!-- 树干 -->
+    <path id="trunk-right" class="primary" d="M0 130 Q-8 65 0 0 Q8 65 15 130" fill="#8b6914"/>
+    <!-- 树干纹理 -->
+    <line x1="2" y1="110" x2="6" y2="110" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="1" y1="90" x2="7" y2="90" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="0" y1="70" x2="8" y2="70" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="-1" y1="50" x2="7" y2="50" stroke="#6b4e0a" stroke-width="1"/>
+    <line x1="-2" y1="30" x2="6" y2="30" stroke="#6b4e0a" stroke-width="1"/>
+    <!-- 树叶 -->
+    <g id="leaves-right" class="accent">
+      <path d="M0 0 Q-35 -15 -55 -5 Q-30 -5 0 0" fill="#2d8a4e"/>
+      <path d="M0 0 Q-30 -30 -45 -40 Q-25 -20 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q-5 -35 -5 -50 Q0 -30 0 0" fill="#2ecc71"/>
+      <path d="M0 0 Q30 -30 50 -35 Q28 -18 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q40 -10 60 0 Q32 0 0 0" fill="#2d8a4e"/>
+      <path d="M0 0 Q35 10 55 25 Q28 12 0 0" fill="#229954"/>
+      <path d="M0 0 Q15 30 20 50 Q8 28 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q-25 25 -40 40 Q-20 18 0 0" fill="#229954"/>
+    </g>
+  </g>
+
+  <!-- 小棕榈树 - 中间远景 -->
+  <g id="palm-small" transform="translate(200, 200) scale(0.6)">
+    <path id="trunk-small" class="primary" d="M0 100 Q3 50 0 0 Q-3 50 -6 100" fill="#a08020"/>
+    <g id="leaves-small" class="accent">
+      <path d="M0 0 Q-25 -15 -40 -8 Q-22 -5 0 0" fill="#2d8a4e"/>
+      <path d="M0 0 Q-20 -25 -35 -35 Q-18 -18 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q0 -30 3 -40 Q2 -22 0 0" fill="#2ecc71"/>
+      <path d="M0 0 Q22 -25 38 -30 Q20 -15 0 0" fill="#27ae60"/>
+      <path d="M0 0 Q28 -10 45 -3 Q24 -3 0 0" fill="#2d8a4e"/>
+    </g>
+  </g>
+
+  <!-- 热带鸟 - 巨嘴鸟 -->
+  <g id="toucan" transform="translate(150, 120)">
+    <!-- 身体 -->
+    <ellipse id="toucan-body" class="primary" cx="0" cy="10" rx="20" ry="15" fill="#2d2d2d"/>
+    <!-- 胸部 -->
+    <ellipse id="toucan-chest" class="text" cx="0" cy="15" rx="12" ry="8" fill="#ffffff"/>
+    <!-- 头部 -->
+    <circle id="toucan-head" class="primary" cx="-5" cy="-5" r="12" fill="#2d2d2d"/>
+    <!-- 大眼睛 -->
+    <circle id="toucan-eye" class="text" cx="-8" cy="-8" r="5" fill="#ffffff"/>
+    <circle id="toucan-pupil" class="primary" cx="-8" cy="-8" r="2.5" fill="#2d2d2d"/>
+    <circle cx="-7" cy="-9" r="1" fill="#ffffff"/>
+    <!-- 大嘴巴 -->
+    <path id="toucan-beak" class="accent" d="M-15 -5 Q-45 -10 -50 5 Q-45 20 -15 10" fill="#f39c12"/>
+    <path id="toucan-beak-tip" class="secondary" d="M-50 5 Q-52 8 -48 12 Q-45 10 -50 5" fill="#e74c3c"/>
+    <!-- 尾巴 -->
+    <path id="toucan-tail" class="primary" d="M18 10 Q30 15 25 25 Q15 20 18 10" fill="#2d2d2d"/>
+    <!-- 腿 -->
+    <line x1="-5" y1="25" x2="-5" y2="35" stroke="#f39c12" stroke-width="3"/>
+    <line x1="5" y1="25" x2="5" y2="35" stroke="#f39c12" stroke-width="3"/>
+    <!-- 爪子 -->
+    <path d="M-8 35 L-2 35" stroke="#f39c12" stroke-width="2"/>
+    <path d="M2 35 L8 35" stroke="#f39c12" stroke-width="2"/>
+  </g>
+
+  <!-- 热带鸟 - 鹦鹉 -->
+  <g id="parrot" transform="translate(280, 100)">
+    <!-- 身体 -->
+    <ellipse id="parrot-body" class="accent" cx="0" cy="5" rx="15" ry="18" fill="#e74c3c"/>
+    <!-- 翅膀 -->
+    <ellipse id="parrot-wing" class="primary" cx="5" cy="8" rx="8" ry="12" fill="#27ae60"/>
+    <!-- 头部 -->
+    <circle id="parrot-head" class="accent" cx="0" cy="-12" r="10" fill="#e74c3c"/>
+    <!-- 喙 -->
+    <path id="parrot-beak" class="secondary" d="M8 -12 Q18 -15 15 -5 Q12 -8 8 -8" fill="#f39c12"/>
+    <!-- 眼睛 -->
+    <circle cx="3" cy="-14" r="3" fill="#ffffff"/>
+    <circle cx="3" cy="-14" r="1.5" fill="#2d2d2d"/>
+    <!-- 尾巴 -->
+    <path id="parrot-tail" class="primary" d="M0 23 Q-5 40 -15 45 Q-5 35 0 23" fill="#27ae60"/>
+    <!-- 尾羽 -->
+    <path d="M2 23 Q8 38 18 42 Q10 33 2 23" fill="#f1c40f"/>
+  </g>
+
+  <!-- 热带花朵 -->
+  <g id="flower-1" transform="translate(120, 260)">
+    <circle cx="0" cy="0" r="8" fill="#f39c12"/>
+    <ellipse cx="0" cy="-12" rx="5" ry="10" fill="#e74c3c"/>
+    <ellipse cx="10" cy="-5" rx="5" ry="10" fill="#e74c3c" transform="rotate(72 10 -5)"/>
+    <ellipse cx="7" cy="9" rx="5" ry="10" fill="#e74c3c" transform="rotate(144 7 9)"/>
+    <ellipse cx="-7" cy="9" rx="5" ry="10" fill="#e74c3c" transform="rotate(216 -7 9)"/>
+    <ellipse cx="-10" cy="-5" rx="5" ry="10" fill="#e74c3c" transform="rotate(288 -10 -5)"/>
+  </g>
+
+  <g id="flower-2" transform="translate(350, 280)">
+    <circle cx="0" cy="0" r="6" fill="#f4d03f"/>
+    <ellipse cx="0" cy="-10" rx="4" ry="8" fill="#9b59b6"/>
+    <ellipse cx="9" cy="-4" rx="4" ry="8" fill="#9b59b6" transform="rotate(72 9 -4)"/>
+    <ellipse cx="6" cy="8" rx="4" ry="8" fill="#9b59b6" transform="rotate(144 6 8)"/>
+    <ellipse cx="-6" cy="8" rx="4" ry="8" fill="#9b59b6" transform="rotate(216 -6 8)"/>
+    <ellipse cx="-9" cy="-4" rx="4" ry="8" fill="#9b59b6" transform="rotate(288 -9 -4)"/>
+  </g>
+
+  <!-- 椰子 -->
+  <g id="coconuts" transform="translate(55, 175)">
+    <ellipse cx="0" cy="0" rx="8" ry="10" fill="#6b4e0a"/>
+    <ellipse cx="12" cy="5" rx="7" ry="9" fill="#5d4208"/>
+    <ellipse cx="6" cy="12" rx="7" ry="9" fill="#4a3506"/>
+  </g>
+
+  <!-- 装饰性点 -->
+  <g id="dots" class="accent" opacity="0.5">
+    <circle cx="40" cy="280" r="3" fill="#f39c12"/>
+    <circle cx="55" cy="290" r="2" fill="#e74c3c"/>
+    <circle cx="380" cy="270" r="3" fill="#f39c12"/>
+    <circle cx="370" cy="285" r="2" fill="#9b59b6"/>
+  </g>
+</svg>

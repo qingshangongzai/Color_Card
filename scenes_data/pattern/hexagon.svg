@@ -1,0 +1,76 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f8f8f8"/>
+  
+  <!-- 蜂巢网格 - 上半部分 -->
+  <g id="honeycomb-top">
+    <!-- 第一行 -->
+    <polygon class="primary" points="50,30 70,15 90,30 90,55 70,70 50,55" fill="#1a1a1a"/>
+    <polygon class="secondary" points="110,30 130,15 150,30 150,55 130,70 110,55" fill="#333333"/>
+    <polygon class="accent" points="170,30 190,15 210,30 210,55 190,70 170,55" fill="#ff6b6b"/>
+    <polygon class="primary" points="230,30 250,15 270,30 270,55 250,70 230,55" fill="#1a1a1a"/>
+    <polygon class="secondary" points="290,30 310,15 330,30 330,55 310,70 290,55" fill="#333333"/>
+    <polygon class="accent" points="350,30 370,15 390,30 390,55 370,70 350,55" fill="#ff6b6b"/>
+    
+    <!-- 第二行（交错） -->
+    <polygon class="accent" points="20,70 40,55 60,70 60,95 40,110 20,95" fill="#ff6b6b"/>
+    <polygon class="primary" points="80,70 100,55 120,70 120,95 100,110 80,95" fill="#1a1a1a"/>
+    <polygon class="secondary" points="140,70 160,55 180,70 180,95 160,110 140,95" fill="#333333"/>
+    <polygon class="accent" points="200,70 220,55 240,70 240,95 220,110 200,95" fill="#ff6b6b"/>
+    <polygon class="primary" points="260,70 280,55 300,70 300,95 280,110 260,95" fill="#1a1a1a"/>
+    <polygon class="secondary" points="320,70 340,55 360,70 360,95 340,110 320,95" fill="#333333"/>
+  </g>
+  
+  <!-- 中间大六边形 -->
+  <g id="large-hexagons" transform="translate(200, 160)">
+    <polygon class="primary" points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" fill="#1a1a1a" opacity="0.9"/>
+    <polygon class="secondary" points="0,-45 39,-22 39,22 0,45 -39,22 -39,-22" fill="#333333" opacity="0.8"/>
+    <polygon class="accent" points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" fill="#ff6b6b" opacity="0.9"/>
+    <polygon class="background" points="0,-15 13,-7 13,7 0,15 -13,7 -13,-7" fill="#f8f8f8"/>
+  </g>
+  
+  <!-- 底部小六边形群 -->
+  <g id="small-hexagons">
+    <polygon class="secondary" points="30,230 45,220 60,230 60,250 45,260 30,250" fill="#333333"/>
+    <polygon class="accent" points="80,230 95,220 110,230 110,250 95,260 80,250" fill="#ff6b6b"/>
+    <polygon class="primary" points="130,230 145,220 160,230 160,250 145,260 130,250" fill="#1a1a1a"/>
+    <polygon class="secondary" points="180,230 195,220 210,230 210,250 195,260 180,250" fill="#333333"/>
+    <polygon class="accent" points="230,230 245,220 260,230 260,250 245,260 230,250" fill="#ff6b6b"/>
+    <polygon class="primary" points="280,230 295,220 310,230 310,250 295,260 280,250" fill="#1a1a1a"/>
+    <polygon class="secondary" points="330,230 345,220 360,230 360,250 345,260 330,250" fill="#333333"/>
+    
+    <!-- 交错行 -->
+    <polygon class="accent" points="55,265 70,255 85,265 85,285 70,295 55,285" fill="#ff6b6b"/>
+    <polygon class="primary" points="105,265 120,255 135,265 135,285 120,295 105,285" fill="#1a1a1a"/>
+    <polygon class="secondary" points="155,265 170,255 185,265 185,285 170,295 155,285" fill="#333333"/>
+    <polygon class="accent" points="205,265 220,255 235,265 235,285 220,295 205,285" fill="#ff6b6b"/>
+    <polygon class="primary" points="255,265 270,255 285,265 285,285 270,295 255,285" fill="#1a1a1a"/>
+    <polygon class="secondary" points="305,265 320,255 335,265 335,285 320,295 305,285" fill="#333333"/>
+  </g>
+  
+  <!-- 六边形连接线装饰 -->
+  <g id="hex-connections" opacity="0.3">
+    <line class="secondary" x1="70" y1="42" x2="110" y2="42" stroke="#333333" stroke-width="1"/>
+    <line class="secondary" x1="150" y1="42" x2="170" y2="42" stroke="#333333" stroke-width="1"/>
+    <line class="secondary" x1="210" y1="42" x2="230" y2="42" stroke="#333333" stroke-width="1"/>
+    <line class="secondary" x1="270" y1="42" x2="290" y2="42" stroke="#333333" stroke-width="1"/>
+    <line class="secondary" x1="330" y1="42" x2="350" y2="42" stroke="#333333" stroke-width="1"/>
+  </g>
+  
+  <!-- 中心点装饰 -->
+  <g id="center-dots">
+    <circle class="accent" cx="70" cy="42" r="3" fill="#ff6b6b"/>
+    <circle class="accent" cx="130" cy="42" r="3" fill="#ff6b6b"/>
+    <circle class="accent" cx="190" cy="42" r="3" fill="#ff6b6b"/>
+    <circle class="accent" cx="250" cy="42" r="3" fill="#ff6b6b"/>
+    <circle class="accent" cx="310" cy="42" r="3" fill="#ff6b6b"/>
+    <circle class="accent" cx="370" cy="42" r="3" fill="#ff6b6b"/>
+    
+    <circle class="primary" cx="40" cy="82" r="2" fill="#1a1a1a"/>
+    <circle class="primary" cx="100" cy="82" r="2" fill="#1a1a1a"/>
+    <circle class="primary" cx="160" cy="82" r="2" fill="#1a1a1a"/>
+    <circle class="primary" cx="220" cy="82" r="2" fill="#1a1a1a"/>
+    <circle class="primary" cx="280" cy="82" r="2" fill="#1a1a1a"/>
+    <circle class="primary" cx="340" cy="82" r="2" fill="#1a1a1a"/>
+  </g>
+</svg>
