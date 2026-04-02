@@ -2,10 +2,10 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, master, Dev ]
+    branches: [ main, master, Dev, fix/nuitka-combobox-render-5 ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main, master, Dev ]
+    branches: [ main, master, dev ]
   workflow_dispatch:
 
 jobs:
@@ -23,25 +23,16 @@ jobs:
     
     - name: Cache pip packages
       uses: actions/cache@v4
-      id: pip-cache
       with:
         path: ~\AppData\Local\pip\Cache
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-
-    - name: Cache Nuitka
-      uses: actions/cache@v4
-      with:
-        path: ~\AppData\Local\Nuitka
-        key: ${{ runner.os }}-nuitka-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-nuitka-
-
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nuitka==4.0.6
+        pip install nuitka[onefile]
         pip install -r requirements.txt
     
     - name: Read version
@@ -63,12 +54,12 @@ jobs:
         Write-Host "Debug: copyright is: '$COPYRIGHT'"
         Write-Host "Debug: app name is: '$APP_NAME'"
         
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$VERSION"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "file_version=$FILE_VERSION"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "product_version=$PRODUCT_VERSION"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "company_name=$COMPANY_NAME"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
+        "version=$VERSION" >> $env:GITHUB_OUTPUT
+        "file_version=$FILE_VERSION" >> $env:GITHUB_OUTPUT
+        "product_version=$PRODUCT_VERSION" >> $env:GITHUB_OUTPUT
+        "company_name=$COMPANY_NAME" >> $env:GITHUB_OUTPUT
+        "copyright=$COPYRIGHT" >> $env:GITHUB_OUTPUT
+        "app_name=$APP_NAME" >> $env:GITHUB_OUTPUT
     
     - name: Build Windows EXE with Nuitka
       shell: cmd
@@ -79,12 +70,10 @@ jobs:
           --assume-yes-for-downloads ^
           --windows-console-mode=disable ^
           --windows-icon-from-ico="logo/Color Card_logo.ico" ^
-          --company-name="${{ steps.version.outputs.company_name }}" ^
-          --product-name="${{ steps.version.outputs.app_name }}" ^
-          --file-version="${{ steps.version.outputs.file_version }}" ^
-          --product-version="${{ steps.version.outputs.product_version }}" ^
-          --file-description="取色卡 - Color Card" ^
-          --copyright="${{ steps.version.outputs.copyright }}" ^
+          --windows-product-name="${{ steps.version.outputs.app_name }}" ^
+          --windows-file-version="${{ steps.version.outputs.file_version }}" ^
+          --windows-product-version="${{ steps.version.outputs.product_version }}" ^
+          --windows-file-description="取色卡 - Color Card" ^
           --include-data-files=version.py=version.py ^
           --include-data-dir=color_data=color_data ^
           --include-data-dir=core=core ^
