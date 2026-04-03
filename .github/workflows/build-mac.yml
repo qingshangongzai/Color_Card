@@ -62,7 +62,7 @@ jobs:
         python -m nuitka \
           --mode=app \
           --macos-app-icon="logo/ColorCard.icns" \
-          --macos-app-name="ColorCard" \
+          --macos-app-name="Color Card" \
           --macos-app-version="${{ steps.version.outputs.version }}" \
           --include-data-files=version.py=version.py \
           --include-data-dir=color_data=color_data \
@@ -78,7 +78,6 @@ jobs:
           --lto=yes \
           --jobs=4 \
           --output-dir=dist \
-          --output-filename="Color Card" \
           main.py
 
     - name: Check build output
@@ -87,8 +86,15 @@ jobs:
         ls -la dist/
         echo "Checking for .app bundle..."
         find dist -name "*.app" -type d
-        echo "Checking ColorCard.app..."
-        ls -la dist/main.app/Contents/MacOS/ 2>/dev/null || ls -la dist/ColorCard.app/Contents/MacOS/ 2>/dev/null || echo "App bundle not found in expected location"
+        echo "Checking app bundle contents..."
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        if [ -n "$APP_BUNDLE" ]; then
+          ls -la "$APP_BUNDLE/Contents/MacOS/"
+          echo "Info.plist CFBundleName:"
+          cat "$APP_BUNDLE/Contents/Info.plist" | grep -A1 "CFBundleName" || true
+        else
+          echo "App bundle not found"
+        fi
 
     - name: Fix app bundle executable name
       run: |
