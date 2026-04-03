@@ -1,4 +1,4 @@
-name: Build Mac App
+name: Build Mac App with Nuitka
 
 on:
   push:
@@ -11,16 +11,16 @@ on:
 jobs:
   build-macos:
     runs-on: macos-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
-    
+        python-version: '3.13'
+
     - name: Cache pip packages
       uses: actions/cache@v4
       with:
@@ -28,13 +28,13 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyinstaller==6.19.0
+        pip install nuitka[onefile]
         pip install -r requirements.txt
-    
+
     - name: Read version
       id: version
       run: |
@@ -56,152 +56,165 @@ jobs:
         echo "company_name=$COMPANY_NAME" >> "$GITHUB_OUTPUT"
         echo "copyright=$COPYRIGHT" >> "$GITHUB_OUTPUT"
         echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
-    
-    - name: Create Info.plist
+
+    - name: Build Mac App with Nuitka
       run: |
-        cat > Info.plist << 'PLISTEOF'
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>CFBundleExecutable</key>
-            <string>ColorCard</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.hxiaostudio.colorcard</string>
-            <key>CFBundleName</key>
-            <string>ColorCard</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleShortVersionString</key>
-            <string>1.4.1</string>
-            <key>CFBundleVersion</key>
-            <string>2026.3.2.1</string>
-            <key>CFBundleGetInfoString</key>
-            <string>取色卡 - Color Card</string>
-            <key>NSHumanReadableCopyright</key>
-            <string>Copyright 2026 HXiao Studio</string>
-            <key>LSMinimumSystemVersion</key>
-            <string>10.14</string>
-            <key>NSHighResolutionCapable</key>
-            <true/>
-            <key>LSUIElement</key>
-            <false/>
-            <key>NSRequiresAquaSystemAppearance</key>
-            <false/>
-        </dict>
-        </plist>
-        PLISTEOF
-    
-    - name: Build Mac App with PyInstaller
-      run: |
-        pyinstaller \
-          --name "ColorCard" \
-          --windowed \
-          --onefile \
-          --icon "logo/ColorCard.icns" \
-          --add-data "version.py:." \
-          --add-data "core:core" \
-          --add-data "dialogs:dialogs" \
-          --add-data "file:file" \
-          --add-data "logo:logo" \
-          --add-data "ui:ui" \
-          --add-data "utils:utils" \
-          --add-data "locales:locales" \
-          --add-data "color_data:color_data" \
-          --add-data "scenes_data:scenes_data" \
-          --exclude-module "PySide6.Qt3DAnimation" \
-          --exclude-module "PySide6.Qt3DCore" \
-          --exclude-module "PySide6.Qt3DExtras" \
-          --exclude-module "PySide6.Qt3DInput" \
-          --exclude-module "PySide6.Qt3DLogic" \
-          --exclude-module "PySide6.Qt3DRender" \
-          --exclude-module "PySide6.QtCharts" \
-          --exclude-module "PySide6.QtDataVisualization" \
-          --exclude-module "PySide6.QtGraphs" \
-          --exclude-module "PySide6.QtLocation" \
-          --exclude-module "PySide6.QtMultimedia" \
-          --exclude-module "PySide6.QtMultimediaWidgets" \
-          --exclude-module "PySide6.QtNetworkAuth" \
-          --exclude-module "PySide6.QtPositioning" \
-          --exclude-module "PySide6.QtQuick" \
-          --exclude-module "PySide6.QtQuick3D" \
-          --exclude-module "PySide6.QtQuickWidgets" \
-          --exclude-module "PySide6.QtRemoteObjects" \
-          --exclude-module "PySide6.QtSensors" \
-          --exclude-module "PySide6.QtSerialBus" \
-          --exclude-module "PySide6.QtSerialPort" \
-          --exclude-module "PySide6.QtSql" \
-          --exclude-module "PySide6.QtStateMachine" \
-          --exclude-module "PySide6.QtTest" \
-          --exclude-module "PySide6.QtTextToSpeech" \
-          --exclude-module "PySide6.QtWebChannel" \
-          --exclude-module "PySide6.QtWebEngineCore" \
-          --exclude-module "PySide6.QtWebEngineQuick" \
-          --exclude-module "PySide6.QtWebEngineWidgets" \
-          --exclude-module "PySide6.QtWebSockets" \
-          --exclude-module "PySide6.QtXmlPatterns" \
-          --exclude-module "PySide6.QtOpenGL" \
-          --exclude-module "PySide6.QtOpenGLWidgets" \
-          --exclude-module "PySide6.QtPdf" \
-          --exclude-module "PySide6.QtPdfWidgets" \
-          --exclude-module "PySide6.QtConcurrent" \
-          --exclude-module "PySide6.QtHelp" \
-          --exclude-module "unittest" \
-          --exclude-module "pydoc" \
-          --exclude-module "doctest" \
-          --exclude-module "test" \
-          --exclude-module "matplotlib" \
-          --exclude-module "pandas" \
-          --exclude-module "scipy" \
-          --exclude-module "sklearn" \
-          --exclude-module "cv2" \
-          --exclude-module "tkinter" \
-          --exclude-module "_tkinter" \
-          --osx-bundle-identifier "com.hxiaostudio.colorcard" \
-          --clean \
+        python -m nuitka \
+          --mode=app \
+          --macos-app-icon="logo/ColorCard.icns" \
+          --macos-app-name="Color Card" \
+          --macos-app-version="${{ steps.version.outputs.version }}" \
+          --include-data-files=version.py=version.py \
+          --include-data-dir=color_data=color_data \
+          --include-data-dir=core=core \
+          --include-data-dir=dialogs=dialogs \
+          --include-data-dir=file=file \
+          --include-data-dir=locales=locales \
+          --include-data-dir=logo=logo \
+          --include-data-dir=scenes_data=scenes_data \
+          --include-data-dir=ui=ui \
+          --include-data-dir=utils=utils \
+          --enable-plugin=pyside6 \
+          --lto=yes \
+          --jobs=4 \
+          --output-dir=dist \
           main.py
-    
-    - name: Copy custom Info.plist
-      run: |
-        # 复制自定义的 Info.plist 到生成的 .app 包中
-        cp Info.plist dist/ColorCard.app/Contents/Info.plist
-    
+
     - name: Check build output
       run: |
         echo "Checking dist directory..."
         ls -la dist/
-        echo "Checking ColorCard.app..."
-        ls -la dist/ColorCard.app/Contents/MacOS/ || echo "ColorCard.app not found"
-    
+        echo "Checking for .app bundle..."
+        find dist -name "*.app" -type d
+        echo "Checking app bundle contents..."
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        if [ -n "$APP_BUNDLE" ]; then
+          ls -la "$APP_BUNDLE/Contents/MacOS/"
+          echo "Info.plist CFBundleName:"
+          cat "$APP_BUNDLE/Contents/Info.plist" | grep -A1 "CFBundleName" || true
+        else
+          echo "App bundle not found"
+        fi
+
+    - name: Fix app bundle name
+      run: |
+        # 查找生成的app bundle
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        echo "Found app bundle: $APP_BUNDLE"
+
+        # 重命名app bundle从main.app到ColorCard.app（无空格，避免签名问题）
+        if [ "$APP_BUNDLE" != "dist/ColorCard.app" ]; then
+          mv "$APP_BUNDLE" "dist/ColorCard.app"
+          APP_BUNDLE="dist/ColorCard.app"
+          echo "Renamed app bundle to: ColorCard.app"
+        fi
+
+        # 修改Info.plist中的显示名称为Color Card
+        INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"
+        if [ -f "$INFO_PLIST" ]; then
+          echo "Before modification:"
+          cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
+
+          # 使用plutil修改plist（macOS原生工具）
+          # 注意：CFBundleExecutable保持Color Card（与Nuitka生成的可执行文件名一致）
+          plutil -replace CFBundleName -string "Color Card" "$INFO_PLIST"
+          plutil -replace CFBundleDisplayName -string "Color Card" "$INFO_PLIST"
+
+          echo "After modification:"
+          cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
+        fi
+
     - name: Sign App (Ad-hoc)
       run: |
         # 使用 ad-hoc 签名（不需要 Apple Developer 证书）
         # 这可以解决 "已损坏" 的问题，但用户仍需在系统偏好设置中允许
-        codesign --force --deep --sign - --timestamp=none dist/ColorCard.app
-        
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        echo "Found app bundle: $APP_BUNDLE"
+        codesign --force --deep --sign - --timestamp=none "$APP_BUNDLE"
+
         # 验证签名
-        codesign -dv --verbose=4 dist/ColorCard.app
-    
-    - name: Create DMG
+        codesign -dv --verbose=4 "$APP_BUNDLE"
+
+    - name: Install create-dmg
       run: |
+        brew install create-dmg
+
+    - name: Create DMG with custom background
+      run: |
+        # 查找生成的app bundle
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        APP_NAME=$(basename "$APP_BUNDLE")
+        echo "Using app bundle: $APP_BUNDLE (name: $APP_NAME)"
+
+        # 检查app bundle的Info.plist
+        echo "=== App Bundle Info.plist ==="
+        cat "$APP_BUNDLE/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
+
         # 创建临时目录用于 DMG
         mkdir -p dist/dmg
-        
+
         # 复制签名后的 .app 到临时目录
-        cp -R dist/ColorCard.app dist/dmg/
-        
-        # 创建 Applications 文件夹快捷方式
-        ln -s /Applications dist/dmg/Applications
-        
-        # 创建 DMG
-        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
-    
+        cp -R "$APP_BUNDLE" dist/dmg/
+
+        # 检查复制后的app bundle
+        echo "=== Copied App Bundle Info.plist ==="
+        COPIED_APP=$(find dist/dmg -name "*.app" -type d | head -1)
+        cat "$COPIED_APP/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
+
+        # 复制后需要重新签名（复制会破坏签名）
+        echo "Re-signing copied app bundle..."
+        codesign --force --deep --sign - --timestamp=none "$COPIED_APP"
+
+        # 如果有背景图片，复制到临时目录
+        if [ -f "logo/dmg_background.png" ]; then
+          cp logo/dmg_background.png dist/dmg/.background.png
+        fi
+
+        # 使用 create-dmg 创建带自定义背景的 DMG
+        if [ -f "logo/dmg_background.png" ]; then
+          create-dmg \
+            --volname "ColorCard" \
+            --volicon "logo/ColorCard.icns" \
+            --window-pos 200 120 \
+            --window-size 800 500 \
+            --icon-size 100 \
+            --icon "$APP_NAME" 200 250 \
+            --icon "Applications" 600 250 \
+            --background "logo/dmg_background.png" \
+            --app-drop-link 600 250 \
+            --no-internet-enable \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/dmg/$APP_NAME"
+        else
+          # 如果没有背景图片，使用简洁布局
+          create-dmg \
+            --volname "ColorCard" \
+            --volicon "logo/ColorCard.icns" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "$APP_NAME" 150 200 \
+            --icon "Applications" 450 200 \
+            --app-drop-link 450 200 \
+            --no-internet-enable \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/dmg/$APP_NAME"
+        fi
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: ColorCard-macOS
         path: dist/Color_Card_*_mac.dmg
-    
+
+    - name: Upload Debug Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: Debug-Info
+        path: |
+          dist/**/*.app/Contents/Info.plist
+          dist/dmg/**/*.app/Contents/Info.plist
+
     - name: Upload Release Asset
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
