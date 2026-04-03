@@ -90,6 +90,33 @@ jobs:
         echo "Checking ColorCard.app..."
         ls -la dist/main.app/Contents/MacOS/ 2>/dev/null || ls -la dist/ColorCard.app/Contents/MacOS/ 2>/dev/null || echo "App bundle not found in expected location"
 
+    - name: Fix app bundle executable name
+      run: |
+        # 查找生成的app bundle
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        echo "Found app bundle: $APP_BUNDLE"
+
+        # 重命名可执行文件从main到Color Card
+        MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
+        if [ -f "$MACOS_DIR/main" ]; then
+          mv "$MACOS_DIR/main" "$MACOS_DIR/Color Card"
+          echo "Renamed executable: main -> Color Card"
+          ls -la "$MACOS_DIR/"
+        fi
+
+        # 修改Info.plist中的CFBundleExecutable为Color Card
+        INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"
+        if [ -f "$INFO_PLIST" ]; then
+          echo "Before modification:"
+          grep -A1 "CFBundleExecutable" "$INFO_PLIST" || true
+
+          # 使用plutil修改plist（macOS原生工具）
+          plutil -replace CFBundleExecutable -string "Color Card" "$INFO_PLIST"
+
+          echo "After modification:"
+          grep -A1 "CFBundleExecutable" "$INFO_PLIST" || true
+        fi
+
     - name: Sign App (Ad-hoc)
       run: |
         # 使用 ad-hoc 签名（不需要 Apple Developer 证书）
