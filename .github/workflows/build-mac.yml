@@ -60,8 +60,7 @@ jobs:
     - name: Build Mac App with Nuitka
       run: |
         python -m nuitka \
-          --standalone \
-          --macos-disable-console \
+          --mode=app \
           --macos-app-icon="logo/ColorCard.icns" \
           --macos-app-name="ColorCard" \
           --macos-app-version="${{ steps.version.outputs.version }}" \
