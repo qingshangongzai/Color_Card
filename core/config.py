@@ -863,8 +863,7 @@ class SceneTypeManager:
             str: SVG文件路径，如果不存在则返回None
         """
         svg_path = self._scenes_data_dir / scene_type / "default.svg"
-        logger.debug(f"Checking SVG path: {svg_path}")
-        logger.debug(f"svg_path.exists(): {svg_path.exists()}")
+        logger.debug(f"Checking SVG path: {svg_path}, exists: {svg_path.exists()}")
         if svg_path.exists():
             return str(svg_path)
         logger.warning(f"SVG file not found: {svg_path}")
@@ -904,12 +903,11 @@ class SceneTypeManager:
 
         # 内置模板 - 加载场景目录下所有svg文件
         scene_dir = self._scenes_data_dir / scene_type
-        logger.debug(f"Looking for templates in: {scene_dir}")
-        logger.debug(f"scene_dir exists: {scene_dir.exists()}")
+        logger.debug(f"Looking for templates in: {scene_dir} (exists: {scene_dir.exists()})")
         if scene_dir.exists():
             # 获取所有svg文件，按文件名排序
             svg_files = sorted(scene_dir.glob("*.svg"))
-            logger.debug(f"Found {len(svg_files)} SVG files: {svg_files}")
+            logger.debug(f"Found {len(svg_files)} SVG files")
             for svg_path in svg_files:
                 templates.append({
                     "path": str(svg_path),
