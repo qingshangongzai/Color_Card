@@ -313,19 +313,13 @@ class AboutDialog(BaseFramelessDialog):
     服务提供：GitHub, Inc.
     官网：https://github.com/features/actions
 
-  • 本程序 Windows 版本使用 Nuitka 进行打包
+  • 本程序使用 Nuitka 进行打包
     版权所有：Kay Hayen
     许可证：AGPLv3
     项目地址：https://github.com/Nuitka/Nuitka
     官网：https://nuitka.net/
 
-  • 本程序 macOS 版本使用 PyInstaller 进行打包
-    版权所有：PyInstaller Development Team
-    许可证：GPL-2.0+ with Bootloader Exception
-    项目地址：https://github.com/pyinstaller/pyinstaller
-    官网：https://pyinstaller.org/
-
-  • 本程序使用 Inno Setup 工具将独立的可执行文件打包为安装程序
+  • 本程序 Windows 版本使用 Inno Setup 工具将独立的可执行文件打包为安装程序
     版权所有：Jordan Russell
     许可证：Modified BSD
     官网：https://jrsoftware.org/isinfo.php
