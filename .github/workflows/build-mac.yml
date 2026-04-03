@@ -78,6 +78,7 @@ jobs:
           --lto=yes \
           --jobs=4 \
           --output-dir=dist \
+          --output-filename="Color Card" \
           main.py
 
     - name: Check build output
