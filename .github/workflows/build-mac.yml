@@ -88,6 +88,8 @@ jobs:
             <false/>
             <key>NSRequiresAquaSystemAppearance</key>
             <false/>
+            <key>CFBundleIconFile</key>
+            <string>ColorCard.icns</string>
         </dict>
         </plist>
         PLISTEOF
@@ -182,7 +184,11 @@ jobs:
         # 验证签名
         codesign -dv --verbose=4 dist/ColorCard.app
     
-    - name: Create DMG
+    - name: Install create-dmg
+      run: |
+        brew install create-dmg
+    
+    - name: Create DMG with custom background
       run: |
         # 创建临时目录用于 DMG
         mkdir -p dist/dmg
@@ -190,11 +196,41 @@ jobs:
         # 复制签名后的 .app 到临时目录
         cp -R dist/ColorCard.app dist/dmg/
         
-        # 创建 Applications 文件夹快捷方式
-        ln -s /Applications dist/dmg/Applications
+        # 如果有背景图片，复制到临时目录
+        if [ -f "logo/dmg_background.png" ]; then
+          cp logo/dmg_background.png dist/dmg/.background.png
+        fi
         
-        # 创建 DMG
-        hdiutil create -volname "ColorCard" -srcfolder dist/dmg -ov -format UDZO dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg
+        # 使用 create-dmg 创建带自定义背景的 DMG
+        if [ -f "logo/dmg_background.png" ]; then
+          create-dmg \
+            --volname "ColorCard" \
+            --volicon "logo/ColorCard.icns" \
+            --window-pos 200 120 \
+            --window-size 800 500 \
+            --icon-size 100 \
+            --icon "ColorCard.app" 200 250 \
+            --icon "Applications" 600 250 \
+            --background "logo/dmg_background.png" \
+            --app-drop-link 600 250 \
+            --no-internet-enable \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/dmg/ColorCard.app"
+        else
+          # 如果没有背景图片，使用简洁布局
+          create-dmg \
+            --volname "ColorCard" \
+            --volicon "logo/ColorCard.icns" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "ColorCard.app" 150 200 \
+            --icon "Applications" 450 200 \
+            --app-drop-link 450 200 \
+            --no-internet-enable \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/dmg/ColorCard.app"
+        fi
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
