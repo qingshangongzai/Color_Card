@@ -1,12 +1,15 @@
 """SVG 配色映射模块 - 智能识别 SVG 中的配色区域并应用配色方案"""
 
 # 标准库导入
+import logging
 import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
+
+logger = logging.getLogger("color_card.svg_color_mapper")
 
 # 特殊颜色键（用于透明元素映射）
 TRANSPARENT_BACKGROUND_KEY = '__BACKGROUND__'
@@ -663,12 +666,12 @@ class SVGColorMapper:
 
         # 检测是否有语义化类型
         if self.has_semantic_types():
-            print("使用语义化映射模式")
+            logger.debug("使用语义化映射模式")
             # 使用语义化映射
             config = self._create_mapping_config_from_colors(colors)
             return self.apply_color_mapping(config)
         else:
-            print("使用智能映射模式")
+            logger.debug("使用智能映射模式")
             # 使用智能映射（无语义化类型）
             return self._apply_smart_mapping(colors)
 
