@@ -161,6 +161,10 @@ jobs:
         COPIED_APP=$(find dist/dmg -name "*.app" -type d | head -1)
         cat "$COPIED_APP/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
 
+        # 复制后需要重新签名（复制会破坏签名）
+        echo "Re-signing copied app bundle..."
+        codesign --force --deep --sign - --timestamp=none "$COPIED_APP"
+
         # 如果有背景图片，复制到临时目录
         if [ -f "logo/dmg_background.png" ]; then
           cp logo/dmg_background.png dist/dmg/.background.png
