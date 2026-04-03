@@ -102,21 +102,21 @@ jobs:
         APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
         echo "Found app bundle: $APP_BUNDLE"
 
-        # 重命名app bundle从main.app到Color Card.app
-        if [ "$APP_BUNDLE" != "dist/Color Card.app" ]; then
-          mv "$APP_BUNDLE" "dist/Color Card.app"
-          APP_BUNDLE="dist/Color Card.app"
-          echo "Renamed app bundle to: Color Card.app"
+        # 重命名app bundle从main.app到ColorCard.app（无空格，避免签名问题）
+        if [ "$APP_BUNDLE" != "dist/ColorCard.app" ]; then
+          mv "$APP_BUNDLE" "dist/ColorCard.app"
+          APP_BUNDLE="dist/ColorCard.app"
+          echo "Renamed app bundle to: ColorCard.app"
         fi
 
-        # 修改Info.plist中的CFBundleExecutable为Color Card
+        # 修改Info.plist中的显示名称为Color Card
         INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"
         if [ -f "$INFO_PLIST" ]; then
           echo "Before modification:"
           cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
 
           # 使用plutil修改plist（macOS原生工具）
-          plutil -replace CFBundleExecutable -string "Color Card" "$INFO_PLIST"
+          # 注意：CFBundleExecutable保持Color Card（与Nuitka生成的可执行文件名一致）
           plutil -replace CFBundleName -string "Color Card" "$INFO_PLIST"
           plutil -replace CFBundleDisplayName -string "Color Card" "$INFO_PLIST"
 
