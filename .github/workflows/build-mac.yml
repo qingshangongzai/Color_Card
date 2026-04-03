@@ -147,11 +147,20 @@ jobs:
         APP_NAME=$(basename "$APP_BUNDLE")
         echo "Using app bundle: $APP_BUNDLE (name: $APP_NAME)"
 
+        # 检查app bundle的Info.plist
+        echo "=== App Bundle Info.plist ==="
+        cat "$APP_BUNDLE/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
+
         # 创建临时目录用于 DMG
         mkdir -p dist/dmg
 
         # 复制签名后的 .app 到临时目录
         cp -R "$APP_BUNDLE" dist/dmg/
+
+        # 检查复制后的app bundle
+        echo "=== Copied App Bundle Info.plist ==="
+        COPIED_APP=$(find dist/dmg -name "*.app" -type d | head -1)
+        cat "$COPIED_APP/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
 
         # 如果有背景图片，复制到临时目录
         if [ -f "logo/dmg_background.png" ]; then
@@ -194,6 +203,14 @@ jobs:
       with:
         name: ColorCard-macOS
         path: dist/Color_Card_*_mac.dmg
+
+    - name: Upload Debug Info
+      uses: actions/upload-artifact@v4
+      with:
+        name: Debug-Info
+        path: |
+          dist/**/*.app/Contents/Info.plist
+          dist/dmg/**/*.app/Contents/Info.plist
 
     - name: Upload Release Asset
       if: startsWith(github.ref, 'refs/tags/')
