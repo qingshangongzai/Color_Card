@@ -2,10 +2,9 @@ name: Build Mac App with Nuitka
 
 on:
   push:
-    branches: [ main, master, feature/mac-adaptation ]
-    tags: [ 'v*' ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
