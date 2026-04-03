@@ -19,7 +19,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
 
     - name: Cache pip packages
       uses: actions/cache@v4
@@ -84,17 +84,21 @@ jobs:
       run: |
         echo "Checking dist directory..."
         ls -la dist/
+        echo "Checking for .app bundle..."
+        find dist -name "*.app" -type d
         echo "Checking ColorCard.app..."
-        ls -la dist/ColorCard.app/Contents/MacOS/ || echo "ColorCard.app not found"
+        ls -la dist/main.app/Contents/MacOS/ 2>/dev/null || ls -la dist/ColorCard.app/Contents/MacOS/ 2>/dev/null || echo "App bundle not found in expected location"
 
     - name: Sign App (Ad-hoc)
       run: |
         # 使用 ad-hoc 签名（不需要 Apple Developer 证书）
         # 这可以解决 "已损坏" 的问题，但用户仍需在系统偏好设置中允许
-        codesign --force --deep --sign - --timestamp=none dist/ColorCard.app
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        echo "Found app bundle: $APP_BUNDLE"
+        codesign --force --deep --sign - --timestamp=none "$APP_BUNDLE"
 
         # 验证签名
-        codesign -dv --verbose=4 dist/ColorCard.app
+        codesign -dv --verbose=4 "$APP_BUNDLE"
 
     - name: Install create-dmg
       run: |
@@ -102,11 +106,16 @@ jobs:
 
     - name: Create DMG with custom background
       run: |
+        # 查找生成的app bundle
+        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
+        APP_NAME=$(basename "$APP_BUNDLE")
+        echo "Using app bundle: $APP_BUNDLE (name: $APP_NAME)"
+
         # 创建临时目录用于 DMG
         mkdir -p dist/dmg
 
         # 复制签名后的 .app 到临时目录
-        cp -R dist/ColorCard.app dist/dmg/
+        cp -R "$APP_BUNDLE" dist/dmg/
 
         # 如果有背景图片，复制到临时目录
         if [ -f "logo/dmg_background.png" ]; then
@@ -121,13 +130,13 @@ jobs:
             --window-pos 200 120 \
             --window-size 800 500 \
             --icon-size 100 \
-            --icon "ColorCard.app" 200 250 \
+            --icon "$APP_NAME" 200 250 \
             --icon "Applications" 600 250 \
             --background "logo/dmg_background.png" \
             --app-drop-link 600 250 \
             --no-internet-enable \
             "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
-            "dist/dmg/ColorCard.app"
+            "dist/dmg/$APP_NAME"
         else
           # 如果没有背景图片，使用简洁布局
           create-dmg \
@@ -136,12 +145,12 @@ jobs:
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
-            --icon "ColorCard.app" 150 200 \
+            --icon "$APP_NAME" 150 200 \
             --icon "Applications" 450 200 \
             --app-drop-link 450 200 \
             --no-internet-enable \
             "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
-            "dist/dmg/ColorCard.app"
+            "dist/dmg/$APP_NAME"
         fi
 
     - name: Upload artifact
