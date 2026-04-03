@@ -96,18 +96,17 @@ jobs:
           echo "App bundle not found"
         fi
 
-    - name: Fix app bundle executable name
+    - name: Fix app bundle name
       run: |
         # 查找生成的app bundle
         APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
         echo "Found app bundle: $APP_BUNDLE"
 
-        # 重命名可执行文件从main到Color Card
-        MACOS_DIR="$APP_BUNDLE/Contents/MacOS"
-        if [ -f "$MACOS_DIR/main" ]; then
-          mv "$MACOS_DIR/main" "$MACOS_DIR/Color Card"
-          echo "Renamed executable: main -> Color Card"
-          ls -la "$MACOS_DIR/"
+        # 重命名app bundle从main.app到Color Card.app
+        if [ "$APP_BUNDLE" != "dist/Color Card.app" ]; then
+          mv "$APP_BUNDLE" "dist/Color Card.app"
+          APP_BUNDLE="dist/Color Card.app"
+          echo "Renamed app bundle to: Color Card.app"
         fi
 
         # 修改Info.plist中的CFBundleExecutable为Color Card
