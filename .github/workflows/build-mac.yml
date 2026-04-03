@@ -65,7 +65,6 @@ jobs:
           --macos-app-icon="logo/ColorCard.icns" \
           --macos-app-name="ColorCard" \
           --macos-app-version="${{ steps.version.outputs.version }}" \
-          --macos-signed-app-identifier="com.hxiaostudio.colorcard" \
           --include-data-files=version.py=version.py \
           --include-data-dir=color_data=color_data \
           --include-data-dir=core=core \
