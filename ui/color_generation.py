@@ -403,6 +403,11 @@ class ColorGenerationInterface(QWidget):
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.setMinimumHeight(300)
         splitter.setHandleWidth(0)  # 隐藏分隔条
+        # 隐藏 Mac 上可能显示的分割线
+        splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle:vertical { background: transparent; border: none; }
+        """)
         layout.addWidget(splitter, stretch=1)
 
         # 上半部分：色轮和明度调整
