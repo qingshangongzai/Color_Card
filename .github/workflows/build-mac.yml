@@ -108,13 +108,15 @@ jobs:
         INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"
         if [ -f "$INFO_PLIST" ]; then
           echo "Before modification:"
-          grep -A1 "CFBundleExecutable" "$INFO_PLIST" || true
+          cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
 
           # 使用plutil修改plist（macOS原生工具）
           plutil -replace CFBundleExecutable -string "Color Card" "$INFO_PLIST"
+          plutil -replace CFBundleName -string "Color Card" "$INFO_PLIST"
+          plutil -replace CFBundleDisplayName -string "Color Card" "$INFO_PLIST"
 
           echo "After modification:"
-          grep -A1 "CFBundleExecutable" "$INFO_PLIST" || true
+          cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
         fi
 
     - name: Sign App (Ad-hoc)
