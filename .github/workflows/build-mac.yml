@@ -2,10 +2,9 @@ name: Build Mac App with Nuitka
 
 on:
   push:
-    branches: [ main, master ]
-    tags: [ 'v*' ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
@@ -82,16 +81,41 @@ jobs:
 
     - name: Check build output
       run: |
-        echo "Checking dist directory..."
+        echo "=== Checking dist directory ==="
         ls -la dist/
-        echo "Checking for .app bundle..."
+        echo ""
+        echo "=== Checking for .app bundle ==="
         find dist -name "*.app" -type d
-        echo "Checking app bundle contents..."
+        echo ""
         APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
         if [ -n "$APP_BUNDLE" ]; then
+          echo "=== App bundle structure ==="
+          ls -la "$APP_BUNDLE/Contents/"
+          echo ""
+          echo "=== MacOS directory contents ==="
           ls -la "$APP_BUNDLE/Contents/MacOS/"
-          echo "Info.plist CFBundleName:"
+          echo ""
+          echo "=== Checking data directories ==="
+          echo "scenes_data exists: $(test -d "$APP_BUNDLE/Contents/MacOS/scenes_data" && echo 'YES' || echo 'NO')"
+          echo "color_data exists: $(test -d "$APP_BUNDLE/Contents/MacOS/color_data" && echo 'YES' || echo 'NO')"
+          echo "locales exists: $(test -d "$APP_BUNDLE/Contents/MacOS/locales" && echo 'YES' || echo 'NO')"
+          echo ""
+          if [ -d "$APP_BUNDLE/Contents/MacOS/scenes_data" ]; then
+            echo "=== scenes_data contents ==="
+            ls -la "$APP_BUNDLE/Contents/MacOS/scenes_data/"
+            echo ""
+            echo "=== scenes_data/web contents ==="
+            ls -la "$APP_BUNDLE/Contents/MacOS/scenes_data/web/" 2>/dev/null || echo "web directory not found"
+          fi
+          echo ""
+          echo "=== Info.plist CFBundleName ==="
           cat "$APP_BUNDLE/Contents/Info.plist" | grep -A1 "CFBundleName" || true
+          echo ""
+          echo "=== File encoding check ==="
+          file "$APP_BUNDLE/Contents/MacOS/scenes_data/scene_types.json"
+          echo ""
+          echo "=== scene_types.json first 5 lines ==="
+          head -5 "$APP_BUNDLE/Contents/MacOS/scenes_data/scene_types.json"
         else
           echo "App bundle not found"
         fi

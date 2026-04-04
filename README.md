@@ -101,7 +101,7 @@
 
 ### 面向普通用户（使用安装包）
 
-1. 前往项目的 **Gitee 发布页** 下载最新的安装包（`.exe` 文件）
+1. 前往项目的 **Gitee 发布页** 下载最新的安装包（Windows 为 `.exe`，Mac 为 `.dmg`）
 2. 运行下载的安装程序，跟随向导完成安装
 3. 从桌面快捷方式或开始菜单启动 "取色卡"
 
@@ -109,7 +109,7 @@
 
 #### 环境要求
 
-- **操作系统**：Windows 10/11 64位
+- **操作系统**：Windows 10/11 64位 或 Mac（Apple Silicon）
 - **Python 版本**：Python 3.11 及以上 64位版本（推荐使用 3.14）
 - **内存**：推荐 4GB 以上
 - **硬盘空间**：至少 100MB 可用空间
@@ -352,7 +352,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 ### For Regular Users (Using Installer)
 
-1. Visit the **Gitee Releases page** to download the latest installer (`.exe` file)
+1. Visit the **Gitee Releases page** to download the latest installer (`.exe` for Windows, `.dmg` for Mac)
 2. Run the downloaded installer and follow the wizard
 3. Launch "取色卡" from desktop shortcut or Start menu
 
@@ -360,7 +360,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 #### Requirements
 
-- **Operating System**: Windows 10/11 64-bit
+- **Operating System**: Windows 10/11 64-bit or Mac (Apple Silicon)
 - **Python Version**: Python 3.11+ 64-bit (3.14 recommended)
 - **Memory**: 4GB+ recommended
 - **Disk Space**: At least 100MB available

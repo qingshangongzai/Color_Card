@@ -159,7 +159,7 @@ class GradientCardPanel(QWidget):
 
         # 创建卡片容器
         self.cards_container = QWidget()
-        self.cards_container.setStyleSheet("background: transparent; border: none;")
+        self.cards_container.setStyleSheet("background: transparent;")
         self.cards_layout = QVBoxLayout(self.cards_container)
         self.cards_layout.setContentsMargins(0, 0, 10, 0)
         self.cards_layout.setSpacing(10)
@@ -282,6 +282,11 @@ class GradientExtractInterface(QWidget):
         # 创建分割器
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.setHandleWidth(0)
+        # 隐藏 Mac 上可能显示的分割线
+        splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle:vertical { background: transparent; border: none; }
+        """)
 
         # ========== 上半部分：控制区 + 渐变预览区 ==========
         top_widget = QWidget()

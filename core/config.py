@@ -816,7 +816,7 @@ class SceneTypeManager:
         scene_types_file = self._scenes_data_dir / self.SCENE_TYPES_FILE
 
         if not scene_types_file.exists():
-            print(f"场景类型配置文件不存在: {scene_types_file}")
+            logger.error(f"场景类型配置文件不存在: {scene_types_file}")
             self._scene_types = []
             return
 
@@ -824,9 +824,9 @@ class SceneTypeManager:
             with open(scene_types_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             self._scene_types = data.get("scene_types", [])
-            print(f"已加载 {len(self._scene_types)} 个场景类型")
+            logger.info(f"已加载 {len(self._scene_types)} 个场景类型")
         except (json.JSONDecodeError, IOError, OSError) as e:
-            print(f"加载场景类型配置失败: {e}")
+            logger.error(f"加载场景类型配置失败: {e}", exc_info=True)
             self._scene_types = []
 
     def get_all_scene_types(self) -> List[Dict[str, Any]]:
@@ -863,8 +863,10 @@ class SceneTypeManager:
             str: SVG文件路径，如果不存在则返回None
         """
         svg_path = self._scenes_data_dir / scene_type / "default.svg"
+        logger.debug(f"Checking SVG path: {svg_path}, exists: {svg_path.exists()}")
         if svg_path.exists():
             return str(svg_path)
+        logger.warning(f"SVG file not found: {svg_path}")
         return None
 
     def get_layout_config(self, scene_type: str) -> Dict[str, Any]:
@@ -901,9 +903,11 @@ class SceneTypeManager:
 
         # 内置模板 - 加载场景目录下所有svg文件
         scene_dir = self._scenes_data_dir / scene_type
+        logger.debug(f"Looking for templates in: {scene_dir} (exists: {scene_dir.exists()})")
         if scene_dir.exists():
             # 获取所有svg文件，按文件名排序
             svg_files = sorted(scene_dir.glob("*.svg"))
+            logger.debug(f"Found {len(svg_files)} SVG files")
             for svg_path in svg_files:
                 templates.append({
                     "path": str(svg_path),

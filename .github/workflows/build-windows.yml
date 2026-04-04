@@ -2,10 +2,9 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, master, Dev, fix/nuitka-combobox-render-5 ]
-    tags: [ 'v*' ]
+    branches: [ master ]
   pull_request:
-    branches: [ main, master, dev ]
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:

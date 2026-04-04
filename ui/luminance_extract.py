@@ -44,6 +44,11 @@ class LuminanceExtractInterface(QWidget):
         self.splitter = QSplitter(Qt.Orientation.Vertical)
         self.splitter.setMinimumHeight(300)
         self.splitter.setHandleWidth(0)
+        # 隐藏 Mac 上可能显示的分割线
+        self.splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle:vertical { background: transparent; border: none; }
+        """)
         layout.addWidget(self.splitter, stretch=1)
 
     def _setup_delayed_ui(self):

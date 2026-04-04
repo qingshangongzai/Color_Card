@@ -41,6 +41,13 @@ class ColorExtractInterface(QWidget):
         self._setup_delayed_ui()
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
+    def _apply_splitter_style(self, splitter):
+        """应用分割器样式（隐藏 Mac 上的分割线）"""
+        splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle { background: transparent; border: none; }
+        """)
+
     def _get_color_service(self):
         """延迟获取颜色服务（保留延迟加载）
 
@@ -88,12 +95,14 @@ class ColorExtractInterface(QWidget):
         self.main_splitter = QSplitter(Qt.Orientation.Vertical)
         self.main_splitter.setMinimumHeight(300)
         self.main_splitter.setHandleWidth(0)
+        self._apply_splitter_style(self.main_splitter)
         layout.addWidget(self.main_splitter, stretch=1)
 
         # 上半部分：水平分割器（图片 + 右侧组件）
         self.top_splitter = QSplitter(Qt.Orientation.Horizontal)
         self.top_splitter.setMinimumHeight(180)
         self.top_splitter.setHandleWidth(0)
+        self._apply_splitter_style(self.top_splitter)
         self.main_splitter.addWidget(self.top_splitter)
 
         # 右侧：垂直分割器（HSB色环 + 直方图堆叠窗口）
@@ -102,6 +111,7 @@ class ColorExtractInterface(QWidget):
         self.right_splitter.setMaximumWidth(350)
         self.right_splitter.setMinimumHeight(150)
         self.right_splitter.setHandleWidth(0)
+        self._apply_splitter_style(self.right_splitter)
         self.top_splitter.addWidget(self.right_splitter)
 
         # 设置左右比例（图片区域:右侧组件区域）
