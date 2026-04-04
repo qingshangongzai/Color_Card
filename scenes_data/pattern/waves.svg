@@ -1,0 +1,61 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="400" height="300" fill="#f0f4f8"/>
+  
+  <!-- 顶部大波浪 -->
+  <g id="large-waves">
+    <path id="wave-1" class="primary" d="M0 40 Q50 10 100 40 Q150 70 200 40 Q250 10 300 40 Q350 70 400 40" stroke="#1a1a1a" stroke-width="4" fill="none"/>
+    <path id="wave-2" class="secondary" d="M0 60 Q50 30 100 60 Q150 90 200 60 Q250 30 300 60 Q350 90 400 60" stroke="#333333" stroke-width="3" fill="none"/>
+    <path id="wave-3" class="accent" d="M0 80 Q50 50 100 80 Q150 110 200 80 Q250 50 300 80 Q350 110 400 80" stroke="#ff6b6b" stroke-width="3" fill="none"/>
+  </g>
+  
+  <!-- 中间区域 - 填充波浪 -->
+  <g id="filled-waves">
+    <path id="filled-wave-1" class="primary" d="M0 120 Q100 90 200 120 Q300 150 400 120 L400 160 Q300 190 200 160 Q100 130 0 160 Z" fill="#1a1a1a" opacity="0.8"/>
+    <path id="filled-wave-2" class="accent" d="M0 170 Q100 140 200 170 Q300 200 400 170 L400 200 Q300 230 200 200 Q100 170 0 200 Z" fill="#ff6b6b" opacity="0.7"/>
+  </g>
+  
+  <!-- 同心波浪圆 -->
+  <g id="wave-circles" transform="translate(320, 100)">
+    <circle id="wc-1" class="primary" cx="0" cy="0" r="50" stroke="#1a1a1a" stroke-width="3" fill="none"/>
+    <circle id="wc-2" class="secondary" cx="0" cy="0" r="40" stroke="#333333" stroke-width="2" fill="none"/>
+    <circle id="wc-3" class="accent" cx="0" cy="0" r="30" stroke="#ff6b6b" stroke-width="2" fill="none"/>
+    <circle id="wc-4" class="primary" cx="0" cy="0" r="20" stroke="#1a1a1a" stroke-width="2" fill="none"/>
+    <circle id="wc-5" class="secondary" cx="0" cy="0" r="10" stroke="#333333" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- 螺旋波浪 -->
+  <g id="spiral-wave" transform="translate(80, 220)">
+    <path id="spiral-1" class="primary" d="M0 0 Q20 -20 40 0 Q60 20 80 0 Q100 -20 120 0" stroke="#1a1a1a" stroke-width="3" fill="none"/>
+    <path id="spiral-2" class="secondary" d="M10 15 Q30 -5 50 15 Q70 35 90 15 Q110 -5 130 15" stroke="#333333" stroke-width="2" fill="none"/>
+    <path id="spiral-3" class="accent" d="M20 30 Q40 10 60 30 Q80 50 100 30" stroke="#ff6b6b" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- 底部细波浪 -->
+  <g id="fine-waves">
+    <path id="fine-1" class="secondary" d="M0 240 Q25 235 50 240 Q75 245 100 240 Q125 235 150 240 Q175 245 200 240 Q225 235 250 240 Q275 245 300 240 Q325 235 350 240 Q375 245 400 240" stroke="#333333" stroke-width="2" fill="none"/>
+    <path id="fine-2" class="accent" d="M0 250 Q25 245 50 250 Q75 255 100 250 Q125 245 150 250 Q175 255 200 250 Q225 245 250 250 Q275 255 300 250 Q325 245 350 250 Q375 255 400 250" stroke="#ff6b6b" stroke-width="1.5" fill="none"/>
+    <path id="fine-3" class="primary" d="M0 260 Q25 255 50 260 Q75 265 100 260 Q125 255 150 260 Q175 265 200 260 Q225 255 250 260 Q275 265 300 260 Q325 255 350 260 Q375 265 400 260" stroke="#1a1a1a" stroke-width="1" fill="none"/>
+    <path id="fine-4" class="secondary" d="M0 270 Q25 265 50 270 Q75 275 100 270 Q125 265 150 270 Q175 275 200 270 Q225 265 250 270 Q275 275 300 270 Q325 265 350 270 Q375 275 400 270" stroke="#333333" stroke-width="1" fill="none"/>
+  </g>
+  
+  <!-- 波浪点装饰 -->
+  <g id="wave-dots">
+    <circle class="accent" cx="50" cy="105" r="5" fill="#ff6b6b"/>
+    <circle class="primary" cx="150" cy="95" r="4" fill="#1a1a1a"/>
+    <circle class="secondary" cx="250" cy="105" r="6" fill="#333333"/>
+    <circle class="accent" cx="350" cy="95" r="5" fill="#ff6b6b"/>
+    
+    <circle class="primary" cx="100" cy="285" r="3" fill="#1a1a1a"/>
+    <circle class="secondary" cx="200" cy="280" r="4" fill="#333333"/>
+    <circle class="accent" cx="300" cy="285" r="3" fill="#ff6b6b"/>
+  </g>
+  
+  <!-- 水波纹效果 -->
+  <g id="ripples" transform="translate(200, 220)">
+    <ellipse class="secondary" cx="0" cy="0" rx="60" ry="15" stroke="#333333" stroke-width="1" fill="none" opacity="0.5"/>
+    <ellipse class="secondary" cx="0" cy="0" rx="45" ry="11" stroke="#333333" stroke-width="1" fill="none" opacity="0.6"/>
+    <ellipse class="secondary" cx="0" cy="0" rx="30" ry="8" stroke="#333333" stroke-width="1" fill="none" opacity="0.7"/>
+    <ellipse class="accent" cx="0" cy="0" rx="15" ry="4" stroke="#ff6b6b" stroke-width="2" fill="none" opacity="0.8"/>
+  </g>
+</svg>

@@ -40,6 +40,42 @@
       "name": "山水风景",
       "file": "landscape.svg",
       "description": "自然风光插画，包含山脉、太阳、云朵和小房子"
+    },
+    {
+      "id": "cityscape",
+      "name": "城市剪影",
+      "file": "cityscape.svg",
+      "description": "现代都市天际线，包含高楼建筑、路灯和飞鸟"
+    },
+    {
+      "id": "ocean",
+      "name": "海洋世界",
+      "file": "ocean.svg",
+      "description": "清新夏日海洋场景，包含海浪、鱼群、贝壳和海鸥"
+    },
+    {
+      "id": "coffee",
+      "name": "咖啡时光",
+      "file": "coffee.svg",
+      "description": "温馨咖啡主题，包含咖啡杯、法压壶、咖啡豆和饼干"
+    },
+    {
+      "id": "music",
+      "name": "音乐律动",
+      "file": "music.svg",
+      "description": "音乐主题插画，包含黑胶唱片、音符、耳机和均衡器"
+    },
+    {
+      "id": "cosmos",
+      "name": "星空宇宙",
+      "file": "cosmos.svg",
+      "description": "梦幻太空场景，包含行星、火箭、卫星、流星和星座"
+    },
+    {
+      "id": "tropical",
+      "name": "热带风情",
+      "file": "tropical.svg",
+      "description": "度假海滩风光，包含棕榈树、热带鸟、沙滩和热带花朵"
     }
   ]
 }

@@ -1,0 +1,121 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#faf6f1"/>
+
+  <!-- 桌面 -->
+  <rect id="table" class="secondary" x="0" y="220" width="400" height="80" fill="#d4c4b0" opacity="0.5"/>
+
+  <!-- 咖啡杯 - 主杯 -->
+  <g id="main-cup">
+    <!-- 杯托 -->
+    <ellipse id="saucer" class="secondary" cx="150" cy="245" rx="55" ry="12" fill="#a89080" opacity="0.6"/>
+    <!-- 杯身 -->
+    <path id="cup-body" class="primary" d="M105 200 L110 240 Q150 250 190 240 L195 200 Q150 210 105 200" fill="#6b5344"/>
+    <!-- 杯口 -->
+    <ellipse id="cup-rim" class="text" cx="150" cy="200" rx="45" ry="10" fill="#f5ebe0"/>
+    <!-- 咖啡液体 -->
+    <ellipse id="coffee-liquid" class="accent" cx="150" cy="202" rx="38" ry="7" fill="#4a3728" opacity="0.9"/>
+    <!-- 杯把手 -->
+    <path id="cup-handle" class="primary" d="M190 210 Q210 210 210 225 Q210 240 188 235" stroke="#6b5344" stroke-width="6" fill="none"/>
+  </g>
+
+  <!-- 蒸汽 -->
+  <g id="steam" class="text" opacity="0.4">
+    <path d="M135 180 Q140 165 135 150 Q130 135 135 120" stroke="#a89080" stroke-width="3" fill="none" opacity="0.6"/>
+    <path d="M150 175 Q155 160 150 145 Q145 130 150 115" stroke="#a89080" stroke-width="3" fill="none" opacity="0.5"/>
+    <path d="M165 180 Q170 165 165 150 Q160 135 165 120" stroke="#a89080" stroke-width="3" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- 咖啡杯 - 小杯 -->
+  <g id="small-cup" transform="translate(260, 210)">
+    <!-- 杯托 -->
+    <ellipse id="small-saucer" class="secondary" cx="0" cy="35" rx="30" ry="7" fill="#a89080" opacity="0.5"/>
+    <!-- 杯身 -->
+    <path id="small-cup-body" class="secondary" d="M-20 10 L-18 35 Q0 40 18 35 L20 10 Q0 15 -20 10" fill="#8b7355"/>
+    <!-- 杯口 -->
+    <ellipse id="small-cup-rim" class="text" cx="0" cy="10" rx="20" ry="5" fill="#f5ebe0"/>
+    <!-- 咖啡液体 -->
+    <ellipse id="small-liquid" class="accent" cx="0" cy="11" rx="15" ry="3" fill="#6b5344" opacity="0.9"/>
+    <!-- 杯把手 -->
+    <path id="small-handle" class="secondary" d="M18 18 Q30 18 30 28 Q30 38 16 35" stroke="#8b7355" stroke-width="4" fill="none"/>
+  </g>
+
+  <!-- 咖啡豆散落 -->
+  <g id="coffee-beans" class="accent">
+    <ellipse cx="80" cy="260" rx="6" ry="4" fill="#4a3728" transform="rotate(30 80 260)"/>
+    <ellipse cx="95" cy="275" rx="5" ry="3" fill="#4a3728" transform="rotate(-20 95 275)"/>
+    <ellipse cx="220" cy="265" rx="6" ry="4" fill="#4a3728" transform="rotate(45 220 265)"/>
+    <ellipse cx="240" cy="280" rx="5" ry="3" fill="#4a3728" transform="rotate(10 240 280)"/>
+    <ellipse cx="320" cy="270" rx="6" ry="4" fill="#4a3728" transform="rotate(-30 320 270)"/>
+  </g>
+
+  <!-- 咖啡豆袋 -->
+  <g id="coffee-bag" transform="translate(300, 140)">
+    <!-- 袋子主体 -->
+    <path id="bag-body" class="primary" d="M0 20 Q10 0 30 5 Q50 0 60 20 L55 70 Q30 75 5 70 Z" fill="#8b6914"/>
+    <!-- 袋子顶部 -->
+    <path id="bag-top" class="secondary" d="M0 20 Q30 30 60 20 L55 10 Q30 15 5 10 Z" fill="#6b4e0a"/>
+    <!-- 标签 -->
+    <rect id="bag-label" class="text" x="15" y="30" width="30" height="25" fill="#f5ebe0" opacity="0.9"/>
+    <!-- 咖啡豆图标 -->
+    <ellipse cx="30" cy="42" rx="8" ry="5" fill="#4a3728" transform="rotate(45 30 42)"/>
+  </g>
+
+  <!-- 法式压滤壶 -->
+  <g id="french-press" transform="translate(60, 150)">
+    <!-- 底座 -->
+    <ellipse id="press-base" class="secondary" cx="0" cy="70" rx="25" ry="5" fill="#4a5568"/>
+    <!-- 玻璃壶身 -->
+    <rect id="press-glass" class="text" x="-20" y="10" width="40" height="60" fill="#b8c5d0" opacity="0.4"/>
+    <!-- 金属边框 -->
+    <rect id="press-frame" class="primary" x="-22" y="10" width="44" height="60" stroke="#4a5568" stroke-width="2" fill="none"/>
+    <!-- 壶盖 -->
+    <rect id="press-lid" class="primary" x="-22" y="5" width="44" height="8" fill="#4a5568"/>
+    <!-- 压杆 -->
+    <line id="press-rod" class="secondary" x1="0" y1="5" x2="0" y2="-15" stroke="#6b7280" stroke-width="3"/>
+    <!-- 把手 -->
+    <path id="press-handle" class="primary" d="M22 25 Q35 25 35 40 Q35 55 22 55" stroke="#4a5568" stroke-width="3" fill="none"/>
+    <!-- 咖啡液体 -->
+    <rect id="press-liquid" class="accent" x="-18" y="30" width="36" height="38" fill="#6b5344" opacity="0.8"/>
+  </g>
+
+  <!-- 勺子 -->
+  <g id="spoon" transform="translate(210, 250) rotate(-15)">
+    <ellipse id="spoon-bowl" class="secondary" cx="0" cy="0" rx="12" ry="8" fill="#a89080"/>
+    <rect id="spoon-handle" class="secondary" x="-2" y="-50" width="4" height="50" fill="#a89080"/>
+  </g>
+
+  <!-- 饼干 -->
+  <g id="cookie" transform="translate(240, 180)">
+    <circle id="cookie-body" class="secondary" cx="0" cy="0" r="20" fill="#d4a574"/>
+    <!-- 巧克力豆 -->
+    <circle cx="-8" cy="-5" r="3" fill="#4a3728"/>
+    <circle cx="5" cy="-8" r="2.5" fill="#4a3728"/>
+    <circle cx="8" cy="5" r="3" fill="#4a3728"/>
+    <circle cx="-5" cy="8" r="2.5" fill="#4a3728"/>
+    <circle cx="0" cy="0" r="2" fill="#4a3728"/>
+  </g>
+
+  <!-- 书本/杂志 -->
+  <g id="book" transform="translate(350, 240)">
+    <rect id="book-cover" class="primary" x="-30" y="-40" width="60" height="45" fill="#5c4a42" transform="rotate(10)"/>
+    <rect id="book-pages" class="text" x="-28" y="-38" width="54" height="40" fill="#f5ebe0" transform="rotate(10)"/>
+    <line x1="-20" y1="-30" x2="20" y2="-25" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
+    <line x1="-20" y1="-22" x2="20" y2="-17" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
+    <line x1="-20" y1="-14" x2="20" y2="-9" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
+  </g>
+
+  <!-- 装饰性线条 -->
+  <g id="deco-lines" class="stroke" opacity="0.3">
+    <line x1="30" y1="30" x2="100" y2="30" stroke="#a89080" stroke-width="1"/>
+    <line x1="30" y1="35" x2="80" y2="35" stroke="#a89080" stroke-width="1"/>
+    <line x1="300" y1="50" x2="370" y2="50" stroke="#a89080" stroke-width="1"/>
+  </g>
+
+  <!-- 点状装饰 -->
+  <g id="dots" class="accent" opacity="0.5">
+    <circle cx="40" cy="100" r="3" fill="#d4a574"/>
+    <circle cx="55" cy="95" r="2" fill="#d4a574"/>
+    <circle cx="380" cy="120" r="3" fill="#d4a574"/>
+    <circle cx="370" cy="135" r="2" fill="#d4a574"/>
+  </g>
+</svg>

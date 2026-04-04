@@ -3,5 +3,55 @@
     "type": "grid_2x2",
     "item_size": 180,
     "spacing": 15
-  }
+  },
+  "scenes": [
+    {
+      "id": "default",
+      "name": "几何混合",
+      "file": "default.svg",
+      "description": "圆形、方形、三角形、菱形等几何图形的混合排列"
+    },
+    {
+      "id": "dots",
+      "name": "波点图案",
+      "file": "dots.svg",
+      "description": "不同大小的圆点排列组合"
+    },
+    {
+      "id": "floral",
+      "name": "花卉图案",
+      "file": "floral.svg",
+      "description": "花朵、叶子、藤蔓等植物元素装饰"
+    },
+    {
+      "id": "stripes",
+      "name": "条纹图案",
+      "file": "stripes.svg",
+      "description": "横条纹、竖条纹、斜条纹的组合"
+    },
+    {
+      "id": "grid",
+      "name": "格子图案",
+      "file": "grid.svg",
+      "description": "经典格子图案，包含大格子、细格子、棋盘格和交错格子"
+    },
+    {
+      "id": "waves",
+      "name": "波浪图案",
+      "file": "waves.svg",
+      "description": "流畅的波浪线条，包含大波浪、填充波浪、螺旋波浪和水波纹"
+    },
+    {
+      "id": "hexagon",
+      "name": "六边形图案",
+      "file": "hexagon.svg",
+      "description": "蜂巢结构图案，包含六边形网格和同心六边形"
+    },
+    {
+      "id": "stars",
+      "name": "星星图案",
+      "file": "stars.svg",
+      "description": "多种星星造型，包含五角星、四角星、六角星、流星和星轨"
+    }
+  ]
 }
