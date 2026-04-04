@@ -39,7 +39,7 @@ class UpdateCheckThread(QThread):
         """在后台线程中检查更新"""
         try:
             # 获取最新 Release 信息
-            api_url = "https://gitee.com/api/v5/repos/qingshangongzai/color_card/releases/latest"
+            api_url = "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/releases/latest"
             response = requests.get(api_url, timeout=10)
 
             if response.status_code == 200:
@@ -116,7 +116,7 @@ class UpdateCheckThread(QThread):
         """
         try:
             # 获取 changelog.json 文件内容
-            changelog_url = "https://gitee.com/api/v5/repos/qingshangongzai/color_card/contents/docs/changelog.json?ref=master"
+            changelog_url = "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main"
             response = requests.get(changelog_url, timeout=10)
 
             if response.status_code != 200:
@@ -457,9 +457,9 @@ class UpdateAvailableDialog(BaseFramelessDialog):
     def open_release_page(self):
         """打开 Gitee 发行版页面"""
         if self.latest_version:
-            url = f"https://gitee.com/qingshangongzai/color_card/releases/tag/{self.latest_version}"
+            url = f"https://gitee.com/qingshangongzai/Color_Card/releases/tag/{self.latest_version}"
         else:
-            url = "https://gitee.com/qingshangongzai/color_card/releases"
+            url = "https://gitee.com/qingshangongzai/Color_Card/releases"
         QDesktopServices.openUrl(QUrl(url))
         self.accept()
 

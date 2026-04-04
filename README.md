@@ -28,7 +28,7 @@
 
 **开源地址**：
 
-- **主仓库（Gitee）**：<https://gitee.com/qingshangongzai/color_card>
+- **主仓库（Gitee）**：<https://gitee.com/qingshangongzai/Color_Card>
 - **镜像仓库（GitHub）**：<https://github.com/qingshangongzai/Color_Card>
 - **官方网站**：<https://qingshangongzai.github.io/Color_Card/>
 
@@ -120,7 +120,7 @@
 1. **克隆仓库**：
    ```bash
    # 从 Gitee 克隆（国内推荐）
-   git clone https://gitee.com/qingshangongzai/color_card.git
+   git clone https://gitee.com/qingshangongzai/Color_Card.git
 
    # 或从 GitHub 克隆
    git clone https://github.com/qingshangongzai/Color_Card.git
@@ -279,7 +279,7 @@ Unlike common color tools or websites that only provide a single function, Color
 
 **Repository URLs**:
 
-- **Primary Repository (Gitee)**: <https://gitee.com/qingshangongzai/color_card>
+- **Primary Repository (Gitee)**: <https://gitee.com/qingshangongzai/Color_Card>
 - **Mirror Repository (GitHub)**: <https://github.com/qingshangongzai/Color_Card>
 - **Official Website**: <https://qingshangongzai.github.io/Color_Card/>
 

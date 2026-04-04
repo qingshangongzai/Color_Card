@@ -120,7 +120,7 @@ class AboutDialog(BaseFramelessDialog):
         self.project_button = PushButton(tr('dialogs.about.project'))
         self.project_button.setMinimumWidth(90)
         self.project_button.clicked.connect(
-            lambda: self._open_url("https://gitee.com/qingshangongzai/color_card")
+            lambda: self._open_url("https://gitee.com/qingshangongzai/Color_Card")
         )
         buttons_layout.addWidget(self.project_button)
 
@@ -186,11 +186,11 @@ class AboutDialog(BaseFramelessDialog):
 
     def _open_license_file(self) -> None:
         """打开开源许可文件"""
-        self._open_file_or_url("LICENSE.html", "https://gitee.com/qingshangongzai/color_card")
+        self._open_file_or_url("LICENSE.html", "https://gitee.com/qingshangongzai/Color_Card")
 
     def _open_agreement_file(self) -> None:
         """打开用户协议文件"""
-        self._open_file_or_url("UserAgreement.html", "https://gitee.com/qingshangongzai/color-card")
+        self._open_file_or_url("UserAgreement.html", "https://gitee.com/qingshangongzai/Color_Card")
 
     def _get_about_text(self):
         """获取关于页面的文本内容"""
