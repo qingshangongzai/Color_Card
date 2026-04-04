@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, ServiceFactory, log_user_action
+from core import get_luminance, get_zone, get_service_factory, log_user_action
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -46,6 +46,7 @@ class BaseCanvas(QWidget):
     change_image_requested = Signal()  # 信号：请求更换图片
     clear_image_requested = Signal()  # 信号：请求清空图片
     image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
+    picker_count_changed = Signal(int)  # 信号：采样点数量改变
 
     def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
         super().__init__(parent)
@@ -81,7 +82,7 @@ class BaseCanvas(QWidget):
             ImageService: 图片服务实例
         """
         if self._image_service is None:
-            self._image_service = ServiceFactory.get_image_service()
+            self._image_service = get_service_factory().get_image_service()
             self._setup_image_service_connections()
         return self._image_service
 
@@ -170,7 +171,7 @@ class BaseCanvas(QWidget):
             self._loading_widget.setGeometry(self.rect())
 
         # 重新调整图片
-        if self._image and not self._image.isNull():
+        if self._image:
             self.update_picker_positions()
             self.extract_all()
             self.update()
@@ -296,7 +297,7 @@ class BaseCanvas(QWidget):
         - 便于保存和恢复取色点位置
         """
         # 如果有图片，使用相对坐标计算画布坐标
-        if self._image and not self._image.isNull():
+        if self._image:
             display_rect = self.get_display_rect()
             if display_rect:
                 disp_x, disp_y, disp_w, disp_h = display_rect
@@ -336,9 +337,9 @@ class BaseCanvas(QWidget):
         """设置取色点数量
 
         Args:
-            count: 取色点数量 (2-6)
+            count: 取色点数量 (2-8)
         """
-        if count < 2 or count > 6:
+        if count < 2 or count > 8:
             return
 
         if count == self._picker_count:
@@ -369,8 +370,11 @@ class BaseCanvas(QWidget):
         self.update_picker_positions()
 
         # 如果有图片，重新提取数据
-        if self._image and not self._image.isNull():
+        if self._image:
             self.extract_all()
+
+        # 发射采样点数量改变信号
+        self.picker_count_changed.emit(count)
 
     def _on_picker_added(self, index: int) -> None:
         """添加取色点时的回调
@@ -413,19 +417,17 @@ class BaseCanvas(QWidget):
         self._picker_positions[index] = new_pos
 
         # 如果有图片，将画布坐标转换为相对坐标并存储
-        if self._image and not self._image.isNull():
+        if self._image:
             display_rect = self.get_display_rect()
             if display_rect:
                 disp_x, disp_y, disp_w, disp_h = display_rect
 
                 # 将画布坐标转换为相对坐标
                 # 公式：相对坐标 = (画布坐标 - 显示区域起点) / 显示区域尺寸
+                # 注意：画布坐标已在 ColorPicker.mouseMoveEvent 中限制在显示区域内
+                # 因此相对坐标必然在 [0.0, 1.0] 范围内，无需二次限制
                 rel_x = (new_pos.x() - disp_x) / disp_w
                 rel_y = (new_pos.y() - disp_y) / disp_h
-
-                # 限制在图片范围内（防止取色点超出图片边界）
-                rel_x = max(0.0, min(1.0, rel_x))
-                rel_y = max(0.0, min(1.0, rel_y))
 
                 # 更新相对坐标
                 self._picker_rel_positions[index] = QPointF(rel_x, rel_y)
@@ -473,9 +475,6 @@ class BaseCanvas(QWidget):
         Returns:
             QPoint: 原始图片坐标，如果不在图片范围内则返回 None
         """
-        if self._image is None or self._image.isNull():
-            return None
-
         display_rect = self.get_display_rect()
         if display_rect is None:
             return None
@@ -648,7 +647,6 @@ class BaseCanvas(QWidget):
 
     def contextMenuEvent(self, event) -> None:
         """右键菜单事件"""
-        # 只有在有图片时才显示右键菜单
         if self._original_pixmap is None or self._original_pixmap.isNull():
             return
 
@@ -661,6 +659,18 @@ class BaseCanvas(QWidget):
         clear_action = Action(FluentIcon.DELETE, tr('context_menu.clear_image'))
         clear_action.triggered.connect(self.clear_image_requested.emit)
         menu.addAction(clear_action)
+
+        menu.addSeparator()
+
+        if self._picker_count < 8:
+            add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
+            add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
+            menu.addAction(add_action)
+
+        if self._picker_count > 2:
+            remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
+            remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
+            menu.addAction(remove_action)
 
         menu.exec(event.globalPos())
 
@@ -866,7 +876,7 @@ class ImageCanvas(BaseCanvas):
         picker.drag_started.connect(self._on_picker_drag_started)
         picker.drag_finished.connect(self._on_picker_drag_finished)
         # 如果有图片，显示取色点
-        if self._image and not self._image.isNull():
+        if self._image:
             picker.show()
         else:
             picker.hide()
@@ -1232,7 +1242,7 @@ class LuminanceCanvas(BaseCanvas):
             picker.drag_finished.connect(self._on_picker_drag_finished)
             picker.hide()  # 初始隐藏
             self._pickers.append(picker)
-            self._picker_positions.append(QPoint(100 + i * 100, 100))
+            self._picker_positions.append(QPoint(100 + i * 80, 100))
             self._picker_rel_positions.append(QPointF(0.5, 0.5))  # 默认在图片中心
             self._picker_zones.append("0-1")
 
@@ -1245,7 +1255,7 @@ class LuminanceCanvas(BaseCanvas):
             LuminanceService: 明度服务实例
         """
         if self._luminance_service is None:
-            self._luminance_service = ServiceFactory.get_luminance_service()
+            self._luminance_service = get_service_factory().get_luminance_service()
         return self._luminance_service
 
     def _setup_display_preview(self) -> None:
@@ -1313,7 +1323,7 @@ class LuminanceCanvas(BaseCanvas):
         picker.drag_started.connect(self._on_picker_drag_started)
         picker.drag_finished.connect(self._on_picker_drag_finished)
         # 如果有图片，显示取色点
-        if self._image and not self._image.isNull():
+        if self._image:
             picker.show()
         else:
             picker.hide()

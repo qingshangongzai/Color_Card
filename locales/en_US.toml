@@ -1,0 +1,495 @@
+[app]
+name = "取色卡"
+name_en = "Color Card"
+loading = "Loading..."
+
+[navigation]
+color_extract = "Color Extract"
+luminance_extract = "Luminance Extract"
+gradient_extract = "Gradient Extract"
+color_generation = "Color Generation"
+palette_management = "Palette Management"
+preset_color = "Preset Colors"
+color_preview = "Color Preview"
+settings = "Settings"
+
+[title_bar]
+toggle_theme = "Toggle Dark/Light Mode"
+toggle_fullscreen = "Fullscreen/Exit Fullscreen (F11)"
+
+[color_extract]
+favorite = "Save Palette"
+extract_dominant = "Auto Extract Dominant"
+extracting = "Extracting..."
+show_high_saturation = "Show High Saturation"
+show_high_brightness = "Show High Brightness"
+select_image = "Select Image"
+image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+
+[luminance_extract]
+select_image = "Select Image"
+image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
+
+[gradient_extract]
+start_color = "Start Color"
+end_color = "End Color"
+steps = "Middle Colors"
+random = "Random"
+favorite = "Save"
+select_color = "Select Color"
+
+[gradient_extract.favorite_success]
+title = "Saved"
+content = "Gradient scheme has been added to palette management"
+
+[color_generation]
+title = "Color Scheme:"
+random = "Random"
+favorite = "Save"
+brightness = "Brightness:"
+
+[color_generation.schemes]
+monochromatic = "Monochromatic"
+analogous = "Analogous"
+complementary = "Complementary"
+split_complementary = "Split Complementary"
+double_complementary = "Double Complementary"
+
+[color_generation.favorite_success]
+title = "Saved"
+content = """Color scheme "{name}" has been added to palette management"""
+copied = "Copied"
+copied_content = "Color value {hex} copied to clipboard"
+favorite_failed = "Cannot Save"
+no_colors_to_favorite = "No colors available to save"
+
+[palette_management]
+title = "Palette Management"
+add = "Add"
+import = "Import"
+export = "Export"
+clear_all = "Clear All"
+unnamed = "Unnamed"
+empty_title = "No saved palettes yet"
+empty_hint = "Click the save button in Color Extract or Color Generation panel"
+group_cleared_title = "Current page has been cleared"
+group_cleared_hint = "Will be re-sorted after restart"
+import_title = "Import Palettes"
+export_title = "Export Palettes"
+json_filter = "JSON Files (*.json);;All Files (*)"
+export_ase_title = "Export ASE Swatch"
+ase_filter = "ASE Files (*.ase);;All Files (*)"
+batch_manage = "Batch Manage"
+select_all = "Select All"
+clear_selection = "Clear Selection"
+delete_selected = "Delete Selected"
+done = "Done"
+delete_confirm_title = "Confirm Delete"
+delete_confirm_content = "Are you sure you want to delete {count} selected palettes?"
+delete_success = "Deleted {count} palettes"
+delete_single_success = """Palette "{name}" deleted"""
+no_selection = "Please select palettes to delete first"
+
+[color_preview]
+title = "Color Preview"
+subtitle = "Still under development"
+import_btn = "Import"
+export_btn = "Export"
+delete = "Delete"
+delete_template = "Delete Template"
+loading = "Loading..."
+import_svg = "Import SVG File"
+svg_filter = "SVG Files (*.svg);;All Files (*)"
+png_filter = "PNG Files (*.png);;All Files (*)"
+import_template = "Import SVG Template"
+export_svg = "Export SVG File"
+export_svg_default = "colored_preview.svg"
+export_svg_title = "Export SVG"
+export_default_name = "color_card"
+hint_import_colors = "Please import colors from Palette Management"
+prev_svg = "< Previous"
+next_svg = "Next >"
+page_info = "{current} / {total}"
+
+[color_preview_messages]
+
+[color_preview_messages.cannot_delete]
+title = "Cannot Delete"
+content = "Built-in scenes cannot be deleted"
+
+[color_preview_messages.cannot_import]
+title = "Cannot Import"
+content = "Current scene does not support direct SVG import, please switch to custom scene"
+
+[color_preview_messages.import_success]
+title = "Import Successful"
+content = "SVG file loaded"
+
+[color_preview_messages.import_failed]
+title = "Import Failed"
+content = "Unable to load SVG file"
+
+[color_preview_messages.cannot_export]
+title = "Cannot Export"
+content = "Current scene does not support SVG export"
+
+[color_preview_messages.no_svg_to_export]
+title = "Cannot Export"
+content = "Please import an SVG file first"
+
+[color_preview_messages.export_success]
+title = "Export Successful"
+content = "{message}"
+
+[color_preview_messages.export_failed]
+title = "Export Failed"
+content = "{message}"
+
+[color_preview_messages.template_import_failed]
+title = "Import Failed"
+content = "{error}"
+
+[color_preview_messages.template_import_success]
+title = "Import Successful"
+content = "{message}"
+
+[color_preview_messages.no_svg_available]
+title = "Cannot Export"
+content = "No SVG available for export"
+
+[color_preview_messages.export_partial]
+title = "Partial Export Success"
+content = "Successfully exported {success} files, {failed} failed"
+
+[canvases]
+click_to_import = "Click to import image"
+importing_image = "Importing image..."
+loading_full_image = "Loading full image..."
+finishing = "Finishing..."
+
+[color_wheel]
+hsb_wheel_title = "HSB Color Wheel"
+hue_red = "R"
+hue_orange_red = "O-R"
+hue_yellow = "Y"
+hue_yellow_green = "Y-G"
+hue_green = "G"
+hue_cyan_green = "C-G"
+hue_cyan = "C"
+hue_cyan_blue = "C-B"
+hue_blue = "B"
+hue_purple = "P"
+hue_magenta = "M"
+hue_purple_red = "P-R"
+
+[histograms]
+loading = "Loading..."
+hue_distribution_title = "Hue Distribution"
+
+[preset_color]
+title = "Preset Colors"
+random_palette = "Random Palette"
+random = "Random"
+desc_random = "Randomly filtered from all color schemes"
+loading = "Loading..."
+desc_source = "Based on {name}"
+
+[preset_color.copy_success]
+title = "Copied"
+content = "Color value {value} copied to clipboard"
+
+[preset_color.favorite_success]
+title = "Saved"
+content = """Palette "{name}" has been added to palette management"""
+
+[settings]
+title = "Settings"
+card_display = "Color Info Settings"
+card_display_desc = "Configure how color values and color modes are displayed"
+hex_display = "Show HEX Color Value"
+hex_display_desc = "Display HEX color value and copy button in color cards"
+color_mode = "Color Mode Display"
+color_mode_desc = "Select two color modes to display in color cards"
+sampling = "Sampling Settings"
+color_sample_count = "Color Extract Sample Count"
+color_sample_count_desc = "Set the number of sample points for color extraction (2-8)"
+luminance_sample_count = "Luminance Extract Sample Count"
+luminance_sample_count_desc = "Set the number of sample points for luminance extraction (2-8)"
+histogram = "Histogram Settings"
+histogram_scaling = "Histogram Scaling Mode"
+histogram_scaling_desc = "Select histogram scaling method (Linear/Adaptive)"
+histogram_mode = "Histogram Display Mode"
+histogram_mode_desc = "Select histogram type for color extraction panel (RGB Channels/Hue Distribution)"
+highlight = "Highlight Area Settings"
+saturation_threshold = "High Saturation Threshold"
+saturation_threshold_desc = "Set saturation threshold for high saturation areas"
+brightness_threshold = "High Brightness Threshold"
+brightness_threshold_desc = "Set brightness threshold for high brightness areas"
+color_wheel = "Color Wheel Display Settings"
+color_wheel_labels = "Show Color Wheel Labels"
+color_wheel_labels_desc = "Display hue name labels around the color wheel"
+color_scheme = "Color Scheme Settings"
+color_scheme_mode = "Color Scheme Mode"
+color_scheme_mode_desc = "Select color logic for color schemes (RGB: Optical mixing, RYB: Artistic mixing)"
+gradient = "Gradient Extract"
+gradient_color_space = "Gradient Color Space"
+gradient_color_space_desc = "Select color space for gradient interpolation"
+gradient_rgb = "RGB Space"
+gradient_hsb = "HSB Space"
+gradient_lab = "LAB Space"
+language = "Language Settings"
+language_title = "Interface Language"
+language_desc = "Select the display language for the application"
+language_auto = "Follow System"
+help = "Help"
+check_update = "Check for Updates"
+version_update = "Version Update"
+version_update_desc = "Check if a new version is available"
+about = "View"
+about_title = "About Color Card"
+about_desc = "View project and documentation information"
+linear_scaling = "Linear Scaling"
+adaptive_scaling = "Adaptive Scaling"
+rgb_channel = "RGB Channels"
+hue_distribution = "Hue Distribution"
+rgb_optical = "RGB Optical"
+ryb_artistic = "RYB Artistic"
+switch_on = "On"
+switch_off = "Off"
+
+[dialogs]
+
+[dialogs.about]
+title = "About"
+website = "Website"
+homepage = "Homepage"
+project = "Project"
+license = "License"
+agreement = "User Agreement"
+tutorial = "Tutorial"
+copyright = "Copyright"
+license_note = "Licensed under GPL v3, for educational purposes only"
+
+[dialogs.update]
+title = "New Version Available"
+new_version = "A new version is available"
+current_version = "Current Version"
+latest_version = "Latest Version"
+cancel = "Cancel"
+release_page = "Release Page"
+download = "Download"
+info = "Info"
+latest_version_content = "You are using the latest version"
+check_failed = "Update Check Failed"
+warning = "Warning"
+missing_requests = "Missing requests library, cannot check for updates"
+version_info = "Current: {current} / Latest: {latest}"
+error_missing_requests = "Missing requests library, cannot check for updates"
+error_parse_version = "Failed to parse version information"
+error_http = "HTTP error, status code: {status_code}"
+error_timeout = "Request timeout, please check your network connection"
+error_connection = "Connection failed, please check your network connection"
+error_general = "An error occurred while checking for updates: {error}"
+changelog = "Changelog"
+
+[dialogs.edit_palette]
+add_title = "Add Palette"
+edit_title = "Edit Palette"
+name_label = "Palette Name:"
+name_placeholder = "Enter palette name..."
+colors_title = "Color List (at least one required)"
+add_color = "Add Color"
+cancel = "Cancel"
+confirm = "Confirm"
+color_label = "Color"
+
+[dialogs.color_picker]
+title = "Select Color"
+confirm = "Confirm"
+cancel = "Cancel"
+
+[dialogs.colorblind]
+title = "Colorblind Simulation Preview"
+window_title = "Colorblind Simulation Preview - {name}"
+scheme_name = "Color Scheme: {name}"
+colorblind_type = "Colorblind Type:"
+original_color = "Original"
+simulated_color = "Simulated"
+original = "Original"
+simulated = "Simulated"
+description = "Note: {text}"
+
+[dialogs.contrast]
+title = "Contrast Check"
+window_title = "Contrast Check - {name}"
+scheme_name = "Color Scheme: {name}"
+background_color = "Background"
+text_color = "Text"
+color_index = "Color {index}"
+swap_colors = "Swap Colors"
+wcag_level = "WCAG 2.1 Level"
+preview_effect = "Preview Effect"
+normal_text = "Normal Text"
+large_text = "Large Text"
+graphic_element = "Graphic Elements"
+sample_text = """High color contrast
+makes any content
+easier to read"""
+wcag_description = "WCAG 2.1 Standard: Normal text AA requires 4.5:1, AAA requires 7:1; Large text AA requires 3:1, AAA requires 4.5:1"
+pass_aaa = "✓ Pass AAA"
+pass_aa = "✓ Pass AA"
+large_only = "△ Large text only"
+fail = "✗ Fail"
+
+[dialogs.export_settings]
+title = "Export Settings"
+select_images = "Select Images:"
+image_item = "Image {index}"
+select_all = "Select All"
+deselect_all = "Deselect All"
+filename_prefix = "Filename Prefix:"
+export_format = "Export Format:"
+format_svg = "SVG"
+format_png = "PNG"
+cancel = "Cancel"
+export = "Export"
+no_selection_title = "No Image Selected"
+no_selection_content = "Please select at least one image to export"
+
+[dialogs.confirm]
+clear_title = "Confirm Clear"
+clear_content = "Are you sure you want to clear all saved palettes? This action cannot be undone."
+delete_title = "Confirm Delete"
+delete_content = """Are you sure you want to delete "{name}"? This action cannot be undone."""
+import_mode_title = "Select Import Mode"
+import_mode_hint = "Choose import method:"
+append_option = "Append to existing palettes"
+replace_option = "Replace existing palettes"
+confirm_btn = "Confirm"
+delete_btn = "Delete"
+cancel_btn = "Cancel"
+
+[messages]
+palette = "Palette"
+
+[messages.favorite_failed]
+title = "Cannot Save"
+content = "Please extract colors first before saving"
+
+[messages.favorite_success]
+title = "Saved Successfully"
+content = "Palette saved: {name}"
+
+[messages.extract_failed]
+title = "Cannot Extract"
+content = "Please import an image first"
+
+[messages.extracting]
+title = "Extracting"
+content = "Analyzing image dominant colors, please wait..."
+
+[messages.extract_success]
+title = "Extraction Complete"
+content = "Successfully extracted {count} dominant colors"
+
+[messages.extract_error]
+title = "Extraction Failed"
+content = "An error occurred during extraction: {error}"
+
+[messages.display_failed]
+title = "Cannot Display"
+content = "Please import an image first"
+
+[messages.copy_success]
+title = "Copied"
+content = "Color value {value} copied to clipboard"
+
+[messages.invalid_input]
+title = "Invalid Input"
+content = "Please enter a valid HEX color value (e.g., #FF0000)"
+
+[messages.no_colors]
+title = "Cannot Save"
+content = "No colors available to save"
+
+[messages.preview_failed]
+title = "Cannot Preview"
+content = "This palette has no color data"
+
+[messages.preview_invalid]
+title = "Cannot Preview"
+content = "This palette has no valid color data"
+
+[messages.import_success]
+title = "Import Successful"
+content = "Successfully imported {count} palettes"
+
+[messages.import_failed]
+title = "Import Failed"
+content = "{error}"
+
+[messages.export_success]
+title = "Export Successful"
+content = "Palettes exported to: {path}"
+
+[messages.export_failed]
+title = "Export Failed"
+content = "{error}"
+
+[messages.export_ase_success]
+title = "Export Successful"
+content = "Palette exported to: {path}"
+
+[messages.export_ase_failed]
+title = "Export Failed"
+content = "{error}"
+
+[messages.export_ase_no_colors]
+title = "Export Failed"
+content = "No colors in palette"
+
+[messages.add_success]
+title = "Added Successfully"
+content = """Palette "{name}" has been added"""
+
+[messages.update_success]
+title = "Updated Successfully"
+content = """Palette "{name}" has been updated"""
+
+[messages.update_failed]
+title = "Update Failed"
+content = "Cannot find this palette"
+
+[messages.color_updated]
+title = "Color Updated"
+content = "Color in palette updated to {hex}"
+
+[messages.check_update_failed]
+title = "Update Check Failed"
+content = "{error}"
+
+[messages.latest_version]
+title = "Info"
+content = "You are using the latest version"
+
+[messages.no_requests]
+title = "Info"
+content = "Missing requests library, cannot check for updates"
+
+[messages.success]
+title = "Success"
+
+[messages.warning]
+title = "Warning"
+
+[context_menu]
+change_image = "Change Image"
+clear_image = "Clear Image"
+add_picker = "Add Sample Point"
+remove_picker = "Remove Sample Point"
+
+[common]
+delete = "Delete"
+edit = "Edit Palette"
+group_range = "{start}-{end}"
+group_all = "All ({total})"

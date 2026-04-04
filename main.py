@@ -2,6 +2,10 @@
 import ctypes
 import os
 import sys
+import time
+
+# 记录启动开始时间
+_startup_start_time = time.perf_counter()
 
 def set_app_user_model_id():
     """设置 Windows AppUserModelID
@@ -16,8 +20,8 @@ def set_app_user_model_id():
         app_id = 'HXiaoStudio.ColorCard.1.0.0'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
         return True
-    except Exception as e:
-        logger.debug(f"设置 AppUserModelID 失败: {e}")
+    except Exception:
+        # 日志系统尚未初始化，静默处理
         return False
 
 
@@ -68,61 +72,43 @@ def _get_base_path() -> str:
 
 
 def _create_splash_screen():
-    """创建并显示启动画面
+    """创建并显示启动画面"""
+    base_path = _get_base_path()
+    logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
-    Returns:
-        QSplashScreen: 启动画面对象，如果创建失败返回 None
-    """
-    try:
-        # 获取基础路径
-        base_path = _get_base_path()
-
-        # 构建 logo 路径
-        logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
-
-        # 加载启动画面图片
-        splash_pixmap = QPixmap(logo_path)
-        if splash_pixmap.isNull():
-            return None
-
-        # 缩放到 250x250
-        splash_pixmap = splash_pixmap.scaled(
-            250, 250,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        )
-
-        # 创建启动画面
-        splash = QSplashScreen(splash_pixmap)
-        splash.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowStaysOnTopHint |
-            Qt.WindowType.SplashScreen |
-            Qt.WindowType.WindowDoesNotAcceptFocus
-        )
-
-        # 居中显示
-        screen = QApplication.primaryScreen()
-        if screen:
-            screen_geometry = screen.geometry()
-            x = (screen_geometry.width() - splash_pixmap.width()) // 2
-            y = (screen_geometry.height() - splash_pixmap.height()) // 2
-            splash.move(x, y)
-
-        # 显示启动画面
-        splash.show()
-
-        # 添加"启动中……"文字
-        splash.showMessage(
-            "启动中……",
-            alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter,
-            color=QColor(128, 128, 128)
-        )
-
-        return splash
-    except Exception as e:
-        logger.debug(f"创建启动画面失败: {e}")
+    splash_pixmap = QPixmap(logo_path)
+    if splash_pixmap.isNull():
         return None
+
+    splash_pixmap = splash_pixmap.scaled(
+        250, 250,
+        Qt.AspectRatioMode.KeepAspectRatio,
+        Qt.TransformationMode.SmoothTransformation
+    )
+
+    splash = QSplashScreen(splash_pixmap)
+    splash.setWindowFlags(
+        Qt.WindowType.FramelessWindowHint |
+        Qt.WindowType.WindowStaysOnTopHint |
+        Qt.WindowType.SplashScreen |
+        Qt.WindowType.WindowDoesNotAcceptFocus
+    )
+
+    screen = QApplication.primaryScreen()
+    if screen:
+        screen_geometry = screen.geometry()
+        x = (screen_geometry.width() - splash_pixmap.width()) // 2
+        y = (screen_geometry.height() - splash_pixmap.height()) // 2
+        splash.move(x, y)
+
+    splash.show()
+    splash.showMessage(
+        "启动中……",
+        alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter,
+        color=QColor(128, 128, 128)
+    )
+
+    return splash
 
 
 def main():
@@ -183,7 +169,7 @@ def main():
         from core import get_config_manager
         logger.info("core 模块导入完成")
 
-        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager
+        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager, force_window_to_front
         logger.info("utils 模块导入完成")
 
         from ui import MainWindow
@@ -195,11 +181,10 @@ def main():
         app.setWindowIcon(app_icon)
         logger.info("应用程序图标设置完成")
 
-        # 加载主题配置并设置初始主题
+        # 加载配置
         logger.info("加载配置...")
         config_manager = get_config_manager()
         config_manager.load()
-        logger.info("配置加载完成")
 
         # 初始化语言管理器并加载用户语言配置
         logger.info("初始化语言管理器...")
@@ -208,15 +193,14 @@ def main():
         locale_manager.load_language(language_setting)
         logger.info(f"语言设置: {language_setting}")
 
+        # 设置主题
         theme_setting = config_manager.get('settings.theme', 'auto')
-
         if theme_setting == 'light':
             setTheme(Theme.LIGHT)
         elif theme_setting == 'dark':
             setTheme(Theme.DARK)
         else:
             setTheme(Theme.AUTO)
-
         setThemeColor('#0078d4')
 
         logger.info("创建主窗口...")
@@ -228,12 +212,19 @@ def main():
         def _on_window_shown():
             if splash:
                 splash.finish(window)
+
+            # 修复任务栏图标
             fix_windows_taskbar_icon_for_window(window)
-            # 强制激活主窗口，确保在其他窗口操作后仍能弹出
-            window.activateWindow()
-            window.raise_()
+
+            # 使用 Windows API 强制将窗口带到最前
+            # 这是解决启动期间用户操作其他窗口导致主窗口不弹出的关键
+            force_window_to_front(window)
 
         QTimer.singleShot(100, _on_window_shown)
+
+        # 计算并输出启动时间
+        startup_time = (time.perf_counter() - _startup_start_time) * 1000
+        logger.info(f"启动完成，总耗时: {startup_time:.2f}ms")
 
         logger.info("进入主事件循环...")
         try:

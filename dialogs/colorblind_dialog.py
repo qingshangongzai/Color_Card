@@ -31,34 +31,28 @@ from utils.theme_colors import (
 
 class ColorBlock(QWidget):
     """颜色块组件"""
-    
+
     def __init__(self, width: int = 60, height: int = 40, parent=None):
         super().__init__(parent)
         self.setFixedSize(width, height)
         self._color = QColor(200, 200, 200)
-        self._border_color = get_border_color()
-    
+
     def set_color(self, rgb: Tuple[int, int, int]):
         """设置颜色"""
         self._color = QColor(rgb[0], rgb[1], rgb[2])
         self.update()
-    
+
     def paintEvent(self, event):
         """绘制颜色块"""
         from PySide6.QtGui import QPainter, QBrush, QPen
-        
+
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
+
         # 绘制背景
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QBrush(self._color))
-        painter.drawRoundedRect(1, 1, self.width()-2, self.height()-2, 6, 6)
-        
-        # 绘制边框
-        painter.setPen(QPen(self._border_color, 1))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawRoundedRect(0, 0, self.width()-1, self.height()-1, 6, 6)
+        painter.drawRoundedRect(0, 0, self.width(), self.height(), 6, 6)
 
 
 class ColorComparisonRow(QWidget):

@@ -1,0 +1,496 @@
+[app]
+name = "取色卡"
+name_en = "Color Card"
+loading = "Загрузка..."
+
+[navigation]
+color_extract = "Извлечение цвета"
+luminance_extract = "Извлечение яркости"
+gradient_extract = "Извлечение градиента"
+color_generation = "Генерация цвета"
+palette_management = "Палитры"
+preset_color = "Предустановленные цвета"
+color_preview = "Предпросмотр цвета"
+settings = "Настройки"
+
+[title_bar]
+toggle_theme = "Переключить темную/светлую тему"
+toggle_fullscreen = "Полноэкранный режим/Выход (F11)"
+
+[color_extract]
+favorite = "Сохранить"
+extract_dominant = "Извлечь"
+extracting = "Извлечение..."
+show_high_saturation = "Высокая насыщенность"
+show_high_brightness = "Высокая яркость"
+select_image = "Выбрать изображение"
+image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
+
+[luminance_extract]
+select_image = "Выбрать изображение"
+image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
+
+[gradient_extract]
+start_color = "Начальный цвет"
+end_color = "Конечный цвет"
+steps = "Промежуточные цвета"
+random = "Случайный"
+favorite = "Сохр."
+select_color = "Выбрать цвет"
+
+[gradient_extract.favorite_success]
+title = "Сохранено"
+content = "Градиентная схема добавлена в управление палитрами"
+
+[color_generation]
+title = "Цветовая схема:"
+random = "Случай"
+favorite = "Сохр."
+brightness = "Яркость:"
+
+[color_generation.schemes]
+monochromatic = "Монохроматическая"
+analogous = "Аналогичная"
+complementary = "Комплементарная"
+split_complementary = "Разделенная"
+double_complementary = "Двойная"
+
+[color_generation.favorite_success]
+title = "Сохранено"
+content = """Цветовая схема "{name}" добавлена в управление палитрами"""
+copied = "Скопировано"
+copied_content = "Значение цвета {hex} скопировано в буфер обмена"
+favorite_failed = "Невозможно сохранить"
+no_colors_to_favorite = "Нет цветов для сохранения"
+
+[palette_management]
+title = "Палитры"
+add = "Добавить"
+import = "Импорт"
+export = "Экспорт"
+clear_all = "Очистить"
+unnamed = "Без названия"
+empty_title = "Нет сохраненных палитр"
+empty_hint = "Нажмите кнопку сохранения в панели извлечения или генерации цвета"
+group_cleared_title = "Текущая страница очищена"
+group_cleared_hint = "Будет пересортировано после перезапуска"
+import_title = "Импорт палитр"
+export_title = "Экспорт палитр"
+json_filter = "JSON файлы (*.json);;Все файлы (*)"
+export_ase_title = "Экспорт ASE палитры"
+ase_filter = "ASE файлы (*.ase);;Все файлы (*)"
+palette = "Палитра"
+batch_manage = "Пакетное управление"
+select_all = "Выбрать все"
+clear_selection = "Снять выделение"
+delete_selected = "Удалить выбранное"
+done = "Готово"
+delete_confirm_title = "Подтвердить удаление"
+delete_confirm_content = "Вы уверены, что хотите удалить {count} выбранных палитр?"
+delete_success = "Удалено {count} палитр"
+delete_single_success = """Палитра "{name}" удалена"""
+no_selection = "Пожалуйста, сначала выберите палитры для удаления"
+
+[color_preview]
+title = "Предпросмотр цвета"
+subtitle = "В разработке"
+import_btn = "Импорт"
+export_btn = "Экспорт"
+delete = "Удалить"
+delete_template = "Удалить шаблон"
+loading = "Загрузка..."
+import_svg = "Импорт SVG файла"
+svg_filter = "SVG файлы (*.svg);;Все файлы (*)"
+png_filter = "PNG файлы (*.png);;Все файлы (*)"
+import_template = "Импорт SVG шаблона"
+export_svg = "Экспорт SVG файла"
+export_svg_default = "colored_preview.svg"
+export_svg_title = "Экспорт SVG"
+export_default_name = "color_card"
+hint_import_colors = "Пожалуйста, импортируйте цвета из панели управления палитрами"
+prev_svg = "< Назад"
+next_svg = "Вперед >"
+page_info = "{current} / {total}"
+
+[color_preview_messages]
+
+[color_preview_messages.cannot_delete]
+title = "Невозможно удалить"
+content = "Встроенные сцены нельзя удалить"
+
+[color_preview_messages.cannot_import]
+title = "Невозможно импортировать"
+content = "Текущая сцена не поддерживает прямой импорт SVG, переключитесь на пользовательскую сцену"
+
+[color_preview_messages.import_success]
+title = "Импорт успешен"
+content = "SVG файл загружен"
+
+[color_preview_messages.import_failed]
+title = "Ошибка импорта"
+content = "Невозможно загрузить SVG файл"
+
+[color_preview_messages.cannot_export]
+title = "Невозможно экспортировать"
+content = "Текущая сцена не поддерживает экспорт SVG"
+
+[color_preview_messages.no_svg_to_export]
+title = "Невозможно экспортировать"
+content = "Сначала импортируйте SVG файл"
+
+[color_preview_messages.export_success]
+title = "Экспорт успешен"
+content = "{message}"
+
+[color_preview_messages.export_failed]
+title = "Ошибка экспорта"
+content = "{message}"
+
+[color_preview_messages.template_import_failed]
+title = "Ошибка импорта"
+content = "{error}"
+
+[color_preview_messages.template_import_success]
+title = "Импорт успешен"
+content = "{message}"
+
+[color_preview_messages.no_svg_available]
+title = "Невозможно экспортировать"
+content = "Нет доступных SVG для экспорта"
+
+[color_preview_messages.export_partial]
+title = "Частичный успех экспорта"
+content = "Успешно экспортировано {success} файлов, {failed} не удалось"
+
+[canvases]
+click_to_import = "Нажмите для импорта"
+importing_image = "Импорт..."
+loading_full_image = "Загрузка..."
+finishing = "Завершение..."
+
+[color_wheel]
+hsb_wheel_title = "HSB колесо"
+hue_red = "К"
+hue_orange_red = "К-О"
+hue_yellow = "Ж"
+hue_yellow_green = "Ж-З"
+hue_green = "З"
+hue_cyan_green = "Б-З"
+hue_cyan = "Б"
+hue_cyan_blue = "Б-С"
+hue_blue = "С"
+hue_purple = "Ф"
+hue_magenta = "П"
+hue_purple_red = "Ф-К"
+
+[histograms]
+loading = "Загрузка..."
+hue_distribution_title = "Распределение"
+
+[preset_color]
+title = "Предустановленные"
+random_palette = "Случайная"
+random = "Случай"
+desc_random = "Случайный выбор"
+loading = "Загрузка..."
+desc_source = "На основе {name}"
+
+[preset_color.copy_success]
+title = "Скопировано"
+content = "Значение цвета {value} скопировано в буфер обмена"
+
+[preset_color.favorite_success]
+title = "Сохранено"
+content = """Палитра "{name}" добавлена в управление палитрами"""
+
+[settings]
+title = "Настройки"
+card_display = "Настройки цветовой информации"
+card_display_desc = "Настройка отображения цветовых значений и цветовых режимов"
+hex_display = "Показывать HEX значение"
+hex_display_desc = "Отображать HEX значение цвета и кнопку копирования в цветовых карточках"
+color_mode = "Отображение цветового режима"
+color_mode_desc = "Выберите два цветовых режима для отображения в карточках"
+sampling = "Настройки выборки"
+color_sample_count = "Точки выборки извлечения"
+color_sample_count_desc = "Установите количество точек выборки для извлечения цвета (2-8)"
+luminance_sample_count = "Точки выборки яркости"
+luminance_sample_count_desc = "Установите количество точек выборки для извлечения яркости (2-8)"
+histogram = "Настройки гистограммы"
+histogram_scaling = "Режим масштабирования"
+histogram_scaling_desc = "Выберите метод масштабирования гистограммы (Линейный/Адаптивный)"
+histogram_mode = "Режим отображения гистограммы"
+histogram_mode_desc = "Выберите тип гистограммы для панели извлечения (RGB каналы/Распределение оттенков)"
+highlight = "Настройки выделения"
+saturation_threshold = "Порог высокой насыщенности"
+saturation_threshold_desc = "Установите порог насыщенности для высоконасыщенных областей"
+brightness_threshold = "Порог высокой яркости"
+brightness_threshold_desc = "Установите порог яркости для высокоярких областей"
+color_wheel = "Настройки цветового круга"
+color_wheel_labels = "Показывать метки"
+color_wheel_labels_desc = "Отображать метки названий оттенков вокруг цветового круга"
+color_scheme = "Настройки цветовой схемы"
+color_scheme_mode = "Режим цветовой схемы"
+color_scheme_mode_desc = "Выберите цветовую логику (RGB: Оптическое смешение, RYB: Художественное смешение)"
+gradient = "Извлечение градиента"
+gradient_color_space = "Цветовое пространство градиента"
+gradient_color_space_desc = "Выберите цветовое пространство для интерполяции градиента"
+gradient_rgb = "RGB пространство"
+gradient_hsb = "HSB пространство"
+gradient_lab = "LAB пространство"
+language = "Настройки языка"
+language_title = "Язык интерфейса"
+language_desc = "Выберите язык отображения приложения"
+language_auto = "Следовать системе"
+help = "Справка"
+check_update = "Проверить"
+version_update = "Обновление версии"
+version_update_desc = "Проверить наличие новой версии"
+about = "Просмотр"
+about_title = "О Color Card"
+about_desc = "Просмотр информации о проекте и документации"
+linear_scaling = "Линейное"
+adaptive_scaling = "Адаптивное"
+rgb_channel = "RGB каналы"
+hue_distribution = "Оттенки"
+rgb_optical = "RGB Оптический"
+ryb_artistic = "RYB Художественный"
+switch_on = "Вкл"
+switch_off = "Выкл"
+
+[dialogs]
+
+[dialogs.about]
+title = "О программе"
+website = "Сайт"
+homepage = "Домашняя страница"
+project = "Проект"
+license = "Лицензия"
+agreement = "Пользовательское соглашение"
+tutorial = "Руководство"
+copyright = "Авторские права"
+license_note = "Лицензировано под GPL v3, только для образовательных целей"
+
+[dialogs.update]
+title = "Доступна новая версия"
+new_version = "Доступна новая версия"
+current_version = "Текущая версия"
+latest_version = "Последняя версия"
+cancel = "Отмена"
+release_page = "Страница выпуска"
+download = "Скачать"
+info = "Информация"
+latest_version_content = "Вы используете последнюю версию"
+check_failed = "Ошибка проверки обновлений"
+warning = "Предупреждение"
+missing_requests = "Отсутствует библиотека requests, невозможно проверить обновления"
+version_info = "Текущая: {current} / Последняя: {latest}"
+error_missing_requests = "Отсутствует библиотека requests, невозможно проверить обновления"
+error_parse_version = "Не удалось разобрать информацию о версии"
+error_http = "Ошибка HTTP, код состояния: {status_code}"
+error_timeout = "Время ожидания запроса истекло, проверьте подключение к сети"
+error_connection = "Ошибка подключения, проверьте подключение к сети"
+error_general = "Произошла ошибка при проверке обновлений: {error}"
+changelog = "Список изменений"
+
+[dialogs.edit_palette]
+add_title = "Добавить палитру"
+edit_title = "Редактировать палитру"
+name_label = "Название палитры:"
+name_placeholder = "Введите название палитры..."
+colors_title = "Список цветов (требуется минимум один)"
+add_color = "Добавить цвет"
+cancel = "Отмена"
+confirm = "Подтвердить"
+color_label = "Цвет"
+
+[dialogs.color_picker]
+title = "Выбрать цвет"
+confirm = "Подтвердить"
+cancel = "Отмена"
+
+[dialogs.colorblind]
+title = "Предпросмотр симуляции дальтонизма"
+window_title = "Предпросмотр симуляции дальтонизма - {name}"
+scheme_name = "Цветовая схема: {name}"
+colorblind_type = "Тип дальтонизма:"
+original_color = "Исходный цвет"
+simulated_color = "Симулированный цвет"
+original = "Исходный"
+simulated = "Симулированный"
+description = "Примечание: {text}"
+
+[dialogs.contrast]
+title = "Проверка контраста"
+window_title = "Проверка контраста - {name}"
+scheme_name = "Цветовая схема: {name}"
+background_color = "Фон"
+text_color = "Текст"
+color_index = "Цвет {index}"
+swap_colors = "Поменять цвета"
+wcag_level = "Уровень WCAG 2.1"
+preview_effect = "Эффект предпросмотра"
+normal_text = "Обычный текст"
+large_text = "Крупный текст"
+graphic_element = "Графические элементы"
+sample_text = """Высокий цветовой контраст
+делает любое содержимое
+более читаемым"""
+wcag_description = "Стандарт WCAG 2.1: Обычный текст AA требует 4.5:1, AAA требует 7:1; Крупный текст AA требует 3:1, AAA требует 4.5:1"
+pass_aaa = "✓ Пройдено AAA"
+pass_aa = "✓ Пройдено AA"
+large_only = "△ Только крупный текст"
+fail = "✗ Не пройдено"
+
+[dialogs.export_settings]
+title = "Настройки экспорта"
+select_images = "Выбрать изображения:"
+image_item = "Изображение {index}"
+select_all = "Выбрать все"
+deselect_all = "Снять выделение"
+filename_prefix = "Префикс имени файла:"
+export_format = "Формат экспорта:"
+format_svg = "SVG"
+format_png = "PNG"
+cancel = "Отмена"
+export = "Экспорт"
+no_selection_title = "Изображения не выбраны"
+no_selection_content = "Пожалуйста, выберите хотя бы одно изображение для экспорта"
+
+[dialogs.confirm]
+clear_title = "Подтвердить очистку"
+clear_content = "Вы уверены, что хотите очистить все сохраненные палитры? Это действие нельзя отменить."
+delete_title = "Подтвердить удаление"
+delete_content = """Вы уверены, что хотите удалить "{name}"? Это действие нельзя отменить."""
+import_mode_title = "Выбрать режим импорта"
+import_mode_hint = "Выберите метод импорта:"
+append_option = "Добавить к существующим палитрам"
+replace_option = "Заменить существующие палитры"
+confirm_btn = "Подтвердить"
+delete_btn = "Удалить"
+cancel_btn = "Отмена"
+
+[messages]
+palette = "Палитра"
+
+[messages.favorite_failed]
+title = "Невозможно сохранить"
+content = "Сначала извлеките цвета, затем сохраните"
+
+[messages.favorite_success]
+title = "Успешно сохранено"
+content = "Палитра сохранена: {name}"
+
+[messages.extract_failed]
+title = "Невозможно извлечь"
+content = "Сначала импортируйте изображение"
+
+[messages.extracting]
+title = "Извлечение"
+content = "Анализ доминирующих цветов изображения, пожалуйста, подождите..."
+
+[messages.extract_success]
+title = "Извлечение завершено"
+content = "Успешно извлечено {count} доминирующих цветов"
+
+[messages.extract_error]
+title = "Ошибка извлечения"
+content = "Произошла ошибка во время извлечения: {error}"
+
+[messages.display_failed]
+title = "Невозможно отобразить"
+content = "Сначала импортируйте изображение"
+
+[messages.copy_success]
+title = "Скопировано"
+content = "Значение цвета {value} скопировано в буфер обмена"
+
+[messages.invalid_input]
+title = "Неверный ввод"
+content = "Введите действительное HEX значение цвета (например, #FF0000)"
+
+[messages.no_colors]
+title = "Невозможно сохранить"
+content = "Нет доступных палитр для сохранения"
+
+[messages.preview_failed]
+title = "Невозможно предпросмотреть"
+content = "У этой палитры нет данных о цвете"
+
+[messages.preview_invalid]
+title = "Невозможно предпросмотреть"
+content = "У этой палитры нет действительных данных о цвете"
+
+[messages.import_success]
+title = "Импорт успешен"
+content = "Успешно импортировано {count} палитр"
+
+[messages.import_failed]
+title = "Ошибка импорта"
+content = "{error}"
+
+[messages.export_success]
+title = "Экспорт успешен"
+content = "Палитры экспортированы в: {path}"
+
+[messages.export_failed]
+title = "Ошибка экспорта"
+content = "{error}"
+
+[messages.export_ase_success]
+title = "Экспорт успешен"
+content = "Палитра экспортирована в: {path}"
+
+[messages.export_ase_failed]
+title = "Ошибка экспорта"
+content = "{error}"
+
+[messages.export_ase_no_colors]
+title = "Ошибка экспорта"
+content = "В палитре нет данных о цветах"
+
+[messages.add_success]
+title = "Успешно добавлено"
+content = """Палитра "{name}" добавлена"""
+
+[messages.update_success]
+title = "Успешно обновлено"
+content = """Палитра "{name}" обновлена"""
+
+[messages.update_failed]
+title = "Ошибка обновления"
+content = "Невозможно найти эту палитру"
+
+[messages.color_updated]
+title = "Цвет обновлен"
+content = "Цвет в палитре обновлен на {hex}"
+
+[messages.check_update_failed]
+title = "Ошибка проверки обновлений"
+content = "{error}"
+
+[messages.latest_version]
+title = "Информация"
+content = "Вы используете последнюю версию"
+
+[messages.no_requests]
+title = "Информация"
+content = "Отсутствует библиотека requests, невозможно проверить обновления"
+
+[messages.success]
+title = "Успех"
+
+[messages.warning]
+title = "Предупреждение"
+
+[context_menu]
+change_image = "Изменить изображение"
+clear_image = "Очистить изображение"
+add_picker = "Добавить точку выборки"
+remove_picker = "Удалить точку выборки"
+
+[common]
+delete = "Удалить"
+edit = "Редактировать палитру"
+group_range = "{start}-{end}"
+group_all = "Все ({total})"

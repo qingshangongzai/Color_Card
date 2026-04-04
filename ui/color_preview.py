@@ -31,7 +31,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_config_manager, PreviewService, SVGColorMapper, get_scene_type_manager
+from core import get_config_manager, PreviewService, get_svg_color_mapper, get_scene_type_manager
 from core.color import get_color_info
 from core.logger import get_logger, log_user_action
 from dialogs.edit_palette import EditPaletteDialog
@@ -98,8 +98,7 @@ class DraggableColorDot(QWidget):
         color = QColor(self._color)
         painter.setBrush(QBrush(color))
 
-        border_color = get_border_color()
-        painter.setPen(QPen(border_color, 1))
+        painter.setPen(Qt.PenStyle.NoPen)
 
         rect = self.rect().adjusted(2, 2, -2, -2)
         painter.drawEllipse(rect)
@@ -651,7 +650,7 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            self._color_mapper = SVGColorMapper()
+            self._color_mapper = get_svg_color_mapper()
 
             if not self._color_mapper.load_svg(file_path):
                 return False
@@ -679,7 +678,7 @@ class SVGPreviewWidget(BasePreviewScene):
             bool: 是否加载成功
         """
         try:
-            self._color_mapper = SVGColorMapper()
+            self._color_mapper = get_svg_color_mapper()
 
             if not self._color_mapper.load_svg_from_string(content):
                 return False

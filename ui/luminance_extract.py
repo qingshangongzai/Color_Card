@@ -30,34 +30,44 @@ class LuminanceExtractInterface(QWidget):
         super().__init__(parent)
         self._dragging_index = -1
         self._luminance_service = LuminanceService(self)
-        self.setup_ui()
-        self.setup_connections()
+        self._setup_basic_ui()
+        self._setup_delayed_ui()
         self._setup_service_connections()
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
-    def setup_ui(self):
-        """设置界面布局"""
+    def _setup_basic_ui(self):
+        """设置基本界面（快速）"""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
-        splitter = QSplitter(Qt.Orientation.Vertical)
-        splitter.setMinimumHeight(300)
-        splitter.setHandleWidth(0)  # 隐藏分隔条
-        layout.addWidget(splitter, stretch=1)
+        self.splitter = QSplitter(Qt.Orientation.Vertical)
+        self.splitter.setMinimumHeight(300)
+        self.splitter.setHandleWidth(0)
+        # 隐藏 Mac 上可能显示的分割线
+        self.splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle:vertical { background: transparent; border: none; }
+        """)
+        layout.addWidget(self.splitter, stretch=1)
 
+    def _setup_delayed_ui(self):
+        """延迟初始化（复杂组件）"""
         self.luminance_canvas = LuminanceCanvas()
         self.luminance_canvas.setMinimumHeight(200)
-        splitter.addWidget(self.luminance_canvas)
+        self.splitter.addWidget(self.luminance_canvas)
 
         self.histogram_widget = LuminanceHistogramWidget()
         self.histogram_widget.setMinimumHeight(120)
         self.histogram_widget.setMaximumHeight(250)
-        splitter.addWidget(self.histogram_widget)
+        self.splitter.addWidget(self.histogram_widget)
 
-        splitter.setSizes([400, 150])
+        self.splitter.setSizes([400, 150])
 
-    def setup_connections(self):
+        # 设置信号连接
+        self._setup_connections()
+
+    def _setup_connections(self):
         """设置信号连接"""
         self.luminance_canvas.luminance_picked.connect(self.on_luminance_picked)
         self.luminance_canvas.image_loaded.connect(self.on_image_loaded)

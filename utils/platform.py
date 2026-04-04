@@ -11,91 +11,8 @@ from PySide6.QtCore import QObject, QTimer, Signal
 from .icon import get_icon_path
 
 
-# Windows DWM API 常量
-DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-
-
-def is_windows_10() -> bool:
-    """检测是否为 Windows 10 系统
-
-    Returns:
-        bool: 是 Windows 10 返回 True，否则返回 False（包括 Win11 或非 Windows 系统）
-    """
-    if sys.platform != "win32":
-        return False
-
-    try:
-        # 使用 Windows 版本检测
-        # Windows 10: major=10, minor=0, build < 22000
-        # Windows 11: major=10, minor=0, build >= 22000
-        version = sys.getwindowsversion()
-        if version.major == 10 and version.minor == 0:
-            # build 22000 是 Windows 11 的第一个版本
-            return version.build < 22000
-        return False
-    except Exception:
-        return False
-
-
-def set_window_title_bar_theme(window, is_dark=False):
-    """为窗口设置标题栏主题（Windows 10+ 深色/浅色模式）
-
-    通过 Windows DWM (Desktop Window Manager) API 设置窗口标题栏的沉浸式深色模式。
-    仅支持 Windows 10 版本 2004 (Build 19041) 及以上，Windows 11 完全支持。
-
-    Args:
-        window: PySide6 窗口对象（QMainWindow 或 QDialog）
-        is_dark: 是否使用深色模式，True 为深色，False 为浅色
-
-    Returns:
-        bool: 设置成功返回 True，失败返回 False
-    """
-    try:
-        # 仅 Windows 平台支持
-        if sys.platform != "win32":
-            return False
-
-        # 窗口有效性检查
-        if not window:
-            return False
-
-        if hasattr(window, 'isValid') and callable(window.isValid):
-            if not window.isValid():
-                return False
-
-        if not hasattr(window, 'windowHandle'):
-            return False
-
-        window_handle = window.windowHandle()
-        if not window_handle:
-            return False
-
-        if hasattr(window_handle, 'isValid') and callable(window_handle.isValid):
-            if not window_handle.isValid():
-                return False
-
-        # 获取窗口句柄
-        hwnd = int(window_handle.winId())
-        value = ctypes.c_int(1 if is_dark else 0)
-
-        # 调用 DWM API 设置窗口标题栏主题
-        result = ctypes.windll.dwmapi.DwmSetWindowAttribute(
-            hwnd,
-            DWMWA_USE_IMMERSIVE_DARK_MODE,
-            ctypes.byref(value),
-            ctypes.sizeof(value)
-        )
-
-        return result == 0
-
-    except RuntimeError as e:
-        if "wrapped C/C++ object" in str(e) and "has been deleted" in str(e):
-            # 尝试设置已删除窗口的标题栏主题，静默跳过
-            return False
-        else:
-            return False
-    except Exception:
-        return False
+# AllowSetForegroundWindow 常量
+ASFW_ANY = -1  # 允许任何进程设置前台窗口
 
 
 def set_app_user_model_id() -> bool:
@@ -193,6 +110,38 @@ def fix_windows_taskbar_icon_for_window(window) -> bool:
             return True
 
         return False
+
+    except (AttributeError, OSError, RuntimeError):
+        return False
+
+
+def force_window_to_front(window) -> bool:
+    """强制将窗口带到最前并激活"""
+    if os.name != 'nt':
+        return False
+
+    try:
+        hwnd = int(window.winId())
+        user32 = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+
+        user32.AllowSetForegroundWindow(ASFW_ANY)
+        user32.SwitchToThisWindow(hwnd, True)
+
+        fg_hwnd = user32.GetForegroundWindow()
+        fg_thread = user32.GetWindowThreadProcessId(fg_hwnd, None)
+        cur_thread = kernel32.GetCurrentThreadId()
+
+        if fg_thread != cur_thread:
+            user32.AttachThreadInput(fg_thread, cur_thread, True)
+            user32.SetForegroundWindow(hwnd)
+            user32.AttachThreadInput(fg_thread, cur_thread, False)
+        else:
+            user32.SetForegroundWindow(hwnd)
+
+        window.raise_()
+        window.activateWindow()
+        return True
 
     except (AttributeError, OSError, RuntimeError):
         return False

@@ -15,7 +15,7 @@
   <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
 
   <!-- 页面标题 -->
-  <text id="page-title" class="text" x="95" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333" data-fixed-color="black">Workout</text>
+  <text id="page-title" class="text" x="95" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333" data-fixed-color="black">运动</text>
 
   <!-- 菜单按钮 - 左移 -->
   <circle id="menu-btn" class="primary" cx="185" cy="85" r="11" fill="#4a4a4a"/>
@@ -25,7 +25,7 @@
 
   <!-- 月份选择器 -->
   <rect id="month-bg" class="accent" x="95" y="105" width="45" height="22" rx="6" fill="#ff6b6b"/>
-  <text id="month-text" class="text" x="117" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">June</text>
+  <text id="month-text" class="text" x="117" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">6月</text>
 
   <!-- 日历 - 减少为4个日期，缩小间距 -->
   <text id="day-10" class="text" x="105" y="150" font-family="Arial, sans-serif" font-size="10" fill="#888888" data-fixed-color="black">10</text>
@@ -43,24 +43,24 @@
 
   <!-- 中心文字 -->
   <text id="progress-time" class="text" x="150" y="208" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333333" data-fixed-color="black">45</text>
-  <text id="progress-unit" class="text" x="150" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888" data-fixed-color="black">min</text>
-  <text id="progress-level" class="text" x="150" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#aaaaaa" data-fixed-color="black">Low Intensity</text>
+  <text id="progress-unit" class="text" x="150" y="222" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888" data-fixed-color="black">分钟</text>
+  <text id="progress-level" class="text" x="150" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#aaaaaa" data-fixed-color="black">低强度</text>
 
   <!-- 底部活动统计 - 3个小圆环（调整位置） -->
   <circle id="walk-ring" class="secondary" cx="115" cy="285" r="15" fill="none" stroke="#d0d0d0" stroke-width="2"/>
   <circle id="walk-progress" class="accent" cx="115" cy="285" r="15" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-dasharray="55 40"/>
   <text id="walk-value" class="text" x="115" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#333333" data-fixed-color="black">2367</text>
-  <text id="walk-label" class="text" x="115" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">Walk</text>
+  <text id="walk-label" class="text" x="115" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">步行</text>
 
   <circle id="gym-ring" class="secondary" cx="150" cy="285" r="15" fill="none" stroke="#d0d0d0" stroke-width="2"/>
   <circle id="gym-progress" class="primary" cx="150" cy="285" r="15" fill="none" stroke="#4a4a4a" stroke-width="2" stroke-dasharray="0 94"/>
   <text id="gym-value" class="text" x="150" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#333333" data-fixed-color="black">0</text>
-  <text id="gym-label" class="text" x="150" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">Gym</text>
+  <text id="gym-label" class="text" x="150" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">健身</text>
 
   <circle id="run-ring" class="secondary" cx="185" cy="285" r="15" fill="none" stroke="#d0d0d0" stroke-width="2"/>
   <circle id="run-progress" class="accent" cx="185" cy="285" r="15" fill="none" stroke="#ff8a8a" stroke-width="2" stroke-dasharray="40 54"/>
   <text id="run-value" class="text" x="185" y="282" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#333333" data-fixed-color="black">1.5</text>
-  <text id="run-label" class="text" x="185" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">Run</text>
+  <text id="run-label" class="text" x="185" y="310" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">跑步</text>
 
   <!-- 底部中央添加按钮 -->
   <circle id="add-btn" class="accent" cx="150" cy="345" r="18" fill="#ff6b6b"/>

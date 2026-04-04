@@ -1,0 +1,59 @@
+# 基础组件
+主窗口：FluentWindow
+无边框对话框：FramelessDialog
+无边框对话框基类：BaseFramelessDialog
+标签：QLabel
+按钮：PushButton
+主要按钮：PrimaryPushButton
+工具按钮：ToolButton
+单选按钮：RadioButton
+开关按钮：SwitchButton
+下拉框：ComboBox
+滚动区域：ScrollArea
+提示条：InfoBar
+
+# qfluentwidgets 组件
+设置卡片：PushSettingCard
+设置卡片分组：SettingCardGroup
+副标题标签：SubtitleLabel
+
+# 自定义组件
+色卡：ColorCard
+色卡面板：ColorCardPanel
+明度卡：LuminanceCard
+明度卡面板：LuminanceCardPanel
+颜色值标签：ColorValueLabel
+颜色模式容器：ColorModeContainer
+Zone值标签：ZoneValueLabel
+图片画布：ImageCanvas
+HSB色环：HSBColorWheel
+交互式色环：InteractiveColorWheel
+RGB直方图：RGBHistogramWidget
+色相直方图：HueHistogramWidget
+缩放查看器：ZoomViewer
+
+# 对话框
+关于对话框：AboutDialog
+更新对话框：UpdateAvailableDialog
+编辑配色对话框：EditPaletteDialog
+删除确认对话框：DeleteConfirmDialog
+导入模式对话框：ImportModeDialog
+色盲模拟对话框：ColorblindDialog
+对比度检查对话框：ContrastDialog
+导出设置对话框：ExportSettingsDialog
+
+# 界面模块
+色彩提取界面：ColorExtractInterface
+明度提取界面：LuminanceExtractInterface
+渐变提取界面：GradientExtractInterface
+配色生成界面：ColorGenerationInterface
+配色管理界面：PaletteManagementInterface
+内置色彩界面：PresetColorInterface
+配色预览界面：ColorPreviewInterface
+设置界面：SettingsInterface
+
+# 布局组件
+水平布局：QHBoxLayout
+垂直布局：QVBoxLayout
+分割器：QSplitter
+堆叠窗口：QStackedWidget

@@ -76,7 +76,7 @@ class LuminanceCalculator(QThread):
     def run(self):
         """在子线程中执行明度计算"""
         try:
-            if self._check_cancelled() or not self._image or self._image.isNull():
+            if self._check_cancelled() or not self._image:
                 return
 
             with log_performance("calculate_luminance_distribution", {
@@ -198,13 +198,13 @@ class LuminanceService(QObject):
             image: QImage 对象
         """
         if self._calculator is not None and self._calculator.isRunning():
+            # 信号在当前代码路径中必然已连接
+            # RuntimeError 可能在竞态条件下发生（信号已被其他路径断开）
             try:
-                self._calculator.calculation_finished.disconnect()
-            except (TypeError, RuntimeError):
-                pass
-            try:
-                self._calculator.calculation_error.disconnect()
-            except (TypeError, RuntimeError):
+                self._calculator.calculation_finished.disconnect(self._on_calculation_finished)
+                self._calculator.calculation_error.disconnect(self.calculation_error)
+            except RuntimeError:
+                # 信号可能已在其他路径中断开，这是可接受的
                 pass
             
             self._calculator.cancel()

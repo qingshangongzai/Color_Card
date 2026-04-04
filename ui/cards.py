@@ -38,7 +38,7 @@ class BaseCardPanel(QWidget):
     
     功能：
         - 卡片列表管理
-        - 卡片数量控制（2-6个）
+        - 卡片数量控制（2-8个）
         - 批量清空卡片
     """
     
@@ -70,9 +70,9 @@ class BaseCardPanel(QWidget):
         """设置卡片数量
         
         Args:
-            count: 卡片数量 (2-6)
+            count: 卡片数量 (2-8)
         """
-        if count < 2 or count > 6:
+        if count < 2 or count > 8:
             return
         
         if count == self._card_count:
@@ -182,19 +182,10 @@ class ColorModeContainer(QWidget):
         self._labels = []
         self.setup_ui()
         self._update_styles()
-        # 监听主题变化
-        self._theme_connection = qconfig.themeChangedFinished.connect(
-            self._update_styles
-        )
+        # 主题变化由父组件统一处理
 
     def closeEvent(self, event):
-        """关闭事件 - 断开信号连接"""
-        try:
-            if hasattr(self, '_theme_connection'):
-                qconfig.themeChangedFinished.disconnect(self._theme_connection)
-                delattr(self, '_theme_connection')
-        except (TypeError, RuntimeError):
-            pass
+        """关闭事件"""
         super().closeEvent(event)
 
     def setup_ui(self):
@@ -290,15 +281,14 @@ class ColorCard(BaseCard):
         """更新样式以适配主题"""
         self._update_hex_button_style()
         self._update_color_block_style()
+        self.mode_container_1._update_styles()
+        self.mode_container_2._update_styles()
 
     def closeEvent(self, event):
         """关闭事件 - 断开信号连接"""
-        try:
-            if hasattr(self, '_theme_connection'):
-                qconfig.themeChangedFinished.disconnect(self._theme_connection)
-                delattr(self, '_theme_connection')
-        except (TypeError, RuntimeError):
-            pass
+        if hasattr(self, '_theme_connection'):
+            qconfig.themeChangedFinished.disconnect(self._theme_connection)
+            delattr(self, '_theme_connection')
         super().closeEvent(event)
 
     def setup_ui(self):
@@ -373,12 +363,11 @@ class ColorCard(BaseCard):
     def _update_color_block_style(self):
         """更新颜色块样式（主题切换时调用）"""
         if self._current_color_info:
-            # 有颜色时更新边框
+            # 有颜色时更新样式
             r, g, b = self._current_color_info['rgb']
             color_str = f"rgb({r}, {g}, {b})"
-            border_color = get_border_color()
             self.color_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
         else:
             # 无颜色时更新占位符样式
@@ -441,9 +430,8 @@ class ColorCard(BaseCard):
         # 更新颜色块
         r, g, b = color_info['rgb']
         color_str = f"rgb({r}, {g}, {b})"
-        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            f"background-color: {color_str}; border-radius: 4px;"
         )
 
         # 更新色彩模式值

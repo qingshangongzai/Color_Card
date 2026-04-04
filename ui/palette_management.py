@@ -13,18 +13,18 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
     InfoBar, InfoBarPosition, qconfig,
-    PushButton, SubtitleLabel, MessageBox
+    PushButton, SubtitleLabel
 )
 
 # 项目模块导入
-from core import get_color_info, hex_to_rgb, get_config_manager, ServiceFactory
+from core import get_color_info, hex_to_rgb, get_config_manager, get_service_factory
 from utils import tr, get_locale_manager, calculate_grid_columns, get_default_data_directory, get_last_directory, set_last_directory
 from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_title_color
-from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, EditPaletteDialog
+from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, ImportModeDialog
 
 logger = get_logger("palette_management")
 
@@ -105,13 +105,15 @@ class PaletteManagementColorCard(QWidget):
         self._history_index = -1  # 当前历史索引
         super().__init__(parent)
         self.setup_ui()
-        # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def _update_styles(self):
         """更新样式以适配主题"""
         self._update_hex_input_style()
         self._update_color_block_style()
+        # 更新色彩模式容器的样式
+        self.mode_container_1._update_styles()
+        self.mode_container_2._update_styles()
 
     def setup_ui(self):
         """设置界面"""
@@ -189,12 +191,11 @@ class PaletteManagementColorCard(QWidget):
     def _update_color_block_style(self):
         """更新颜色块样式（主题切换时调用）"""
         if self._current_color_info:
-            # 有颜色时更新边框
+            # 有颜色时更新样式
             rgb = self._current_color_info.get('rgb', [0, 0, 0])
             color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-            border_color = get_border_color()
             self.color_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
         else:
             # 无颜色时更新占位符样式
@@ -285,9 +286,8 @@ class PaletteManagementColorCard(QWidget):
 
             # 更新颜色块
             color_str = f"rgb({r}, {g}, {b})"
-            border_color = get_border_color()
             self.color_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
 
             # 更新色彩模式值
@@ -367,9 +367,8 @@ class PaletteManagementColorCard(QWidget):
         # 更新颜色块
         rgb = color_info.get('rgb', [0, 0, 0])
         color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            f"background-color: {color_str}; border-radius: 4px;"
         )
 
         # 更新输入框
@@ -416,9 +415,8 @@ class PaletteManagementColorCard(QWidget):
         # 更新颜色块
         rgb = color_info.get('rgb', [0, 0, 0])
         color_str = f"rgb({rgb[0]}, {rgb[1]}, {rgb[2]})"
-        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            f"background-color: {color_str}; border-radius: 4px;"
         )
 
         # 更新16进制值（确保带#前缀）
@@ -467,6 +465,7 @@ class PaletteManagementCard(CardWidget):
     preview_in_panel_requested = Signal(dict)
     edit_requested = Signal(dict)
     export_ase_requested = Signal(dict)
+    card_clicked = Signal(str)  # 信号：卡片被点击，传递favorite_id
     MAX_COLORS_PER_ROW = 6
 
     def __init__(self, favorite_data: Dict[str, Any], card_index: int = 0, parent=None):
@@ -475,12 +474,13 @@ class PaletteManagementCard(CardWidget):
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
         self._color_cards = []
+        self._batch_mode = False
+        self._selected = False
         super().__init__(parent)
         self.setup_ui()
         self._load_favorite_data()
         self._update_styles()
-        # 监听主题变化
-        qconfig.themeChangedFinished.connect(self._update_styles)
+        # 主题变化由父组件统一处理
 
     def setup_ui(self):
         """设置界面"""
@@ -564,6 +564,15 @@ class PaletteManagementCard(CardWidget):
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
         self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color.name()};")
         # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
+
+        # 批量更新所有色卡（使用 setUpdatesEnabled 减少重绘）
+        if self._color_cards:
+            self.cards_panel.setUpdatesEnabled(False)
+            try:
+                for card in self._color_cards:
+                    card._update_styles()
+            finally:
+                self.cards_panel.setUpdatesEnabled(True)
 
     def _clear_color_cards(self):
         """清空所有色卡"""
@@ -665,11 +674,11 @@ class PaletteManagementCard(CardWidget):
     def _on_delete_clicked(self):
         """删除按钮点击"""
         favorite_id = self._favorite_data.get('id', '')
-        # 如果没有id，使用name作为备选标识
+        # 防御性检查：如果确实没有id，记录错误
         if not favorite_id:
-            favorite_id = self._favorite_data.get('name', '')
-        if favorite_id:
-            self.delete_requested.emit(favorite_id)
+            logger.error(f"收藏数据缺少id字段: {self._favorite_data.get('name', 'unnamed')}")
+            return
+        self.delete_requested.emit(favorite_id)
 
     def _on_preview_clicked(self):
         """预览按钮点击（色盲模拟）"""
@@ -713,6 +722,51 @@ class PaletteManagementCard(CardWidget):
         if color_modes is not None:
             self.set_color_modes(color_modes)
 
+    def set_batch_mode(self, enabled: bool):
+        """设置批量模式
+
+        Args:
+            enabled: 是否启用批量模式
+        """
+        self._batch_mode = enabled
+        # 批量模式下隐藏操作按钮
+        self.preview_panel_button.setVisible(not enabled)
+        self.contrast_button.setVisible(not enabled)
+        self.preview_button.setVisible(not enabled)
+        self.edit_button.setVisible(not enabled)
+        self.export_ase_button.setVisible(not enabled)
+        self.delete_button.setVisible(not enabled)
+        # 重置选中状态
+        if not enabled:
+            self.set_selected(False)
+
+    def set_selected(self, selected: bool):
+        """设置选中状态
+
+        Args:
+            selected: 是否选中
+        """
+        self._selected = selected
+        self._update_selection_style()
+
+    def _update_selection_style(self):
+        """更新选中样式"""
+        if self._selected:
+            # 选中状态：蓝色边框
+            self.setStyleSheet(f"CardWidget {{ border: 2px solid #0078d4; border-radius: 8px; }}")
+        else:
+            # 非选中状态：清除自定义样式，使用默认
+            self.setStyleSheet("")
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if self._batch_mode and event.button() == Qt.MouseButton.LeftButton:
+            # 发射点击信号
+            favorite_id = self._favorite_data.get('id', '')
+            if favorite_id:
+                self.card_clicked.emit(favorite_id)
+        super().mousePressEvent(event)
+
 
 # =============================================================================
 # 配色管理列表容器
@@ -730,6 +784,7 @@ class PaletteManagementList(QWidget):
     favorite_export_ase = Signal(dict)
     group_changed = Signal(int)
     groups_updated = Signal(list)
+    selection_changed = Signal(set)  # 信号：选中项变化
 
     BATCH_THRESHOLD = 50
     BATCH_SIZE = 10
@@ -743,6 +798,9 @@ class PaletteManagementList(QWidget):
         self._current_group_index = 0
         self._loader = None
         self._current_group_indices = []  # 当前分组的索引列表
+        self._batch_mode = False
+        self._selected_ids = set()
+        self._config_manager = get_config_manager()
         super().__init__(parent)
         self.setup_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -783,8 +841,12 @@ class PaletteManagementList(QWidget):
 
         self._show_empty_state()
 
-    def _show_empty_state(self):
-        """显示空状态"""
+    def _show_empty_state(self, is_group_cleared: bool = False):
+        """显示空状态
+
+        Args:
+            is_group_cleared: 是否是分组被清空的状态（软删除后）
+        """
         self._clear_cards()
 
         self._empty_widget = QWidget()
@@ -795,16 +857,24 @@ class PaletteManagementList(QWidget):
 
         self._icon_label = QLabel()
         self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
-        self._icon_label.setText("⭐")
+        self._icon_label.setText("🗑️" if is_group_cleared else "⭐")
         self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._icon_label)
 
-        self._text_label = QLabel(tr('palette_management.empty_title'))
+        # 根据状态选择不同的文本
+        if is_group_cleared:
+            text_key = 'palette_management.group_cleared_title'
+            hint_key = 'palette_management.group_cleared_hint'
+        else:
+            text_key = 'palette_management.empty_title'
+            hint_key = 'palette_management.empty_hint'
+
+        self._text_label = QLabel(tr(text_key))
         self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
         self._text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._text_label)
 
-        self._hint_label = QLabel(tr('palette_management.empty_hint'))
+        self._hint_label = QLabel(tr(hint_key))
         self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
         self._hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         empty_layout.addWidget(self._hint_label)
@@ -829,14 +899,16 @@ class PaletteManagementList(QWidget):
     def set_favorites(self, favorites):
         """设置收藏列表"""
         self._favorites = favorites
+        # 从业务层获取有效索引，而不是自己计算
+        self._valid_indices = self._config_manager.get_valid_indices()
         self._groups = generate_groups(len(favorites))
         self._current_group_index = 0
         self.groups_updated.emit(self._groups)
-        
+
         if not favorites:
             self._show_empty_state()
             return
-        
+
         self._load_current_group()
 
     def _load_current_group(self):
@@ -868,6 +940,7 @@ class PaletteManagementList(QWidget):
         card = PaletteManagementCard(favorite, card_index=card_index)
         card.set_hex_visible(self._hex_visible)
         card.set_color_modes(self._color_modes)
+        card.set_batch_mode(self._batch_mode)
         card.delete_requested.connect(self.favorite_deleted)
         card.preview_requested.connect(self._on_preview_requested)
         card.contrast_requested.connect(self._on_contrast_requested)
@@ -875,19 +948,28 @@ class PaletteManagementList(QWidget):
         card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
         card.edit_requested.connect(self._on_edit_requested)
         card.export_ase_requested.connect(self._on_export_ase_requested)
+        card.card_clicked.connect(self._on_card_clicked)
         return card
 
     def _load_group_directly(self, group_indices: list):
-        """直接加载分组数据（小数据量）"""
+        """直接加载分组数据（小数据量），跳过已删除的数据"""
         self.content_widget.setUpdatesEnabled(False)
         try:
             for idx in group_indices:
-                if 0 <= idx < len(self._favorites):
+                # 使用集合查找，O(1) 复杂度
+                if idx in self._valid_indices:
                     favorite = self._favorites[idx]
                     card = self._create_palette_card(favorite, idx)
                     self.content_layout.addWidget(card)
                     self._favorite_cards[favorite.get('id', '')] = card
-            self.content_layout.addStretch()
+
+            # 如果没有可见数据，显示空状态
+            if not self._favorite_cards:
+                # 检查分组内是否有被标记删除的数据
+                has_deleted = any(idx not in self._valid_indices for idx in group_indices)
+                self._show_empty_state(is_group_cleared=has_deleted)
+            else:
+                self.content_layout.addStretch()
         finally:
             self.content_widget.setUpdatesEnabled(True)
 
@@ -905,18 +987,28 @@ class PaletteManagementList(QWidget):
         self._loader.start()
 
     def _on_batch_data_ready(self, batch_idx: int, batch_data: List[Dict[str, Any]]):
-        """批次数据就绪回调"""
+        """批次数据就绪回调，跳过已删除的数据"""
         start_index = batch_idx * self.BATCH_SIZE
         for i, favorite in enumerate(batch_data):
             global_index = self._current_group_indices[start_index + i]
-            card = self._create_palette_card(favorite, global_index)
-            self.content_layout.addWidget(card)
-            self._favorite_cards[favorite.get('id', '')] = card
+            # 使用集合查找，O(1) 复杂度
+            if global_index in self._valid_indices:
+                card = self._create_palette_card(favorite, global_index)
+                self.content_layout.addWidget(card)
+                self._favorite_cards[favorite.get('id', '')] = card
         QApplication.processEvents()
 
     def _on_loading_finished(self):
         """加载完成回调"""
-        self.content_layout.addStretch()
+        if not self._favorite_cards:
+            # 检查当前分组是否所有数据都被标记删除
+            has_deleted = any(idx not in self._valid_indices for idx in self._current_group_indices)
+            if has_deleted:
+                self._show_empty_state(is_group_cleared=True)
+            else:
+                self.content_layout.addStretch()
+        else:
+            self.content_layout.addStretch()
         if self._loader is not None:
             self._loader.deleteLater()
             self._loader = None
@@ -1024,7 +1116,8 @@ class PaletteManagementList(QWidget):
             self.set_color_modes(color_modes)
 
     def _update_styles(self):
-        """更新样式以适配主题"""
+        """更新样式以适配主题 - 同时通知所有子卡片"""
+        # 更新空状态标签
         if hasattr(self, '_icon_label') and self._icon_label is not None:
             try:
                 self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
@@ -1040,6 +1133,15 @@ class PaletteManagementList(QWidget):
                 self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
+
+        # 批量更新所有子卡片（使用 setUpdatesEnabled 减少重绘，符合规范7.3节）
+        if hasattr(self, 'content_widget') and self._favorite_cards:
+            self.content_widget.setUpdatesEnabled(False)
+            try:
+                for card in self._favorite_cards.values():
+                    card._update_styles()
+            finally:
+                self.content_widget.setUpdatesEnabled(True)
     
     def update_texts(self):
         """更新界面文本"""
@@ -1054,37 +1156,103 @@ class PaletteManagementList(QWidget):
             except RuntimeError as e:
                 logger.debug(f"Hint label already deleted: {e}")
 
-    def remove_favorite_card(self, favorite_id: str) -> bool:
-        """局部删除指定收藏卡片，其他卡片序号保持不变"""
+    def remove_favorite_card(self, favorite_id: str, deleted_index: int) -> bool:
+        """从UI移除卡片（纯UI操作，不处理数据）
+
+        Args:
+            favorite_id: 收藏ID
+            deleted_index: 被删除项的索引（由业务层提供）
+
+        Returns:
+            bool: 是否成功移除
+        """
         card = self._favorite_cards.get(favorite_id)
         if not card:
             return False
 
-        deleted_idx = next((i for i, fav in enumerate(self._favorites)
-                           if fav.get('id', '') == favorite_id), -1)
-        if deleted_idx < 0:
-            return False
-
+        # 只做UI操作
         self.content_layout.removeWidget(card)
         card.deleteLater()
         del self._favorite_cards[favorite_id]
-        self._favorites.pop(deleted_idx)
 
-        if deleted_idx in self._current_group_indices:
-            self._current_group_indices.remove(deleted_idx)
+        # 从有效索引集合中移除（业务层已处理数据标记）
+        self._valid_indices.discard(deleted_index)
 
-        if not self._current_group_indices:
-            if self._current_group_index > 0:
-                self._current_group_index -= 1
-            elif self._current_group_index < len(self._groups) - 1:
-                self._current_group_index += 1
-            else:
-                self._show_empty_state()
-                return True
-            self.group_changed.emit(self._current_group_index)
-            self._load_current_group()
+        # 如果当前分组没有可见卡片了，显示"分组已清空"状态
+        if not self._favorite_cards:
+            self._show_empty_state(is_group_cleared=True)
 
         return True
+
+    def set_batch_mode(self, enabled: bool):
+        """设置批量模式
+
+        Args:
+            enabled: 是否启用批量模式
+        """
+        self._batch_mode = enabled
+        if not enabled:
+            self.clear_selection()
+        # 通知所有卡片切换模式
+        for card in self._favorite_cards.values():
+            card.set_batch_mode(enabled)
+
+    def toggle_selection(self, favorite_id: str):
+        """切换选中状态
+
+        Args:
+            favorite_id: 收藏ID
+        """
+        if favorite_id in self._selected_ids:
+            self._selected_ids.discard(favorite_id)
+        else:
+            self._selected_ids.add(favorite_id)
+        # 更新卡片显示
+        card = self._favorite_cards.get(favorite_id)
+        if card:
+            card.set_selected(favorite_id in self._selected_ids)
+        self.selection_changed.emit(self._selected_ids.copy())
+
+    def select_all(self):
+        """全选"""
+        self._selected_ids = set(self._favorite_cards.keys())
+        for card in self._favorite_cards.values():
+            card.set_selected(True)
+        self.selection_changed.emit(self._selected_ids.copy())
+
+    def clear_selection(self):
+        """取消全选"""
+        self._selected_ids.clear()
+        for card in self._favorite_cards.values():
+            card.set_selected(False)
+        self.selection_changed.emit(self._selected_ids.copy())
+
+    def delete_selected(self, deleted_indices: Dict[str, int]) -> int:
+        """批量删除选中的收藏
+
+        Args:
+            deleted_indices: ID到索引的映射（由业务层提供）
+
+        Returns:
+            int: 删除的数量
+        """
+        deleted_count = 0
+        for favorite_id in list(self._selected_ids):
+            index = deleted_indices.get(favorite_id, -1)
+            if index >= 0 and self.remove_favorite_card(favorite_id, index):
+                deleted_count += 1
+        self._selected_ids.clear()
+        self.selection_changed.emit(set())
+        return deleted_count
+
+    def _on_card_clicked(self, favorite_id: str):
+        """卡片点击处理
+
+        Args:
+            favorite_id: 收藏ID
+        """
+        if self._batch_mode:
+            self.toggle_selection(favorite_id)
 
 
 # =============================================================================
@@ -1116,7 +1284,7 @@ class PaletteManagementInterface(QWidget):
             PaletteService: 配色服务实例
         """
         if self._palette_service is None:
-            self._palette_service = ServiceFactory.get_palette_service()
+            self._palette_service = get_service_factory().get_palette_service()
             self._setup_service_connections()
         return self._palette_service
 
@@ -1167,6 +1335,7 @@ class PaletteManagementInterface(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
+        # 头部工具栏
         header_layout = QHBoxLayout()
         header_layout.setSpacing(15)
         header_layout.setContentsMargins(0, 0, 0, 0)
@@ -1176,6 +1345,12 @@ class PaletteManagementInterface(QWidget):
 
         header_layout.addStretch()
 
+        # 批量管理按钮
+        self.batch_manage_button = PushButton(FluentIcon.CHECKBOX, tr('palette_management.batch_manage'), self)
+        self.batch_manage_button.clicked.connect(self._on_batch_manage_clicked)
+        header_layout.addWidget(self.batch_manage_button)
+
+        # 正常模式按钮
         self.add_button = PushButton(FluentIcon.ADD, tr('palette_management.add'), self)
         self.add_button.clicked.connect(self._on_add_clicked)
         header_layout.addWidget(self.add_button)
@@ -1200,6 +1375,45 @@ class PaletteManagementInterface(QWidget):
 
         layout.addLayout(header_layout)
 
+        # 批量模式工具栏（初始隐藏）
+        self.batch_toolbar = QWidget()
+        batch_toolbar_layout = QHBoxLayout(self.batch_toolbar)
+        batch_toolbar_layout.setSpacing(15)
+        batch_toolbar_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 标题
+        self.title_label_batch = SubtitleLabel(tr('palette_management.title'))
+        batch_toolbar_layout.addWidget(self.title_label_batch)
+
+        batch_toolbar_layout.addStretch()
+
+        # 批量操作按钮（右侧对齐）
+        self._toggle_select_btn = PushButton(FluentIcon.CHECKBOX, tr('palette_management.select_all'), self)
+        self._toggle_select_btn.setFixedWidth(140)
+        self._toggle_select_btn.clicked.connect(self._on_toggle_select_clicked)
+        batch_toolbar_layout.addWidget(self._toggle_select_btn)
+
+        self.delete_selected_button = PushButton(FluentIcon.DELETE, tr('palette_management.delete_selected'), self)
+        self.delete_selected_button.setFixedWidth(140)
+        self.delete_selected_button.clicked.connect(self._on_delete_selected_clicked)
+        batch_toolbar_layout.addWidget(self.delete_selected_button)
+
+        # 完成按钮
+        self.done_button = PushButton(FluentIcon.ACCEPT, tr('palette_management.done'), self)
+        self.done_button.setFixedWidth(140)
+        self.done_button.clicked.connect(self._on_done_clicked)
+        batch_toolbar_layout.addWidget(self.done_button)
+
+        # 分组下拉框（与普通模式位置对应）
+        self.group_combo_batch = ComboBox(self)
+        self.group_combo_batch.setFixedWidth(100)
+        self.group_combo_batch.currentIndexChanged.connect(self._on_group_changed)
+        batch_toolbar_layout.addWidget(self.group_combo_batch)
+
+        layout.addWidget(self.batch_toolbar)
+        self.batch_toolbar.setVisible(False)
+
+        # 配色列表
         self.palette_management_list = PaletteManagementList(self)
         self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
         self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
@@ -1209,18 +1423,153 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
         self.palette_management_list.favorite_export_ase.connect(self._on_favorite_export_ase)
         self.palette_management_list.groups_updated.connect(self._on_groups_updated)
+        self.palette_management_list.selection_changed.connect(self._on_selection_changed)
         layout.addWidget(self.palette_management_list, stretch=1)
+
+    def _on_batch_manage_clicked(self):
+        """批量管理按钮点击"""
+        if self.palette_management_list._batch_mode:
+            self._exit_batch_mode()
+        else:
+            self._enter_batch_mode()
+
+    def _enter_batch_mode(self):
+        """进入批量模式"""
+        # 记录当前分组索引
+        self._batch_mode_group_index = self.group_combo.currentIndex()
+
+        # 同步批量工具栏的分组下拉框
+        self.group_combo_batch.setCurrentIndex(self._batch_mode_group_index)
+
+        # 启用批量模式
+        self.palette_management_list.set_batch_mode(True)
+
+        # 切换UI
+        self.title_label.setVisible(False)
+        self.batch_manage_button.setVisible(False)
+        self.add_button.setVisible(False)
+        self.import_button.setVisible(False)
+        self.export_button.setVisible(False)
+        self.clear_all_button.setVisible(False)
+        self.group_combo.setVisible(False)
+        self.batch_toolbar.setVisible(True)
+
+        self._update_batch_toolbar()
+
+    def _exit_batch_mode(self):
+        """退出批量模式"""
+        # 退出批量模式
+        self.palette_management_list.set_batch_mode(False)
+
+        # 恢复UI
+        self.title_label.setVisible(True)
+        self.batch_manage_button.setVisible(True)
+        self.add_button.setVisible(True)
+        self.import_button.setVisible(True)
+        self.export_button.setVisible(True)
+        self.clear_all_button.setVisible(True)
+        self.group_combo.setVisible(True)
+        self.batch_toolbar.setVisible(False)
+
+        # 同步批量模式下拉框的当前索引到普通模式
+        batch_current_index = self.group_combo_batch.currentIndex()
+        self.group_combo.setCurrentIndex(batch_current_index)
+
+    def _on_delete_selected_clicked(self):
+        """删除选中按钮点击"""
+        selected_ids = self.palette_management_list._selected_ids
+        if not selected_ids:
+            InfoBar.warning(
+                title=tr('messages.warning.title'),
+                content=tr('palette_management.no_selection'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
+            return
+
+        # 确认对话框
+        from dialogs import DeleteConfirmDialog
+        dialog = DeleteConfirmDialog(
+            tr('palette_management.delete_confirm_content', count=len(selected_ids)),
+            self
+        )
+        dialog.setWindowTitle(tr('palette_management.delete_confirm_title'))
+
+        if dialog.exec():
+            # 获取索引映射并标记删除
+            deleted_indices = {}
+            for favorite_id in selected_ids:
+                idx = self._config_manager.get_favorite_index(favorite_id)
+                if idx >= 0:
+                    deleted_indices[favorite_id] = idx
+                    self._config_manager.delete_favorite(favorite_id)
+            self._config_manager.save()
+
+            # 从列表中删除
+            deleted_count = self.palette_management_list.delete_selected(deleted_indices)
+
+            InfoBar.success(
+                title=tr('messages.success.title'),
+                content=tr('palette_management.delete_success', count=deleted_count),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
+
+    def _on_done_clicked(self):
+        """完成按钮点击"""
+        self._exit_batch_mode()
+
+    def _on_selection_changed(self, selected_ids: set):
+        """选中项变化回调
+
+        Args:
+            selected_ids: 选中的ID集合
+        """
+        self._update_batch_toolbar()
+
+    def _on_toggle_select_clicked(self):
+        """全选/取消全选切换"""
+        if self._toggle_select_btn.text() == tr('palette_management.select_all'):
+            self.palette_management_list.select_all()
+        else:
+            self.palette_management_list.clear_selection()
+
+    def _update_batch_toolbar(self):
+        """更新批量工具栏状态"""
+        selected_count = len(self.palette_management_list._selected_ids)
+        total_count = len(self.palette_management_list._favorite_cards)
+
+        # 更新删除按钮文本
+        self.delete_selected_button.setText(
+            tr('palette_management.delete_selected') +
+            (f" ({selected_count})" if selected_count > 0 else "")
+        )
+
+        # 更新全选/取消全选按钮文本
+        if selected_count == total_count and total_count > 0:
+            self._toggle_select_btn.setText(tr('palette_management.clear_selection'))
+        else:
+            self._toggle_select_btn.setText(tr('palette_management.select_all'))
 
     def _on_groups_updated(self, groups: list):
         """分组列表更新回调
-        
+
         Args:
             groups: 分组配置列表
         """
         self.group_combo.clear()
+        self.group_combo_batch.clear()
         for i, group in enumerate(groups):
             self.group_combo.addItem(group["name"])
             self.group_combo.setItemData(i, i)
+            self.group_combo_batch.addItem(group["name"])
+            self.group_combo_batch.setItemData(i, i)
 
     def _on_group_changed(self, index: int):
         """分组切换回调
@@ -1232,20 +1581,22 @@ class PaletteManagementInterface(QWidget):
             self.palette_management_list.set_current_group(index)
 
     def _load_favorites(self):
-        """加载收藏列表"""
+        """加载收藏列表，启动时清理已删除的数据"""
+        # 启动时清理已删除的数据
+        self._config_manager.cleanup_deleted_favorites()
+        self._config_manager.save()
+
         favorites = self._config_manager.get_favorites()
         self.palette_management_list.set_favorites(favorites)
 
     def _on_clear_all_clicked(self):
         """清空所有按钮点击"""
-        msg_box = MessageBox(
-            tr('dialogs.confirm.clear_title'),
-            tr('dialogs.confirm.clear_content'),
+        dialog = DeleteConfirmDialog(
+            tr('palette_management.clear_all_target', default='所有收藏的配色'),
             self
         )
-        msg_box.yesButton.setText(tr('dialogs.confirm.confirm_btn'))
-        msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
-        if msg_box.exec():
+        dialog.setWindowTitle(tr('dialogs.confirm.clear_title'))
+        if dialog.exec():
             favorites_count = len(self._config_manager.get_favorites())
             self._config_manager.clear_favorites()
             self._config_manager.save()
@@ -1253,33 +1604,42 @@ class PaletteManagementInterface(QWidget):
             log_user_action("clear_all_favorites", {"count": favorites_count}, "success")
 
     def _on_favorite_deleted(self, favorite_id):
-        """收藏删除回调（优化版）
+        """收藏删除回调（软删除）
 
-        使用局部刷新替代完整重新加载，避免卡顿。
+        使用标记删除替代物理删除，保持分组结构不变。
         """
-        favorite = self._config_manager.get_favorite(favorite_id)
+        favorite = self._config_manager.get_favorite(favorite_id, include_deleted=True)
         palette_name = favorite.get('name', tr('palette_management.unnamed')) if favorite else tr('palette_management.unnamed')
 
-        msg_box = MessageBox(
-            tr('dialogs.confirm.delete_title'),
-            tr('dialogs.confirm.delete_content', default=f"确定要删除「{palette_name}」吗？此操作不可撤销。").format(name=palette_name),
-            self
-        )
-        msg_box.yesButton.setText(tr('dialogs.confirm.delete_btn'))
-        msg_box.cancelButton.setText(tr('dialogs.confirm.cancel_btn'))
+        dialog = DeleteConfirmDialog(palette_name, self)
 
-        if msg_box.exec():
+        if dialog.exec():
+            # 获取删除前的索引（用于UI层更新）
+            deleted_index = self._config_manager.get_favorite_index(favorite_id)
+
+            # 标记删除
             self._config_manager.delete_favorite(favorite_id)
             self._config_manager.save()
 
             # 局部刷新：仅移除对应卡片，不重新加载
-            success = self.palette_management_list.remove_favorite_card(favorite_id)
+            success = self.palette_management_list.remove_favorite_card(favorite_id, deleted_index)
 
             if not success:
                 # 局部删除失败时回退到完整刷新
                 self._load_favorites()
 
             log_user_action("delete_favorite", {"id": favorite_id, "name": palette_name}, "success")
+
+            # 显示删除成功提示
+            InfoBar.success(
+                title=tr('messages.success.title'),
+                content=tr('palette_management.delete_single_success', name=palette_name),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
 
     def _on_import_clicked(self):
         """导入按钮点击"""
@@ -1298,20 +1658,14 @@ class PaletteManagementInterface(QWidget):
 
         self._pending_import_path = file_path
 
-        msg_box = MessageBox(
-            tr('dialogs.confirm.import_mode_title'),
-            tr('dialogs.confirm.import_mode_content'),
-            self
-        )
-        msg_box.yesButton.setText(tr('dialogs.confirm.append'))
-        msg_box.cancelButton.setText(tr('dialogs.confirm.replace'))
-
-        result = msg_box.exec()
-
-        if result == 1:
-            self._pending_import_mode = 'append'
-        else:
+        # 如果没有配色数据，直接导入（替换模式）
+        if not self._config_manager.get_favorites():
             self._pending_import_mode = 'replace'
+        else:
+            dialog = ImportModeDialog(self)
+            if not dialog.exec():
+                return
+            self._pending_import_mode = 'append' if dialog.is_append_mode() else 'replace'
 
         with log_performance("import_palette", {"file_path": file_path, "mode": self._pending_import_mode}):
             self._get_palette_service().import_from_file(file_path)
@@ -1593,10 +1947,18 @@ class PaletteManagementInterface(QWidget):
         if not palette_data:
             return
 
+        # 记录当前分组索引
+        current_group = self.palette_management_list.get_current_group_index()
+
         self._config_manager.add_favorite(palette_data)
         self._config_manager.save()
 
         self._load_favorites()
+
+        # 恢复之前的分组位置
+        if current_group < len(self.palette_management_list.get_groups()):
+            self.palette_management_list.set_current_group(current_group)
+            self.group_combo.setCurrentIndex(current_group)
 
         log_user_action("add_favorite", {
             "id": palette_data.get('id'),

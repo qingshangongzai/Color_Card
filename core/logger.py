@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+# 项目模块导入
+from .app_mode import get_config_dir
+
 
 class LoggerManager:
     """日志管理器，统一管理应用程序日志配置"""
@@ -28,8 +31,7 @@ class LoggerManager:
         Returns:
             Path: 日志目录的完整路径
         """
-        home_dir = Path.home()
-        config_dir = home_dir / self.CONFIG_DIR_NAME
+        config_dir = get_config_dir()
         return config_dir / self.LOG_DIR_NAME
 
     def _ensure_log_dir(self) -> None:

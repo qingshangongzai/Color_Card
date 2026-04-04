@@ -367,16 +367,11 @@ def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int,
 
     sampled = arr[::sample_step, ::sample_step]
 
-    edge_pixels = []
-    if width > 0:
-        edge_pixels.append(arr[::sample_step, -1])
-    if height > 0:
-        edge_pixels.append(arr[-1, ::sample_step])
-
-    if edge_pixels:
-        all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
-    else:
-        all_pixels = sampled.reshape(-1, 3)
+    edge_pixels = [
+        arr[::sample_step, -1],
+        arr[-1, ::sample_step]
+    ]
+    all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
 
     luminance = _calculate_luminance_numpy(all_pixels, gamma)
 

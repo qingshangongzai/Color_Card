@@ -1,22 +1,22 @@
-<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
   <!-- 页面背景 -->
-  <rect id="background" class="background" width="400" height="300" fill="#fafafa"/>
+  <rect id="background" class="background" width="600" height="300" fill="#fafafa"/>
 
   <!-- 顶部导航栏 -->
-  <rect id="navbar" class="primary" x="0" y="0" width="400" height="50" fill="#ffffff"/>
+  <rect id="navbar" class="primary" x="0" y="0" width="600" height="50" fill="#ffffff"/>
   <rect id="logo" class="accent" x="30" y="15" width="80" height="20" rx="4" fill="#6c5ce7"/>
-  <text id="logo-text" class="text" x="70" y="29" text-anchor="middle" font-family="Georgia, serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">BLOG</text>
+  <text id="logo-text" class="text" x="70" y="29" text-anchor="middle" font-family="Georgia, serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">博客</text>
 
   <!-- 导航链接 -->
-  <text id="nav-home" class="text" x="280" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">首页</text>
-  <text id="nav-articles" class="text" x="320" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">文章</text>
-  <text id="nav-about" class="text" x="360" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">关于</text>
+  <text id="nav-home" class="text" x="480" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">首页</text>
+  <text id="nav-articles" class="text" x="520" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">文章</text>
+  <text id="nav-about" class="text" x="560" y="30" font-family="Arial, sans-serif" font-size="11" fill="#2d3436" data-fixed-color="black">关于</text>
 
   <!-- 分隔线 -->
-  <line id="nav-divider" class="stroke" x1="0" y1="50" x2="400" y2="50" stroke="#dfe6e9" stroke-width="1"/>
+  <line id="nav-divider" class="stroke" x1="0" y1="50" x2="600" y2="50" stroke="#dfe6e9" stroke-width="1"/>
 
   <!-- 特色文章区域 -->
-  <rect id="featured-card" class="secondary" x="30" y="65" width="340" height="90" rx="8" fill="#ffffff"/>
+  <rect id="featured-card" class="secondary" x="30" y="65" width="540" height="90" rx="8" fill="#ffffff"/>
 
   <!-- 特色文章图片 -->
   <rect id="featured-img" class="primary" x="40" y="75" width="120" height="70" rx="4" fill="#74b9ff"/>
@@ -30,34 +30,37 @@
 
   <!-- 文章列表 -->
   <!-- 文章1 -->
-  <rect id="article-1" class="secondary" x="30" y="165" width="220" height="55" rx="6" fill="#ffffff"/>
+  <rect id="article-1" class="secondary" x="30" y="165" width="320" height="55" rx="6" fill="#ffffff"/>
   <rect id="article-1-thumb" class="primary" x="40" y="172" width="50" height="40" rx="3" fill="#a29bfe"/>
   <text id="article-1-title" class="text" x="100" y="188" font-family="Georgia, serif" font-size="10" font-weight="bold" fill="#2d3436" data-fixed-color="black">色彩心理学入门</text>
   <text id="article-1-date" class="text" x="100" y="203" font-family="Arial, sans-serif" font-size="8" fill="#b2bec3" data-fixed-color="black">2026年2月15日</text>
 
   <!-- 文章2 -->
-  <rect id="article-2" class="secondary" x="30" y="225" width="220" height="55" rx="6" fill="#ffffff"/>
+  <rect id="article-2" class="secondary" x="30" y="225" width="320" height="55" rx="6" fill="#ffffff"/>
   <rect id="article-2-thumb" class="primary" x="40" y="232" width="50" height="40" rx="3" fill="#fd79a8"/>
   <text id="article-2-title" class="text" x="100" y="248" font-family="Georgia, serif" font-size="10" font-weight="bold" fill="#2d3436" data-fixed-color="black">排版设计基础</text>
   <text id="article-2-date" class="text" x="100" y="263" font-family="Arial, sans-serif" font-size="8" fill="#b2bec3" data-fixed-color="black">2026年2月10日</text>
 
   <!-- 侧边栏 -->
-  <rect id="sidebar" class="secondary" x="265" y="165" width="105" height="115" rx="6" fill="#ffffff"/>
-  <text id="sidebar-title" class="text" x="317" y="185" text-anchor="middle" font-family="Georgia, serif" font-size="11" font-weight="bold" fill="#2d3436" data-fixed-color="black">标签云</text>
+  <rect id="sidebar" class="secondary" x="365" y="165" width="205" height="115" rx="6" fill="#ffffff"/>
+  <text id="sidebar-title" class="text" x="467" y="185" text-anchor="middle" font-family="Georgia, serif" font-size="11" font-weight="bold" fill="#2d3436" data-fixed-color="black">标签云</text>
 
   <!-- 标签 -->
-  <rect id="tag-design" class="accent" x="275" y="195" width="40" height="18" rx="9" fill="#6c5ce7"/>
-  <text id="tag-design-text" class="text" x="295" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">设计</text>
+  <rect id="tag-design" class="accent" x="375" y="195" width="50" height="18" rx="9" fill="#6c5ce7"/>
+  <text id="tag-design-text" class="text" x="400" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">设计</text>
 
-  <rect id="tag-color" class="primary" x="325" y="195" width="35" height="18" rx="9" fill="#2d3436"/>
-  <text id="tag-color-text" class="text" x="342" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">配色</text>
+  <rect id="tag-color" class="primary" x="435" y="195" width="50" height="18" rx="9" fill="#2d3436"/>
+  <text id="tag-color-text" class="text" x="460" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">配色</text>
 
-  <rect id="tag-ui" class="primary" x="275" y="220" width="30" height="18" rx="9" fill="#2d3436"/>
-  <text id="tag-ui-text" class="text" x="290" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">UI</text>
+  <rect id="tag-ui" class="primary" x="495" y="195" width="40" height="18" rx="9" fill="#2d3436"/>
+  <text id="tag-ui-text" class="text" x="515" y="207" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">UI</text>
 
-  <rect id="tag-typo" class="accent" x="315" y="220" width="45" height="18" rx="9" fill="#fd79a8"/>
-  <text id="tag-typo-text" class="text" x="337" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">排版</text>
+  <rect id="tag-typo" class="accent" x="375" y="220" width="55" height="18" rx="9" fill="#fd79a8"/>
+  <text id="tag-typo-text" class="text" x="402" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">排版</text>
 
-  <rect id="tag-brand" class="primary" x="275" y="245" width="35" height="18" rx="9" fill="#2d3436"/>
-  <text id="tag-brand-text" class="text" x="292" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">品牌</text>
+  <rect id="tag-brand" class="primary" x="440" y="220" width="50" height="18" rx="9" fill="#2d3436"/>
+  <text id="tag-brand-text" class="text" x="465" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">品牌</text>
+
+  <rect id="tag-web" class="accent" x="375" y="245" width="45" height="18" rx="9" fill="#6c5ce7"/>
+  <text id="tag-web-text" class="text" x="397" y="257" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">网页</text>
 </svg>

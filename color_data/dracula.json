@@ -11,110 +11,110 @@
       "name": "背景色",
       "name_en": "Background",
       "colors": [
-        "#282a36",
-        "#282a36",
-        "#282a36",
-        "#282a36"
+        "#282A36",
+        "#282A36",
+        "#282A36",
+        "#282A36"
       ]
     },
     {
       "name": "当前行",
       "name_en": "Current Line",
       "colors": [
-        "#44475a",
-        "#44475a",
-        "#44475a",
-        "#44475a"
+        "#44475A",
+        "#44475A",
+        "#44475A",
+        "#44475A"
       ]
     },
     {
       "name": "前景色",
       "name_en": "Foreground",
       "colors": [
-        "#f8f8f2",
-        "#f8f8f2",
-        "#f8f8f2",
-        "#f8f8f2"
+        "#F8F8F2",
+        "#F8F8F2",
+        "#F8F8F2",
+        "#F8F8F2"
       ]
     },
     {
       "name": "注释色",
       "name_en": "Comment",
       "colors": [
-        "#6272a4",
-        "#6272a4",
-        "#6272a4",
-        "#6272a4"
+        "#6272A4",
+        "#6272A4",
+        "#6272A4",
+        "#6272A4"
       ]
     },
     {
       "name": "青色",
       "name_en": "Cyan",
       "colors": [
-        "#8be9fd",
-        "#8be9fd",
-        "#8be9fd",
-        "#8be9fd"
+        "#8BE9FD",
+        "#8BE9FD",
+        "#8BE9FD",
+        "#8BE9FD"
       ]
     },
     {
       "name": "绿色",
       "name_en": "Green",
       "colors": [
-        "#50fa7b",
-        "#50fa7b",
-        "#50fa7b",
-        "#50fa7b"
+        "#50FA7B",
+        "#50FA7B",
+        "#50FA7B",
+        "#50FA7B"
       ]
     },
     {
       "name": "橙色",
       "name_en": "Orange",
       "colors": [
-        "#ffb86c",
-        "#ffb86c",
-        "#ffb86c",
-        "#ffb86c"
+        "#FFB86C",
+        "#FFB86C",
+        "#FFB86C",
+        "#FFB86C"
       ]
     },
     {
       "name": "粉色",
       "name_en": "Pink",
       "colors": [
-        "#ff79c6",
-        "#ff79c6",
-        "#ff79c6",
-        "#ff79c6"
+        "#FF79C6",
+        "#FF79C6",
+        "#FF79C6",
+        "#FF79C6"
       ]
     },
     {
       "name": "紫色",
       "name_en": "Purple",
       "colors": [
-        "#bd93f9",
-        "#bd93f9",
-        "#bd93f9",
-        "#bd93f9"
+        "#BD93F9",
+        "#BD93F9",
+        "#BD93F9",
+        "#BD93F9"
       ]
     },
     {
       "name": "红色",
       "name_en": "Red",
       "colors": [
-        "#ff5555",
-        "#ff5555",
-        "#ff5555",
-        "#ff5555"
+        "#FF5555",
+        "#FF5555",
+        "#FF5555",
+        "#FF5555"
       ]
     },
     {
       "name": "黄色",
       "name_en": "Yellow",
       "colors": [
-        "#f1fa8c",
-        "#f1fa8c",
-        "#f1fa8c",
-        "#f1fa8c"
+        "#F1FA8C",
+        "#F1FA8C",
+        "#F1FA8C",
+        "#F1FA8C"
       ]
     }
   ],

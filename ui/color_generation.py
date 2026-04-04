@@ -54,6 +54,8 @@ class GenerationColorInfoCard(BaseCard):
         """更新样式以适配主题"""
         self._update_hex_button_style()
         self._update_color_block_style()
+        self.mode_container_1._update_styles()
+        self.mode_container_2._update_styles()
 
     def setup_ui(self):
         """设置界面"""
@@ -129,12 +131,11 @@ class GenerationColorInfoCard(BaseCard):
     def _update_color_block_style(self):
         """更新颜色块样式（主题切换时调用）"""
         if self._current_color_info:
-            # 有颜色时更新边框
+            # 有颜色时更新样式
             r, g, b = self._current_color_info['rgb']
             color_str = f"rgb({r}, {g}, {b})"
-            border_color = get_border_color()
             self.color_block.setStyleSheet(
-                f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+                f"background-color: {color_str}; border-radius: 4px;"
             )
         else:
             # 无颜色时更新占位符样式
@@ -193,9 +194,8 @@ class GenerationColorInfoCard(BaseCard):
         # 更新颜色块
         r, g, b = self._current_color_info['rgb']
         color_str = f"rgb({r}, {g}, {b})"
-        border_color = get_border_color()
         self.color_block.setStyleSheet(
-            f"background-color: {color_str}; border-radius: 4px; border: 1px solid {border_color.name()};"
+            f"background-color: {color_str}; border-radius: 4px;"
         )
 
         # 更新色彩模式值
@@ -403,6 +403,11 @@ class ColorGenerationInterface(QWidget):
         splitter = QSplitter(Qt.Orientation.Vertical)
         splitter.setMinimumHeight(300)
         splitter.setHandleWidth(0)  # 隐藏分隔条
+        # 隐藏 Mac 上可能显示的分割线
+        splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle:vertical { background: transparent; border: none; }
+        """)
         layout.addWidget(splitter, stretch=1)
 
         # 上半部分：色轮和明度调整

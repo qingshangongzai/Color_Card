@@ -5,11 +5,12 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 # 项目模块导入
 from version import version_manager
 from .logger import get_logger
+from .app_mode import get_config_dir
 
 
 def get_base_path() -> str:
@@ -56,8 +57,7 @@ class ConfigManager:
         Returns:
             Path: 配置文件的完整路径
         """
-        home_dir = Path.home()
-        config_dir = home_dir / self.CONFIG_DIR_NAME
+        config_dir = get_config_dir()
         return config_dir / self.CONFIG_FILE_NAME
 
     def _ensure_config_dir(self) -> None:
@@ -109,8 +109,6 @@ class ConfigManager:
             with open(self._config_path, 'r', encoding='utf-8') as f:
                 loaded_config = json.load(f)
 
-            self._migrate_favorites_data(loaded_config)
-
             self._merge_config(self._config, loaded_config)
             
             version = self._config.get("version", "unknown")
@@ -121,40 +119,6 @@ class ConfigManager:
             raise ConfigLoadError(f"无法加载配置文件: {e}") from e
 
         return self._config
-
-    def _migrate_favorites_data(self, loaded_config: Dict[str, Any]) -> None:
-        """迁移旧版本的收藏数据到新格式
-
-        Args:
-            loaded_config: 从文件加载的配置字典
-        """
-        if 'favorites' in loaded_config and loaded_config['favorites']:
-            return
-
-        favorites = []
-
-        if 'schemes' in loaded_config:
-            for scheme in loaded_config['schemes']:
-                if isinstance(scheme, dict):
-                    favorites.append(scheme)
-
-        if 'extracts' in loaded_config:
-            for extract in loaded_config['extracts']:
-                if isinstance(extract, dict):
-                    extract['source'] = 'color_extract'
-                    favorites.append(extract)
-
-        if favorites:
-            loaded_config['favorites'] = favorites
-            if 'schemes' in loaded_config:
-                del loaded_config['schemes']
-            if 'extracts' in loaded_config:
-                del loaded_config['extracts']
-            if 'colors' in loaded_config:
-                del loaded_config['colors']
-            if 'display_settings' in loaded_config:
-                del loaded_config['display_settings']
-            logger.info(f"配置数据迁移完成: 迁移了 {len(favorites)} 条收藏记录")
 
     def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
         """递归合并配置字典
@@ -256,42 +220,41 @@ class ConfigManager:
         """
         self._config["window"] = window_config
 
-    def get_favorites(self) -> List[Dict[str, Any]]:
+    def get_favorites(self, include_deleted: bool = False) -> List[Dict[str, Any]]:
         """获取收藏列表
+
+        Args:
+            include_deleted: 是否包含已删除的收藏
 
         Returns:
             List[Dict[str, Any]]: 收藏配色方案列表
         """
-        return self._config.get("favorites", [])
+        favorites = self._config.get("favorites", [])
+        if include_deleted:
+            return favorites
+        return [f for f in favorites if not f.get('_deleted')]
 
-    def get_favorite(self, favorite_id: str) -> Optional[Dict[str, Any]]:
+    def get_favorite(self, favorite_id: str, include_deleted: bool = False) -> Optional[Dict[str, Any]]:
         """获取单个收藏项
 
         Args:
-            favorite_id: 收藏ID或名称（当没有id时）
+            favorite_id: 收藏ID
+            include_deleted: 是否包含已删除的收藏
 
         Returns:
             Optional[Dict[str, Any]]: 收藏数据字典，未找到返回None
         """
-        favorites = self._config.get("favorites", [])
-
-        # 先尝试根据id查找
+        favorites = self.get_favorites(include_deleted=include_deleted)
         for favorite in favorites:
             if favorite.get("id") == favorite_id:
                 return favorite
-
-        # 如果没有找到，尝试根据name查找（兼容旧数据）
-        for favorite in favorites:
-            if favorite.get("name") == favorite_id:
-                return favorite
-
         return None
 
     def add_favorite(self, favorite_data: Dict[str, Any]) -> str:
         """添加收藏
 
         Args:
-            favorite_data: 收藏数据字典
+            favorite_data: 收藏数据字典，必须包含id字段
 
         Returns:
             str: 收藏ID
@@ -299,38 +262,66 @@ class ConfigManager:
         if "favorites" not in self._config:
             self._config["favorites"] = []
 
-        favorites = self._config["favorites"]
-        favorite_id = favorite_data.get("id", "")
+        favorite_id = favorite_data["id"]
 
-        if favorite_id and any(f.get("id") == favorite_id for f in favorites):
-            return favorite_id
+        # 检查是否已存在
+        for i, existing in enumerate(self._config["favorites"]):
+            if existing.get("id") == favorite_id:
+                self._config["favorites"][i] = favorite_data
+                return favorite_id
 
         self._config["favorites"].append(favorite_data)
         return favorite_id
 
     def delete_favorite(self, favorite_id: str) -> bool:
-        """删除收藏
+        """标记删除收藏（软删除）
 
         Args:
-            favorite_id: 收藏ID或名称（当没有id时）
+            favorite_id: 收藏ID
 
         Returns:
-            bool: 是否删除成功
+            bool: 是否成功标记删除
         """
-        if "favorites" not in self._config:
-            return False
+        favorite = self.get_favorite(favorite_id, include_deleted=True)
+        if favorite:
+            favorite['_deleted'] = True
+            return True
+        return False
 
-        favorites = self._config["favorites"]
+    def cleanup_deleted_favorites(self) -> int:
+        """清理所有标记为删除的收藏
+
+        Returns:
+            int: 清理的数量
+        """
+        favorites = self._config.get('favorites', [])
         original_count = len(favorites)
+        self._config['favorites'] = [f for f in favorites if not f.get('_deleted')]
+        return original_count - len(self._config['favorites'])
 
-        # 先尝试根据id删除
-        self._config["favorites"] = [f for f in favorites if f.get("id") != favorite_id]
+    def get_valid_indices(self) -> Set[int]:
+        """获取有效（未删除）数据的索引集合
 
-        # 如果没有删除任何项，尝试根据name删除（兼容旧数据）
-        if len(self._config["favorites"]) == original_count:
-            self._config["favorites"] = [f for f in favorites if f.get("name") != favorite_id]
+        Returns:
+            Set[int]: 有效数据的索引集合
+        """
+        favorites = self._config.get('favorites', [])
+        return {i for i, f in enumerate(favorites) if not f.get('_deleted')}
 
-        return len(self._config["favorites"]) < original_count
+    def get_favorite_index(self, favorite_id: str) -> int:
+        """获取指定收藏在原始列表中的索引
+
+        Args:
+            favorite_id: 收藏ID
+
+        Returns:
+            int: 索引位置，未找到返回 -1
+        """
+        favorites = self._config.get('favorites', [])
+        for i, f in enumerate(favorites):
+            if f.get('id') == favorite_id:
+                return i
+        return -1
 
     def rename_favorite(self, favorite_id: str, new_name: str) -> bool:
         """重命名收藏
@@ -410,6 +401,40 @@ class ConfigManager:
                 return True
 
         return False
+
+    def reorder_favorites(self, new_order_ids: List[str]) -> bool:
+        """根据ID列表重新排序收藏
+
+        Args:
+            new_order_ids: 新的排序ID列表
+
+        Returns:
+            bool: 是否排序成功
+        """
+        if "favorites" not in self._config:
+            return False
+
+        favorites = self._config["favorites"]
+        if not favorites:
+            return True
+
+        # 创建ID到收藏的映射
+        id_to_fav = {f.get('id'): f for f in favorites if f.get('id')}
+
+        # 按新顺序重建列表
+        new_favorites = []
+        for fid in new_order_ids:
+            if fid in id_to_fav:
+                new_favorites.append(id_to_fav[fid])
+
+        # 添加可能遗漏的收藏（防万一）
+        existing_ids = set(new_order_ids)
+        for fav in favorites:
+            if fav.get('id') not in existing_ids:
+                new_favorites.append(fav)
+
+        self._config["favorites"] = new_favorites
+        return True
 
     def get_scene_templates(self) -> Dict[str, List[Dict[str, Any]]]:
         """获取用户场景模板索引
@@ -530,31 +555,14 @@ class SceneConfigManager:
                 with open(scene_file, 'r', encoding='utf-8') as f:
                     scene_config = json.load(f)
 
-                # 验证场景配置格式
-                if self._validate_scene_config(scene_config):
-                    # 标记为用户场景
-                    scene_config["builtin"] = False
-                    scene_config["_source_file"] = scene_file.name
-                    self._user_scenes.append(scene_config)
-                else:
-                    print(f"用户场景配置格式无效: {scene_file.name}")
+                scene_config["builtin"] = False
+                scene_config["_source_file"] = scene_file.name
+                self._user_scenes.append(scene_config)
 
             except (json.JSONDecodeError, IOError, OSError) as e:
                 print(f"加载用户场景失败 {scene_file.name}: {e}")
 
         print(f"已加载 {len(self._user_scenes)} 个用户场景")
-
-    def _validate_scene_config(self, config: Dict[str, Any]) -> bool:
-        """验证场景配置格式
-
-        Args:
-            config: 场景配置字典
-
-        Returns:
-            bool: 是否有效
-        """
-        required_fields = ["id", "name", "type"]
-        return all(field in config for field in required_fields)
 
     def get_all_scenes(self) -> List[Dict[str, Any]]:
         """获取所有场景配置
@@ -808,7 +816,7 @@ class SceneTypeManager:
         scene_types_file = self._scenes_data_dir / self.SCENE_TYPES_FILE
 
         if not scene_types_file.exists():
-            print(f"场景类型配置文件不存在: {scene_types_file}")
+            logger.error(f"场景类型配置文件不存在: {scene_types_file}")
             self._scene_types = []
             return
 
@@ -816,9 +824,9 @@ class SceneTypeManager:
             with open(scene_types_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             self._scene_types = data.get("scene_types", [])
-            print(f"已加载 {len(self._scene_types)} 个场景类型")
+            logger.info(f"已加载 {len(self._scene_types)} 个场景类型")
         except (json.JSONDecodeError, IOError, OSError) as e:
-            print(f"加载场景类型配置失败: {e}")
+            logger.error(f"加载场景类型配置失败: {e}", exc_info=True)
             self._scene_types = []
 
     def get_all_scene_types(self) -> List[Dict[str, Any]]:
@@ -855,8 +863,10 @@ class SceneTypeManager:
             str: SVG文件路径，如果不存在则返回None
         """
         svg_path = self._scenes_data_dir / scene_type / "default.svg"
+        logger.debug(f"Checking SVG path: {svg_path}, exists: {svg_path.exists()}")
         if svg_path.exists():
             return str(svg_path)
+        logger.warning(f"SVG file not found: {svg_path}")
         return None
 
     def get_layout_config(self, scene_type: str) -> Dict[str, Any]:
@@ -893,9 +903,11 @@ class SceneTypeManager:
 
         # 内置模板 - 加载场景目录下所有svg文件
         scene_dir = self._scenes_data_dir / scene_type
+        logger.debug(f"Looking for templates in: {scene_dir} (exists: {scene_dir.exists()})")
         if scene_dir.exists():
             # 获取所有svg文件，按文件名排序
             svg_files = sorted(scene_dir.glob("*.svg"))
+            logger.debug(f"Found {len(svg_files)} SVG files")
             for svg_path in svg_files:
                 templates.append({
                     "path": str(svg_path),
