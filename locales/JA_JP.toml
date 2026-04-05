@@ -317,7 +317,7 @@ original_color = "元のカラー"
 simulated_color = "シミュレートカラー"
 original = "元"
 simulated = "シミュレート"
-description = "注: {text}"
+description = "注: {desc}"
 
 [dialogs.contrast]
 title = "コントラストチェック"

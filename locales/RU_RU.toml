@@ -318,7 +318,7 @@ original_color = "Исходный цвет"
 simulated_color = "Симулированный цвет"
 original = "Исходный"
 simulated = "Симулированный"
-description = "Примечание: {text}"
+description = "Примечание: {desc}"
 
 [dialogs.contrast]
 title = "Проверка контраста"
