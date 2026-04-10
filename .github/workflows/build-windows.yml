@@ -138,99 +138,99 @@ jobs:
         $fileVersion = "${{ steps.version.outputs.file_version }}"
         $productVersion = "${{ steps.version.outputs.product_version }}"
 
-        $issContent = @"
-; Script generated for GitHub Actions
-; Non-commercial use only
+        $issLines = @(
+          '; Script generated for GitHub Actions',
+          '; Non-commercial use only',
+          '',
+          '#define MyAppName "取色卡"',
+          "#define MyAppVersion `"$version`"",
+          "#define MyAppPublisher `"$companyName`"",
+          '#define MyAppURL "https://gitee.com/qingshangongzai"',
+          '#define MyAppExeName "Color Card.exe"',
+          '',
+          '[Setup]',
+          'AppId={{8EBD3944-B989-4878-B943-DE4558FDF22C}',
+          'AppName={#MyAppName}',
+          'AppVersion={#MyAppVersion}',
+          'AppVerName={#MyAppName}',
+          'AppPublisher={#MyAppPublisher}',
+          'AppPublisherURL={#MyAppURL}',
+          'AppSupportURL={#MyAppURL}',
+          'AppUpdatesURL={#MyAppURL}',
+          "AppCopyright=$copyright",
+          'DefaultDirName={autopf}\{#MyAppName}',
+          'UninstallDisplayIcon={app}\{#MyAppExeName}',
+          'ArchitecturesAllowed=x64compatible',
+          'ArchitecturesInstallIn64BitMode=x64compatible',
+          'DisableProgramGroupPage=yes',
+          'OutputDir=output',
+          'OutputBaseFilename=Color_Card_Setup',
+          'SetupIconFile=logo\Color Card_logo.ico',
+          'SolidCompression=yes',
+          'WizardStyle=modern dynamic',
+          '',
+          '; 版本信息设置',
+          "VersionInfoVersion=$fileVersion",
+          "VersionInfoCompany=$companyName",
+          'VersionInfoDescription=取色卡 - Color Card',
+          "VersionInfoCopyright=$copyright",
+          'VersionInfoProductName=取色卡',
+          "VersionInfoProductVersion=$version",
+          'VersionInfoOriginalFilename=Color_Card.exe',
+          '',
+          '[Languages]',
+          'Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"',
+          '',
+          '[Tasks]',
+          'Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked',
+          '',
+          '[Files]',
+          'Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion',
+          '',
+          '[Icons]',
+          'Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"',
+          'Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon',
+          '',
+          '[Run]',
+          'Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, ''&'', ''&&'')}}"; Flags: nowait postinstall skipifsilent',
+          '',
+          '[Code]',
+          'var',
+          '  DeleteDataDir: Boolean;',
+          '  DataDir: string;',
+          '',
+          'function InitializeUninstall(): Boolean;',
+          'begin',
+          '  Result := True;',
+          '  DeleteDataDir := False;',
+          '',
+          '  DataDir := ExpandConstant(''{%USERPROFILE}\.color_card'');',
+          '  if DirExists(DataDir) then',
+          '  begin',
+          '    if MsgBox(''是否删除应用程序数据文件？'' + #13#10 + #13#10 +',
+          '      ''数据目录：'' + DataDir + #13#10 + #13#10 +',
+          '      ''包含：配置文件、日志文件、收藏数据等'',',
+          '      mbConfirmation, MB_YESNO) = IDYES then',
+          '    begin',
+          '      DeleteDataDir := True;',
+          '    end;',
+          '  end;',
+          'end;',
+          '',
+          'procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);',
+          'begin',
+          '  if (CurUninstallStep = usPostUninstall) and DeleteDataDir then',
+          '  begin',
+          '    DataDir := ExpandConstant(''{%USERPROFILE}\.color_card'');',
+          '    if DirExists(DataDir) then',
+          '    begin',
+          '      DelTree(DataDir, True, True, True);',
+          '    end;',
+          '  end;',
+          'end;'
+        )
 
-#define MyAppName "取色卡"
-#define MyAppVersion "$version"
-#define MyAppPublisher "$companyName"
-#define MyAppURL "https://gitee.com/qingshangongzai"
-#define MyAppExeName "Color Card.exe"
-
-[Setup]
-AppId={{8EBD3944-B989-4878-B943-DE4558FDF22C}
-AppName={#MyAppName}
-AppVersion={#MyAppVersion}
-AppVerName={#MyAppName}
-AppPublisher={#MyAppPublisher}
-AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}
-AppCopyright=$copyright
-DefaultDirName={autopf}\{#MyAppName}
-UninstallDisplayIcon={app}\{#MyAppExeName}
-ArchitecturesAllowed=x64compatible
-ArchitecturesInstallIn64BitMode=x64compatible
-DisableProgramGroupPage=yes
-OutputDir=output
-OutputBaseFilename=Color_Card_Setup
-SetupIconFile=logo\Color Card_logo.ico
-SolidCompression=yes
-WizardStyle=modern dynamic
-
-; 版本信息设置
-VersionInfoVersion=$fileVersion
-VersionInfoCompany=$companyName
-VersionInfoDescription=取色卡 - Color Card
-VersionInfoCopyright=$copyright
-VersionInfoProductName=取色卡
-VersionInfoProductVersion=$version
-VersionInfoOriginalFilename=Color_Card.exe
-
-[Languages]
-Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
-
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-
-[Files]
-Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-
-[Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-
-[Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-var
-  DeleteDataDir: Boolean;
-  DataDir: string;
-
-function InitializeUninstall(): Boolean;
-begin
-  Result := True;
-  DeleteDataDir := False;
-
-  DataDir := ExpandConstant('{%USERPROFILE}\.color_card');
-  if DirExists(DataDir) then
-  begin
-    if MsgBox('是否删除应用程序数据文件？' + #13#10 + #13#10 +
-      '数据目录：' + DataDir + #13#10 + #13#10 +
-      '包含：配置文件、日志文件、收藏数据等',
-      mbConfirmation, MB_YESNO) = IDYES then
-    begin
-      DeleteDataDir := True;
-    end;
-  end;
-end;
-
-procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
-begin
-  if (CurUninstallStep = usPostUninstall) and DeleteDataDir then
-  begin
-    DataDir := ExpandConstant('{%USERPROFILE}\.color_card');
-    if DirExists(DataDir) then
-    begin
-      DelTree(DataDir, True, True, True);
-    end;
-  end;
-end;
-"@
-
-        $issContent | Out-File -FilePath "setup.iss" -Encoding UTF8
+        $issLines | Out-File -FilePath "setup.iss" -Encoding UTF8
         Write-Host "Created setup.iss"
 
     - name: Build Installer with Inno Setup
