@@ -1,6 +1,6 @@
 1.7.1 · Beta
 2026.4.10.1
-1.7.1.Beta
+1.7.1.0
 浮晓 HXiao Studio
 © 2026 浮晓 HXiao Studio
 取色卡 - Color Card
