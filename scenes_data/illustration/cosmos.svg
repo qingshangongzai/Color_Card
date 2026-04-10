@@ -2,7 +2,7 @@
   <rect id="background" class="background" width="400" height="300" fill="#1a1a2e"/>
 
   <!-- 渐变星空背景 -->
-  <rect id="sky-gradient" class="secondary" width="400" height="300" fill="#16213e" opacity="0.5"/>
+  <rect id="sky-gradient" width="400" height="300" fill="#ffffff" opacity="0.05"/>
 
   <!-- 大月亮/星球 -->
   <circle id="moon" class="accent" cx="320" cy="70" r="40" fill="#f4d03f" opacity="0.9"/>
