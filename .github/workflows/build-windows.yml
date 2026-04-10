@@ -142,6 +142,7 @@ jobs:
         $productVersion = "${{ steps.version.outputs.product_version }}"
 
         $setupName = "Color_Card_${version}_x64_Setup"
+        $portableName = "Color_Card_${version}_x64.exe"
 
         $issLines = @(
           '; Script generated for GitHub Actions',
@@ -152,6 +153,7 @@ jobs:
           "#define MyAppPublisher `"$companyName`"",
           '#define MyAppURL "https://gitee.com/qingshangongzai"',
           '#define MyAppExeName "Color Card.exe"',
+          "#define MyPortableName `"$portableName`"",
           '',
           '[Setup]',
           'AppId={{8EBD3944-B989-4878-B943-DE4558FDF22C}',
@@ -190,7 +192,7 @@ jobs:
           'Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked',
           '',
           '[Files]',
-          'Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion',
+          'Source: "dist\{#MyPortableName}"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion',
           '',
           '[Icons]',
           'Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"',
