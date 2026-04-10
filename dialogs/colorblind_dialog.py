@@ -313,7 +313,7 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
         
         # 更新说明文字
         info = get_colorblind_info(self._current_type)
-        self.description_label.setText(tr('dialogs.colorblind.description', text=info['description']))
+        self.description_label.setText(tr('dialogs.colorblind.description', desc=info['description']))
 
     def closeEvent(self, event):
         """关闭事件"""
