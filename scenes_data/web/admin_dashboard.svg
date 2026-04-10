@@ -1,6 +1,5 @@
 <svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
-  <!-- 背景 -->
-  <rect id="background" class="background" width="600" height="300" fill="#f5f7fa" data-fixed-color="original"/>
+
 
   <!-- 左侧边栏 -->
   <rect id="sidebar" class="primary" x="0" y="0" width="80" height="300" fill="#ffffff"/>
