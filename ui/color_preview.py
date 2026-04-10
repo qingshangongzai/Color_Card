@@ -33,6 +33,7 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_config_manager, PreviewService, get_svg_color_mapper, get_scene_type_manager
 from core.color import get_color_info
+from core.svg_color_mapper import ElementType
 from core.logger import get_logger, log_user_action
 from dialogs.edit_palette import EditPaletteDialog
 from dialogs.export_settings_dialog import ExportSettingsDialog
@@ -602,7 +603,9 @@ class SVGPreviewWidget(BasePreviewScene):
         self._template_path: Optional[str] = None
         self._preview_service: Optional[PreviewService] = None
 
-        self.setStyleSheet("border: none; background: transparent;")
+        self.setStyleSheet("border: none;")
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setAutoFillBackground(False)
 
     def set_template_info(self, is_builtin: bool, path: str = None):
         """设置模板信息
@@ -770,14 +773,21 @@ class SVGPreviewWidget(BasePreviewScene):
         has_semantic = self._color_mapper and self._color_mapper.has_semantic_types()
 
         if has_semantic:
-            # 语义化映射模式：检查是否有固定背景元素
-            has_fixed_background = self._has_fixed_background_element()
-            bg_color = QColor("#ffffff") if has_fixed_background else QColor(self._colors[0])
+            # 语义化映射模式：检查背景元素状态
+            bg_color = self._get_semantic_background_color()
         else:
-            # 智能映射模式（含透明元素）：使用白色背景
-            # 因为透明背景现在由 SVG 内部处理
-            bg_color = QColor("#ffffff")
-        painter.fillRect(self.rect(), bg_color)
+            # 智能映射模式：使用透明背景，让主题色透过来
+            bg_color = QColor(0, 0, 0, 0)
+        
+        # 根据背景类型处理
+        if bg_color.alpha() == 0:
+            # 透明背景：清除整个控件区域，让父控件背景透过来
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+            painter.eraseRect(self.rect())
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+        else:
+            # 非透明背景：填充背景色
+            painter.fillRect(self.rect(), bg_color)
 
         if self._svg_renderer and self._svg_renderer.isValid():
             view_box = self._svg_renderer.viewBox()
@@ -818,16 +828,36 @@ class SVGPreviewWidget(BasePreviewScene):
         """是否处于模板模式"""
         return self._template_mode
 
-    def _has_fixed_background_element(self) -> bool:
-        """检查SVG是否有固定颜色的背景元素"""
-        if self._preview_service is None:
-            self._preview_service = PreviewService()
-        return self._preview_service.has_fixed_background_element(self._svg_content)
+    def _get_semantic_background_color(self) -> QColor:
+        """获取语义化映射模式的背景颜色
+
+        Returns:
+            QColor: 背景颜色（透明、白色或配色第一个颜色）
+        """
+        if not self._color_mapper:
+            return QColor("#ffffff")
+
+        for elem_info in self._color_mapper.get_elements():
+            if elem_info.element_type == ElementType.BACKGROUND:
+                if elem_info.fixed_color == 'original':
+                    # 检查原始 fill 值是否透明
+                    fill = elem_info.attributes.get('fill', '').lower()
+                    if fill in ('transparent', 'none'):
+                        return QColor(0, 0, 0, 0)
+                    return QColor("#ffffff")
+                elif elem_info.fixed_color == 'black':
+                    return QColor("#ffffff")
+                else:
+                    return QColor(self._colors[0])
+
+        return QColor(self._colors[0])
 
     def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(self.rect(), bg_color)
+        # 使用透明背景，让主题色透过来
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
+        painter.eraseRect(self.rect())
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
         text_color = get_text_color()
         painter.setPen(QPen(text_color))
@@ -857,6 +887,7 @@ class BaseLayout(QWidget):
 
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.setStyleSheet("background: transparent;")
 
     def set_colors(self, colors: List[str]):
         self._colors = colors.copy() if colors else []
@@ -1086,7 +1117,6 @@ class ScrollVLayout(BaseLayout):
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
         corner_widget = QWidget()
-        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1151,7 +1181,6 @@ class ScrollHLayout(BaseLayout):
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
         corner_widget = QWidget()
-        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1200,11 +1229,9 @@ class GridLayout(BaseLayout):
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
         corner_widget = QWidget()
-        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
-        self._content_widget.setStyleSheet("background: transparent;")
         self._content_layout = QGridLayout(self._content_widget)
         self._content_layout.setContentsMargins(10, 10, 10, 10)
         self._content_layout.setSpacing(15)
@@ -1829,6 +1856,8 @@ class ColorPreviewInterface(QWidget):
 
     def setup_ui(self):
         """设置界面布局"""
+        self.setStyleSheet("background: transparent;")
+        
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
