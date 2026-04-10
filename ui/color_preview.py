@@ -604,8 +604,6 @@ class SVGPreviewWidget(BasePreviewScene):
         self._preview_service: Optional[PreviewService] = None
 
         self.setStyleSheet("border: none;")
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setAutoFillBackground(False)
 
     def set_template_info(self, is_builtin: bool, path: str = None):
         """设置模板信息
@@ -781,10 +779,9 @@ class SVGPreviewWidget(BasePreviewScene):
         
         # 根据背景类型处理
         if bg_color.alpha() == 0:
-            # 透明背景：清除整个控件区域，让父控件背景透过来
-            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
-            painter.eraseRect(self.rect())
-            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+            # 透明背景：填充纯色背景（浅色模式白色，深色模式深灰色）
+            solid_bg = QColor("#ffffff") if not isDarkTheme() else QColor("#2a2a2a")
+            painter.fillRect(self.rect(), solid_bg)
         else:
             # 非透明背景：填充背景色
             painter.fillRect(self.rect(), bg_color)
@@ -854,10 +851,9 @@ class SVGPreviewWidget(BasePreviewScene):
 
     def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""
-        # 使用透明背景，让主题色透过来
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Clear)
-        painter.eraseRect(self.rect())
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
+        # 填充纯色背景（浅色模式白色，深色模式深灰色）
+        solid_bg = QColor("#ffffff") if not isDarkTheme() else QColor("#2a2a2a")
+        painter.fillRect(self.rect(), solid_bg)
 
         text_color = get_text_color()
         painter.setPen(QPen(text_color))
@@ -887,7 +883,6 @@ class BaseLayout(QWidget):
 
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setStyleSheet("background: transparent;")
 
     def set_colors(self, colors: List[str]):
         self._colors = colors.copy() if colors else []
@@ -1232,6 +1227,7 @@ class GridLayout(BaseLayout):
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
+        self._content_widget.setStyleSheet("background: transparent;")
         self._content_layout = QGridLayout(self._content_widget)
         self._content_layout.setContentsMargins(10, 10, 10, 10)
         self._content_layout.setSpacing(15)
@@ -1509,7 +1505,6 @@ class MixedPreviewPanel(QWidget):
         """创建UI"""
         self._main_layout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(0, 0, 0, 0)
-        self.setStyleSheet("border: none; background: transparent;")
 
     def set_scene(self, scene: str):
         """切换预览场景
@@ -1769,7 +1764,7 @@ class PreviewToolbar(QWidget):
 
     def _update_styles(self):
         """更新样式以适配主题"""
-        self.setStyleSheet("background: transparent;")
+        pass
 
     def update_texts(self):
         """更新所有界面文本"""
@@ -1856,8 +1851,6 @@ class ColorPreviewInterface(QWidget):
 
     def setup_ui(self):
         """设置界面布局"""
-        self.setStyleSheet("background: transparent;")
-        
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
