@@ -355,8 +355,8 @@ class ContrastCheckDialog(BaseFramelessDialog):
         # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
 
-        # 设置固定大小
-        self.setFixedSize(480, 580)
+        # 设置固定大小（高度640确保容纳所有控件）
+        self.setFixedSize(480, 640)
 
         # 设置界面
         self.setup_ui()
