@@ -3,7 +3,7 @@
   <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
 
   <!-- 手机外框 -->
-  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#333333" data-fixed-color="original"/>
+  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#666666" data-fixed-color="original"/>
 
   <!-- 手机屏幕 -->
   <rect id="screen" class="background" x="81" y="24" width="138" height="352" rx="16" fill="#ffffff"/>
