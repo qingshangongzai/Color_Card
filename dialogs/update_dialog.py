@@ -205,15 +205,27 @@ def _parse_version(version_str: str) -> Tuple[List[int], int, int]:
         预发布版本号: Beta1/Beta2等后面的数字，默认0
     """
     version_str = version_str.lstrip("v").lower()
-    parts = re.findall(r"\d+", version_str)
+
+    # 分离主版本号和预发布部分（处理 · 符号）
+    # "1.7.0 · beta 1" -> main_part="1.7.0", pre_part="beta 1"
+    if " · " in version_str:
+        main_part, pre_part = version_str.split(" · ", 1)
+    else:
+        main_part = version_str
+        pre_part = ""
+
+    # 提取主版本号的数字
+    parts = re.findall(r"\d+", main_part)
     nums = [int(p) for p in parts] if parts else [0]
 
+    # 解析预发布标识
     pre_release = 0
     pre_release_num = 0
     for keyword, value in _PRE_RELEASE_ORDER.items():
-        if keyword in version_str:
+        if keyword in pre_part:
             pre_release = value
-            match = re.search(rf"{keyword}(\d+)", version_str)
+            # 支持 "beta1" 和 "beta 1" 两种格式
+            match = re.search(rf"{keyword}\s*(\d+)", pre_part)
             if match:
                 pre_release_num = int(match.group(1))
             break
