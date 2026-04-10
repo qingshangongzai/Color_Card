@@ -9,16 +9,16 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.13'
-    
+
     - name: Cache pip packages
       uses: actions/cache@v4
       with:
@@ -26,13 +26,13 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install nuitka[onefile]
         pip install -r requirements.txt
-    
+
     - name: Read version
       id: version
       shell: pwsh
@@ -44,21 +44,21 @@ jobs:
         $COMPANY_NAME = $lines[3].Trim()
         $COPYRIGHT = $lines[4].Trim()
         $APP_NAME = $lines[5].Trim()
-        
+
         Write-Host "Debug: version content is: '$VERSION'"
         Write-Host "Debug: file version is: '$FILE_VERSION'"
         Write-Host "Debug: product version is: '$PRODUCT_VERSION'"
         Write-Host "Debug: company name is: '$COMPANY_NAME'"
         Write-Host "Debug: copyright is: '$COPYRIGHT'"
         Write-Host "Debug: app name is: '$APP_NAME'"
-        
+
         Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$VERSION"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "file_version=$FILE_VERSION"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "product_version=$PRODUCT_VERSION"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "company_name=$COMPANY_NAME"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
-    
+
     - name: Build Windows EXE with Nuitka
       shell: cmd
       run: |
@@ -89,7 +89,7 @@ jobs:
           --jobs=4 ^
           --output-filename="Color Card" ^
           main.py
-    
+
     - name: Check build output
       shell: pwsh
       run: |
@@ -97,29 +97,155 @@ jobs:
         Get-ChildItem -Path "main.dist" -ErrorAction SilentlyContinue
         Get-ChildItem -Path "main.build" -ErrorAction SilentlyContinue
         Get-ChildItem -Path "*.exe" -ErrorAction SilentlyContinue
-    
+
     - name: Create distribution folder
       shell: pwsh
       run: |
         $distDir = "dist"
         New-Item -ItemType Directory -Force -Path $distDir
-        
+
         # 复制生成的 exe 文件
         Copy-Item "Color Card.exe" -Destination "$distDir\Color Card.exe"
-        
+
         Write-Host "Distribution folder contents:"
         Get-ChildItem -Path $distDir
-    
-    - name: Upload artifact
+
+    - name: Upload portable artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ColorCard-Windows-Nuitka
+        name: ColorCard-Windows-Portable
         path: dist/*.exe
-    
-    - name: Upload Release Asset
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v1
+
+    - name: Install Inno Setup
+      run: |
+        choco install innosetup -y
+
+    - name: Download Chinese language file for Inno Setup
+      shell: pwsh
+      run: |
+        $langDir = "C:\Program Files (x86)\Inno Setup 6\Languages"
+        $langUrl = "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl"
+        Invoke-WebRequest -Uri $langUrl -OutFile "$langDir\ChineseSimplified.isl"
+        Write-Host "Downloaded ChineseSimplified.isl to $langDir"
+
+    - name: Create Inno Setup script
+      shell: pwsh
+      run: |
+        $version = "${{ steps.version.outputs.version }}"
+        $companyName = "${{ steps.version.outputs.company_name }}"
+        $copyright = "${{ steps.version.outputs.copyright }}"
+        $appName = "${{ steps.version.outputs.app_name }}"
+        $fileVersion = "${{ steps.version.outputs.file_version }}"
+        $productVersion = "${{ steps.version.outputs.product_version }}"
+
+        $issContent = @"
+; Script generated for GitHub Actions
+; Non-commercial use only
+
+#define MyAppName "取色卡"
+#define MyAppVersion "$version"
+#define MyAppPublisher "$companyName"
+#define MyAppURL "https://gitee.com/qingshangongzai"
+#define MyAppExeName "Color Card.exe"
+
+[Setup]
+AppId={{8EBD3944-B989-4878-B943-DE4558FDF22C}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
+AppCopyright=$copyright
+DefaultDirName={autopf}\{#MyAppName}
+UninstallDisplayIcon={app}\{#MyAppExeName}
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+DisableProgramGroupPage=yes
+OutputDir=output
+OutputBaseFilename=Color_Card_Setup
+SetupIconFile=logo\Color Card_logo.ico
+SolidCompression=yes
+WizardStyle=modern dynamic
+
+; 版本信息设置
+VersionInfoVersion=$fileVersion
+VersionInfoCompany=$companyName
+VersionInfoDescription=取色卡 - Color Card
+VersionInfoCopyright=$copyright
+VersionInfoProductName=取色卡
+VersionInfoProductVersion=$version
+VersionInfoOriginalFilename=Color_Card.exe
+
+[Languages]
+Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[Files]
+Source: "dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+
+[Run]
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+var
+  DeleteDataDir: Boolean;
+  DataDir: string;
+
+function InitializeUninstall(): Boolean;
+begin
+  Result := True;
+  DeleteDataDir := False;
+
+  DataDir := ExpandConstant('{%USERPROFILE}\.color_card');
+  if DirExists(DataDir) then
+  begin
+    if MsgBox('是否删除应用程序数据文件？' + #13#10 + #13#10 +
+      '数据目录：' + DataDir + #13#10 + #13#10 +
+      '包含：配置文件、日志文件、收藏数据等',
+      mbConfirmation, MB_YESNO) = IDYES then
+    begin
+      DeleteDataDir := True;
+    end;
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if (CurUninstallStep = usPostUninstall) and DeleteDataDir then
+  begin
+    DataDir := ExpandConstant('{%USERPROFILE}\.color_card');
+    if DirExists(DataDir) then
+    begin
+      DelTree(DataDir, True, True, True);
+    end;
+  end;
+end;
+"@
+
+        $issContent | Out-File -FilePath "setup.iss" -Encoding UTF8
+        Write-Host "Created setup.iss"
+
+    - name: Build Installer with Inno Setup
+      shell: cmd
+      run: |
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" setup.iss
+
+    - name: Check installer output
+      shell: pwsh
+      run: |
+        Write-Host "Checking installer output..."
+        Get-ChildItem -Path "output" -ErrorAction SilentlyContinue
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v4
       with:
-        files: dist/*.exe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: ColorCard-Windows-Installer
+        path: output/*.exe
