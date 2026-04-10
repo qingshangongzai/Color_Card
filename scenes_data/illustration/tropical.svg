@@ -1,9 +1,6 @@
 <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
   <rect id="background" class="background" width="400" height="300" fill="#f0f8f5"/>
 
-  <!-- 天空渐变 -->
-  <rect id="sky" class="secondary" width="400" height="150" fill="#b8e0d8" opacity="0.4"/>
-
   <!-- 太阳 -->
   <circle id="sun" class="accent" cx="320" cy="60" r="35" fill="#f4d03f" opacity="0.9"/>
   <circle id="sun-glow" class="accent" cx="320" cy="60" r="50" fill="#f4d03f" opacity="0.2"/>
