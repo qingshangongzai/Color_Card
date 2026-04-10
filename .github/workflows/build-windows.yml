@@ -104,8 +104,11 @@ jobs:
         $distDir = "dist"
         New-Item -ItemType Directory -Force -Path $distDir
 
-        # 复制生成的 exe 文件
-        Copy-Item "Color Card.exe" -Destination "$distDir\Color Card.exe"
+        $version = "${{ steps.version.outputs.version }}"
+        $portableName = "Color_Card_${version}_x64.exe"
+
+        # 复制生成的 exe 文件，使用版本号命名
+        Copy-Item "Color Card.exe" -Destination "$distDir\$portableName"
 
         Write-Host "Distribution folder contents:"
         Get-ChildItem -Path $distDir
@@ -138,6 +141,8 @@ jobs:
         $fileVersion = "${{ steps.version.outputs.file_version }}"
         $productVersion = "${{ steps.version.outputs.product_version }}"
 
+        $setupName = "Color_Card_${version}_x64_Setup"
+
         $issLines = @(
           '; Script generated for GitHub Actions',
           '; Non-commercial use only',
@@ -164,7 +169,7 @@ jobs:
           'ArchitecturesInstallIn64BitMode=x64compatible',
           'DisableProgramGroupPage=yes',
           'OutputDir=output',
-          'OutputBaseFilename=Color_Card_Setup',
+          "OutputBaseFilename=$setupName",
           'SetupIconFile=logo\Color Card_logo.ico',
           'SolidCompression=yes',
           'WizardStyle=modern dynamic',
