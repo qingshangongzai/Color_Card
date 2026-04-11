@@ -188,8 +188,6 @@ class SVGColorMapper:
             self._original_content = self._element_tree_to_string(root)
 
             self._elements.sort(key=lambda x: x.area, reverse=True)
-            
-            self._detect_covered_elements()
 
         except ET.ParseError as e:
             print(f"SVG 解析错误: {e}")
@@ -693,6 +691,9 @@ class SVGColorMapper:
         if not colors or not self._original_content:
             return self._original_content
 
+        # 智能映射模式下执行覆盖检测
+        self._detect_covered_elements()
+
         color_map: Dict[str, str] = {}
 
         # 收集所有可见元素（跳过被完全覆盖的）
@@ -845,10 +846,10 @@ class SVGColorMapper:
             bg_color = color_map[TRANSPARENT_BACKGROUND_KEY]
             self._add_background_rect(root, bg_color)
 
-        # 2. 处理透明元素（跳过被完全覆盖的元素）
+        # 2. 处理透明元素
         transparent_index = 0
         for elem_info in self._elements:
-            if elem_info.is_transparent and not elem_info.is_covered:
+            if elem_info.is_transparent:
                 elem = self._find_element_by_id(root, elem_info.element_id)
                 if elem is not None:
                     key = f'{TRANSPARENT_ELEMENT_PREFIX}_{transparent_index}'
@@ -857,9 +858,9 @@ class SVGColorMapper:
                         elem.set('fill', color_map[key])
                         transparent_index += 1
 
-        # 3. 处理有 fill 的元素（跳过被完全覆盖的元素）
+        # 3. 处理有 fill 的元素
         for elem_info in self._elements:
-            if elem_info.fill_color and not elem_info.is_transparent and not elem_info.is_covered:
+            if elem_info.fill_color and not elem_info.is_transparent:
                 elem = self._find_element_by_id(root, elem_info.element_id)
                 if elem is not None:
                     normalized = self._normalize_color(elem_info.fill_color)

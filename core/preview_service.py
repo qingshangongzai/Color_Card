@@ -327,34 +327,6 @@ class PreviewService(QObject):
             logger.error(f"添加SVG背景失败: bg_color={bg_color}, error={e}", exc_info=True)
             return svg_content
 
-    def has_fixed_background_element(self, svg_content: str) -> bool:
-        """检查SVG是否有固定颜色的背景元素
-
-        Args:
-            svg_content: SVG 内容
-
-        Returns:
-            bool: 是否有固定背景元素
-        """
-        if not svg_content:
-            return False
-
-        try:
-            import xml.etree.ElementTree as ET
-
-            root = ET.fromstring(svg_content)
-
-            for elem in root.iter():
-                tag = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
-                if tag == 'rect':
-                    fixed_color = elem.get('data-fixed-color')
-                    if fixed_color == 'original':
-                        return True
-            return False
-        except Exception as e:
-            logger.error(f"检查固定背景元素失败: error={e}", exc_info=True)
-            return False
-
     def extract_hex_colors_from_favorite(self, favorite: Dict[str, Any]) -> List[str]:
         """从收藏数据中提取 HEX 颜色列表
 

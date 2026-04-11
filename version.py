@@ -9,7 +9,7 @@ class VersionManager:
         # 版本号组件
         self.major: int = 1
         self.minor: int = 7
-        self.patch: int = 0
+        self.patch: int = 1
         self.build: int = 0
         self.prerelease: str = ""
 

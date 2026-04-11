@@ -33,6 +33,7 @@ from qfluentwidgets import (
 # 项目模块导入
 from core import get_config_manager, PreviewService, get_svg_color_mapper, get_scene_type_manager
 from core.color import get_color_info
+from core.svg_color_mapper import ElementType
 from core.logger import get_logger, log_user_action
 from dialogs.edit_palette import EditPaletteDialog
 from dialogs.export_settings_dialog import ExportSettingsDialog
@@ -600,8 +601,9 @@ class SVGPreviewWidget(BasePreviewScene):
 
         self._is_builtin: bool = False
         self._template_path: Optional[str] = None
+        self._preview_service: Optional[PreviewService] = None
 
-        self.setStyleSheet("border: none; background: transparent;")
+        self.setStyleSheet("border: none;")
 
     def set_template_info(self, is_builtin: bool, path: str = None):
         """设置模板信息
@@ -769,14 +771,20 @@ class SVGPreviewWidget(BasePreviewScene):
         has_semantic = self._color_mapper and self._color_mapper.has_semantic_types()
 
         if has_semantic:
-            # 语义化映射模式：检查是否有固定背景元素
-            has_fixed_background = self._has_fixed_background_element()
-            bg_color = QColor("#ffffff") if has_fixed_background else QColor(self._colors[0])
+            # 语义化映射模式：检查背景元素状态
+            bg_color = self._get_semantic_background_color()
         else:
-            # 智能映射模式（含透明元素）：使用白色背景
-            # 因为透明背景现在由 SVG 内部处理
-            bg_color = QColor("#ffffff")
-        painter.fillRect(self.rect(), bg_color)
+            # 智能映射模式：使用透明背景，让主题色透过来
+            bg_color = QColor(0, 0, 0, 0)
+        
+        # 根据背景类型处理
+        if bg_color.alpha() == 0:
+            # 透明背景：填充纯色背景（浅色模式白色，深色模式深灰色）
+            solid_bg = QColor("#ffffff") if not isDarkTheme() else QColor("#2a2a2a")
+            painter.fillRect(self.rect(), solid_bg)
+        else:
+            # 非透明背景：填充背景色
+            painter.fillRect(self.rect(), bg_color)
 
         if self._svg_renderer and self._svg_renderer.isValid():
             view_box = self._svg_renderer.viewBox()
@@ -817,16 +825,35 @@ class SVGPreviewWidget(BasePreviewScene):
         """是否处于模板模式"""
         return self._template_mode
 
-    def _has_fixed_background_element(self) -> bool:
-        """检查SVG是否有固定颜色的背景元素"""
-        if not hasattr(self, '_preview_service') or self._preview_service is None:
-            self._preview_service = PreviewService()
-        return self._preview_service.has_fixed_background_element(self._svg_content)
+    def _get_semantic_background_color(self) -> QColor:
+        """获取语义化映射模式的背景颜色
+
+        Returns:
+            QColor: 背景颜色（透明、白色或配色第一个颜色）
+        """
+        if not self._color_mapper:
+            return QColor("#ffffff")
+
+        for elem_info in self._color_mapper.get_elements():
+            if elem_info.element_type == ElementType.BACKGROUND:
+                if elem_info.fixed_color == 'original':
+                    # 检查原始 fill 值是否透明
+                    fill = elem_info.attributes.get('fill', '').lower()
+                    if fill in ('transparent', 'none'):
+                        return QColor(0, 0, 0, 0)
+                    return QColor("#ffffff")
+                elif elem_info.fixed_color == 'black':
+                    return QColor("#ffffff")
+                else:
+                    return QColor(self._colors[0])
+
+        return QColor(self._colors[0])
 
     def _draw_empty_hint(self, painter: QPainter):
         """绘制空配色提示"""
-        bg_color = QColor(240, 240, 240) if not isDarkTheme() else QColor(50, 50, 50)
-        painter.fillRect(self.rect(), bg_color)
+        # 填充纯色背景（浅色模式白色，深色模式深灰色）
+        solid_bg = QColor("#ffffff") if not isDarkTheme() else QColor("#2a2a2a")
+        painter.fillRect(self.rect(), solid_bg)
 
         text_color = get_text_color()
         painter.setPen(QPen(text_color))
@@ -907,6 +934,20 @@ class BaseLayout(QWidget):
         """
         self.template_deleted.emit(template_path)
 
+    @staticmethod
+    def _get_template_info(template_info):
+        """解析模板信息
+
+        Args:
+            template_info: 模板信息（字典或字符串）
+
+        Returns:
+            tuple: (path, is_builtin)
+        """
+        if isinstance(template_info, dict):
+            return template_info.get("path"), template_info.get("is_builtin", False)
+        return template_info, False
+
 
 class SingleLayout(BaseLayout):
     """单图布局 - 一次显示一个SVG，支持左右切换"""
@@ -915,7 +956,7 @@ class SingleLayout(BaseLayout):
         super().__init__(templates, config, parent)
         self._current_index: int = 0
         self.setup_ui()
-        self.load_templates()
+        # load_templates 延迟到 showEvent 中调用
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -951,18 +992,21 @@ class SingleLayout(BaseLayout):
         main_layout.addWidget(nav_widget)
         self.update_navigation()
 
+    def showEvent(self, event):
+        """首次显示时加载模板"""
+        super().showEvent(event)
+        if not self._svg_widgets:
+            self.load_templates()
+            self.set_colors(self._colors)
+
     def load_templates(self):
         self.clear()
 
         for template_info in self._templates:
-            if isinstance(template_info, dict):
-                path = template_info.get("path")
-                is_builtin = template_info.get("is_builtin", False)
-            else:
-                path = template_info
-                is_builtin = False
-
+            path, is_builtin = self._get_template_info(template_info)
             svg_widget = self._create_svg_widget(path, is_builtin)
+            svg_widget.setMinimumSize(200, 200)
+            svg_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self._svg_widgets.append(svg_widget)
 
         self._show_current_svg()
@@ -1057,7 +1101,7 @@ class ScrollVLayout(BaseLayout):
     def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
-        self.load_templates()
+        # load_templates 延迟到 showEvent 中调用
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -1068,7 +1112,6 @@ class ScrollVLayout(BaseLayout):
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
         corner_widget = QWidget()
-        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1081,31 +1124,39 @@ class ScrollVLayout(BaseLayout):
         self._scroll_area.setWidget(self._content_widget)
         main_layout.addWidget(self._scroll_area)
 
+    def showEvent(self, event):
+        """首次显示时加载模板"""
+        super().showEvent(event)
+        if not self._svg_widgets:
+            self.load_templates()
+            self.set_colors(self._colors)
+
     def load_templates(self):
         self.clear()
 
         viewport_height = self._scroll_area.viewport().height()
+        # 如果视口高度无效，使用父控件高度或默认值
+        if viewport_height <= 0:
+            viewport_height = self.height() if self.height() > 0 else 400
 
         for template_info in self._templates:
-            if isinstance(template_info, dict):
-                path = template_info.get("path")
-                is_builtin = template_info.get("is_builtin", False)
-            else:
-                path = template_info
-                is_builtin = False
-
+            path, is_builtin = self._get_template_info(template_info)
             svg_widget = self._create_svg_widget(path, is_builtin)
-            svg_widget.setMinimumHeight(viewport_height)
+            svg_widget.setFixedHeight(viewport_height)
             self._svg_widgets.append(svg_widget)
             self._content_layout.insertWidget(self._content_layout.count() - 1, svg_widget)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        if hasattr(self, '_scroll_area'):
-            viewport_height = self._scroll_area.viewport().height()
-            for svg_widget in self._svg_widgets:
-                svg_widget.setMinimumHeight(viewport_height)
-                svg_widget.update()
+        # 延迟更新尺寸，确保 ScrollArea 视口已稳定
+        QTimer.singleShot(0, self._update_svg_sizes)
+
+    def _update_svg_sizes(self):
+        """更新 SVG 控件尺寸"""
+        viewport_height = self._scroll_area.viewport().height()
+        for svg_widget in self._svg_widgets:
+            svg_widget.setFixedHeight(max(viewport_height, 200))
+            svg_widget.update()
 
 
 class ScrollHLayout(BaseLayout):
@@ -1114,7 +1165,7 @@ class ScrollHLayout(BaseLayout):
     def __init__(self, templates: list, config: dict, parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
-        self.load_templates()
+        # load_templates 延迟到 showEvent 中调用
 
     def setup_ui(self):
         main_layout = QHBoxLayout(self)
@@ -1125,7 +1176,6 @@ class ScrollHLayout(BaseLayout):
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
         corner_widget = QWidget()
-        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1138,17 +1188,18 @@ class ScrollHLayout(BaseLayout):
         self._scroll_area.setWidget(self._content_widget)
         main_layout.addWidget(self._scroll_area)
 
+    def showEvent(self, event):
+        """首次显示时加载模板"""
+        super().showEvent(event)
+        if not self._svg_widgets:
+            self.load_templates()
+            self.set_colors(self._colors)
+
     def load_templates(self):
         self.clear()
 
         for template_info in self._templates:
-            if isinstance(template_info, dict):
-                path = template_info.get("path")
-                is_builtin = template_info.get("is_builtin", False)
-            else:
-                path = template_info
-                is_builtin = False
-
+            path, is_builtin = self._get_template_info(template_info)
             svg_widget = self._create_svg_widget(path, is_builtin)
             svg_widget.setMinimumWidth(200)
             self._svg_widgets.append(svg_widget)
@@ -1162,7 +1213,7 @@ class GridLayout(BaseLayout):
         super().__init__(templates, config, parent)
         self._columns: int = config.get('columns', 2)
         self.setup_ui()
-        self.load_templates()
+        # load_templates 延迟到 showEvent 中调用
 
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
@@ -1173,7 +1224,6 @@ class GridLayout(BaseLayout):
         self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
 
         corner_widget = QWidget()
-        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1185,19 +1235,21 @@ class GridLayout(BaseLayout):
         self._scroll_area.setWidget(self._content_widget)
         main_layout.addWidget(self._scroll_area)
 
+    def showEvent(self, event):
+        """首次显示时加载模板"""
+        super().showEvent(event)
+        if not self._svg_widgets:
+            self.load_templates()
+            self.set_colors(self._colors)
+
     def load_templates(self):
         self.clear()
 
         for index, template_info in enumerate(self._templates):
-            if isinstance(template_info, dict):
-                path = template_info.get("path")
-                is_builtin = template_info.get("is_builtin", False)
-            else:
-                path = template_info
-                is_builtin = False
-
+            path, is_builtin = self._get_template_info(template_info)
             svg_widget = self._create_svg_widget(path, is_builtin)
-            svg_widget.setMinimumSize(150, 150)
+            svg_widget.setMinimumSize(250, 350)
+            svg_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self._svg_widgets.append(svg_widget)
 
             row = index // self._columns
@@ -1207,6 +1259,11 @@ class GridLayout(BaseLayout):
         for col in range(self._columns):
             self._content_layout.setColumnStretch(col, 1)
 
+        # 设置行拉伸，确保行高度均匀分配
+        row_count = (len(self._templates) + self._columns - 1) // self._columns
+        for row in range(row_count):
+            self._content_layout.setRowStretch(row, 1)
+
 
 class MixedLayout(BaseLayout):
     """混合布局 - 左侧2x2网格 + 右侧大图"""
@@ -1214,7 +1271,7 @@ class MixedLayout(BaseLayout):
     def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
-        self.load_templates()
+        # load_templates 延迟到 showEvent 中调用
 
     def setup_ui(self):
         main_layout = QHBoxLayout(self)
@@ -1235,18 +1292,22 @@ class MixedLayout(BaseLayout):
         main_layout.addWidget(self._left_widget, stretch=1)
         main_layout.addWidget(self._right_widget, stretch=1)
 
+    def showEvent(self, event):
+        """首次显示时加载模板"""
+        super().showEvent(event)
+        if not self._svg_widgets:
+            self.load_templates()
+            self.set_colors(self._colors)
+
     def load_templates(self):
         self.clear()
 
-        def get_template_info(template_info):
-            if isinstance(template_info, dict):
-                return template_info.get("path"), template_info.get("is_builtin", False)
-            return template_info, False
-
         grid_templates = self._templates[:4]
         for index, template_info in enumerate(grid_templates):
-            path, is_builtin = get_template_info(template_info)
+            path, is_builtin = self._get_template_info(template_info)
             svg_widget = self._create_svg_widget(path, is_builtin)
+            svg_widget.setMinimumSize(200, 200)
+            svg_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self._svg_widgets.append(svg_widget)
 
             row = index // 2
@@ -1266,8 +1327,10 @@ class MixedLayout(BaseLayout):
             right_template_info = None
 
         if right_template_info:
-            path, is_builtin = get_template_info(right_template_info)
+            path, is_builtin = self._get_template_info(right_template_info)
             svg_widget = self._create_svg_widget(path, is_builtin)
+            svg_widget.setMinimumSize(200, 200)
+            svg_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             self._svg_widgets.append(svg_widget)
             self._right_layout.addWidget(svg_widget)
 
@@ -1442,7 +1505,6 @@ class MixedPreviewPanel(QWidget):
         """创建UI"""
         self._main_layout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(0, 0, 0, 0)
-        self.setStyleSheet("border: none; background: transparent;")
 
     def set_scene(self, scene: str):
         """切换预览场景
@@ -1452,6 +1514,7 @@ class MixedPreviewPanel(QWidget):
         """
         self._current_scene = scene
 
+        # 先清理旧布局
         if self._current_layout:
             self._current_layout.deleteLater()
             self._current_layout = None
@@ -1460,6 +1523,11 @@ class MixedPreviewPanel(QWidget):
             self._svg_preview.deleteLater()
             self._svg_preview = None
 
+        # 使用 QTimer 延迟创建新布局，避免事件循环阻塞
+        QTimer.singleShot(10, lambda: self._create_scene_layout(scene))
+
+    def _create_scene_layout(self, scene: str):
+        """创建场景布局（延迟执行）"""
         try:
             manager = self._get_preview_service()._get_scene_type_manager()
             scene_config = manager.get_scene_type_by_id(scene)
@@ -1488,9 +1556,9 @@ class MixedPreviewPanel(QWidget):
 
             if self._current_layout:
                 self._main_layout.addWidget(self._current_layout)
-                self._current_layout.set_colors(self._colors)
                 self._current_layout.template_deleted.connect(self._on_template_deleted)
-                QTimer.singleShot(100, self._update_layout_sizes)
+                # 延迟加载模板并设置颜色，确保布局已稳定
+                QTimer.singleShot(50, lambda: self._init_layout_colors(self._current_layout))
 
         except Exception as e:
             logger.error(f"创建布局失败: {e}", exc_info=True)
@@ -1525,13 +1593,10 @@ class MixedPreviewPanel(QWidget):
         self._main_layout.addWidget(self._svg_preview)
         self._current_layout = None
 
-    def _update_layout_sizes(self):
-        """更新布局中所有SVG控件的大小"""
-        if self._current_layout and hasattr(self._current_layout, '_scroll_area'):
-            viewport_height = self._current_layout._scroll_area.viewport().height()
-            for svg_widget in self._current_layout.get_svg_widgets():
-                svg_widget.setMinimumHeight(viewport_height)
-                svg_widget.update()
+    def _init_layout_colors(self, layout):
+        """初始化布局颜色（延迟执行）"""
+        if layout == self._current_layout:
+            layout.set_colors(self._colors)
 
     def set_colors(self, colors: List[str]):
         """设置配色
@@ -1699,7 +1764,7 @@ class PreviewToolbar(QWidget):
 
     def _update_styles(self):
         """更新样式以适配主题"""
-        self.setStyleSheet("background: transparent;")
+        pass
 
     def update_texts(self):
         """更新所有界面文本"""

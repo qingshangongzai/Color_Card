@@ -317,7 +317,7 @@ original_color = "Original"
 simulated_color = "Simulated"
 original = "Original"
 simulated = "Simulated"
-description = "Note: {text}"
+description = "Note: {desc}"
 
 [dialogs.contrast]
 title = "Contrast Check"

@@ -38,18 +38,18 @@
 
 | 指标    | 数据                      |
 | :---- | :---------------------- |
-| 发布版本  | 10 个版本（v1.0.0 → v1.7.0） |
-| 开发周期  | 59 天                    |
-| 总更新项  | **127 项**               |
-| 平均每版本 | 12.7 项                  |
+| 发布版本  | 11 个版本（v1.0.0 → v1.7.1） |
+| 开发周期  | 66 天                    |
+| 总更新项  | **133 项**               |
+| 平均每版本 | 12.1 项                  |
 
 **详细分类统计**：
 
 | 分类       |   数量   | 说明              |
 | :------- | :----: | :-------------- |
 | ✨ 新增功能   | **36** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **28** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **32** | 用户体验打磨          |
+| 🔧 问题修复  | **32** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **35** | 用户体验打磨          |
 | ⚡ 性能提升   | **11** | 缓存机制、启动优化等      |
 | 📝 内容调整  |  **5** | 文本、名称等调整        |
 | ⚙️ 体验优化  |  **5** | 交互体验改进          |
@@ -63,17 +63,17 @@
 
 **一站式色彩解决方案**：从图片分析到配色应用，提供完整的色彩工作流
 
-| 功能                                                                      | 截图预览                                                                 |
-| ----------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **色彩信息提取**通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）              | !\[色彩提取]\(docs/screenshots/color-extract.png null)                   |
-| **明度分析**将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调                      | !\[明度分析]\(docs/screenshots/luminance-extract.png null)               |
-| **渐变色提取**通过起始色和结束色生成渐变色序列，支持 RGB/HSB/LAB 三种颜色空间插值                       | !\[渐变色提取]\(docs/screenshots/Gradient%20Extract.png null)             |
-| **配色生成**提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择                      | !\[配色生成]\(docs/screenshots/color-generation.png null)                |
-| **配色收藏**支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式              | !\[配色管理]\(docs/screenshots/palette-management.png null)              |
-| **内置色彩库**集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 | !\[内置色彩库]\(docs/screenshots/preset-colors.png null)                  |
-| **配色预览**支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG                  | !\[配色预览]\(docs/screenshots/color-preview\.png null)                  |
-| **多语言支持**支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言                                   | !\[多语言支持]\(docs/screenshots/locales.png null)                        |
-| **现代化界面**基于 Fluent Design 设计语言，支持深色/浅色主题切换                              | !\[深色/浅色模式]\(./docs/screenshots/Dark%20mode%26light%20mode.png null) |
+| 功能 | 截图预览 |
+|------|---------|
+| **色彩信息提取**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） | ![色彩提取](docs/screenshots/color-extract.png) |
+| **明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 | ![明度分析](docs/screenshots/luminance-extract.png) |
+| **渐变色提取**<br>通过起始色和结束色生成渐变色序列，支持 RGB/HSB/LAB 三种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
+| **配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 | ![配色生成](docs/screenshots/color-generation.png) |
+| **配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式 | ![配色管理](docs/screenshots/palette-management.png) |
+| **内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 | ![内置色彩库](docs/screenshots/preset-colors.png) |
+| **配色预览**<br>支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG | ![配色预览](docs/screenshots/color-preview.png) |
+| **多语言支持**<br>支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言 | ![多语言支持](docs/screenshots/locales.png) |
+| **现代化界面**<br>基于 Fluent Design 设计语言，支持深色/浅色主题切换 | ![深色/浅色模式](./docs/screenshots/Dark%20mode%26light%20mode.png) |
 
 ### 适用场景
 
@@ -289,18 +289,18 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 | Metric              | Data                          |
 | :------------------ | :---------------------------- |
-| Released Versions   | 10 versions (v1.0.0 → v1.7.0) |
-| Development Period  | 59 days                       |
-| Total Updates       | **127 items**                 |
-| Average per Version | 12.7 items                    |
+| Released Versions   | 11 versions (v1.0.0 → v1.7.1) |
+| Development Period  | 66 days                       |
+| Total Updates       | **133 items**                 |
+| Average per Version | 12.1 items                    |
 
 **Detailed Category Statistics(portion)**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
 | ✨ New Features         | **36** | Including 9 core features from v1.0.0 launch |
-| 🔧 Bug Fixes           | **28** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **32** | User experience refinements                  |
+| 🔧 Bug Fixes           | **32** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **35** | User experience refinements                  |
 | ⚡ Performance          | **11** | Cache mechanism, startup optimization        |
 | 📝 Content Adjustments |   **5** | Text, naming adjustments                     |
 | ⚙️ Experience          |   **5** | Interaction improvements                     |
@@ -314,18 +314,17 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 **One-stop Color Solution**: Complete color workflow from image analysis to color application
 
-| Feature                                                                                                                                                                   | Screenshot                                                                   |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **Visual Color Extraction**Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB)                            | !\[Color Extraction]\(docs/screenshots/color-extract.png null)               |
-| **Luminance Analysis**9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization                                                       | !\[Luminance Analysis]\(docs/screenshots/luminance-extract.png null)         |
-| **Gradient Extraction**Generate gradient color sequences from start and end colors, supporting RGB/HSB/LAB color space interpolation                                      | !\[Gradient Extraction]\(docs/screenshots/Gradient%20Extract.png null)       |
-| **Color Scheme Generation**5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel | !\[Color Generation]\(docs/screenshots/color-generation.png null)            |
-| **Palette Collection**Save and manage color schemes, support batch import/export in JSON format, support single palette export to Adobe ASE format                        | !\[Palette Management]\(docs/screenshots/palette-management.png null)        |
-| **Built-in Color Library**13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes                             | !\[Preset Colors]\(docs/screenshots/preset-colors.png null)                  |
-| **Color Preview**8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support                           | !\[Color Preview]\(docs/screenshots/color-preview\.png null)                 |
-| **Multi-language Support**6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian                                           | !\[Multi-language]\(docs/screenshots/locales.png null)                       |
-| **Modern Interface**Based on Fluent Design, supports dark/light theme switching                                                                                           | !\[Dark/Light Mode]\(./docs/screenshots/Dark%20mode%26light%20mode.png null) |
-
+| Feature | Screenshot |
+|---------|------------|
+| **Visual Color Extraction**<br>Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB) | ![Color Extraction](docs/screenshots/color-extract.png) |
+| **Luminance Analysis**<br>9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization | ![Luminance Analysis](docs/screenshots/luminance-extract.png) |
+| **Gradient Extraction**<br>Generate gradient color sequences from start and end colors, supporting RGB/HSB/LAB color space interpolation | ![Gradient Extraction](docs/screenshots/Gradient%20Extract.png) |
+| **Color Scheme Generation**<br>5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel | ![Color Generation](docs/screenshots/color-generation.png) |
+| **Palette Collection**<br>Save and manage color schemes, support batch import/export in JSON format, support single palette export to Adobe ASE format | ![Palette Management](docs/screenshots/palette-management.png) |
+| **Built-in Color Library**<br>13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes | ![Preset Colors](docs/screenshots/preset-colors.png) |
+| **Color Preview**<br>8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support | ![Color Preview](docs/screenshots/color-preview.png) |
+| **Multi-language Support**<br>6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian | ![Multi-language](docs/screenshots/locales.png) |
+| **Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching | ![Dark/Light Mode](./docs/screenshots/Dark%20mode%26light%20mode.png) |
 ### Use Cases
 
 **Photographer Workflow**

@@ -428,7 +428,7 @@ class ColorPickerDialog(BaseFramelessDialog):
         self._updating = False  # 防止循环更新
 
         self.setWindowTitle(tr('dialogs.color_picker.title'))
-        self.setFixedSize(520, 420)
+        self.setFixedSize(520, 460)
 
         # 设置自定义标题栏
         self._setup_title_bar()

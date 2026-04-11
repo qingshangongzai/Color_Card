@@ -317,7 +317,7 @@ original_color = "原颜色"
 simulated_color = "模拟颜色"
 original = "原始"
 simulated = "模拟"
-description = "说明: {text}"
+description = "说明: {desc}"
 
 [dialogs.contrast]
 title = "对比度检查"
