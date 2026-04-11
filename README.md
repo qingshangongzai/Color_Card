@@ -49,7 +49,7 @@
 | :------- | :----: | :-------------- |
 | ✨ 新增功能   | **36** | 包含首次发布的 9 项核心功能 |
 | 🔧 问题修复  | **32** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **34** | 用户体验打磨          |
+| 🎨 界面优化  | **35** | 用户体验打磨          |
 | ⚡ 性能提升   | **11** | 缓存机制、启动优化等      |
 | 📝 内容调整  |  **5** | 文本、名称等调整        |
 | ⚙️ 体验优化  |  **5** | 交互体验改进          |
@@ -300,7 +300,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | :--------------------- | :----: | :------------------------------------------- |
 | ✨ New Features         | **36** | Including 9 core features from v1.0.0 launch |
 | 🔧 Bug Fixes           | **32** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **34** | User experience refinements                  |
+| 🎨 UI Improvements     | **35** | User experience refinements                  |
 | ⚡ Performance          | **11** | Cache mechanism, startup optimization        |
 | 📝 Content Adjustments |   **5** | Text, naming adjustments                     |
 | ⚙️ Experience          |   **5** | Interaction improvements                     |
