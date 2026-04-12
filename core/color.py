@@ -329,7 +329,11 @@ def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
         tuple: (min_luminance, max_luminance) 元组
     """
     start = int(zone_str.split('-')[0])
-    return (int(start * ZONE_WIDTH), int((start + 1) * ZONE_WIDTH) - 1)
+    min_lum = int(start * ZONE_WIDTH)
+    max_lum = int((start + 1) * ZONE_WIDTH)
+    if max_lum < 255:
+        max_lum -= 1
+    return (min_lum, max_lum)
 
 
 def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
