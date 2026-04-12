@@ -33,11 +33,6 @@ def get_base_path() -> str:
 logger = get_logger("config")
 
 
-class ConfigLoadError(Exception):
-    """配置文件加载错误"""
-    pass
-
-
 class ConfigManager:
     """配置管理器，处理应用程序配置的加载和保存"""
 
@@ -116,10 +111,24 @@ class ConfigManager:
             logger.info(f"配置加载完成: version={version}")
 
         except (json.JSONDecodeError, IOError, OSError) as e:
-            logger.error(f"加载配置文件失败: error={e}")
-            raise ConfigLoadError(f"无法加载配置文件: {e}") from e
+            logger.error(f"加载配置文件失败，使用默认配置: error={e}")
+            # 备份损坏的配置文件（如果存在）
+            self._backup_corrupted_config()
 
         return self._config
+
+    def _backup_corrupted_config(self) -> None:
+        """备份损坏的配置文件"""
+        if not self._config_path.exists():
+            return
+        try:
+            backup_path = self._config_path.with_suffix(
+                f'.corrupted.{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+            )
+            self._config_path.rename(backup_path)
+            logger.info(f"已备份损坏的配置文件: {backup_path.name}")
+        except (IOError, OSError) as e:
+            logger.warning(f"备份损坏配置文件失败: {e}")
 
     def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
         """递归合并配置字典

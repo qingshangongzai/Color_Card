@@ -1,7 +1,7 @@
 """核心功能模块"""
 
 # 启动必需的模块立即导入
-from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager
 
 from .app_mode import (
     AppMode,
@@ -167,7 +167,6 @@ __all__ = [
     'get_scene_config_manager',
     'SceneTypeManager',
     'get_scene_type_manager',
-    'ConfigLoadError',
     # 应用模式
     'AppMode',
     'Platform',
