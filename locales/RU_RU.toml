@@ -239,6 +239,7 @@ gradient_color_space = "Цветовое пространство градиен
 gradient_color_space_desc = "Выберите цветовое пространство для интерполяции градиента"
 gradient_rgb = "RGB пространство"
 gradient_hsb = "HSB пространство"
+gradient_hsl = "HSL пространство"
 gradient_lab = "LAB пространство"
 gradient_mode = "Режим градиента"
 gradient_mode_desc = "Выберите режим извлечения градиента"
