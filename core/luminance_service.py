@@ -12,7 +12,7 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
-from .color import get_luminance, get_zone, ZONE_WIDTH
+from .color import get_luminance, get_zone, get_zone_bounds
 from .logger import get_logger, log_performance
 
 logger = get_logger("luminance_service")
@@ -351,8 +351,7 @@ class LuminanceService(QObject):
             painter = QPainter(highlight_pixmap)
             painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
 
-            min_lum = int(zone * ZONE_WIDTH)
-            max_lum = int((zone + 1) * ZONE_WIDTH) - 1
+            min_lum, max_lum = get_zone_bounds(f"{zone}-{zone+1}")
 
             scale_x = image.width() / disp_w
             scale_y = image.height() / disp_h
