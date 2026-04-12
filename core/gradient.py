@@ -238,3 +238,55 @@ def generate_random_gradient(steps: int = 2, color_space: str = 'lab') -> Tuple[
     colors = generate_gradient(start_hex, end_hex, steps, color_space)
 
     return start_hex, end_hex, colors
+
+
+def generate_lightness_shades(base_hex: str, count: int = 9) -> List[Tuple[int, int, int]]:
+    """生成单色明度梯度
+
+    固定色相和饱和度，明度从高到低均匀分布
+
+    Args:
+        base_hex: 基准颜色HEX值，如"#FF5733"
+        count: 色阶数量 (3-13)，默认9
+
+    Returns:
+        List[Tuple[int, int, int]]: RGB颜色列表
+
+    Raises:
+        ValueError: 当输入的HEX值格式无效时
+    """
+    count = max(3, min(13, count))
+
+    base_rgb = hex_to_rgb(base_hex)
+    H, S, _ = rgb_to_hsb(*base_rgb)
+
+    min_brightness = 10
+    max_brightness = 95
+    step = (max_brightness - min_brightness) / (count - 1)
+
+    colors = []
+    for i in range(count):
+        B = max_brightness - i * step
+        colors.append(hsb_to_rgb(H, S, B))
+
+    return colors
+
+
+def generate_random_lightness_shade(count: int = 9) -> Tuple[str, List[Tuple[int, int, int]]]:
+    """生成随机单色明度梯度
+
+    Args:
+        count: 色阶数量 (3-13)，默认9
+
+    Returns:
+        Tuple[str, List[Tuple[int, int, int]]]: (基准色HEX, RGB颜色列表)
+    """
+    import random
+    from .color import rgb_to_hex
+
+    base_rgb = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    base_hex = rgb_to_hex(*base_rgb)
+
+    colors = generate_lightness_shades(base_hex, count)
+
+    return base_hex, colors

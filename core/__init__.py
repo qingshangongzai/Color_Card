@@ -74,6 +74,8 @@ from .color_data import (
 from .gradient import (
     generate_gradient,
     generate_random_gradient,
+    generate_lightness_shades,
+    generate_random_lightness_shade,
 )
 
 from .async_loader import BaseBatchLoader
@@ -122,6 +124,8 @@ __all__ = [
     # 颜色工具函数
     'generate_gradient',
     'generate_random_gradient',
+    'generate_lightness_shades',
+    'generate_random_lightness_shade',
     'rgb_to_hsb',
     'rgb_to_lab',
     'rgb_to_hex',
