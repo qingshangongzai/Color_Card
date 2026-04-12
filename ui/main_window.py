@@ -342,6 +342,11 @@ class MainWindow(FluentWindow):
             gradient_extract_interface.set_color_space
         )
 
+        # 连接渐变模式改变信号到渐变提取界面
+        settings_interface.gradient_mode_changed.connect(
+            gradient_extract_interface.set_gradient_mode
+        )
+
         # 连接直方图模式改变信号到色彩提取界面
         settings_interface.histogram_mode_changed.connect(
             self._on_histogram_mode_changed

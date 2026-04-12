@@ -79,7 +79,8 @@ class ConfigManager:
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
                 "color_wheel_labels_visible": True,
-                "language": "auto"
+                "language": "auto",
+                "gradient_mode": "gradient"
             },
             "scheme": {
                 "default_scheme": "monochromatic",
