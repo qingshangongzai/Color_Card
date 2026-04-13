@@ -1,0 +1,109 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#f0f2f5"/>
+
+  <!-- 太阳/月亮 -->
+  <circle id="sun" class="accent" cx="340" cy="60" r="30" fill="#f4a261" opacity="0.8"/>
+
+  <!-- 云朵 -->
+  <g id="cloud-1" class="text" opacity="0.6">
+    <ellipse cx="80" cy="50" rx="25" ry="12" fill="#ffffff"/>
+    <ellipse cx="100" cy="45" rx="20" ry="15" fill="#ffffff"/>
+    <ellipse cx="120" cy="50" rx="22" ry="11" fill="#ffffff"/>
+  </g>
+
+  <g id="cloud-2" class="text" opacity="0.4">
+    <ellipse cx="220" cy="40" rx="18" ry="10" fill="#ffffff"/>
+    <ellipse cx="235" cy="35" rx="14" ry="12" fill="#ffffff"/>
+    <ellipse cx="248" cy="40" rx="16" ry="9" fill="#ffffff"/>
+  </g>
+
+  <!-- 远景建筑 -->
+  <rect id="building-far-1" class="secondary" x="20" y="140" width="40" height="80" fill="#a8b5c4" opacity="0.5"/>
+  <rect id="building-far-2" class="secondary" x="70" y="120" width="35" height="100" fill="#9aaab8" opacity="0.5"/>
+  <rect id="building-far-3" class="secondary" x="300" y="130" width="45" height="90" fill="#a8b5c4" opacity="0.5"/>
+  <rect id="building-far-4" class="secondary" x="355" y="150" width="35" height="70" fill="#9aaab8" opacity="0.5"/>
+
+  <!-- 中景建筑 -->
+  <rect id="building-mid-1" class="primary" x="10" y="160" width="50" height="100" fill="#5c6b7a" opacity="0.7"/>
+  <rect id="building-mid-2" class="primary" x="70" y="140" width="45" height="120" fill="#4a5568" opacity="0.75"/>
+  <rect id="building-mid-3" class="primary" x="125" y="170" width="40" height="90" fill="#5c6b7a" opacity="0.7"/>
+  <rect id="building-mid-4" class="primary" x="290" y="150" width="50" height="110" fill="#4a5568" opacity="0.75"/>
+  <rect id="building-mid-5" class="primary" x="350" y="165" width="45" height="95" fill="#5c6b7a" opacity="0.7"/>
+
+  <!-- 中景建筑窗户 -->
+  <g id="windows-mid" class="text" opacity="0.4">
+    <rect x="20" y="170" width="8" height="10" fill="#ffffff"/>
+    <rect x="35" y="170" width="8" height="10" fill="#ffffff"/>
+    <rect x="20" y="190" width="8" height="10" fill="#ffffff"/>
+    <rect x="35" y="190" width="8" height="10" fill="#ffffff"/>
+    <rect x="80" y="155" width="6" height="8" fill="#ffffff"/>
+    <rect x="95" y="155" width="6" height="8" fill="#ffffff"/>
+    <rect x="80" y="175" width="6" height="8" fill="#ffffff"/>
+    <rect x="95" y="175" width="6" height="8" fill="#ffffff"/>
+  </g>
+
+  <!-- 主建筑 - 高楼1 -->
+  <rect id="building-main-1" class="primary" x="170" y="100" width="60" height="160" fill="#2d3748"/>
+  <rect id="building-main-1-top" class="secondary" x="180" y="90" width="40" height="10" fill="#4a5568"/>
+  <line id="antenna-1" class="stroke" x1="200" y1="90" x2="200" y2="70" stroke="#4a5568" stroke-width="2"/>
+
+  <!-- 主建筑窗户网格 -->
+  <g id="windows-main" class="accent" opacity="0.6">
+    <rect x="180" y="120" width="12" height="15" fill="#f4a261"/>
+    <rect x="200" y="120" width="12" height="15" fill="#f4a261"/>
+    <rect x="220" y="120" width="12" height="15" fill="#f4a261"/>
+    <rect x="180" y="145" width="12" height="15" fill="#f4a261"/>
+    <rect x="200" y="145" width="12" height="15" fill="#f4a261"/>
+    <rect x="220" y="145" width="12" height="15" fill="#f4a261"/>
+    <rect x="180" y="170" width="12" height="15" fill="#f4a261"/>
+    <rect x="200" y="170" width="12" height="15" fill="#f4a261"/>
+    <rect x="220" y="170" width="12" height="15" fill="#f4a261"/>
+    <rect x="180" y="195" width="12" height="15" fill="#f4a261"/>
+    <rect x="200" y="195" width="12" height="15" fill="#f4a261"/>
+    <rect x="220" y="195" width="12" height="15" fill="#f4a261"/>
+  </g>
+
+  <!-- 主建筑 - 高楼2 -->
+  <rect id="building-main-2" class="secondary" x="240" y="130" width="45" height="130" fill="#3d4a5c"/>
+  <polygon id="building-main-2-top" class="primary" points="240,130 262.5,110 285,130" fill="#2d3748"/>
+
+  <!-- 高楼2窗户 -->
+  <g id="windows-2" class="text" opacity="0.5">
+    <rect x="250" y="145" width="8" height="12" fill="#ffffff"/>
+    <rect x="268" y="145" width="8" height="12" fill="#ffffff"/>
+    <rect x="250" y="165" width="8" height="12" fill="#ffffff"/>
+    <rect x="268" y="165" width="8" height="12" fill="#ffffff"/>
+    <rect x="250" y="185" width="8" height="12" fill="#ffffff"/>
+    <rect x="268" y="185" width="8" height="12" fill="#ffffff"/>
+    <rect x="250" y="205" width="8" height="12" fill="#ffffff"/>
+    <rect x="268" y="205" width="8" height="12" fill="#ffffff"/>
+  </g>
+
+  <!-- 飞鸟 -->
+  <g id="birds" class="text" opacity="0.5">
+    <path d="M120 80 Q125 75 130 80" stroke="#4a5568" stroke-width="1.5" fill="none"/>
+    <path d="M135 70 Q140 65 145 70" stroke="#4a5568" stroke-width="1.5" fill="none"/>
+    <path d="M280 90 Q285 85 290 90" stroke="#4a5568" stroke-width="1.5" fill="none"/>
+  </g>
+
+  <!-- 地面 -->
+  <rect id="ground" class="secondary" x="0" y="260" width="400" height="40" fill="#6b7c8a" opacity="0.4"/>
+
+  <!-- 道路线条 -->
+  <line id="road-line" class="stroke" x1="0" y1="280" x2="400" y2="280" stroke="#4a5568" stroke-width="1" stroke-dasharray="10,10" opacity="0.3"/>
+
+  <!-- 路灯 -->
+  <g id="streetlight-1" class="primary">
+    <rect x="50" y="240" width="4" height="40" fill="#4a5568"/>
+    <circle cx="52" cy="238" r="6" fill="#f4a261" opacity="0.8"/>
+    <line x1="52" y1="240" x2="52" y2="220" stroke="#4a5568" stroke-width="2"/>
+    <line x1="52" y1="220" x2="65" y2="220" stroke="#4a5568" stroke-width="2"/>
+  </g>
+
+  <g id="streetlight-2" class="primary">
+    <rect x="350" y="240" width="4" height="40" fill="#4a5568"/>
+    <circle cx="352" cy="238" r="6" fill="#f4a261" opacity="0.8"/>
+    <line x1="352" y1="240" x2="352" y2="220" stroke="#4a5568" stroke-width="2"/>
+    <line x1="352" y1="220" x2="339" y2="220" stroke="#4a5568" stroke-width="2"/>
+  </g>
+</svg>

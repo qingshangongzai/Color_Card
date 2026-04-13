@@ -1,0 +1,39 @@
+{
+  "layout": {
+    "type": "mixed",
+    "item_size": 180,
+    "spacing": 15
+  },
+  "scenes": [
+    {
+      "id": "pattern_geo",
+      "name": "几何图案",
+      "file": "pattern_geo.svg",
+      "description": "几何图形混合排列，展示配色在图案设计中的效果"
+    },
+    {
+      "id": "pattern_dots",
+      "name": "波点图案",
+      "file": "b_dots.svg",
+      "description": "不同大小的圆点排列组合，活泼有趣的波点设计"
+    },
+    {
+      "id": "illustration_botanical",
+      "name": "植物插画",
+      "file": "illustration_botanical.svg",
+      "description": "简约线条植物插画，展示配色在自然主题中的应用"
+    },
+    {
+      "id": "poster_food",
+      "name": "美食海报",
+      "file": "c_food.svg",
+      "description": "美食主题海报设计，展示配色在餐饮行业的应用"
+    },
+    {
+      "id": "illustration_cityscape",
+      "name": "城市剪影",
+      "file": "z_cityscape.svg",
+      "description": "现代都市天际线插画，展示配色在城市景观中的视觉效果"
+    }
+  ]
+}
