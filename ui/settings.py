@@ -57,6 +57,7 @@ class SettingsInterface(QWidget):
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
+        self._update_color_space_availability(self._gradient_mode)
         qconfig.themeChangedFinished.connect(self._update_styles)
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
@@ -361,9 +362,8 @@ class SettingsInterface(QWidget):
         self.gradient_mode_card.combo_box.setItemText(1, tr('settings.gradient_mode_shade'))
         self.gradient_color_space_card.titleLabel.setText(tr('settings.gradient_color_space'))
         self.gradient_color_space_card.contentLabel.setText(tr('settings.gradient_color_space_desc'))
-        self.gradient_color_space_card.combo_box.setItemText(0, tr('settings.gradient_rgb'))
-        self.gradient_color_space_card.combo_box.setItemText(1, tr('settings.gradient_hsb'))
-        self.gradient_color_space_card.combo_box.setItemText(2, tr('settings.gradient_lab'))
+        # 重建颜色空间下拉框（单色模式下无RGB选项）
+        self._update_color_space_availability(self._gradient_mode)
 
         # 更新帮助卡片
         self.update_card.titleLabel.setText(tr('settings.version_update'))
@@ -684,7 +684,55 @@ class SettingsInterface(QWidget):
         self._config_manager.set('settings.gradient_mode', mode)
         self._config_manager.save()
         log_user_action("change_gradient_mode", {"mode": mode})
+
+        # 单色明度梯度模式下禁用RGB选项
+        self._update_color_space_availability(mode)
+
         self.gradient_mode_changed.emit(mode)
+
+    def _update_color_space_availability(self, gradient_mode: str):
+        """根据渐变模式更新颜色空间选项可用性
+
+        单色明度梯度模式下，RGB插值不适用（无法固定色相和饱和度）
+
+        Args:
+            gradient_mode: 渐变模式 ('gradient' 或 'shade')
+        """
+        combo_box = self.gradient_color_space_card.combo_box
+        is_shade = gradient_mode == 'shade'
+
+        # 如果当前选中的是RGB且切换到单色模式，自动切换为HSB
+        if is_shade and self._gradient_color_space == 'rgb':
+            self._gradient_color_space = 'hsb'
+            self._config_manager.set('settings.gradient_color_space', 'hsb')
+            self._config_manager.save()
+            self.gradient_color_space_changed.emit('hsb')
+
+        # 重建下拉框选项
+        current_data = self._gradient_color_space
+        combo_box.blockSignals(True)
+        combo_box.clear()
+
+        if not is_shade:
+            combo_box.addItem(tr('settings.gradient_rgb'))
+            combo_box.setItemData(combo_box.count() - 1, "rgb")
+
+        combo_box.addItem(tr('settings.gradient_hsb'))
+        combo_box.setItemData(combo_box.count() - 1, "hsb")
+
+        combo_box.addItem(tr('settings.gradient_hsl'))
+        combo_box.setItemData(combo_box.count() - 1, "hsl")
+
+        combo_box.addItem(tr('settings.gradient_lab'))
+        combo_box.setItemData(combo_box.count() - 1, "lab")
+
+        # 恢复选中项
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == current_data:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.blockSignals(False)
 
     def _create_gradient_color_space_card(self):
         """创建渐变颜色空间选择卡片"""
@@ -698,25 +746,13 @@ class SettingsInterface(QWidget):
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
-        combo_box.addItem(tr('settings.gradient_rgb'))
-        combo_box.setItemData(0, "rgb")
-        combo_box.addItem(tr('settings.gradient_hsb'))
-        combo_box.setItemData(1, "hsb")
-        combo_box.addItem(tr('settings.gradient_lab'))
-        combo_box.setItemData(2, "lab")
-
-        for i in range(combo_box.count()):
-            if combo_box.itemData(i) == self._gradient_color_space:
-                combo_box.setCurrentIndex(i)
-                break
-
+        # 初始选项由 _update_color_space_availability 统一管理
+        card.combo_box = combo_box
         combo_box.setFixedWidth(120)
         combo_box.currentIndexChanged.connect(self._on_gradient_color_space_changed)
 
         card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
         card.hBoxLayout.addSpacing(16)
-
-        card.combo_box = combo_box
 
         return card
 

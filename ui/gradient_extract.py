@@ -651,7 +651,7 @@ class GradientExtractInterface(QWidget):
         """生成渐变色"""
         try:
             if self._gradient_mode == 'shade':
-                colors = generate_lightness_shades(self._start_color, self._steps)
+                colors = generate_lightness_shades(self._start_color, self._steps, self._color_space)
             else:
                 colors = generate_gradient(
                     self._start_color,
@@ -669,7 +669,7 @@ class GradientExtractInterface(QWidget):
     def _on_random_clicked(self):
         """随机按钮点击"""
         if self._gradient_mode == 'shade':
-            base_hex, colors = generate_random_lightness_shade(self._steps)
+            base_hex, colors = generate_random_lightness_shade(self._steps, self._color_space)
             self._start_color = base_hex
             self.start_color_dot.set_color(base_hex)
             self.start_color_input.setText(base_hex)
