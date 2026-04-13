@@ -1,0 +1,50 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 页面背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#f8f9fa"/>
+
+  <!-- 导航栏 -->
+  <rect id="navbar" class="primary" x="0" y="0" width="600" height="40" fill="#1a1a2e"/>
+  <rect id="logo" class="accent" x="25" y="10" width="30" height="20" rx="4" fill="#e94560"/>
+  <text id="logo-text" class="text" x="62" y="24" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" data-fixed-color="black">Brand</text>
+
+  <!-- 导航链接 -->
+  <text id="nav-product" class="text" x="420" y="24" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">产品</text>
+  <text id="nav-features" class="text" x="465" y="24" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">特性</text>
+  <text id="nav-pricing" class="text" x="510" y="24" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">定价</text>
+
+  <!-- CTA按钮 -->
+  <rect id="nav-cta" class="accent" x="555" y="10" width="30" height="20" rx="10" fill="#e94560"/>
+
+  <!-- Hero区域 -->
+  <rect id="hero-bg" class="secondary" x="0" y="40" width="600" height="120" fill="#16213e"/>
+
+  <!-- 大标题 -->
+  <text id="hero-title-1" class="text" x="300" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffffff" data-fixed-color="black">革新你的工作方式</text>
+  <text id="hero-title-2" class="text" x="300" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#a0a0a0" data-fixed-color="black">强大的工具，简洁的体验</text>
+
+  <!-- CTA按钮组 -->
+  <rect id="cta-primary" class="accent" x="230" y="115" width="100" height="30" rx="6" fill="#e94560"/>
+  <text id="cta-primary-text" class="text" x="280" y="133" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" data-fixed-color="black">免费开始</text>
+
+  <rect id="cta-secondary" class="secondary" x="340" y="115" width="100" height="30" rx="6" fill="#0f3460"/>
+  <text id="cta-secondary-text" class="text" x="390" y="133" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" data-fixed-color="black">了解更多</text>
+
+  <!-- 特性列表区域 -->
+  <!-- 特性1 -->
+  <rect id="feature-1-bg" class="secondary" x="40" y="180" width="160" height="100" rx="8" fill="#ffffff"/>
+  <rect id="feature-1-icon" class="accent" x="100" y="195" width="40" height="40" rx="8" fill="#e94560"/>
+  <text id="feature-1-title" class="text" x="120" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1a1a2e" data-fixed-color="black">极速性能</text>
+  <text id="feature-1-desc" class="text" x="120" y="272" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">毫秒级响应</text>
+
+  <!-- 特性2 -->
+  <rect id="feature-2-bg" class="secondary" x="220" y="180" width="160" height="100" rx="8" fill="#ffffff"/>
+  <rect id="feature-2-icon" class="primary" x="280" y="195" width="40" height="40" rx="8" fill="#1a1a2e"/>
+  <text id="feature-2-title" class="text" x="300" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1a1a2e" data-fixed-color="black">安全可靠</text>
+  <text id="feature-2-desc" class="text" x="300" y="272" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">企业级加密</text>
+
+  <!-- 特性3 -->
+  <rect id="feature-3-bg" class="secondary" x="400" y="180" width="160" height="100" rx="8" fill="#ffffff"/>
+  <rect id="feature-3-icon" class="accent" x="460" y="195" width="40" height="40" rx="8" fill="#e94560"/>
+  <text id="feature-3-title" class="text" x="480" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#1a1a2e" data-fixed-color="black">全球部署</text>
+  <text id="feature-3-desc" class="text" x="480" y="272" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">覆盖200+国家</text>
+</svg>
