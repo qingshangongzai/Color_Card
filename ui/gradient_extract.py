@@ -35,10 +35,11 @@ class ColorDot(QWidget):
         self._radius = 12
         self.setFixedSize(24, 24)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._update_style()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
-    def _update_style(self):
-        """更新样式"""
+    def _update_styles(self):
+        """更新样式以适配主题"""
         border_color = get_border_color()
         self.setStyleSheet(f"""
             ColorDot {{
@@ -49,20 +50,14 @@ class ColorDot(QWidget):
         """)
 
     def paintEvent(self, event):
-        """绘制事件，确保背景色显示"""
+        """绘制颜色圆"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 绘制背景圆
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QColor(self._color))
-        painter.drawEllipse(self.rect().center(), self._radius, self._radius)
-
-        # 绘制边框
-        border_color = get_border_color()
-        painter.setPen(QColor(border_color))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawEllipse(self.rect().center(), self._radius - 1, self._radius - 1)
+        # 留出1像素边距，避免边缘被截断
+        painter.drawEllipse(self.rect().adjusted(1, 1, -1, -1))
 
     def set_color(self, hex_color: str):
         """设置颜色
@@ -71,7 +66,7 @@ class ColorDot(QWidget):
             hex_color: HEX颜色值，如"#FF0000"
         """
         self._color = hex_color
-        self._update_style()
+        self._update_styles()
         self.update()
 
     def get_color(self) -> str:
