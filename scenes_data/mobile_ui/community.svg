@@ -1,0 +1,78 @@
+<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 透明 -->
+  <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
+
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#666666" data-fixed-color="original"/>
+
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="81" y="24" width="138" height="352" rx="16" fill="#ffffff"/>
+
+  <!-- 顶部装饰背景 -->
+  <rect id="header-bg" class="secondary" x="85" y="30" width="130" height="45" rx="10" fill="#a8c0d8"/>
+
+  <!-- 状态栏 -->
+  <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
+
+  <!-- 页面标题 -->
+  <text id="page-title" class="text" x="95" y="95" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333" data-fixed-color="black">社区</text>
+
+  <!-- 发布按钮 -->
+  <rect id="post-btn" class="accent" x="175" y="82" width="30" height="18" rx="9" fill="#ff6b6b"/>
+  <text id="post-text" x="190" y="94" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" data-fixed-color="black">+</text>
+
+  <!-- 热门话题标签 -->
+  <rect id="tag-1" class="accent" x="95" y="108" width="45" height="20" rx="10" fill="#ff6b6b"/>
+  <text id="tag-1-text" class="text" x="117" y="121" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">#健身打卡</text>
+
+  <rect id="tag-2" class="secondary" x="145" y="108" width="45" height="20" rx="10" fill="#e0e0e0"/>
+  <text id="tag-2-text" class="text" x="167" y="121" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">#减脂餐</text>
+
+  <!-- 动态卡片1 -->
+  <rect id="card-1" class="secondary" x="95" y="138" width="110" height="85" rx="10" fill="#f5f5f5"/>
+
+  <!-- 用户头像1 -->
+  <circle id="avatar-1" class="primary" cx="110" cy="155" r="10" fill="#4a4a4a"/>
+  <text id="avatar-1-text" x="110" y="159" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">L</text>
+
+  <!-- 用户名1 -->
+  <text id="username-1" class="text" x="128" y="152" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#333333" data-fixed-color="black">Lisa</text>
+  <text id="time-1" class="text" x="128" y="163" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">2小时前</text>
+
+  <!-- 动态内容1 -->
+  <text id="content-1" class="text" x="105" y="180" font-family="Arial, sans-serif" font-size="9" fill="#333333" data-fixed-color="black">今天完成了5公里跑步！</text>
+  <text id="content-1-2" class="text" x="105" y="192" font-family="Arial, sans-serif" font-size="9" fill="#333333" data-fixed-color="black">感觉太棒了 💪</text>
+
+  <!-- 互动按钮1 -->
+  <circle id="like-1" cx="110" cy="212" r="5" fill="#ff6b6b" opacity="0.3"/>
+  <text id="like-count-1" class="text" x="120" y="215" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">128</text>
+  <circle id="comment-1" cx="150" cy="212" r="5" fill="#999999" opacity="0.3"/>
+  <text id="comment-count-1" class="text" x="160" y="215" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">23</text>
+
+  <!-- 动态卡片2 -->
+  <rect id="card-2" class="secondary" x="95" y="230" width="110" height="75" rx="10" fill="#f5f5f5"/>
+
+  <!-- 用户头像2 -->
+  <circle id="avatar-2" class="accent" cx="110" cy="247" r="10" fill="#ff6b6b"/>
+  <text id="avatar-2-text" x="110" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">M</text>
+
+  <!-- 用户名2 -->
+  <text id="username-2" class="text" x="128" y="244" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#333333" data-fixed-color="black">Mike</text>
+  <text id="time-2" class="text" x="128" y="255" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">5小时前</text>
+
+  <!-- 动态内容2 -->
+  <text id="content-2" class="text" x="105" y="272" font-family="Arial, sans-serif" font-size="9" fill="#333333" data-fixed-color="black">分享今天的减脂餐 🥗</text>
+
+  <!-- 图片占位 -->
+  <rect id="image-2" class="primary" x="105" y="280" width="40" height="18" rx="4" fill="#4a4a4a"/>
+
+  <!-- 互动按钮2 -->
+  <circle id="like-2" cx="115" cy="290" r="5" fill="#999999" opacity="0.3"/>
+  <text id="like-count-2" class="text" x="125" y="293" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">86</text>
+
+  <!-- 底部导航栏 -->
+  <rect id="bottom-nav" class="secondary" x="95" y="320" width="110" height="35" rx="17" fill="#f5f5f5"/>
+  <circle id="nav-icon-1" cx="120" cy="337" r="4" fill="#cccccc" data-fixed-color="black"/>
+  <circle id="nav-icon-2" class="primary" cx="150" cy="337" r="5" fill="#4a4a4a"/>
+  <circle id="nav-icon-3" cx="180" cy="337" r="4" fill="#cccccc" data-fixed-color="black"/>
+</svg>

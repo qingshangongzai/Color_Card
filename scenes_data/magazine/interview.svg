@@ -1,0 +1,53 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#ffffff"/>
+
+  <!-- 顶部装饰 -->
+  <rect id="top-accent" class="accent" x="0" y="0" width="600" height="8" fill="#ff6b6b"/>
+
+  <!-- 访谈标题 -->
+  <text id="interview-label" class="accent" x="20" y="35" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ff6b6b">独家访谈</text>
+  <text id="interview-title" class="text" x="20" y="60" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">对话色彩大师</text>
+
+  <!-- 左侧人物照片区域 -->
+  <rect id="portrait-bg" class="primary" x="20" y="75" width="150" height="180" rx="4" fill="#1a1a1a"/>
+  <ellipse id="portrait-head" class="secondary" cx="95" cy="130" rx="35" ry="40" fill="#333333"/>
+  <rect id="portrait-body" class="secondary" x="60" y="170" width="70" height="70" rx="8" fill="#444444"/>
+
+  <!-- 人物姓名 -->
+  <text id="person-name" class="text" x="20" y="275" font-family="Georgia, serif" font-size="12" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">张艺术</text>
+  <text id="person-title" class="secondary" x="20" y="290" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">国际知名色彩顾问</text>
+
+  <!-- 问答区域 -->
+  <!-- Q1 -->
+  <rect id="q1-marker" class="accent" x="190" y="85" width="20" height="20" rx="2" fill="#ff6b6b"/>
+  <text id="q1-label" class="text" x="197" y="99" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">Q</text>
+  <rect id="q1-line-1" class="primary" x="220" y="90" width="360" height="5" rx="1" fill="#cccccc"/>
+  <rect id="q1-line-2" class="primary" x="220" y="100" width="340" height="5" rx="1" fill="#cccccc"/>
+
+  <!-- A1 -->
+  <rect id="a1-marker" class="secondary" x="190" y="115" width="20" height="20" rx="2" fill="#666666"/>
+  <text id="a1-label" class="text" x="197" y="129" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">A</text>
+  <rect id="a1-line-1" class="secondary" x="220" y="120" width="350" height="4" rx="1" fill="#dddddd"/>
+  <rect id="a1-line-2" class="secondary" x="220" y="128" width="330" height="4" rx="1" fill="#dddddd"/>
+  <rect id="a1-line-3" class="secondary" x="220" y="136" width="345" height="4" rx="1" fill="#dddddd"/>
+
+  <!-- Q2 -->
+  <rect id="q2-marker" class="accent" x="190" y="155" width="20" height="20" rx="2" fill="#ff6b6b"/>
+  <text id="q2-label" class="text" x="197" y="169" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">Q</text>
+  <rect id="q2-line-1" class="primary" x="220" y="160" width="340" height="5" rx="1" fill="#cccccc"/>
+  <rect id="q2-line-2" class="primary" x="220" y="170" width="320" height="5" rx="1" fill="#cccccc"/>
+
+  <!-- A2 -->
+  <rect id="a2-marker" class="secondary" x="190" y="185" width="20" height="20" rx="2" fill="#666666"/>
+  <text id="a2-label" class="text" x="197" y="199" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">A</text>
+  <rect id="a2-line-1" class="secondary" x="220" y="190" width="360" height="4" rx="1" fill="#dddddd"/>
+  <rect id="a2-line-2" class="secondary" x="220" y="198" width="340" height="4" rx="1" fill="#dddddd"/>
+  <rect id="a2-line-3" class="secondary" x="220" y="206" width="350" height="4" rx="1" fill="#dddddd"/>
+
+  <!-- 精彩语录 -->
+  <rect id="highlight-box" class="secondary" x="190" y="225" width="390" height="55" rx="4" fill="#f5f5f5"/>
+  <text id="highlight-title" class="accent" x="200" y="242" font-family="Arial, sans-serif" font-size="9" font-weight="bold" fill="#ff6b6b">精彩语录</text>
+  <text id="highlight-quote" class="text" x="200" y="260" font-family="Georgia, serif" font-size="10" font-style="italic" fill="#1a1a1a" data-fixed-color="black">"色彩不仅是视觉体验，更是情感的载体。"</text>
+  <text id="highlight-author" class="secondary" x="200" y="275" font-family="Arial, sans-serif" font-size="8" fill="#999999" data-fixed-color="black">— 张艺术</text>
+</svg>

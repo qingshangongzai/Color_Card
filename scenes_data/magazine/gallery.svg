@@ -1,0 +1,38 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#1a1a1a"/>
+
+  <!-- 顶部标题栏 -->
+  <rect id="header-bg" class="primary" x="0" y="0" width="600" height="45" fill="#000000"/>
+  <text id="gallery-title" class="text" x="300" y="28" text-anchor="middle" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#ffffff" data-fixed-color="black">色彩画廊</text>
+
+  <!-- 画廊网格 -->
+  <!-- 第一行 -->
+  <rect id="gallery-1" class="accent" x="20" y="60" width="130" height="100" rx="4" fill="#ff6b6b"/>
+  <rect id="gallery-1-inner" class="secondary" x="30" y="70" width="110" height="80" rx="2" fill="#333333"/>
+
+  <rect id="gallery-2" class="primary" x="165" y="60" width="130" height="100" rx="4" fill="#333333"/>
+  <rect id="gallery-2-inner" class="secondary" x="175" y="70" width="110" height="80" rx="2" fill="#444444"/>
+
+  <rect id="gallery-3" class="secondary" x="310" y="60" width="130" height="100" rx="4" fill="#555555"/>
+  <rect id="gallery-3-inner" class="primary" x="320" y="70" width="110" height="80" rx="2" fill="#222222"/>
+
+  <rect id="gallery-4" class="accent" x="455" y="60" width="125" height="100" rx="4" fill="#ff6b6b"/>
+  <rect id="gallery-4-inner" class="secondary" x="465" y="70" width="105" height="80" rx="2" fill="#333333"/>
+
+  <!-- 第二行 -->
+  <rect id="gallery-5" class="secondary" x="20" y="175" width="130" height="100" rx="4" fill="#444444"/>
+  <rect id="gallery-5-inner" class="primary" x="30" y="185" width="110" height="80" rx="2" fill="#222222"/>
+
+  <rect id="gallery-6" class="accent" x="165" y="175" width="130" height="100" rx="4" fill="#ff6b6b"/>
+  <rect id="gallery-6-inner" class="secondary" x="175" y="185" width="110" height="80" rx="2" fill="#333333"/>
+
+  <rect id="gallery-7" class="primary" x="310" y="175" width="130" height="100" rx="4" fill="#333333"/>
+  <rect id="gallery-7-inner" class="secondary" x="320" y="185" width="110" height="80" rx="2" fill="#444444"/>
+
+  <rect id="gallery-8" class="secondary" x="455" y="175" width="125" height="100" rx="4" fill="#555555"/>
+  <rect id="gallery-8-inner" class="primary" x="465" y="185" width="105" height="80" rx="2" fill="#222222"/>
+
+  <!-- 底部信息 -->
+  <text id="gallery-info" class="secondary" x="300" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">精选作品展示 | 2026春季特辑</text>
+</svg>
