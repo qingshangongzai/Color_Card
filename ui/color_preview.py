@@ -1109,9 +1109,18 @@ class ScrollVLayout(BaseLayout):
 
         self._scroll_area = ScrollArea()
         self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self._scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+            QScrollArea > QWidget > QWidget {
+                background: transparent;
+            }
+        """)
 
         corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1173,9 +1182,18 @@ class ScrollHLayout(BaseLayout):
 
         self._scroll_area = ScrollArea()
         self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self._scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+            QScrollArea > QWidget > QWidget {
+                background: transparent;
+            }
+        """)
 
         corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
@@ -1221,9 +1239,18 @@ class GridLayout(BaseLayout):
 
         self._scroll_area = ScrollArea()
         self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setStyleSheet("QScrollArea { border: none; }")
+        self._scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: none;
+                background: transparent;
+            }
+            QScrollArea > QWidget > QWidget {
+                background: transparent;
+            }
+        """)
 
         corner_widget = QWidget()
+        corner_widget.setStyleSheet("background: transparent;")
         self._scroll_area.setCornerWidget(corner_widget)
 
         self._content_widget = QWidget()
