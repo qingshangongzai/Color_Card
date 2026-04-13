@@ -1,0 +1,28 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#e8f4f8"/>
+
+  <circle id="sun" class="accent" cx="320" cy="60" r="35" fill="#ff9f43"/>
+
+  <path id="mountain-1" class="primary" d="M 50 200 L 120 100 L 190 200 Z" fill="#2d3436"/>
+  <path id="mountain-2" class="secondary" d="M 150 200 L 220 80 L 290 200 Z" fill="#636e72"/>
+  <path id="mountain-3" class="primary" d="M 250 200 L 320 110 L 390 200 Z" fill="#2d3436"/>
+
+  <path id="snow-1" class="background" d="M 105 130 L 120 100 L 135 130 Z" fill="#ffffff"/>
+  <path id="snow-2" class="background" d="M 205 110 L 220 80 L 235 110 Z" fill="#ffffff"/>
+  <path id="snow-3" class="background" d="M 305 135 L 320 110 L 335 135 Z" fill="#ffffff"/>
+
+  <path id="cloud-1" class="background" d="M 60 70 Q 75 50 90 70 Q 105 50 120 70 Q 135 70 120 85 Q 90 90 60 85 Q 45 70 60 70" fill="#ffffff" opacity="0.9"/>
+  <path id="cloud-2" class="background" d="M 200 50 Q 215 30 230 50 Q 245 30 260 50 Q 275 50 260 65 Q 230 70 200 65 Q 185 50 200 50" fill="#ffffff" opacity="0.8"/>
+
+  <circle id="tree-1-top" class="accent" cx="70" cy="230" r="15" fill="#00b894"/>
+  <rect id="tree-1-trunk" class="secondary" x="65" y="240" width="10" height="20" fill="#636e72"/>
+
+  <circle id="tree-2-top" class="accent" cx="340" cy="235" r="12" fill="#00b894"/>
+  <rect id="tree-2-trunk" class="secondary" x="336" y="243" width="8" height="17" fill="#636e72"/>
+
+  <rect id="ground" class="secondary" x="0" y="260" width="400" height="40" fill="#74b9ff" opacity="0.3"/>
+
+  <text id="main-title" class="text" x="200" y="295" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="28" font-weight="bold" fill="#2d3436" data-fixed-color="black">探索世界</text>
+
+  <text id="subtitle" class="primary" x="200" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#2d3436" data-fixed-color="black" opacity="0">旅行</text>
+</svg>

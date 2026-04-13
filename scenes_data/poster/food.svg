@@ -1,0 +1,29 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect id="background" class="background" width="400" height="300" fill="#fff9f0"/>
+
+  <ellipse id="plate" class="secondary" cx="200" cy="160" rx="120" ry="80" fill="#ffffff" stroke="#ddd" stroke-width="2"/>
+  <ellipse id="plate-inner" class="background" cx="200" cy="160" rx="90" ry="60" fill="#fff9f0"/>
+
+  <circle id="food-1" class="accent" cx="170" cy="150" r="25" fill="#e17055"/>
+  <circle id="food-2" class="primary" cx="200" cy="140" r="28" fill="#fdcb6e"/>
+  <circle id="food-3" class="accent" cx="230" cy="155" r="22" fill="#d63031"/>
+
+  <ellipse id="garnish-1" class="primary" cx="185" cy="175" rx="15" ry="8" fill="#00b894"/>
+  <ellipse id="garnish-2" class="primary" cx="215" cy="170" rx="12" ry="6" fill="#00b894"/>
+
+  <rect id="chopstick-1" class="secondary" x="310" y="80" width="80" height="6" rx="2" fill="#8b4513" transform="rotate(25 310 80)"/>
+  <rect id="chopstick-2" class="secondary" x="315" y="95" width="80" height="6" rx="2" fill="#8b4513" transform="rotate(25 315 95)"/>
+
+  <circle id="steam-1" class="secondary" cx="170" cy="110" r="8" fill="#b2bec3" opacity="0.5"/>
+  <circle id="steam-2" class="secondary" cx="200" cy="95" r="10" fill="#b2bec3" opacity="0.4"/>
+  <circle id="steam-3" class="secondary" cx="230" cy="105" r="7" fill="#b2bec3" opacity="0.5"/>
+
+  <circle id="deco-dot-1" class="accent" cx="50" cy="50" r="8" fill="#e17055"/>
+  <circle id="deco-dot-2" class="primary" cx="70" cy="70" r="5" fill="#fdcb6e"/>
+  <circle id="deco-dot-3" class="accent" cx="350" cy="250" r="10" fill="#d63031"/>
+  <circle id="deco-dot-4" class="primary" cx="370" cy="230" r="6" fill="#fdcb6e"/>
+
+  <text id="main-title" class="text" x="200" y="270" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">美食盛宴</text>
+
+  <text id="subtitle" class="text" x="200" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#333333" data-fixed-color="black">品味生活 · 享受美味</text>
+</svg>
