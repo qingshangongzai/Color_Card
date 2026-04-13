@@ -1422,11 +1422,17 @@ class PreviewSceneSelector(ComboBox):
             self.setEnabled(False)
         else:
             self.setEnabled(True)
-            for scene_type in self._scene_types:
+            default_index = 0
+            for index, scene_type in enumerate(self._scene_types):
                 scene_id = scene_type.get("id", "")
                 scene_name = scene_type.get("name", scene_id)
                 self.addItem(scene_name)
                 self.setItemData(self.count() - 1, scene_id)
+                # 检查是否为默认场景
+                if scene_type.get("default", False):
+                    default_index = index
+            # 设置默认选中项
+            self.setCurrentIndex(default_index)
 
     def _on_selection_changed(self, text: str):
         """处理选择变化"""
@@ -1446,7 +1452,7 @@ class PreviewSceneSelector(ComboBox):
 
     def get_current_scene(self) -> str:
         """获取当前场景ID"""
-        return self.itemData(self.currentIndex()) or "mobile_ui"
+        return self.itemData(self.currentIndex()) or "showcase"
 
     def reload_scenes(self):
         """重新加载场景列表"""
@@ -1483,7 +1489,7 @@ class MixedPreviewPanel(QWidget):
             parent: 父控件
         """
         self._colors: List[str] = []
-        self._current_scene: str = "mobile_ui"
+        self._current_scene: str = "showcase"
         self._current_layout: Optional[BaseLayout] = None
         self._svg_preview: Optional[SVGPreviewWidget] = None
         self._custom_svg_path: Optional[str] = None
@@ -1672,7 +1678,7 @@ class PreviewToolbar(QWidget):
         Args:
             parent: 父控件
         """
-        self._current_scene = "mobile_ui"
+        self._current_scene = "showcase"
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
@@ -1829,7 +1835,7 @@ class ColorPreviewInterface(QWidget):
         self._favorites = []
         self._current_index = 0
         self._current_colors: list[str] = []
-        self._current_scene = "mobile_ui"
+        self._current_scene = "showcase"
         self._current_svg_path = ""
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self._scene_types_loaded = False

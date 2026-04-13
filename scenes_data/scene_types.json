@@ -2,11 +2,12 @@
   "version": "3.0",
   "scene_types": [
     {
-      "id": "mobile_ui",
-      "name": "手机UI",
-      "icon": "phone",
-      "description": "手机应用界面预览",
-      "builtin": true
+      "id": "showcase",
+      "name": "混合",
+      "icon": "gallery",
+      "description": "混合布局预览，左侧2x2网格+右侧大图",
+      "builtin": true,
+      "default": true
     },
     {
       "id": "web",
@@ -55,6 +56,13 @@
       "name": "杂志",
       "icon": "book",
       "description": "杂志风格排版预览",
+      "builtin": true
+    },
+    {
+      "id": "mobile_ui",
+      "name": "手机UI",
+      "icon": "phone",
+      "description": "手机应用界面预览",
       "builtin": true
     },
     {
