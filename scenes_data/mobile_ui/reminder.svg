@@ -1,0 +1,75 @@
+<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 透明 -->
+  <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
+
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#666666" data-fixed-color="original"/>
+
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="81" y="24" width="138" height="352" rx="16" fill="#ffffff"/>
+
+  <!-- 顶部装饰背景 -->
+  <rect id="header-bg" class="accent" x="85" y="30" width="130" height="45" rx="10" fill="#ff9a8a"/>
+
+  <!-- 状态栏 -->
+  <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#ffffff" data-fixed-color="black">9:41</text>
+
+  <!-- 页面标题 -->
+  <text id="page-title" class="text" x="150" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333" data-fixed-color="black">训练提醒</text>
+
+  <!-- 返回按钮 -->
+  <path id="back-btn" d="M 95 84 L 90 87 L 95 90" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+
+  <!-- 添加按钮 -->
+  <rect id="add-btn" class="accent" x="185" y="77" width="20" height="18" rx="9" fill="#ff6b6b"/>
+  <text id="add-text" x="195" y="89" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">+</text>
+
+  <!-- 时间选择器卡片 -->
+  <rect id="time-picker-card" class="secondary" x="95" y="108" width="110" height="70" rx="12" fill="#f5f5f5"/>
+  <text id="time-label" class="text" x="150" y="125" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">提醒时间</text>
+
+  <!-- 时间显示 -->
+  <text id="hour" class="text" x="130" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333333" data-fixed-color="black">07</text>
+  <text id="colon" class="text" x="150" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ff6b6b" data-fixed-color="black">:</text>
+  <text id="minute" class="text" x="170" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333333" data-fixed-color="black">30</text>
+
+  <!-- 重复周期设置 -->
+  <text id="repeat-title" class="text" x="95" y="195" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333333" data-fixed-color="black">重复</text>
+
+  <!-- 星期选择 -->
+  <circle id="day-mon" class="accent" cx="105" cy="215" r="10" fill="#ff6b6b"/>
+  <text id="day-mon-text" x="105" y="219" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">一</text>
+
+  <circle id="day-tue" class="accent" cx="130" cy="215" r="10" fill="#ff6b6b"/>
+  <text id="day-tue-text" x="130" y="219" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">二</text>
+
+  <circle id="day-wed" class="accent" cx="155" cy="215" r="10" fill="#ff6b6b"/>
+  <text id="day-wed-text" x="155" y="219" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">三</text>
+
+  <circle id="day-thu" class="accent" cx="180" cy="215" r="10" fill="#ff6b6b"/>
+  <text id="day-thu-text" x="180" y="219" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">四</text>
+
+  <circle id="day-fri" class="primary" cx="105" cy="240" r="10" fill="#4a4a4a"/>
+  <text id="day-fri-text" x="105" y="244" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#ffffff" data-fixed-color="black">五</text>
+
+  <circle id="day-sat" class="secondary" cx="130" cy="240" r="10" fill="#e0e0e0"/>
+  <text id="day-sat-text" x="130" y="244" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">六</text>
+
+  <circle id="day-sun" class="secondary" cx="155" cy="240" r="10" fill="#e0e0e0"/>
+  <text id="day-sun-text" x="155" y="244" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#666666" data-fixed-color="black">日</text>
+
+  <!-- 训练类型选择 -->
+  <text id="type-title" class="text" x="95" y="275" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#333333" data-fixed-color="black">训练类型</text>
+
+  <rect id="type-1" class="accent" x="95" y="285" width="50" height="25" rx="12" fill="#ff6b6b"/>
+  <text id="type-1-text" x="120" y="301" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" data-fixed-color="black">跑步</text>
+
+  <rect id="type-2" class="secondary" x="152" y="285" width="50" height="25" rx="12" fill="#e0e0e0"/>
+  <text id="type-2-text" x="177" y="301" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">力量</text>
+
+  <!-- 提醒开关 -->
+  <rect id="reminder-item" class="secondary" x="95" y="325" width="110" height="35" rx="8" fill="#f5f5f5"/>
+  <text id="reminder-text" class="text" x="110" y="347" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">开启提醒</text>
+  <rect id="switch-bg" x="175" y="337" width="22" height="12" rx="6" fill="#4CAF50"/>
+  <circle id="switch-knob" cx="193" cy="343" r="5" fill="#ffffff"/>
+</svg>

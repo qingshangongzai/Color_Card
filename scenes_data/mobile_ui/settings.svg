@@ -1,0 +1,60 @@
+<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 透明 -->
+  <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
+
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#666666" data-fixed-color="original"/>
+
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="81" y="24" width="138" height="352" rx="16" fill="#ffffff"/>
+
+  <!-- 顶部装饰背景 -->
+  <rect id="header-bg" class="secondary" x="85" y="30" width="130" height="45" rx="10" fill="#c8d0d8"/>
+
+  <!-- 状态栏 -->
+  <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">9:41</text>
+
+  <!-- 页面标题 -->
+  <text id="page-title" class="text" x="150" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333" data-fixed-color="black">设置</text>
+
+  <!-- 返回按钮 -->
+  <path id="back-btn" d="M 95 84 L 90 87 L 95 90" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+
+  <!-- 账户设置组 -->
+  <text id="group-title-1" class="text" x="95" y="120" font-family="Arial, sans-serif" font-size="10" fill="#888888" data-fixed-color="black">账户</text>
+
+  <rect id="setting-item-1" class="secondary" x="95" y="128" width="110" height="35" rx="8" fill="#f5f5f5"/>
+  <circle id="icon-1" class="primary" cx="110" cy="145" r="8" fill="#4a4a4a"/>
+  <text id="text-1" class="text" x="128" y="148" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">个人资料</text>
+  <path id="arrow-1" d="M 190 143 L 195 145 L 190 147" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+
+  <rect id="setting-item-2" class="secondary" x="95" y="168" width="110" height="35" rx="8" fill="#f5f5f5"/>
+  <circle id="icon-2" class="accent" cx="110" cy="185" r="8" fill="#ff6b6b"/>
+  <text id="text-2" class="text" x="128" y="188" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">账号安全</text>
+  <path id="arrow-2" d="M 190 183 L 195 185 L 190 187" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+
+  <!-- 通用设置组 -->
+  <text id="group-title-2" class="text" x="95" y="220" font-family="Arial, sans-serif" font-size="10" fill="#888888" data-fixed-color="black">通用</text>
+
+  <rect id="setting-item-3" class="secondary" x="95" y="228" width="110" height="35" rx="8" fill="#f5f5f5"/>
+  <circle id="icon-3" class="primary" cx="110" cy="245" r="8" fill="#6a6a6a"/>
+  <text id="text-3" class="text" x="128" y="248" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">通知提醒</text>
+  <!-- 开关 -->
+  <rect id="switch-3-bg" x="175" y="240" width="22" height="12" rx="6" fill="#4CAF50"/>
+  <circle id="switch-3-knob" cx="193" cy="246" r="5" fill="#ffffff"/>
+
+  <rect id="setting-item-4" class="secondary" x="95" y="268" width="110" height="35" rx="8" fill="#f5f5f5"/>
+  <circle id="icon-4" class="secondary" cx="110" cy="285" r="8" fill="#8a8a8a"/>
+  <text id="text-4" class="text" x="128" y="288" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">深色模式</text>
+  <!-- 开关 -->
+  <rect id="switch-4-bg" x="175" y="280" width="22" height="12" rx="6" fill="#cccccc"/>
+  <circle id="switch-4-knob" cx="179" cy="286" r="5" fill="#ffffff"/>
+
+  <!-- 其他设置组 -->
+  <text id="group-title-3" class="text" x="95" y="320" font-family="Arial, sans-serif" font-size="10" fill="#888888" data-fixed-color="black">其他</text>
+
+  <rect id="setting-item-5" class="secondary" x="95" y="328" width="110" height="35" rx="8" fill="#f5f5f5"/>
+  <circle id="icon-5" class="accent" cx="110" cy="345" r="8" fill="#ff8a8a"/>
+  <text id="text-5" class="text" x="128" y="348" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">关于我们</text>
+  <path id="arrow-5" d="M 190 343 L 195 345 L 190 347" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+</svg>
