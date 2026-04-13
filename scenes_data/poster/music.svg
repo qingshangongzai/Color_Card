@@ -45,5 +45,5 @@
   <text id="date-day" class="text" x="260" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" data-fixed-color="black">15</text>
 
   <!-- 底部装饰 -->
-  <text id="ticket-info" class="text" x="320" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaaaaa" data-fixed-color="black">票价 ¥180</text>
+  <text id="ticket-info" class="text" x="340" y="275" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#aaaaaa" data-fixed-color="black">票价 ¥180</text>
 </svg>

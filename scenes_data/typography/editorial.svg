@@ -7,7 +7,7 @@
   
   <!-- 分类标签 -->
   <rect id="category-tag" class="accent" x="40" y="35" width="60" height="20" rx="3" fill="#ff6b6b"/>
-  <text id="category-text" class="text" x="70" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">FEATURE</text>
+  <text id="category-text" class="text" x="70" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">特辑</text>
   
   <!-- 主标题 -->
   <text id="main-title" class="text" x="40" y="85" font-family="Georgia, serif" font-size="28" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">设计的力量</text>
