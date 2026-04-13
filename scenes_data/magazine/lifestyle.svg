@@ -1,13 +1,13 @@
-<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
   <!-- 背景 -->
-  <rect id="background" class="background" width="400" height="300" fill="#f8f5f0"/>
+  <rect id="background" class="background" width="600" height="300" fill="#f8f5f0"/>
 
   <!-- 顶部装饰 -->
-  <rect id="top-accent" class="accent" x="0" y="0" width="400" height="8" fill="#d4a574"/>
+  <rect id="top-accent" class="accent" x="0" y="0" width="600" height="8" fill="#d4a574"/>
 
   <!-- 杂志标题 -->
-  <text id="mag-title" class="text" x="200" y="35" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#5c4a3d" data-fixed-color="black">生活家</text>
-  <text id="mag-subtitle" class="secondary" x="200" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black"> wellness &amp; 家居</text>
+  <text id="mag-title" class="text" x="300" y="35" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="bold" fill="#5c4a3d" data-fixed-color="black">生活家</text>
+  <text id="mag-subtitle" class="secondary" x="300" y="50" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black"> wellness &amp; 家居</text>
 
   <!-- 左侧大图区域 -->
   <rect id="main-image" class="secondary" x="20" y="60" width="180" height="140" rx="4" fill="#e8ddd0"/>
@@ -39,5 +39,5 @@
 
   <!-- 底部信息 -->
   <text id="footer-issue" class="text" x="30" y="290" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black">2026 冬季刊</text>
-  <text id="footer-price" class="text" x="370" y="290" text-anchor="end" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black">¥58</text>
+  <text id="footer-price" class="text" x="570" y="290" text-anchor="end" font-family="Arial, sans-serif" font-size="9" fill="#8b7355" data-fixed-color="black">¥58</text>
 </svg>

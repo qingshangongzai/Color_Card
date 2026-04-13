@@ -1,37 +1,37 @@
-<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
   <!-- 背景 -->
-  <rect id="background" class="background" width="400" height="300" fill="#fafafa"/>
-  
+  <rect id="background" class="background" width="600" height="300" fill="#fafafa"/>
+
   <!-- 顶部装饰线 -->
-  <line id="top-line" class="accent" x1="40" y1="25" x2="360" y2="25" stroke="#ff6b6b" stroke-width="2"/>
-  
+  <line id="top-line" class="accent" x1="40" y1="25" x2="560" y2="25" stroke="#ff6b6b" stroke-width="2"/>
+
   <!-- 分类标签 -->
   <rect id="category-tag" class="accent" x="40" y="35" width="60" height="20" rx="3" fill="#ff6b6b"/>
   <text id="category-text" class="text" x="70" y="48" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">特辑</text>
-  
+
   <!-- 主标题 -->
   <text id="main-title" class="text" x="40" y="85" font-family="Georgia, serif" font-size="28" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">设计的力量</text>
-  
+
   <!-- 副标题 -->
   <text id="subtitle" class="secondary" x="40" y="110" font-family="Arial, sans-serif" font-size="14" fill="#666666" data-fixed-color="black">探索色彩与排版的无限可能</text>
-  
+
   <!-- 作者信息 -->
   <text id="author" class="text" x="40" y="135" font-family="Arial, sans-serif" font-size="10" fill="#999999" data-fixed-color="black">By Design Team · 2026年2月</text>
-  
+
   <!-- 分隔线 -->
-  <line id="divider" class="secondary" x1="40" y1="150" x2="360" y2="150" stroke="#e0e0e0" stroke-width="1"/>
-  
+  <line id="divider" class="secondary" x1="40" y1="150" x2="560" y2="150" stroke="#e0e0e0" stroke-width="1"/>
+
   <!-- 正文段落1 -->
-  <rect id="para-1-line-1" class="primary" x="40" y="165" width="320" height="8" rx="2" fill="#333333"/>
-  <rect id="para-1-line-2" class="primary" x="40" y="178" width="300" height="8" rx="2" fill="#333333"/>
-  <rect id="para-1-line-3" class="primary" x="40" y="191" width="280" height="8" rx="2" fill="#333333"/>
-  
+  <rect id="para-1-line-1" class="primary" x="40" y="165" width="520" height="8" rx="2" fill="#333333"/>
+  <rect id="para-1-line-2" class="primary" x="40" y="178" width="500" height="8" rx="2" fill="#333333"/>
+  <rect id="para-1-line-3" class="primary" x="40" y="191" width="480" height="8" rx="2" fill="#333333"/>
+
   <!-- 引用块 -->
-  <rect id="quote-bg" class="secondary" x="60" y="210" width="280" height="50" rx="4" fill="#f0f0f0"/>
+  <rect id="quote-bg" class="secondary" x="60" y="210" width="480" height="50" rx="4" fill="#f0f0f0"/>
   <rect id="quote-bar" class="accent" x="60" y="210" width="4" height="50" rx="2" fill="#ff6b6b"/>
-  <rect id="quote-line-1" class="primary" x="75" y="225" width="250" height="6" rx="1" fill="#555555"/>
-  <rect id="quote-line-2" class="primary" x="75" y="238" width="200" height="6" rx="1" fill="#555555"/>
-  
+  <rect id="quote-line-1" class="primary" x="75" y="225" width="450" height="6" rx="1" fill="#555555"/>
+  <rect id="quote-line-2" class="primary" x="75" y="238" width="400" height="6" rx="1" fill="#555555"/>
+
   <!-- 页码 -->
-  <text id="page-num" class="text" x="360" y="285" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#999999" data-fixed-color="black">01</text>
+  <text id="page-num" class="text" x="560" y="285" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#999999" data-fixed-color="black">01</text>
 </svg>
