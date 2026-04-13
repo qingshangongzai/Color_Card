@@ -1,0 +1,38 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#f8f9fa"/>
+
+  <!-- 顶部装饰线 -->
+  <line id="top-accent" class="accent" x1="40" y1="25" x2="120" y2="25" stroke="#ff6b6b" stroke-width="4"/>
+
+  <!-- 一级标题 H1 -->
+  <text id="h1-title" class="text" x="40" y="70" font-family="Georgia, serif" font-size="32" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">设计系统指南</text>
+
+  <!-- 二级标题 H2 -->
+  <text id="h2-subtitle" class="primary" x="40" y="105" font-family="Arial, sans-serif" font-size="18" font-weight="600" fill="#333333" data-fixed-color="black">色彩与排版规范</text>
+
+  <!-- 三级标题 H3 -->
+  <text id="h3-section" class="secondary" x="40" y="140" font-family="Arial, sans-serif" font-size="14" font-weight="600" fill="#555555" data-fixed-color="black">1.1 色彩理论基础</text>
+
+  <!-- 正文段落 -->
+  <rect id="body-line-1" class="primary" x="40" y="160" width="520" height="6" rx="2" fill="#444444"/>
+  <rect id="body-line-2" class="primary" x="40" y="172" width="500" height="6" rx="2" fill="#444444"/>
+  <rect id="body-line-3" class="primary" x="40" y="184" width="480" height="6" rx="2" fill="#444444"/>
+
+  <!-- 小标题 H4 -->
+  <text id="h4-small" class="accent" x="40" y="215" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ff6b6b">注意事项</text>
+
+  <!-- 辅助文字/说明 -->
+  <text id="caption" class="secondary" x="40" y="240" font-family="Arial, sans-serif" font-size="10" fill="#888888" data-fixed-color="black">最后更新：2026年4月</text>
+
+  <!-- 右侧层级指示器 -->
+  <rect id="level-h1" class="primary" x="560" y="55" width="8" height="20" rx="1" fill="#1a1a1a"/>
+  <rect id="level-h2" class="secondary" x="560" y="90" width="8" height="14" rx="1" fill="#555555"/>
+  <rect id="level-h3" class="secondary" x="560" y="125" width="8" height="10" rx="1" fill="#777777"/>
+  <rect id="level-body" class="secondary" x="560" y="155" width="8" height="6" rx="1" fill="#999999"/>
+
+  <!-- 底部装饰 -->
+  <circle id="deco-1" class="accent" cx="40" cy="280" r="4" fill="#ff6b6b"/>
+  <circle id="deco-2" class="secondary" cx="55" cy="280" r="3" fill="#cccccc"/>
+  <circle id="deco-3" class="secondary" cx="68" cy="280" r="2" fill="#dddddd"/>
+</svg>
