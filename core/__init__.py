@@ -87,6 +87,7 @@ from .cache_base import BaseCache
 from .histogram_service import HistogramService, HistogramCalculator
 from .preview_service import PreviewService
 from .luminance_service import LuminanceService, LuminanceCalculator
+from .tone_analysis import ToneAnalysisService, ToneAnalysisResult
 
 
 # 重量级服务类延迟导入（启动时不需要立即加载）
@@ -202,6 +203,8 @@ __all__ = [
     'PreviewService',
     'LuminanceService',
     'LuminanceCalculator',
+    'ToneAnalysisService',
+    'ToneAnalysisResult',
     # 延迟加载的服务类（通过函数访问）
     'get_color_service',
     'get_palette_service',

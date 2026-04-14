@@ -1438,6 +1438,76 @@ class LuminanceCanvas(BaseCanvas):
         self._highlighted_zone = -1
         self._zone_highlight_pixmap = None
 
+    def contextMenuEvent(self, event) -> None:
+        """右键菜单事件"""
+        if self._original_pixmap is None or self._original_pixmap.isNull():
+            return
+
+        menu = RoundMenu("")
+
+        change_action = Action(FluentIcon.PHOTO, tr('context_menu.change_image'))
+        change_action.triggered.connect(self.change_image_requested.emit)
+        menu.addAction(change_action)
+
+        clear_action = Action(FluentIcon.DELETE, tr('context_menu.clear_image'))
+        clear_action.triggered.connect(self.clear_image_requested.emit)
+        menu.addAction(clear_action)
+
+        menu.addSeparator()
+
+        if self._picker_count < 8:
+            add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
+            add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
+            menu.addAction(add_action)
+
+        if self._picker_count > 2:
+            remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
+            remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
+            menu.addAction(remove_action)
+
+        menu.addSeparator()
+
+        analysis_action = Action(FluentIcon.BRIGHTNESS, tr('context_menu.tone_analysis'))
+        analysis_action.triggered.connect(self._on_tone_analysis)
+        menu.addAction(analysis_action)
+
+        menu.exec(event.globalPos())
+
+    def _on_tone_analysis(self) -> None:
+        """打开明度分析对话框"""
+        if self._image is None or self._image.isNull():
+            return
+
+        import numpy as np
+        from dialogs import ToneAnalysisDialog
+
+        # 立即显示对话框（显示加载中）
+        dialog = ToneAnalysisDialog(None, self.window())
+        dialog.show()
+
+        # 在后台线程中转换图片并分析
+        def prepare_and_analyze():
+            width = self._image.width()
+            height = self._image.height()
+            img_array = np.zeros((height, width, 3), dtype=np.uint8)
+
+            for y in range(height):
+                for x in range(width):
+                    color = self._image.pixelColor(x, y)
+                    img_array[y, x, 0] = color.red()
+                    img_array[y, x, 1] = color.green()
+                    img_array[y, x, 2] = color.blue()
+
+            # 设置图片数据并开始分析
+            dialog._img_array = img_array
+            dialog.start_analysis()
+
+        # 使用 QTimer 延迟执行，让对话框先显示
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, prepare_and_analyze)
+
+        dialog.exec()
+
     def get_picker_zones(self) -> List[str]:
         """获取所有取色器的区域编号
 
