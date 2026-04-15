@@ -30,6 +30,7 @@ class SettingsInterface(QWidget):
     color_sample_count_changed = Signal(int)
     luminance_sample_count_changed = Signal(int)
     histogram_scaling_mode_changed = Signal(str)
+    luminance_histogram_style_changed = Signal(str)
     color_wheel_mode_changed = Signal(str)
     histogram_mode_changed = Signal(str)
     saturation_threshold_changed = Signal(int)
@@ -47,6 +48,7 @@ class SettingsInterface(QWidget):
         self._color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
         self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
         self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
+        self._luminance_histogram_style = self._config_manager.get('settings.luminance_histogram_style', 'line')
         self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
@@ -138,6 +140,9 @@ class SettingsInterface(QWidget):
 
         self.histogram_scaling_card = self._create_histogram_scaling_card()
         self.histogram_group.addSettingCard(self.histogram_scaling_card)
+
+        self.luminance_histogram_style_card = self._create_luminance_histogram_style_card()
+        self.histogram_group.addSettingCard(self.luminance_histogram_style_card)
 
         self.histogram_mode_card = self._create_histogram_mode_card()
         self.histogram_group.addSettingCard(self.histogram_mode_card)
@@ -330,6 +335,11 @@ class SettingsInterface(QWidget):
         self.histogram_scaling_card.contentLabel.setText(tr('settings.histogram_scaling_desc'))
         self.histogram_scaling_card.combo_box.setItemText(0, tr('settings.linear_scaling'))
         self.histogram_scaling_card.combo_box.setItemText(1, tr('settings.adaptive_scaling'))
+
+        self.luminance_histogram_style_card.titleLabel.setText(tr('settings.luminance_histogram_style'))
+        self.luminance_histogram_style_card.contentLabel.setText(tr('settings.luminance_histogram_style_desc'))
+        self.luminance_histogram_style_card.combo_box.setItemText(0, tr('settings.luminance_histogram_line'))
+        self.luminance_histogram_style_card.combo_box.setItemText(1, tr('settings.luminance_histogram_bar'))
 
         self.histogram_mode_card.titleLabel.setText(tr('settings.histogram_mode'))
         self.histogram_mode_card.contentLabel.setText(tr('settings.histogram_mode_desc'))
@@ -559,6 +569,48 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("change_histogram_scaling_mode", {"mode": mode})
         self.histogram_scaling_mode_changed.emit(mode)
+
+    def _create_luminance_histogram_style_card(self):
+        """创建明度直方图样式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            tr('settings.luminance_histogram_style'),
+            tr('settings.luminance_histogram_style_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.luminance_histogram_line'))
+        combo_box.setItemData(0, "line")
+        combo_box.addItem(tr('settings.luminance_histogram_bar'))
+        combo_box.setItemData(1, "bar")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._luminance_histogram_style:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_luminance_histogram_style_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_luminance_histogram_style_changed(self, index):
+        """明度直方图样式改变"""
+        combo_box = self.luminance_histogram_style_card.combo_box
+        style = combo_box.itemData(index)
+        self._luminance_histogram_style = style
+        self._config_manager.set('settings.luminance_histogram_style', style)
+        self._config_manager.save()
+        log_user_action("change_luminance_histogram_style", {"style": style})
+        self.luminance_histogram_style_changed.emit(style)
 
     def _create_histogram_mode_card(self):
         """创建直方图模式选择卡片"""
