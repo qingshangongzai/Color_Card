@@ -71,6 +71,7 @@ class ConfigManager:
                 "color_sample_count": 5,
                 "luminance_sample_count": 5,
                 "histogram_scaling_mode": "adaptive",
+                "luminance_histogram_style": "line",
                 "color_wheel_mode": "RGB",
                 "theme": "auto",
                 "color_wheel_labels_visible": True,
