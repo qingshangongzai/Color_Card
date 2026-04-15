@@ -52,6 +52,12 @@ class ToneAnalysisService:
     RANGE_LONG = 180
     RANGE_MEDIUM = 100
 
+    # 全长调判断阈值
+    MIN_ZONE_PERCENTAGE = 15
+    MIN_RANGE_THRESHOLD = 30
+    MAX_RANGE_THRESHOLD = 225
+    U_SHAPE_RATIO = 0.7
+
     def analyze_from_array(self, img_array: np.ndarray) -> ToneAnalysisResult:
         """从 NumPy 数组分析影调
 
@@ -138,15 +144,15 @@ class ToneAnalysisService:
 
         特征：两端都有明显像素，中间相对较少
         """
-        has_shadows = shadows > 15
-        has_highlights = highlights > 15
-        full_range = (min_val < 30) and (max_val > 225)
+        has_shadows = shadows > self.MIN_ZONE_PERCENTAGE
+        has_highlights = highlights > self.MIN_ZONE_PERCENTAGE
+        full_range = (min_val < self.MIN_RANGE_THRESHOLD) and (max_val > self.MAX_RANGE_THRESHOLD)
 
         # U型分布判断
         mid_avg = np.mean(hist[64:192])
         edge_avg = np.mean(np.concatenate([hist[:32], hist[224:]]))
 
-        return has_shadows and has_highlights and full_range and (mid_avg < edge_avg * 0.7)
+        return has_shadows and has_highlights and full_range and (mid_avg < edge_avg * self.U_SHAPE_RATIO)
 
     def _get_tone_key(self, peak: float) -> ToneKey:
         """根据波峰位置确定基调"""
