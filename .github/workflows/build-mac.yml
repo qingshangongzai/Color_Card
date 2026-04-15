@@ -26,10 +26,13 @@ jobs:
     - name: Cache pip packages
       uses: actions/cache@v4
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        path: |
+          ~/.cache/pip
+          ~/.cache/Nuitka
+        key: ${{ runner.os }}-pip-nuitka-${{ hashFiles('requirements.txt') }}-${{ hashFiles('main.py') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-pip-nuitka-${{ hashFiles('requirements.txt') }}-
+          ${{ runner.os }}-pip-nuitka-
 
     - name: Install dependencies
       run: |
@@ -80,6 +83,7 @@ jobs:
           --lto=yes \
           --jobs=4 \
           --output-dir=dist \
+          --cache-dir="$HOME/.cache/Nuitka" \
           main.py
 
     - name: Check build output
