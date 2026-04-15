@@ -57,6 +57,9 @@ class LuminanceExtractInterface(QWidget):
         self.luminance_canvas.setMinimumHeight(200)
         self.splitter.addWidget(self.luminance_canvas)
 
+        # 应用默认显示模式设置
+        self._apply_default_display_mode()
+
         self.histogram_widget = LuminanceHistogramWidget()
         self.histogram_widget.setMinimumHeight(120)
         self.histogram_widget.setMaximumHeight(250)
@@ -259,6 +262,11 @@ class LuminanceExtractInterface(QWidget):
     def on_histogram_zone_released(self):
         """直方图Zone被释放时调用"""
         self.luminance_canvas.clear_zone_highlight()
+
+    def _apply_default_display_mode(self) -> None:
+        """应用默认显示模式设置"""
+        config_manager = get_config_manager()
+        self.luminance_canvas._grayscale_mode = config_manager.get('settings.luminance_default_grayscale', False)
 
     def _on_language_changed(self):
         """语言切换回调"""

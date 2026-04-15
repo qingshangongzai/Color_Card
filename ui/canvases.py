@@ -568,7 +568,13 @@ class BaseCanvas(QWidget):
             if display_rect:
                 x, y, w, h = display_rect
                 target_rect = QRect(x, y, w, h)
-                painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
+
+                # 黑白模式：仅明度提取面板支持
+                if getattr(self, '_grayscale_mode', False) and self._image:
+                    grayscale_image = self._image.convertToFormat(QImage.Format.Format_Grayscale8)
+                    painter.drawImage(target_rect, grayscale_image)
+                else:
+                    painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
 
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
@@ -1230,6 +1236,9 @@ class LuminanceCanvas(BaseCanvas):
         # Zone高亮颜色配置 (Zone 0-8) - 按类型统一颜色
         self._zone_highlight_colors: List[QColor] = get_zone_mask_colors()
 
+        # 黑白模式
+        self._grayscale_mode = False
+
         # 明度服务
         self._luminance_service = None
 
@@ -1467,6 +1476,14 @@ class LuminanceCanvas(BaseCanvas):
 
         menu.addSeparator()
 
+        # 黑白模式切换
+        mode_text = tr('context_menu.color_mode') if self._grayscale_mode else tr('context_menu.grayscale_mode')
+        grayscale_action = Action(FluentIcon.CONSTRACT, mode_text)
+        grayscale_action.triggered.connect(self._toggle_grayscale_mode)
+        menu.addAction(grayscale_action)
+
+        menu.addSeparator()
+
         analysis_action = Action(FluentIcon.BRIGHTNESS, tr('context_menu.tone_analysis'))
         analysis_action.triggered.connect(self._on_tone_analysis)
         menu.addAction(analysis_action)
@@ -1507,6 +1524,11 @@ class LuminanceCanvas(BaseCanvas):
         QTimer.singleShot(100, prepare_and_analyze)
 
         dialog.exec()
+
+    def _toggle_grayscale_mode(self) -> None:
+        """切换黑白模式"""
+        self._grayscale_mode = not self._grayscale_mode
+        self.update()
 
     def get_picker_zones(self) -> List[str]:
         """获取所有取色器的区域编号
