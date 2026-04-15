@@ -354,19 +354,21 @@ class ChartsWidget(QWidget):
 class StatCard(CardWidget):
     """统计信息卡片"""
 
-    def __init__(self, title: str, value: str, parent: Optional[QWidget] = None):
+    def __init__(self, title: str, value: str, parent: Optional[QWidget] = None,
+                 hint: str = ""):
         super().__init__(parent)
         self._title = title
         self._value = value
+        self._hint = hint
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 8, 12, 8)
         layout.setSpacing(4)
 
-        self._title_label = BodyLabel(title, self)
-        self._value_label = StrongBodyLabel(value, self)
-
+        self._title_label = BodyLabel(self)
         layout.addWidget(self._title_label)
+
+        self._value_label = StrongBodyLabel(value, self)
         layout.addWidget(self._value_label)
 
         self._update_styles()
@@ -376,7 +378,16 @@ class StatCard(CardWidget):
         text_color = get_text_color()
         secondary_color = get_text_color(secondary=True)
 
-        self._title_label.setStyleSheet(f"color: {secondary_color.name()};")
+        # 设置标题文本（带提示文本时使用小字体）
+        if self._hint:
+            self._title_label.setText(
+                f'<span style="color: {secondary_color.name()};">{self._title}</span>'
+                f'<span style="color: {secondary_color.name()}; font-size: 11px;"> {self._hint}</span>'
+            )
+        else:
+            self._title_label.setText(self._title)
+            self._title_label.setStyleSheet(f"color: {secondary_color.name()};")
+
         self._value_label.setStyleSheet(f"color: {text_color.name()};")
 
 
@@ -467,22 +478,26 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
         stats_layout = self._stats_widget.layout()
 
+        # 获取影调类型的本地化名称
+        tone_type_key = f'tone_analysis.tone_types.{result.tone_key.value}_{result.tone_range.value}'
+        tone_type_display = tr(tone_type_key)
+
         stats = [
-            (tr('tone_analysis.tone_type'), result.tone_type),
-            (tr('tone_analysis.mean_brightness'), f'{result.mean:.1f}'),
-            (tr('tone_analysis.median'), f'{result.median:.1f}'),
-            (tr('tone_analysis.std_deviation'), f'{result.std:.1f}'),
-            (tr('tone_analysis.brightness_range'), f'{result.min_val} - {result.max_val}'),
-            (tr('tone_analysis.shadows'), f'{result.shadows:.1f}%'),
-            (tr('tone_analysis.midtones'), f'{result.midtones:.1f}%'),
-            (tr('tone_analysis.highlights'), f'{result.highlights:.1f}%'),
+            (tr('tone_analysis.tone_type'), tone_type_display, tr('tone_analysis.tone_type_hint')),
+            (tr('tone_analysis.mean_brightness'), f'{result.mean:.1f}', ""),
+            (tr('tone_analysis.median'), f'{result.median:.1f}', ""),
+            (tr('tone_analysis.std_deviation'), f'{result.std:.1f}', ""),
+            (tr('tone_analysis.brightness_range'), f'{result.min_val} - {result.max_val}', ""),
+            (tr('tone_analysis.shadows'), f'{result.shadows:.1f}%', ""),
+            (tr('tone_analysis.midtones'), f'{result.midtones:.1f}%', ""),
+            (tr('tone_analysis.highlights'), f'{result.highlights:.1f}%', ""),
         ]
 
         columns = 4
-        for i, (title, value) in enumerate(stats):
+        for i, (title, value, hint) in enumerate(stats):
             row = i // columns
             col = i % columns
-            card = StatCard(title, value, self._stats_widget)
+            card = StatCard(title, value, self._stats_widget, hint)
             stats_layout.addWidget(card, row, col)
             self._stat_cards.append(card)
 
