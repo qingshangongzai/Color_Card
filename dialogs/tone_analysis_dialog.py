@@ -3,6 +3,8 @@
 from typing import Optional
 
 import numpy as np
+import win32con
+import win32gui
 from PySide6.QtCharts import (
     QBarSeries, QBarSet, QChart, QChartView, QLineSeries,
     QPieSeries, QValueAxis
@@ -436,6 +438,11 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         self.titleBar.minBtn.show()
         self.titleBar.maxBtn.show()
         self.titleBar.setDoubleClickEnabled(True)
+
+        # 恢复Win32最大化按钮样式（FramelessDialog初始化时禁用了）
+        hWnd = int(self.winId())
+        style = win32gui.GetWindowLong(hWnd, win32con.GWL_STYLE)
+        win32gui.SetWindowLong(hWnd, win32con.GWL_STYLE, style | win32con.WS_MAXIMIZEBOX)
 
         self._setup_title_bar()
         self._setup_ui()
