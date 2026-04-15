@@ -92,7 +92,7 @@ class ToneAnalysisService:
         )
 
     def _calc_peak_position(self, hist: np.ndarray) -> float:
-        """计算波峰位置（加权平均）
+        """计算波峰位置（直方图最大值位置）
 
         Args:
             hist: 直方图数据
@@ -100,10 +100,7 @@ class ToneAnalysisService:
         Returns:
             float: 波峰位置
         """
-        total = np.sum(hist)
-        if total == 0:
-            return 128.0
-        return float(np.sum(np.arange(256) * hist) / total)
+        return float(np.argmax(hist))
 
     def _classify_tone(self, peak: float, min_val: int, max_val: int,
                        shadows: float, highlights: float,
