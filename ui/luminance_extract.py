@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
 
 # 项目模块导入
-from core import LuminanceService
+from core import LuminanceService, get_config_manager
 from core.logger import get_logger, log_user_action
 from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from .canvases import LuminanceCanvas
@@ -62,10 +62,27 @@ class LuminanceExtractInterface(QWidget):
         self.histogram_widget.setMaximumHeight(250)
         self.splitter.addWidget(self.histogram_widget)
 
+        # 初始化直方图样式
+        self._init_histogram_style()
+
         self.splitter.setSizes([400, 150])
 
         # 设置信号连接
         self._setup_connections()
+
+    def _init_histogram_style(self):
+        """初始化直方图样式"""
+        config_manager = get_config_manager()
+        style = config_manager.get('settings.luminance_histogram_style', 'line')
+        self.histogram_widget.set_histogram_style(style)
+
+    def set_histogram_style(self, style: str):
+        """设置直方图样式（由设置界面调用）
+
+        Args:
+            style: 样式类型，"line" 或 "bar"
+        """
+        self.histogram_widget.set_histogram_style(style)
 
     def _setup_connections(self):
         """设置信号连接"""

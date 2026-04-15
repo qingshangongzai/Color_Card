@@ -332,6 +332,11 @@ class MainWindow(FluentWindow):
             self._on_histogram_scaling_mode_changed
         )
 
+        # 连接明度直方图样式改变信号到明度提取界面
+        settings_interface.luminance_histogram_style_changed.connect(
+            luminance_extract_interface.set_histogram_style
+        )
+
         # 连接色轮模式改变信号到配色生成界面
         settings_interface.color_wheel_mode_changed.connect(
             color_generation_interface.set_color_wheel_mode

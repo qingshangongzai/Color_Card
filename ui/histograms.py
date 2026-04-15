@@ -2,7 +2,7 @@
 import math
 from typing import List
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPen, QMouseEvent
+from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QMouseEvent
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
@@ -290,6 +290,7 @@ class LuminanceHistogramWidget(BaseHistogram):
         self._highlight_zones = []  # 高亮显示的区域列表
         self._pressed_zone = -1     # 当前按下的Zone
         self._current_zone = -1     # 当前选中的Zone
+        self._histogram_style = "line"  # 直方图样式: "line" 或 "bar"
 
         # 启用鼠标跟踪
         self.setMouseTracking(True)
@@ -298,6 +299,16 @@ class LuminanceHistogramWidget(BaseHistogram):
         self._histogram_service = HistogramService(self)
         self._histogram_service.luminance_histogram_ready.connect(self._on_histogram_ready)
         self._histogram_service.error.connect(self._on_histogram_error)
+
+    def set_histogram_style(self, style: str):
+        """设置直方图样式
+
+        Args:
+            style: 样式类型，"line" 为线连接样式，"bar" 为柱状图样式
+        """
+        if style in ("line", "bar") and style != self._histogram_style:
+            self._histogram_style = style
+            self.update()
 
     def set_image(self, image):
         """设置图片并异步计算直方图"""
@@ -359,12 +370,59 @@ class LuminanceHistogramWidget(BaseHistogram):
         return labels[zone] if 0 <= zone <= 8 else "--"
 
     def _draw_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
-        """绘制直方图曲线 - LR风格"""
+        """绘制直方图 - 支持线连接和柱状图两种样式"""
         if self._max_count == 0:
             return
 
         # 绘制Zone背景色块（类似LR的风格）
         self._draw_zone_background(painter, x, y, width, height)
+
+        # 根据样式选择绘制方式
+        if self._histogram_style == "bar":
+            self._draw_bar_histogram(painter, x, y, width, height)
+        else:
+            self._draw_line_histogram(painter, x, y, width, height)
+
+    def _draw_line_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制线连接样式直方图"""
+        bar_width = width / 256.0
+
+        # 计算每个点的坐标
+        points = []
+        for i in range(256):
+            bar_height = self._calculate_bar_height(self._histogram[i], self._max_count, height)
+            point_x = x + i * bar_width
+            point_y = y + height - bar_height
+            points.append((point_x, point_y))
+
+        # 创建填充路径（闭合区域）
+        fill_path = QPainterPath()
+        fill_path.moveTo(points[0][0], y + height)  # 左下角
+        for px, py in points:
+            fill_path.lineTo(px, py)
+        fill_path.lineTo(points[-1][0], y + height)  # 右下角
+        fill_path.closeSubpath()
+
+        # 绘制渐变填充（从线条颜色到透明）
+        gradient = QLinearGradient(x, y, x, y + height)
+        line_color = get_histogram_text_color()
+        gradient.setColorAt(0, line_color)  # 顶部使用线条颜色
+        gradient.setColorAt(1, QColor(0, 0, 0, 0))  # 底部透明
+        painter.fillPath(fill_path, gradient)
+
+        # 绘制轮廓线
+        line_path = QPainterPath()
+        line_path.moveTo(points[0][0], points[0][1])
+        for px, py in points[1:]:
+            line_path.lineTo(px, py)
+
+        painter.setPen(QPen(line_color, 1.5))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawPath(line_path)
+
+    def _draw_bar_histogram(self, painter: QPainter, x: int, y: int, width: int, height: int):
+        """绘制柱状图样式直方图"""
+        bar_width = width / 256.0
 
         # 使用渐变填充，从浅灰到白色
         gradient = QLinearGradient(x, y + height, x, y)
@@ -374,16 +432,11 @@ class LuminanceHistogramWidget(BaseHistogram):
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(gradient)
 
-        # 每个明度值对应的宽度
-        bar_width = width / 256.0
-
         # 绘制直方图柱子
         for i in range(256):
-            # 计算柱子高度 - 使用基类的计算方法
             bar_height = self._calculate_bar_height(self._histogram[i], self._max_count, height)
 
             if bar_height > 0:
-                # 绘制柱子
                 bar_x = x + i * bar_width
                 bar_y = y + height - bar_height
 
