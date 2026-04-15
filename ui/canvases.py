@@ -1534,7 +1534,8 @@ class LuminanceCanvas(BaseCanvas):
         from dialogs import ToneAnalysisDialog
 
         # 立即显示对话框（显示加载中）
-        dialog = ToneAnalysisDialog(None, self.window())
+        # 父窗口设为None，使其在任务栏显示为独立窗口
+        dialog = ToneAnalysisDialog(None, None)
         dialog.show()
 
         # 在后台线程中转换图片并分析

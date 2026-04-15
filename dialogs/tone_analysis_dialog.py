@@ -63,23 +63,51 @@ class ImageDisplayWidget(QWidget):
         layout.addWidget(self._original_label)
         layout.addWidget(self._grayscale_label)
 
+        # 保存原始图片数据用于重绘
+        self._img_rgb: Optional[np.ndarray] = None
+        self._gray: Optional[np.ndarray] = None
+
     def set_images(self, img_rgb: np.ndarray, gray: np.ndarray) -> None:
         """设置图片"""
-        h, w = img_rgb.shape[:2]
+        self._img_rgb = img_rgb
+        self._gray = gray
+        self._update_display()
+
+    def _update_display(self) -> None:
+        """根据当前大小更新图片显示"""
+        if self._img_rgb is None or self._gray is None:
+            return
+
+        h, w = self._img_rgb.shape[:2]
+
+        # 计算可用显示空间（减去间距和边距）
+        available_width = (self.width() - 30) // 2
+        available_height = self.height() - 20
+        display_size = min(available_width, available_height, 280)
+        display_size = max(display_size, 100)  # 最小显示尺寸
 
         # 原图
-        q_image = QImage(img_rgb.data, w, h, 3 * w, QImage.Format.Format_RGB888)
+        q_image = QImage(self._img_rgb.data, w, h, 3 * w, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image).scaled(
-            280, 280, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+            display_size, display_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
         )
         self._original_label.setPixmap(pixmap)
 
         # 灰度图
-        gray_q_image = QImage(gray.data, w, h, w, QImage.Format.Format_Grayscale8)
+        gray_q_image = QImage(self._gray.data, w, h, w, QImage.Format.Format_Grayscale8)
         gray_pixmap = QPixmap.fromImage(gray_q_image).scaled(
-            280, 280, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
+            display_size, display_size,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
         )
         self._grayscale_label.setPixmap(gray_pixmap)
+
+    def resizeEvent(self, event) -> None:
+        """窗口大小变化时重新显示图片"""
+        super().resizeEvent(event)
+        self._update_display()
 
 
 class PieChartWidget(QWidget):
@@ -401,7 +429,13 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         self._worker: Optional[AnalysisWorker] = None
 
         self.setWindowTitle(tr('tone_analysis.dialog_title'))
-        self.setFixedSize(1100, 750)
+        self.setMinimumSize(900, 600)
+        self.resize(1100, 750)
+
+        # 显示标题栏的最大化和最小化按钮（FramelessDialog默认隐藏）
+        self.titleBar.minBtn.show()
+        self.titleBar.maxBtn.show()
+        self.titleBar.setDoubleClickEnabled(True)
 
         self._setup_title_bar()
         self._setup_ui()
