@@ -87,7 +87,10 @@ from .cache_base import BaseCache
 from .histogram_service import HistogramService, HistogramCalculator
 from .preview_service import PreviewService
 from .luminance_service import LuminanceService, LuminanceCalculator
-from .tone_analysis import ToneAnalysisService, ToneAnalysisResult
+from .tone_analysis import (
+    ToneAnalysisService,
+    ToneAnalysisResult,
+)
 
 
 # 重量级服务类延迟导入（启动时不需要立即加载）

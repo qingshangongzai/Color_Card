@@ -452,6 +452,20 @@ class ToneAnalysisDialog(BaseFramelessDialog):
             gray: 灰度数组
             img_array: 图片数组
         """
+        self._display_result(result, gray, img_array)
+
+        if self._worker:
+            self._worker.deleteLater()
+            self._worker = None
+
+    def _display_result(self, result: ToneAnalysisResult, gray: np.ndarray, img_array: np.ndarray) -> None:
+        """显示分析结果
+
+        Args:
+            result: 分析结果
+            gray: 灰度数组
+            img_array: 图片数组
+        """
         self._loading_label.hide()
 
         self._charts_widget.display_analysis(
@@ -461,10 +475,6 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
         self._create_stat_cards(result)
         self._stats_widget.show()
-
-        if self._worker:
-            self._worker.deleteLater()
-            self._worker = None
 
     def _create_stat_cards(self, result: ToneAnalysisResult) -> None:
         """创建统计卡片

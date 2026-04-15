@@ -4,6 +4,7 @@ import gc
 from typing import List, Optional, Tuple
 
 # 第三方库导入
+import numpy as np
 from PySide6.QtCore import QPoint, QPointF, QRect, Qt, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
@@ -22,6 +23,41 @@ from utils.theme_colors import (
     get_zone_mask_colors, get_zone_label_bg_color, get_zone_label_text_color,
     get_zone_info_text_colors
 )
+
+
+def qimage_to_numpy(image: QImage) -> np.ndarray:
+    """QImage转NumPy数组（使用bits()直接内存访问，比pixelColor快数百倍）
+
+    Args:
+        image: QImage对象
+
+    Returns:
+        np.ndarray: RGB数组 (H, W, 3)
+    """
+    width = image.width()
+    height = image.height()
+
+    # 确保格式为RGB888
+    if image.format() != QImage.Format.Format_RGB888:
+        image = image.convertToFormat(QImage.Format.Format_RGB888)
+
+    # 直接访问内存
+    ptr = image.bits()
+    bytes_per_line = image.bytesPerLine()
+
+    # 创建NumPy数组（考虑行对齐）
+    if bytes_per_line == width * 3:
+        # 无行对齐，直接转换
+        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
+    else:
+        # 有行对齐，需要逐行复制
+        arr = np.zeros((height, width, 3), dtype=np.uint8)
+        for y in range(height):
+            offset = y * bytes_per_line
+            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
+            arr[y] = row.reshape((width, 3))
+
+    return arr.copy()  # 复制一份避免内存问题
 
 
 class BaseCanvas(QWidget):
@@ -1495,7 +1531,6 @@ class LuminanceCanvas(BaseCanvas):
         if self._image is None or self._image.isNull():
             return
 
-        import numpy as np
         from dialogs import ToneAnalysisDialog
 
         # 立即显示对话框（显示加载中）
@@ -1504,16 +1539,8 @@ class LuminanceCanvas(BaseCanvas):
 
         # 在后台线程中转换图片并分析
         def prepare_and_analyze():
-            width = self._image.width()
-            height = self._image.height()
-            img_array = np.zeros((height, width, 3), dtype=np.uint8)
-
-            for y in range(height):
-                for x in range(width):
-                    color = self._image.pixelColor(x, y)
-                    img_array[y, x, 0] = color.red()
-                    img_array[y, x, 1] = color.green()
-                    img_array[y, x, 2] = color.blue()
+            # 使用快速转换（bits()内存访问，比pixelColor快数百倍）
+            img_array = qimage_to_numpy(self._image)
 
             # 设置图片数据并开始分析
             dialog._img_array = img_array
