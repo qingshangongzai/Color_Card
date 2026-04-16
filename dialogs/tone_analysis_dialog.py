@@ -556,9 +556,8 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
         stats_layout = self._stats_widget.layout()
 
-        # 获取影调类型的本地化名称
-        tone_type_key = f'tone_analysis.tone_types.{result.tone_key.value}_{result.tone_range.value}'
-        tone_type_display = tr(tone_type_key)
+        # 获取影调类型的本地化名称（带置信度描述）
+        tone_type_display = self._get_tone_type_display(result)
 
         stats = [
             (tr('tone_analysis.tone_type'), tone_type_display, tr('tone_analysis.tone_type_hint')),
@@ -578,6 +577,87 @@ class ToneAnalysisDialog(BaseFramelessDialog):
             card = StatCard(title, value, self._stats_widget, hint)
             stats_layout.addWidget(card, row, col)
             self._stat_cards.append(card)
+
+    def _get_tone_type_display(self, result: ToneAnalysisResult) -> str:
+        """获取影调类型的显示文本（含置信度描述）
+
+        Args:
+            result: 分析结果
+
+        Returns:
+            str: 影调类型显示文本
+        """
+        # 计算综合置信度
+        avg_confidence = (result.tone_key_confidence + result.tone_range_confidence) / 2
+
+        # 获取基础影调名称
+        tone_type_key = f'tone_analysis.tone_types.{result.tone_key.value}_{result.tone_range.value}'
+        base_name = tr(tone_type_key)
+
+        # 根据置信度决定显示格式
+        if avg_confidence >= 0.8:
+            # 高置信度：直接显示分类
+            return base_name
+        elif avg_confidence >= 0.5:
+            # 中等置信度：显示置信度百分比
+            return f'{base_name} ({int(avg_confidence * 100)}%)'
+        else:
+            # 低置信度：显示过渡描述
+            return self._get_transition_description(result, avg_confidence)
+
+    def _get_transition_description(self, result: ToneAnalysisResult, confidence: float) -> str:
+        """获取过渡区域描述
+
+        Args:
+            result: 分析结果
+            confidence: 综合置信度
+
+        Returns:
+            str: 过渡描述文本
+        """
+        # 获取相邻的基调/跨度描述
+        key_alternatives = []
+        range_alternatives = []
+
+        # 基调过渡描述
+        if result.tone_key_confidence < 0.6:
+            if result.tone_key.value == 'high':
+                key_alternatives.append(tr('tone_analysis.tone_key.mid'))
+            elif result.tone_key.value == 'low':
+                key_alternatives.append(tr('tone_analysis.tone_key.mid'))
+            else:  # mid
+                if result.peak_position < 128:
+                    key_alternatives.append(tr('tone_analysis.tone_key.low'))
+                else:
+                    key_alternatives.append(tr('tone_analysis.tone_key.high'))
+
+        # 跨度过渡描述
+        if result.tone_range_confidence < 0.6:
+            if result.tone_range.value == 'long':
+                range_alternatives.append(tr('tone_analysis.tone_range.medium'))
+            elif result.tone_range.value == 'short':
+                range_alternatives.append(tr('tone_analysis.tone_range.medium'))
+            else:  # medium
+                # 根据实际spread判断倾向
+                spread = result.max_val - result.min_val
+                mid_point = (180 + 100) / 2
+                if spread < mid_point:
+                    range_alternatives.append(tr('tone_analysis.tone_range.short'))
+                else:
+                    range_alternatives.append(tr('tone_analysis.tone_range.long'))
+
+        # 构建过渡描述
+        parts = []
+        base_key = tr(f'tone_analysis.tone_key.{result.tone_key.value}')
+        base_range = tr(f'tone_analysis.tone_range.{result.tone_range.value}')
+        parts.append(f'{base_key}{base_range}')
+
+        if key_alternatives:
+            parts.append(f'/{key_alternatives[0]}')
+        if range_alternatives:
+            parts.append(f'·{range_alternatives[0]}')
+
+        return ''.join(parts)
 
     def _on_theme_changed(self) -> None:
         """主题变化回调"""

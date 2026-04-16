@@ -37,6 +37,8 @@ class ToneAnalysisResult:
     tone_range: ToneRange
     histogram: np.ndarray
     peak_position: float
+    tone_key_confidence: float
+    tone_range_confidence: float
 
 
 class ToneAnalysisService:
@@ -57,6 +59,10 @@ class ToneAnalysisService:
     MIN_RANGE_THRESHOLD = 30
     MAX_RANGE_THRESHOLD = 225
     U_SHAPE_RATIO = 0.7
+
+    # 边界缓冲区（用于置信度计算）
+    KEY_BUFFER = 15  # 基调边界缓冲带
+    RANGE_BUFFER = 20  # 跨度边界缓冲带
 
     def analyze_from_array(self, img_array: np.ndarray) -> ToneAnalysisResult:
         """从 NumPy 数组分析影调
@@ -82,7 +88,7 @@ class ToneAnalysisService:
         hist, _ = np.histogram(gray, bins=256, range=(0, 256))
         peak_position = self._calc_peak_position(hist)
 
-        tone_key, tone_range = self._classify_tone(
+        tone_key, tone_range, key_confidence, range_confidence = self._classify_tone(
             peak_position, min_val, max_val, shadows, highlights, hist
         )
 
@@ -94,7 +100,9 @@ class ToneAnalysisService:
             tone_key=tone_key,
             tone_range=tone_range,
             histogram=hist,
-            peak_position=peak_position
+            peak_position=peak_position,
+            tone_key_confidence=key_confidence,
+            tone_range_confidence=range_confidence
         )
 
     def _calc_peak_position(self, hist: np.ndarray) -> float:
@@ -110,7 +118,7 @@ class ToneAnalysisService:
 
     def _classify_tone(self, peak: float, min_val: int, max_val: int,
                        shadows: float, highlights: float,
-                       hist: np.ndarray) -> Tuple[ToneKey, ToneRange]:
+                       hist: np.ndarray) -> Tuple[ToneKey, ToneRange, float, float]:
         """判断影调类型
 
         Args:
@@ -122,21 +130,21 @@ class ToneAnalysisService:
             hist: 直方图数据
 
         Returns:
-            Tuple[ToneKey, ToneRange]: 基调、跨度
+            Tuple[ToneKey, ToneRange, float, float]: 基调、跨度、基调置信度、跨度置信度
         """
         spread = max_val - min_val
 
         # 全长调判断
         if self._is_full_tone(hist, shadows, highlights, min_val, max_val):
-            return ToneKey.FULL, ToneRange.LONG
+            return ToneKey.FULL, ToneRange.LONG, 1.0, 1.0
 
-        # 基调判断
-        tone_key = self._get_tone_key(peak)
+        # 基调判断（带置信度）
+        tone_key, key_confidence = self._get_tone_key(peak)
 
-        # 跨度判断
-        tone_range = self._get_tone_range(spread)
+        # 跨度判断（带置信度）
+        tone_range, range_confidence = self._get_tone_range(spread)
 
-        return tone_key, tone_range
+        return tone_key, tone_range, key_confidence, range_confidence
 
     def _is_full_tone(self, hist: np.ndarray, shadows: float,
                       highlights: float, min_val: int, max_val: int) -> bool:
@@ -154,22 +162,79 @@ class ToneAnalysisService:
 
         return has_shadows and has_highlights and full_range and (mid_avg < edge_avg * self.U_SHAPE_RATIO)
 
-    def _get_tone_key(self, peak: float) -> ToneKey:
-        """根据波峰位置确定基调"""
-        if peak >= self.KEY_HIGH_MIN:
-            return ToneKey.HIGH
-        elif peak <= self.KEY_LOW_MAX:
-            return ToneKey.LOW
-        else:
-            return ToneKey.MID
+    def _get_tone_key(self, peak: float) -> Tuple[ToneKey, float]:
+        """根据波峰位置确定基调及置信度
 
-    def _get_tone_range(self, spread: int) -> ToneRange:
-        """根据分布宽度确定跨度"""
+        Args:
+            peak: 波峰位置
+
+        Returns:
+            Tuple[ToneKey, float]: 基调类型、置信度(0.5-1.0)
+        """
+        # 高调区域
+        if peak >= self.KEY_HIGH_MIN:
+            distance = peak - self.KEY_HIGH_MIN
+            confidence = 0.5 + 0.5 * min(distance / self.KEY_BUFFER, 1.0)
+            return ToneKey.HIGH, confidence
+
+        # 低调区域
+        if peak <= self.KEY_LOW_MAX:
+            distance = self.KEY_LOW_MAX - peak
+            confidence = 0.5 + 0.5 * min(distance / self.KEY_BUFFER, 1.0)
+            return ToneKey.LOW, confidence
+
+        # 中调区域
+        dist_to_low = peak - self.KEY_LOW_MAX
+        dist_to_high = self.KEY_HIGH_MIN - peak
+
+        if dist_to_low < self.KEY_BUFFER and dist_to_low < dist_to_high:
+            # 靠近低调边界
+            confidence = 0.5 + 0.5 * (dist_to_low / self.KEY_BUFFER)
+        elif dist_to_high < self.KEY_BUFFER:
+            # 靠近高调边界
+            confidence = 0.5 + 0.5 * (dist_to_high / self.KEY_BUFFER)
+        else:
+            # 中调核心区
+            confidence = 1.0
+
+        return ToneKey.MID, confidence
+
+    def _get_tone_range(self, spread: int) -> Tuple[ToneRange, float]:
+        """根据分布宽度确定跨度及置信度
+
+        Args:
+            spread: 分布宽度(最大-最小)
+
+        Returns:
+            Tuple[ToneRange, float]: 跨度类型、置信度(0.5-1.0)
+        """
+        # 长调区域
         if spread >= self.RANGE_LONG:
-            return ToneRange.LONG
-        elif spread >= self.RANGE_MEDIUM:
-            return ToneRange.MEDIUM
-        return ToneRange.SHORT
+            distance = spread - self.RANGE_LONG
+            confidence = 0.5 + 0.5 * min(distance / self.RANGE_BUFFER, 1.0)
+            return ToneRange.LONG, confidence
+
+        # 短调区域
+        if spread < self.RANGE_MEDIUM:
+            distance = self.RANGE_MEDIUM - spread
+            confidence = 0.5 + 0.5 * min(distance / self.RANGE_BUFFER, 1.0)
+            return ToneRange.SHORT, confidence
+
+        # 中调区域
+        dist_to_short = spread - self.RANGE_MEDIUM
+        dist_to_long = self.RANGE_LONG - spread
+
+        if dist_to_short < self.RANGE_BUFFER and dist_to_short < dist_to_long:
+            # 靠近短调边界
+            confidence = 0.5 + 0.5 * (dist_to_short / self.RANGE_BUFFER)
+        elif dist_to_long < self.RANGE_BUFFER:
+            # 靠近长调边界
+            confidence = 0.5 + 0.5 * (dist_to_long / self.RANGE_BUFFER)
+        else:
+            # 中调核心区
+            confidence = 1.0
+
+        return ToneRange.MEDIUM, confidence
 
 
 
