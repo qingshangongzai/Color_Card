@@ -26,13 +26,10 @@ jobs:
     - name: Cache pip packages
       uses: actions/cache@v4
       with:
-        path: |
-          ~\AppData\Local\pip\Cache
-          ~\AppData\Local\Nuitka
-        key: ${{ runner.os }}-pip-nuitka-${{ hashFiles('requirements.txt') }}-${{ hashFiles('main.py') }}
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-nuitka-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-pip-nuitka-
+          ${{ runner.os }}-pip-
 
     - name: Install dependencies
       run: |
@@ -95,7 +92,6 @@ jobs:
           --lto=yes ^
           --jobs=4 ^
           --output-filename="Color Card" ^
-          --cache-dir="%USERPROFILE%\AppData\Local\Nuitka" ^
           main.py
 
     - name: Check build output

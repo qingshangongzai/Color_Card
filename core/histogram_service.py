@@ -231,27 +231,16 @@ class HistogramService(QObject):
     def _get_sample_step(self, image: QImage) -> int:
         """根据图片大小确定采样步长
 
+        由于 NumPy 优化后直方图计算速度大幅提升，现使用全采样(sample_step=1)
+        以获得更精确的直方图数据。
+
         Args:
             image: QImage 对象
 
         Returns:
-            int: 采样步长
+            int: 采样步长（固定返回1，即全采样）
         """
-        width = image.width()
-        height = image.height()
-        pixel_count = width * height
-
-        # 大图片使用更大的采样步长，但保证最低采样率约4%
-        if pixel_count > 20000000:  # > 20MP
-            return 6
-        elif pixel_count > 8000000:  # > 8MP
-            return 5
-        elif pixel_count > 4000000:  # > 4MP
-            return 4
-        elif pixel_count > 1000000:  # > 1MP
-            return 3
-        else:
-            return 2
+        return 1
 
     def calculate_luminance_async(self, image: QImage, delay_ms: int = 100) -> None:
         """异步计算明度直方图
