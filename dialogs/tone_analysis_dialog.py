@@ -1,6 +1,7 @@
 """明度分析对话框"""
 
-from typing import Optional
+import math
+from typing import List, Optional
 
 import numpy as np
 import win32con
@@ -14,7 +15,7 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
 
-from core import ToneAnalysisService, ToneAnalysisResult
+from core import ToneAnalysisService, ToneAnalysisResult, get_config_manager
 from dialogs import BaseFramelessDialog
 from utils import tr
 from utils.theme_colors import (
@@ -221,10 +222,15 @@ class PieChartWidget(QWidget):
 
 
 class HistogramWidget(QWidget):
-    """直方图组件"""
+    """直方图组件，支持线连接和柱状图两种显示模式，支持缩放模式切换"""
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
+        self._histogram_style = "bar"  # "line" 或 "bar"
+        self._scaling_mode = "adaptive"  # "linear" 或 "adaptive"
+        self._hist_data: Optional[np.ndarray] = None
+        self._result_data: Optional[ToneAnalysisResult] = None
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
@@ -240,6 +246,42 @@ class HistogramWidget(QWidget):
         self._chart_view.setStyleSheet("background: transparent; border: none;")
         layout.addWidget(self._chart_view)
 
+    def set_histogram_style(self, style: str) -> None:
+        """设置直方图显示样式
+
+        Args:
+            style: 样式类型，"line" 为线连接，"bar" 为柱状图
+
+        Raises:
+            ValueError: 当样式类型无效时
+        """
+        if style not in ("line", "bar"):
+            raise ValueError(f"无效的直方图样式: {style}")
+
+        if style != self._histogram_style:
+            self._histogram_style = style
+            # 如有数据，重新绘制
+            if self._hist_data is not None and self._result_data is not None:
+                self.set_histogram(self._hist_data, self._result_data)
+
+    def set_scaling_mode(self, mode: str) -> None:
+        """设置直方图缩放模式
+
+        Args:
+            mode: "linear" 线性缩放，"adaptive" 自适应缩放
+
+        Raises:
+            ValueError: 当模式类型无效时
+        """
+        if mode not in ("linear", "adaptive"):
+            raise ValueError(f"无效的缩放模式: {mode}")
+
+        if mode != self._scaling_mode:
+            self._scaling_mode = mode
+            # 如有数据，重新绘制
+            if self._hist_data is not None and self._result_data is not None:
+                self.set_histogram(self._hist_data, self._result_data)
+
     def set_histogram(self, hist: np.ndarray, result: ToneAnalysisResult) -> None:
         """设置直方图数据
 
@@ -247,32 +289,22 @@ class HistogramWidget(QWidget):
             hist: 直方图数据
             result: 分析结果
         """
+        # 保存数据用于样式切换时重绘
+        self._hist_data = hist
+        self._result_data = result
+
         self._chart.removeAllSeries()
 
-        # 创建柱状图系列
-        bar_series = QBarSeries()
-        bar_set = QBarSet("")
-
-        # 添加数据（完整256个采样点）
+        # 计算原始数据
         bar_values = [float(hist[i]) for i in range(256)]
-        for value in bar_values:
-            bar_set.append(value)
 
-        bar_series.append(bar_set)
-        bar_series.setName("")
-        self._chart.addSeries(bar_series)
-
-        # 计算最大值用于参考线
-        max_value = max(bar_values)
-
-        # 设置柱状图颜色
-        bar_color = get_tone_chart_bar_color()
-        bar_set.setColor(QColor(bar_color.name()))
-        bar_set.setBorderColor(QColor(bar_color.name()))
+        # 应用缩放模式
+        scaled_values = self._apply_scaling(bar_values)
+        max_value = max(scaled_values)
 
         # 创建坐标轴
         axis_x = QValueAxis()
-        axis_x.setRange(0, 256)  # 256个柱子
+        axis_x.setRange(0, 256)
         axis_x.setLabelFormat("%d")
         axis_x.setTitleText("")
 
@@ -281,16 +313,170 @@ class HistogramWidget(QWidget):
 
         self._chart.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
         self._chart.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
+
+        # 根据样式绘制直方图
+        if self._histogram_style == "line":
+            self._create_line_series(scaled_values, max_value, axis_x, axis_y)
+        else:
+            self._create_bar_series(scaled_values, max_value, axis_x, axis_y)
+
+        # 添加参考线（使用缩放后的最大值）
+        self._add_reference_lines(result, max_value, axis_x, axis_y)
+
+        # 更新主题颜色
+        self._update_theme_colors()
+
+    def _create_bar_series(self, bar_values: List[float], max_value: float,
+                           axis_x: QValueAxis, axis_y: QValueAxis) -> QBarSeries:
+        """创建柱状图系列
+
+        Args:
+            bar_values: 柱状图数据值列表
+            max_value: 最大值
+            axis_x: X轴
+            axis_y: Y轴
+
+        Returns:
+            QBarSeries: 柱状图系列
+        """
+        bar_series = QBarSeries()
+        bar_set = QBarSet("")
+
+        for value in bar_values:
+            bar_set.append(value)
+
+        bar_series.append(bar_set)
+        bar_series.setName("")
+        self._chart.addSeries(bar_series)
+
+        # 设置柱状图颜色
+        bar_color = get_tone_chart_bar_color()
+        bar_set.setColor(QColor(bar_color.name()))
+        bar_set.setBorderColor(QColor(bar_color.name()))
+
         bar_series.attachAxis(axis_x)
         bar_series.attachAxis(axis_y)
 
+        # 隐藏柱状图系列的图例项
+        self._chart.legend().markers(bar_series)[0].setVisible(False)
+
+        return bar_series
+
+    def _create_line_series(self, bar_values: List[float], max_value: float,
+                            axis_x: QValueAxis, axis_y: QValueAxis) -> QLineSeries:
+        """创建线连接系列
+
+        Args:
+            bar_values: 数据值列表
+            max_value: 最大值
+            axis_x: X轴
+            axis_y: Y轴
+
+        Returns:
+            QLineSeries: 线连接系列
+        """
+        line_series = QLineSeries()
+        line_series.setName("")
+
+        # 添加数据点
+        for i, value in enumerate(bar_values):
+            line_series.append(i, value)
+
+        self._chart.addSeries(line_series)
+
+        # 设置线条颜色
+        line_color = get_tone_chart_bar_color()
+        line_series.setPen(QPen(QColor(line_color.name()), 1.5))
+
+        line_series.attachAxis(axis_x)
+        line_series.attachAxis(axis_y)
+
+        # 隐藏线系列的图例项
+        self._chart.legend().markers(line_series)[0].setVisible(False)
+
+        return line_series
+
+    def _apply_scaling(self, values: List[float]) -> List[float]:
+        """应用缩放模式到数据
+
+        Args:
+            values: 原始数据值列表
+
+        Returns:
+            List[float]: 缩放后的数据值列表
+        """
+        if self._scaling_mode == "linear":
+            return values
+
+        # adaptive: 自适应缩放
+        max_value = max(values)
+        if max_value == 0:
+            return values
+
+        # 计算CV值
+        cv = self._calculate_cv(values)
+
+        scaled_values = []
+        for value in values:
+            if value == 0:
+                scaled_values.append(0)
+                continue
+
+            if cv < 0.8:
+                # 分布平坦：线性缩放
+                normalized = value / max_value
+            elif cv > 2.0:
+                # 分布集中：平方根缩放
+                normalized = math.sqrt(value) / math.sqrt(max_value)
+            else:
+                # 中间态：动态指数
+                t = (cv - 0.8) / (2.0 - 0.8)
+                exponent = 0.75 - t * 0.2
+                normalized = (value / max_value) ** exponent
+
+            scaled_values.append(normalized * max_value)
+
+        return scaled_values
+
+    def _calculate_cv(self, values: List[float]) -> float:
+        """计算变异系数（CV）
+
+        CV = 标准差 / 平均值
+        用于衡量数据分布的离散程度
+
+        Args:
+            values: 数据值列表
+
+        Returns:
+            float: 变异系数
+        """
+        non_zero = [v for v in values if v > 0]
+        if len(non_zero) < 2:
+            return 0.0
+
+        mean_val = sum(non_zero) / len(non_zero)
+        if mean_val == 0:
+            return 0.0
+
+        variance = sum((x - mean_val) ** 2 for x in non_zero) / len(non_zero)
+        return math.sqrt(variance) / mean_val
+
+    def _add_reference_lines(self, result: ToneAnalysisResult, max_value: float,
+                             axis_x: QValueAxis, axis_y: QValueAxis) -> None:
+        """添加均值和中位数参考线
+
+        Args:
+            result: 分析结果
+            max_value: 最大值
+            axis_x: X轴
+            axis_y: Y轴
+        """
         # 添加均值参考线
         mean_line = QLineSeries()
         mean_line.setName(f'{tr("tone_analysis.mean_brightness")}: {result.mean:.1f}')
         mean_color = get_tone_chart_mean_line_color()
         mean_line.setPen(QPen(QColor(mean_color.name()), 2))
 
-        # 计算均值对应的柱子索引
         mean_index = int(result.mean)
         mean_line.append(mean_index, 0)
         mean_line.append(mean_index, max_value * 1.1)
@@ -312,12 +498,6 @@ class HistogramWidget(QWidget):
         self._chart.addSeries(median_line)
         median_line.attachAxis(axis_x)
         median_line.attachAxis(axis_y)
-
-        # 隐藏柱状图系列的图例项
-        self._chart.legend().markers(bar_series)[0].setVisible(False)
-
-        # 更新主题颜色
-        self._update_theme_colors()
 
     def _update_theme_colors(self) -> None:
         """更新主题颜色"""
@@ -364,6 +544,22 @@ class ChartsWidget(QWidget):
         self._histogram = HistogramWidget()
         self._histogram.setMinimumHeight(250)
         layout.addWidget(self._histogram, stretch=1)
+
+    def set_histogram_style(self, style: str) -> None:
+        """设置直方图显示样式
+
+        Args:
+            style: 样式类型，"line" 或 "bar"
+        """
+        self._histogram.set_histogram_style(style)
+
+    def set_scaling_mode(self, mode: str) -> None:
+        """设置直方图缩放模式
+
+        Args:
+            mode: 缩放模式，"linear" 或 "adaptive"
+        """
+        self._histogram.set_scaling_mode(mode)
 
     def display_analysis(self, img_rgb: np.ndarray, gray: np.ndarray,
                          hist: np.ndarray, result: ToneAnalysisResult) -> None:
@@ -535,6 +731,15 @@ class ToneAnalysisDialog(BaseFramelessDialog):
             img_array: 图片数组
         """
         self._loading_label.hide()
+
+        # 应用当前直方图样式设置
+        config_manager = get_config_manager()
+        histogram_style = config_manager.get('settings.luminance_histogram_style', 'line')
+        self._charts_widget.set_histogram_style(histogram_style)
+
+        # 应用当前直方图缩放模式设置
+        scaling_mode = config_manager.get('settings.histogram_scaling_mode', 'adaptive')
+        self._charts_widget.set_scaling_mode(scaling_mode)
 
         self._charts_widget.display_analysis(
             img_array, gray, result.histogram, result
