@@ -302,9 +302,10 @@ class HistogramWidget(QWidget):
         scaled_values = self._apply_scaling(bar_values)
         max_value = max(scaled_values)
 
-        # 创建坐标轴
+        # 创建X轴（均匀九段分区）
         axis_x = QValueAxis()
         axis_x.setRange(0, 256)
+        axis_x.setTickCount(10)  # 10个刻度 = 9段
         axis_x.setLabelFormat("%d")
         axis_x.setTitleText("")
 
