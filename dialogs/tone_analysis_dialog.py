@@ -9,17 +9,17 @@ from PySide6.QtCharts import (
     QBarSeries, QBarSet, QChart, QChartView, QLineSeries,
     QPieSeries, QValueAxis
 )
-from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtCore import QMargins, QThread, Signal, Qt
 from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel
+from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
 
 from core import ToneAnalysisService, ToneAnalysisResult
 from dialogs import BaseFramelessDialog
 from utils import tr
 from utils.theme_colors import (
     get_text_color,
-    get_tone_chart_bg_color, get_tone_chart_text_color,
+    get_tone_chart_text_color,
     get_tone_chart_bar_color,
     get_tone_chart_mean_line_color, get_tone_chart_median_line_color
 )
@@ -124,13 +124,17 @@ class PieChartWidget(QWidget):
         self._chart = QChart()
         self._chart.setAnimationOptions(QChart.AnimationOption.SeriesAnimations)
         self._chart.legend().setVisible(False)  # 隐藏默认图例
+        self._chart.setMargins(QMargins(0, 0, 0, 0))
+        self._chart.setBackgroundRoundness(0)
+        self._chart.setBackgroundVisible(False)
 
         # 创建图表视图
         self._chart_view = QChartView(self._chart)
         self._chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self._chart_view.setMinimumSize(200, 200)
+        self._chart_view.setStyleSheet("background: transparent; border: none;")
 
-        layout.addWidget(self._chart_view)
+        layout.addWidget(self._chart_view, stretch=1)
 
         # 创建自定义图例区域
         self._legend_widget = QWidget(self)
@@ -159,6 +163,7 @@ class PieChartWidget(QWidget):
         # 创建饼图系列
         series = QPieSeries()
         series.setHoleSize(0.0)  # 实心饼图
+        series.setPieSize(0.95)  # 饼图占图表区域的比例
 
         for i, (label, value, color) in enumerate(zip(labels, values, colors)):
             slice_item = series.append(label, value)
@@ -201,9 +206,7 @@ class PieChartWidget(QWidget):
     def _update_theme_colors(self) -> None:
         """更新主题颜色"""
         text_color = get_tone_chart_text_color()
-        bg_color = get_tone_chart_bg_color()
 
-        self._chart.setBackgroundBrush(QColor(bg_color.name()))
         self._chart.setTitleBrush(QColor(text_color.name()))
 
         # 更新图例文字颜色
@@ -229,10 +232,12 @@ class HistogramWidget(QWidget):
         self._chart = QChart()
         self._chart.legend().setVisible(True)
         self._chart.legend().setAlignment(Qt.AlignmentFlag.AlignTop)
+        self._chart.setBackgroundVisible(False)
 
         # 图表视图
         self._chart_view = QChartView(self._chart)
         self._chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self._chart_view.setStyleSheet("background: transparent; border: none;")
         layout.addWidget(self._chart_view)
 
     def set_histogram(self, hist: np.ndarray, result: ToneAnalysisResult) -> None:
@@ -246,7 +251,7 @@ class HistogramWidget(QWidget):
 
         # 创建柱状图系列
         bar_series = QBarSeries()
-        bar_set = QBarSet(tr('tone_analysis.pixel_count'))
+        bar_set = QBarSet("")
 
         # 添加数据（完整256个采样点）
         bar_values = [float(hist[i]) for i in range(256)]
@@ -254,6 +259,7 @@ class HistogramWidget(QWidget):
             bar_set.append(value)
 
         bar_series.append(bar_set)
+        bar_series.setName("")
         self._chart.addSeries(bar_series)
 
         # 计算最大值用于参考线
@@ -268,10 +274,10 @@ class HistogramWidget(QWidget):
         axis_x = QValueAxis()
         axis_x.setRange(0, 256)  # 256个柱子
         axis_x.setLabelFormat("%d")
-        axis_x.setTitleText(tr('tone_analysis.brightness'))
+        axis_x.setTitleText("")
 
         axis_y = QValueAxis()
-        axis_y.setTitleText(tr('tone_analysis.pixel_count'))
+        axis_y.setTitleText("")
 
         self._chart.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
         self._chart.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
@@ -307,15 +313,16 @@ class HistogramWidget(QWidget):
         median_line.attachAxis(axis_x)
         median_line.attachAxis(axis_y)
 
+        # 隐藏柱状图系列的图例项
+        self._chart.legend().markers(bar_series)[0].setVisible(False)
+
         # 更新主题颜色
         self._update_theme_colors()
 
     def _update_theme_colors(self) -> None:
         """更新主题颜色"""
         text_color = get_tone_chart_text_color()
-        bg_color = get_tone_chart_bg_color()
 
-        self._chart.setBackgroundBrush(QColor(bg_color.name()))
         self._chart.setTitleBrush(QColor(text_color.name()))
 
         # 更新坐标轴颜色
@@ -323,12 +330,16 @@ class HistogramWidget(QWidget):
             axis.setLabelsColor(QColor(text_color.name()))
             axis.setTitleBrush(QColor(text_color.name()))
 
+        # 更新图例颜色
+        self._chart.legend().setLabelColor(QColor(text_color.name()))
+
 
 class ChartsWidget(QWidget):
     """Qt 图表组件（替代 MatplotlibWidget）"""
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
+        self.setMinimumHeight(400)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -336,6 +347,7 @@ class ChartsWidget(QWidget):
 
         # 顶部区域：原图 + 灰度图 + 饼图
         top_widget = QWidget()
+        top_widget.setMinimumHeight(200)
         top_layout = QHBoxLayout(top_widget)
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(10)
@@ -343,14 +355,15 @@ class ChartsWidget(QWidget):
         self._image_display = ImageDisplayWidget()
         self._pie_chart = PieChartWidget()
 
-        top_layout.addWidget(self._image_display, stretch=2)
+        top_layout.addWidget(self._image_display, stretch=1)
         top_layout.addWidget(self._pie_chart, stretch=1)
 
         layout.addWidget(top_widget)
 
         # 底部：直方图
         self._histogram = HistogramWidget()
-        layout.addWidget(self._histogram)
+        self._histogram.setMinimumHeight(250)
+        layout.addWidget(self._histogram, stretch=1)
 
     def display_analysis(self, img_rgb: np.ndarray, gray: np.ndarray,
                          hist: np.ndarray, result: ToneAnalysisResult) -> None:
@@ -371,7 +384,7 @@ class ChartsWidget(QWidget):
         ]
         values = [result.shadows, result.midtones, result.highlights]
         colors = ['#4a90d9', '#51cf66', '#ffd93d']
-        self._pie_chart.set_data(labels, values, colors, tr('tone_analysis.zone_distribution'))
+        self._pie_chart.set_data(labels, values, colors, "")
 
         self._histogram.set_histogram(hist, result)
 
@@ -460,15 +473,26 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         main_layout.setContentsMargins(20, 40, 20, 10)
         main_layout.setSpacing(8)
 
+        # 创建滚动区域
+        self._scroll_area = ScrollArea(self)
+        self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setFrameShape(ScrollArea.Shape.NoFrame)
+
+        # 创建内容容器
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(8)
+
         # 加载中标签
         self._loading_label = BodyLabel(tr('tone_analysis.loading'), self)
         self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self._loading_label)
+        content_layout.addWidget(self._loading_label)
 
         # Qt 图表组件（初始隐藏）
         self._charts_widget = ChartsWidget(self)
         self._charts_widget.hide()
-        main_layout.addWidget(self._charts_widget, stretch=1)
+        content_layout.addWidget(self._charts_widget, stretch=1)
 
         # 统计卡片区域（初始隐藏）
         self._stats_widget = QWidget(self)
@@ -477,7 +501,10 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         stats_layout.setSpacing(12)
 
         self._stat_cards = []
-        main_layout.addWidget(self._stats_widget)
+        content_layout.addWidget(self._stats_widget)
+
+        self._scroll_area.setWidget(content_widget)
+        main_layout.addWidget(self._scroll_area)
 
     def start_analysis(self) -> None:
         """开始分析"""
@@ -562,6 +589,7 @@ class ToneAnalysisDialog(BaseFramelessDialog):
     def _update_styles(self) -> None:
         """更新样式"""
         super()._update_styles()
+        self._scroll_area.setStyleSheet("background: transparent; border: none;")
 
     def closeEvent(self, event) -> None:
         """关闭事件"""

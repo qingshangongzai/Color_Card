@@ -139,8 +139,13 @@ class BaseFramelessDialog(FramelessDialog):
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
-        # 设置样式表 - QLabel 文字颜色
+        bg_color_str = bg_color.name()
+
+        # 设置样式表 - 窗口背景和 QLabel 文字颜色
         self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {bg_color_str};
+            }}
             QLabel {{
                 color: {text_color_str};
                 background-color: transparent;
