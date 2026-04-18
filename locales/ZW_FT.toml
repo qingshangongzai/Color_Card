@@ -14,8 +14,11 @@ color_preview = "配色預覽"
 settings = "設置"
 
 [title_bar]
-toggle_theme = "切換深色/淺色模式"
+toggle_theme = "切換主題"
 toggle_fullscreen = "全屏/退出全屏 (F11)"
+theme_light = "淺色模式"
+theme_dark = "深色模式"
+theme_auto = "跟隨系統"
 
 [color_extract]
 favorite = "收藏當前配色"

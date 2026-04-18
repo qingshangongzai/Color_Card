@@ -14,8 +14,11 @@ color_preview = "Color Preview"
 settings = "Settings"
 
 [title_bar]
-toggle_theme = "Toggle Dark/Light Mode"
+toggle_theme = "Toggle Theme"
 toggle_fullscreen = "Fullscreen/Exit Fullscreen (F11)"
+theme_light = "Light Mode"
+theme_dark = "Dark Mode"
+theme_auto = "System"
 
 [color_extract]
 favorite = "Save Palette"

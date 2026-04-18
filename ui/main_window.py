@@ -35,15 +35,17 @@ _TOOLBUTTON_STYLE = """
 
 
 class CustomTitleBar(FluentTitleBar):
-    """自定义标题栏，添加深色模式切换按钮和全屏切换按钮"""
+    """自定义标题栏，添加主题切换按钮和全屏切换按钮"""
 
     def __init__(self, parent):
         super().__init__(parent)
 
-        # 创建深色模式切换按钮
+        # 主题模式：light/dark/auto
+        self._theme_mode = 'auto'
+
+        # 创建主题切换按钮
         self.themeButton = ToolButton(self)
         self.themeButton.setFixedSize(40, 32)
-        self.themeButton.setToolTip(tr('title_bar.toggle_theme'))
         self.themeButton.setStyleSheet(_TOOLBUTTON_STYLE)
         self._update_theme_icon()
 
@@ -60,26 +62,51 @@ class CustomTitleBar(FluentTitleBar):
         # 连接点击事件
         self.fullscreenButton.clicked.connect(self._toggle_fullscreen)
 
-        # 将按钮插入到最小化按钮之前（深色模式按钮在前，全屏按钮在后）
+        # 将按钮插入到最小化按钮之前（主题按钮在前，全屏按钮在后）
         index = self.buttonLayout.indexOf(self.minBtn)
         self.buttonLayout.insertWidget(index, self.themeButton)
         self.buttonLayout.insertWidget(index + 1, self.fullscreenButton)
 
-    def _toggle_theme(self):
-        """切换主题"""
-        if isDarkTheme():
-            setTheme(Theme.LIGHT)
-            theme_value = 'light'
-        else:
-            setTheme(Theme.DARK)
-            theme_value = 'dark'
+    def init_theme(self, mode: str):
+        """初始化主题模式
+
+        Args:
+            mode: 主题模式 (light/dark/auto)
+        """
+        self._theme_mode = mode
         self._update_theme_icon()
-        # 重新应用按钮样式以覆盖 Fluent 主题样式
+
+    def _toggle_theme(self):
+        """切换主题（三态循环：浅色→深色→跟随系统→浅色）"""
+        mode_cycle = ['light', 'dark', 'auto']
+        current_index = mode_cycle.index(self._theme_mode)
+        next_index = (current_index + 1) % len(mode_cycle)
+        next_mode = mode_cycle[next_index]
+
+        self._apply_theme_mode(next_mode)
+
+    def _apply_theme_mode(self, mode: str):
+        """应用主题模式
+
+        Args:
+            mode: 主题模式 (light/dark/auto)
+        """
+        self._theme_mode = mode
+
+        if mode == 'light':
+            setTheme(Theme.LIGHT)
+        elif mode == 'dark':
+            setTheme(Theme.DARK)
+        else:  # auto
+            setTheme(Theme.AUTO)
+
+        self._update_theme_icon()
         self._apply_theme_button_style()
-        # 保存主题配置
+
+        # 保存配置
         from core import get_config_manager
         config_manager = get_config_manager()
-        config_manager.set('settings.theme', theme_value)
+        config_manager.set('settings.theme', mode)
         config_manager.save()
 
     def _apply_theme_button_style(self):
@@ -100,9 +127,20 @@ class CustomTitleBar(FluentTitleBar):
         self.fullscreenButton.setStyleSheet(style_sheet)
 
     def _update_theme_icon(self):
-        """根据当前主题更新按钮图标"""
-        # 使用 CONSTRACT（对比度）图标作为主题切换按钮
-        self.themeButton.setIcon(FluentIcon.CONSTRACT)
+        """根据当前主题模式更新按钮图标和提示"""
+        if self._theme_mode == 'light':
+            self.themeButton.setIcon(FluentIcon.BRIGHTNESS)
+        elif self._theme_mode == 'dark':
+            self.themeButton.setIcon(FluentIcon.QUIET_HOURS)
+        else:  # auto
+            self.themeButton.setIcon(FluentIcon.SYNC)
+
+        tooltip_map = {
+            'light': tr('title_bar.theme_light'),
+            'dark': tr('title_bar.theme_dark'),
+            'auto': tr('title_bar.theme_auto')
+        }
+        self.themeButton.setToolTip(tooltip_map[self._theme_mode])
 
     def _toggle_fullscreen(self):
         """切换全屏/窗口模式"""
@@ -123,7 +161,7 @@ class CustomTitleBar(FluentTitleBar):
 
     def update_texts(self):
         """更新界面文本"""
-        self.themeButton.setToolTip(tr('title_bar.toggle_theme'))
+        self._update_theme_icon()
         self.fullscreenButton.setToolTip(tr('title_bar.toggle_fullscreen'))
 
 
