@@ -14,8 +14,11 @@ color_preview = "カラープレビュー"
 settings = "設定"
 
 [title_bar]
-toggle_theme = "ダーク/ライトモード切替"
+toggle_theme = "テーマ切替"
 toggle_fullscreen = "全画面/全画面解除 (F11)"
+theme_light = "ライトモード"
+theme_dark = "ダークモード"
+theme_auto = "システムに従う"
 
 [color_extract]
 favorite = "パレットを保存"

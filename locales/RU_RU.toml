@@ -14,8 +14,11 @@ color_preview = "Предпросмотр цвета"
 settings = "Настройки"
 
 [title_bar]
-toggle_theme = "Переключить темную/светлую тему"
+toggle_theme = "Переключить тему"
 toggle_fullscreen = "Полноэкранный режим/Выход (F11)"
+theme_light = "Светлая тема"
+theme_dark = "Темная тема"
+theme_auto = "Как в системе"
 
 [color_extract]
 favorite = "Сохранить"
