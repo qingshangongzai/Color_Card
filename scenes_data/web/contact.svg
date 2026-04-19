@@ -1,0 +1,60 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 页面背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#f5f7fa"/>
+
+  <!-- 顶部导航栏 -->
+  <rect id="navbar" class="primary" x="0" y="0" width="600" height="45" fill="#2c3e50"/>
+  <rect id="logo" class="accent" x="25" y="12" width="30" height="22" rx="4" fill="#3498db"/>
+  <text id="nav-item-1" class="text" x="420" y="28" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">首页</text>
+  <text id="nav-item-2" class="text" x="465" y="28" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">产品</text>
+  <text id="nav-item-3" class="text" x="510" y="28" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">关于</text>
+  <text id="nav-item-4" class="text" x="560" y="28" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">联系</text>
+
+  <!-- 页面标题区 -->
+  <text id="page-title" class="text" x="300" y="75" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#2c3e50" data-fixed-color="black">联系我们</text>
+  <text id="page-subtitle" class="text" x="300" y="95" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#7f8c8d" data-fixed-color="black">有任何问题？我们随时为您服务</text>
+
+  <!-- 左侧联系信息卡片 -->
+  <rect id="contact-card" class="secondary" x="40" y="115" width="240" height="170" rx="12" fill="#ffffff"/>
+
+  <!-- 地址信息 -->
+  <rect id="icon-address" class="accent" x="60" y="135" width="36" height="36" rx="8" fill="#3498db"/>
+  <text id="label-address" class="text" x="105" y="150" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#2c3e50" data-fixed-color="black">公司地址</text>
+  <text id="value-address" class="text" x="105" y="165" font-family="Arial, sans-serif" font-size="9" fill="#7f8c8d" data-fixed-color="black">北京市朝阳区科技园区A座</text>
+
+  <!-- 电话信息 -->
+  <rect id="icon-phone" class="accent" x="60" y="185" width="36" height="36" rx="8" fill="#e74c3c"/>
+  <text id="label-phone" class="text" x="105" y="200" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#2c3e50" data-fixed-color="black">联系电话</text>
+  <text id="value-phone" class="text" x="105" y="215" font-family="Arial, sans-serif" font-size="9" fill="#7f8c8d" data-fixed-color="black">400-123-4567</text>
+
+  <!-- 邮箱信息 -->
+  <rect id="icon-email" class="accent" x="60" y="235" width="36" height="36" rx="8" fill="#27ae60"/>
+  <text id="label-email" class="text" x="105" y="250" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#2c3e50" data-fixed-color="black">电子邮箱</text>
+  <text id="value-email" class="text" x="105" y="265" font-family="Arial, sans-serif" font-size="9" fill="#7f8c8d" data-fixed-color="black">contact@example.com</text>
+
+  <!-- 右侧联系表单卡片 -->
+  <rect id="form-card" class="secondary" x="300" y="115" width="260" height="170" rx="12" fill="#ffffff"/>
+
+  <!-- 表单标题 -->
+  <text id="form-title" class="text" x="430" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c3e50" data-fixed-color="black">发送消息</text>
+
+  <!-- 姓名输入框 -->
+  <rect id="input-name-bg" class="secondary" x="320" y="155" width="105" height="32" rx="6" fill="#ecf0f1"/>
+  <text id="input-name-placeholder" class="text" x="330" y="175" font-family="Arial, sans-serif" font-size="9" fill="#95a5a6" data-fixed-color="black">您的姓名</text>
+
+  <!-- 邮箱输入框 -->
+  <rect id="input-email-bg" class="secondary" x="435" y="155" width="105" height="32" rx="6" fill="#ecf0f1"/>
+  <text id="input-email-placeholder" class="text" x="445" y="175" font-family="Arial, sans-serif" font-size="9" fill="#95a5a6" data-fixed-color="black">您的邮箱</text>
+
+  <!-- 主题输入框 -->
+  <rect id="input-subject-bg" class="secondary" x="320" y="195" width="220" height="32" rx="6" fill="#ecf0f1"/>
+  <text id="input-subject-placeholder" class="text" x="330" y="215" font-family="Arial, sans-serif" font-size="9" fill="#95a5a6" data-fixed-color="black">消息主题</text>
+
+  <!-- 消息内容输入框 -->
+  <rect id="input-message-bg" class="secondary" x="320" y="235" width="220" height="40" rx="6" fill="#ecf0f1"/>
+  <text id="input-message-placeholder" class="text" x="330" y="255" font-family="Arial, sans-serif" font-size="9" fill="#95a5a6" data-fixed-color="black">请输入您的消息...</text>
+
+  <!-- 发送按钮 -->
+  <rect id="submit-btn" class="accent" x="440" y="240" width="90" height="28" rx="6" fill="#3498db"/>
+  <text id="submit-text" class="text" x="485" y="258" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">发送</text>
+</svg>

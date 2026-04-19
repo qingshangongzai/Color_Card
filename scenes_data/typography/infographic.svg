@@ -1,0 +1,65 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#f8f9fa"/>
+
+  <!-- 顶部标题 -->
+  <text id="title" class="text" x="300" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">设计流程概览</text>
+
+  <!-- 步骤1 圆形 -->
+  <circle id="step1-circle" class="accent" cx="100" cy="100" r="35" fill="#ff6b6b"/>
+  <text id="step1-num" class="text" x="100" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" data-fixed-color="black">1</text>
+  <text id="step1-label" class="primary" x="100" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">调研</text>
+
+  <!-- 步骤2 圆形 -->
+  <circle id="step2-circle" class="primary" cx="230" cy="100" r="35" fill="#4a90d9"/>
+  <text id="step2-num" class="text" x="230" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" data-fixed-color="black">2</text>
+  <text id="step2-label" class="primary" x="230" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">概念</text>
+
+  <!-- 步骤3 圆形 -->
+  <circle id="step3-circle" class="secondary" cx="360" cy="100" r="35" fill="#50c878"/>
+  <text id="step3-num" class="text" x="360" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" data-fixed-color="black">3</text>
+  <text id="step3-label" class="primary" x="360" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">设计</text>
+
+  <!-- 步骤4 圆形 -->
+  <circle id="step4-circle" class="accent" cx="490" cy="100" r="35" fill="#9b59b6"/>
+  <text id="step4-num" class="text" x="490" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ffffff" data-fixed-color="black">4</text>
+  <text id="step4-label" class="primary" x="490" y="155" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#333333" data-fixed-color="black">交付</text>
+
+  <!-- 连接线 -->
+  <line id="connect-1" class="secondary" x1="135" y1="100" x2="195" y2="100" stroke="#cccccc" stroke-width="3"/>
+  <line id="connect-2" class="secondary" x1="265" y1="100" x2="325" y2="100" stroke="#cccccc" stroke-width="3"/>
+  <line id="connect-3" class="secondary" x1="395" y1="100" x2="455" y2="100" stroke="#cccccc" stroke-width="3"/>
+
+  <!-- 箭头 -->
+  <polygon id="arrow-1" class="secondary" points="195,95 205,100 195,105" fill="#cccccc"/>
+  <polygon id="arrow-2" class="secondary" points="325,95 335,100 325,105" fill="#cccccc"/>
+  <polygon id="arrow-3" class="secondary" points="455,95 465,100 455,105" fill="#cccccc"/>
+
+  <!-- 数据卡片区域 -->
+  <!-- 卡片1 -->
+  <rect id="card1-bg" class="secondary" x="40" y="190" width="120" height="80" rx="6" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
+  <rect id="card1-bar" class="accent" x="40" y="190" width="120" height="6" rx="3" fill="#ff6b6b"/>
+  <text id="card1-value" class="text" x="100" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">85%</text>
+  <text id="card1-label" class="secondary" x="100" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">用户满意度</text>
+
+  <!-- 卡片2 -->
+  <rect id="card2-bg" class="secondary" x="180" y="190" width="120" height="80" rx="6" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
+  <rect id="card2-bar" class="primary" x="180" y="190" width="120" height="6" rx="3" fill="#4a90d9"/>
+  <text id="card2-value" class="text" x="240" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">120+</text>
+  <text id="card2-label" class="secondary" x="240" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">完成项目</text>
+
+  <!-- 卡片3 -->
+  <rect id="card3-bg" class="secondary" x="320" y="190" width="120" height="80" rx="6" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
+  <rect id="card3-bar" class="secondary" x="320" y="190" width="120" height="6" rx="3" fill="#50c878"/>
+  <text id="card3-value" class="text" x="380" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">4.9</text>
+  <text id="card3-label" class="secondary" x="380" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">平均评分</text>
+
+  <!-- 卡片4 -->
+  <rect id="card4-bg" class="secondary" x="460" y="190" width="120" height="80" rx="6" fill="#ffffff" stroke="#e0e0e0" stroke-width="1"/>
+  <rect id="card4-bar" class="accent" x="460" y="190" width="120" height="6" rx="3" fill="#9b59b6"/>
+  <text id="card4-value" class="text" x="520" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">24h</text>
+  <text id="card4-label" class="secondary" x="520" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#666666" data-fixed-color="black">响应时间</text>
+
+  <!-- 底部装饰线 -->
+  <line id="bottom-line" class="accent" x1="50" y1="285" x2="550" y2="285" stroke="#ff6b6b" stroke-width="2"/>
+</svg>

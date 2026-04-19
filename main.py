@@ -205,6 +205,11 @@ def main():
 
         logger.info("创建主窗口...")
         window = MainWindow()
+
+        # 初始化标题栏主题按钮状态
+        if hasattr(window, 'titleBar') and hasattr(window.titleBar, 'init_theme'):
+            window.titleBar.init_theme(theme_setting)
+
         window.show()
         logger.info("主窗口显示完成")
 

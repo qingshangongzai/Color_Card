@@ -12,10 +12,22 @@
       "description": "通用企业官网首页，包含导航、Hero区域和功能卡片"
     },
     {
+      "id": "landing_page",
+      "name": "营销落地页",
+      "file": "landing_page.svg",
+      "description": "营销落地页，包含大标题、CTA按钮和特性列表"
+    },
+    {
       "id": "ecommerce",
       "name": "电商页面",
       "file": "ecommerce.svg",
       "description": "电商产品列表页，包含搜索框、分类标签和产品网格"
+    },
+    {
+      "id": "pricing",
+      "name": "定价页面",
+      "file": "pricing.svg",
+      "description": "定价页面，包含价格卡片和功能对比"
     },
     {
       "id": "blog",
@@ -36,16 +48,34 @@
       "description": "网页版数据仪表盘，包含统计卡片、折线图和活动列表"
     },
     {
-      "id": "login",
-      "name": "登录页面",
-      "file": "login.svg",
-      "description": "左右分栏式登录页面，包含装饰区域和登录表单"
-    },
-    {
       "id": "admin_dashboard",
       "name": "后台仪表盘",
       "file": "admin_dashboard.svg",
       "description": "完整的后台管理系统界面，包含侧边栏、日历、用户列表、统计卡片和数据图表"
+    },
+    {
+      "id": "documentation",
+      "name": "文档页面",
+      "file": "documentation.svg",
+      "description": "文档页面，包含侧边栏导航和代码块"
+    },
+    {
+      "id": "about",
+      "name": "关于我们",
+      "file": "about.svg",
+      "description": "关于我们页面，包含团队介绍和时间线"
+    },
+    {
+      "id": "contact",
+      "name": "联系页面",
+      "file": "contact.svg",
+      "description": "联系页面，包含表单、地图和联系信息"
+    },
+    {
+      "id": "login",
+      "name": "登录页面",
+      "file": "login.svg",
+      "description": "左右分栏式登录页面，包含装饰区域和登录表单"
     }
   ]
 }

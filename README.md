@@ -38,20 +38,20 @@
 
 | 指标    | 数据                      |
 | :---- | :---------------------- |
-| 发布版本  | 11 个版本（v1.0.0 → v1.7.1） |
-| 开发周期  | 66 天                    |
-| 总更新项  | **133 项**               |
+| 发布版本  | 12 个版本（v1.0.0 → v1.8.0） |
+| 开发周期  | 73 天                    |
+| 总更新项  | **145 项**               |
 | 平均每版本 | 12.1 项                  |
 
 **详细分类统计**：
 
 | 分类       |   数量   | 说明              |
 | :------- | :----: | :-------------- |
-| ✨ 新增功能   | **36** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **32** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **35** | 用户体验打磨          |
+| ✨ 新增功能   | **39** | 包含首次发布的 9 项核心功能 |
+| 🔧 问题修复  | **34** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **39** | 用户体验打磨          |
 | ⚡ 性能提升   | **11** | 缓存机制、启动优化等      |
-| 📝 内容调整  |  **5** | 文本、名称等调整        |
+| 📝 内容调整  |  **7** | 文本、名称等调整        |
 | ⚙️ 体验优化  |  **5** | 交互体验改进          |
 | 🏗️ 代码优化 |  **2** | 代码结构优化          |
 | 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
@@ -67,7 +67,7 @@
 |------|---------|
 | **色彩信息提取**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） | ![色彩提取](docs/screenshots/color-extract.png) |
 | **明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 | ![明度分析](docs/screenshots/luminance-extract.png) |
-| **渐变色提取**<br>通过起始色和结束色生成渐变色序列，支持 RGB/HSB/LAB 三种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
+| **渐变色提取**<br>支持双色渐变和单色明度梯度两种模式，双色渐变通过起始色和结束色生成渐变色序列，单色明度梯度固定色相饱和度按明度分级生成色阶（类似 Tailwind 50-900），支持 RGB/HSB/HSL/LAB 四种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
 | **配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 | ![配色生成](docs/screenshots/color-generation.png) |
 | **配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式 | ![配色管理](docs/screenshots/palette-management.png) |
 | **内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 | ![内置色彩库](docs/screenshots/preset-colors.png) |
@@ -162,7 +162,7 @@
 | :---- | :------------------------------------------------ |
 | 色彩提取  | 可拖动取色点、多色彩空间显示、一键复制颜色值                            |
 | 明度分析  | 9级明度分区（Zone 0-8）、直方图可视化、区域高亮                      |
-| 渐变色提取 | 起始色/结束色设置、RGB/HSB/LAB插值、中间色数量调节                   |
+| 渐变色提取 | 双色渐变/单色明度梯度两种模式、RGB/HSB/HSL/LAB插值、中间色数量调节 |                  |
 | 配色生成  | 5种配色方案、可交互色环、明度调整                                 |
 | 配色管理  | 收藏配色、自定义名称、批量导入导出为JSON文件、支持单组配色ASE格式导出（支持Adobe软件） |
 | 配色预览  | 8种内置场景、自定义SVG、智能配色映射                              |
@@ -289,20 +289,20 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 | Metric              | Data                          |
 | :------------------ | :---------------------------- |
-| Released Versions   | 11 versions (v1.0.0 → v1.7.1) |
-| Development Period  | 66 days                       |
-| Total Updates       | **133 items**                 |
+| Released Versions   | 12 versions (v1.0.0 → v1.8.0) |
+| Development Period  | 73 days                       |
+| Total Updates       | **145 items**                 |
 | Average per Version | 12.1 items                    |
 
 **Detailed Category Statistics(portion)**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
-| ✨ New Features         | **36** | Including 9 core features from v1.0.0 launch |
-| 🔧 Bug Fixes           | **32** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **35** | User experience refinements                  |
+| ✨ New Features         | **39** | Including 9 core features from v1.0.0 launch |
+| 🔧 Bug Fixes           | **34** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **39** | User experience refinements                  |
 | ⚡ Performance          | **11** | Cache mechanism, startup optimization        |
-| 📝 Content Adjustments |   **5** | Text, naming adjustments                     |
+| 📝 Content Adjustments |   **7** | Text, naming adjustments                     |
 | ⚙️ Experience          |   **5** | Interaction improvements                     |
 | 🏗️ Code Optimization  |   **2** | Code structure optimization                  |
 | 🔮 Logic Optimization  |   **2** | Algorithm improvements                       |
@@ -318,7 +318,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 |---------|------------|
 | **Visual Color Extraction**<br>Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB) | ![Color Extraction](docs/screenshots/color-extract.png) |
 | **Luminance Analysis**<br>9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization | ![Luminance Analysis](docs/screenshots/luminance-extract.png) |
-| **Gradient Extraction**<br>Generate gradient color sequences from start and end colors, supporting RGB/HSB/LAB color space interpolation | ![Gradient Extraction](docs/screenshots/Gradient%20Extract.png) |
+| **Gradient Extraction**<br>Two modes: two-color gradient generates sequences from start/end colors, lightness shades generates scales by brightness with fixed hue/saturation (like Tailwind 50-900), supporting RGB/HSB/HSL/LAB color space interpolation | ![Gradient Extraction](docs/screenshots/Gradient%20Extract.png) |
 | **Color Scheme Generation**<br>5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel | ![Color Generation](docs/screenshots/color-generation.png) |
 | **Palette Collection**<br>Save and manage color schemes, support batch import/export in JSON format, support single palette export to Adobe ASE format | ![Palette Management](docs/screenshots/palette-management.png) |
 | **Built-in Color Library**<br>13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes | ![Preset Colors](docs/screenshots/preset-colors.png) |
@@ -411,7 +411,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | Module              | Features                                                                                                                              |
 | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------ |
 | Color Extraction    | Draggable pickers, multiple color spaces, one-click copy                                                                              |
-| Gradient Extraction | Start/end color selection, RGB/HSB/LAB interpolation, adjustable middle colors                                                        |
+| Gradient Extraction | Two-color gradient / lightness shades modes, RGB/HSB/HSL/LAB interpolation, adjustable middle colors |                                                       |
 | Luminance Analysis  | 9-zone segmentation (Zone 0-8), histogram visualization, zone highlighting                                                            |
 | Color Generation    | 5 color schemes, interactive color wheel, luminance adjustment                                                                        |
 | Palette Management  | Save palettes, custom names, batch import/export in JSON format, support single palette ASE format export (Adobe software compatible) |

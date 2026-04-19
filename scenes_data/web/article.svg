@@ -1,0 +1,51 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#fafafa"/>
+
+  <!-- 顶部导航栏 -->
+  <rect id="header-bar" class="primary" x="0" y="0" width="600" height="35" fill="#1a1a1a"/>
+  <text id="nav-home" class="text" x="20" y="22" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">首页</text>
+  <text id="nav-article" class="accent" x="60" y="22" font-family="Arial, sans-serif" font-size="10" fill="#ff6b6b">文章</text>
+  <text id="nav-gallery" class="text" x="100" y="22" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">画廊</text>
+  <text id="nav-about" class="text" x="140" y="22" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">关于</text>
+
+  <!-- 文章标题 -->
+  <text id="article-title" class="text" x="20" y="70" font-family="Georgia, serif" font-size="24" font-weight="bold" fill="#1a1a1a" data-fixed-color="black">色彩心理学：如何用颜色讲述故事</text>
+  <rect id="title-underline" class="accent" x="20" y="78" width="80" height="2" fill="#ff6b6b"/>
+
+  <!-- 作者信息 -->
+  <text id="author-name" class="secondary" x="20" y="100" font-family="Arial, sans-serif" font-size="9" fill="#666666" data-fixed-color="black">作者：李明 | 设计总监</text>
+  <text id="publish-date" class="secondary" x="20" y="115" font-family="Arial, sans-serif" font-size="9" fill="#999999" data-fixed-color="black">2026年3月15日</text>
+
+  <!-- 左侧栏 - 第一栏内容 -->
+  <rect id="col1-line-1" class="primary" x="20" y="135" width="170" height="6" rx="1" fill="#cccccc"/>
+  <rect id="col1-line-2" class="primary" x="20" y="147" width="165" height="6" rx="1" fill="#cccccc"/>
+  <rect id="col1-line-3" class="primary" x="20" y="159" width="168" height="6" rx="1" fill="#cccccc"/>
+  <rect id="col1-line-4" class="primary" x="20" y="171" width="160" height="6" rx="1" fill="#cccccc"/>
+  <rect id="col1-line-5" class="primary" x="20" y="183" width="170" height="6" rx="1" fill="#cccccc"/>
+
+  <!-- 中间栏 - 第二栏内容 -->
+  <rect id="col2-line-1" class="secondary" x="210" y="135" width="170" height="6" rx="1" fill="#dddddd"/>
+  <rect id="col2-line-2" class="secondary" x="210" y="147" width="165" height="6" rx="1" fill="#dddddd"/>
+  <rect id="col2-line-3" class="secondary" x="210" y="159" width="168" height="6" rx="1" fill="#dddddd"/>
+  <rect id="col2-line-4" class="secondary" x="210" y="171" width="160" height="6" rx="1" fill="#dddddd"/>
+  <rect id="col2-line-5" class="secondary" x="210" y="183" width="170" height="6" rx="1" fill="#dddddd"/>
+
+  <!-- 右侧栏 - 第三栏内容 -->
+  <rect id="col3-line-1" class="primary" x="400" y="135" width="170" height="6" rx="1" fill="#cccccc"/>
+  <rect id="col3-line-2" class="primary" x="400" y="147" width="165" height="6" rx="1" fill="#cccccc"/>
+  <rect id="col3-line-3" class="primary" x="400" y="159" width="168" height="6" rx="1" fill="#cccccc"/>
+
+  <!-- 右侧配图 -->
+  <rect id="side-image" class="accent" x="400" y="175" width="170" height="100" rx="4" fill="#ff6b6b"/>
+  <rect id="side-image-inner" class="secondary" x="410" y="185" width="150" height="80" rx="2" fill="#333333"/>
+
+  <!-- 引用块 -->
+  <rect id="quote-bg" class="secondary" x="20" y="210" width="360" height="70" rx="4" fill="#f0f0f0"/>
+  <rect id="quote-accent" class="accent" x="20" y="210" width="4" height="70" fill="#ff6b6b"/>
+  <text id="quote-text" class="text" x="35" y="235" font-family="Georgia, serif" font-size="11" font-style="italic" fill="#1a1a1a" data-fixed-color="black">"每一种颜色都有其独特的语言，</text>
+  <text id="quote-text-2" class="text" x="35" y="255" font-family="Georgia, serif" font-size="11" font-style="italic" fill="#1a1a1a" data-fixed-color="black">设计师的工作就是翻译这种语言。"</text>
+
+  <!-- 页码 -->
+  <text id="page-number" class="secondary" x="580" y="290" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#999999" data-fixed-color="black">- 24 -</text>
+</svg>

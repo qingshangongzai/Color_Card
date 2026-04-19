@@ -1,0 +1,71 @@
+<svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 - 透明 -->
+  <rect id="background" class="background" width="300" height="400" fill="transparent" data-fixed-color="original"/>
+
+  <!-- 手机外框 -->
+  <rect id="phone-frame" class="primary" x="79" y="22" width="142" height="356" rx="20" fill="#666666" data-fixed-color="original"/>
+
+  <!-- 手机屏幕 -->
+  <rect id="screen" class="background" x="81" y="24" width="138" height="352" rx="16" fill="#ffffff"/>
+
+  <!-- 顶部装饰背景 -->
+  <rect id="header-bg" class="accent" x="85" y="30" width="130" height="80" rx="12" fill="#ff6b6b"/>
+
+  <!-- 状态栏 -->
+  <text id="time-text" class="text" x="150" y="45" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="600" fill="#ffffff" data-fixed-color="black">9:41</text>
+
+  <!-- 返回按钮 -->
+  <path id="back-btn" d="M 95 45 L 90 48 L 95 51" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+
+  <!-- 设置按钮 -->
+  <circle id="settings-btn" cx="195" cy="48" r="10" fill="#ffffff" opacity="0.3"/>
+  <circle id="settings-dot" cx="195" cy="48" r="2" fill="#ffffff" data-fixed-color="black"/>
+
+  <!-- 用户头像 -->
+  <circle id="avatar-bg" cx="150" cy="105" r="28" fill="#ffffff"/>
+  <circle id="avatar" class="primary" cx="150" cy="105" r="25" fill="#4a4a4a"/>
+  <text id="avatar-text" x="150" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" data-fixed-color="black">A</text>
+
+  <!-- 用户名 -->
+  <text id="username" class="text" x="150" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333333" data-fixed-color="black">Alex Chen</text>
+
+  <!-- 用户ID -->
+  <text id="user-id" class="text" x="150" y="162" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#888888" data-fixed-color="black">ID: 8829341</text>
+
+  <!-- 统计卡片行 -->
+  <rect id="stat-card-1" class="secondary" x="95" y="180" width="50" height="50" rx="10" fill="#f0f0f0"/>
+  <text id="stat-value-1" class="text" x="120" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333333" data-fixed-color="black">128</text>
+  <text id="stat-label-1" class="text" x="120" y="218" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888" data-fixed-color="black">训练</text>
+
+  <rect id="stat-card-2" class="secondary" x="152" y="180" width="50" height="50" rx="10" fill="#f0f0f0"/>
+  <text id="stat-value-2" class="text" x="177" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333333" data-fixed-color="black">45h</text>
+  <text id="stat-label-2" class="text" x="177" y="218" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#888888" data-fixed-color="black">时长</text>
+
+  <!-- 成就徽章区域 -->
+  <text id="badge-title" class="text" x="95" y="250" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333333" data-fixed-color="black">成就徽章</text>
+  <text id="badge-more" class="text" x="175" y="250" font-family="Arial, sans-serif" font-size="9" fill="#ff6b6b" data-fixed-color="black">查看更多</text>
+
+  <!-- 徽章图标 -->
+  <circle id="badge-1" class="accent" cx="110" cy="275" r="15" fill="#ff6b6b"/>
+  <text id="badge-1-icon" x="110" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">🏃</text>
+
+  <circle id="badge-2" class="primary" cx="140" cy="275" r="15" fill="#4a4a4a"/>
+  <text id="badge-2-icon" x="140" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">💪</text>
+
+  <circle id="badge-3" class="secondary" cx="170" cy="275" r="15" fill="#6a6a6a"/>
+  <text id="badge-3-icon" x="170" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">🔥</text>
+
+  <circle id="badge-4" class="accent" cx="200" cy="275" r="15" fill="#ff8a8a"/>
+  <text id="badge-4-icon" x="200" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" data-fixed-color="black">⭐</text>
+
+  <!-- 菜单列表 -->
+  <rect id="menu-item-1" class="secondary" x="95" y="300" width="110" height="28" rx="6" fill="#f5f5f5"/>
+  <circle id="menu-icon-1" class="primary" cx="110" cy="314" r="7" fill="#4a4a4a"/>
+  <text id="menu-text-1" class="text" x="128" y="318" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">我的收藏</text>
+  <path id="arrow-1" d="M 190 314 L 194 316 L 190 318" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+
+  <rect id="menu-item-2" class="secondary" x="95" y="332" width="110" height="28" rx="6" fill="#f5f5f5"/>
+  <circle id="menu-icon-2" class="accent" cx="110" cy="346" r="7" fill="#ff6b6b"/>
+  <text id="menu-text-2" class="text" x="128" y="350" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">帮助中心</text>
+  <path id="arrow-2" d="M 190 346 L 194 348 L 190 350" fill="none" stroke="#999999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
+</svg>

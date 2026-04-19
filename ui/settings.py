@@ -30,12 +30,14 @@ class SettingsInterface(QWidget):
     color_sample_count_changed = Signal(int)
     luminance_sample_count_changed = Signal(int)
     histogram_scaling_mode_changed = Signal(str)
+    luminance_histogram_style_changed = Signal(str)
     color_wheel_mode_changed = Signal(str)
     histogram_mode_changed = Signal(str)
     saturation_threshold_changed = Signal(int)
     brightness_threshold_changed = Signal(int)
     color_wheel_labels_visible_changed = Signal(bool)
     gradient_color_space_changed = Signal(str)
+    gradient_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -46,15 +48,18 @@ class SettingsInterface(QWidget):
         self._color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
         self._luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
         self._histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
+        self._luminance_histogram_style = self._config_manager.get('settings.luminance_histogram_style', 'line')
         self._color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
         self._histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         self._saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
         self._brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
         self._gradient_color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
+        self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
+        self._update_color_space_availability(self._gradient_mode)
         qconfig.themeChangedFinished.connect(self._update_styles)
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
@@ -136,6 +141,9 @@ class SettingsInterface(QWidget):
         self.histogram_scaling_card = self._create_histogram_scaling_card()
         self.histogram_group.addSettingCard(self.histogram_scaling_card)
 
+        self.luminance_histogram_style_card = self._create_luminance_histogram_style_card()
+        self.histogram_group.addSettingCard(self.luminance_histogram_style_card)
+
         self.histogram_mode_card = self._create_histogram_mode_card()
         self.histogram_group.addSettingCard(self.histogram_mode_card)
 
@@ -186,6 +194,9 @@ class SettingsInterface(QWidget):
         layout.addWidget(self.color_scheme_group)
 
         self.gradient_group = SettingCardGroup(tr('settings.gradient'), self.content_widget)
+
+        self.gradient_mode_card = self._create_gradient_mode_card()
+        self.gradient_group.addSettingCard(self.gradient_mode_card)
 
         self.gradient_color_space_card = self._create_gradient_color_space_card()
         self.gradient_group.addSettingCard(self.gradient_color_space_card)
@@ -325,6 +336,11 @@ class SettingsInterface(QWidget):
         self.histogram_scaling_card.combo_box.setItemText(0, tr('settings.linear_scaling'))
         self.histogram_scaling_card.combo_box.setItemText(1, tr('settings.adaptive_scaling'))
 
+        self.luminance_histogram_style_card.titleLabel.setText(tr('settings.luminance_histogram_style'))
+        self.luminance_histogram_style_card.contentLabel.setText(tr('settings.luminance_histogram_style_desc'))
+        self.luminance_histogram_style_card.combo_box.setItemText(0, tr('settings.luminance_histogram_line'))
+        self.luminance_histogram_style_card.combo_box.setItemText(1, tr('settings.luminance_histogram_bar'))
+
         self.histogram_mode_card.titleLabel.setText(tr('settings.histogram_mode'))
         self.histogram_mode_card.contentLabel.setText(tr('settings.histogram_mode_desc'))
         self.histogram_mode_card.combo_box.setItemText(0, tr('settings.rgb_channel'))
@@ -350,11 +366,14 @@ class SettingsInterface(QWidget):
 
         # 更新渐变提取卡片
         self.gradient_group.titleLabel.setText(tr('settings.gradient'))
+        self.gradient_mode_card.titleLabel.setText(tr('settings.gradient_mode'))
+        self.gradient_mode_card.contentLabel.setText(tr('settings.gradient_mode_desc'))
+        self.gradient_mode_card.combo_box.setItemText(0, tr('settings.gradient_mode_gradient'))
+        self.gradient_mode_card.combo_box.setItemText(1, tr('settings.gradient_mode_shade'))
         self.gradient_color_space_card.titleLabel.setText(tr('settings.gradient_color_space'))
         self.gradient_color_space_card.contentLabel.setText(tr('settings.gradient_color_space_desc'))
-        self.gradient_color_space_card.combo_box.setItemText(0, tr('settings.gradient_rgb'))
-        self.gradient_color_space_card.combo_box.setItemText(1, tr('settings.gradient_hsb'))
-        self.gradient_color_space_card.combo_box.setItemText(2, tr('settings.gradient_lab'))
+        # 重建颜色空间下拉框（单色模式下无RGB选项）
+        self._update_color_space_availability(self._gradient_mode)
 
         # 更新帮助卡片
         self.update_card.titleLabel.setText(tr('settings.version_update'))
@@ -551,6 +570,48 @@ class SettingsInterface(QWidget):
         log_user_action("change_histogram_scaling_mode", {"mode": mode})
         self.histogram_scaling_mode_changed.emit(mode)
 
+    def _create_luminance_histogram_style_card(self):
+        """创建明度直方图样式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            tr('settings.luminance_histogram_style'),
+            tr('settings.luminance_histogram_style_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.luminance_histogram_line'))
+        combo_box.setItemData(0, "line")
+        combo_box.addItem(tr('settings.luminance_histogram_bar'))
+        combo_box.setItemData(1, "bar")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._luminance_histogram_style:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_luminance_histogram_style_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_luminance_histogram_style_changed(self, index):
+        """明度直方图样式改变"""
+        combo_box = self.luminance_histogram_style_card.combo_box
+        style = combo_box.itemData(index)
+        self._luminance_histogram_style = style
+        self._config_manager.set('settings.luminance_histogram_style', style)
+        self._config_manager.save()
+        log_user_action("change_luminance_histogram_style", {"style": style})
+        self.luminance_histogram_style_changed.emit(style)
+
     def _create_histogram_mode_card(self):
         """创建直方图模式选择卡片"""
         card = PushSettingCard(
@@ -635,6 +696,96 @@ class SettingsInterface(QWidget):
         log_user_action("change_color_wheel_mode", {"mode": mode})
         self.color_wheel_mode_changed.emit(mode)
 
+    def _create_gradient_mode_card(self):
+        """创建渐变模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.PALETTE,
+            tr('settings.gradient_mode'),
+            tr('settings.gradient_mode_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.gradient_mode_gradient'))
+        combo_box.setItemData(0, "gradient")
+        combo_box.addItem(tr('settings.gradient_mode_shade'))
+        combo_box.setItemData(1, "shade")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._gradient_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_gradient_mode_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_gradient_mode_changed(self, index):
+        """渐变模式改变"""
+        combo_box = self.gradient_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._gradient_mode = mode
+        self._config_manager.set('settings.gradient_mode', mode)
+        self._config_manager.save()
+        log_user_action("change_gradient_mode", {"mode": mode})
+
+        # 单色明度梯度模式下禁用RGB选项
+        self._update_color_space_availability(mode)
+
+        self.gradient_mode_changed.emit(mode)
+
+    def _update_color_space_availability(self, gradient_mode: str):
+        """根据渐变模式更新颜色空间选项可用性
+
+        单色明度梯度模式下，RGB插值不适用（无法固定色相和饱和度）
+
+        Args:
+            gradient_mode: 渐变模式 ('gradient' 或 'shade')
+        """
+        combo_box = self.gradient_color_space_card.combo_box
+        is_shade = gradient_mode == 'shade'
+
+        # 如果当前选中的是RGB且切换到单色模式，自动切换为HSB
+        if is_shade and self._gradient_color_space == 'rgb':
+            self._gradient_color_space = 'hsb'
+            self._config_manager.set('settings.gradient_color_space', 'hsb')
+            self._config_manager.save()
+            self.gradient_color_space_changed.emit('hsb')
+
+        # 重建下拉框选项
+        current_data = self._gradient_color_space
+        combo_box.blockSignals(True)
+        combo_box.clear()
+
+        if not is_shade:
+            combo_box.addItem(tr('settings.gradient_rgb'))
+            combo_box.setItemData(combo_box.count() - 1, "rgb")
+
+        combo_box.addItem(tr('settings.gradient_hsb'))
+        combo_box.setItemData(combo_box.count() - 1, "hsb")
+
+        combo_box.addItem(tr('settings.gradient_hsl'))
+        combo_box.setItemData(combo_box.count() - 1, "hsl")
+
+        combo_box.addItem(tr('settings.gradient_lab'))
+        combo_box.setItemData(combo_box.count() - 1, "lab")
+
+        # 恢复选中项
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == current_data:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.blockSignals(False)
+
     def _create_gradient_color_space_card(self):
         """创建渐变颜色空间选择卡片"""
         card = PushSettingCard(
@@ -647,25 +798,13 @@ class SettingsInterface(QWidget):
         card.button.setVisible(False)
 
         combo_box = ComboBox(self.content_widget)
-        combo_box.addItem(tr('settings.gradient_rgb'))
-        combo_box.setItemData(0, "rgb")
-        combo_box.addItem(tr('settings.gradient_hsb'))
-        combo_box.setItemData(1, "hsb")
-        combo_box.addItem(tr('settings.gradient_lab'))
-        combo_box.setItemData(2, "lab")
-
-        for i in range(combo_box.count()):
-            if combo_box.itemData(i) == self._gradient_color_space:
-                combo_box.setCurrentIndex(i)
-                break
-
+        # 初始选项由 _update_color_space_availability 统一管理
+        card.combo_box = combo_box
         combo_box.setFixedWidth(120)
         combo_box.currentIndexChanged.connect(self._on_gradient_color_space_changed)
 
         card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
         card.hBoxLayout.addSpacing(16)
-
-        card.combo_box = combo_box
 
         return card
 
@@ -678,6 +817,20 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("change_gradient_color_space", {"color_space": mode})
         self.gradient_color_space_changed.emit(mode)
+
+    def set_gradient_mode(self, mode):
+        """设置渐变模式
+
+        Args:
+            mode: 'gradient' 或 'shade'
+        """
+        self._gradient_mode = mode
+        if hasattr(self.gradient_mode_card, 'combo_box'):
+            combo_box = self.gradient_mode_card.combo_box
+            for i in range(combo_box.count()):
+                if combo_box.itemData(i) == mode:
+                    combo_box.setCurrentIndex(i)
+                    break
 
     def get_gradient_color_space(self):
         """获取当前渐变颜色空间"""

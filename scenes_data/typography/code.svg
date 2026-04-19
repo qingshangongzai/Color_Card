@@ -1,0 +1,61 @@
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect id="background" class="background" width="600" height="300" fill="#1e1e1e"/>
+
+  <!-- 代码窗口标题栏 -->
+  <rect id="window-bar" class="secondary" x="0" y="0" width="600" height="30" fill="#2d2d2d"/>
+
+  <!-- 窗口按钮 -->
+  <circle id="btn-close" cx="20" cy="15" r="6" fill="#ff5f56"/>
+  <circle id="btn-minimize" cx="40" cy="15" r="6" fill="#ffbd2e"/>
+  <circle id="btn-maximize" cx="60" cy="15" r="6" fill="#27c93f"/>
+
+  <!-- 文件名 -->
+  <text id="filename" class="text" x="300" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#cccccc" data-fixed-color="black">theme.js</text>
+
+  <!-- 行号区域 -->
+  <rect id="line-numbers-bg" x="0" y="30" width="40" height="270" fill="#252526"/>
+
+  <!-- 行号 -->
+  <text id="line-1-num" class="secondary" x="25" y="55" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">1</text>
+  <text id="line-2-num" class="secondary" x="25" y="75" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">2</text>
+  <text id="line-3-num" class="secondary" x="25" y="95" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">3</text>
+  <text id="line-4-num" class="secondary" x="25" y="115" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">4</text>
+  <text id="line-5-num" class="secondary" x="25" y="135" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">5</text>
+  <text id="line-6-num" class="secondary" x="25" y="155" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">6</text>
+  <text id="line-7-num" class="secondary" x="25" y="175" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">7</text>
+  <text id="line-8-num" class="secondary" x="25" y="195" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">8</text>
+
+  <!-- 代码内容 - 注释 -->
+  <text id="code-comment" class="secondary" x="50" y="55" font-family="Consolas, monospace" font-size="12" fill="#6a9955" data-fixed-color="black">// 主题配置</text>
+
+  <!-- 代码内容 - 关键字和变量 -->
+  <text id="code-keyword" class="accent" x="50" y="75" font-family="Consolas, monospace" font-size="12" fill="#c586c0" data-fixed-color="black">const</text>
+  <text id="code-var" class="text" x="90" y="75" font-family="Consolas, monospace" font-size="12" fill="#9cdcfe" data-fixed-color="black">theme</text>
+  <text id="code-operator" class="text" x="130" y="75" font-family="Consolas, monospace" font-size="12" fill="#d4d4d4" data-fixed-color="black">=</text>
+  <text id="code-brace" class="accent" x="150" y="75" font-family="Consolas, monospace" font-size="12" fill="#ffd700">{</text>
+
+  <!-- 代码内容 - 属性 -->
+  <text id="code-prop-1" class="secondary" x="70" y="95" font-family="Consolas, monospace" font-size="12" fill="#9cdcfe" data-fixed-color="black">primary:</text>
+  <text id="code-string-1" class="accent" x="140" y="95" font-family="Consolas, monospace" font-size="12" fill="#ce9178">'#ff6b6b'</text>
+  <text id="code-comma-1" class="text" x="210" y="95" font-family="Consolas, monospace" font-size="12" fill="#d4d4d4" data-fixed-color="black">,</text>
+
+  <text id="code-prop-2" class="secondary" x="70" y="115" font-family="Consolas, monospace" font-size="12" fill="#9cdcfe" data-fixed-color="black">secondary:</text>
+  <text id="code-string-2" class="accent" x="150" y="115" font-family="Consolas, monospace" font-size="12" fill="#ce9178">'#4ecdc4'</text>
+  <text id="code-comma-2" class="text" x="220" y="115" font-family="Consolas, monospace" font-size="12" fill="#d4d4d4" data-fixed-color="black">,</text>
+
+  <text id="code-prop-3" class="secondary" x="70" y="135" font-family="Consolas, monospace" font-size="12" fill="#9cdcfe" data-fixed-color="black">background:</text>
+  <text id="code-string-3" class="accent" x="160" y="135" font-family="Consolas, monospace" font-size="12" fill="#ce9178">'#1a1a1a'</text>
+  <text id="code-comma-3" class="text" x="230" y="135" font-family="Consolas, monospace" font-size="12" fill="#d4d4d4" data-fixed-color="black">,</text>
+
+  <text id="code-prop-4" class="secondary" x="70" y="155" font-family="Consolas, monospace" font-size="12" fill="#9cdcfe" data-fixed-color="black">text:</text>
+  <text id="code-string-4" class="accent" x="110" y="155" font-family="Consolas, monospace" font-size="12" fill="#ce9178">'#ffffff'</text>
+
+  <!-- 闭合括号 -->
+  <text id="code-close" class="accent" x="50" y="175" font-family="Consolas, monospace" font-size="12" fill="#ffd700">};</text>
+
+  <!-- 底部状态栏 -->
+  <rect id="status-bar" class="primary" x="0" y="280" width="600" height="20" fill="#007acc"/>
+  <text id="status-text" class="text" x="10" y="294" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">JavaScript</text>
+  <text id="status-pos" class="text" x="580" y="294" text-anchor="end" font-family="Arial, sans-serif" font-size="10" fill="#ffffff" data-fixed-color="black">Ln 8, Col 1</text>
+</svg>

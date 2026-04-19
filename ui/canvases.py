@@ -575,8 +575,7 @@ class BaseCanvas(QWidget):
         elif not self._is_loading:
             # 没有图片且不在加载状态时显示提示文字
             painter.setPen(get_canvas_empty_text_color())
-            font = QFont()
-            font.setPointSize(14)
+            font = QFont("Arial", 11)
             painter.setFont(font)
             text = tr('canvases.click_to_import')
             text_rect = painter.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)

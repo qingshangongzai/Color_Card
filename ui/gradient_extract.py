@@ -14,7 +14,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import generate_gradient, generate_random_gradient, get_color_info
+from core import generate_gradient, generate_random_gradient, generate_lightness_shades, generate_random_lightness_shade, get_color_info
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from ui.cards import ColorCard
@@ -35,10 +35,11 @@ class ColorDot(QWidget):
         self._radius = 12
         self.setFixedSize(24, 24)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._update_style()
+        self._update_styles()
+        qconfig.themeChangedFinished.connect(self._update_styles)
 
-    def _update_style(self):
-        """更新样式"""
+    def _update_styles(self):
+        """更新样式以适配主题"""
         border_color = get_border_color()
         self.setStyleSheet(f"""
             ColorDot {{
@@ -49,20 +50,14 @@ class ColorDot(QWidget):
         """)
 
     def paintEvent(self, event):
-        """绘制事件，确保背景色显示"""
+        """绘制颜色圆"""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 绘制背景圆
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QColor(self._color))
-        painter.drawEllipse(self.rect().center(), self._radius, self._radius)
-
-        # 绘制边框
-        border_color = get_border_color()
-        painter.setPen(QColor(border_color))
-        painter.setBrush(Qt.BrushStyle.NoBrush)
-        painter.drawEllipse(self.rect().center(), self._radius - 1, self._radius - 1)
+        # 留出1像素边距，避免边缘被截断
+        painter.drawEllipse(self.rect().adjusted(1, 1, -1, -1))
 
     def set_color(self, hex_color: str):
         """设置颜色
@@ -71,7 +66,7 @@ class ColorDot(QWidget):
             hex_color: HEX颜色值，如"#FF0000"
         """
         self._color = hex_color
-        self._update_style()
+        self._update_styles()
         self.update()
 
     def get_color(self) -> str:
@@ -261,12 +256,14 @@ class GradientExtractInterface(QWidget):
         self.setObjectName('gradientExtract')
         self._config_manager = get_config_manager()
         self._color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
+        self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._start_color = "#FF5733"
         self._end_color = "#33FF57"
         self._steps = 2  # 默认2个中间色，共4个颜色
 
         self.setup_ui()
         self._update_styles()
+        self._apply_gradient_mode_ui()
         qconfig.themeChangedFinished.connect(self._update_styles)
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
@@ -325,8 +322,10 @@ class GradientExtractInterface(QWidget):
         control_layout.addLayout(start_color_layout)
 
         # 结束颜色选择
-        end_color_layout = QHBoxLayout()
-        end_color_layout.setSpacing(8)
+        self.end_color_widget = QWidget()
+        end_color_inner_layout = QHBoxLayout(self.end_color_widget)
+        end_color_inner_layout.setContentsMargins(0, 0, 0, 0)
+        end_color_inner_layout.setSpacing(8)
         self.end_color_dot = ColorDot(self._end_color)
         self.end_color_label = QLabel(tr('gradient_extract.end_color'))
         self.end_color_label.setFixedWidth(56)
@@ -340,12 +339,12 @@ class GradientExtractInterface(QWidget):
         self.end_color_input.textChanged.connect(self._on_end_color_text_changed)
         self.end_color_input.editingFinished.connect(self._on_end_color_editing_finished)
         self.end_color_dot.clicked.connect(self._open_end_color_picker)
-        end_color_layout.addStretch()
-        end_color_layout.addWidget(self.end_color_dot)
-        end_color_layout.addWidget(self.end_color_label)
-        end_color_layout.addWidget(self.end_color_input)
-        end_color_layout.addStretch()
-        control_layout.addLayout(end_color_layout)
+        end_color_inner_layout.addStretch()
+        end_color_inner_layout.addWidget(self.end_color_dot)
+        end_color_inner_layout.addWidget(self.end_color_label)
+        end_color_inner_layout.addWidget(self.end_color_input)
+        end_color_inner_layout.addStretch()
+        control_layout.addWidget(self.end_color_widget)
 
         # 中间色数量控制
         steps_layout = QVBoxLayout()
@@ -423,7 +422,6 @@ class GradientExtractInterface(QWidget):
         self.steps_label.setStyleSheet(f"color: {text_color.name()}; font-size: 13px;")
         self.steps_value_label.setStyleSheet(f"color: {secondary_text.name()}; font-size: 13px;")
 
-        # 更新输入框样式（与配色管理一致）
         self._update_hex_input_style()
 
     def _update_hex_input_style(self):
@@ -450,9 +448,13 @@ class GradientExtractInterface(QWidget):
 
     def _on_language_changed(self, language_code):
         """语言切换回调"""
-        self.start_color_label.setText(tr('gradient_extract.start_color'))
+        if self._gradient_mode == 'shade':
+            self.start_color_label.setText(tr('gradient_extract.base_color'))
+            self.steps_label.setText(tr('gradient_extract.shade_count'))
+        else:
+            self.start_color_label.setText(tr('gradient_extract.start_color'))
+            self.steps_label.setText(tr('gradient_extract.steps'))
         self.end_color_label.setText(tr('gradient_extract.end_color'))
-        self.steps_label.setText(tr('gradient_extract.steps'))
         self.random_button.setText(tr('gradient_extract.random'))
         self.favorite_button.setText(tr('gradient_extract.favorite'))
 
@@ -643,32 +645,43 @@ class GradientExtractInterface(QWidget):
     def _generate_gradient(self):
         """生成渐变色"""
         try:
-            colors = generate_gradient(
-                self._start_color,
-                self._end_color,
-                self._steps,
-                self._color_space
-            )
+            if self._gradient_mode == 'shade':
+                colors = generate_lightness_shades(self._start_color, self._steps, self._color_space)
+            else:
+                colors = generate_gradient(
+                    self._start_color,
+                    self._end_color,
+                    self._steps,
+                    self._color_space
+                )
             self._current_colors = colors
             self.gradient_preview.set_colors(colors)
             self.card_panel.set_colors(colors)
-            logger.debug(f"生成渐变成功: start={self._start_color}, end={self._end_color}, steps={self._steps}, color_space={self._color_space}")
-        except Exception as e:
-            logger.error(f"生成渐变失败: start={self._start_color}, end={self._end_color}, steps={self._steps}, error={e}", exc_info=True)
+            logger.debug(f"生成渐变成功: mode={self._gradient_mode}, start={self._start_color}, steps={self._steps}")
+        except (ValueError, TypeError) as e:
+            logger.error(f"生成渐变失败: mode={self._gradient_mode}, error={e}", exc_info=True)
 
     def _on_random_clicked(self):
         """随机按钮点击"""
-        start_hex, end_hex, colors = generate_random_gradient(self._steps, self._color_space)
-        self._start_color = start_hex
-        self._end_color = end_hex
-        self.start_color_dot.set_color(start_hex)
-        self.end_color_dot.set_color(end_hex)
-        self.start_color_input.setText(start_hex)
-        self.end_color_input.setText(end_hex)
+        if self._gradient_mode == 'shade':
+            base_hex, colors = generate_random_lightness_shade(self._steps, self._color_space)
+            self._start_color = base_hex
+            self.start_color_dot.set_color(base_hex)
+            self.start_color_input.setText(base_hex)
+            log_user_action("random_lightness_shade", {"base": base_hex, "count": self._steps})
+        else:
+            start_hex, end_hex, colors = generate_random_gradient(self._steps, self._color_space)
+            self._start_color = start_hex
+            self._end_color = end_hex
+            self.start_color_dot.set_color(start_hex)
+            self.end_color_dot.set_color(end_hex)
+            self.start_color_input.setText(start_hex)
+            self.end_color_input.setText(end_hex)
+            log_user_action("random_gradient", {"start": start_hex, "end": end_hex, "steps": self._steps})
+
         self._current_colors = colors
         self.gradient_preview.set_colors(colors)
         self.card_panel.set_colors(colors)
-        log_user_action("random_gradient", {"start": start_hex, "end": end_hex, "steps": self._steps, "color_count": len(colors)})
 
     def _on_favorite_clicked(self):
         """收藏按钮点击"""
@@ -738,6 +751,38 @@ class GradientExtractInterface(QWidget):
         self._color_space = color_space
         log_user_action("change_color_space", {"color_space": color_space})
         self._generate_gradient()
+
+    def set_gradient_mode(self, mode: str):
+        """设置渐变模式
+
+        Args:
+            mode: 'gradient' 或 'shade'
+        """
+        self._gradient_mode = mode
+        self._apply_gradient_mode_ui()
+        self._generate_gradient()
+        log_user_action("change_gradient_mode", {"mode": mode})
+
+    def _apply_gradient_mode_ui(self):
+        """根据当前渐变模式更新UI"""
+        is_shade = self._gradient_mode == 'shade'
+
+        self.end_color_widget.setVisible(not is_shade)
+
+        if is_shade:
+            self.start_color_label.setText(tr('gradient_extract.base_color'))
+            self.steps_label.setText(tr('gradient_extract.shade_count'))
+            self.steps_slider.setMinimum(3)
+            self.steps_slider.setMaximum(13)
+            if self._steps < 3:
+                self.steps_slider.setValue(3)
+        else:
+            self.start_color_label.setText(tr('gradient_extract.start_color'))
+            self.steps_label.setText(tr('gradient_extract.steps'))
+            self.steps_slider.setMinimum(1)
+            self.steps_slider.setMaximum(10)
+            if self._steps > 10:
+                self.steps_slider.setValue(10)
 
     def set_hex_visible(self, visible: bool):
         """设置16进制显示"""

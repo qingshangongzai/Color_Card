@@ -1,7 +1,7 @@
 """核心功能模块"""
 
 # 启动必需的模块立即导入
-from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager, ConfigLoadError
+from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager
 
 from .app_mode import (
     AppMode,
@@ -74,6 +74,8 @@ from .color_data import (
 from .gradient import (
     generate_gradient,
     generate_random_gradient,
+    generate_lightness_shades,
+    generate_random_lightness_shade,
 )
 
 from .async_loader import BaseBatchLoader
@@ -122,6 +124,8 @@ __all__ = [
     # 颜色工具函数
     'generate_gradient',
     'generate_random_gradient',
+    'generate_lightness_shades',
+    'generate_random_lightness_shade',
     'rgb_to_hsb',
     'rgb_to_lab',
     'rgb_to_hex',
@@ -163,7 +167,6 @@ __all__ = [
     'get_scene_config_manager',
     'SceneTypeManager',
     'get_scene_type_manager',
-    'ConfigLoadError',
     # 应用模式
     'AppMode',
     'Platform',
