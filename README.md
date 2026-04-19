@@ -38,20 +38,20 @@
 
 | 指标    | 数据                      |
 | :---- | :---------------------- |
-| 发布版本  | 11 个版本（v1.0.0 → v1.7.1） |
-| 开发周期  | 66 天                    |
-| 总更新项  | **133 项**               |
+| 发布版本  | 12 个版本（v1.0.0 → v1.8.0） |
+| 开发周期  | 73 天                    |
+| 总更新项  | **145 项**               |
 | 平均每版本 | 12.1 项                  |
 
 **详细分类统计**：
 
 | 分类       |   数量   | 说明              |
 | :------- | :----: | :-------------- |
-| ✨ 新增功能   | **36** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **32** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **35** | 用户体验打磨          |
+| ✨ 新增功能   | **39** | 包含首次发布的 9 项核心功能 |
+| 🔧 问题修复  | **34** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **39** | 用户体验打磨          |
 | ⚡ 性能提升   | **11** | 缓存机制、启动优化等      |
-| 📝 内容调整  |  **5** | 文本、名称等调整        |
+| 📝 内容调整  |  **7** | 文本、名称等调整        |
 | ⚙️ 体验优化  |  **5** | 交互体验改进          |
 | 🏗️ 代码优化 |  **2** | 代码结构优化          |
 | 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
@@ -289,20 +289,20 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 | Metric              | Data                          |
 | :------------------ | :---------------------------- |
-| Released Versions   | 11 versions (v1.0.0 → v1.7.1) |
-| Development Period  | 66 days                       |
-| Total Updates       | **133 items**                 |
+| Released Versions   | 12 versions (v1.0.0 → v1.8.0) |
+| Development Period  | 73 days                       |
+| Total Updates       | **145 items**                 |
 | Average per Version | 12.1 items                    |
 
 **Detailed Category Statistics(portion)**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
-| ✨ New Features         | **36** | Including 9 core features from v1.0.0 launch |
-| 🔧 Bug Fixes           | **32** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **35** | User experience refinements                  |
+| ✨ New Features         | **39** | Including 9 core features from v1.0.0 launch |
+| 🔧 Bug Fixes           | **34** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **39** | User experience refinements                  |
 | ⚡ Performance          | **11** | Cache mechanism, startup optimization        |
-| 📝 Content Adjustments |   **5** | Text, naming adjustments                     |
+| 📝 Content Adjustments |   **7** | Text, naming adjustments                     |
 | ⚙️ Experience          |   **5** | Interaction improvements                     |
 | 🏗️ Code Optimization  |   **2** | Code structure optimization                  |
 | 🔮 Logic Optimization  |   **2** | Algorithm improvements                       |

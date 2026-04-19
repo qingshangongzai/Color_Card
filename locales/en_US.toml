@@ -14,8 +14,11 @@ color_preview = "Color Preview"
 settings = "Settings"
 
 [title_bar]
-toggle_theme = "Toggle Dark/Light Mode"
+toggle_theme = "Toggle Theme"
 toggle_fullscreen = "Fullscreen/Exit Fullscreen (F11)"
+theme_light = "Light Mode"
+theme_dark = "Dark Mode"
+theme_auto = "System"
 
 [color_extract]
 favorite = "Save Palette"
@@ -94,7 +97,7 @@ no_selection = "Please select palettes to delete first"
 
 [color_preview]
 title = "Color Preview"
-subtitle = "Still under development"
+subtitle = "Importing mixed layouts has some issues, this module is still under development"
 import_btn = "Import"
 export_btn = "Export"
 delete = "Delete"

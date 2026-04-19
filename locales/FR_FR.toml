@@ -14,8 +14,11 @@ color_preview = "Aperçu des couleurs"
 settings = "Paramètres"
 
 [title_bar]
-toggle_theme = "Basculer mode sombre/clair"
+toggle_theme = "Changer de thème"
 toggle_fullscreen = "Plein écran/Quitter plein écran (F11)"
+theme_light = "Mode clair"
+theme_dark = "Mode sombre"
+theme_auto = "Suivre le système"
 
 [color_extract]
 favorite = "Enregistrer"
@@ -94,7 +97,7 @@ no_selection = "Veuillez d'abord sélectionner des palettes à supprimer"
 
 [color_preview]
 title = "Aperçu des couleurs"
-subtitle = "En cours de développement"
+subtitle = "L'importation des mises en page mixtes présente des problèmes, ce module est encore en développement"
 import_btn = "Importer"
 export_btn = "Exporter"
 delete = "Supprimer"

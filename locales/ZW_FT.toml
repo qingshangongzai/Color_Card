@@ -14,8 +14,11 @@ color_preview = "配色預覽"
 settings = "設置"
 
 [title_bar]
-toggle_theme = "切換深色/淺色模式"
+toggle_theme = "切換主題"
 toggle_fullscreen = "全屏/退出全屏 (F11)"
+theme_light = "淺色模式"
+theme_dark = "深色模式"
+theme_auto = "跟隨系統"
 
 [color_extract]
 favorite = "收藏當前配色"
@@ -94,7 +97,7 @@ no_selection = "請先選擇要刪除的配色"
 
 [color_preview]
 title = "配色預覽"
-subtitle = "還在持續完善中"
+subtitle = "混合布局的導入存在一定的問題，本模塊還在持續完善中"
 import_btn = "導入"
 export_btn = "導出"
 delete = "刪除"
