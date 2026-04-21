@@ -336,32 +336,6 @@ def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
     return (min_lum, max_lum)
 
 
-def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
-    """计算图片的明度直方图（使用NumPy向量化优化）
-
-    Args:
-        image: QImage 对象
-        sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
-        gamma: Gamma 值（默认 2.2，sRGB 标准）
-
-    Returns:
-        list: 长度为256的列表，表示每个明度值的像素数量
-    """
-    if image is None or image.isNull():
-        return [0] * 256
-
-    width = image.width()
-    height = image.height()
-
-    if hasattr(image, 'bits'):
-        try:
-            return _calculate_histogram_numpy(image, width, height, sample_step, gamma)
-        except Exception:
-            pass
-
-    return _calculate_histogram_python(image, width, height, sample_step, gamma)
-
-
 def _qimage_to_numpy(image) -> np.ndarray:
     """QImage转NumPy数组（使用bits()直接内存访问）"""
     width = image.width()
@@ -385,86 +359,46 @@ def _qimage_to_numpy(image) -> np.ndarray:
     return arr
 
 
-def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
-    """使用NumPy向量化计算明度直方图"""
-    arr = _qimage_to_numpy(image)
-
-    sampled = arr[::sample_step, ::sample_step]
-
-    edge_pixels = [
-        arr[::sample_step, -1],
-        arr[-1, ::sample_step]
-    ]
-    all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
-
-    luminance = _calculate_luminance_numpy(all_pixels, gamma)
-
-    histogram = np.bincount(luminance, minlength=256)
-
-    return histogram.tolist()
-
-
-def _calculate_luminance_numpy(pixels: np.ndarray, gamma: float = 2.2) -> np.ndarray:
-    """使用NumPy向量化计算明度值（Rec. 709标准 + Gamma校正）
+def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
+    """计算图片的明度直方图（使用NumPy向量化优化）
 
     Args:
-        pixels: NumPy数组，形状为 (N, 3)，值范围 0-255
+        image: QImage 对象
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
         gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
-        np.ndarray: 明度值数组，值范围 0-255
+        list: 长度为256的列表，表示每个明度值的像素数量
     """
-    rgb = pixels.astype(np.float32) / 255.0
+    if image is None or image.isNull():
+        return [0] * 256
+
+    arr = _qimage_to_numpy(image)
+    sampled = arr[::sample_step, ::sample_step]
+
+    rgb = sampled.astype(np.float32) / 255.0
 
     if gamma == 2.2:
         linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
     else:
         linear = rgb ** gamma
 
-    luminance_linear = 0.2126 * linear[:, 0] + 0.7152 * linear[:, 1] + 0.0722 * linear[:, 2]
+    luminance_linear = 0.2126 * linear[:, :, 0] + 0.7152 * linear[:, :, 1] + 0.0722 * linear[:, :, 2]
 
     if gamma == 2.2:
-        luminance_output = np.where(
+        luminance = np.where(
             luminance_linear <= 0.0031308,
             luminance_linear * 12.92,
             1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
         )
     else:
-        luminance_output = luminance_linear ** (1.0 / gamma)
+        luminance = luminance_linear ** (1.0 / gamma)
 
-    return np.clip(np.round(luminance_output * 255), 0, 255).astype(np.uint8)
+    luminance = np.clip(np.round(luminance * 255), 0, 255).astype(np.uint8)
 
+    histogram = np.bincount(luminance.flatten(), minlength=256)
 
-def _calculate_histogram_python(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
-    """使用纯Python计算明度直方图（回退实现）"""
-    histogram = [0] * 256
-
-    for y in range(0, height, sample_step):
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-            histogram[luminance] += 1
-
-    if width > 0:
-        right_x = width - 1
-        for y in range(0, height, sample_step):
-            color = image.pixelColor(right_x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-            histogram[luminance] += 1
-
-    if height > 0:
-        bottom_y = height - 1
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, bottom_y)
-            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-            histogram[luminance] += 1
-
-    if width > 0 and height > 0:
-        color = image.pixelColor(width - 1, height - 1)
-        luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-        histogram[luminance] += 1
-
-    return histogram
+    return histogram.tolist()
 
 
 def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], List[int], List[int]]:
@@ -472,7 +406,7 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
 
     Args:
         image: QImage 对象
-        sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
 
     Returns:
         tuple: 三个长度为256的列表的元组 (R_histogram, G_histogram, B_histogram)
@@ -480,92 +414,18 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
     if image is None or image.isNull():
         return [0] * 256, [0] * 256, [0] * 256
 
-    width = image.width()
-    height = image.height()
-
-    # 使用NumPy向量化计算
-    if hasattr(image, 'bits'):
-        try:
-            return _calculate_rgb_histogram_numpy(image, width, height, sample_step)
-        except Exception:
-            pass  # 失败时回退到纯Python实现
-
-    return _calculate_rgb_histogram_python(image, width, height, sample_step)
-
-
-def _calculate_rgb_histogram_numpy(image, width: int, height: int, sample_step: int) -> Tuple[List[int], List[int], List[int]]:
-    """使用NumPy向量化计算RGB直方图"""
-    # 将QImage转换为NumPy数组
     arr = _qimage_to_numpy(image)
-
-    # 采样像素（包含边缘像素）
     sampled = arr[::sample_step, ::sample_step]
 
-    # 额外采样边缘像素
-    edge_pixels = []
-    if width > 0:
-        edge_pixels.append(arr[::sample_step, -1])
-    if height > 0:
-        edge_pixels.append(arr[-1, ::sample_step])
+    r = sampled[:, :, 0].flatten()
+    g = sampled[:, :, 1].flatten()
+    b = sampled[:, :, 2].flatten()
 
-    # 合并所有采样像素
-    if edge_pixels:
-        all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
-    else:
-        all_pixels = sampled.reshape(-1, 3)
-
-    # 分离RGB通道
-    r_channel = all_pixels[:, 0].astype(np.uint8)
-    g_channel = all_pixels[:, 1].astype(np.uint8)
-    b_channel = all_pixels[:, 2].astype(np.uint8)
-
-    # 使用bincount统计各通道直方图
-    histogram_r = np.bincount(r_channel, minlength=256)
-    histogram_g = np.bincount(g_channel, minlength=256)
-    histogram_b = np.bincount(b_channel, minlength=256)
+    histogram_r = np.bincount(r, minlength=256)
+    histogram_g = np.bincount(g, minlength=256)
+    histogram_b = np.bincount(b, minlength=256)
 
     return histogram_r.tolist(), histogram_g.tolist(), histogram_b.tolist()
-
-
-def _calculate_rgb_histogram_python(image, width: int, height: int, sample_step: int) -> Tuple[List[int], List[int], List[int]]:
-    """使用纯Python计算RGB直方图（回退实现）"""
-    histogram_r = [0] * 256
-    histogram_g = [0] * 256
-    histogram_b = [0] * 256
-
-    # 采样计算直方图
-    for y in range(0, height, sample_step):
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, y)
-            histogram_r[color.red()] += 1
-            histogram_g[color.green()] += 1
-            histogram_b[color.blue()] += 1
-
-    # 额外采样最右侧和最底部的边缘像素
-    if width > 0:
-        right_x = width - 1
-        for y in range(0, height, sample_step):
-            color = image.pixelColor(right_x, y)
-            histogram_r[color.red()] += 1
-            histogram_g[color.green()] += 1
-            histogram_b[color.blue()] += 1
-
-    if height > 0:
-        bottom_y = height - 1
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, bottom_y)
-            histogram_r[color.red()] += 1
-            histogram_g[color.green()] += 1
-            histogram_b[color.blue()] += 1
-
-    # 采样右下角像素
-    if width > 0 and height > 0:
-        color = image.pixelColor(width - 1, height - 1)
-        histogram_r[color.red()] += 1
-        histogram_g[color.green()] += 1
-        histogram_b[color.blue()] += 1
-
-    return histogram_r, histogram_g, histogram_b
 
 
 def calculate_hue_histogram(image, sample_step: int = 4) -> List[int]:
