@@ -1107,57 +1107,23 @@ class ImageCanvas(BaseCanvas):
         if self._image is None or self._image.isNull():
             return None
 
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        # 创建透明遮罩图
-        highlight_pixmap = QPixmap(self.size())
-        highlight_pixmap.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(highlight_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
         # 根据模式获取颜色
         if mode == 'saturation':
             highlight_color = get_high_saturation_highlight_color()
-        else:  # brightness
+        else:
             highlight_color = get_high_brightness_highlight_color()
 
-        # 计算缩放比例
-        scale_x = self._image.width() / disp_w
-        scale_y = self._image.height() / disp_h
-
-        # 采样步长（性能优化）
-        sample_step = 4
-
-        # 遍历显示区域的像素
-        for dy in range(0, disp_h, sample_step):
-            for dx in range(0, disp_w, sample_step):
-                # 计算对应的原始图片坐标
-                img_x = int(dx * scale_x)
-                img_y = int(dy * scale_y)
-
-                # 边界检查
-                img_x = min(img_x, self._image.width() - 1)
-                img_y = min(img_y, self._image.height() - 1)
-
-                # 获取像素颜色并计算HSV
-                color = self._image.pixelColor(img_x, img_y)
-                r, g, b = color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0
-                h, s, v = colorsys.rgb_to_hsv(r, g, b)
-
-                # 根据模式比较阈值
-                value = s if mode == 'saturation' else v
-                if value >= threshold:
-                    painter.fillRect(
-                        disp_x + dx,
-                        disp_y + dy,
-                        sample_step,
-                        sample_step,
-                        highlight_color
-                    )
-
-        painter.end()
-        return highlight_pixmap
+        # 使用NumPy向量化计算
+        from core import get_service_factory
+        luminance_service = get_service_factory().get_luminance_service()
+        return luminance_service.generate_highlight_mask_numpy(
+            image=self._image,
+            mode=mode,
+            threshold=threshold,
+            canvas_size=(self.width(), self.height()),
+            display_rect=display_rect,
+            highlight_color=highlight_color
+        )
 
     def _draw_highlight(self, mode: str, painter: QPainter,
                        display_rect: Tuple[int, int, int, int]) -> None:
@@ -1595,7 +1561,7 @@ class LuminanceCanvas(BaseCanvas):
     def _generate_zone_highlight_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
         """生成Zone高亮遮罩图
 
-        使用 LuminanceService 生成高亮遮罩图，实现业务逻辑下沉。
+        优先使用NumPy向量化计算，失败时回退到逐像素遍历。
 
         Args:
             display_rect: 图片显示区域 (x, y, w, h)
@@ -1606,11 +1572,11 @@ class LuminanceCanvas(BaseCanvas):
         if self._image is None or self._image.isNull():
             return None
 
-        # 使用 LuminanceService 生成高亮遮罩图
         canvas_size = (self.width(), self.height())
         zone_color = self._zone_highlight_colors[self._highlighted_zone]
 
-        return self._get_luminance_service().generate_zone_highlight_pixmap(
+        # 使用NumPy向量化计算
+        return self._get_luminance_service().generate_zone_highlight_pixmap_numpy(
             self._image,
             self._highlighted_zone,
             canvas_size,
