@@ -106,27 +106,35 @@ class LuminanceCalculator(QThread):
         Returns:
             list: 每个Zone的像素数量 (Zone 0-7)
         """
-        width = self._image.width()
-        height = self._image.height()
+        if self._image is None or self._image.isNull():
+            return [0] * 8
 
-        # 初始化Zone计数 (Zone 0-7)
-        distribution = [0] * 8
+        # 延迟导入避免循环依赖
+        from ui.canvases import qimage_to_numpy
 
-        # 采样步长（性能优化）
-        sample_step = 4
+        try:
+            img_array = qimage_to_numpy(self._image)
+            sampled = img_array[::4, ::4]
 
-        for y in range(0, height, sample_step):
-            if self._check_cancelled():
-                return distribution
+            # 向量化明度计算 (Rec. 709)
+            r = sampled[:, :, 0].astype(np.float32)
+            g = sampled[:, :, 1].astype(np.float32)
+            b = sampled[:, :, 2].astype(np.float32)
+            luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
 
-            for x in range(0, width, sample_step):
-                color = self._image.pixelColor(x, y)
-                luminance = get_luminance(color.red(), color.green(), color.blue())
-                zone_index = luminance // 32
-                zone_index = min(zone_index, 7)  # 确保不越界
-                distribution[zone_index] += 1
+            # 向量化Zone统计
+            zone_indices = luminance // 32
+            zone_indices = np.clip(zone_indices, 0, 7)
+            unique, counts = np.unique(zone_indices, return_counts=True)
 
-        return distribution
+            distribution = [0] * 8
+            for zone, count in zip(unique, counts):
+                distribution[int(zone)] = int(count)
+
+            return distribution
+
+        except ValueError:
+            return [0] * 8
 
 
 class LuminanceService(QObject):
@@ -281,11 +289,12 @@ class LuminanceService(QObject):
         luminance = get_luminance(color.red(), color.green(), color.blue())
         return get_zone(luminance)
 
-    def get_zone_distribution(self, image: QImage) -> List[int]:
+    def get_zone_distribution(self, image: QImage, sample_step: int = 4) -> List[int]:
         """获取明度分布统计
 
         Args:
             image: QImage 对象
+            sample_step: 采样步长
 
         Returns:
             list: 每个Zone的像素数量 (Zone 0-7)
@@ -293,25 +302,37 @@ class LuminanceService(QObject):
         if image is None or image.isNull():
             return [0] * 8
 
-        width = image.width()
-        height = image.height()
+        # 延迟导入避免循环依赖
+        from ui.canvases import qimage_to_numpy
 
-        with log_performance("get_zone_distribution", {
-            "width": width,
-            "height": height
-        }):
-            distribution = [0] * 8
-            sample_step = 4
+        try:
+            with log_performance("get_zone_distribution", {
+                "width": image.width(),
+                "height": image.height()
+            }):
+                img_array = qimage_to_numpy(image)
+                sampled = img_array[::sample_step, ::sample_step]
 
-            for y in range(0, height, sample_step):
-                for x in range(0, width, sample_step):
-                    color = image.pixelColor(x, y)
-                    luminance = get_luminance(color.red(), color.green(), color.blue())
-                    zone_index = luminance // 32
-                    zone_index = min(zone_index, 7)
-                    distribution[zone_index] += 1
+                # 向量化明度计算 (Rec. 709)
+                r = sampled[:, :, 0].astype(np.float32)
+                g = sampled[:, :, 1].astype(np.float32)
+                b = sampled[:, :, 2].astype(np.float32)
+                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
 
-        return distribution
+                # 向量化Zone统计
+                zone_indices = luminance // 32
+                zone_indices = np.clip(zone_indices, 0, 7)
+                unique, counts = np.unique(zone_indices, return_counts=True)
+
+                distribution = [0] * 8
+                for zone, count in zip(unique, counts):
+                    distribution[int(zone)] = int(count)
+
+                return distribution
+
+        except ValueError as e:
+            logger.error(f"Zone分布计算失败: {e}")
+            return [0] * 8
 
     def _on_calculation_finished(self, result: Dict[str, Any]):
         """计算完成处理
