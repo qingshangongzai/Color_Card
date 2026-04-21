@@ -97,7 +97,7 @@ no_selection = "请先选择要删除的配色"
 
 [color_preview]
 title = "配色预览"
-subtitle = "混合布局的导入存在一定的问题，本模块还在持续完善中"
+subtitle = "还在持续完善中"
 import_btn = "导入"
 export_btn = "导出"
 delete = "删除"

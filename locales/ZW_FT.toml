@@ -97,7 +97,7 @@ no_selection = "請先選擇要刪除的配色"
 
 [color_preview]
 title = "配色預覽"
-subtitle = "混合布局的導入存在一定的問題，本模塊還在持續完善中"
+subtitle = "還在持續完善中"
 import_btn = "導入"
 export_btn = "導出"
 delete = "刪除"

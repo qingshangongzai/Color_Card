@@ -97,7 +97,7 @@ no_selection = "Please select palettes to delete first"
 
 [color_preview]
 title = "Color Preview"
-subtitle = "Importing mixed layouts has some issues, this module is still under development"
+subtitle = "Still under development"
 import_btn = "Import"
 export_btn = "Export"
 delete = "Delete"
