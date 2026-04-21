@@ -320,3 +320,34 @@ def get_zone_info_text_colors():
         highlights_color,  # Zone 7
         whites_color,      # Zone 8
     ]
+
+
+# ========== 影调分析图表颜色 ==========
+def get_tone_chart_bg_color():
+    """获取影调分析图表背景颜色"""
+    return QColor(30, 30, 30) if isDarkTheme() else QColor(255, 255, 255)
+
+
+def get_tone_chart_text_color():
+    """获取影调分析图表文字颜色"""
+    return QColor(255, 255, 255) if isDarkTheme() else QColor(51, 51, 51)
+
+
+def get_tone_chart_grid_color():
+    """获取影调分析图表网格颜色"""
+    return QColor(68, 68, 68) if isDarkTheme() else QColor(204, 204, 204)
+
+
+def get_tone_chart_bar_color():
+    """获取影调分析图表柱状图颜色"""
+    return QColor(74, 144, 217)
+
+
+def get_tone_chart_mean_line_color():
+    """获取影调分析图表均值线颜色"""
+    return QColor(255, 107, 107)
+
+
+def get_tone_chart_median_line_color():
+    """获取影调分析图表中位数线颜色"""
+    return QColor(81, 207, 102)

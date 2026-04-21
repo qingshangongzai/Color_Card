@@ -360,6 +360,11 @@ class LuminanceHistogramWidget(BaseHistogram):
         self.set_loading(False)
         self.clear()
 
+    def closeEvent(self, event):
+        """关闭事件：确保线程正确清理"""
+        self._histogram_service.cancel_all()
+        super().closeEvent(event)
+
     def get_zone_from_luminance(self, luminance: int) -> int:
         """根据明度值获取Zone (0-8)"""
         return min(8, int(luminance / ZONE_WIDTH))
@@ -694,6 +699,11 @@ class RGBHistogramWidget(BaseHistogram):
         self.set_loading(False)
         self.clear()
 
+    def closeEvent(self, event):
+        """关闭事件：确保线程正确清理"""
+        self._histogram_service.cancel_all()
+        super().closeEvent(event)
+
     def clear(self):
         """清除直方图数据"""
         # 先取消计算，避免线程冲突
@@ -977,6 +987,11 @@ class HueHistogramWidget(BaseHistogram):
         print(f"色相直方图计算错误: {error_msg}")
         self.set_loading(False)
         self.clear()
+
+    def closeEvent(self, event):
+        """关闭事件：确保线程正确清理"""
+        self._histogram_service.cancel_all()
+        super().closeEvent(event)
 
     def clear(self):
         """清除直方图数据"""

@@ -2,7 +2,7 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/tone-analysis ]
   pull_request:
     branches: [ main ]
 

@@ -38,6 +38,7 @@ class SettingsInterface(QWidget):
     color_wheel_labels_visible_changed = Signal(bool)
     gradient_color_space_changed = Signal(str)
     gradient_mode_changed = Signal(str)
+    luminance_default_grayscale_changed = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -56,6 +57,7 @@ class SettingsInterface(QWidget):
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
         self._gradient_color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
+        self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
@@ -202,6 +204,21 @@ class SettingsInterface(QWidget):
         self.gradient_group.addSettingCard(self.gradient_color_space_card)
 
         layout.addWidget(self.gradient_group)
+
+        self.luminance_group = SettingCardGroup(tr('settings.luminance'), self.content_widget)
+
+        self.luminance_default_grayscale_card = self._create_switch_card(
+            FluentIcon.CONSTRACT,
+            tr('settings.luminance_default_grayscale'),
+            tr('settings.luminance_default_grayscale_desc'),
+            self._luminance_default_grayscale
+        )
+        self.luminance_default_grayscale_card.switch_button.checkedChanged.connect(
+            self._on_luminance_default_grayscale_changed
+        )
+        self.luminance_group.addSettingCard(self.luminance_default_grayscale_card)
+
+        layout.addWidget(self.luminance_group)
 
         self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
 
@@ -924,6 +941,14 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("toggle_color_wheel_labels", {"visible": checked})
         self.color_wheel_labels_visible_changed.emit(checked)
+
+    def _on_luminance_default_grayscale_changed(self, checked):
+        """明度提取默认黑白模式改变"""
+        self._luminance_default_grayscale = checked
+        self._config_manager.set('settings.luminance_default_grayscale', checked)
+        self._config_manager.save()
+        log_user_action("change_luminance_default_grayscale", {"enabled": checked})
+        self.luminance_default_grayscale_changed.emit(checked)
 
     def _update_styles(self):
         """更新样式以适配主题"""

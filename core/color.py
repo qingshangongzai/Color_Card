@@ -362,12 +362,32 @@ def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List
     return _calculate_histogram_python(image, width, height, sample_step, gamma)
 
 
+def _qimage_to_numpy(image) -> np.ndarray:
+    """QImage转NumPy数组（使用bits()直接内存访问）"""
+    width = image.width()
+    height = image.height()
+
+    if image.format() != image.Format.Format_RGB888:
+        image = image.convertToFormat(image.Format.Format_RGB888)
+
+    ptr = image.bits()
+    bytes_per_line = image.bytesPerLine()
+
+    if bytes_per_line == width * 3:
+        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
+    else:
+        arr = np.zeros((height, width, 3), dtype=np.uint8)
+        for y in range(height):
+            offset = y * bytes_per_line
+            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
+            arr[y] = row.reshape((width, 3))
+
+    return arr
+
+
 def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
     """使用NumPy向量化计算明度直方图"""
-    image = image.convertToFormat(image.Format.Format_RGB888)
-    ptr = image.bits()
-    ptr.setsize(image.sizeInBytes())
-    arr = np.array(ptr).reshape(height, width, 3)
+    arr = _qimage_to_numpy(image)
 
     sampled = arr[::sample_step, ::sample_step]
 
@@ -476,10 +496,7 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
 def _calculate_rgb_histogram_numpy(image, width: int, height: int, sample_step: int) -> Tuple[List[int], List[int], List[int]]:
     """使用NumPy向量化计算RGB直方图"""
     # 将QImage转换为NumPy数组
-    image = image.convertToFormat(image.Format.Format_RGB888)
-    ptr = image.bits()
-    ptr.setsize(image.sizeInBytes())
-    arr = np.array(ptr).reshape(height, width, 3)
+    arr = _qimage_to_numpy(image)
 
     # 采样像素（包含边缘像素）
     sampled = arr[::sample_step, ::sample_step]

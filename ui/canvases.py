@@ -4,6 +4,7 @@ import gc
 from typing import List, Optional, Tuple
 
 # 第三方库导入
+import numpy as np
 from PySide6.QtCore import QPoint, QPointF, QRect, Qt, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
@@ -22,6 +23,41 @@ from utils.theme_colors import (
     get_zone_mask_colors, get_zone_label_bg_color, get_zone_label_text_color,
     get_zone_info_text_colors
 )
+
+
+def qimage_to_numpy(image: QImage) -> np.ndarray:
+    """QImage转NumPy数组（使用bits()直接内存访问，比pixelColor快数百倍）
+
+    Args:
+        image: QImage对象
+
+    Returns:
+        np.ndarray: RGB数组 (H, W, 3)
+    """
+    width = image.width()
+    height = image.height()
+
+    # 确保格式为RGB888
+    if image.format() != QImage.Format.Format_RGB888:
+        image = image.convertToFormat(QImage.Format.Format_RGB888)
+
+    # 直接访问内存
+    ptr = image.bits()
+    bytes_per_line = image.bytesPerLine()
+
+    # 创建NumPy数组（考虑行对齐）
+    if bytes_per_line == width * 3:
+        # 无行对齐，直接转换
+        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
+    else:
+        # 有行对齐，需要逐行复制
+        arr = np.zeros((height, width, 3), dtype=np.uint8)
+        for y in range(height):
+            offset = y * bytes_per_line
+            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
+            arr[y] = row.reshape((width, 3))
+
+    return arr.copy()  # 复制一份避免内存问题
 
 
 class BaseCanvas(QWidget):
@@ -568,7 +604,13 @@ class BaseCanvas(QWidget):
             if display_rect:
                 x, y, w, h = display_rect
                 target_rect = QRect(x, y, w, h)
-                painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
+
+                # 黑白模式：仅明度提取面板支持
+                if getattr(self, '_grayscale_mode', False) and self._image:
+                    grayscale_image = self._image.convertToFormat(QImage.Format.Format_Grayscale8)
+                    painter.drawImage(target_rect, grayscale_image)
+                else:
+                    painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
 
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
@@ -1230,6 +1272,9 @@ class LuminanceCanvas(BaseCanvas):
         # Zone高亮颜色配置 (Zone 0-8) - 按类型统一颜色
         self._zone_highlight_colors: List[QColor] = get_zone_mask_colors()
 
+        # 黑白模式
+        self._grayscale_mode = False
+
         # 明度服务
         self._luminance_service = None
 
@@ -1437,6 +1482,85 @@ class LuminanceCanvas(BaseCanvas):
         # 清除Zone高亮缓存
         self._highlighted_zone = -1
         self._zone_highlight_pixmap = None
+
+    def contextMenuEvent(self, event) -> None:
+        """右键菜单事件"""
+        if self._original_pixmap is None or self._original_pixmap.isNull():
+            return
+
+        menu = RoundMenu("")
+
+        change_action = Action(FluentIcon.PHOTO, tr('context_menu.change_image'))
+        change_action.triggered.connect(self.change_image_requested.emit)
+        menu.addAction(change_action)
+
+        clear_action = Action(FluentIcon.DELETE, tr('context_menu.clear_image'))
+        clear_action.triggered.connect(self.clear_image_requested.emit)
+        menu.addAction(clear_action)
+
+        menu.addSeparator()
+
+        if self._picker_count < 8:
+            add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
+            add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
+            menu.addAction(add_action)
+
+        if self._picker_count > 2:
+            remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
+            remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
+            menu.addAction(remove_action)
+
+        menu.addSeparator()
+
+        # 黑白模式切换
+        mode_text = tr('context_menu.color_mode') if self._grayscale_mode else tr('context_menu.grayscale_mode')
+        grayscale_action = Action(FluentIcon.CONSTRACT, mode_text)
+        grayscale_action.triggered.connect(self._toggle_grayscale_mode)
+        menu.addAction(grayscale_action)
+
+        menu.addSeparator()
+
+        analysis_action = Action(FluentIcon.BRIGHTNESS, tr('context_menu.tone_analysis'))
+        analysis_action.triggered.connect(self._on_tone_analysis)
+        menu.addAction(analysis_action)
+
+        menu.exec(event.globalPos())
+
+    def _on_tone_analysis(self) -> None:
+        """打开明度分析对话框"""
+        if self._image is None or self._image.isNull():
+            return
+
+        from dialogs import ToneAnalysisDialog
+        from core.histogram_cache import generate_image_fingerprint
+
+        # 生成图片指纹用于缓存
+        image_key = generate_image_fingerprint(self._image)
+
+        # 立即显示对话框（显示加载中）
+        # 父窗口设为None，使其在任务栏显示为独立窗口
+        dialog = ToneAnalysisDialog(None, image_key, None)
+        dialog.show()
+
+        # 在后台线程中转换图片并分析
+        def prepare_and_analyze():
+            # 使用快速转换（bits()内存访问，比pixelColor快数百倍）
+            img_array = qimage_to_numpy(self._image)
+
+            # 设置图片数据并开始分析
+            dialog._img_array = img_array
+            dialog.start_analysis()
+
+        # 使用 QTimer 延迟执行，让对话框先显示
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, prepare_and_analyze)
+
+        dialog.exec()
+
+    def _toggle_grayscale_mode(self) -> None:
+        """切换黑白模式"""
+        self._grayscale_mode = not self._grayscale_mode
+        self.update()
 
     def get_picker_zones(self) -> List[str]:
         """获取所有取色器的区域编号
