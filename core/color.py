@@ -568,6 +568,69 @@ def _calculate_rgb_histogram_python(image, width: int, height: int, sample_step:
     return histogram_r, histogram_g, histogram_b
 
 
+def calculate_hue_histogram(image, sample_step: int = 4) -> List[int]:
+    """计算色相直方图（使用NumPy向量化优化）
+
+    Args:
+        image: QImage 对象
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
+
+    Returns:
+        list: 长度为360的列表，表示每个色相值的像素数量
+    """
+    if image is None or image.isNull():
+        return [0] * 360
+
+    arr = _qimage_to_numpy(image)
+    sampled = arr[::sample_step, ::sample_step]
+
+    r = sampled[:, :, 0].astype(np.float32) / 255.0
+    g = sampled[:, :, 1].astype(np.float32) / 255.0
+    b = sampled[:, :, 2].astype(np.float32) / 255.0
+
+    h, s, v = _rgb_to_hsv_vectorized(r, g, b)
+
+    valid_mask = (s > 0.1) & (v > 0.1)
+    valid_hues = h[valid_mask].astype(np.uint16)
+
+    histogram = np.bincount(valid_hues, minlength=360)
+
+    return histogram.tolist()
+
+
+def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """向量化RGB转HSV
+
+    Args:
+        r, g, b: RGB通道数组，值范围0-1
+
+    Returns:
+        tuple: (h, s, v) 色相(0-360), 饱和度(0-1), 明度(0-1)
+    """
+    max_val = np.maximum(np.maximum(r, g), b)
+    min_val = np.minimum(np.minimum(r, g), b)
+    diff = max_val - min_val
+
+    h = np.zeros_like(r)
+    mask = diff != 0
+
+    mask_r = mask & (max_val == r)
+    h[mask_r] = (60 * ((g[mask_r] - b[mask_r]) / diff[mask_r]) + 360) % 360
+
+    mask_g = mask & (max_val == g)
+    h[mask_g] = (60 * ((b[mask_g] - r[mask_g]) / diff[mask_g]) + 120) % 360
+
+    mask_b = mask & (max_val == b)
+    h[mask_b] = (60 * ((r[mask_b] - g[mask_b]) / diff[mask_b]) + 240) % 360
+
+    s = np.zeros_like(r)
+    s[max_val != 0] = diff[max_val != 0] / max_val[max_val != 0]
+
+    v = max_val
+
+    return h, s, v
+
+
 def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
     """将HSB转换为RGB
 
