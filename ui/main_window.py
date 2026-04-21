@@ -395,6 +395,17 @@ class MainWindow(FluentWindow):
             self._on_histogram_mode_changed
         )
 
+        # 连接直方图采样模式改变信号
+        settings_interface.histogram_sampling_mode_changed.connect(
+            color_extract_interface.rgb_histogram_widget.set_sampling_mode
+        )
+        settings_interface.histogram_sampling_mode_changed.connect(
+            color_extract_interface.hue_histogram_widget.set_sampling_mode
+        )
+        settings_interface.histogram_sampling_mode_changed.connect(
+            luminance_extract_interface.histogram_widget.set_sampling_mode
+        )
+
         # 连接饱和度阈值改变信号到色彩提取界面
         settings_interface.saturation_threshold_changed.connect(
             self._on_saturation_threshold_changed
@@ -471,6 +482,12 @@ class MainWindow(FluentWindow):
         # 应用加载的直方图模式配置
         histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
         color_extract_interface.set_histogram_mode(histogram_mode)
+
+        # 应用加载的直方图采样模式配置
+        histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
+        color_extract_interface.rgb_histogram_widget.set_sampling_mode(histogram_sampling_mode)
+        color_extract_interface.hue_histogram_widget.set_sampling_mode(histogram_sampling_mode)
+        luminance_extract_interface.histogram_widget.set_sampling_mode(histogram_sampling_mode)
 
         # 应用加载的阈值配置
         saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)

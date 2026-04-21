@@ -39,6 +39,7 @@ class SettingsInterface(QWidget):
     gradient_color_space_changed = Signal(str)
     gradient_mode_changed = Signal(str)
     luminance_default_grayscale_changed = Signal(bool)
+    histogram_sampling_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -58,6 +59,7 @@ class SettingsInterface(QWidget):
         self._gradient_color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
+        self._histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
@@ -148,6 +150,9 @@ class SettingsInterface(QWidget):
 
         self.histogram_mode_card = self._create_histogram_mode_card()
         self.histogram_group.addSettingCard(self.histogram_mode_card)
+
+        self.histogram_sampling_card = self._create_histogram_sampling_card()
+        self.histogram_group.addSettingCard(self.histogram_sampling_card)
 
         layout.addWidget(self.histogram_group)
 
@@ -362,6 +367,11 @@ class SettingsInterface(QWidget):
         self.histogram_mode_card.contentLabel.setText(tr('settings.histogram_mode_desc'))
         self.histogram_mode_card.combo_box.setItemText(0, tr('settings.rgb_channel'))
         self.histogram_mode_card.combo_box.setItemText(1, tr('settings.hue_distribution'))
+
+        self.histogram_sampling_card.titleLabel.setText(tr('settings.histogram_sampling'))
+        self.histogram_sampling_card.contentLabel.setText(tr('settings.histogram_sampling_desc'))
+        self.histogram_sampling_card.combo_box.setItemText(0, tr('settings.histogram_sampling_fast'))
+        self.histogram_sampling_card.combo_box.setItemText(1, tr('settings.histogram_sampling_fine'))
 
         # 更新高亮卡片
         self.saturation_threshold_card.titleLabel.setText(tr('settings.saturation_threshold'))
@@ -670,6 +680,48 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("change_histogram_mode", {"mode": mode})
         self.histogram_mode_changed.emit(mode)
+
+    def _create_histogram_sampling_card(self):
+        """创建直方图采样模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.SEND,
+            tr('settings.histogram_sampling'),
+            tr('settings.histogram_sampling_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.histogram_sampling_fast'))
+        combo_box.setItemData(0, "fast")
+        combo_box.addItem(tr('settings.histogram_sampling_fine'))
+        combo_box.setItemData(1, "fine")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._histogram_sampling_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_histogram_sampling_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_histogram_sampling_changed(self, index):
+        """直方图采样模式改变"""
+        combo_box = self.histogram_sampling_card.combo_box
+        mode = combo_box.itemData(index)
+        self._histogram_sampling_mode = mode
+        self._config_manager.set('settings.histogram_sampling_mode', mode)
+        self._config_manager.save()
+        log_user_action("change_histogram_sampling_mode", {"mode": mode})
+        self.histogram_sampling_mode_changed.emit(mode)
 
     def _create_color_wheel_mode_card(self):
         """创建配色方案模式选择卡片"""

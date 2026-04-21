@@ -178,11 +178,12 @@ class HistogramService(QObject):
         self._current_image_key: str = ""
         self._colorspace_info: Optional[ColorSpaceInfo] = None
         self._gamma: float = 2.2
-        
+        self._sampling_mode: str = "fast"
+
         self._luminance_delay_timer: Optional[QTimer] = None
         self._rgb_delay_timer: Optional[QTimer] = None
         self._hue_delay_timer: Optional[QTimer] = None
-        
+
         self._pending_cleanup: List[HistogramCalculator] = []
         self._cleanup_timer: Optional[QTimer] = None
 
@@ -210,19 +211,49 @@ class HistogramService(QObject):
         else:
             self._gamma = 2.2
 
-    def _get_sample_step(self, image: QImage) -> int:
-        """根据图片大小确定采样步长
+    def set_sampling_mode(self, mode: str) -> None:
+        """设置采样模式
 
-        由于 NumPy 优化后直方图计算速度大幅提升，现使用全采样(sample_step=1)
-        以获得更精确的直方图数据。
+        Args:
+            mode: 采样模式，'fast' 或 'fine'
+        """
+        self._sampling_mode = mode
+
+    def _get_cache_key(self, image: QImage) -> str:
+        """生成包含采样模式的缓存键
 
         Args:
             image: QImage 对象
 
         Returns:
-            int: 采样步长（固定返回1，即全采样）
+            str: 缓存键
         """
-        return 1
+        base_key = generate_image_fingerprint(image)
+        return f"{base_key}_{self._sampling_mode}"
+
+    def _get_sample_step(self, image: QImage) -> int:
+        """根据图片大小和采样模式确定采样步长
+
+        Args:
+            image: QImage 对象
+
+        Returns:
+            int: 采样步长
+        """
+        if self._sampling_mode == "fine":
+            return 1
+
+        pixel_count = image.width() * image.height()
+        if pixel_count > 20000000:
+            return 6
+        elif pixel_count > 8000000:
+            return 5
+        elif pixel_count > 4000000:
+            return 4
+        elif pixel_count > 1000000:
+            return 3
+        else:
+            return 2
 
     def calculate_luminance_async(self, image: QImage, delay_ms: int = 100) -> None:
         """异步计算明度直方图
@@ -236,8 +267,8 @@ class HistogramService(QObject):
         # 取消之前的计算
         self._cancel_luminance_calculator()
 
-        # 生成图片指纹
-        self._current_image_key = generate_image_fingerprint(image)
+        # 生成包含采样模式的缓存键
+        self._current_image_key = self._get_cache_key(image)
 
         # 尝试从缓存获取
         if self._use_cache:
@@ -277,7 +308,6 @@ class HistogramService(QObject):
 
     def _on_luminance_finished(self, histogram: List[int]) -> None:
         """明度直方图计算完成回调"""
-        # 检查服务是否还有效（没有被销毁）
         if self._luminance_calculator is None:
             return
 
@@ -302,8 +332,8 @@ class HistogramService(QObject):
         # 取消之前的计算
         self._cancel_rgb_calculator()
 
-        # 生成图片指纹
-        self._current_image_key = generate_image_fingerprint(image)
+        # 生成包含采样模式的缓存键
+        self._current_image_key = self._get_cache_key(image)
 
         # 尝试从缓存获取
         if self._use_cache:
@@ -327,7 +357,6 @@ class HistogramService(QObject):
 
         sample_step = self._get_sample_step(self._pending_image)
 
-        # 安全地停止并清理旧线程
         self._safe_stop_calculator(self._rgb_calculator)
         self._rgb_calculator = None
 
@@ -348,7 +377,6 @@ class HistogramService(QObject):
             return
         r_hist, g_hist, b_hist = result
 
-        # 存入缓存
         if self._use_cache and self._current_image_key:
             cache = get_histogram_cache()
             cache.set(self._current_image_key, "rgb", [r_hist, g_hist, b_hist])
@@ -366,13 +394,10 @@ class HistogramService(QObject):
         """
         self._pending_image = image
 
-        # 取消之前的计算
         self._cancel_hue_calculator()
 
-        # 生成图片指纹
-        self._current_image_key = generate_image_fingerprint(image)
+        self._current_image_key = self._get_cache_key(image)
 
-        # 尝试从缓存获取
         if self._use_cache:
             cache = get_histogram_cache()
             cached = cache.get(self._current_image_key, "hue")
@@ -394,7 +419,6 @@ class HistogramService(QObject):
 
         sample_step = self._get_sample_step(self._pending_image)
 
-        # 安全地停止并清理旧线程
         self._safe_stop_calculator(self._hue_calculator)
         self._hue_calculator = None
 
@@ -414,7 +438,6 @@ class HistogramService(QObject):
         if self._hue_calculator is None:
             return
 
-        # 存入缓存
         if self._use_cache and self._current_image_key:
             cache = get_histogram_cache()
             cache.set(self._current_image_key, "hue", histogram)
