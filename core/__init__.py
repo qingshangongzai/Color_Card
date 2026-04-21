@@ -90,6 +90,9 @@ from .luminance_service import LuminanceService, LuminanceCalculator
 from .tone_analysis import (
     ToneAnalysisService,
     ToneAnalysisResult,
+    ToneAnalysisCache,
+    get_tone_analysis_cache,
+    clear_tone_analysis_cache,
 )
 
 
@@ -208,6 +211,9 @@ __all__ = [
     'LuminanceCalculator',
     'ToneAnalysisService',
     'ToneAnalysisResult',
+    'ToneAnalysisCache',
+    'get_tone_analysis_cache',
+    'clear_tone_analysis_cache',
     # 延迟加载的服务类（通过函数访问）
     'get_color_service',
     'get_palette_service',

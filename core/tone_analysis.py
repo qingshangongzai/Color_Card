@@ -247,3 +247,83 @@ class ToneAnalysisService:
     def get_gray_image(self, img_array: np.ndarray) -> np.ndarray:
         """获取灰度图像"""
         return self._rgb_to_gray(img_array)
+
+
+# 标准库导入
+from typing import Optional
+
+# 项目模块导入
+from .cache_base import BaseCache
+
+
+class ToneAnalysisCache(BaseCache):
+    """影调分析缓存管理器
+
+    使用LRU策略管理影调分析结果缓存，避免重复计算同一张图片的明度分析。
+
+    缓存键格式: (image_fingerprint,)
+    """
+
+    def __init__(self, max_size: int = 20):
+        """初始化影调分析缓存
+
+        Args:
+            max_size: 最大缓存条目数，默认20
+        """
+        super().__init__(max_size)
+
+    def get(self, image_key: str) -> Optional[ToneAnalysisResult]:
+        """获取缓存的分析结果
+
+        Args:
+            image_key: 图片指纹键
+
+        Returns:
+            Optional[ToneAnalysisResult]: 缓存的分析结果，未命中返回None
+        """
+        key = self._get_key(image_key)
+        return self._get_from_cache(key)
+
+    def set(self, image_key: str, result: ToneAnalysisResult) -> None:
+        """存储分析结果到缓存
+
+        Args:
+            image_key: 图片指纹键
+            result: 分析结果
+        """
+        key = self._get_key(image_key)
+        self._set_to_cache(key, result)
+
+    def _get_key(self, image_key: str) -> tuple:
+        """生成缓存键
+
+        Args:
+            image_key: 图片指纹键
+
+        Returns:
+            tuple: 缓存键元组
+        """
+        return (image_key,)
+
+
+# 全局缓存实例
+_tone_analysis_cache: Optional[ToneAnalysisCache] = None
+
+
+def get_tone_analysis_cache() -> ToneAnalysisCache:
+    """获取全局影调分析缓存实例
+
+    Returns:
+        ToneAnalysisCache: 全局缓存实例
+    """
+    global _tone_analysis_cache
+    if _tone_analysis_cache is None:
+        _tone_analysis_cache = ToneAnalysisCache()
+    return _tone_analysis_cache
+
+
+def clear_tone_analysis_cache() -> None:
+    """清空全局影调分析缓存"""
+    global _tone_analysis_cache
+    if _tone_analysis_cache is not None:
+        _tone_analysis_cache.clear()

@@ -15,7 +15,7 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
 
-from core import ToneAnalysisService, ToneAnalysisResult, get_config_manager
+from core import ToneAnalysisService, ToneAnalysisResult, get_tone_analysis_cache, get_config_manager
 from dialogs import BaseFramelessDialog
 from utils import tr
 from utils.theme_colors import (
@@ -634,9 +634,11 @@ class StatCard(CardWidget):
 class ToneAnalysisDialog(BaseFramelessDialog):
     """明度分析对话框"""
 
-    def __init__(self, img_array: Optional[np.ndarray], parent: Optional[QWidget] = None):
+    def __init__(self, img_array: Optional[np.ndarray], image_key: Optional[str] = None,
+                 parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._img_array = img_array
+        self._image_key = image_key
         self._service = ToneAnalysisService()
         self._worker: Optional[AnalysisWorker] = None
 
@@ -705,6 +707,17 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
     def start_analysis(self) -> None:
         """开始分析"""
+        # 如果有缓存键，先尝试从缓存获取
+        if self._image_key:
+            cache = get_tone_analysis_cache()
+            cached_result = cache.get(self._image_key)
+            if cached_result is not None:
+                # 使用缓存结果直接显示
+                gray = self._service.get_gray_image(self._img_array)
+                self._display_result(cached_result, gray, self._img_array)
+                return
+
+        # 没有缓存，启动线程计算
         self._worker = AnalysisWorker(self._img_array, self._service)
         self._worker.analysis_complete.connect(self._on_analysis_complete)
         self._worker.start()
@@ -717,6 +730,11 @@ class ToneAnalysisDialog(BaseFramelessDialog):
             gray: 灰度数组
             img_array: 图片数组
         """
+        # 存入缓存
+        if self._image_key:
+            cache = get_tone_analysis_cache()
+            cache.set(self._image_key, result)
+
         self._display_result(result, gray, img_array)
 
         if self._worker:

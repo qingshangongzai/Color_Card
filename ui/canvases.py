@@ -1532,10 +1532,14 @@ class LuminanceCanvas(BaseCanvas):
             return
 
         from dialogs import ToneAnalysisDialog
+        from core.histogram_cache import generate_image_fingerprint
+
+        # 生成图片指纹用于缓存
+        image_key = generate_image_fingerprint(self._image)
 
         # 立即显示对话框（显示加载中）
         # 父窗口设为None，使其在任务栏显示为独立窗口
-        dialog = ToneAnalysisDialog(None, None)
+        dialog = ToneAnalysisDialog(None, image_key, None)
         dialog.show()
 
         # 在后台线程中转换图片并分析
