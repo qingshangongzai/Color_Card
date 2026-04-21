@@ -416,8 +416,14 @@ class LuminanceService(QObject):
                 highlight_pixmap.fill(Qt.GlobalColor.transparent)
 
                 painter = QPainter(highlight_pixmap)
-                for y in range(mask.shape[0]):
-                    for x in range(mask.shape[1]):
+
+                # 计算显示区域的采样点数量
+                display_sample_count_x = (disp_w + sample_step - 1) // sample_step
+                display_sample_count_y = (disp_h + sample_step - 1) // sample_step
+
+                # 只绘制在显示区域内的点
+                for y in range(min(mask.shape[0], display_sample_count_y)):
+                    for x in range(min(mask.shape[1], display_sample_count_x)):
                         if mask[y, x]:
                             painter.fillRect(
                                 disp_x + x * sample_step,
@@ -473,9 +479,11 @@ class LuminanceService(QObject):
                 # 转为NumPy数组
                 img_array = qimage_to_numpy(image)
 
-                # 计算缩放比例和采样步长
+                # 计算缩放比例
                 scale_x = image.width() / disp_w
                 scale_y = image.height() / disp_h
+
+                # 采样步长映射到原始图片
                 img_step_x = max(1, int(sample_step * scale_x))
                 img_step_y = max(1, int(sample_step * scale_y))
 
@@ -497,8 +505,14 @@ class LuminanceService(QObject):
                 highlight_pixmap.fill(Qt.GlobalColor.transparent)
 
                 painter = QPainter(highlight_pixmap)
-                for y in range(mask.shape[0]):
-                    for x in range(mask.shape[1]):
+
+                # 计算显示区域的采样点数量
+                display_sample_count_x = (disp_w + sample_step - 1) // sample_step
+                display_sample_count_y = (disp_h + sample_step - 1) // sample_step
+
+                # 只绘制在显示区域内的点
+                for y in range(min(mask.shape[0], display_sample_count_y)):
+                    for x in range(min(mask.shape[1], display_sample_count_x)):
                         if mask[y, x]:
                             painter.fillRect(
                                 disp_x + x * sample_step,
