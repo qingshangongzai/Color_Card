@@ -97,7 +97,7 @@ no_selection = "Veuillez d'abord sélectionner des palettes à supprimer"
 
 [color_preview]
 title = "Aperçu des couleurs"
-subtitle = "L'importation des mises en page mixtes présente des problèmes, ce module est encore en développement"
+subtitle = "En cours de développement"
 import_btn = "Importer"
 export_btn = "Exporter"
 delete = "Supprimer"

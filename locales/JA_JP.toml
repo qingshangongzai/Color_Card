@@ -97,7 +97,7 @@ no_selection = "削除するパレットを選択してください"
 
 [color_preview]
 title = "カラープレビュー"
-subtitle = "混合レイアウトのインポートには問題があります、このモジュールはまだ開発中です"
+subtitle = "開発中です"
 import_btn = "インポート"
 export_btn = "エクスポート"
 delete = "削除"
