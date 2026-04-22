@@ -281,7 +281,7 @@ def generate_lightness_shades(
 
     Args:
         base_hex: 基准颜色HEX值，如"#FF5733"
-        count: 色阶数量 (3-13)，默认9
+        count: 色阶数量 (3-12)，默认9
         color_space: 颜色空间 ('hsb', 'hsl', 'lab')，默认'hsb'
 
     Returns:
@@ -290,7 +290,7 @@ def generate_lightness_shades(
     Raises:
         ValueError: 当输入的HEX值格式无效时
     """
-    count = max(3, min(13, count))
+    count = max(3, min(12, count))
 
     base_rgb = hex_to_rgb(base_hex)
 
@@ -329,7 +329,7 @@ def generate_random_lightness_shade(
     """生成随机单色明度梯度
 
     Args:
-        count: 色阶数量 (3-13)，默认9
+        count: 色阶数量 (3-12)，默认9
         color_space: 颜色空间 ('hsb', 'hsl', 'lab')，默认'hsb'
 
     Returns:

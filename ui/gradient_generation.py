@@ -773,7 +773,7 @@ class GradientGenerationInterface(QWidget):
             self.start_color_label.setText(tr('gradient_generation.base_color'))
             self.steps_label.setText(tr('gradient_generation.shade_count'))
             self.steps_slider.setMinimum(3)
-            self.steps_slider.setMaximum(13)
+            self.steps_slider.setMaximum(12)
             if self._steps < 3:
                 self.steps_slider.setValue(3)
         else:
