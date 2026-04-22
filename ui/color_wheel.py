@@ -70,8 +70,9 @@ class HSBColorWheel(QWidget):
         self.update()  # 只重绘采样点，背景使用缓存
 
     def clear_sample_points(self):
-        """清除所有采样点"""
-        self._sample_colors = []
+        """清除所有采样点（重置为默认灰色，保留数量）"""
+        for i in range(len(self._sample_colors)):
+            self._sample_colors[i] = (128, 128, 128)
         self.update()
 
     def set_sample_count(self, count):

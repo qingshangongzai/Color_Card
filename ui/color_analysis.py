@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QSplitter, QStackedWidget,
     QSizePolicy, QVBoxLayout, QWidget
@@ -32,6 +32,10 @@ from .histograms import RGBHistogramWidget, HueHistogramWidget
 
 class ColorAnalysisInterface(QWidget):
     """色彩分析界面"""
+
+    # 图片同步信号（替代中介者）
+    image_sync_requested = Signal(object, object)  # QPixmap, QImage
+    clear_sync_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -199,7 +203,6 @@ class ColorAnalysisInterface(QWidget):
         """设置信号连接"""
         self.image_canvas.color_picked.connect(self.on_color_picked)
         self.image_canvas.image_loaded.connect(self.on_image_loaded)
-        self.image_canvas.image_data_loaded.connect(self.on_image_data_loaded)
         self.image_canvas.open_image_requested.connect(self.open_image)
         self.image_canvas.change_image_requested.connect(self.open_image)
         self.image_canvas.clear_image_requested.connect(self.clear_image)
@@ -224,19 +227,17 @@ class ColorAnalysisInterface(QWidget):
             self.image_canvas.set_image(file_path)
 
     def on_image_loaded(self, file_path):
-        """图片加载完成回调（由主窗口同步时调用）"""
-        # 图片数据处理已在 on_image_data_loaded 中完成
-        pass
+        """图片加载完成回调"""
+        # 图片数据处理已在 _setup_after_load 中完成
+        pixmap = self.image_canvas._original_pixmap
+        image = self.image_canvas._image
+        if pixmap and not pixmap.isNull() and image and not image.isNull():
+            # 直接发射同步信号
+            self.image_sync_requested.emit(pixmap, image)
 
-    def on_image_data_loaded(self, pixmap, image):
-        """图片数据加载完成回调（用于同步到其他面板）"""
-        window = self.window()
-        if window and hasattr(window, '_image_mediator'):
-            window._image_mediator.set_image(pixmap, image, 'color')
-
-        # 更新RGB直方图和色相直方图
-        self.rgb_histogram_widget.set_image(image)
-        self.hue_histogram_widget.set_image(image)
+            # 更新RGB直方图和色相直方图
+            self.rgb_histogram_widget.set_image(image)
+            self.hue_histogram_widget.set_image(image)
 
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
@@ -267,10 +268,34 @@ class ColorAnalysisInterface(QWidget):
         self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):
-        """图片已清空回调（同步清除明度面板）"""
-        window = self.window()
-        if window and hasattr(window, '_image_mediator'):
-            window._image_mediator.clear_image('color')
+        """图片已清空回调"""
+        # 直接发射同步信号
+        self.clear_sync_requested.emit()
+
+    def set_image_data(self, pixmap, image):
+        """设置图片数据（从其他面板同步）
+
+        Args:
+            pixmap: QPixmap 对象
+            image: QImage 对象
+        """
+        # emit_sync=False 防止循环同步
+        self.image_canvas.set_image_data(pixmap, image, emit_sync=False)
+        self.rgb_histogram_widget.set_image(image)
+        self.hue_histogram_widget.set_image(image)
+
+        # 延迟更新HSB色环采样点，等待颜色提取完成
+        # extract_all 使用 100ms 延迟，这里使用 300ms 确保颜色已提取
+        QTimer.singleShot(300, self._update_hsb_wheel_samples)
+
+    def _update_hsb_wheel_samples(self):
+        """更新HSB色环采样点"""
+        # 从色卡面板获取当前颜色并更新色环
+        for i, card in enumerate(self.color_card_panel.cards):
+            if card._current_color_info:
+                rgb = card._current_color_info.get('rgb')
+                if rgb:
+                    self.hsb_color_wheel.update_sample_point(i, rgb)
 
     def set_histogram_mode(self, mode: str):
         """设置直方图显示模式

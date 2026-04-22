@@ -26,6 +26,10 @@ class LuminanceAnalysisInterface(QWidget):
     # 信号：图片已独立导入（用于同步到色彩分析面板）
     image_imported = Signal(str, object, object)  # 图片路径, QPixmap, QImage
 
+    # 图片同步信号（替代中介者）
+    image_sync_requested = Signal(object, object)  # QPixmap, QImage
+    clear_sync_requested = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._dragging_index = -1
@@ -153,20 +157,16 @@ class LuminanceAnalysisInterface(QWidget):
         self.luminance_canvas.set_image(file_path)
 
     def _on_image_loaded_sync(self, file_path: str):
-        """图片加载完成后的同步回调
-
-        Args:
-            file_path: 图片文件路径
-        """
-        # 更新直方图
+        """图片加载完成后的同步回调"""
         self.histogram_widget.set_image(self.luminance_canvas.get_image())
-        # 导入图片时不显示高亮
         self.histogram_widget.clear_highlight()
 
-        # 发送信号，同步到色彩分析面板
+        # 直接发射同步信号
         pixmap = self.luminance_canvas._original_pixmap
         image = self.luminance_canvas._image
         if pixmap and not pixmap.isNull() and image and not image.isNull():
+            self.image_sync_requested.emit(pixmap, image)
+            # 保持旧信号兼容
             self.image_imported.emit(file_path, pixmap, image)
 
     def set_image(self, image_path):
@@ -245,10 +245,9 @@ class LuminanceAnalysisInterface(QWidget):
         self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):
-        """图片已清空回调（同步清除色彩面板）"""
-        window = self.window()
-        if window and hasattr(window, '_image_mediator'):
-            window._image_mediator.clear_image('luminance')
+        """图片已清空回调"""
+        # 直接发射同步信号
+        self.clear_sync_requested.emit()
 
     def on_histogram_zone_pressed(self, zone):
         """直方图Zone被按下时调用

@@ -3,7 +3,7 @@ import sys
 from typing import List, Dict, Any, TYPE_CHECKING
 
 # 第三方库导入
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication, QLabel
@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
 # 项目模块导入
-from core import get_config_manager, ImageMediator
+from core import get_config_manager, get_logger
 from utils import tr, get_locale_manager
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
@@ -199,9 +199,6 @@ class MainWindow(FluentWindow):
         self._config_manager = get_config_manager()
         self._config = self._config_manager._config
 
-        # 创建图片状态中介者
-        self._image_mediator = ImageMediator(self)
-
         # 应用窗口大小配置
         window_config = self._config.get('window', {})
         width = window_config.get('width', 1150)
@@ -232,8 +229,8 @@ class MainWindow(FluentWindow):
         # 设置导航（按需创建界面）
         self.setup_navigation()
 
-        # 连接中介者信号
-        self._setup_mediator_connections()
+        # 设置跨面板图片同步
+        self._setup_cross_panel_sync()
 
         # 连接语言切换信号
         get_locale_manager().language_changed.connect(self._on_language_changed)
@@ -288,10 +285,6 @@ class MainWindow(FluentWindow):
         # 设置默认路由键（色彩分析界面）
         if interface_id == 'colorAnalysis':
             qrouter.setDefaultRouteKey(self.stackedWidget, interface_id)
-
-        # 连接明度分析面板的图片导入信号
-        if interface_id == 'luminanceAnalysis':
-            interface.image_imported.connect(self.on_luminance_image_imported)
 
         # 连接设置信号（设置界面创建时）
         if interface_id == 'settings':
@@ -655,49 +648,36 @@ class MainWindow(FluentWindow):
         """打开图片（从色彩分析界面调用）"""
         self._get_interface('colorAnalysis').open_image()
 
-    def _setup_mediator_connections(self):
-        """连接图片中介者的信号"""
-        self._image_mediator.image_updated.connect(self._on_mediator_image_updated)
-        self._image_mediator.image_cleared.connect(self._on_mediator_image_cleared)
+    def _setup_cross_panel_sync(self):
+        """设置跨面板图片同步（简化版，替代中介者）"""
+        # 延迟连接，确保界面已创建
+        QTimer.singleShot(0, self._do_setup_sync)
 
-    def _on_mediator_image_updated(self, pixmap, image, source_id):
-        """中介者图片更新回调
+    def _do_setup_sync(self):
+        """实际执行信号连接"""
+        try:
+            color_interface = self._get_interface('colorAnalysis')
+            luminance_interface = self._get_interface('luminanceAnalysis')
 
-        Args:
-            pixmap: QPixmap 对象
-            image: QImage 对象
-            source_id: 操作来源标识
-        """
-        if source_id == 'luminance':
-            color_analysis_interface = self._get_interface('colorAnalysis')
-            color_analysis_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
-            color_analysis_interface.rgb_histogram_widget.set_image(image)
-            color_analysis_interface.hue_histogram_widget.set_image(image)
-        elif source_id == 'color':
-            self._get_interface('luminanceAnalysis').set_image_data(pixmap, image, emit_sync=False)
+            # 色彩 → 明度
+            color_interface.image_sync_requested.connect(
+                lambda p, i: luminance_interface.set_image_data(p, i, emit_sync=False)
+            )
+            color_interface.clear_sync_requested.connect(
+                lambda: luminance_interface.clear_all(emit_signal=False)
+            )
 
-    def _on_mediator_image_cleared(self, source_id):
-        """中介者图片清空回调
+            # 明度 → 色彩
+            luminance_interface.image_sync_requested.connect(
+                lambda p, i: color_interface.set_image_data(p, i)
+            )
+            luminance_interface.clear_sync_requested.connect(
+                lambda: color_interface.clear_all(emit_signal=False)
+            )
 
-        Args:
-            source_id: 操作来源标识
-        """
-        if source_id == 'luminance':
-            # 从明度面板同步过来，不发射信号防止循环
-            self._get_interface('colorAnalysis').clear_all(emit_signal=False)
-        elif source_id == 'color':
-            # 从色彩面板同步过来，不发射信号防止循环
-            self._get_interface('luminanceAnalysis').clear_all(emit_signal=False)
-
-    def on_luminance_image_imported(self, file_path, pixmap, image):
-        """明度分析面板独立导入图片后的同步回调
-
-        Args:
-            file_path: 图片文件路径
-            pixmap: QPixmap 对象
-            image: QImage 对象
-        """
-        self._image_mediator.set_image(pixmap, image, 'luminance')
+        except AttributeError as e:
+            logger = get_logger("main_window")
+            logger.warning(f"跨面板同步设置失败: {e}")
 
     def refresh_palette_management(self):
         """刷新配色管理面板"""
