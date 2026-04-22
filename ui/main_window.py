@@ -3,7 +3,7 @@ import sys
 from typing import List, Dict, Any, TYPE_CHECKING
 
 # 第三方库导入
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication, QLabel
@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
 
 # 项目模块导入
-from core import get_config_manager, ImageMediator
+from core import get_config_manager, get_logger
 from utils import tr, get_locale_manager
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
@@ -170,9 +170,9 @@ class MainWindow(FluentWindow):
 
     # 导航图标映射（类属性，避免每次创建）
     _NAV_ICON_MAP = {
-        'colorExtract': FluentIcon.PHOTO,
-        'luminanceExtract': FluentIcon.BRIGHTNESS,
-        'gradientExtract': FluentIcon.BRUSH,
+        'colorAnalysis': FluentIcon.PHOTO,
+        'luminanceAnalysis': FluentIcon.BRIGHTNESS,
+        'gradientGeneration': FluentIcon.BRUSH,
         'colorGeneration': FluentIcon.PALETTE,
         'paletteManagement': FluentIcon.HEART,
         'presetColor': FluentIcon.BOOK_SHELF,
@@ -199,9 +199,6 @@ class MainWindow(FluentWindow):
         self._config_manager = get_config_manager()
         self._config = self._config_manager._config
 
-        # 创建图片状态中介者
-        self._image_mediator = ImageMediator(self)
-
         # 应用窗口大小配置
         window_config = self._config.get('window', {})
         width = window_config.get('width', 1150)
@@ -216,9 +213,9 @@ class MainWindow(FluentWindow):
 
         # 界面类映射（用于延迟导入和创建）
         self._interface_classes = {
-            'colorExtract': ('ui.color_extract', 'ColorExtractInterface'),
-            'luminanceExtract': ('ui.luminance_extract', 'LuminanceExtractInterface'),
-            'gradientExtract': ('ui.gradient_extract', 'GradientExtractInterface'),
+            'colorAnalysis': ('ui.color_analysis', 'ColorAnalysisInterface'),
+            'luminanceAnalysis': ('ui.luminance_analysis', 'LuminanceAnalysisInterface'),
+            'gradientGeneration': ('ui.gradient_generation', 'GradientGenerationInterface'),
             'colorGeneration': ('ui.color_generation', 'ColorGenerationInterface'),
             'paletteManagement': ('ui.palette_management', 'PaletteManagementInterface'),
             'presetColor': ('ui.preset_color', 'PresetColorInterface'),
@@ -232,8 +229,8 @@ class MainWindow(FluentWindow):
         # 设置导航（按需创建界面）
         self.setup_navigation()
 
-        # 连接中介者信号
-        self._setup_mediator_connections()
+        # 设置跨面板图片同步
+        self._setup_cross_panel_sync()
 
         # 连接语言切换信号
         get_locale_manager().language_changed.connect(self._on_language_changed)
@@ -285,13 +282,9 @@ class MainWindow(FluentWindow):
             interface_id: 界面标识符
             interface: 界面实例
         """
-        # 设置默认路由键（色彩提取界面）
-        if interface_id == 'colorExtract':
+        # 设置默认路由键（色彩分析界面）
+        if interface_id == 'colorAnalysis':
             qrouter.setDefaultRouteKey(self.stackedWidget, interface_id)
-
-        # 连接明度提取面板的图片导入信号
-        if interface_id == 'luminanceExtract':
-            interface.image_imported.connect(self.on_luminance_image_imported)
 
         # 连接设置信号（设置界面创建时）
         if interface_id == 'settings':
@@ -302,9 +295,9 @@ class MainWindow(FluentWindow):
             interface.favorite_requested.connect(self._on_preset_color_favorite)
             interface.preview_in_panel_requested.connect(self._on_preset_color_preview)
 
-        # 连接渐变提取界面的收藏信号
-        if interface_id == 'gradientExtract':
-            interface.favorite_requested.connect(self._on_gradient_extract_favorite)
+        # 连接渐变生成界面的收藏信号
+        if interface_id == 'gradientGeneration':
+            interface.favorite_requested.connect(self._on_gradient_generation_favorite)
 
     def _connect_settings_signals(self, settings_interface: 'QWidget'):
         """连接设置界面的信号
@@ -312,15 +305,15 @@ class MainWindow(FluentWindow):
         Args:
             settings_interface: 设置界面实例
         """
-        # 连接16进制显示开关信号到色彩提取面板
-        color_extract_interface = self._get_interface('colorExtract')
+        # 连接16进制显示开关信号到色彩分析面板
+        color_analysis_interface = self._get_interface('colorAnalysis')
         settings_interface.hex_display_changed.connect(
-            color_extract_interface.color_card_panel.set_hex_visible
+            color_analysis_interface.color_card_panel.set_hex_visible
         )
 
-        # 连接色彩模式改变信号到色彩提取面板
+        # 连接色彩模式改变信号到色彩分析面板
         settings_interface.color_modes_changed.connect(
-            color_extract_interface.color_card_panel.set_color_modes
+            color_analysis_interface.color_card_panel.set_color_modes
         )
 
         # 连接16进制显示开关信号到配色生成面板
@@ -334,34 +327,34 @@ class MainWindow(FluentWindow):
             lambda modes: color_generation_interface.update_display_settings(color_modes=modes)
         )
 
-        # 连接色彩模式改变信号到渐变提取面板
-        gradient_extract_interface = self._get_interface('gradientExtract')
+        # 连接色彩模式改变信号到渐变生成面板
+        gradient_generation_interface = self._get_interface('gradientGeneration')
         settings_interface.color_modes_changed.connect(
-            gradient_extract_interface.set_color_modes
+            gradient_generation_interface.set_color_modes
         )
 
-        # 连接HEX显示改变信号到渐变提取面板
+        # 连接HEX显示改变信号到渐变生成面板
         settings_interface.hex_display_changed.connect(
-            gradient_extract_interface.set_hex_visible
+            gradient_generation_interface.set_hex_visible
         )
 
-        # 连接色彩提取采样点数改变信号
+        # 连接色彩分析采样点数改变信号
         settings_interface.color_sample_count_changed.connect(
             self._on_color_sample_count_changed
         )
 
-        # 连接明度提取采样点数改变信号
+        # 连接明度分析采样点数改变信号
         settings_interface.luminance_sample_count_changed.connect(
             self._on_luminance_sample_count_changed
         )
 
         # 连接画布采样点数量改变信号（从右键菜单调整）
-        color_extract_interface.image_canvas.picker_count_changed.connect(
+        color_analysis_interface.image_canvas.picker_count_changed.connect(
             self._on_canvas_picker_count_changed
         )
 
-        luminance_extract_interface = self._get_interface('luminanceExtract')
-        luminance_extract_interface.luminance_canvas.picker_count_changed.connect(
+        luminance_analysis_interface = self._get_interface('luminanceAnalysis')
+        luminance_analysis_interface.luminance_canvas.picker_count_changed.connect(
             self._on_luminance_canvas_picker_count_changed
         )
 
@@ -370,9 +363,9 @@ class MainWindow(FluentWindow):
             self._on_histogram_scaling_mode_changed
         )
 
-        # 连接明度直方图样式改变信号到明度提取界面
+        # 连接明度直方图样式改变信号到明度分析界面
         settings_interface.luminance_histogram_style_changed.connect(
-            luminance_extract_interface.set_histogram_style
+            luminance_analysis_interface.set_histogram_style
         )
 
         # 连接色轮模式改变信号到配色生成界面
@@ -380,38 +373,38 @@ class MainWindow(FluentWindow):
             color_generation_interface.set_color_wheel_mode
         )
 
-        # 连接渐变颜色空间改变信号到渐变提取界面
+        # 连接渐变颜色空间改变信号到渐变生成界面
         settings_interface.gradient_color_space_changed.connect(
-            gradient_extract_interface.set_color_space
+            gradient_generation_interface.set_color_space
         )
 
-        # 连接渐变模式改变信号到渐变提取界面
+        # 连接渐变模式改变信号到渐变生成界面
         settings_interface.gradient_mode_changed.connect(
-            gradient_extract_interface.set_gradient_mode
+            gradient_generation_interface.set_gradient_mode
         )
 
-        # 连接直方图模式改变信号到色彩提取界面
+        # 连接直方图模式改变信号到色彩分析界面
         settings_interface.histogram_mode_changed.connect(
             self._on_histogram_mode_changed
         )
 
         # 连接直方图采样模式改变信号
         settings_interface.histogram_sampling_mode_changed.connect(
-            color_extract_interface.rgb_histogram_widget.set_sampling_mode
+            color_analysis_interface.rgb_histogram_widget.set_sampling_mode
         )
         settings_interface.histogram_sampling_mode_changed.connect(
-            color_extract_interface.hue_histogram_widget.set_sampling_mode
+            color_analysis_interface.hue_histogram_widget.set_sampling_mode
         )
         settings_interface.histogram_sampling_mode_changed.connect(
-            luminance_extract_interface.histogram_widget.set_sampling_mode
+            luminance_analysis_interface.histogram_widget.set_sampling_mode
         )
 
-        # 连接饱和度阈值改变信号到色彩提取界面
+        # 连接饱和度阈值改变信号到色彩分析界面
         settings_interface.saturation_threshold_changed.connect(
             self._on_saturation_threshold_changed
         )
 
-        # 连接明度阈值改变信号到色彩提取界面
+        # 连接明度阈值改变信号到色彩分析界面
         settings_interface.brightness_threshold_changed.connect(
             self._on_brightness_threshold_changed
         )
@@ -454,26 +447,26 @@ class MainWindow(FluentWindow):
 
         # 应用加载的配置到色卡面板
         hex_visible = self._config_manager.get('settings.hex_visible', True)
-        color_extract_interface.color_card_panel.set_hex_visible(hex_visible)
+        color_analysis_interface.color_card_panel.set_hex_visible(hex_visible)
 
         # 应用加载的色彩模式配置到色卡面板
         color_modes = self._config_manager.get('settings.color_modes', ['HSB', 'LAB'])
-        color_extract_interface.color_card_panel.set_color_modes(color_modes)
+        color_analysis_interface.color_card_panel.set_color_modes(color_modes)
 
         # 应用加载的采样点数量配置
         color_sample_count = self._config_manager.get('settings.color_sample_count', 5)
-        color_extract_interface.image_canvas.set_picker_count(color_sample_count)
-        color_extract_interface.color_card_panel.set_card_count(color_sample_count)
+        color_analysis_interface.image_canvas.set_picker_count(color_sample_count)
+        color_analysis_interface.color_card_panel.set_card_count(color_sample_count)
 
         luminance_sample_count = self._config_manager.get('settings.luminance_sample_count', 5)
-        luminance_extract_interface.luminance_canvas.set_picker_count(luminance_sample_count)
-        luminance_extract_interface.histogram_widget.clear()
+        luminance_analysis_interface.luminance_canvas.set_picker_count(luminance_sample_count)
+        luminance_analysis_interface.histogram_widget.clear()
 
         # 应用加载的直方图缩放模式配置
         histogram_scaling_mode = self._config_manager.get('settings.histogram_scaling_mode', 'linear')
-        color_extract_interface.rgb_histogram_widget.set_scaling_mode(histogram_scaling_mode)
-        color_extract_interface.hue_histogram_widget.set_scaling_mode(histogram_scaling_mode)
-        luminance_extract_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        color_analysis_interface.rgb_histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        color_analysis_interface.hue_histogram_widget.set_scaling_mode(histogram_scaling_mode)
+        luminance_analysis_interface.histogram_widget.set_scaling_mode(histogram_scaling_mode)
 
         # 应用加载的色轮模式配置到配色生成界面
         color_wheel_mode = self._config_manager.get('settings.color_wheel_mode', 'RGB')
@@ -481,20 +474,20 @@ class MainWindow(FluentWindow):
 
         # 应用加载的直方图模式配置
         histogram_mode = self._config_manager.get('settings.histogram_mode', 'hue')
-        color_extract_interface.set_histogram_mode(histogram_mode)
+        color_analysis_interface.set_histogram_mode(histogram_mode)
 
         # 应用加载的直方图采样模式配置
         histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
-        color_extract_interface.rgb_histogram_widget.set_sampling_mode(histogram_sampling_mode)
-        color_extract_interface.hue_histogram_widget.set_sampling_mode(histogram_sampling_mode)
-        luminance_extract_interface.histogram_widget.set_sampling_mode(histogram_sampling_mode)
+        color_analysis_interface.rgb_histogram_widget.set_sampling_mode(histogram_sampling_mode)
+        color_analysis_interface.hue_histogram_widget.set_sampling_mode(histogram_sampling_mode)
+        luminance_analysis_interface.histogram_widget.set_sampling_mode(histogram_sampling_mode)
 
         # 应用加载的阈值配置
         saturation_threshold = self._config_manager.get('settings.saturation_threshold', 70)
-        color_extract_interface.set_saturation_threshold(saturation_threshold)
+        color_analysis_interface.set_saturation_threshold(saturation_threshold)
 
         brightness_threshold = self._config_manager.get('settings.brightness_threshold', 70)
-        color_extract_interface.set_brightness_threshold(brightness_threshold)
+        color_analysis_interface.set_brightness_threshold(brightness_threshold)
 
     def closeEvent(self, event):
         """窗口关闭事件，保存配置并清理后台线程"""
@@ -563,27 +556,27 @@ class MainWindow(FluentWindow):
         # 添加 Logo 到左上角
         self._setup_logo()
 
-        # 色彩提取（启动时立即创建，作为默认界面）
+        # 色彩分析（启动时立即创建，作为默认界面）
         self.addSubInterface(
-            self._get_interface('colorExtract'),
+            self._get_interface('colorAnalysis'),
             FluentIcon.PHOTO,
-            tr('navigation.color_extract'),
+            tr('navigation.color_analysis'),
             position=NavigationItemPosition.TOP
         )
 
-        # 明度提取
+        # 明度分析
         self.addSubInterface(
-            self._get_interface('luminanceExtract'),
+            self._get_interface('luminanceAnalysis'),
             FluentIcon.BRIGHTNESS,
-            tr('navigation.luminance_extract'),
+            tr('navigation.luminance_analysis'),
             position=NavigationItemPosition.TOP
         )
 
-        # 渐变提取
+        # 渐变生成
         self.addSubInterface(
-            self._get_interface('gradientExtract'),
+            self._get_interface('gradientGeneration'),
             FluentIcon.BRUSH,
-            tr('navigation.gradient_extract'),
+            tr('navigation.gradient_generation'),
             position=NavigationItemPosition.TOP
         )
 
@@ -628,7 +621,7 @@ class MainWindow(FluentWindow):
         )
 
         # 设置默认选中的导航项
-        self.navigationInterface.setCurrentItem('colorExtract')
+        self.navigationInterface.setCurrentItem('colorAnalysis')
 
         # 连接导航切换信号
         self.stackedWidget.currentChanged.connect(self._on_tab_changed)
@@ -685,52 +678,39 @@ class MainWindow(FluentWindow):
             top_layout.insertWidget(0, logo_label, 0, Qt.AlignTop)
 
     def open_image(self):
-        """打开图片（从色彩提取界面调用）"""
-        self._get_interface('colorExtract').open_image()
+        """打开图片（从色彩分析界面调用）"""
+        self._get_interface('colorAnalysis').open_image()
 
-    def _setup_mediator_connections(self):
-        """连接图片中介者的信号"""
-        self._image_mediator.image_updated.connect(self._on_mediator_image_updated)
-        self._image_mediator.image_cleared.connect(self._on_mediator_image_cleared)
+    def _setup_cross_panel_sync(self):
+        """设置跨面板图片同步（简化版，替代中介者）"""
+        # 延迟连接，确保界面已创建
+        QTimer.singleShot(0, self._do_setup_sync)
 
-    def _on_mediator_image_updated(self, pixmap, image, source_id):
-        """中介者图片更新回调
+    def _do_setup_sync(self):
+        """实际执行信号连接"""
+        try:
+            color_interface = self._get_interface('colorAnalysis')
+            luminance_interface = self._get_interface('luminanceAnalysis')
 
-        Args:
-            pixmap: QPixmap 对象
-            image: QImage 对象
-            source_id: 操作来源标识
-        """
-        if source_id == 'luminance':
-            color_extract_interface = self._get_interface('colorExtract')
-            color_extract_interface.image_canvas.set_image_data(pixmap, image, emit_sync=False)
-            color_extract_interface.rgb_histogram_widget.set_image(image)
-            color_extract_interface.hue_histogram_widget.set_image(image)
-        elif source_id == 'color':
-            self._get_interface('luminanceExtract').set_image_data(pixmap, image, emit_sync=False)
+            # 色彩 → 明度
+            color_interface.image_sync_requested.connect(
+                lambda p, i: luminance_interface.set_image_data(p, i, emit_sync=False)
+            )
+            color_interface.clear_sync_requested.connect(
+                lambda: luminance_interface.clear_all(emit_signal=False)
+            )
 
-    def _on_mediator_image_cleared(self, source_id):
-        """中介者图片清空回调
+            # 明度 → 色彩
+            luminance_interface.image_sync_requested.connect(
+                lambda p, i: color_interface.set_image_data(p, i)
+            )
+            luminance_interface.clear_sync_requested.connect(
+                lambda: color_interface.clear_all(emit_signal=False)
+            )
 
-        Args:
-            source_id: 操作来源标识
-        """
-        if source_id == 'luminance':
-            # 从明度面板同步过来，不发射信号防止循环
-            self._get_interface('colorExtract').clear_all(emit_signal=False)
-        elif source_id == 'color':
-            # 从色彩面板同步过来，不发射信号防止循环
-            self._get_interface('luminanceExtract').clear_all(emit_signal=False)
-
-    def on_luminance_image_imported(self, file_path, pixmap, image):
-        """明度提取面板独立导入图片后的同步回调
-
-        Args:
-            file_path: 图片文件路径
-            pixmap: QPixmap 对象
-            image: QImage 对象
-        """
-        self._image_mediator.set_image(pixmap, image, 'luminance')
+        except AttributeError as e:
+            logger = get_logger("main_window")
+            logger.warning(f"跨面板同步设置失败: {e}")
 
     def refresh_palette_management(self):
         """刷新配色管理面板"""
@@ -770,8 +750,8 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
-    def _on_gradient_extract_favorite(self, favorite_data: dict):
-        """处理渐变提取界面的收藏请求
+    def _on_gradient_generation_favorite(self, favorite_data: dict):
+        """处理渐变生成界面的收藏请求
 
         Args:
             favorite_data: 收藏数据字典
@@ -817,24 +797,24 @@ class MainWindow(FluentWindow):
             self.titleBar._update_fullscreen_icon()
 
     def _on_color_sample_count_changed(self, count):
-        """色彩提取采样点数改变"""
-        color_extract_interface = self._get_interface('colorExtract')
+        """色彩分析采样点数改变"""
+        color_analysis_interface = self._get_interface('colorAnalysis')
         # 先更新色卡数量，确保新色卡已创建
-        color_extract_interface.color_card_panel.set_card_count(count)
+        color_analysis_interface.color_card_panel.set_card_count(count)
         # 再更新取色点数量（这会触发 extract_all，发射 color_picked 信号）
-        color_extract_interface.image_canvas.set_picker_count(count)
+        color_analysis_interface.image_canvas.set_picker_count(count)
         # 更新HSB色环的采样点数量
-        color_extract_interface.hsb_color_wheel.set_sample_count(count)
+        color_analysis_interface.hsb_color_wheel.set_sample_count(count)
 
     def _on_luminance_sample_count_changed(self, count):
-        """明度提取采样点数改变"""
-        luminance_extract_interface = self._get_interface('luminanceExtract')
-        luminance_extract_interface.luminance_canvas.set_picker_count(count)
-        luminance_extract_interface.histogram_widget.clear()
+        """明度分析采样点数改变"""
+        luminance_analysis_interface = self._get_interface('luminanceAnalysis')
+        luminance_analysis_interface.luminance_canvas.set_picker_count(count)
+        luminance_analysis_interface.histogram_widget.clear()
         # 如果有图片，重新计算直方图
-        image = luminance_extract_interface.luminance_canvas.get_image()
+        image = luminance_analysis_interface.luminance_canvas.get_image()
         if image and not image.isNull():
-            luminance_extract_interface.histogram_widget.set_image(image)
+            luminance_analysis_interface.histogram_widget.set_image(image)
 
     def _on_canvas_picker_count_changed(self, count):
         """画布采样点数量改变（从右键菜单调整）"""
@@ -844,12 +824,12 @@ class MainWindow(FluentWindow):
         settings_interface = self._get_interface('settings')
         settings_interface.color_sample_count_card.combo_box.setCurrentText(str(count))
         # 更新色卡面板（必须先于重新提取颜色）
-        color_extract_interface = self._get_interface('colorExtract')
-        color_extract_interface.color_card_panel.set_card_count(count)
+        color_analysis_interface = self._get_interface('colorAnalysis')
+        color_analysis_interface.color_card_panel.set_card_count(count)
         # 更新HSB色环
-        color_extract_interface.hsb_color_wheel.set_sample_count(count)
+        color_analysis_interface.hsb_color_wheel.set_sample_count(count)
         # 重新提取所有颜色（新添加的采样点需要更新颜色）
-        color_extract_interface.image_canvas.extract_all()
+        color_analysis_interface.image_canvas.extract_all()
 
     def _on_luminance_canvas_picker_count_changed(self, count):
         """明度画布采样点数量改变（从右键菜单调整）"""
@@ -859,30 +839,30 @@ class MainWindow(FluentWindow):
         settings_interface = self._get_interface('settings')
         settings_interface.luminance_sample_count_card.combo_box.setCurrentText(str(count))
         # 更新直方图
-        luminance_extract_interface = self._get_interface('luminanceExtract')
-        luminance_extract_interface.histogram_widget.clear()
-        image = luminance_extract_interface.luminance_canvas.get_image()
+        luminance_analysis_interface = self._get_interface('luminanceAnalysis')
+        luminance_analysis_interface.histogram_widget.clear()
+        image = luminance_analysis_interface.luminance_canvas.get_image()
         if image and not image.isNull():
-            luminance_extract_interface.histogram_widget.set_image(image)
+            luminance_analysis_interface.histogram_widget.set_image(image)
 
     def _on_histogram_scaling_mode_changed(self, mode):
         """直方图缩放模式改变"""
-        color_extract_interface = self._get_interface('colorExtract')
-        color_extract_interface.rgb_histogram_widget.set_scaling_mode(mode)
-        color_extract_interface.hue_histogram_widget.set_scaling_mode(mode)
-        self._get_interface('luminanceExtract').histogram_widget.set_scaling_mode(mode)
+        color_analysis_interface = self._get_interface('colorAnalysis')
+        color_analysis_interface.rgb_histogram_widget.set_scaling_mode(mode)
+        color_analysis_interface.hue_histogram_widget.set_scaling_mode(mode)
+        self._get_interface('luminanceAnalysis').histogram_widget.set_scaling_mode(mode)
 
     def _on_histogram_mode_changed(self, mode):
         """直方图显示模式改变"""
-        self._get_interface('colorExtract').set_histogram_mode(mode)
+        self._get_interface('colorAnalysis').set_histogram_mode(mode)
 
     def _on_saturation_threshold_changed(self, value):
         """饱和度阈值改变"""
-        self._get_interface('colorExtract').set_saturation_threshold(value)
+        self._get_interface('colorAnalysis').set_saturation_threshold(value)
 
     def _on_brightness_threshold_changed(self, value):
         """明度阈值改变"""
-        self._get_interface('colorExtract').set_brightness_threshold(value)
+        self._get_interface('colorAnalysis').set_brightness_threshold(value)
 
     def _on_language_changed(self, language_code):
         """语言切换回调"""
@@ -893,9 +873,9 @@ class MainWindow(FluentWindow):
     def _update_navigation_texts(self):
         """更新导航栏文本"""
         navigation_items = [
-            ('colorExtract', tr('navigation.color_extract')),
-            ('luminanceExtract', tr('navigation.luminance_extract')),
-            ('gradientExtract', tr('navigation.gradient_extract')),
+            ('colorAnalysis', tr('navigation.color_analysis')),
+            ('luminanceAnalysis', tr('navigation.luminance_analysis')),
+            ('gradientGeneration', tr('navigation.gradient_generation')),
             ('colorGeneration', tr('navigation.color_generation')),
             ('paletteManagement', tr('navigation.palette_management')),
             ('presetColor', tr('navigation.preset_color')),

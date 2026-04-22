@@ -605,7 +605,7 @@ class BaseCanvas(QWidget):
                 x, y, w, h = display_rect
                 target_rect = QRect(x, y, w, h)
 
-                # 黑白模式：仅明度提取面板支持
+                # 黑白模式：仅明度分析面板支持
                 if getattr(self, '_grayscale_mode', False) and self._image:
                     grayscale_image = self._image.convertToFormat(QImage.Format.Format_Grayscale8)
                     painter.drawImage(target_rect, grayscale_image)
@@ -1220,7 +1220,7 @@ class ImageCanvas(BaseCanvas):
 
 
 class LuminanceCanvas(BaseCanvas):
-    """明度提取画布，支持取色点拖动和区域标注"""
+    """明度分析画布，支持取色点拖动和区域标注"""
 
     luminance_picked = Signal(int, str)  # 信号：索引, 区域编号
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动

@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "Loading..."
 
 [navigation]
-color_extract = "Color Extract"
-luminance_extract = "Luminance Extract"
-gradient_extract = "Gradient Extract"
+color_analysis = "Color Analysis"
+luminance_analysis = "Luminance Analysis"
+gradient_generation = "Gradient Generation"
 color_generation = "Color Generation"
 palette_management = "Palette Management"
 preset_color = "Preset Colors"
@@ -20,7 +20,7 @@ theme_light = "Light Mode"
 theme_dark = "Dark Mode"
 theme_auto = "System"
 
-[color_extract]
+[color_analysis]
 favorite = "Save Palette"
 extract_dominant = "Auto Extract Dominant"
 extracting = "Extracting..."
@@ -29,11 +29,11 @@ show_high_brightness = "Show High Brightness"
 select_image = "Select Image"
 image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "Select Image"
 image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "Start Color"
 end_color = "End Color"
 base_color = "Base Color"
@@ -43,7 +43,7 @@ random = "Random"
 favorite = "Save"
 select_color = "Select Color"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "Saved"
 content = "Gradient scheme has been added to palette management"
 

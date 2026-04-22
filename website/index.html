@@ -556,7 +556,7 @@
         <div class="section-container">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">强大功能，一站解决</h2>
-                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">从色彩提取到配色应用，提供完整的色彩工作流</p>
+                <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">从色彩分析到配色应用，提供完整的色彩工作流</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="features-grid">
                 <!-- Features will be loaded by JS -->
@@ -573,9 +573,9 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="screenshots-grid">
                 <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/color-extract.png')">
-                    <img src="screenshots/color-extract.png" alt="色彩提取" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <img src="screenshots/color-extract.png" alt="色彩分析" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
                     <div class="p-4">
-                        <h3 class="font-bold text-gray-900 dark:text-white">色彩提取</h3>
+                        <h3 class="font-bold text-gray-900 dark:text-white">色彩分析</h3>
                         <p class="text-sm text-gray-500 mt-1">可视化取色，支持多色彩空间</p>
                     </div>
                 </div>
@@ -594,9 +594,9 @@
                     </div>
                 </div>
                 <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/luminance-extract.png')">
-                    <img src="screenshots/luminance-extract.png" alt="明度提取" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
+                    <img src="screenshots/luminance-extract.png" alt="明度分析" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
                     <div class="p-4">
-                        <h3 class="font-bold text-gray-900 dark:text-white">明度提取</h3>
+                        <h3 class="font-bold text-gray-900 dark:text-white">明度分析</h3>
                         <p class="text-sm text-gray-500 mt-1">9级明度分区分析</p>
                     </div>
                 </div>
@@ -754,7 +754,7 @@
                             不断演进
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            最开始，取色卡只有<span class="text-brand-secondary font-medium">色彩提取</span>和<span class="text-brand-secondary font-medium">明度分析</span>这两个核心功能。后来随着需求的增加，陆续加入了配色生成、配色管理、配色预览等功能。取色卡逐步从一个简单的学习工具，发展成为一站式的本地配色解决方案。
+                            最开始，取色卡只有<span class="text-brand-secondary font-medium">色彩分析</span>和<span class="text-brand-secondary font-medium">明度分析</span>这两个核心功能。后来随着需求的增加，陆续加入了配色生成、配色管理、配色预览等功能。取色卡逐步从一个简单的学习工具，发展成为一站式的本地配色解决方案。
                         </p>
                     </div>
 
@@ -919,7 +919,7 @@
                             Color Card 采用 GPL-3.0 开源协议，完全免费，无需联网，无需注册，隐私安全。
                         </p>
                         <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                            我们相信，优秀的工具应该人人可用。从色彩提取到配色应用，我们致力于打造专业级的本地配色解决方案。
+                            我们相信，优秀的工具应该人人可用。从色彩分析到配色应用，我们致力于打造专业级的本地配色解决方案。
                         </p>
                     </div>
                 </div>
@@ -1255,7 +1255,7 @@
 
         // Features Data
         const features = [
-            { icon: 'pipette', title: '可视化色彩提取', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）' },
+            { icon: 'pipette', title: '可视化色彩分析', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）' },
             { icon: 'palette', title: '智能配色生成', desc: '提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择' },
             { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持导出为 Adobe ASE 格式，建立个人色彩库' },
             { icon: 'library', title: '内置色彩库', desc: '集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡' },

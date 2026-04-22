@@ -52,7 +52,7 @@ import {
 const { t } = useI18n()
 
 const features = [
-  { key: 'colorExtract', icon: Pipette },
+  { key: 'colorAnalysis', icon: Pipette },
   { key: 'colorGeneration', icon: Palette },
   { key: 'paletteManagement', icon: Bookmark },
   { key: 'builtInPalettes', icon: Library },

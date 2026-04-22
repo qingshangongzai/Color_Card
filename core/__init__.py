@@ -80,7 +80,6 @@ from .gradient import (
 
 from .async_loader import BaseBatchLoader
 from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
-from .image_mediator import ImageMediator
 from .cache_base import BaseCache
 
 # UI直接使用的服务类（轻量级，立即导入）
@@ -195,7 +194,6 @@ __all__ = [
     'GROUPING_THRESHOLDS',
     'generate_groups',
     'should_use_batch_loading',
-    'ImageMediator',
     'BaseCache',
     # 日志
     'LoggerManager',
