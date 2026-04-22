@@ -511,6 +511,8 @@ add_picker = "Добавить точку выборки"
 remove_picker = "Удалить точку выборки"
 grayscale_mode = "Оттенки серого"
 color_mode = "Цветной режим"
+hide_pickers = "Скрыть точки"
+show_pickers = "Показать точки"
 tone_analysis = "Анализ тона"
 
 [tone_analysis]

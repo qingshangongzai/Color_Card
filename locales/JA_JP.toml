@@ -510,6 +510,8 @@ add_picker = "サンプルポイントを追加"
 remove_picker = "サンプルポイントを削除"
 grayscale_mode = "白黒モード"
 color_mode = "カラーモード"
+hide_pickers = "サンプルポイントを非表示"
+show_pickers = "サンプルポイントを表示"
 tone_analysis = "明度分析"
 
 [tone_analysis]

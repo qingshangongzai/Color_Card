@@ -510,6 +510,8 @@ add_picker = "Ajouter un point d'échantillon"
 remove_picker = "Supprimer un point d'échantillon"
 grayscale_mode = "Mode Niveaux de Gris"
 color_mode = "Mode Couleur"
+hide_pickers = "Masquer les points"
+show_pickers = "Afficher les points"
 tone_analysis = "Analyse du ton"
 
 [tone_analysis]
