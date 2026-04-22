@@ -976,6 +976,7 @@ class ColorInputRow(QWidget):
         self._index = index
         self._color_info = None
         self._pending_text = ""
+        self._is_error = False  # 输入错误状态标记
         super().__init__(parent)
         self.setup_ui()
         self._update_styles()
@@ -1048,6 +1049,12 @@ class ColorInputRow(QWidget):
         text_color = get_text_color()
         self.index_label.setStyleSheet(f"color: {text_color.name()}; font-size: 13px; background: transparent;")
         self._update_preview_style(self._color_info)
+        self._update_input_style()
+
+    def _update_input_style(self):
+        """更新输入框样式"""
+        # 使用 qfluentwidgets 的 setError 方法设置错误状态
+        self.hex_input.setError(self._is_error)
 
     def _update_preview_style(self, color_info):
         """更新预览块样式"""
@@ -1080,19 +1087,31 @@ class ColorInputRow(QWidget):
         """处理HEX输入（防抖后）"""
         text = self._pending_text
 
-        # 验证HEX格式
+        # 空输入不显示错误
+        if not text or text == '#':
+            self._is_error = False
+            self._color_info = None
+            self._update_preview_style(None)
+            self._update_input_style()
+            return
+
+        # 验证HEX格式并处理
+        is_valid = False
         if self._is_valid_hex(text):
             try:
                 r, g, b = hex_to_rgb(text)
                 # 只保存基本信息，不调用get_color_info进行完整转换
                 self._color_info = {'rgb': (r, g, b), 'hex': text}
-                self._update_preview_style(self._color_info)
+                is_valid = True
             except ValueError:
                 self._color_info = None
-                self._update_preview_style(None)
-        else:
+
+        if not is_valid:
             self._color_info = None
-            self._update_preview_style(None)
+
+        self._is_error = not is_valid
+        self._update_preview_style(self._color_info if is_valid else None)
+        self._update_input_style()
 
     def _is_valid_hex(self, text: str) -> bool:
         """验证HEX格式"""
@@ -1124,6 +1143,12 @@ class ColorInputRow(QWidget):
     def has_valid_color(self) -> bool:
         """是否有有效颜色"""
         return self._color_info is not None
+
+    def has_invalid_input(self) -> bool:
+        """是否有无效输入（输入了内容但不是有效颜色）"""
+        text = self.hex_input.text().strip()
+        # 有输入内容但不是有效颜色
+        return bool(text and text != '#' and not self._is_valid_hex(text))
 
     def set_index(self, index: int):
         """设置序号"""
@@ -1383,6 +1408,21 @@ class EditPaletteDialog(BaseFramelessDialog):
 
     def _on_confirm(self):
         """确认按钮点击"""
+        # 检查是否有无效输入
+        invalid_rows = []
+        for i, row in enumerate(self._color_rows):
+            if row.has_invalid_input():
+                invalid_rows.append(i + 1)
+
+        if invalid_rows:
+            # 有无效输入，显示提示
+            if len(invalid_rows) == 1:
+                self._show_error_tooltip(f"颜色 {invalid_rows[0]} 格式不正确")
+            else:
+                rows_str = ", ".join([str(r) for r in invalid_rows])
+                self._show_error_tooltip(f"颜色 {rows_str} 格式不正确")
+            return
+
         # 获取有效颜色
         valid_colors = []
         for row in self._color_rows:
