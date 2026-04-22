@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "Chargement..."
 
 [navigation]
-color_extract = "Extraction de couleurs"
-luminance_extract = "Extraction de luminance"
-gradient_extract = "Extraction de dégradé"
+color_analysis = "Analyse des couleurs"
+luminance_analysis = "Analyse de luminance"
+gradient_generation = "Génération de dégradé"
 color_generation = "Génération de couleurs"
 palette_management = "Gestion des palettes"
 preset_color = "Couleurs prédéfinies"
@@ -20,7 +20,7 @@ theme_light = "Mode clair"
 theme_dark = "Mode sombre"
 theme_auto = "Suivre le système"
 
-[color_extract]
+[color_analysis]
 favorite = "Enregistrer"
 extract_dominant = "Extraire"
 extracting = "Extraction..."
@@ -29,11 +29,11 @@ show_high_brightness = "Haute luminosité"
 select_image = "Sélectionner une image"
 image_filter = "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "Sélectionner une image"
 image_filter = "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "Couleur de départ"
 end_color = "Couleur de fin"
 base_color = "Couleur de base"
@@ -43,7 +43,7 @@ random = "Aléatoire"
 favorite = "Enregistrer"
 select_color = "Sélectionner la couleur"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "Enregistré"
 content = "Le schéma de dégradé a été ajouté à la gestion des palettes"
 

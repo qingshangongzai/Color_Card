@@ -1,6 +1,6 @@
-"""明度提取界面模块
+"""明度分析界面模块
 
-提供图片明度提取和分析功能，包含明度画布和直方图显示。
+提供图片明度分析和提取功能，包含明度画布和直方图显示。
 """
 
 # 标准库导入
@@ -17,13 +17,13 @@ from utils import tr, get_locale_manager, get_default_image_directory, get_last_
 from .canvases import LuminanceCanvas
 from .histograms import LuminanceHistogramWidget
 
-logger = get_logger("luminance_extract")
+logger = get_logger("luminance_analysis")
 
 
-class LuminanceExtractInterface(QWidget):
-    """明度提取界面"""
+class LuminanceAnalysisInterface(QWidget):
+    """明度分析界面"""
 
-    # 信号：图片已独立导入（用于同步到色彩提取面板）
+    # 信号：图片已独立导入（用于同步到色彩分析面板）
     image_imported = Signal(str, object, object)  # 图片路径, QPixmap, QImage
 
     def __init__(self, parent=None):
@@ -130,9 +130,9 @@ class LuminanceExtractInterface(QWidget):
         """打开图片文件（独立导入）"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            tr('luminance_extract.select_image'),
+            tr('luminance_analysis.select_image'),
             get_last_directory("image_import", get_default_image_directory()),
-            tr('luminance_extract.image_filter')
+            tr('luminance_analysis.image_filter')
         )
 
         if file_path:
@@ -145,7 +145,7 @@ class LuminanceExtractInterface(QWidget):
         self.open_image()
 
     def _load_image(self, file_path: str):
-        """加载图片并同步到色彩提取面板
+        """加载图片并同步到色彩分析面板
 
         Args:
             file_path: 图片文件路径
@@ -163,7 +163,7 @@ class LuminanceExtractInterface(QWidget):
         # 导入图片时不显示高亮
         self.histogram_widget.clear_highlight()
 
-        # 发送信号，同步到色彩提取面板
+        # 发送信号，同步到色彩分析面板
         pixmap = self.luminance_canvas._original_pixmap
         image = self.luminance_canvas._image
         if pixmap and not pixmap.isNull() and image and not image.isNull():
@@ -200,7 +200,7 @@ class LuminanceExtractInterface(QWidget):
         pass
 
     def on_luminance_picked(self, index, zone):
-        """明度提取回调 - 拖动时实时更新黄框"""
+        """明度分析回调 - 拖动时实时更新黄框"""
         # 只在拖动过程中更新高亮
         if self._dragging_index == index:
             self.histogram_widget.set_highlight_zones([zone])
@@ -241,7 +241,7 @@ class LuminanceExtractInterface(QWidget):
 
     def clear_image(self):
         """清空图片（供外部调用，会发射信号同步到其他面板）"""
-        log_user_action("clear_image", {"source": "luminance_extract"})
+        log_user_action("clear_image", {"source": "luminance_analysis"})
         self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):

@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "Загрузка..."
 
 [navigation]
-color_extract = "Извлечение цвета"
-luminance_extract = "Извлечение яркости"
-gradient_extract = "Извлечение градиента"
+color_analysis = "Анализ цвета"
+luminance_analysis = "Анализ яркости"
+gradient_generation = "Генерация градиента"
 color_generation = "Генерация цвета"
 palette_management = "Палитры"
 preset_color = "Предустановленные цвета"
@@ -20,7 +20,7 @@ theme_light = "Светлая тема"
 theme_dark = "Темная тема"
 theme_auto = "Как в системе"
 
-[color_extract]
+[color_analysis]
 favorite = "Сохранить"
 extract_dominant = "Извлечь"
 extracting = "Извлечение..."
@@ -29,11 +29,11 @@ show_high_brightness = "Высокая яркость"
 select_image = "Выбрать изображение"
 image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "Выбрать изображение"
 image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "Начальный цвет"
 end_color = "Конечный цвет"
 base_color = "Базовый цвет"
@@ -43,7 +43,7 @@ random = "Случайный"
 favorite = "Сохр."
 select_color = "Выбрать цвет"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "Сохранено"
 content = "Градиентная схема добавлена в управление палитрами"
 

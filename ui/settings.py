@@ -391,7 +391,7 @@ class SettingsInterface(QWidget):
         self.color_wheel_mode_card.combo_box.setItemText(0, tr('settings.rgb_optical'))
         self.color_wheel_mode_card.combo_box.setItemText(1, tr('settings.ryb_artistic'))
 
-        # 更新渐变提取卡片
+        # 更新渐变生成卡片
         self.gradient_group.titleLabel.setText(tr('settings.gradient'))
         self.gradient_mode_card.titleLabel.setText(tr('settings.gradient_mode'))
         self.gradient_mode_card.contentLabel.setText(tr('settings.gradient_mode_desc'))
@@ -540,7 +540,7 @@ class SettingsInterface(QWidget):
         self.color_modes_changed.emit(self._color_modes)
 
     def _on_color_sample_count_changed(self, value):
-        """色彩提取采样点数改变"""
+        """色彩分析采样点数改变"""
         self._color_sample_count = value
         self._config_manager.set('settings.color_sample_count', value)
         self._config_manager.save()
@@ -548,7 +548,7 @@ class SettingsInterface(QWidget):
         self.color_sample_count_changed.emit(value)
 
     def _on_luminance_sample_count_changed(self, value):
-        """明度提取采样点数改变"""
+        """明度分析采样点数改变"""
         self._luminance_sample_count = value
         self._config_manager.set('settings.luminance_sample_count', value)
         self._config_manager.save()
@@ -995,7 +995,7 @@ class SettingsInterface(QWidget):
         self.color_wheel_labels_visible_changed.emit(checked)
 
     def _on_luminance_default_grayscale_changed(self, checked):
-        """明度提取默认黑白模式改变"""
+        """明度分析默认黑白模式改变"""
         self._luminance_default_grayscale = checked
         self._config_manager.set('settings.luminance_default_grayscale', checked)
         self._config_manager.save()

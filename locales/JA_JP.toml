@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "起動中..."
 
 [navigation]
-color_extract = "カラー抽出"
-luminance_extract = "輝度抽出"
-gradient_extract = "グラデーション抽出"
+color_analysis = "カラー分析"
+luminance_analysis = "輝度分析"
+gradient_generation = "グラデーション生成"
 color_generation = "カラー生成"
 palette_management = "パレット管理"
 preset_color = "プリセットカラー"
@@ -20,7 +20,7 @@ theme_light = "ライトモード"
 theme_dark = "ダークモード"
 theme_auto = "システムに従う"
 
-[color_extract]
+[color_analysis]
 favorite = "パレットを保存"
 extract_dominant = "主色調を自動抽出"
 extracting = "抽出中..."
@@ -29,11 +29,11 @@ show_high_brightness = "高輝度領域を表示"
 select_image = "画像を選択"
 image_filter = "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "画像を選択"
 image_filter = "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "開始色"
 end_color = "終了色"
 base_color = "ベース色"
@@ -43,7 +43,7 @@ random = "ランダム"
 favorite = "保存"
 select_color = "色を選択"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "保存しました"
 content = "グラデーション配色がパレット管理に追加されました"
 

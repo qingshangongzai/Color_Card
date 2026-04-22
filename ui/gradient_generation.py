@@ -21,7 +21,7 @@ from ui.cards import ColorCard
 from utils import tr, get_locale_manager, calculate_grid_columns
 from utils.theme_colors import get_border_color, get_text_color
 
-logger = get_logger("gradient_extract")
+logger = get_logger("gradient_generation")
 
 
 class ColorDot(QWidget):
@@ -246,14 +246,14 @@ class GradientCardPanel(QWidget):
         return colors
 
 
-class GradientExtractInterface(QWidget):
-    """渐变提取界面"""
+class GradientGenerationInterface(QWidget):
+    """渐变生成界面"""
 
     favorite_requested = Signal(dict)  # 收藏请求信号
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setObjectName('gradientExtract')
+        self.setObjectName('gradientGeneration')
         self._config_manager = get_config_manager()
         self._color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
@@ -302,7 +302,7 @@ class GradientExtractInterface(QWidget):
         start_color_layout = QHBoxLayout()
         start_color_layout.setSpacing(8)
         self.start_color_dot = ColorDot(self._start_color)
-        self.start_color_label = QLabel(tr('gradient_extract.start_color'))
+        self.start_color_label = QLabel(tr('gradient_generation.start_color'))
         self.start_color_label.setFixedWidth(56)
         self.start_color_input = QLineEdit(self._start_color)
         self.start_color_input.setFixedWidth(105)
@@ -327,7 +327,7 @@ class GradientExtractInterface(QWidget):
         end_color_inner_layout.setContentsMargins(0, 0, 0, 0)
         end_color_inner_layout.setSpacing(8)
         self.end_color_dot = ColorDot(self._end_color)
-        self.end_color_label = QLabel(tr('gradient_extract.end_color'))
+        self.end_color_label = QLabel(tr('gradient_generation.end_color'))
         self.end_color_label.setFixedWidth(56)
         self.end_color_input = QLineEdit(self._end_color)
         self.end_color_input.setFixedWidth(105)
@@ -350,7 +350,7 @@ class GradientExtractInterface(QWidget):
         steps_layout = QVBoxLayout()
         steps_header_layout = QHBoxLayout()
         steps_header_layout.setSpacing(8)
-        self.steps_label = QLabel(tr('gradient_extract.steps'))
+        self.steps_label = QLabel(tr('gradient_generation.steps'))
         self.steps_label.setFixedWidth(80)
         self.steps_value_label = QLabel(str(self._steps))
         self.steps_value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -390,11 +390,11 @@ class GradientExtractInterface(QWidget):
         button_layout.setSpacing(15)
         button_layout.addStretch()
 
-        self.random_button = PushButton(FluentIcon.SYNC, tr('gradient_extract.random'))
+        self.random_button = PushButton(FluentIcon.SYNC, tr('gradient_generation.random'))
         self.random_button.clicked.connect(self._on_random_clicked)
         button_layout.addWidget(self.random_button)
 
-        self.favorite_button = PushButton(FluentIcon.HEART, tr('gradient_extract.favorite'))
+        self.favorite_button = PushButton(FluentIcon.HEART, tr('gradient_generation.favorite'))
         self.favorite_button.clicked.connect(self._on_favorite_clicked)
         button_layout.addWidget(self.favorite_button)
 
@@ -449,14 +449,14 @@ class GradientExtractInterface(QWidget):
     def _on_language_changed(self, language_code):
         """语言切换回调"""
         if self._gradient_mode == 'shade':
-            self.start_color_label.setText(tr('gradient_extract.base_color'))
-            self.steps_label.setText(tr('gradient_extract.shade_count'))
+            self.start_color_label.setText(tr('gradient_generation.base_color'))
+            self.steps_label.setText(tr('gradient_generation.shade_count'))
         else:
-            self.start_color_label.setText(tr('gradient_extract.start_color'))
-            self.steps_label.setText(tr('gradient_extract.steps'))
-        self.end_color_label.setText(tr('gradient_extract.end_color'))
-        self.random_button.setText(tr('gradient_extract.random'))
-        self.favorite_button.setText(tr('gradient_extract.favorite'))
+            self.start_color_label.setText(tr('gradient_generation.start_color'))
+            self.steps_label.setText(tr('gradient_generation.steps'))
+        self.end_color_label.setText(tr('gradient_generation.end_color'))
+        self.random_button.setText(tr('gradient_generation.random'))
+        self.favorite_button.setText(tr('gradient_generation.favorite'))
 
     def _on_start_color_text_changed(self, text: str):
         """起始颜色文本变化处理（自动格式化为大写并确保#前缀）"""
@@ -712,7 +712,7 @@ class GradientExtractInterface(QWidget):
             "name": default_name,
             "colors": colors,
             "created_at": datetime.now().isoformat(),
-            "source": "gradient_extract"
+            "source": "gradient_generation"
         }
 
         # 打开编辑对话框
@@ -733,8 +733,8 @@ class GradientExtractInterface(QWidget):
 
                 # 显示成功提示
                 InfoBar.success(
-                    title=tr('gradient_extract.favorite_success.title'),
-                    content=tr('gradient_extract.favorite_success.content'),
+                    title=tr('gradient_generation.favorite_success.title'),
+                    content=tr('gradient_generation.favorite_success.content'),
                     orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP,
@@ -770,15 +770,15 @@ class GradientExtractInterface(QWidget):
         self.end_color_widget.setVisible(not is_shade)
 
         if is_shade:
-            self.start_color_label.setText(tr('gradient_extract.base_color'))
-            self.steps_label.setText(tr('gradient_extract.shade_count'))
+            self.start_color_label.setText(tr('gradient_generation.base_color'))
+            self.steps_label.setText(tr('gradient_generation.shade_count'))
             self.steps_slider.setMinimum(3)
             self.steps_slider.setMaximum(13)
             if self._steps < 3:
                 self.steps_slider.setValue(3)
         else:
-            self.start_color_label.setText(tr('gradient_extract.start_color'))
-            self.steps_label.setText(tr('gradient_extract.steps'))
+            self.start_color_label.setText(tr('gradient_generation.start_color'))
+            self.steps_label.setText(tr('gradient_generation.steps'))
             self.steps_slider.setMinimum(1)
             self.steps_slider.setMaximum(10)
             if self._steps > 10:

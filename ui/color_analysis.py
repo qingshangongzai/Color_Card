@@ -1,6 +1,6 @@
-"""色彩提取界面模块
+"""色彩分析界面模块
 
-包含色彩提取界面的主要实现，包括图片显示、颜色提取、主色调自动提取、
+包含色彩分析界面的主要实现，包括图片显示、颜色提取、主色调自动提取、
 高饱和度/高明度区域显示等功能。
 """
 
@@ -30,8 +30,8 @@ from .color_wheel import HSBColorWheel
 from .histograms import RGBHistogramWidget, HueHistogramWidget
 
 
-class ColorExtractInterface(QWidget):
-    """色彩提取界面"""
+class ColorAnalysisInterface(QWidget):
+    """色彩分析界面"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -125,26 +125,26 @@ class ColorExtractInterface(QWidget):
         favorite_toolbar_layout.setContentsMargins(0, 8, 0, 8)
         favorite_toolbar_layout.setSpacing(10)
 
-        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, tr('color_extract.favorite'), self)
+        self.favorite_button = PrimaryPushButton(FluentIcon.HEART, tr('color_analysis.favorite'), self)
         self.favorite_button.setFixedHeight(32)
         self.favorite_button.clicked.connect(self._on_favorite_clicked)
         favorite_toolbar_layout.addWidget(self.favorite_button)
 
         # 主色调提取按钮
-        self.extract_dominant_button = PushButton(FluentIcon.PALETTE, tr('color_extract.extract_dominant'), self)
+        self.extract_dominant_button = PushButton(FluentIcon.PALETTE, tr('color_analysis.extract_dominant'), self)
         self.extract_dominant_button.setFixedHeight(32)
         self.extract_dominant_button.clicked.connect(self._on_extract_dominant_clicked)
         favorite_toolbar_layout.addWidget(self.extract_dominant_button)
 
         # 高饱和度区域显示按钮
-        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, tr('color_extract.show_high_saturation'), self)
+        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, tr('color_analysis.show_high_saturation'), self)
         self.high_saturation_button.setFixedHeight(32)
         self.high_saturation_button.pressed.connect(self._on_high_saturation_pressed)
         self.high_saturation_button.released.connect(self._on_high_saturation_released)
         favorite_toolbar_layout.addWidget(self.high_saturation_button)
 
         # 高明度区域显示按钮
-        self.high_brightness_button = PushButton(FluentIcon.VIEW, tr('color_extract.show_high_brightness'), self)
+        self.high_brightness_button = PushButton(FluentIcon.VIEW, tr('color_analysis.show_high_brightness'), self)
         self.high_brightness_button.setFixedHeight(32)
         self.high_brightness_button.pressed.connect(self._on_high_brightness_pressed)
         self.high_brightness_button.released.connect(self._on_high_brightness_released)
@@ -209,15 +209,15 @@ class ColorExtractInterface(QWidget):
         """打开图片文件"""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            tr('color_extract.select_image'),
+            tr('color_analysis.select_image'),
             get_last_directory("image_import", get_default_image_directory()),
-            tr('color_extract.image_filter')
+            tr('color_analysis.image_filter')
         )
 
         if file_path:
             log_user_action(
                 action="open_image",
-                params={"path": file_path, "source": "color_extract"},
+                params={"path": file_path, "source": "color_analysis"},
                 result="success"
             )
             set_last_directory("image_import", str(Path(file_path).parent))
@@ -263,7 +263,7 @@ class ColorExtractInterface(QWidget):
 
     def clear_image(self):
         """清空图片（供外部调用，会发射信号同步到其他面板）"""
-        log_user_action(action="clear_image", params={"source": "color_extract"})
+        log_user_action(action="clear_image", params={"source": "color_analysis"})
         self.clear_all(emit_signal=True)
 
     def on_image_cleared(self):
@@ -332,7 +332,7 @@ class ColorExtractInterface(QWidget):
             "name": new_palette_data['name'],
             "colors": new_palette_data['colors'],
             "created_at": datetime.now().isoformat(),
-            "source": "color_extract"
+            "source": "color_analysis"
         }
 
         self._config_manager.add_favorite(favorite_data)
@@ -343,7 +343,7 @@ class ColorExtractInterface(QWidget):
             params={
                 "name": favorite_data['name'],
                 "color_count": len(colors),
-                "source": "color_extract"
+                "source": "color_analysis"
             }
         )
 
@@ -379,7 +379,7 @@ class ColorExtractInterface(QWidget):
         count = self._config_manager.get('settings.color_sample_count', 5)
         log_user_action(
             action="extract_dominant",
-            params={"count": count, "source": "color_extract"}
+            params={"count": count, "source": "color_analysis"}
         )
 
         self._get_color_service().extract_dominant_colors(image, count=count)
@@ -397,12 +397,12 @@ class ColorExtractInterface(QWidget):
         ))
 
         self.extract_dominant_button.setEnabled(False)
-        self.extract_dominant_button.setText(tr('color_extract.extracting'))
+        self.extract_dominant_button.setText(tr('color_analysis.extracting'))
 
     def _reset_extract_button(self):
         """恢复提取按钮状态"""
         self.extract_dominant_button.setEnabled(True)
-        self.extract_dominant_button.setText(tr('color_extract.extract_dominant'))
+        self.extract_dominant_button.setText(tr('color_analysis.extract_dominant'))
 
     def _on_extraction_finished(self, dominant_colors, positions):
         """主色调提取完成回调
@@ -511,10 +511,10 @@ class ColorExtractInterface(QWidget):
 
     def update_texts(self):
         """更新所有界面文本"""
-        self.favorite_button.setText(tr('color_extract.favorite'))
-        self.extract_dominant_button.setText(tr('color_extract.extract_dominant'))
-        self.high_saturation_button.setText(tr('color_extract.show_high_saturation'))
-        self.high_brightness_button.setText(tr('color_extract.show_high_brightness'))
+        self.favorite_button.setText(tr('color_analysis.favorite'))
+        self.extract_dominant_button.setText(tr('color_analysis.extract_dominant'))
+        self.high_saturation_button.setText(tr('color_analysis.show_high_saturation'))
+        self.high_brightness_button.setText(tr('color_analysis.show_high_brightness'))
 
     def _on_language_changed(self):
         """语言切换回调"""
