@@ -390,16 +390,20 @@ class LuminanceService(QObject):
                 # 转为NumPy数组
                 img_array = qimage_to_numpy(image)
 
-                # 计算缩放比例
-                scale_x = image.width() / disp_w
-                scale_y = image.height() / disp_h
+                # 计算显示区域能容纳的采样点数（向下取整，与绘制一致）
+                display_sample_count_x = disp_w // sample_step
+                display_sample_count_y = disp_h // sample_step
 
-                # 采样步长映射到原始图片
-                img_step_x = max(1, int(sample_step * scale_x))
-                img_step_y = max(1, int(sample_step * scale_y))
+                # 计算对应的原始图片坐标（使用linspace确保均匀分布）
+                img_x_coords = np.round(np.linspace(0, image.width() - 1, display_sample_count_x)).astype(np.int32)
+                img_y_coords = np.round(np.linspace(0, image.height() - 1, display_sample_count_y)).astype(np.int32)
 
-                # 提取采样区域并归一化
-                sampled = img_array[::img_step_y, ::img_step_x]
+                # 确保坐标不越界
+                img_x_coords = np.clip(img_x_coords, 0, image.width() - 1)
+                img_y_coords = np.clip(img_y_coords, 0, image.height() - 1)
+
+                # 提取采样像素
+                sampled = img_array[np.ix_(img_y_coords, img_x_coords)]
                 r = sampled[:, :, 0] / 255.0
                 g = sampled[:, :, 1] / 255.0
                 b = sampled[:, :, 2] / 255.0
@@ -417,11 +421,7 @@ class LuminanceService(QObject):
 
                 painter = QPainter(highlight_pixmap)
 
-                # 计算显示区域的采样点数量
-                display_sample_count_x = (disp_w + sample_step - 1) // sample_step
-                display_sample_count_y = (disp_h + sample_step - 1) // sample_step
-
-                # 只绘制在显示区域内的点
+                # 只绘制在显示区域内的点（使用与采样一致的尺寸）
                 for y in range(min(mask.shape[0], display_sample_count_y)):
                     for x in range(min(mask.shape[1], display_sample_count_x)):
                         if mask[y, x]:
@@ -479,16 +479,20 @@ class LuminanceService(QObject):
                 # 转为NumPy数组
                 img_array = qimage_to_numpy(image)
 
-                # 计算缩放比例
-                scale_x = image.width() / disp_w
-                scale_y = image.height() / disp_h
+                # 计算显示区域能容纳的采样点数（向下取整，与绘制一致）
+                display_sample_count_x = disp_w // sample_step
+                display_sample_count_y = disp_h // sample_step
 
-                # 采样步长映射到原始图片
-                img_step_x = max(1, int(sample_step * scale_x))
-                img_step_y = max(1, int(sample_step * scale_y))
+                # 计算对应的原始图片坐标（使用linspace确保均匀分布）
+                img_x_coords = np.round(np.linspace(0, image.width() - 1, display_sample_count_x)).astype(np.int32)
+                img_y_coords = np.round(np.linspace(0, image.height() - 1, display_sample_count_y)).astype(np.int32)
 
-                # 提取采样区域
-                sampled = img_array[::img_step_y, ::img_step_x]
+                # 确保坐标不越界
+                img_x_coords = np.clip(img_x_coords, 0, image.width() - 1)
+                img_y_coords = np.clip(img_y_coords, 0, image.height() - 1)
+
+                # 提取采样像素
+                sampled = img_array[np.ix_(img_y_coords, img_x_coords)]
 
                 # 向量化明度计算 (Rec. 709标准)
                 r = sampled[:, :, 0].astype(np.float32)
@@ -506,11 +510,7 @@ class LuminanceService(QObject):
 
                 painter = QPainter(highlight_pixmap)
 
-                # 计算显示区域的采样点数量
-                display_sample_count_x = (disp_w + sample_step - 1) // sample_step
-                display_sample_count_y = (disp_h + sample_step - 1) // sample_step
-
-                # 只绘制在显示区域内的点
+                # 只绘制在显示区域内的点（使用与采样一致的尺寸）
                 for y in range(min(mask.shape[0], display_sample_count_y)):
                     for x in range(min(mask.shape[1], display_sample_count_x)):
                         if mask[y, x]:
