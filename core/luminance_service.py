@@ -387,51 +387,49 @@ class LuminanceService(QObject):
                 "threshold": threshold,
                 "display_size": f"{disp_w}x{disp_h}"
             }):
-                # 转为NumPy数组
-                img_array = qimage_to_numpy(image)
+                # 将原始图片缩放到显示尺寸（像素级处理）
+                scaled_image = image.scaled(
+                    disp_w, disp_h,
+                    Qt.AspectRatioMode.IgnoreAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
 
-                # 计算缩放比例
-                scale_x = image.width() / disp_w
-                scale_y = image.height() / disp_h
+                # 转为NumPy数组（像素级）
+                img_array = qimage_to_numpy(scaled_image)
 
-                # 采样步长映射到原始图片
-                img_step_x = max(1, int(sample_step * scale_x))
-                img_step_y = max(1, int(sample_step * scale_y))
-
-                # 提取采样区域并归一化
-                sampled = img_array[::img_step_y, ::img_step_x]
-                r = sampled[:, :, 0] / 255.0
-                g = sampled[:, :, 1] / 255.0
-                b = sampled[:, :, 2] / 255.0
-
-                # 向量化HSV转换
+                # 计算HSV值
+                r = img_array[:, :, 0] / 255.0
+                g = img_array[:, :, 1] / 255.0
+                b = img_array[:, :, 2] / 255.0
                 h, s, v = _rgb_to_hsv_vectorized(r, g, b)
 
-                # 阈值比较生成mask
+                # 生成像素级mask
                 value = s if mode == 'saturation' else v
                 mask = value >= threshold
 
-                # 绘制高亮区域
+                # 创建RGBA图像
+                rgba = np.zeros((disp_h, disp_w, 4), dtype=np.uint8)
+                rgba[mask] = [
+                    highlight_color.red(),
+                    highlight_color.green(),
+                    highlight_color.blue(),
+                    180  # 透明度
+                ]
+
+                # 转为QImage
+                mask_image = QImage(
+                    rgba.tobytes(),
+                    disp_w, disp_h,
+                    disp_w * 4,
+                    QImage.Format.Format_ARGB32
+                )
+
+                # 绘制到画布
                 highlight_pixmap = QPixmap(canvas_width, canvas_height)
                 highlight_pixmap.fill(Qt.GlobalColor.transparent)
 
                 painter = QPainter(highlight_pixmap)
-
-                # 计算显示区域的采样点数量
-                display_sample_count_x = (disp_w + sample_step - 1) // sample_step
-                display_sample_count_y = (disp_h + sample_step - 1) // sample_step
-
-                # 只绘制在显示区域内的点
-                for y in range(min(mask.shape[0], display_sample_count_y)):
-                    for x in range(min(mask.shape[1], display_sample_count_x)):
-                        if mask[y, x]:
-                            painter.fillRect(
-                                disp_x + x * sample_step,
-                                disp_y + y * sample_step,
-                                sample_step,
-                                sample_step,
-                                highlight_color
-                            )
+                painter.drawImage(disp_x, disp_y, mask_image)
                 painter.end()
 
                 return highlight_pixmap
@@ -476,51 +474,49 @@ class LuminanceService(QObject):
                 "zone": zone,
                 "display_size": f"{disp_w}x{disp_h}"
             }):
-                # 转为NumPy数组
-                img_array = qimage_to_numpy(image)
+                # 将原始图片缩放到显示尺寸（像素级处理）
+                scaled_image = image.scaled(
+                    disp_w, disp_h,
+                    Qt.AspectRatioMode.IgnoreAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
 
-                # 计算缩放比例
-                scale_x = image.width() / disp_w
-                scale_y = image.height() / disp_h
-
-                # 采样步长映射到原始图片
-                img_step_x = max(1, int(sample_step * scale_x))
-                img_step_y = max(1, int(sample_step * scale_y))
-
-                # 提取采样区域
-                sampled = img_array[::img_step_y, ::img_step_x]
+                # 转为NumPy数组（像素级）
+                img_array = qimage_to_numpy(scaled_image)
 
                 # 向量化明度计算 (Rec. 709标准)
-                r = sampled[:, :, 0].astype(np.float32)
-                g = sampled[:, :, 1].astype(np.float32)
-                b = sampled[:, :, 2].astype(np.float32)
+                r = img_array[:, :, 0].astype(np.float32)
+                g = img_array[:, :, 1].astype(np.float32)
+                b = img_array[:, :, 2].astype(np.float32)
                 luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
 
                 # 获取Zone边界并生成mask
                 min_lum, max_lum = get_zone_bounds(f"{zone}-{zone+1}")
                 mask = (luminance >= min_lum) & (luminance <= max_lum)
 
-                # 绘制高亮区域
+                # 创建RGBA图像
+                rgba = np.zeros((disp_h, disp_w, 4), dtype=np.uint8)
+                rgba[mask] = [
+                    zone_color.red(),
+                    zone_color.green(),
+                    zone_color.blue(),
+                    180  # 透明度
+                ]
+
+                # 转为QImage
+                mask_image = QImage(
+                    rgba.tobytes(),
+                    disp_w, disp_h,
+                    disp_w * 4,
+                    QImage.Format.Format_ARGB32
+                )
+
+                # 绘制到画布
                 highlight_pixmap = QPixmap(canvas_width, canvas_height)
                 highlight_pixmap.fill(Qt.GlobalColor.transparent)
 
                 painter = QPainter(highlight_pixmap)
-
-                # 计算显示区域的采样点数量
-                display_sample_count_x = (disp_w + sample_step - 1) // sample_step
-                display_sample_count_y = (disp_h + sample_step - 1) // sample_step
-
-                # 只绘制在显示区域内的点
-                for y in range(min(mask.shape[0], display_sample_count_y)):
-                    for x in range(min(mask.shape[1], display_sample_count_x)):
-                        if mask[y, x]:
-                            painter.fillRect(
-                                disp_x + x * sample_step,
-                                disp_y + y * sample_step,
-                                sample_step,
-                                sample_step,
-                                zone_color
-                            )
+                painter.drawImage(disp_x, disp_y, mask_image)
                 painter.end()
 
                 return highlight_pixmap
