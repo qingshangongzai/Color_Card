@@ -123,3 +123,5 @@ bandit_project_report.html
 文档/安装程序设计方案.md
 文档/线程处理问题优化方案.md
 文档/明度分析性能问题分析.md
+文档/NumPy优化方案.md
+文档/简化ImageMediator方案.md
