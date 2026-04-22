@@ -497,7 +497,7 @@ class MainWindow(FluentWindow):
         color_extract_interface.set_brightness_threshold(brightness_threshold)
 
     def closeEvent(self, event):
-        """窗口关闭事件，保存配置"""
+        """窗口关闭事件，保存配置并清理后台线程"""
         # 保存窗口状态（全屏和最大化需要区分保存）
         is_fullscreen = self.isFullScreen()
         is_maximized = self.isMaximized()
@@ -514,7 +514,40 @@ class MainWindow(FluentWindow):
             self._config_manager.set('window.height', self.height())
 
         self._config_manager.save()
+
+        # 清理后台线程
+        self._cleanup_background_threads()
+
+        # 关闭所有明度分析对话框
+        self._close_tone_analysis_dialogs()
+
         event.accept()
+
+    def _cleanup_background_threads(self):
+        """清理所有后台计算线程
+
+        遍历所有直方图组件，取消正在进行的计算，
+        避免窗口关闭时出现 "QThread: Destroyed while thread is still running" 警告。
+        """
+        from ui.histograms import BaseHistogram
+
+        for histogram_widget in self.findChildren(BaseHistogram):
+            if hasattr(histogram_widget, '_histogram_service'):
+                try:
+                    histogram_widget._histogram_service.cancel_all()
+                except (RuntimeError, AttributeError):
+                    # 对象可能已被销毁，忽略错误
+                    pass
+
+    def _close_tone_analysis_dialogs(self):
+        """关闭所有明度分析对话框"""
+        from dialogs import ToneAnalysisDialog
+        from PySide6.QtWidgets import QApplication
+
+        app = QApplication.instance()
+        for widget in app.topLevelWidgets():
+            if isinstance(widget, ToneAnalysisDialog):
+                widget.close()
 
     def setup_navigation(self):
         """设置导航栏"""
