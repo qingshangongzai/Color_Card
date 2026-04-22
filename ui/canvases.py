@@ -1241,6 +1241,9 @@ class LuminanceCanvas(BaseCanvas):
         # 黑白模式
         self._grayscale_mode = False
 
+        # 取样点和标签显示控制
+        self._pickers_visible = True
+
         # 明度服务
         self._luminance_service = None
 
@@ -1382,8 +1385,8 @@ class LuminanceCanvas(BaseCanvas):
 
     def _draw_zone_labels(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制区域标注（白色小方框+黑色文字）"""
-        # 如果正在加载中，不显示Zone标签
-        if self._is_loading:
+        # 如果正在加载中或标签被隐藏，不显示Zone标签
+        if self._is_loading or not self._pickers_visible:
             return
 
         disp_x, disp_y, disp_w, disp_h = display_rect
@@ -1484,6 +1487,12 @@ class LuminanceCanvas(BaseCanvas):
         grayscale_action.triggered.connect(self._toggle_grayscale_mode)
         menu.addAction(grayscale_action)
 
+        # 取样点显示/隐藏切换
+        picker_text = tr('context_menu.hide_pickers') if self._pickers_visible else tr('context_menu.show_pickers')
+        picker_action = Action(FluentIcon.VIEW, picker_text)
+        picker_action.triggered.connect(self._toggle_pickers_visibility)
+        menu.addAction(picker_action)
+
         menu.addSeparator()
 
         analysis_action = Action(FluentIcon.BRIGHTNESS, tr('context_menu.tone_analysis'))
@@ -1526,6 +1535,17 @@ class LuminanceCanvas(BaseCanvas):
     def _toggle_grayscale_mode(self) -> None:
         """切换黑白模式"""
         self._grayscale_mode = not self._grayscale_mode
+        self.update()
+
+    def _toggle_pickers_visibility(self) -> None:
+        """切换取样点和标签的显示状态"""
+        self._pickers_visible = not self._pickers_visible
+
+        # 控制取样点显示/隐藏
+        for picker in self._pickers:
+            picker.setVisible(self._pickers_visible)
+
+        # 触发重绘以更新标签
         self.update()
 
     def get_picker_zones(self) -> List[str]:

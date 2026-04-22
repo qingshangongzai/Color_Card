@@ -510,6 +510,8 @@ add_picker = "Add Sample Point"
 remove_picker = "Remove Sample Point"
 grayscale_mode = "Grayscale Mode"
 color_mode = "Color Mode"
+hide_pickers = "Hide Pickers"
+show_pickers = "Show Pickers"
 tone_analysis = "Tone Analysis"
 
 [tone_analysis]

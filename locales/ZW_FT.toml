@@ -511,6 +511,8 @@ add_picker = "增加採樣點"
 remove_picker = "減少採樣點"
 grayscale_mode = "黑白模式"
 color_mode = "彩色模式"
+hide_pickers = "隱藏採樣點"
+show_pickers = "顯示採樣點"
 tone_analysis = "明度分析"
 
 [tone_analysis]
