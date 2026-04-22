@@ -114,10 +114,16 @@ def get_image_service():
     return ImageService()
 
 
-def get_service_factory():
-    """获取服务工厂（延迟导入）"""
-    from .service_factory import ServiceFactory
-    return ServiceFactory()
+def get_histogram_service():
+    """获取直方图服务（延迟导入）"""
+    from .histogram_service import HistogramService
+    return HistogramService()
+
+
+def get_luminance_service():
+    """获取明度服务（延迟导入）"""
+    from .luminance_service import LuminanceService
+    return LuminanceService()
 
 
 def get_svg_color_mapper():
@@ -216,6 +222,7 @@ __all__ = [
     'get_color_service',
     'get_palette_service',
     'get_image_service',
-    'get_service_factory',
+    'get_histogram_service',
+    'get_luminance_service',
     'get_svg_color_mapper',
 ]
