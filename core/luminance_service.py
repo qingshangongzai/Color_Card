@@ -421,7 +421,7 @@ class LuminanceService(QObject):
                     rgba.tobytes(),
                     disp_w, disp_h,
                     disp_w * 4,
-                    QImage.Format.Format_ARGB32
+                    QImage.Format.Format_RGBA8888
                 )
 
                 # 绘制到画布
@@ -508,7 +508,7 @@ class LuminanceService(QObject):
                     rgba.tobytes(),
                     disp_w, disp_h,
                     disp_w * 4,
-                    QImage.Format.Format_ARGB32
+                    QImage.Format.Format_RGBA8888
                 )
 
                 # 绘制到画布
