@@ -15,7 +15,10 @@ from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
 
-from core import ToneAnalysisService, ToneAnalysisResult, get_tone_analysis_cache, get_config_manager
+from core import (
+    ToneAnalysisService, ToneAnalysisResult, get_tone_analysis_cache, get_config_manager,
+    get_histogram_cache
+)
 from dialogs import BaseFramelessDialog
 from utils import tr
 from utils.theme_colors import (
@@ -709,6 +712,7 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         """开始分析"""
         # 如果有缓存键，先尝试从缓存获取
         if self._image_key:
+            # 首先尝试从 ToneAnalysisCache 获取完整结果
             cache = get_tone_analysis_cache()
             cached_result = cache.get(self._image_key)
             if cached_result is not None:
@@ -717,10 +721,56 @@ class ToneAnalysisDialog(BaseFramelessDialog):
                 self._display_result(cached_result, gray, self._img_array)
                 return
 
+            # 尝试从 HistogramCache 获取直方图数据快速构建结果
+            histogram_cache = get_histogram_cache()
+            cached_data = histogram_cache.get_with_metadata(self._image_key, "luminance")
+            if cached_data is not None and 'mean' in cached_data['metadata']:
+                self._quick_analysis_from_histogram(cached_data)
+                return
+
         # 没有缓存，启动线程计算
         self._worker = AnalysisWorker(self._img_array, self._service)
         self._worker.analysis_complete.connect(self._on_analysis_complete)
         self._worker.start()
+
+    def _quick_analysis_from_histogram(self, cached_data: dict) -> None:
+        """从直方图缓存快速分析
+
+        利用 HistogramCache 中的直方图和统计信息快速构建分析结果，
+        避免重复的 QImage→NumPy 转换和计算。
+
+        Args:
+            cached_data: 缓存数据，包含 histogram 和 metadata
+        """
+        histogram = np.array(cached_data['histogram'])
+        metadata = cached_data['metadata']
+
+        # 从元数据获取统计信息
+        mean = metadata.get('mean', 0.0)
+        median = metadata.get('median', 0.0)
+        std = metadata.get('std', 0.0)
+        min_val = metadata.get('min_val', 0)
+        max_val = metadata.get('max_val', 0)
+
+        # 使用 analyze_from_histogram 快速构建结果
+        result = self._service.analyze_from_histogram(
+            histogram=histogram,
+            mean=mean,
+            median=median,
+            std=std,
+            min_val=min_val,
+            max_val=max_val
+        )
+
+        # 计算灰度图用于显示
+        gray = self._service.get_gray_image(self._img_array)
+
+        # 存入 ToneAnalysisCache 供下次使用
+        cache = get_tone_analysis_cache()
+        cache.set(self._image_key, result)
+
+        # 显示结果
+        self._display_result(result, gray, self._img_array)
 
     def _on_analysis_complete(self, result: ToneAnalysisResult, gray: np.ndarray, img_array: np.ndarray) -> None:
         """分析完成回调

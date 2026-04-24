@@ -1,5 +1,5 @@
 # 标准库导入
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal, QTimer, Qt
@@ -311,14 +311,69 @@ class HistogramService(QObject):
         if self._luminance_calculator is None:
             return
 
+        # 计算基础统计信息
+        metadata = self._calculate_histogram_stats(histogram)
+
         # 存入缓存
         if self._use_cache and self._current_image_key:
             cache = get_histogram_cache()
-            cache.set(self._current_image_key, "luminance", histogram)
+            cache.set(self._current_image_key, "luminance", histogram, metadata)
 
         self.luminance_histogram_ready.emit(histogram)
         self._safe_stop_calculator(self._luminance_calculator)
         self._luminance_calculator = None
+
+    def _calculate_histogram_stats(self, histogram: List[int]) -> Dict[str, Any]:
+        """计算直方图的基础统计信息
+
+        使用加权计算直接从直方图得出统计信息，避免重建像素数组。
+
+        Args:
+            histogram: 直方图数据（256个整数）
+
+        Returns:
+            Dict[str, Any]: 统计信息字典，包含 mean, median, std, min_val, max_val
+        """
+        import numpy as np
+
+        total_pixels = sum(histogram)
+        if total_pixels == 0:
+            return {
+                'mean': 0.0,
+                'median': 0.0,
+                'std': 0.0,
+                'min_val': 0,
+                'max_val': 0,
+                'total_pixels': 0
+            }
+
+        # 加权均值
+        values = np.arange(256)
+        counts = np.array(histogram, dtype=np.float64)
+        mean_val = float(np.sum(values * counts) / total_pixels)
+
+        # 加权标准差
+        variance = float(np.sum(counts * (values - mean_val) ** 2) / total_pixels)
+        std_val = float(np.sqrt(variance))
+
+        # 中位数
+        cumsum = np.cumsum(counts)
+        median_idx = np.searchsorted(cumsum, total_pixels / 2)
+        median_val = float(median_idx)
+
+        # 最小值和最大值（第一个和最后一个非零位置）
+        non_zero = np.nonzero(counts)[0]
+        min_val = int(non_zero[0])
+        max_val = int(non_zero[-1])
+
+        return {
+            'mean': mean_val,
+            'median': median_val,
+            'std': std_val,
+            'min_val': min_val,
+            'max_val': max_val,
+            'total_pixels': total_pixels
+        }
 
     def calculate_rgb_async(self, image: QImage, delay_ms: int = 100) -> None:
         """异步计算RGB直方图
@@ -379,7 +434,7 @@ class HistogramService(QObject):
 
         if self._use_cache and self._current_image_key:
             cache = get_histogram_cache()
-            cache.set(self._current_image_key, "rgb", [r_hist, g_hist, b_hist])
+            cache.set(self._current_image_key, "rgb", [r_hist, g_hist, b_hist], {})
 
         self.rgb_histogram_ready.emit(r_hist, g_hist, b_hist)
         self._safe_stop_calculator(self._rgb_calculator)
@@ -440,7 +495,7 @@ class HistogramService(QObject):
 
         if self._use_cache and self._current_image_key:
             cache = get_histogram_cache()
-            cache.set(self._current_image_key, "hue", histogram)
+            cache.set(self._current_image_key, "hue", histogram, {})
 
         self.hue_histogram_ready.emit(histogram)
         self._safe_stop_calculator(self._hue_calculator)
