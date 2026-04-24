@@ -6,8 +6,8 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-
-
+# 项目模块导入
+from .color import calculate_luminance_from_array
 
 
 class ToneKey(str, Enum):
@@ -62,16 +62,20 @@ class ToneAnalysisService:
     # 边界缓冲区（用于置信度计算）
     KEY_BUFFER = 15  # 基调边界缓冲带
 
-    def analyze_from_array(self, img_array: np.ndarray) -> ToneAnalysisResult:
+    def analyze_from_array(self, img_array: np.ndarray, sample_step: int = 1) -> ToneAnalysisResult:
         """从 NumPy 数组分析影调
 
         Args:
             img_array: RGB 图片数组 (H, W, 3)
+            sample_step: 采样步长，每隔N个像素采样一次（默认1，不采样）
 
         Returns:
             ToneAnalysisResult: 分析结果
         """
-        gray = self._rgb_to_gray(img_array)
+        # 采样处理
+        sampled = img_array[::sample_step, ::sample_step]
+
+        gray = self._rgb_to_gray(sampled)
 
         mean = float(np.mean(gray))
         median = float(np.median(gray))
@@ -312,21 +316,17 @@ class ToneAnalysisService:
 
     def _rgb_to_gray(self, img_array: np.ndarray) -> np.ndarray:
         """RGB 转灰度 (Rec. 709 标准 + sRGB Gamma 校正)"""
-        from .color import get_luminance
-
-        height, width = img_array.shape[:2]
-        gray = np.zeros((height, width), dtype=np.uint8)
-
-        for y in range(height):
-            for x in range(width):
-                r, g, b = img_array[y, x]
-                gray[y, x] = get_luminance(int(r), int(g), int(b))
-
-        return gray
+        return calculate_luminance_from_array(img_array)
 
     def get_gray_image(self, img_array: np.ndarray) -> np.ndarray:
-        """获取灰度图像"""
-        return self._rgb_to_gray(img_array)
+        """获取灰度图像（用于显示，使用简单快速转换）"""
+        return self._rgb_to_gray_fast(img_array)
+
+    def _rgb_to_gray_fast(self, img_array: np.ndarray) -> np.ndarray:
+        """RGB 转灰度（快速版本，用于显示）"""
+        return (0.299 * img_array[:, :, 0] +
+                0.587 * img_array[:, :, 1] +
+                0.114 * img_array[:, :, 2]).astype(np.uint8)
 
 
 # 项目模块导入

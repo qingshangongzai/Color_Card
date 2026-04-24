@@ -33,14 +33,15 @@ class AnalysisWorker(QThread):
     """分析工作线程"""
     analysis_complete = Signal(object, object, object)  # result, gray, img_array
 
-    def __init__(self, img_array: np.ndarray, service: ToneAnalysisService):
+    def __init__(self, img_array: np.ndarray, service: ToneAnalysisService, sample_step: int = 2):
         super().__init__()
         self._img_array = img_array
         self._service = service
+        self._sample_step = sample_step
 
     def run(self):
         """执行分析"""
-        result = self._service.analyze_from_array(self._img_array)
+        result = self._service.analyze_from_array(self._img_array, self._sample_step)
         gray = self._service.get_gray_image(self._img_array)
         self.analysis_complete.emit(result, gray, self._img_array)
 
@@ -710,6 +711,11 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
     def start_analysis(self) -> None:
         """开始分析"""
+        # 获取采样模式设置
+        config_manager = get_config_manager()
+        sampling_mode = config_manager.get('settings.histogram_sampling_mode', 'fast')
+        sample_step = 1 if sampling_mode == 'fine' else 2
+
         # 如果有缓存键，先尝试从缓存获取
         if self._image_key:
             # 首先尝试从 ToneAnalysisCache 获取完整结果
@@ -722,14 +728,16 @@ class ToneAnalysisDialog(BaseFramelessDialog):
                 return
 
             # 尝试从 HistogramCache 获取直方图数据快速构建结果
+            # 注意：HistogramService 的缓存键包含采样模式后缀（_fast 或 _fine）
             histogram_cache = get_histogram_cache()
-            cached_data = histogram_cache.get_with_metadata(self._image_key, "luminance")
+            histogram_key = f"{self._image_key}_{sampling_mode}"
+            cached_data = histogram_cache.get_with_metadata(histogram_key, "luminance")
             if cached_data is not None and 'mean' in cached_data['metadata']:
                 self._quick_analysis_from_histogram(cached_data)
                 return
 
         # 没有缓存，启动线程计算
-        self._worker = AnalysisWorker(self._img_array, self._service)
+        self._worker = AnalysisWorker(self._img_array, self._service, sample_step)
         self._worker.analysis_complete.connect(self._on_analysis_complete)
         self._worker.start()
 

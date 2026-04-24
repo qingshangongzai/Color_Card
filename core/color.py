@@ -10,6 +10,44 @@ from PySide6.QtGui import QImage
 from .color_scheme_cache import get_color_scheme_cache
 
 
+def calculate_luminance_from_array(rgb_array: np.ndarray, gamma: float = 2.2) -> np.ndarray:
+    """从RGB数组计算明度（向量化计算）
+
+    使用 Rec. 709 标准计算亮度值，包含 sRGB Gamma 校正
+
+    Args:
+        rgb_array: RGB数组，形状为 (H, W, 3)，值范围 0-255
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
+
+    Returns:
+        np.ndarray: 明度数组，形状为 (H, W)，值范围 0-255
+    """
+    # 归一化到 0-1
+    rgb = rgb_array.astype(np.float32) / 255.0
+
+    if gamma == 2.2:
+        # sRGB Gamma 校正到线性空间
+        linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    else:
+        linear = rgb ** gamma
+
+    # Rec. 709 系数计算线性亮度
+    luminance_linear = 0.2126 * linear[:, :, 0] + 0.7152 * linear[:, :, 1] + 0.0722 * linear[:, :, 2]
+
+    if gamma == 2.2:
+        # 从线性空间转回 sRGB
+        luminance = np.where(
+            luminance_linear <= 0.0031308,
+            luminance_linear * 12.92,
+            1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
+        )
+    else:
+        luminance = luminance_linear ** (1.0 / gamma)
+
+    # 转换到 0-255 并四舍五入
+    return np.clip(np.round(luminance * 255), 0, 255).astype(np.uint8)
+
+
 def _qimage_to_numpy(image: QImage) -> np.ndarray:
     """QImage转NumPy数组（使用bits()直接内存访问）
 
@@ -412,25 +450,7 @@ def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List
     arr = _qimage_to_numpy(image)
     sampled = arr[::sample_step, ::sample_step]
 
-    rgb = sampled.astype(np.float32) / 255.0
-
-    if gamma == 2.2:
-        linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
-    else:
-        linear = rgb ** gamma
-
-    luminance_linear = 0.2126 * linear[:, :, 0] + 0.7152 * linear[:, :, 1] + 0.0722 * linear[:, :, 2]
-
-    if gamma == 2.2:
-        luminance = np.where(
-            luminance_linear <= 0.0031308,
-            luminance_linear * 12.92,
-            1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
-        )
-    else:
-        luminance = luminance_linear ** (1.0 / gamma)
-
-    luminance = np.clip(np.round(luminance * 255), 0, 255).astype(np.uint8)
+    luminance = calculate_luminance_from_array(sampled, gamma)
 
     histogram = np.bincount(luminance.flatten(), minlength=256)
 
