@@ -84,6 +84,10 @@ from .cache_base import BaseCache
 
 # UI直接使用的服务类（轻量级，立即导入）
 from .histogram_service import HistogramService, HistogramCalculator
+from .histogram_cache import (
+    HistogramCache, get_histogram_cache, clear_histogram_cache, generate_image_fingerprint,
+    ImageFingerprintGenerator
+)
 from .preview_service import PreviewService
 from .luminance_service import LuminanceService, LuminanceCalculator
 from .tone_analysis import (
@@ -210,6 +214,11 @@ __all__ = [
     # UI直接使用的服务类
     'HistogramService',
     'HistogramCalculator',
+    'HistogramCache',
+    'get_histogram_cache',
+    'clear_histogram_cache',
+    'generate_image_fingerprint',
+    'ImageFingerprintGenerator',
     'PreviewService',
     'LuminanceService',
     'LuminanceCalculator',

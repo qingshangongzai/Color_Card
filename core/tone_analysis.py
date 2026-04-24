@@ -105,6 +105,65 @@ class ToneAnalysisService:
             tone_range_confidence=range_confidence
         )
 
+    def analyze_from_histogram(
+        self,
+        histogram: np.ndarray,
+        mean: float,
+        median: float,
+        std: float,
+        min_val: int,
+        max_val: int
+    ) -> ToneAnalysisResult:
+        """从直方图数据快速分析影调
+
+        利用已计算的直方图和统计信息快速构建分析结果，
+        避免重复的 NumPy 计算。适用于从 HistogramCache 复用数据的场景。
+
+        Args:
+            histogram: 直方图数据（256个整数）
+            mean: 平均亮度值
+            median: 中位数亮度值
+            std: 标准差
+            min_val: 最小亮度值
+            max_val: 最大亮度值
+
+        Returns:
+            ToneAnalysisResult: 分析结果
+        """
+        # 计算波峰位置
+        peak_position = self._calc_peak_position(histogram)
+
+        # 从直方图计算区域占比
+        total_pixels = np.sum(histogram)
+        if total_pixels > 0:
+            shadows = float(np.sum(histogram[:64]) / total_pixels * 100)
+            midtones = float(np.sum(histogram[64:192]) / total_pixels * 100)
+            highlights = float(np.sum(histogram[192:]) / total_pixels * 100)
+        else:
+            shadows = midtones = highlights = 0.0
+
+        # 影调分类
+        tone_key, tone_range, key_confidence, range_confidence = self._classify_tone(
+            peak_position, min_val, max_val, shadows, highlights, histogram
+        )
+
+        return ToneAnalysisResult(
+            mean=mean,
+            median=median,
+            std=std,
+            min_val=min_val,
+            max_val=max_val,
+            shadows=shadows,
+            midtones=midtones,
+            highlights=highlights,
+            tone_key=tone_key,
+            tone_range=tone_range,
+            histogram=histogram,
+            peak_position=peak_position,
+            tone_key_confidence=key_confidence,
+            tone_range_confidence=range_confidence
+        )
+
     def _calc_peak_position(self, hist: np.ndarray) -> float:
         """计算波峰位置（直方图最大值位置）
 
