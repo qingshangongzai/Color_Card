@@ -33,14 +33,15 @@ class AnalysisWorker(QThread):
     """分析工作线程"""
     analysis_complete = Signal(object, object, object)  # result, gray, img_array
 
-    def __init__(self, img_array: np.ndarray, service: ToneAnalysisService):
+    def __init__(self, img_array: np.ndarray, service: ToneAnalysisService, sample_step: int = 2):
         super().__init__()
         self._img_array = img_array
         self._service = service
+        self._sample_step = sample_step
 
     def run(self):
         """执行分析"""
-        result = self._service.analyze_from_array(self._img_array)
+        result = self._service.analyze_from_array(self._img_array, self._sample_step)
         gray = self._service.get_gray_image(self._img_array)
         self.analysis_complete.emit(result, gray, self._img_array)
 
@@ -307,7 +308,7 @@ class HistogramWidget(QWidget):
 
         # 创建X轴（均匀九段分区）
         axis_x = QValueAxis()
-        axis_x.setRange(0, 256)
+        axis_x.setRange(0, 255)
         axis_x.setTickCount(10)  # 10个刻度 = 9段
         axis_x.setLabelFormat("%d")
         axis_x.setTitleText("")
@@ -710,6 +711,11 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
     def start_analysis(self) -> None:
         """开始分析"""
+        # 获取采样模式设置
+        config_manager = get_config_manager()
+        sampling_mode = config_manager.get('settings.histogram_sampling_mode', 'fast')
+        sample_step = 1 if sampling_mode == 'fine' else 2
+
         # 如果有缓存键，先尝试从缓存获取
         if self._image_key:
             # 首先尝试从 ToneAnalysisCache 获取完整结果
@@ -722,14 +728,16 @@ class ToneAnalysisDialog(BaseFramelessDialog):
                 return
 
             # 尝试从 HistogramCache 获取直方图数据快速构建结果
+            # 注意：HistogramService 的缓存键包含采样模式后缀（_fast 或 _fine）
             histogram_cache = get_histogram_cache()
-            cached_data = histogram_cache.get_with_metadata(self._image_key, "luminance")
+            histogram_key = f"{self._image_key}_{sampling_mode}"
+            cached_data = histogram_cache.get_with_metadata(histogram_key, "luminance")
             if cached_data is not None and 'mean' in cached_data['metadata']:
                 self._quick_analysis_from_histogram(cached_data)
                 return
 
         # 没有缓存，启动线程计算
-        self._worker = AnalysisWorker(self._img_array, self._service)
+        self._worker = AnalysisWorker(self._img_array, self._service, sample_step)
         self._worker.analysis_complete.connect(self._on_analysis_complete)
         self._worker.start()
 
@@ -868,16 +876,8 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         tone_type_key = f'tone_analysis.tone_types.{result.tone_key.value}_{result.tone_range.value}'
         base_name = tr(tone_type_key)
 
-        # 根据置信度决定显示格式
-        if avg_confidence >= 0.8:
-            # 高置信度：直接显示分类
-            return base_name
-        elif avg_confidence >= 0.5:
-            # 中等置信度：显示置信度百分比
-            return f'{base_name} ({int(avg_confidence * 100)}%)'
-        else:
-            # 低置信度：显示过渡描述
-            return self._get_transition_description(result, avg_confidence)
+        # 始终显示置信度百分比
+        return f'{base_name} ({int(avg_confidence * 100)}%)'
 
     def _get_transition_description(self, result: ToneAnalysisResult, confidence: float) -> str:
         """获取过渡区域描述

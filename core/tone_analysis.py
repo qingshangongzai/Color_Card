@@ -2,9 +2,12 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
+
+# 项目模块导入
+from .color import calculate_luminance_from_array
 
 
 class ToneKey(str, Enum):
@@ -50,10 +53,6 @@ class ToneAnalysisService:
     KEY_MID_MAX = 176
     KEY_LOW_MAX = 96
 
-    # 跨度判断阈值
-    RANGE_LONG = 180
-    RANGE_MEDIUM = 100
-
     # 全长调判断阈值
     MIN_ZONE_PERCENTAGE = 15
     MIN_RANGE_THRESHOLD = 30
@@ -62,18 +61,21 @@ class ToneAnalysisService:
 
     # 边界缓冲区（用于置信度计算）
     KEY_BUFFER = 15  # 基调边界缓冲带
-    RANGE_BUFFER = 20  # 跨度边界缓冲带
 
-    def analyze_from_array(self, img_array: np.ndarray) -> ToneAnalysisResult:
+    def analyze_from_array(self, img_array: np.ndarray, sample_step: int = 1) -> ToneAnalysisResult:
         """从 NumPy 数组分析影调
 
         Args:
             img_array: RGB 图片数组 (H, W, 3)
+            sample_step: 采样步长，每隔N个像素采样一次（默认1，不采样）
 
         Returns:
             ToneAnalysisResult: 分析结果
         """
-        gray = self._rgb_to_gray(img_array)
+        # 采样处理
+        sampled = img_array[::sample_step, ::sample_step]
+
+        gray = self._rgb_to_gray(sampled)
 
         mean = float(np.mean(gray))
         median = float(np.median(gray))
@@ -89,7 +91,7 @@ class ToneAnalysisService:
         peak_position = self._calc_peak_position(hist)
 
         tone_key, tone_range, key_confidence, range_confidence = self._classify_tone(
-            peak_position, min_val, max_val, shadows, highlights, hist
+            peak_position, min_val, max_val, shadows, midtones, highlights, hist
         )
 
         return ToneAnalysisResult(
@@ -144,7 +146,7 @@ class ToneAnalysisService:
 
         # 影调分类
         tone_key, tone_range, key_confidence, range_confidence = self._classify_tone(
-            peak_position, min_val, max_val, shadows, highlights, histogram
+            peak_position, min_val, max_val, shadows, midtones, highlights, histogram
         )
 
         return ToneAnalysisResult(
@@ -176,7 +178,7 @@ class ToneAnalysisService:
         return float(np.argmax(hist))
 
     def _classify_tone(self, peak: float, min_val: int, max_val: int,
-                       shadows: float, highlights: float,
+                       shadows: float, midtones: float, highlights: float,
                        hist: np.ndarray) -> Tuple[ToneKey, ToneRange, float, float]:
         """判断影调类型
 
@@ -185,14 +187,13 @@ class ToneAnalysisService:
             min_val: 最小亮度值
             max_val: 最大亮度值
             shadows: 暗部占比
+            midtones: 中间调占比
             highlights: 亮部占比
             hist: 直方图数据
 
         Returns:
             Tuple[ToneKey, ToneRange, float, float]: 基调、跨度、基调置信度、跨度置信度
         """
-        spread = max_val - min_val
-
         # 全长调判断
         if self._is_full_tone(hist, shadows, highlights, min_val, max_val):
             return ToneKey.FULL, ToneRange.LONG, 1.0, 1.0
@@ -200,8 +201,10 @@ class ToneAnalysisService:
         # 基调判断（带置信度）
         tone_key, key_confidence = self._get_tone_key(peak)
 
-        # 跨度判断（带置信度）
-        tone_range, range_confidence = self._get_tone_range(spread)
+        # 跨度判断（带置信度），基于区域分布占比
+        tone_range, range_confidence = self._get_tone_range_by_distribution(
+            shadows, midtones, highlights
+        )
 
         return tone_key, tone_range, key_confidence, range_confidence
 
@@ -258,58 +261,73 @@ class ToneAnalysisService:
 
         return ToneKey.MID, confidence
 
-    def _get_tone_range(self, spread: int) -> Tuple[ToneRange, float]:
-        """根据分布宽度确定跨度及置信度
+    def _get_tone_range_by_distribution(
+        self, shadows: float, midtones: float, highlights: float
+    ) -> Tuple[ToneRange, float]:
+        """根据区域分布占比确定跨度及置信度
+
+        基于影调分类的核心原则：
+        - 长调：暗部、中间调、亮部都有明显分布（从黑到白都有）
+        - 中调：缺失一端（只有两段有明显分布）
+        - 短调：集中在窄范围内（只有一段占绝对主导）
 
         Args:
-            spread: 分布宽度(最大-最小)
+            shadows: 暗部占比 (%)
+            midtones: 中间调占比 (%)
+            highlights: 亮部占比 (%)
 
         Returns:
             Tuple[ToneRange, float]: 跨度类型、置信度(0.5-1.0)
         """
-        # 长调区域
-        if spread >= self.RANGE_LONG:
-            distance = spread - self.RANGE_LONG
-            confidence = 0.5 + 0.5 * min(distance / self.RANGE_BUFFER, 1.0)
+        # 定义"明显分布"的阈值
+        SIGNIFICANT_THRESHOLD = 0.5  # 占比超过0.5%认为有明显分布（仅过滤极端噪声）
+
+        # 计算有多少个区域有明显分布
+        significant_zones = 0
+        if shadows >= SIGNIFICANT_THRESHOLD:
+            significant_zones += 1
+        if midtones >= SIGNIFICANT_THRESHOLD:
+            significant_zones += 1
+        if highlights >= SIGNIFICANT_THRESHOLD:
+            significant_zones += 1
+
+        # 长调：三个区域都有明显分布
+        if significant_zones >= 3:
+            # 置信度基于最小区域的占比
+            min_ratio = min(shadows, midtones, highlights)
+            confidence = min(1.0, 0.5 + min_ratio / 10.0)
             return ToneRange.LONG, confidence
 
-        # 短调区域
-        if spread < self.RANGE_MEDIUM:
-            distance = self.RANGE_MEDIUM - spread
-            confidence = 0.5 + 0.5 * min(distance / self.RANGE_BUFFER, 1.0)
+        # 短调：只有一个区域有明显分布（集中度极高）
+        if significant_zones == 1:
+            max_ratio = max(shadows, midtones, highlights)
+            confidence = min(1.0, 0.5 + (max_ratio - 80.0) / 30.0)
             return ToneRange.SHORT, confidence
 
-        # 中调区域
-        dist_to_short = spread - self.RANGE_MEDIUM
-        dist_to_long = self.RANGE_LONG - spread
-
-        if dist_to_short < self.RANGE_BUFFER and dist_to_short < dist_to_long:
-            # 靠近短调边界
-            confidence = 0.5 + 0.5 * (dist_to_short / self.RANGE_BUFFER)
-        elif dist_to_long < self.RANGE_BUFFER:
-            # 靠近长调边界
-            confidence = 0.5 + 0.5 * (dist_to_long / self.RANGE_BUFFER)
+        # 中调：两个区域有明显分布
+        ratios = [r for r in [shadows, midtones, highlights] if r >= SIGNIFICANT_THRESHOLD]
+        if len(ratios) == 2:
+            # 置信度基于两个区域的均衡程度
+            confidence = min(1.0, 0.5 + min(ratios) / max(ratios))
         else:
-            # 中调核心区
-            confidence = 1.0
+            confidence = 0.7
 
         return ToneRange.MEDIUM, confidence
 
-
-
     def _rgb_to_gray(self, img_array: np.ndarray) -> np.ndarray:
-        """RGB 转灰度 (Rec. 709 标准)"""
+        """RGB 转灰度 (Rec. 709 标准 + sRGB Gamma 校正)"""
+        return calculate_luminance_from_array(img_array)
+
+    def get_gray_image(self, img_array: np.ndarray) -> np.ndarray:
+        """获取灰度图像（用于显示，使用简单快速转换）"""
+        return self._rgb_to_gray_fast(img_array)
+
+    def _rgb_to_gray_fast(self, img_array: np.ndarray) -> np.ndarray:
+        """RGB 转灰度（快速版本，用于显示）"""
         return (0.299 * img_array[:, :, 0] +
                 0.587 * img_array[:, :, 1] +
                 0.114 * img_array[:, :, 2]).astype(np.uint8)
 
-    def get_gray_image(self, img_array: np.ndarray) -> np.ndarray:
-        """获取灰度图像"""
-        return self._rgb_to_gray(img_array)
-
-
-# 标准库导入
-from typing import Optional
 
 # 项目模块导入
 from .cache_base import BaseCache
