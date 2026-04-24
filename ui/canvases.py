@@ -1468,15 +1468,16 @@ class LuminanceCanvas(BaseCanvas):
 
         menu.addSeparator()
 
-        if self._picker_count < 8:
-            add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
-            add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
-            menu.addAction(add_action)
+        if self._pickers_visible:
+            if self._picker_count < 8:
+                add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
+                add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
+                menu.addAction(add_action)
 
-        if self._picker_count > 2:
-            remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
-            remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
-            menu.addAction(remove_action)
+            if self._picker_count > 2:
+                remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
+                remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
+                menu.addAction(remove_action)
 
         menu.addSeparator()
 
