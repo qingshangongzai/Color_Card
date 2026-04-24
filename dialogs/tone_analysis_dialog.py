@@ -868,16 +868,8 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         tone_type_key = f'tone_analysis.tone_types.{result.tone_key.value}_{result.tone_range.value}'
         base_name = tr(tone_type_key)
 
-        # 根据置信度决定显示格式
-        if avg_confidence >= 0.8:
-            # 高置信度：直接显示分类
-            return base_name
-        elif avg_confidence >= 0.5:
-            # 中等置信度：显示置信度百分比
-            return f'{base_name} ({int(avg_confidence * 100)}%)'
-        else:
-            # 低置信度：显示过渡描述
-            return self._get_transition_description(result, avg_confidence)
+        # 始终显示置信度百分比
+        return f'{base_name} ({int(avg_confidence * 100)}%)'
 
     def _get_transition_description(self, result: ToneAnalysisResult, confidence: float) -> str:
         """获取过渡区域描述
