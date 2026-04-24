@@ -7,6 +7,9 @@ from typing import Optional, Tuple
 import numpy as np
 
 
+
+
+
 class ToneKey(str, Enum):
     """影调基调"""
     HIGH = "high"
@@ -308,10 +311,18 @@ class ToneAnalysisService:
         return ToneRange.MEDIUM, confidence
 
     def _rgb_to_gray(self, img_array: np.ndarray) -> np.ndarray:
-        """RGB 转灰度 (Rec. 709 标准)"""
-        return (0.299 * img_array[:, :, 0] +
-                0.587 * img_array[:, :, 1] +
-                0.114 * img_array[:, :, 2]).astype(np.uint8)
+        """RGB 转灰度 (Rec. 709 标准 + sRGB Gamma 校正)"""
+        from .color import get_luminance
+
+        height, width = img_array.shape[:2]
+        gray = np.zeros((height, width), dtype=np.uint8)
+
+        for y in range(height):
+            for x in range(width):
+                r, g, b = img_array[y, x]
+                gray[y, x] = get_luminance(int(r), int(g), int(b))
+
+        return gray
 
     def get_gray_image(self, img_array: np.ndarray) -> np.ndarray:
         """获取灰度图像"""
