@@ -11,7 +11,7 @@ class VersionManager:
         self.minor: int = 9
         self.patch: int = 0
         self.build: int = 0
-        self.prerelease: str = " · Beta 3"
+        self.prerelease: str = " · Beta 4"
 
         # 核心版本信息
         self.version: str = f"{self.major}.{self.minor}.{self.patch}{self.prerelease}"
