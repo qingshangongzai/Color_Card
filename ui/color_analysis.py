@@ -141,14 +141,14 @@ class ColorAnalysisInterface(QWidget):
         favorite_toolbar_layout.addWidget(self.extract_dominant_button)
 
         # 高饱和度区域显示按钮
-        self.high_saturation_button = PushButton(FluentIcon.BRIGHTNESS, tr('color_analysis.show_high_saturation'), self)
+        self.high_saturation_button = PushButton(FluentIcon.VIEW, tr('color_analysis.show_high_saturation'), self)
         self.high_saturation_button.setFixedHeight(32)
         self.high_saturation_button.pressed.connect(self._on_high_saturation_pressed)
         self.high_saturation_button.released.connect(self._on_high_saturation_released)
         favorite_toolbar_layout.addWidget(self.high_saturation_button)
 
         # 高明度区域显示按钮
-        self.high_brightness_button = PushButton(FluentIcon.VIEW, tr('color_analysis.show_high_brightness'), self)
+        self.high_brightness_button = PushButton(FluentIcon.BRIGHTNESS, tr('color_analysis.show_high_brightness'), self)
         self.high_brightness_button.setFixedHeight(32)
         self.high_brightness_button.pressed.connect(self._on_high_brightness_pressed)
         self.high_brightness_button.released.connect(self._on_high_brightness_released)

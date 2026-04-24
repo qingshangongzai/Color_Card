@@ -102,7 +102,7 @@ class SettingsInterface(QWidget):
         self.card_display_group = SettingCardGroup(tr('settings.card_display'), self.content_widget)
 
         self.hex_display_card = self._create_switch_card(
-            FluentIcon.PALETTE,
+            FluentIcon.TAG,
             tr('settings.hex_display'),
             tr('settings.hex_display_desc'),
             self._hex_visible
@@ -159,7 +159,7 @@ class SettingsInterface(QWidget):
         self.highlight_group = SettingCardGroup(tr('settings.highlight'), self.content_widget)
 
         self.saturation_threshold_card = self._create_threshold_card(
-            FluentIcon.BRIGHTNESS,
+            FluentIcon.VIEW,
             tr('settings.saturation_threshold'),
             tr('settings.saturation_threshold_desc'),
             self._saturation_threshold,
@@ -168,7 +168,7 @@ class SettingsInterface(QWidget):
         self.highlight_group.addSettingCard(self.saturation_threshold_card)
 
         self.brightness_threshold_card = self._create_threshold_card(
-            FluentIcon.VIEW,
+            FluentIcon.BRIGHTNESS,
             tr('settings.brightness_threshold'),
             tr('settings.brightness_threshold_desc'),
             self._brightness_threshold,
@@ -477,7 +477,7 @@ class SettingsInterface(QWidget):
         """创建色彩模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.BRUSH,
+            FluentIcon.TILES,
             tr('settings.color_mode'),
             tr('settings.color_mode_desc'),
             self.content_widget
@@ -559,7 +559,7 @@ class SettingsInterface(QWidget):
         """创建直方图缩放模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.DOCUMENT,
+            FluentIcon.ZOOM,
             tr('settings.histogram_scaling'),
             tr('settings.histogram_scaling_desc'),
             self.content_widget
@@ -601,7 +601,7 @@ class SettingsInterface(QWidget):
         """创建明度直方图样式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.LAYOUT,
             tr('settings.luminance_histogram_style'),
             tr('settings.luminance_histogram_style_desc'),
             self.content_widget
@@ -643,7 +643,7 @@ class SettingsInterface(QWidget):
         """创建直方图模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.VIEW,
             tr('settings.histogram_mode'),
             tr('settings.histogram_mode_desc'),
             self.content_widget
@@ -685,7 +685,7 @@ class SettingsInterface(QWidget):
         """创建直方图采样模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.SEND,
+            FluentIcon.SPEED_HIGH,
             tr('settings.histogram_sampling'),
             tr('settings.histogram_sampling_desc'),
             self.content_widget
@@ -769,7 +769,7 @@ class SettingsInterface(QWidget):
         """创建渐变模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.BRUSH,
             tr('settings.gradient_mode'),
             tr('settings.gradient_mode_desc'),
             self.content_widget
@@ -859,7 +859,7 @@ class SettingsInterface(QWidget):
         """创建渐变颜色空间选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.BRUSH,
             tr('settings.gradient_color_space'),
             tr('settings.gradient_color_space_desc'),
             self.content_widget
