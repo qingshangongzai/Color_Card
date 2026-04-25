@@ -80,13 +80,23 @@ from .gradient import (
 
 from .async_loader import BaseBatchLoader
 from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
-from .image_mediator import ImageMediator
 from .cache_base import BaseCache
 
 # UI直接使用的服务类（轻量级，立即导入）
 from .histogram_service import HistogramService, HistogramCalculator
+from .histogram_cache import (
+    HistogramCache, get_histogram_cache, clear_histogram_cache, generate_image_fingerprint,
+    ImageFingerprintGenerator
+)
 from .preview_service import PreviewService
 from .luminance_service import LuminanceService, LuminanceCalculator
+from .tone_analysis import (
+    ToneAnalysisService,
+    ToneAnalysisResult,
+    ToneAnalysisCache,
+    get_tone_analysis_cache,
+    clear_tone_analysis_cache,
+)
 
 
 # 重量级服务类延迟导入（启动时不需要立即加载）
@@ -108,10 +118,16 @@ def get_image_service():
     return ImageService()
 
 
-def get_service_factory():
-    """获取服务工厂（延迟导入）"""
-    from .service_factory import ServiceFactory
-    return ServiceFactory()
+def get_histogram_service():
+    """获取直方图服务（延迟导入）"""
+    from .histogram_service import HistogramService
+    return HistogramService()
+
+
+def get_luminance_service():
+    """获取明度服务（延迟导入）"""
+    from .luminance_service import LuminanceService
+    return LuminanceService()
 
 
 def get_svg_color_mapper():
@@ -188,7 +204,6 @@ __all__ = [
     'GROUPING_THRESHOLDS',
     'generate_groups',
     'should_use_batch_loading',
-    'ImageMediator',
     'BaseCache',
     # 日志
     'LoggerManager',
@@ -199,13 +214,24 @@ __all__ = [
     # UI直接使用的服务类
     'HistogramService',
     'HistogramCalculator',
+    'HistogramCache',
+    'get_histogram_cache',
+    'clear_histogram_cache',
+    'generate_image_fingerprint',
+    'ImageFingerprintGenerator',
     'PreviewService',
     'LuminanceService',
     'LuminanceCalculator',
+    'ToneAnalysisService',
+    'ToneAnalysisResult',
+    'ToneAnalysisCache',
+    'get_tone_analysis_cache',
+    'clear_tone_analysis_cache',
     # 延迟加载的服务类（通过函数访问）
     'get_color_service',
     'get_palette_service',
     'get_image_service',
-    'get_service_factory',
+    'get_histogram_service',
+    'get_luminance_service',
     'get_svg_color_mapper',
 ]

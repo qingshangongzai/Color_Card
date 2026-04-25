@@ -1770,12 +1770,20 @@ class PreviewToolbar(QWidget):
 
         # 初始化当前场景，但不触发信号（避免在界面初始化时加载场景配置）
         self._current_scene = self._scene_selector.get_current_scene()
+        self._update_import_button_visibility()
 
     def _on_scene_changed(self, scene: str):
         """处理场景变化"""
         self._current_scene = scene
+        self._update_import_button_visibility()
         self.scene_changed.emit(scene)
         log_user_action("change_scene", {"scene": scene})
+
+    def _update_import_button_visibility(self):
+        """根据当前场景更新导入按钮可见性"""
+        # 混合场景不支持导入自定义SVG
+        is_showcase = self._current_scene == "showcase"
+        self._import_button.setVisible(not is_showcase)
 
     def _on_import_clicked(self):
         """处理导入按钮点击"""

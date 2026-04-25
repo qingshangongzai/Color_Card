@@ -38,26 +38,27 @@
 
 | 指标    | 数据                      |
 | :---- | :---------------------- |
-| 发布版本  | 12 个版本（v1.0.0 → v1.8.0） |
-| 开发周期  | 73 天                    |
-| 总更新项  | **145 项**               |
-| 平均每版本 | 12.1 项                  |
+| 发布版本  | 13 个版本（v1.0.0 → v1.9.0） |
+| 开发周期  | 80 天                    |
+| 总更新项  | **159 项**               |
+| 平均每版本 | 12.2 项                  |
 
 **详细分类统计**：
 
 | 分类       |   数量   | 说明              |
 | :------- | :----: | :-------------- |
-| ✨ 新增功能   | **39** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **34** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **39** | 用户体验打磨          |
-| ⚡ 性能提升   | **11** | 缓存机制、启动优化等      |
-| 📝 内容调整  |  **7** | 文本、名称等调整        |
-| ⚙️ 体验优化  |  **5** | 交互体验改进          |
-| 🏗️ 代码优化 |  **2** | 代码结构优化          |
+| ✨ 新增功能   | **42** | 包含首次发布的 9 项核心功能 |
+| 🔧 问题修复  | **37** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **41** | 用户体验打磨          |
+| ⚡ 性能提升   | **12** | 缓存机制、启动优化等      |
+| 📝 内容调整  |  **8** | 文本、名称等调整        |
+| ⚙️ 体验优化  |  **6** | 交互体验改进          |
+| 🏗️ 代码优化 |  **4** | 代码结构优化          |
 | 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
 | 🖥️ 平台支持 |  **1** | Mac 版本适配        |
 | 📜 许可证完善 |  **1** | 开源合规性           |
 | 🚀 功能优化  |  **1** | 功能增强            |
+| 📛 命名调整  |  **1** | 面板名称统一          |
 
 ### 核心功能特色
 
@@ -65,7 +66,7 @@
 
 | 功能 | 截图预览 |
 |------|---------|
-| **色彩信息提取**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） | ![色彩提取](docs/screenshots/color-extract.png) |
+| **色彩信息分析**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） | ![色彩分析](docs/screenshots/color-extract.png) |
 | **明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 | ![明度分析](docs/screenshots/luminance-extract.png) |
 | **渐变色提取**<br>支持双色渐变和单色明度梯度两种模式，双色渐变通过起始色和结束色生成渐变色序列，单色明度梯度固定色相饱和度按明度分级生成色阶（类似 Tailwind 50-900），支持 RGB/HSB/HSL/LAB 四种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
 | **配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 | ![配色生成](docs/screenshots/color-generation.png) |
@@ -150,8 +151,8 @@
 
 ### 基本操作
 
-1. **导入图片**：点击「色彩提取」或「明度提取」面板中的图片显示区域即可导入图片，也支持拖拽导入
-2. **色彩提取**：拖动取色点到图片任意位置，实时显示 HSB、LAB、HSL、CMYK、RGB 值
+1. **导入图片**：点击「色彩分析」或「明度分析」面板中的图片显示区域即可导入图片，也支持拖拽导入
+2. **色彩分析**：拖动取色点到图片任意位置，实时显示 HSB、LAB、HSL、CMYK、RGB 值
 3. **明度分析**：查看图片明度分布直方图，双击图片区域提取对应明度的像素
 4. **配色生成**：选择配色方案类型，通过色环选择基准色
 5. **配色预览**：选择场景预览配色效果，支持自定义SVG
@@ -160,7 +161,7 @@
 
 | 模块    | 功能                                                |
 | :---- | :------------------------------------------------ |
-| 色彩提取  | 可拖动取色点、多色彩空间显示、一键复制颜色值                            |
+| 色彩分析  | 可拖动取色点、多色彩空间显示、一键复制颜色值                            |
 | 明度分析  | 9级明度分区（Zone 0-8）、直方图可视化、区域高亮                      |
 | 渐变色提取 | 双色渐变/单色明度梯度两种模式、RGB/HSB/HSL/LAB插值、中间色数量调节 |                  |
 | 配色生成  | 5种配色方案、可交互色环、明度调整                                 |
@@ -289,26 +290,27 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 | Metric              | Data                          |
 | :------------------ | :---------------------------- |
-| Released Versions   | 12 versions (v1.0.0 → v1.8.0) |
-| Development Period  | 73 days                       |
-| Total Updates       | **145 items**                 |
-| Average per Version | 12.1 items                    |
+| Released Versions   | 13 versions (v1.0.0 → v1.9.0) |
+| Development Period  | 80 days                       |
+| Total Updates       | **159 items**                 |
+| Average per Version | 12.2 items                    |
 
-**Detailed Category Statistics(portion)**:
+**Detailed Category Statistics**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
-| ✨ New Features         | **39** | Including 9 core features from v1.0.0 launch |
-| 🔧 Bug Fixes           | **34** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **39** | User experience refinements                  |
-| ⚡ Performance          | **11** | Cache mechanism, startup optimization        |
-| 📝 Content Adjustments |   **7** | Text, naming adjustments                     |
-| ⚙️ Experience          |   **5** | Interaction improvements                     |
-| 🏗️ Code Optimization  |   **2** | Code structure optimization                  |
+| ✨ New Features         | **42** | Including 9 core features from v1.0.0 launch |
+| 🔧 Bug Fixes           | **37** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **41** | User experience refinements                  |
+| ⚡ Performance          | **12** | Cache mechanism, startup optimization        |
+| 📝 Content Adjustments |   **8** | Text, naming adjustments                     |
+| ⚙️ Experience          |   **6** | Interaction improvements                     |
+| 🏗️ Code Optimization  |   **4** | Code structure optimization                  |
 | 🔮 Logic Optimization  |   **2** | Algorithm improvements                       |
 | 🖥️ Platform Support   |   **1** | Mac version adaptation                       |
 | 📜 License Compliance  |   **1** | Open source compliance                       |
 | 🚀 Feature Enhancement |   **1** | Feature enhancements                         |
+| 📛 Naming Adjustment   |   **1** | Panel name unification                       |
 
 ### Key Features
 
@@ -465,7 +467,7 @@ Color Card is released under the **GNU General Public License v3.0 (GPL 3.0)** l
 
 ### Third-party Library Licenses
 
-This project uses the following third-party libraries:
+This project uses the following third-party libraries(portion):
 
 | Library                |    License   |
 | :--------------------- | :----------: |

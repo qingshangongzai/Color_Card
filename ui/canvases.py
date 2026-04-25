@@ -4,13 +4,14 @@ import gc
 from typing import List, Optional, Tuple
 
 # 第三方库导入
+import numpy as np
 from PySide6.QtCore import QPoint, QPointF, QRect, Qt, Signal, QTimer
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPixmap
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import Action, FluentIcon, RoundMenu
 
 # 项目模块导入
-from core import get_luminance, get_zone, get_service_factory, log_user_action
+from core import get_luminance, get_zone, get_image_service, get_luminance_service, log_user_action
 from utils import tr
 from .color_picker import ColorPicker
 from .zoom_viewer import ZoomViewer
@@ -22,6 +23,41 @@ from utils.theme_colors import (
     get_zone_mask_colors, get_zone_label_bg_color, get_zone_label_text_color,
     get_zone_info_text_colors
 )
+
+
+def qimage_to_numpy(image: QImage) -> np.ndarray:
+    """QImage转NumPy数组（使用bits()直接内存访问，比pixelColor快数百倍）
+
+    Args:
+        image: QImage对象
+
+    Returns:
+        np.ndarray: RGB数组 (H, W, 3)
+    """
+    width = image.width()
+    height = image.height()
+
+    # 确保格式为RGB888
+    if image.format() != QImage.Format.Format_RGB888:
+        image = image.convertToFormat(QImage.Format.Format_RGB888)
+
+    # 直接访问内存
+    ptr = image.bits()
+    bytes_per_line = image.bytesPerLine()
+
+    # 创建NumPy数组（考虑行对齐）
+    if bytes_per_line == width * 3:
+        # 无行对齐，直接转换
+        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
+    else:
+        # 有行对齐，需要逐行复制
+        arr = np.zeros((height, width, 3), dtype=np.uint8)
+        for y in range(height):
+            offset = y * bytes_per_line
+            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
+            arr[y] = row.reshape((width, 3))
+
+    return arr.copy()  # 复制一份避免内存问题
 
 
 class BaseCanvas(QWidget):
@@ -82,7 +118,7 @@ class BaseCanvas(QWidget):
             ImageService: 图片服务实例
         """
         if self._image_service is None:
-            self._image_service = get_service_factory().get_image_service()
+            self._image_service = get_image_service()
             self._setup_image_service_connections()
         return self._image_service
 
@@ -568,7 +604,13 @@ class BaseCanvas(QWidget):
             if display_rect:
                 x, y, w, h = display_rect
                 target_rect = QRect(x, y, w, h)
-                painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
+
+                # 黑白模式：仅明度分析面板支持
+                if getattr(self, '_grayscale_mode', False) and self._image:
+                    grayscale_image = self._image.convertToFormat(QImage.Format.Format_Grayscale8)
+                    painter.drawImage(target_rect, grayscale_image)
+                else:
+                    painter.drawPixmap(target_rect, self._original_pixmap, self._original_pixmap.rect())
 
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
@@ -1065,57 +1107,22 @@ class ImageCanvas(BaseCanvas):
         if self._image is None or self._image.isNull():
             return None
 
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        # 创建透明遮罩图
-        highlight_pixmap = QPixmap(self.size())
-        highlight_pixmap.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(highlight_pixmap)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
         # 根据模式获取颜色
         if mode == 'saturation':
             highlight_color = get_high_saturation_highlight_color()
-        else:  # brightness
+        else:
             highlight_color = get_high_brightness_highlight_color()
 
-        # 计算缩放比例
-        scale_x = self._image.width() / disp_w
-        scale_y = self._image.height() / disp_h
-
-        # 采样步长（性能优化）
-        sample_step = 4
-
-        # 遍历显示区域的像素
-        for dy in range(0, disp_h, sample_step):
-            for dx in range(0, disp_w, sample_step):
-                # 计算对应的原始图片坐标
-                img_x = int(dx * scale_x)
-                img_y = int(dy * scale_y)
-
-                # 边界检查
-                img_x = min(img_x, self._image.width() - 1)
-                img_y = min(img_y, self._image.height() - 1)
-
-                # 获取像素颜色并计算HSV
-                color = self._image.pixelColor(img_x, img_y)
-                r, g, b = color.red() / 255.0, color.green() / 255.0, color.blue() / 255.0
-                h, s, v = colorsys.rgb_to_hsv(r, g, b)
-
-                # 根据模式比较阈值
-                value = s if mode == 'saturation' else v
-                if value >= threshold:
-                    painter.fillRect(
-                        disp_x + dx,
-                        disp_y + dy,
-                        sample_step,
-                        sample_step,
-                        highlight_color
-                    )
-
-        painter.end()
-        return highlight_pixmap
+        # 使用NumPy向量化计算
+        luminance_service = get_luminance_service()
+        return luminance_service.generate_highlight_mask_numpy(
+            image=self._image,
+            mode=mode,
+            threshold=threshold,
+            canvas_size=(self.width(), self.height()),
+            display_rect=display_rect,
+            highlight_color=highlight_color
+        )
 
     def _draw_highlight(self, mode: str, painter: QPainter,
                        display_rect: Tuple[int, int, int, int]) -> None:
@@ -1212,7 +1219,7 @@ class ImageCanvas(BaseCanvas):
 
 
 class LuminanceCanvas(BaseCanvas):
-    """明度提取画布，支持取色点拖动和区域标注"""
+    """明度分析画布，支持取色点拖动和区域标注"""
 
     luminance_picked = Signal(int, str)  # 信号：索引, 区域编号
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
@@ -1229,6 +1236,12 @@ class LuminanceCanvas(BaseCanvas):
 
         # Zone高亮颜色配置 (Zone 0-8) - 按类型统一颜色
         self._zone_highlight_colors: List[QColor] = get_zone_mask_colors()
+
+        # 黑白模式
+        self._grayscale_mode = False
+
+        # 取样点和标签显示控制
+        self._pickers_visible = True
 
         # 明度服务
         self._luminance_service = None
@@ -1254,7 +1267,7 @@ class LuminanceCanvas(BaseCanvas):
             LuminanceService: 明度服务实例
         """
         if self._luminance_service is None:
-            self._luminance_service = get_service_factory().get_luminance_service()
+            self._luminance_service = get_luminance_service()
         return self._luminance_service
 
     def _setup_display_preview(self) -> None:
@@ -1371,8 +1384,8 @@ class LuminanceCanvas(BaseCanvas):
 
     def _draw_zone_labels(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
         """绘制区域标注（白色小方框+黑色文字）"""
-        # 如果正在加载中，不显示Zone标签
-        if self._is_loading:
+        # 如果正在加载中或标签被隐藏，不显示Zone标签
+        if self._is_loading or not self._pickers_visible:
             return
 
         disp_x, disp_y, disp_w, disp_h = display_rect
@@ -1438,6 +1451,103 @@ class LuminanceCanvas(BaseCanvas):
         self._highlighted_zone = -1
         self._zone_highlight_pixmap = None
 
+    def contextMenuEvent(self, event) -> None:
+        """右键菜单事件"""
+        if self._original_pixmap is None or self._original_pixmap.isNull():
+            return
+
+        menu = RoundMenu("")
+
+        change_action = Action(FluentIcon.PHOTO, tr('context_menu.change_image'))
+        change_action.triggered.connect(self.change_image_requested.emit)
+        menu.addAction(change_action)
+
+        clear_action = Action(FluentIcon.DELETE, tr('context_menu.clear_image'))
+        clear_action.triggered.connect(self.clear_image_requested.emit)
+        menu.addAction(clear_action)
+
+        menu.addSeparator()
+
+        if self._pickers_visible:
+            if self._picker_count < 8:
+                add_action = Action(FluentIcon.ADD, tr('context_menu.add_picker'))
+                add_action.triggered.connect(lambda: self.set_picker_count(self._picker_count + 1))
+                menu.addAction(add_action)
+
+            if self._picker_count > 2:
+                remove_action = Action(FluentIcon.REMOVE, tr('context_menu.remove_picker'))
+                remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
+                menu.addAction(remove_action)
+
+        menu.addSeparator()
+
+        # 黑白模式切换
+        mode_text = tr('context_menu.color_mode') if self._grayscale_mode else tr('context_menu.grayscale_mode')
+        grayscale_action = Action(FluentIcon.CONSTRACT, mode_text)
+        grayscale_action.triggered.connect(self._toggle_grayscale_mode)
+        menu.addAction(grayscale_action)
+
+        # 取样点显示/隐藏切换
+        picker_text = tr('context_menu.hide_pickers') if self._pickers_visible else tr('context_menu.show_pickers')
+        picker_action = Action(FluentIcon.VIEW, picker_text)
+        picker_action.triggered.connect(self._toggle_pickers_visibility)
+        menu.addAction(picker_action)
+
+        menu.addSeparator()
+
+        analysis_action = Action(FluentIcon.BRIGHTNESS, tr('context_menu.tone_analysis'))
+        analysis_action.triggered.connect(self._on_tone_analysis)
+        menu.addAction(analysis_action)
+
+        menu.exec(event.globalPos())
+
+    def _on_tone_analysis(self) -> None:
+        """打开明度分析对话框"""
+        if self._image is None or self._image.isNull():
+            return
+
+        from dialogs import ToneAnalysisDialog
+        from core.histogram_cache import generate_image_fingerprint
+
+        # 生成图片指纹用于缓存
+        image_key = generate_image_fingerprint(self._image)
+
+        # 立即显示对话框（显示加载中）
+        # 父窗口设为None，使其在任务栏显示为独立窗口
+        dialog = ToneAnalysisDialog(None, image_key, None)
+        dialog.show()
+
+        # 在后台线程中转换图片并分析
+        def prepare_and_analyze():
+            # 使用快速转换（bits()内存访问，比pixelColor快数百倍）
+            img_array = qimage_to_numpy(self._image)
+
+            # 设置图片数据并开始分析
+            dialog._img_array = img_array
+            dialog.start_analysis()
+
+        # 使用 QTimer 延迟执行，让对话框先显示
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, prepare_and_analyze)
+
+        dialog.exec()
+
+    def _toggle_grayscale_mode(self) -> None:
+        """切换黑白模式"""
+        self._grayscale_mode = not self._grayscale_mode
+        self.update()
+
+    def _toggle_pickers_visibility(self) -> None:
+        """切换取样点和标签的显示状态"""
+        self._pickers_visible = not self._pickers_visible
+
+        # 控制取样点显示/隐藏
+        for picker in self._pickers:
+            picker.setVisible(self._pickers_visible)
+
+        # 触发重绘以更新标签
+        self.update()
+
     def get_picker_zones(self) -> List[str]:
         """获取所有取色器的区域编号
 
@@ -1471,7 +1581,7 @@ class LuminanceCanvas(BaseCanvas):
     def _generate_zone_highlight_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
         """生成Zone高亮遮罩图
 
-        使用 LuminanceService 生成高亮遮罩图，实现业务逻辑下沉。
+        优先使用NumPy向量化计算，失败时回退到逐像素遍历。
 
         Args:
             display_rect: 图片显示区域 (x, y, w, h)
@@ -1482,11 +1592,11 @@ class LuminanceCanvas(BaseCanvas):
         if self._image is None or self._image.isNull():
             return None
 
-        # 使用 LuminanceService 生成高亮遮罩图
         canvas_size = (self.width(), self.height())
         zone_color = self._zone_highlight_colors[self._highlighted_zone]
 
-        return self._get_luminance_service().generate_zone_highlight_pixmap(
+        # 使用NumPy向量化计算
+        return self._get_luminance_service().generate_zone_highlight_pixmap_numpy(
             self._image,
             self._highlighted_zone,
             canvas_size,

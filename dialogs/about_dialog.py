@@ -201,7 +201,7 @@ class AboutDialog(BaseFramelessDialog):
 【开发团队】
   • 出品：浮晓 HXiao Studio
   • 开发：青山公仔
-  • 代码：Trae、Qoder
+  • 代码：Trae、Qoder、Kimi
   • logo绘制：智谱清言
   • 联系邮箱：hxiao_studio@163.com
 

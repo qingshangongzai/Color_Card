@@ -98,22 +98,34 @@ class BaseFramelessDialog(FramelessDialog):
         # 保存标题标签引用，以便主题切换时更新
         self._title_label = title_label
 
-    def _update_close_button_color(self, text_color):
-        """更新关闭按钮颜色以适配主题
+    def _update_window_buttons_color(self, text_color):
+        """更新窗口按钮颜色以适配主题
 
         Args:
             text_color: 文本颜色 (QColor)
         """
         title_bar = self.titleBar
-        if hasattr(title_bar, 'closeBtn') and title_bar.closeBtn:
-            close_btn = title_bar.closeBtn
-            # 设置正常状态颜色
-            close_btn.setNormalColor(text_color)
-            # 设置悬停状态颜色
-            close_btn.setHoverColor(get_close_button_hover_color())
-            close_btn.setHoverBackgroundColor(get_close_button_hover_bg_color())
-            # 设置按下状态颜色
-            close_btn.setPressedColor(get_close_button_pressed_color())
+
+        # 更新最小化按钮
+        if title_bar.minBtn:
+            title_bar.minBtn.setNormalColor(text_color)
+            title_bar.minBtn.setHoverColor(text_color)
+            title_bar.minBtn.setHoverBackgroundColor(get_close_button_hover_bg_color())
+            title_bar.minBtn.setPressedColor(text_color)
+
+        # 更新最大化按钮
+        if title_bar.maxBtn:
+            title_bar.maxBtn.setNormalColor(text_color)
+            title_bar.maxBtn.setHoverColor(text_color)
+            title_bar.maxBtn.setHoverBackgroundColor(get_close_button_hover_bg_color())
+            title_bar.maxBtn.setPressedColor(text_color)
+
+        # 更新关闭按钮
+        if title_bar.closeBtn:
+            title_bar.closeBtn.setNormalColor(text_color)
+            title_bar.closeBtn.setHoverColor(get_close_button_hover_color())
+            title_bar.closeBtn.setHoverBackgroundColor(get_close_button_hover_bg_color())
+            title_bar.closeBtn.setPressedColor(get_close_button_pressed_color())
 
     def _update_styles(self):
         """更新样式以适配主题"""
@@ -127,8 +139,13 @@ class BaseFramelessDialog(FramelessDialog):
         self.setPalette(palette)
         self.setAutoFillBackground(True)
 
-        # 设置样式表 - QLabel 文字颜色
+        bg_color_str = bg_color.name()
+
+        # 设置样式表 - 窗口背景和 QLabel 文字颜色
         self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {bg_color_str};
+            }}
             QLabel {{
                 color: {text_color_str};
                 background-color: transparent;
@@ -141,8 +158,8 @@ class BaseFramelessDialog(FramelessDialog):
                 f"color: {text_color_str}; font-size: 13px; font-weight: 500;"
             )
 
-        # 更新关闭按钮颜色
-        self._update_close_button_color(text_color)
+        # 更新窗口按钮颜色
+        self._update_window_buttons_color(text_color)
 
     def closeEvent(self, event):
         """关闭事件：断开主题变化信号连接

@@ -43,9 +43,9 @@ RGB直方图：RGBHistogramWidget
 导出设置对话框：ExportSettingsDialog
 
 # 界面模块
-色彩提取界面：ColorExtractInterface
-明度提取界面：LuminanceExtractInterface
-渐变提取界面：GradientExtractInterface
+色彩分析界面：ColorAnalysisInterface
+明度分析界面：LuminanceAnalysisInterface
+渐变生成界面：GradientGenerationInterface
 配色生成界面：ColorGenerationInterface
 配色管理界面：PaletteManagementInterface
 内置色彩界面：PresetColorInterface

@@ -4,9 +4,83 @@ from typing import Any, Dict, List, Tuple
 
 # 第三方库导入
 import numpy as np
+from PySide6.QtGui import QImage
 
 # 项目模块导入
 from .color_scheme_cache import get_color_scheme_cache
+
+
+def calculate_luminance_from_array(rgb_array: np.ndarray, gamma: float = 2.2) -> np.ndarray:
+    """从RGB数组计算明度（向量化计算）
+
+    使用 Rec. 709 标准计算亮度值，包含 sRGB Gamma 校正
+
+    Args:
+        rgb_array: RGB数组，形状为 (H, W, 3)，值范围 0-255
+        gamma: Gamma 值（默认 2.2，sRGB 标准）
+
+    Returns:
+        np.ndarray: 明度数组，形状为 (H, W)，值范围 0-255
+    """
+    # 归一化到 0-1
+    rgb = rgb_array.astype(np.float32) / 255.0
+
+    if gamma == 2.2:
+        # sRGB Gamma 校正到线性空间
+        linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    else:
+        linear = rgb ** gamma
+
+    # Rec. 709 系数计算线性亮度
+    luminance_linear = 0.2126 * linear[:, :, 0] + 0.7152 * linear[:, :, 1] + 0.0722 * linear[:, :, 2]
+
+    if gamma == 2.2:
+        # 从线性空间转回 sRGB
+        luminance = np.where(
+            luminance_linear <= 0.0031308,
+            luminance_linear * 12.92,
+            1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
+        )
+    else:
+        luminance = luminance_linear ** (1.0 / gamma)
+
+    # 转换到 0-255 并四舍五入
+    return np.clip(np.round(luminance * 255), 0, 255).astype(np.uint8)
+
+
+def _qimage_to_numpy(image: QImage) -> np.ndarray:
+    """QImage转NumPy数组（使用bits()直接内存访问）
+
+    Args:
+        image: QImage对象
+
+    Returns:
+        np.ndarray: RGB数组 (H, W, 3)
+    """
+    width = image.width()
+    height = image.height()
+
+    # 确保格式为RGB888
+    if image.format() != QImage.Format.Format_RGB888:
+        image = image.convertToFormat(QImage.Format.Format_RGB888)
+
+    # 直接访问内存
+    ptr = image.bits()
+    bytes_per_line = image.bytesPerLine()
+
+    # 创建NumPy数组（考虑行对齐）
+    if bytes_per_line == width * 3:
+        # 无行对齐，直接转换
+        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
+    else:
+        # 有行对齐，需要逐行复制
+        arr = np.zeros((height, width, 3), dtype=np.uint8)
+        for y in range(height):
+            offset = y * bytes_per_line
+            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
+            arr[y] = row.reshape((width, 3))
+
+    return arr.copy()  # 复制一份避免内存问题
 
 
 # ==================== 配色常量定义 ====================
@@ -336,12 +410,35 @@ def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
     return (min_lum, max_lum)
 
 
+def _qimage_to_numpy(image) -> np.ndarray:
+    """QImage转NumPy数组（使用bits()直接内存访问）"""
+    width = image.width()
+    height = image.height()
+
+    if image.format() != image.Format.Format_RGB888:
+        image = image.convertToFormat(image.Format.Format_RGB888)
+
+    ptr = image.bits()
+    bytes_per_line = image.bytesPerLine()
+
+    if bytes_per_line == width * 3:
+        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
+    else:
+        arr = np.zeros((height, width, 3), dtype=np.uint8)
+        for y in range(height):
+            offset = y * bytes_per_line
+            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
+            arr[y] = row.reshape((width, 3))
+
+    return arr
+
+
 def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
     """计算图片的明度直方图（使用NumPy向量化优化）
 
     Args:
         image: QImage 对象
-        sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
         gamma: Gamma 值（默认 2.2，sRGB 标准）
 
     Returns:
@@ -350,101 +447,14 @@ def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List
     if image is None or image.isNull():
         return [0] * 256
 
-    width = image.width()
-    height = image.height()
-
-    if hasattr(image, 'bits'):
-        try:
-            return _calculate_histogram_numpy(image, width, height, sample_step, gamma)
-        except Exception:
-            pass
-
-    return _calculate_histogram_python(image, width, height, sample_step, gamma)
-
-
-def _calculate_histogram_numpy(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
-    """使用NumPy向量化计算明度直方图"""
-    image = image.convertToFormat(image.Format.Format_RGB888)
-    ptr = image.bits()
-    ptr.setsize(image.sizeInBytes())
-    arr = np.array(ptr).reshape(height, width, 3)
-
+    arr = _qimage_to_numpy(image)
     sampled = arr[::sample_step, ::sample_step]
 
-    edge_pixels = [
-        arr[::sample_step, -1],
-        arr[-1, ::sample_step]
-    ]
-    all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
+    luminance = calculate_luminance_from_array(sampled, gamma)
 
-    luminance = _calculate_luminance_numpy(all_pixels, gamma)
-
-    histogram = np.bincount(luminance, minlength=256)
+    histogram = np.bincount(luminance.flatten(), minlength=256)
 
     return histogram.tolist()
-
-
-def _calculate_luminance_numpy(pixels: np.ndarray, gamma: float = 2.2) -> np.ndarray:
-    """使用NumPy向量化计算明度值（Rec. 709标准 + Gamma校正）
-
-    Args:
-        pixels: NumPy数组，形状为 (N, 3)，值范围 0-255
-        gamma: Gamma 值（默认 2.2，sRGB 标准）
-
-    Returns:
-        np.ndarray: 明度值数组，值范围 0-255
-    """
-    rgb = pixels.astype(np.float32) / 255.0
-
-    if gamma == 2.2:
-        linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
-    else:
-        linear = rgb ** gamma
-
-    luminance_linear = 0.2126 * linear[:, 0] + 0.7152 * linear[:, 1] + 0.0722 * linear[:, 2]
-
-    if gamma == 2.2:
-        luminance_output = np.where(
-            luminance_linear <= 0.0031308,
-            luminance_linear * 12.92,
-            1.055 * (luminance_linear ** (1.0 / 2.4)) - 0.055
-        )
-    else:
-        luminance_output = luminance_linear ** (1.0 / gamma)
-
-    return np.clip(np.round(luminance_output * 255), 0, 255).astype(np.uint8)
-
-
-def _calculate_histogram_python(image, width: int, height: int, sample_step: int, gamma: float = 2.2) -> List[int]:
-    """使用纯Python计算明度直方图（回退实现）"""
-    histogram = [0] * 256
-
-    for y in range(0, height, sample_step):
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-            histogram[luminance] += 1
-
-    if width > 0:
-        right_x = width - 1
-        for y in range(0, height, sample_step):
-            color = image.pixelColor(right_x, y)
-            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-            histogram[luminance] += 1
-
-    if height > 0:
-        bottom_y = height - 1
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, bottom_y)
-            luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-            histogram[luminance] += 1
-
-    if width > 0 and height > 0:
-        color = image.pixelColor(width - 1, height - 1)
-        luminance = get_luminance(color.red(), color.green(), color.blue(), gamma)
-        histogram[luminance] += 1
-
-    return histogram
 
 
 def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], List[int], List[int]]:
@@ -452,7 +462,7 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
 
     Args:
         image: QImage 对象
-        sample_step: 采样步长，每隔N个像素采样一次（默认4，即1/16的像素）
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
 
     Returns:
         tuple: 三个长度为256的列表的元组 (R_histogram, G_histogram, B_histogram)
@@ -460,95 +470,81 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
     if image is None or image.isNull():
         return [0] * 256, [0] * 256, [0] * 256
 
-    width = image.width()
-    height = image.height()
-
-    # 使用NumPy向量化计算
-    if hasattr(image, 'bits'):
-        try:
-            return _calculate_rgb_histogram_numpy(image, width, height, sample_step)
-        except Exception:
-            pass  # 失败时回退到纯Python实现
-
-    return _calculate_rgb_histogram_python(image, width, height, sample_step)
-
-
-def _calculate_rgb_histogram_numpy(image, width: int, height: int, sample_step: int) -> Tuple[List[int], List[int], List[int]]:
-    """使用NumPy向量化计算RGB直方图"""
-    # 将QImage转换为NumPy数组
-    image = image.convertToFormat(image.Format.Format_RGB888)
-    ptr = image.bits()
-    ptr.setsize(image.sizeInBytes())
-    arr = np.array(ptr).reshape(height, width, 3)
-
-    # 采样像素（包含边缘像素）
+    arr = _qimage_to_numpy(image)
     sampled = arr[::sample_step, ::sample_step]
 
-    # 额外采样边缘像素
-    edge_pixels = []
-    if width > 0:
-        edge_pixels.append(arr[::sample_step, -1])
-    if height > 0:
-        edge_pixels.append(arr[-1, ::sample_step])
+    r = sampled[:, :, 0].flatten()
+    g = sampled[:, :, 1].flatten()
+    b = sampled[:, :, 2].flatten()
 
-    # 合并所有采样像素
-    if edge_pixels:
-        all_pixels = np.vstack([sampled.reshape(-1, 3)] + [e.reshape(-1, 3) for e in edge_pixels])
-    else:
-        all_pixels = sampled.reshape(-1, 3)
-
-    # 分离RGB通道
-    r_channel = all_pixels[:, 0].astype(np.uint8)
-    g_channel = all_pixels[:, 1].astype(np.uint8)
-    b_channel = all_pixels[:, 2].astype(np.uint8)
-
-    # 使用bincount统计各通道直方图
-    histogram_r = np.bincount(r_channel, minlength=256)
-    histogram_g = np.bincount(g_channel, minlength=256)
-    histogram_b = np.bincount(b_channel, minlength=256)
+    histogram_r = np.bincount(r, minlength=256)
+    histogram_g = np.bincount(g, minlength=256)
+    histogram_b = np.bincount(b, minlength=256)
 
     return histogram_r.tolist(), histogram_g.tolist(), histogram_b.tolist()
 
 
-def _calculate_rgb_histogram_python(image, width: int, height: int, sample_step: int) -> Tuple[List[int], List[int], List[int]]:
-    """使用纯Python计算RGB直方图（回退实现）"""
-    histogram_r = [0] * 256
-    histogram_g = [0] * 256
-    histogram_b = [0] * 256
+def calculate_hue_histogram(image, sample_step: int = 4) -> List[int]:
+    """计算色相直方图（使用NumPy向量化优化）
 
-    # 采样计算直方图
-    for y in range(0, height, sample_step):
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, y)
-            histogram_r[color.red()] += 1
-            histogram_g[color.green()] += 1
-            histogram_b[color.blue()] += 1
+    Args:
+        image: QImage 对象
+        sample_step: 采样步长，每隔N个像素采样一次（默认4）
 
-    # 额外采样最右侧和最底部的边缘像素
-    if width > 0:
-        right_x = width - 1
-        for y in range(0, height, sample_step):
-            color = image.pixelColor(right_x, y)
-            histogram_r[color.red()] += 1
-            histogram_g[color.green()] += 1
-            histogram_b[color.blue()] += 1
+    Returns:
+        list: 长度为360的列表，表示每个色相值的像素数量
+    """
+    if image is None or image.isNull():
+        return [0] * 360
 
-    if height > 0:
-        bottom_y = height - 1
-        for x in range(0, width, sample_step):
-            color = image.pixelColor(x, bottom_y)
-            histogram_r[color.red()] += 1
-            histogram_g[color.green()] += 1
-            histogram_b[color.blue()] += 1
+    arr = _qimage_to_numpy(image)
+    sampled = arr[::sample_step, ::sample_step]
 
-    # 采样右下角像素
-    if width > 0 and height > 0:
-        color = image.pixelColor(width - 1, height - 1)
-        histogram_r[color.red()] += 1
-        histogram_g[color.green()] += 1
-        histogram_b[color.blue()] += 1
+    r = sampled[:, :, 0].astype(np.float32) / 255.0
+    g = sampled[:, :, 1].astype(np.float32) / 255.0
+    b = sampled[:, :, 2].astype(np.float32) / 255.0
 
-    return histogram_r, histogram_g, histogram_b
+    h, s, v = _rgb_to_hsv_vectorized(r, g, b)
+
+    valid_mask = (s > 0.1) & (v > 0.1)
+    valid_hues = h[valid_mask].astype(np.uint16)
+
+    histogram = np.bincount(valid_hues, minlength=360)
+
+    return histogram.tolist()
+
+
+def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """向量化RGB转HSV
+
+    Args:
+        r, g, b: RGB通道数组，值范围0-1
+
+    Returns:
+        tuple: (h, s, v) 色相(0-360), 饱和度(0-1), 明度(0-1)
+    """
+    max_val = np.maximum(np.maximum(r, g), b)
+    min_val = np.minimum(np.minimum(r, g), b)
+    diff = max_val - min_val
+
+    h = np.zeros_like(r)
+    mask = diff != 0
+
+    mask_r = mask & (max_val == r)
+    h[mask_r] = (60 * ((g[mask_r] - b[mask_r]) / diff[mask_r]) + 360) % 360
+
+    mask_g = mask & (max_val == g)
+    h[mask_g] = (60 * ((b[mask_g] - r[mask_g]) / diff[mask_g]) + 120) % 360
+
+    mask_b = mask & (max_val == b)
+    h[mask_b] = (60 * ((r[mask_b] - g[mask_b]) / diff[mask_b]) + 240) % 360
+
+    s = np.zeros_like(r)
+    s[max_val != 0] = diff[max_val != 0] / max_val[max_val != 0]
+
+    v = max_val
+
+    return h, s, v
 
 
 def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
@@ -1042,21 +1038,19 @@ def get_scheme_preview_colors(
 class _ColorCube:
     """MMCQ 颜色立方体，用于表示颜色空间中的一个区域"""
 
-    def __init__(self, pixels: List[Tuple[int, int, int]], use_numpy: bool = False):
+    def __init__(self, pixels: List[Tuple[int, int, int]]):
         """
         Args:
             pixels: RGB 像素列表 [(r, g, b), ...]
-            use_numpy: 是否使用 numpy 优化
         """
         self.pixels = pixels
-        self._use_numpy = use_numpy
         self._cache_volume = None
         self._cache_avg_color = None
         self._cache_ranges = None
         self._np_pixels = None
 
-        # 如果使用 numpy，预先转换为 numpy 数组
-        if self._use_numpy and pixels:
+        # 预先转换为 numpy 数组
+        if pixels:
             self._np_pixels = np.array(pixels, dtype=np.int32)
 
     def _get_ranges(self) -> Tuple[int, int, int, int, int, int]:
@@ -1068,19 +1062,10 @@ class _ColorCube:
             self._cache_ranges = (0, 0, 0, 0, 0, 0)
             return self._cache_ranges
 
-        if self._use_numpy and self._np_pixels is not None:
-            # 使用 numpy 快速计算
-            r_min, r_max = int(self._np_pixels[:, 0].min()), int(self._np_pixels[:, 0].max())
-            g_min, g_max = int(self._np_pixels[:, 1].min()), int(self._np_pixels[:, 1].max())
-            b_min, b_max = int(self._np_pixels[:, 2].min()), int(self._np_pixels[:, 2].max())
-        else:
-            # 普通方法
-            r_min = min(p[0] for p in self.pixels)
-            r_max = max(p[0] for p in self.pixels)
-            g_min = min(p[1] for p in self.pixels)
-            g_max = max(p[1] for p in self.pixels)
-            b_min = min(p[2] for p in self.pixels)
-            b_max = max(p[2] for p in self.pixels)
+        # 使用 numpy 快速计算
+        r_min, r_max = int(self._np_pixels[:, 0].min()), int(self._np_pixels[:, 0].max())
+        g_min, g_max = int(self._np_pixels[:, 1].min()), int(self._np_pixels[:, 1].max())
+        b_min, b_max = int(self._np_pixels[:, 2].min()), int(self._np_pixels[:, 2].max())
 
         self._cache_ranges = (r_min, r_max, g_min, g_max, b_min, b_max)
         return self._cache_ranges
@@ -1111,22 +1096,9 @@ class _ColorCube:
             self._cache_avg_color = (0, 0, 0)
             return self._cache_avg_color
 
-        if self._use_numpy and self._np_pixels is not None:
-            # 使用 numpy 快速计算
-            avg = self._np_pixels.mean(axis=0)
-            self._cache_avg_color = (int(round(avg[0])), int(round(avg[1])), int(round(avg[2])))
-        else:
-            # 普通方法
-            r_sum = sum(p[0] for p in self.pixels)
-            g_sum = sum(p[1] for p in self.pixels)
-            b_sum = sum(p[2] for p in self.pixels)
-            count = len(self.pixels)
-
-            self._cache_avg_color = (
-                round(r_sum / count),
-                round(g_sum / count),
-                round(b_sum / count)
-            )
+        # 使用 numpy 快速计算
+        avg = self._np_pixels.mean(axis=0)
+        self._cache_avg_color = (int(round(avg[0])), int(round(avg[1])), int(round(avg[2])))
 
         return self._cache_avg_color
 
@@ -1152,28 +1124,21 @@ class _ColorCube:
     def split(self) -> Tuple['_ColorCube', '_ColorCube']:
         """沿最长轴的中位数切分立方体"""
         if not self.pixels:
-            return _ColorCube([], self._use_numpy), _ColorCube([], self._use_numpy)
+            return _ColorCube([]), _ColorCube([])
 
         axis = self.get_longest_axis()
         axis_index = {'r': 0, 'g': 1, 'b': 2}[axis]
 
-        if self._use_numpy and self._np_pixels is not None:
-            # 使用 numpy 快速排序
-            sorted_indices = np.argsort(self._np_pixels[:, axis_index])
-            mid = len(sorted_indices) // 2
+        # 使用 numpy 快速排序
+        sorted_indices = np.argsort(self._np_pixels[:, axis_index])
+        mid = len(sorted_indices) // 2
 
-            pixels1 = [self.pixels[i] for i in sorted_indices[:mid]]
-            pixels2 = [self.pixels[i] for i in sorted_indices[mid:]]
-        else:
-            # 普通方法
-            sorted_pixels = sorted(self.pixels, key=lambda p: p[axis_index])
-            mid = len(sorted_pixels) // 2
-            pixels1 = sorted_pixels[:mid]
-            pixels2 = sorted_pixels[mid:]
+        pixels1 = [self.pixels[i] for i in sorted_indices[:mid]]
+        pixels2 = [self.pixels[i] for i in sorted_indices[mid:]]
 
         # 切分为两个立方体
-        cube1 = _ColorCube(pixels1, self._use_numpy)
-        cube2 = _ColorCube(pixels2, self._use_numpy)
+        cube1 = _ColorCube(pixels1)
+        cube2 = _ColorCube(pixels2)
 
         return cube1, cube2
 
@@ -1191,11 +1156,8 @@ def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_Colo
     if not pixels or count <= 0:
         return []
 
-    # 判断是否使用 numpy 优化（像素数量较多时）
-    use_numpy = len(pixels) > 1000
-
     # 初始立方体包含所有像素
-    cubes = [_ColorCube(pixels, use_numpy)]
+    cubes = [_ColorCube(pixels)]
 
     # 递归切分直到达到目标数量
     while len(cubes) < count:
@@ -1246,43 +1208,20 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
 
         if hasattr(image, 'bits'):
             # 使用 numpy 批量读取像素（QImage 格式）
-            try:
-                # 将 QImage 转换为 numpy 数组
-                image = image.convertToFormat(image.Format.Format_RGB888)
-                ptr = image.bits()
-                ptr.setsize(image.sizeInBytes())
-                arr = np.array(ptr).reshape(height, width, 3)
+            arr = _qimage_to_numpy(image)
 
-                # 采样像素
-                arr_sampled = arr[::sample_step, ::sample_step]
-                pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+            # 采样像素
+            arr_sampled = arr[::sample_step, ::sample_step]
+            pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
 
-                # 额外采样边缘像素
-                if width > 0 and height > 0:
-                    right_edge = arr[::sample_step, -1]
-                    bottom_edge = arr[-1, ::sample_step]
-                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+            # 额外采样边缘像素
+            if width > 0 and height > 0:
+                right_edge = arr[::sample_step, -1]
+                bottom_edge = arr[-1, ::sample_step]
+                pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
+                pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
 
-                return pixels
-            except Exception:
-                # NumPy 加速失败，静默回退到普通方法
-                pass
-
-        # 普通方法（逐个读取）
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                color = image.pixelColor(x, y)
-                pixels.append((color.red(), color.green(), color.blue()))
-
-        # 额外采样边缘像素
-        if width > 0 and height > 0:
-            for y in range(0, height, sample_step):
-                color = image.pixelColor(width - 1, y)
-                pixels.append((color.red(), color.green(), color.blue()))
-            for x in range(0, width, sample_step):
-                color = image.pixelColor(x, height - 1)
-                pixels.append((color.red(), color.green(), color.blue()))
+            return pixels
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
@@ -1290,30 +1229,20 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
 
         if hasattr(image, 'convert'):
             # 使用 numpy 批量读取像素（PIL Image 格式）
-            try:
-                arr = np.array(image.convert('RGB'))
+            arr = np.array(image.convert('RGB'))
 
-                # 采样像素
-                arr_sampled = arr[::sample_step, ::sample_step]
-                pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+            # 采样像素
+            arr_sampled = arr[::sample_step, ::sample_step]
+            pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
 
-                # 额外采样边缘像素
-                if width > 0 and height > 0:
-                    right_edge = arr[::sample_step, -1]
-                    bottom_edge = arr[-1, ::sample_step]
-                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-                    pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+            # 额外采样边缘像素
+            if width > 0 and height > 0:
+                right_edge = arr[::sample_step, -1]
+                bottom_edge = arr[-1, ::sample_step]
+                pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
+                pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
 
-                return pixels
-            except Exception:
-                pass  # 失败时回退到普通方法
-
-        # 普通方法
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                pixel = image.getpixel((x, y))
-                if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
-                    pixels.append((pixel[0], pixel[1], pixel[2]))
+            return pixels
 
     return pixels
 
@@ -1380,32 +1309,20 @@ def _extract_pixels_with_positions_fast(
 
         if hasattr(image, 'bits'):
             # 使用 numpy 批量读取像素
-            try:
-                image = image.convertToFormat(image.Format.Format_RGB888)
-                ptr = image.bits()
-                ptr.setsize(image.sizeInBytes())
-                arr = np.array(ptr).reshape(height, width, 3)
+            arr = _qimage_to_numpy(image)
 
-                # 采样像素位置
-                y_coords, x_coords = np.meshgrid(
-                    np.arange(0, height, sample_step),
-                    np.arange(0, width, sample_step),
-                    indexing='ij'
-                )
+            # 采样像素位置
+            y_coords, x_coords = np.meshgrid(
+                np.arange(0, height, sample_step),
+                np.arange(0, width, sample_step),
+                indexing='ij'
+            )
 
-                for y, x in zip(y_coords.flat, x_coords.flat):
-                    r, g, b = arr[y, x]
-                    pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+            for y, x in zip(y_coords.flat, x_coords.flat):
+                r, g, b = arr[y, x]
+                pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
 
-                return width, height, pixel_data
-            except Exception:
-                pass  # 失败时回退到普通方法
-
-        # 普通方法
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                color = image.pixelColor(x, y)
-                pixel_data.append((x, y, color.red(), color.green(), color.blue()))
+            return width, height, pixel_data
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
@@ -1413,30 +1330,20 @@ def _extract_pixels_with_positions_fast(
 
         if hasattr(image, 'convert'):
             # 使用 numpy 批量读取像素
-            try:
-                arr = np.array(image.convert('RGB'))
+            arr = np.array(image.convert('RGB'))
 
-                # 采样像素位置
-                y_coords, x_coords = np.meshgrid(
-                    np.arange(0, height, sample_step),
-                    np.arange(0, width, sample_step),
-                    indexing='ij'
-                )
+            # 采样像素位置
+            y_coords, x_coords = np.meshgrid(
+                np.arange(0, height, sample_step),
+                np.arange(0, width, sample_step),
+                indexing='ij'
+            )
 
-                for y, x in zip(y_coords.flat, x_coords.flat):
-                    r, g, b = arr[y, x]
-                    pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+            for y, x in zip(y_coords.flat, x_coords.flat):
+                r, g, b = arr[y, x]
+                pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
 
-                return width, height, pixel_data
-            except Exception:
-                pass  # 失败时回退到普通方法
-
-        # 普通方法
-        for y in range(0, height, sample_step):
-            for x in range(0, width, sample_step):
-                pixel = image.getpixel((x, y))
-                if isinstance(pixel, (tuple, list)) and len(pixel) >= 3:
-                    pixel_data.append((x, y, pixel[0], pixel[1], pixel[2]))
+            return width, height, pixel_data
 
     return width, height, pixel_data
 
@@ -1470,62 +1377,30 @@ def find_dominant_color_positions(
         return [(0.5, 0.5)] * len(dominant_colors)
 
     # 使用 numpy 加速聚类计算
-    if len(pixel_data) > 100:
-        try:
-            # 转换为 numpy 数组
-            pixel_array = np.array(pixel_data, dtype=np.float32)  # [x, y, r, g, b]
-            dominant_array = np.array(dominant_colors, dtype=np.float32)  # [r, g, b]
+    # 转换为 numpy 数组
+    pixel_array = np.array(pixel_data, dtype=np.float32)  # [x, y, r, g, b]
+    dominant_array = np.array(dominant_colors, dtype=np.float32)  # [r, g, b]
 
-            # 提取颜色部分
-            pixel_colors = pixel_array[:, 2:5]  # [r, g, b]
+    # 提取颜色部分
+    pixel_colors = pixel_array[:, 2:5]  # [r, g, b]
 
-            # 计算每个像素到每个主色调的距离
-            # 使用广播: (n_pixels, 1, 3) - (1, n_colors, 3) -> (n_pixels, n_colors)
-            diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
-            distances = np.sum(diff ** 2, axis=2)  # 平方距离
+    # 计算每个像素到每个主色调的距离
+    # 使用广播: (n_pixels, 1, 3) - (1, n_colors, 3) -> (n_pixels, n_colors)
+    diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
+    distances = np.sum(diff ** 2, axis=2)  # 平方距离
 
-            # 找到每个像素最接近的主色调
-            closest_indices = np.argmin(distances, axis=1)
-
-            # 计算每种颜色的重心位置
-            positions = []
-            for i in range(len(dominant_colors)):
-                mask = closest_indices == i
-                cluster = pixel_array[mask]
-
-                if len(cluster) > 0:
-                    avg_x = cluster[:, 0].mean()
-                    avg_y = cluster[:, 1].mean()
-                    positions.append((avg_x / width, avg_y / height))
-                else:
-                    positions.append((0.5, 0.5))
-
-            return positions
-        except Exception:
-            pass  # 失败时回退到普通方法
-
-    # 普通方法（当 numpy 不可用或数据量较小时）
-    color_clusters = [[] for _ in dominant_colors]
-
-    # 将每个像素归类到最接近的主色调
-    for x, y, r, g, b in pixel_data:
-        min_distance = float('inf')
-        closest_color_index = 0
-
-        for i, (dr, dg, db) in enumerate(dominant_colors):
-            distance = ((r - dr) ** 2 + (g - dg) ** 2 + (b - db) ** 2) ** 0.5
-            if distance < min_distance:
-                min_distance = distance
-                closest_color_index = i
-
-        color_clusters[closest_color_index].append((x, y))
+    # 找到每个像素最接近的主色调
+    closest_indices = np.argmin(distances, axis=1)
 
     # 计算每种颜色的重心位置
     positions = []
-    for cluster in color_clusters:
-        if cluster:
-            avg_x = sum(p[0] for p in cluster) / len(cluster)
-            avg_y = sum(p[1] for p in cluster) / len(cluster)
+    for i in range(len(dominant_colors)):
+        mask = closest_indices == i
+        cluster = pixel_array[mask]
+
+        if len(cluster) > 0:
+            avg_x = cluster[:, 0].mean()
+            avg_y = cluster[:, 1].mean()
             positions.append((avg_x / width, avg_y / height))
         else:
             positions.append((0.5, 0.5))

@@ -38,6 +38,8 @@ class SettingsInterface(QWidget):
     color_wheel_labels_visible_changed = Signal(bool)
     gradient_color_space_changed = Signal(str)
     gradient_mode_changed = Signal(str)
+    luminance_default_grayscale_changed = Signal(bool)
+    histogram_sampling_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -56,6 +58,8 @@ class SettingsInterface(QWidget):
         self._color_wheel_labels_visible = self._config_manager.get('settings.color_wheel_labels_visible', True)
         self._gradient_color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
+        self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
+        self._histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
@@ -98,7 +102,7 @@ class SettingsInterface(QWidget):
         self.card_display_group = SettingCardGroup(tr('settings.card_display'), self.content_widget)
 
         self.hex_display_card = self._create_switch_card(
-            FluentIcon.PALETTE,
+            FluentIcon.TAG,
             tr('settings.hex_display'),
             tr('settings.hex_display_desc'),
             self._hex_visible
@@ -147,12 +151,15 @@ class SettingsInterface(QWidget):
         self.histogram_mode_card = self._create_histogram_mode_card()
         self.histogram_group.addSettingCard(self.histogram_mode_card)
 
+        self.histogram_sampling_card = self._create_histogram_sampling_card()
+        self.histogram_group.addSettingCard(self.histogram_sampling_card)
+
         layout.addWidget(self.histogram_group)
 
         self.highlight_group = SettingCardGroup(tr('settings.highlight'), self.content_widget)
 
         self.saturation_threshold_card = self._create_threshold_card(
-            FluentIcon.BRIGHTNESS,
+            FluentIcon.VIEW,
             tr('settings.saturation_threshold'),
             tr('settings.saturation_threshold_desc'),
             self._saturation_threshold,
@@ -161,7 +168,7 @@ class SettingsInterface(QWidget):
         self.highlight_group.addSettingCard(self.saturation_threshold_card)
 
         self.brightness_threshold_card = self._create_threshold_card(
-            FluentIcon.VIEW,
+            FluentIcon.BRIGHTNESS,
             tr('settings.brightness_threshold'),
             tr('settings.brightness_threshold_desc'),
             self._brightness_threshold,
@@ -202,6 +209,21 @@ class SettingsInterface(QWidget):
         self.gradient_group.addSettingCard(self.gradient_color_space_card)
 
         layout.addWidget(self.gradient_group)
+
+        self.luminance_group = SettingCardGroup(tr('settings.luminance'), self.content_widget)
+
+        self.luminance_default_grayscale_card = self._create_switch_card(
+            FluentIcon.CONSTRACT,
+            tr('settings.luminance_default_grayscale'),
+            tr('settings.luminance_default_grayscale_desc'),
+            self._luminance_default_grayscale
+        )
+        self.luminance_default_grayscale_card.switch_button.checkedChanged.connect(
+            self._on_luminance_default_grayscale_changed
+        )
+        self.luminance_group.addSettingCard(self.luminance_default_grayscale_card)
+
+        layout.addWidget(self.luminance_group)
 
         self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
 
@@ -346,6 +368,11 @@ class SettingsInterface(QWidget):
         self.histogram_mode_card.combo_box.setItemText(0, tr('settings.rgb_channel'))
         self.histogram_mode_card.combo_box.setItemText(1, tr('settings.hue_distribution'))
 
+        self.histogram_sampling_card.titleLabel.setText(tr('settings.histogram_sampling'))
+        self.histogram_sampling_card.contentLabel.setText(tr('settings.histogram_sampling_desc'))
+        self.histogram_sampling_card.combo_box.setItemText(0, tr('settings.histogram_sampling_fast'))
+        self.histogram_sampling_card.combo_box.setItemText(1, tr('settings.histogram_sampling_fine'))
+
         # 更新高亮卡片
         self.saturation_threshold_card.titleLabel.setText(tr('settings.saturation_threshold'))
         self.saturation_threshold_card.contentLabel.setText(tr('settings.saturation_threshold_desc'))
@@ -364,7 +391,7 @@ class SettingsInterface(QWidget):
         self.color_wheel_mode_card.combo_box.setItemText(0, tr('settings.rgb_optical'))
         self.color_wheel_mode_card.combo_box.setItemText(1, tr('settings.ryb_artistic'))
 
-        # 更新渐变提取卡片
+        # 更新渐变生成卡片
         self.gradient_group.titleLabel.setText(tr('settings.gradient'))
         self.gradient_mode_card.titleLabel.setText(tr('settings.gradient_mode'))
         self.gradient_mode_card.contentLabel.setText(tr('settings.gradient_mode_desc'))
@@ -450,7 +477,7 @@ class SettingsInterface(QWidget):
         """创建色彩模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.BRUSH,
+            FluentIcon.TILES,
             tr('settings.color_mode'),
             tr('settings.color_mode_desc'),
             self.content_widget
@@ -513,7 +540,7 @@ class SettingsInterface(QWidget):
         self.color_modes_changed.emit(self._color_modes)
 
     def _on_color_sample_count_changed(self, value):
-        """色彩提取采样点数改变"""
+        """色彩分析采样点数改变"""
         self._color_sample_count = value
         self._config_manager.set('settings.color_sample_count', value)
         self._config_manager.save()
@@ -521,7 +548,7 @@ class SettingsInterface(QWidget):
         self.color_sample_count_changed.emit(value)
 
     def _on_luminance_sample_count_changed(self, value):
-        """明度提取采样点数改变"""
+        """明度分析采样点数改变"""
         self._luminance_sample_count = value
         self._config_manager.set('settings.luminance_sample_count', value)
         self._config_manager.save()
@@ -532,7 +559,7 @@ class SettingsInterface(QWidget):
         """创建直方图缩放模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.DOCUMENT,
+            FluentIcon.ZOOM,
             tr('settings.histogram_scaling'),
             tr('settings.histogram_scaling_desc'),
             self.content_widget
@@ -574,7 +601,7 @@ class SettingsInterface(QWidget):
         """创建明度直方图样式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.LAYOUT,
             tr('settings.luminance_histogram_style'),
             tr('settings.luminance_histogram_style_desc'),
             self.content_widget
@@ -616,7 +643,7 @@ class SettingsInterface(QWidget):
         """创建直方图模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.VIEW,
             tr('settings.histogram_mode'),
             tr('settings.histogram_mode_desc'),
             self.content_widget
@@ -653,6 +680,48 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("change_histogram_mode", {"mode": mode})
         self.histogram_mode_changed.emit(mode)
+
+    def _create_histogram_sampling_card(self):
+        """创建直方图采样模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.SPEED_HIGH,
+            tr('settings.histogram_sampling'),
+            tr('settings.histogram_sampling_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.histogram_sampling_fast'))
+        combo_box.setItemData(0, "fast")
+        combo_box.addItem(tr('settings.histogram_sampling_fine'))
+        combo_box.setItemData(1, "fine")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._histogram_sampling_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_histogram_sampling_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_histogram_sampling_changed(self, index):
+        """直方图采样模式改变"""
+        combo_box = self.histogram_sampling_card.combo_box
+        mode = combo_box.itemData(index)
+        self._histogram_sampling_mode = mode
+        self._config_manager.set('settings.histogram_sampling_mode', mode)
+        self._config_manager.save()
+        log_user_action("change_histogram_sampling_mode", {"mode": mode})
+        self.histogram_sampling_mode_changed.emit(mode)
 
     def _create_color_wheel_mode_card(self):
         """创建配色方案模式选择卡片"""
@@ -700,7 +769,7 @@ class SettingsInterface(QWidget):
         """创建渐变模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.BRUSH,
             tr('settings.gradient_mode'),
             tr('settings.gradient_mode_desc'),
             self.content_widget
@@ -790,7 +859,7 @@ class SettingsInterface(QWidget):
         """创建渐变颜色空间选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.PALETTE,
+            FluentIcon.BRUSH,
             tr('settings.gradient_color_space'),
             tr('settings.gradient_color_space_desc'),
             self.content_widget
@@ -924,6 +993,14 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("toggle_color_wheel_labels", {"visible": checked})
         self.color_wheel_labels_visible_changed.emit(checked)
+
+    def _on_luminance_default_grayscale_changed(self, checked):
+        """明度分析默认黑白模式改变"""
+        self._luminance_default_grayscale = checked
+        self._config_manager.set('settings.luminance_default_grayscale', checked)
+        self._config_manager.save()
+        log_user_action("change_luminance_default_grayscale", {"enabled": checked})
+        self.luminance_default_grayscale_changed.emit(checked)
 
     def _update_styles(self):
         """更新样式以适配主题"""

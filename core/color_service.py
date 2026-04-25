@@ -97,7 +97,7 @@ class DominantColorExtractor(QThread):
 
             self.extraction_finished.emit(dominant_colors, positions)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             if not self._check_cancelled():
                 logger.error(f"主色调提取异常: error={str(e)}")
                 self.extraction_error.emit(str(e))

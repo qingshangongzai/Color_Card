@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "Chargement..."
 
 [navigation]
-color_extract = "Extraction de couleurs"
-luminance_extract = "Extraction de luminance"
-gradient_extract = "Extraction de dégradé"
+color_analysis = "Analyse des couleurs"
+luminance_analysis = "Analyse de luminance"
+gradient_generation = "Génération de dégradé"
 color_generation = "Génération de couleurs"
 palette_management = "Gestion des palettes"
 preset_color = "Couleurs prédéfinies"
@@ -20,7 +20,7 @@ theme_light = "Mode clair"
 theme_dark = "Mode sombre"
 theme_auto = "Suivre le système"
 
-[color_extract]
+[color_analysis]
 favorite = "Enregistrer"
 extract_dominant = "Extraire"
 extracting = "Extraction..."
@@ -29,11 +29,11 @@ show_high_brightness = "Haute luminosité"
 select_image = "Sélectionner une image"
 image_filter = "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "Sélectionner une image"
 image_filter = "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "Couleur de départ"
 end_color = "Couleur de fin"
 base_color = "Couleur de base"
@@ -43,7 +43,7 @@ random = "Aléatoire"
 favorite = "Enregistrer"
 select_color = "Sélectionner la couleur"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "Enregistré"
 content = "Le schéma de dégradé a été ajouté à la gestion des palettes"
 
@@ -97,7 +97,7 @@ no_selection = "Veuillez d'abord sélectionner des palettes à supprimer"
 
 [color_preview]
 title = "Aperçu des couleurs"
-subtitle = "L'importation des mises en page mixtes présente des problèmes, ce module est encore en développement"
+subtitle = "En cours de développement"
 import_btn = "Importer"
 export_btn = "Exporter"
 delete = "Supprimer"
@@ -229,6 +229,10 @@ luminance_histogram_line = "Ligne"
 luminance_histogram_bar = "Barres"
 histogram_mode = "Mode d'affichage de l'histogramme"
 histogram_mode_desc = "Sélectionner le type d'histogramme pour le panneau d'extraction (Canaux RVB/Distribution teinte)"
+histogram_sampling = "Échantillonnage de l'histogramme"
+histogram_sampling_desc = "Choisissez entre un échantillonnage rapide ou précis"
+histogram_sampling_fast = "Rapide"
+histogram_sampling_fine = "Précis"
 highlight = "Paramètres de surbrillance"
 saturation_threshold = "Seuil de haute saturation"
 saturation_threshold_desc = "Définir le seuil de saturation pour les zones à haute saturation"
@@ -251,6 +255,9 @@ gradient_mode = "Mode de dégradé"
 gradient_mode_desc = "Sélectionner le mode d'extraction du dégradé"
 gradient_mode_gradient = "Dégradé bicolore"
 gradient_mode_shade = "Dégradé monochrome"
+luminance = "Extraction de Luminance"
+luminance_default_grayscale = "Mode Niveaux de Gris par Défaut"
+luminance_default_grayscale_desc = "Afficher les images en niveaux de gris par défaut"
 language = "Paramètres de langue"
 language_title = "Langue de l'interface"
 language_desc = "Sélectionner la langue d'affichage de l'application"
@@ -501,6 +508,40 @@ change_image = "Changer l'image"
 clear_image = "Effacer l'image"
 add_picker = "Ajouter un point d'échantillon"
 remove_picker = "Supprimer un point d'échantillon"
+grayscale_mode = "Mode Niveaux de Gris"
+color_mode = "Mode Couleur"
+hide_pickers = "Masquer les points"
+show_pickers = "Afficher les points"
+tone_analysis = "Analyse du ton"
+
+[tone_analysis]
+dialog_title = "Analyse du ton"
+loading = "Analyse en cours..."
+original_image = "Original"
+grayscale = "Niveaux de gris"
+histogram = "Histogramme"
+histogram_detail = "Distribution de luminosité"
+tone_type = "Type de ton"
+tone_type_hint = "(référence uniquement)"
+mean_brightness = "Luminosité moyenne"
+median = "Médiane"
+std_deviation = "Écart-type (contraste)"
+brightness_range = "Plage de luminosité"
+shadows = "Ombres"
+midtones = "Tons moyens"
+highlights = "Hautes lumières"
+
+[tone_analysis.tone_types]
+high_long = "Haut-Long"
+high_medium = "Haut-Moyen"
+high_short = "Haut-Court"
+mid_long = "Moyen-Long"
+mid_medium = "Moyen-Moyen"
+mid_short = "Moyen-Court"
+low_long = "Bas-Long"
+low_medium = "Bas-Moyen"
+low_short = "Bas-Court"
+full_long = "Plein-Long"
 
 [common]
 delete = "Supprimer"

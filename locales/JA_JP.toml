@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "起動中..."
 
 [navigation]
-color_extract = "カラー抽出"
-luminance_extract = "輝度抽出"
-gradient_extract = "グラデーション抽出"
+color_analysis = "カラー分析"
+luminance_analysis = "輝度分析"
+gradient_generation = "グラデーション生成"
 color_generation = "カラー生成"
 palette_management = "パレット管理"
 preset_color = "プリセットカラー"
@@ -20,7 +20,7 @@ theme_light = "ライトモード"
 theme_dark = "ダークモード"
 theme_auto = "システムに従う"
 
-[color_extract]
+[color_analysis]
 favorite = "パレットを保存"
 extract_dominant = "主色調を自動抽出"
 extracting = "抽出中..."
@@ -29,11 +29,11 @@ show_high_brightness = "高輝度領域を表示"
 select_image = "画像を選択"
 image_filter = "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "画像を選択"
 image_filter = "画像ファイル (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "開始色"
 end_color = "終了色"
 base_color = "ベース色"
@@ -43,7 +43,7 @@ random = "ランダム"
 favorite = "保存"
 select_color = "色を選択"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "保存しました"
 content = "グラデーション配色がパレット管理に追加されました"
 
@@ -97,7 +97,7 @@ no_selection = "削除するパレットを選択してください"
 
 [color_preview]
 title = "カラープレビュー"
-subtitle = "混合レイアウトのインポートには問題があります、このモジュールはまだ開発中です"
+subtitle = "開発中です"
 import_btn = "インポート"
 export_btn = "エクスポート"
 delete = "削除"
@@ -229,6 +229,10 @@ luminance_histogram_line = "線接続"
 luminance_histogram_bar = "棒グラフ"
 histogram_mode = "ヒストグラム表示モード"
 histogram_mode_desc = "カラー抽出パネルのヒストグラムタイプを選択（RGBチャンネル/色相分布）"
+histogram_sampling = "ヒストグラムサンプリング"
+histogram_sampling_desc = "ヒストグラム計算のサンプリングモードを選択"
+histogram_sampling_fast = "高速"
+histogram_sampling_fine = "高精細"
 highlight = "ハイライト領域設定"
 saturation_threshold = "高彩度閾値"
 saturation_threshold_desc = "高彩度領域の彩度閾値を設定"
@@ -251,6 +255,9 @@ gradient_mode = "グラデーションモード"
 gradient_mode_desc = "グラデーション抽出のモードを選択"
 gradient_mode_gradient = "二色グラデーション"
 gradient_mode_shade = "単色グラデーション"
+luminance = "明度抽出"
+luminance_default_grayscale = "デフォルト白黒モード"
+luminance_default_grayscale_desc = "明度抽出パネルで画像をデフォルトで白黒表示"
 language = "言語設定"
 language_title = "インターフェース言語"
 language_desc = "アプリケーションの表示言語を選択"
@@ -501,6 +508,40 @@ change_image = "画像を変更"
 clear_image = "画像をクリア"
 add_picker = "サンプルポイントを追加"
 remove_picker = "サンプルポイントを削除"
+grayscale_mode = "白黒モード"
+color_mode = "カラーモード"
+hide_pickers = "サンプルポイントを非表示"
+show_pickers = "サンプルポイントを表示"
+tone_analysis = "明度分析"
+
+[tone_analysis]
+dialog_title = "明度分析"
+loading = "分析中..."
+original_image = "原図"
+grayscale = "グレースケール"
+histogram = "ヒストグラム"
+histogram_detail = "輝度分布"
+tone_type = "トーンタイプ"
+tone_type_hint = "（参考用）"
+mean_brightness = "平均明度"
+median = "中央値"
+std_deviation = "標準偏差(コントラスト)"
+brightness_range = "明度範囲"
+shadows = "暗部"
+midtones = "中間調"
+highlights = "亮部"
+
+[tone_analysis.tone_types]
+high_long = "ハイロング"
+high_medium = "ハイミディアム"
+high_short = "ハイショート"
+mid_long = "ミッドロング"
+mid_medium = "ミッドミディアム"
+mid_short = "ミッドショート"
+low_long = "ローロング"
+low_medium = "ローミディアム"
+low_short = "ローショート"
+full_long = "フルロング"
 
 [common]
 delete = "削除"

@@ -1,6 +1,6 @@
 # 标准库导入
 import hashlib
-from typing import List, Optional
+from typing import Dict, List, Optional, Any
 
 # 第三方库导入
 from PySide6.QtGui import QImage
@@ -17,6 +17,8 @@ class HistogramCache(BaseCache):
 
     缓存键格式: (image_key, histogram_type)
     图片指纹基于图片尺寸和像素采样生成。
+
+    存储格式: {'histogram': List[int], 'metadata': Dict[str, Any]}
     """
 
     def __init__(self, max_size: int = 50):
@@ -38,13 +40,31 @@ class HistogramCache(BaseCache):
             Optional[List[int]]: 缓存的直方图数据，如果缓存未命中则返回None
         """
         key = self._get_key(image_key, histogram_type)
+        cached = self._get_from_cache(key)
+        if cached is None:
+            return None
+        return cached['histogram']
+
+    def get_with_metadata(self, image_key: str, histogram_type: str) -> Optional[Dict[str, Any]]:
+        """获取缓存的直方图数据及元数据
+
+        Args:
+            image_key: 图片指纹键
+            histogram_type: 直方图类型 ('luminance', 'rgb', 'hue')
+
+        Returns:
+            Optional[Dict[str, Any]]: 包含直方图数据和元数据的字典，未命中返回None
+            格式: {'histogram': List[int], 'metadata': Dict[str, Any]}
+        """
+        key = self._get_key(image_key, histogram_type)
         return self._get_from_cache(key)
 
     def set(
         self,
         image_key: str,
         histogram_type: str,
-        histogram_data: List[int]
+        histogram_data: List[int],
+        metadata: Dict[str, Any]
     ) -> None:
         """存储直方图数据到缓存
 
@@ -52,9 +72,13 @@ class HistogramCache(BaseCache):
             image_key: 图片指纹键
             histogram_type: 直方图类型 ('luminance', 'rgb', 'hue')
             histogram_data: 直方图数据列表
+            metadata: 元数据字典（如统计信息）
         """
         key = self._get_key(image_key, histogram_type)
-        self._set_to_cache(key, histogram_data)
+        self._set_to_cache(key, {
+            'histogram': histogram_data,
+            'metadata': metadata
+        })
 
     def clear_by_image(self, image_key: str) -> None:
         """清除指定图片的所有直方图缓存

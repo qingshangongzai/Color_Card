@@ -19,22 +19,22 @@ from .zoom_viewer import ZoomViewer
 
 
 # 界面类延迟导入函数
-def get_color_extract_interface():
-    """获取色彩提取界面类（延迟导入）"""
-    from .color_extract import ColorExtractInterface
-    return ColorExtractInterface
+def get_color_analysis_interface():
+    """获取色彩分析界面类（延迟导入）"""
+    from .color_analysis import ColorAnalysisInterface
+    return ColorAnalysisInterface
 
 
-def get_luminance_extract_interface():
-    """获取明度提取界面类（延迟导入）"""
-    from .luminance_extract import LuminanceExtractInterface
-    return LuminanceExtractInterface
+def get_luminance_analysis_interface():
+    """获取明度分析界面类（延迟导入）"""
+    from .luminance_analysis import LuminanceAnalysisInterface
+    return LuminanceAnalysisInterface
 
 
-def get_gradient_extract_interface():
-    """获取渐变提取界面类（延迟导入）"""
-    from .gradient_extract import GradientExtractInterface
-    return GradientExtractInterface
+def get_gradient_generation_interface():
+    """获取渐变生成界面类（延迟导入）"""
+    from .gradient_generation import GradientGenerationInterface
+    return GradientGenerationInterface
 
 
 def get_color_generation_interface():
@@ -86,9 +86,9 @@ __all__ = [
     'LuminanceHistogramWidget',
     'RGBHistogramWidget',
     # 延迟导入函数
-    'get_color_extract_interface',
-    'get_luminance_extract_interface',
-    'get_gradient_extract_interface',
+    'get_color_analysis_interface',
+    'get_luminance_analysis_interface',
+    'get_gradient_generation_interface',
     'get_color_generation_interface',
     'get_palette_management_interface',
     'get_preset_color_interface',

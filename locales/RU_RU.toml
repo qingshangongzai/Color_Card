@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "Загрузка..."
 
 [navigation]
-color_extract = "Извлечение цвета"
-luminance_extract = "Извлечение яркости"
-gradient_extract = "Извлечение градиента"
+color_analysis = "Анализ цвета"
+luminance_analysis = "Анализ яркости"
+gradient_generation = "Генерация градиента"
 color_generation = "Генерация цвета"
 palette_management = "Палитры"
 preset_color = "Предустановленные цвета"
@@ -20,7 +20,7 @@ theme_light = "Светлая тема"
 theme_dark = "Темная тема"
 theme_auto = "Как в системе"
 
-[color_extract]
+[color_analysis]
 favorite = "Сохранить"
 extract_dominant = "Извлечь"
 extracting = "Извлечение..."
@@ -29,11 +29,11 @@ show_high_brightness = "Высокая яркость"
 select_image = "Выбрать изображение"
 image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "Выбрать изображение"
 image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "Начальный цвет"
 end_color = "Конечный цвет"
 base_color = "Базовый цвет"
@@ -43,7 +43,7 @@ random = "Случайный"
 favorite = "Сохр."
 select_color = "Выбрать цвет"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "Сохранено"
 content = "Градиентная схема добавлена в управление палитрами"
 
@@ -98,7 +98,7 @@ no_selection = "Пожалуйста, сначала выберите палит
 
 [color_preview]
 title = "Предпросмотр цвета"
-subtitle = "Импорт смешанных макетов имеет некоторые проблемы, модуль всё ещё в разработке"
+subtitle = "В разработке"
 import_btn = "Импорт"
 export_btn = "Экспорт"
 delete = "Удалить"
@@ -230,6 +230,10 @@ luminance_histogram_line = "Линия"
 luminance_histogram_bar = "Столбцы"
 histogram_mode = "Режим отображения гистограммы"
 histogram_mode_desc = "Выберите тип гистограммы для панели извлечения (RGB каналы/Распределение оттенков)"
+histogram_sampling = "Выборка гистограммы"
+histogram_sampling_desc = "Выберите режим выборки для расчета гистограммы"
+histogram_sampling_fast = "Быстрый"
+histogram_sampling_fine = "Точный"
 highlight = "Настройки выделения"
 saturation_threshold = "Порог высокой насыщенности"
 saturation_threshold_desc = "Установите порог насыщенности для высоконасыщенных областей"
@@ -252,7 +256,10 @@ gradient_mode = "Режим градиента"
 gradient_mode_desc = "Выберите режим извлечения градиента"
 gradient_mode_gradient = "Двухцветный градиент"
 gradient_mode_shade = "Монохромный градиент"
-language = "Настройки языка"
+luminance = "Извлечение яркости"
+luminance_default_grayscale = "Оттенки серого по умолчанию"
+luminance_default_grayscale_desc = "Отображать изображения в оттенках серого по умолчанию"
+language = "Язык""Настройки языка"
 language_title = "Язык интерфейса"
 language_desc = "Выберите язык отображения приложения"
 language_auto = "Следовать системе"
@@ -502,6 +509,40 @@ change_image = "Изменить изображение"
 clear_image = "Очистить изображение"
 add_picker = "Добавить точку выборки"
 remove_picker = "Удалить точку выборки"
+grayscale_mode = "Оттенки серого"
+color_mode = "Цветной режим"
+hide_pickers = "Скрыть точки"
+show_pickers = "Показать точки"
+tone_analysis = "Анализ тона"
+
+[tone_analysis]
+dialog_title = "Анализ тона"
+loading = "Анализ..."
+original_image = "Оригинал"
+grayscale = "Оттенки серого"
+histogram = "Гистограмма"
+histogram_detail = "Распределение яркости"
+tone_type = "Тип тона"
+tone_type_hint = "(только для справки)"
+mean_brightness = "Средняя яркость"
+median = "Медиана"
+std_deviation = "Стандартное отклонение"
+brightness_range = "Диапазон яркости"
+shadows = "Тени"
+midtones = "Средние тона"
+highlights = "Света"
+
+[tone_analysis.tone_types]
+high_long = "Высокий-Длинный"
+high_medium = "Высокий-Средний"
+high_short = "Высокий-Короткий"
+mid_long = "Средний-Длинный"
+mid_medium = "Средний-Средний"
+mid_short = "Средний-Короткий"
+low_long = "Низкий-Длинный"
+low_medium = "Низкий-Средний"
+low_short = "Низкий-Короткий"
+full_long = "Полный-Длинный"
 
 [common]
 delete = "Удалить"

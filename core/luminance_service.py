@@ -8,11 +8,12 @@ UI层通过LuminanceService调用业务功能，实现UI与业务逻辑分离。
 from typing import Dict, List, Optional, Tuple, Any
 
 # 第三方库导入
+import numpy as np
 from PySide6.QtCore import QObject, QThread, Signal, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
-from .color import get_luminance, get_zone, get_zone_bounds
+from .color import get_luminance, get_zone, get_zone_bounds, _rgb_to_hsv_vectorized
 from .logger import get_logger, log_performance
 
 logger = get_logger("luminance_service")
@@ -105,27 +106,35 @@ class LuminanceCalculator(QThread):
         Returns:
             list: 每个Zone的像素数量 (Zone 0-7)
         """
-        width = self._image.width()
-        height = self._image.height()
+        if self._image is None or self._image.isNull():
+            return [0] * 8
 
-        # 初始化Zone计数 (Zone 0-7)
-        distribution = [0] * 8
+        # 延迟导入避免循环依赖
+        from ui.canvases import qimage_to_numpy
 
-        # 采样步长（性能优化）
-        sample_step = 4
+        try:
+            img_array = qimage_to_numpy(self._image)
+            sampled = img_array[::4, ::4]
 
-        for y in range(0, height, sample_step):
-            if self._check_cancelled():
-                return distribution
+            # 向量化明度计算 (Rec. 709)
+            r = sampled[:, :, 0].astype(np.float32)
+            g = sampled[:, :, 1].astype(np.float32)
+            b = sampled[:, :, 2].astype(np.float32)
+            luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
 
-            for x in range(0, width, sample_step):
-                color = self._image.pixelColor(x, y)
-                luminance = get_luminance(color.red(), color.green(), color.blue())
-                zone_index = luminance // 32
-                zone_index = min(zone_index, 7)  # 确保不越界
-                distribution[zone_index] += 1
+            # 向量化Zone统计
+            zone_indices = luminance // 32
+            zone_indices = np.clip(zone_indices, 0, 7)
+            unique, counts = np.unique(zone_indices, return_counts=True)
 
-        return distribution
+            distribution = [0] * 8
+            for zone, count in zip(unique, counts):
+                distribution[int(zone)] = int(count)
+
+            return distribution
+
+        except ValueError:
+            return [0] * 8
 
 
 class LuminanceService(QObject):
@@ -280,11 +289,12 @@ class LuminanceService(QObject):
         luminance = get_luminance(color.red(), color.green(), color.blue())
         return get_zone(luminance)
 
-    def get_zone_distribution(self, image: QImage) -> List[int]:
+    def get_zone_distribution(self, image: QImage, sample_step: int = 4) -> List[int]:
         """获取明度分布统计
 
         Args:
             image: QImage 对象
+            sample_step: 采样步长
 
         Returns:
             list: 每个Zone的像素数量 (Zone 0-7)
@@ -292,94 +302,37 @@ class LuminanceService(QObject):
         if image is None or image.isNull():
             return [0] * 8
 
-        width = image.width()
-        height = image.height()
+        # 延迟导入避免循环依赖
+        from ui.canvases import qimage_to_numpy
 
-        with log_performance("get_zone_distribution", {
-            "width": width,
-            "height": height
-        }):
-            distribution = [0] * 8
-            sample_step = 4
+        try:
+            with log_performance("get_zone_distribution", {
+                "width": image.width(),
+                "height": image.height()
+            }):
+                img_array = qimage_to_numpy(image)
+                sampled = img_array[::sample_step, ::sample_step]
 
-            for y in range(0, height, sample_step):
-                for x in range(0, width, sample_step):
-                    color = image.pixelColor(x, y)
-                    luminance = get_luminance(color.red(), color.green(), color.blue())
-                    zone_index = luminance // 32
-                    zone_index = min(zone_index, 7)
-                    distribution[zone_index] += 1
+                # 向量化明度计算 (Rec. 709)
+                r = sampled[:, :, 0].astype(np.float32)
+                g = sampled[:, :, 1].astype(np.float32)
+                b = sampled[:, :, 2].astype(np.float32)
+                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
 
-        return distribution
+                # 向量化Zone统计
+                zone_indices = luminance // 32
+                zone_indices = np.clip(zone_indices, 0, 7)
+                unique, counts = np.unique(zone_indices, return_counts=True)
 
-    def generate_zone_highlight_pixmap(
-        self,
-        image: QImage,
-        zone: int,
-        canvas_size: Tuple[int, int],
-        display_rect: Tuple[int, int, int, int],
-        zone_color: QColor
-    ) -> Optional[QPixmap]:
-        """生成Zone高亮遮罩图
+                distribution = [0] * 8
+                for zone, count in zip(unique, counts):
+                    distribution[int(zone)] = int(count)
 
-        Args:
-            image: 原始图片
-            zone: Zone编号 (0-8)
-            canvas_size: 画布尺寸 (width, height)
-            display_rect: 图片显示区域 (x, y, w, h)
-            zone_color: 高亮颜色
+                return distribution
 
-        Returns:
-            QPixmap: 高亮遮罩图，如果失败则返回None
-        """
-        if image is None or image.isNull():
-            return None
-
-        if not (0 <= zone <= 8):
-            return None
-
-        canvas_width, canvas_height = canvas_size
-        disp_x, disp_y, disp_w, disp_h = display_rect
-
-        with log_performance("generate_zone_highlight_pixmap", {
-            "zone": zone,
-            "display_size": f"{disp_w}x{disp_h}"
-        }):
-            highlight_pixmap = QPixmap(canvas_width, canvas_height)
-            highlight_pixmap.fill(Qt.GlobalColor.transparent)
-
-            painter = QPainter(highlight_pixmap)
-            painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-            min_lum, max_lum = get_zone_bounds(f"{zone}-{zone+1}")
-
-            scale_x = image.width() / disp_w
-            scale_y = image.height() / disp_h
-            sample_step = 4
-
-            for dy in range(0, disp_h, sample_step):
-                for dx in range(0, disp_w, sample_step):
-                    img_x = int(dx * scale_x)
-                    img_y = int(dy * scale_y)
-
-                    img_x = min(img_x, image.width() - 1)
-                    img_y = min(img_y, image.height() - 1)
-
-                    color = image.pixelColor(img_x, img_y)
-                    luminance = get_luminance(color.red(), color.green(), color.blue())
-
-                    if min_lum <= luminance <= max_lum:
-                        painter.fillRect(
-                            disp_x + dx,
-                            disp_y + dy,
-                            sample_step,
-                            sample_step,
-                            zone_color
-                        )
-
-            painter.end()
-
-        return highlight_pixmap
+        except ValueError as e:
+            logger.error(f"Zone分布计算失败: {e}")
+            return [0] * 8
 
     def _on_calculation_finished(self, result: Dict[str, Any]):
         """计算完成处理
@@ -394,3 +347,180 @@ class LuminanceService(QObject):
         if self._calculator is not None:
             self._calculator.deleteLater()
             self._calculator = None
+
+    def generate_highlight_mask_numpy(
+        self,
+        image: QImage,
+        mode: str,
+        threshold: float,
+        canvas_size: Tuple[int, int],
+        display_rect: Tuple[int, int, int, int],
+        highlight_color: QColor,
+        sample_step: int = 4
+    ) -> Optional[QPixmap]:
+        """使用NumPy生成高亮遮罩图
+
+        Args:
+            image: 原始图片
+            mode: 'saturation' 或 'brightness'
+            threshold: 阈值 (0.0-1.0)
+            canvas_size: 画布尺寸 (width, height)
+            display_rect: 图片显示区域 (x, y, w, h)
+            highlight_color: 高亮颜色
+            sample_step: 采样步长
+
+        Returns:
+            QPixmap: 高亮遮罩图，失败返回None
+        """
+        if image is None or image.isNull():
+            return None
+
+        # 延迟导入避免循环依赖
+        from ui.canvases import qimage_to_numpy
+
+        canvas_width, canvas_height = canvas_size
+        disp_x, disp_y, disp_w, disp_h = display_rect
+
+        try:
+            with log_performance("generate_highlight_mask_numpy", {
+                "mode": mode,
+                "threshold": threshold,
+                "display_size": f"{disp_w}x{disp_h}"
+            }):
+                # 将原始图片缩放到显示尺寸（像素级处理）
+                scaled_image = image.scaled(
+                    disp_w, disp_h,
+                    Qt.AspectRatioMode.IgnoreAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+
+                # 转为NumPy数组（像素级）
+                img_array = qimage_to_numpy(scaled_image)
+
+                # 计算HSV值
+                r = img_array[:, :, 0] / 255.0
+                g = img_array[:, :, 1] / 255.0
+                b = img_array[:, :, 2] / 255.0
+                h, s, v = _rgb_to_hsv_vectorized(r, g, b)
+
+                # 生成像素级mask
+                value = s if mode == 'saturation' else v
+                mask = value >= threshold
+
+                # 创建RGBA图像
+                rgba = np.zeros((disp_h, disp_w, 4), dtype=np.uint8)
+                rgba[mask] = [
+                    highlight_color.red(),
+                    highlight_color.green(),
+                    highlight_color.blue(),
+                    180  # 透明度
+                ]
+
+                # 转为QImage
+                mask_image = QImage(
+                    rgba.tobytes(),
+                    disp_w, disp_h,
+                    disp_w * 4,
+                    QImage.Format.Format_RGBA8888
+                )
+
+                # 绘制到画布
+                highlight_pixmap = QPixmap(canvas_width, canvas_height)
+                highlight_pixmap.fill(Qt.GlobalColor.transparent)
+
+                painter = QPainter(highlight_pixmap)
+                painter.drawImage(disp_x, disp_y, mask_image)
+                painter.end()
+
+                return highlight_pixmap
+
+        except ValueError as e:
+            logger.error(f"NumPy高亮计算失败: {e}")
+            return None
+
+    def generate_zone_highlight_pixmap_numpy(
+        self,
+        image: QImage,
+        zone: int,
+        canvas_size: Tuple[int, int],
+        display_rect: Tuple[int, int, int, int],
+        zone_color: QColor,
+        sample_step: int = 4
+    ) -> Optional[QPixmap]:
+        """使用NumPy生成Zone高亮遮罩图
+
+        Args:
+            image: 原始图片
+            zone: Zone编号 (0-8)
+            canvas_size: 画布尺寸 (width, height)
+            display_rect: 图片显示区域 (x, y, w, h)
+            zone_color: 高亮颜色
+            sample_step: 采样步长
+
+        Returns:
+            QPixmap: 高亮遮罩图，失败返回None
+        """
+        if image is None or image.isNull() or not (0 <= zone <= 8):
+            return None
+
+        # 延迟导入避免循环依赖
+        from ui.canvases import qimage_to_numpy
+
+        canvas_width, canvas_height = canvas_size
+        disp_x, disp_y, disp_w, disp_h = display_rect
+
+        try:
+            with log_performance("generate_zone_highlight_pixmap_numpy", {
+                "zone": zone,
+                "display_size": f"{disp_w}x{disp_h}"
+            }):
+                # 将原始图片缩放到显示尺寸（像素级处理）
+                scaled_image = image.scaled(
+                    disp_w, disp_h,
+                    Qt.AspectRatioMode.IgnoreAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+
+                # 转为NumPy数组（像素级）
+                img_array = qimage_to_numpy(scaled_image)
+
+                # 向量化明度计算 (Rec. 709标准)
+                r = img_array[:, :, 0].astype(np.float32)
+                g = img_array[:, :, 1].astype(np.float32)
+                b = img_array[:, :, 2].astype(np.float32)
+                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+
+                # 获取Zone边界并生成mask
+                min_lum, max_lum = get_zone_bounds(f"{zone}-{zone+1}")
+                mask = (luminance >= min_lum) & (luminance <= max_lum)
+
+                # 创建RGBA图像
+                rgba = np.zeros((disp_h, disp_w, 4), dtype=np.uint8)
+                rgba[mask] = [
+                    zone_color.red(),
+                    zone_color.green(),
+                    zone_color.blue(),
+                    180  # 透明度
+                ]
+
+                # 转为QImage
+                mask_image = QImage(
+                    rgba.tobytes(),
+                    disp_w, disp_h,
+                    disp_w * 4,
+                    QImage.Format.Format_RGBA8888
+                )
+
+                # 绘制到画布
+                highlight_pixmap = QPixmap(canvas_width, canvas_height)
+                highlight_pixmap.fill(Qt.GlobalColor.transparent)
+
+                painter = QPainter(highlight_pixmap)
+                painter.drawImage(disp_x, disp_y, mask_image)
+                painter.end()
+
+                return highlight_pixmap
+
+        except ValueError as e:
+            logger.error(f"NumPy Zone高亮计算失败: {e}")
+            return None

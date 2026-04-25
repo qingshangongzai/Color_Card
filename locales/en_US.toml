@@ -4,9 +4,9 @@ name_en = "Color Card"
 loading = "Loading..."
 
 [navigation]
-color_extract = "Color Extract"
-luminance_extract = "Luminance Extract"
-gradient_extract = "Gradient Extract"
+color_analysis = "Color Analysis"
+luminance_analysis = "Luminance Analysis"
+gradient_generation = "Gradient Generation"
 color_generation = "Color Generation"
 palette_management = "Palette Management"
 preset_color = "Preset Colors"
@@ -20,7 +20,7 @@ theme_light = "Light Mode"
 theme_dark = "Dark Mode"
 theme_auto = "System"
 
-[color_extract]
+[color_analysis]
 favorite = "Save Palette"
 extract_dominant = "Auto Extract Dominant"
 extracting = "Extracting..."
@@ -29,11 +29,11 @@ show_high_brightness = "Show High Brightness"
 select_image = "Select Image"
 image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[luminance_extract]
+[luminance_analysis]
 select_image = "Select Image"
 image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
 
-[gradient_extract]
+[gradient_generation]
 start_color = "Start Color"
 end_color = "End Color"
 base_color = "Base Color"
@@ -43,7 +43,7 @@ random = "Random"
 favorite = "Save"
 select_color = "Select Color"
 
-[gradient_extract.favorite_success]
+[gradient_generation.favorite_success]
 title = "Saved"
 content = "Gradient scheme has been added to palette management"
 
@@ -97,7 +97,7 @@ no_selection = "Please select palettes to delete first"
 
 [color_preview]
 title = "Color Preview"
-subtitle = "Importing mixed layouts has some issues, this module is still under development"
+subtitle = "Still under development"
 import_btn = "Import"
 export_btn = "Export"
 delete = "Delete"
@@ -229,6 +229,10 @@ luminance_histogram_line = "Line"
 luminance_histogram_bar = "Bar"
 histogram_mode = "Histogram Display Mode"
 histogram_mode_desc = "Select histogram type for color extraction panel (RGB Channels/Hue Distribution)"
+histogram_sampling = "Histogram Sampling"
+histogram_sampling_desc = "Choose between fast or fine sampling for histogram calculation"
+histogram_sampling_fast = "Fast"
+histogram_sampling_fine = "Fine"
 highlight = "Highlight Area Settings"
 saturation_threshold = "High Saturation Threshold"
 saturation_threshold_desc = "Set saturation threshold for high saturation areas"
@@ -251,7 +255,10 @@ gradient_mode = "Gradient Mode"
 gradient_mode_desc = "Select the gradient extraction mode"
 gradient_mode_gradient = "Two-color Gradient"
 gradient_mode_shade = "Monochrome Gradient"
-language = "Language Settings"
+luminance = "Luminance Extract"
+luminance_default_grayscale = "Default Grayscale Mode"
+luminance_default_grayscale_desc = "Display images in grayscale by default in luminance extract panel"
+language = "Language" Settings"
 language_title = "Interface Language"
 language_desc = "Select the display language for the application"
 language_auto = "Follow System"
@@ -501,6 +508,40 @@ change_image = "Change Image"
 clear_image = "Clear Image"
 add_picker = "Add Sample Point"
 remove_picker = "Remove Sample Point"
+grayscale_mode = "Grayscale Mode"
+color_mode = "Color Mode"
+hide_pickers = "Hide Pickers"
+show_pickers = "Show Pickers"
+tone_analysis = "Tone Analysis"
+
+[tone_analysis]
+dialog_title = "Tone Analysis"
+loading = "Analyzing..."
+original_image = "Original"
+grayscale = "Grayscale"
+histogram = "Histogram"
+histogram_detail = "Brightness Distribution"
+tone_type = "Tone Type"
+tone_type_hint = "(for reference only)"
+mean_brightness = "Mean Brightness"
+median = "Median"
+std_deviation = "Std Deviation"
+brightness_range = "Brightness Range"
+shadows = "Shadows"
+midtones = "Midtones"
+highlights = "Highlights"
+
+[tone_analysis.tone_types]
+high_long = "High-Long"
+high_medium = "High-Medium"
+high_short = "High-Short"
+mid_long = "Mid-Long"
+mid_medium = "Mid-Medium"
+mid_short = "Mid-Short"
+low_long = "Low-Long"
+low_medium = "Low-Medium"
+low_short = "Low-Short"
+full_long = "Full-Long"
 
 [common]
 delete = "Delete"

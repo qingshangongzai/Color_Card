@@ -300,6 +300,8 @@ class LuminanceHistogramWidget(BaseHistogram):
         self._histogram_service.luminance_histogram_ready.connect(self._on_histogram_ready)
         self._histogram_service.error.connect(self._on_histogram_error)
 
+        self._current_image = None
+
     def set_histogram_style(self, style: str):
         """设置直方图样式
 
@@ -315,8 +317,19 @@ class LuminanceHistogramWidget(BaseHistogram):
         if image is None or image.isNull():
             self.clear()
             return
+        self._current_image = image
         self.set_loading(True)
         self._histogram_service.calculate_luminance_async(image)
+
+    def set_sampling_mode(self, mode: str):
+        """设置采样模式
+
+        Args:
+            mode: 'fast' 或 'fine'
+        """
+        self._histogram_service.set_sampling_mode(mode)
+        if self._current_image is not None:
+            self.set_image(self._current_image)
 
     def set_highlight_zones(self, zones):
         """设置高亮显示的区域
@@ -359,6 +372,11 @@ class LuminanceHistogramWidget(BaseHistogram):
         print(f"明度直方图计算错误: {error_msg}")
         self.set_loading(False)
         self.clear()
+
+    def closeEvent(self, event):
+        """关闭事件：确保线程正确清理"""
+        self._histogram_service.cancel_all()
+        super().closeEvent(event)
 
     def get_zone_from_luminance(self, luminance: int) -> int:
         """根据明度值获取Zone (0-8)"""
@@ -662,6 +680,8 @@ class RGBHistogramWidget(BaseHistogram):
         self._histogram_service.rgb_histogram_ready.connect(self._on_histogram_ready)
         self._histogram_service.error.connect(self._on_histogram_error)
 
+        self._current_image = None
+
     def set_image(self, image):
         """设置图片并异步计算RGB直方图
 
@@ -671,8 +691,19 @@ class RGBHistogramWidget(BaseHistogram):
         if image is None or image.isNull():
             self.clear()
             return
+        self._current_image = image
         self.set_loading(True)
         self._histogram_service.calculate_rgb_async(image)
+
+    def set_sampling_mode(self, mode: str):
+        """设置采样模式
+
+        Args:
+            mode: 'fast' 或 'fine'
+        """
+        self._histogram_service.set_sampling_mode(mode)
+        if self._current_image is not None:
+            self.set_image(self._current_image)
 
     def _on_histogram_ready(self, r_hist, g_hist, b_hist):
         """RGB直方图计算完成回调"""
@@ -693,6 +724,11 @@ class RGBHistogramWidget(BaseHistogram):
         print(f"RGB直方图计算错误: {error_msg}")
         self.set_loading(False)
         self.clear()
+
+    def closeEvent(self, event):
+        """关闭事件：确保线程正确清理"""
+        self._histogram_service.cancel_all()
+        super().closeEvent(event)
 
     def clear(self):
         """清除直方图数据"""
@@ -953,6 +989,8 @@ class HueHistogramWidget(BaseHistogram):
         self._histogram_service.hue_histogram_ready.connect(self._on_histogram_ready)
         self._histogram_service.error.connect(self._on_histogram_error)
 
+        self._current_image = None
+
     def set_image(self, image):
         """计算并显示图片的色相分布
 
@@ -962,8 +1000,19 @@ class HueHistogramWidget(BaseHistogram):
         if image is None or image.isNull():
             self.clear()
             return
+        self._current_image = image
         self.set_loading(True)
         self._histogram_service.calculate_hue_async(image)
+
+    def set_sampling_mode(self, mode: str):
+        """设置采样模式
+
+        Args:
+            mode: 'fast' 或 'fine'
+        """
+        self._histogram_service.set_sampling_mode(mode)
+        if self._current_image is not None:
+            self.set_image(self._current_image)
 
     def _on_histogram_ready(self, histogram):
         """色相直方图计算完成回调"""
@@ -977,6 +1026,11 @@ class HueHistogramWidget(BaseHistogram):
         print(f"色相直方图计算错误: {error_msg}")
         self.set_loading(False)
         self.clear()
+
+    def closeEvent(self, event):
+        """关闭事件：确保线程正确清理"""
+        self._histogram_service.cancel_all()
+        super().closeEvent(event)
 
     def clear(self):
         """清除直方图数据"""
