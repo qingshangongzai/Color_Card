@@ -63,6 +63,8 @@ jobs:
         echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
 
     - name: Build Mac App with Nuitka
+      env:
+        NUITKA_CACHE_DIR: "$HOME/.cache/Nuitka"
       run: |
         python -m nuitka \
           --mode=app \
@@ -83,7 +85,6 @@ jobs:
           --lto=yes \
           --jobs=4 \
           --output-dir=dist \
-          --cache-dir="$HOME/.cache/Nuitka" \
           main.py
 
     - name: Check build output
