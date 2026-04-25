@@ -128,15 +128,23 @@ def main():
 
     logger = get_logger("main")
     logger.info("应用程序启动")
-    logger.info(f"运行环境: frozen={getattr(sys, 'frozen', False)}, _MEIPASS={getattr(sys, '_MEIPASS', None)}")
+    logger.info(f"运行环境: frozen={getattr(sys, 'frozen', False)}, _MEIPASS={getattr(sys, '_MEIPASS', None)}, __compiled__={'__compiled__' in globals()}")
+
+    # 记录关键路径信息
+    logger.info(f"sys.argv[0]={sys.argv[0]}")
+    logger.info(f"sys.executable={sys.executable}")
+    logger.info(f"sys.path[0]={sys.path[0] if sys.path else 'empty'}")
 
     # 设置全局异常处理器
     setup_global_exception_handler(logger)
 
     # 立即显示启动画面（在其他模块导入前）
+    logger.info("开始创建启动画面...")
     splash = _create_splash_screen()
+    logger.info(f"启动画面创建完成: {splash is not None}")
 
     try:
+        logger.info("进入主try块...")
         # 临时重定向 stdout 以屏蔽 QFluentWidgets 的推广提示
         from io import StringIO
         _old_stdout = sys.stdout
@@ -166,12 +174,15 @@ def main():
 
         # 导入项目模块
         logger.info("开始导入项目模块...")
+        logger.info("导入 core 模块...")
         from core import get_config_manager
         logger.info("core 模块导入完成")
 
+        logger.info("导入 utils 模块...")
         from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager, force_window_to_front
         logger.info("utils 模块导入完成")
 
+        logger.info("导入 ui 模块...")
         from ui import MainWindow
         logger.info("ui 模块导入完成")
 
@@ -183,17 +194,29 @@ def main():
 
         # 加载配置
         logger.info("加载配置...")
-        config_manager = get_config_manager()
-        config_manager.load()
+        try:
+            config_manager = get_config_manager()
+            logger.info("获取配置管理器完成")
+            config_manager.load()
+            logger.info("配置加载完成")
+        except Exception as e:
+            logger.error(f"配置加载失败: {e}", exc_info=True)
+            raise
 
         # 初始化语言管理器并加载用户语言配置
         logger.info("初始化语言管理器...")
-        locale_manager = get_locale_manager()
-        language_setting = config_manager.get('settings.language', 'ZW_JT')
-        locale_manager.load_language(language_setting)
-        logger.info(f"语言设置: {language_setting}")
+        try:
+            locale_manager = get_locale_manager()
+            logger.info("获取语言管理器完成")
+            language_setting = config_manager.get('settings.language', 'ZW_JT')
+            locale_manager.load_language(language_setting)
+            logger.info(f"语言设置: {language_setting}")
+        except Exception as e:
+            logger.error(f"语言管理器初始化失败: {e}", exc_info=True)
+            raise
 
         # 设置主题
+        logger.info("设置主题...")
         theme_setting = config_manager.get('settings.theme', 'auto')
         if theme_setting == 'light':
             setTheme(Theme.LIGHT)
@@ -202,9 +225,15 @@ def main():
         else:
             setTheme(Theme.AUTO)
         setThemeColor('#0078d4')
+        logger.info(f"主题设置完成: {theme_setting}")
 
         logger.info("创建主窗口...")
-        window = MainWindow()
+        try:
+            window = MainWindow()
+            logger.info("主窗口创建完成")
+        except Exception as e:
+            logger.error(f"主窗口创建失败: {e}", exc_info=True)
+            raise
 
         # 初始化标题栏主题按钮状态
         if hasattr(window, 'titleBar') and hasattr(window.titleBar, 'init_theme'):
@@ -226,6 +255,7 @@ def main():
             force_window_to_front(window)
 
         QTimer.singleShot(100, _on_window_shown)
+        logger.info("启动画面关闭定时器已设置")
 
         # 计算并输出启动时间
         startup_time = (time.perf_counter() - _startup_start_time) * 1000
@@ -233,13 +263,25 @@ def main():
 
         logger.info("进入主事件循环...")
         try:
-            sys.exit(app.exec())
+            exit_code = app.exec()
+            logger.info(f"主事件循环结束，退出码: {exit_code}")
+            sys.exit(exit_code)
         except KeyboardInterrupt:
             logger.info("程序被用户中断 (Ctrl+C)")
             sys.exit(0)
+        except Exception as e:
+            logger.critical(f"主事件循环异常: {e}", exc_info=True)
+            raise
 
     except Exception as e:
         logger.critical(f"程序启动失败: {str(e)}", exc_info=True)
+        # 尝试记录更多调试信息
+        try:
+            import traceback
+            tb_str = traceback.format_exc()
+            logger.critical(f"异常堆栈:\n{tb_str}")
+        except:
+            pass
         raise
 
 
