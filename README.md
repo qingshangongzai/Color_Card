@@ -294,7 +294,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | Total Updates       | **145 items**                 |
 | Average per Version | 12.1 items                    |
 
-**Detailed Category Statistics(portion)**:
+**Detailed Category Statistics**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
@@ -465,7 +465,7 @@ Color Card is released under the **GNU General Public License v3.0 (GPL 3.0)** l
 
 ### Third-party Library Licenses
 
-This project uses the following third-party libraries:
+This project uses the following third-party libraries(portion):
 
 | Library                |    License   |
 | :--------------------- | :----------: |
