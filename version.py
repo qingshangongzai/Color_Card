@@ -14,7 +14,7 @@ def _get_base_path() -> str:
     if getattr(sys, 'frozen', False):
         if hasattr(sys, '_MEIPASS'):
             return sys._MEIPASS
-        return os.path.dirname(sys.executable)
+        return os.path.dirname(os.path.abspath(__file__))
     return os.path.dirname(os.path.abspath(__file__))
 
 

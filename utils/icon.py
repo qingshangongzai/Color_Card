@@ -11,17 +11,15 @@ from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 def get_base_path() -> str:
     """获取应用程序基础路径
 
-    支持开发环境和 PyInstaller 打包后的环境
+    支持开发环境和 Nuitka/PyInstaller 打包后的环境
 
     Returns:
         str: 应用程序基础路径
     """
     if getattr(sys, 'frozen', False):
-        # PyInstaller 打包后的环境
         if hasattr(sys, '_MEIPASS'):
             return sys._MEIPASS
-        return os.path.dirname(sys.executable)
-    # 开发环境 - 返回项目根目录（utils/ 的父目录）
+        return os.path.dirname(os.path.abspath(__file__))
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
