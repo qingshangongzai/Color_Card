@@ -1,11 +1,11 @@
 """明度分析对话框"""
 
+import ctypes
 import math
+import sys
 from typing import List, Optional
 
 import numpy as np
-import win32con
-import win32gui
 from PySide6.QtCharts import (
     QBarSeries, QBarSet, QChart, QChartView, QLineSeries,
     QPieSeries, QValueAxis
@@ -656,9 +656,14 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         self.titleBar.setDoubleClickEnabled(True)
 
         # 恢复Win32最大化按钮样式（FramelessDialog初始化时禁用了）
-        hWnd = int(self.winId())
-        style = win32gui.GetWindowLong(hWnd, win32con.GWL_STYLE)
-        win32gui.SetWindowLong(hWnd, win32con.GWL_STYLE, style | win32con.WS_MAXIMIZEBOX)
+        if sys.platform == 'win32':
+            hWnd = int(self.winId())
+            # 使用ctypes替代pywin32
+            GWL_STYLE = -16
+            WS_MAXIMIZEBOX = 0x00010000
+            user32 = ctypes.windll.user32
+            style = user32.GetWindowLongW(hWnd, GWL_STYLE)
+            user32.SetWindowLongW(hWnd, GWL_STYLE, style | WS_MAXIMIZEBOX)
 
         self._setup_title_bar()
         self._setup_ui()

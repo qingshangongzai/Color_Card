@@ -95,7 +95,15 @@ def detect_mode() -> AppMode:
     _logger.debug(f"exe_path={exe_path}")
     _logger.debug(f"TEMP={temp}")
 
-    # 在临时目录运行 = 安装程序运行中
+    # Nuitka 单文件模式：使用 __compiled__ 标记检测
+    # Nuitka 单文件运行时也会解压到临时目录，但不能误判为安装程序模式
+    if is_nuitka:
+        # Nuitka 单文件模式下，配置目录应该使用用户主目录（与安装版相同）
+        _mode_cache = AppMode.INSTALLED
+        _logger.info(f"运行模式判定: 安装版（Nuitka 单文件）")
+        return _mode_cache
+
+    # 在临时目录运行 = 安装程序运行中（仅适用于非 Nuitka 环境）
     if temp and str(exe_path).lower().startswith(temp):
         _mode_cache = AppMode.INSTALLER
         _logger.info(f"运行模式判定: 安装程序模式")
