@@ -154,9 +154,7 @@ class AboutDialog(BaseFramelessDialog):
         Args:
             parent_layout: 父布局对象
         """
-        app_info = version_manager.get_app_info()
-        
-        copyright_text = f"{tr('dialogs.about.copyright')} {app_info['copyright']}\n{tr('dialogs.about.license_note')}"
+        copyright_text = f"{tr('dialogs.about.copyright')} {version_manager.get_copyright()}\n{tr('dialogs.about.license_note')}"
         copyright_label = CaptionLabel(copyright_text)
         copyright_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         

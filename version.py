@@ -1,44 +1,56 @@
+import os
+import sys
 from typing import Dict
 
 
+def _get_base_path() -> str:
+    """获取应用程序基础路径
+
+    支持开发环境和 Nuitka/PyInstaller 打包后的环境
+
+    Returns:
+        str: 应用程序基础路径
+    """
+    if getattr(sys, 'frozen', False):
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+def _read_version_file() -> Dict[str, str]:
+    """读取 version.txt 文件
+
+    Returns:
+        dict: 包含版本号和元数据的字典
+    """
+    base_path = _get_base_path()
+    version_path = os.path.join(base_path, 'version.txt')
+
+    try:
+        with open(version_path, 'r', encoding='utf-8') as f:
+            lines = [line.strip() for line in f.readlines()]
+    except (OSError, IOError) as e:
+        print(f"读取 version.txt 失败: {e}")
+        return {}
+
+    fields = ["version", "file_version", "product_version",
+              "company", "copyright", "description"]
+    result = {}
+    for i, field in enumerate(fields):
+        if i < len(lines) and lines[i]:
+            result[field] = lines[i]
+    return result
+
+
 class VersionManager:
-    """应用程序版本管理器，负责管理应用程序的版本信息和应用元数据"""
+    """应用程序版本管理器"""
 
     def __init__(self) -> None:
-        """初始化版本管理器"""
-        # 版本号组件
-        self.major: int = 1
-        self.minor: int = 9
-        self.patch: int = 0
-        self.build: int = 0
-        self.prerelease: str = " · Beta 4"
+        data = _read_version_file()
 
-        # 核心版本信息
-        self.version: str = f"{self.major}.{self.minor}.{self.patch}{self.prerelease}"
-
-        # 详细版本信息结构
-        self.version_info: Dict[str, int | str] = {
-            "major": self.major,
-            "minor": self.minor,
-            "patch": self.patch,
-            "build": self.build,
-            "prerelease": self.prerelease,
-            "full": f"{self.major}.{self.minor}.{self.patch}-{self.prerelease}",
-            "short": f"{self.major}.{self.minor}{self.prerelease}"
-        }
-
-        # 应用程序元数据
-        self.app_info: Dict[str, str] = {
-            "name": "取色卡",
-            "name_en": "Color Card",
-            "company": "浮晓 HXiao Studio",
-            "copyright": "© 2026 浮晓 HXiao Studio",
-            "description": "取色卡 - Color Card",
-            "internal_name": "Color_Card",
-            "original_filename": "Color_Card.exe",
-            "developer": "青山公仔",
-            "email": "hxiao_studio@163.com"
-        }
+        self.version: str = data.get("version", "0.0.0")
+        self._copyright: str = data.get("copyright", "")
 
     def get_version(self) -> str:
         """获取当前版本号
@@ -48,43 +60,13 @@ class VersionManager:
         """
         return self.version
 
-    def get_version_info(self) -> Dict[str, int | str]:
-        """获取版本详细信息
+    def get_copyright(self) -> str:
+        """获取版权信息
 
         Returns:
-            dict: 包含主要版本号、次要版本号、补丁版本号、构建号和完整版本号的字典
+            str: 版权信息字符串
         """
-        return self.version_info.copy()
-
-    def get_app_info(self) -> Dict[str, str]:
-        """获取应用程序信息
-
-        Returns:
-            dict: 包含应用程序名称、公司、版权等元数据的字典
-        """
-        return self.app_info.copy()
-
-    def get_full_app_name(self) -> str:
-        """获取完整应用程序名称（包含版本号）
-
-        Returns:
-            str: 完整的应用程序名称，格式为"应用名称 v版本号"
-        """
-        return f"{self.app_info['name']} v{self.version}"
-
-    def get_file_version_info(self) -> Dict[str, int]:
-        """获取文件版本信息（用于Windows EXE元数据）
-
-        Returns:
-            dict: 包含文件版本和产品版本的高16位和低16位值的字典
-        """
-        return {
-            "file_version_ms": (self.version_info["major"] << 16) | self.version_info["minor"],
-            "file_version_ls": (self.version_info["patch"] << 16) | self.version_info["build"],
-            "product_version_ms": (self.version_info["major"] << 16) | self.version_info["minor"],
-            "product_version_ls": (self.version_info["patch"] << 16) | self.version_info["build"]
-        }
+        return self._copyright
 
 
-# 创建全局版本管理器实例
 version_manager: VersionManager = VersionManager()

@@ -2,7 +2,7 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, feature/tone-analysis ]
+    branches: [ main, refactor/version-dynamic-loa]
   pull_request:
     branches: [ main ]
 
@@ -79,6 +79,7 @@ jobs:
           --file-description="取色卡 - Color Card" ^
           --copyright="${{ steps.version.outputs.copyright }}" ^
           --include-data-files=version.py=version.py ^
+          --include-data-files=version.txt=version.txt ^
           --include-data-dir=color_data=color_data ^
           --include-data-dir=core=core ^
           --include-data-dir=dialogs=dialogs ^
