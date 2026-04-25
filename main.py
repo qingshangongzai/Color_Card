@@ -3,37 +3,9 @@ import ctypes
 import os
 import sys
 import time
-from pathlib import Path
 
 # 记录启动开始时间
 _startup_start_time = time.perf_counter()
-
-# 紧急调试日志（在日志系统初始化前使用）
-_debug_log_path = Path.home() / ".color_card" / "logs" / "debug_startup.log"
-
-def _emergency_log(msg):
-    """紧急日志，不依赖日志系统"""
-    try:
-        _debug_log_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(_debug_log_path, "a", encoding="utf-8") as f:
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{timestamp}] {msg}\n")
-            f.flush()
-    except Exception as e:
-        # 如果写入失败，尝试写入临时目录
-        try:
-            temp_log = Path(os.environ.get("TEMP", "/tmp")) / "color_card_debug.log"
-            with open(temp_log, "a", encoding="utf-8") as f:
-                timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-                f.write(f"[{timestamp}] {msg} (original error: {e})\n")
-                f.flush()
-        except:
-            pass
-
-_emergency_log("=== 程序启动 ===")
-_emergency_log(f"sys.frozen={getattr(sys, 'frozen', False)}")
-_emergency_log(f"sys.argv[0]={sys.argv[0]}")
-_emergency_log(f"__compiled__={'__compiled__' in globals()}")
 
 def set_app_user_model_id():
     """设置 Windows AppUserModelID
@@ -74,16 +46,12 @@ def setup_global_exception_handler(logger):
 
 
 # 立即调用（在导入 PySide6 之前）
-_emergency_log("调用 set_app_user_model_id...")
 set_app_user_model_id()
-_emergency_log("set_app_user_model_id 完成")
 
 # 只导入启动画面必需的模块
-_emergency_log("开始导入 PySide6...")
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QPixmap
 from PySide6.QtWidgets import QApplication, QSplashScreen
-_emergency_log("PySide6 导入完成")
 
 
 def _get_base_path() -> str:
@@ -144,7 +112,6 @@ def _create_splash_screen():
 
 
 def main():
-    _emergency_log("进入 main() 函数")
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
@@ -152,16 +119,12 @@ def main():
     # 增加 Qt 图像分配限制，支持超大图片（1GB）
     os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
 
-    _emergency_log("创建 QApplication...")
     app = QApplication(sys.argv)
-    _emergency_log("QApplication 创建完成")
 
     # 初始化日志系统
-    _emergency_log("开始初始化日志系统...")
     from core import get_logger_manager, get_logger
     logger_manager = get_logger_manager()
     logger_manager.initialize()
-    _emergency_log("日志系统初始化完成")
 
     logger = get_logger("main")
     logger.info("应用程序启动")
