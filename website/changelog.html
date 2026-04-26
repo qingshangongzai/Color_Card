@@ -15,9 +15,9 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#FF6B6B',
-                            secondary: '#15AABF',
-                            accent: '#FAB005',
+                            primary: '#AEDBFC',
+                            secondary: '#C4BAD2',
+                            accent: '#FFEBEA',
                         },
                     },
                     animation: {
@@ -50,41 +50,42 @@
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
         
         .gradient-text {
-            background: linear-gradient(135deg, #FF6B6B 0%, #15AABF 100%);
+            background: linear-gradient(135deg, #C4BAD2 0%, #AEDBFC 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         .glass-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(254, 255, 255, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(229, 231, 235, 0.5);
+            border: 1px solid rgba(255, 235, 234, 0.6);
         }
         .dark .glass-card {
             background: rgba(17, 24, 39, 0.8);
-            border-color: rgba(55, 65, 81, 0.5);
+            border-color: rgba(196, 186, 210, 0.3);
         }
         .btn-primary {
-            background: #FF6B6B;
-            color: white;
+            background: #AEDBFC;
+            color: #2D3748;
             transition: all 0.2s;
         }
         .btn-primary:hover {
             opacity: 0.9;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(174, 219, 252, 0.5);
         }
         .btn-secondary {
-            background: #F3F4F6;
-            color: #111827;
+            background: #FFEBEA;
+            color: #4A5568;
             transition: all 0.2s;
         }
         .dark .btn-secondary {
-            background: #1F2937;
-            color: white;
+            background: #2D3748;
+            color: #FFEBEA;
         }
         .btn-secondary:hover {
             transform: translateY(-2px);
+            background: #FEFFFF;
         }
         .dark .btn-secondary:hover {
             background: #374151;
@@ -113,16 +114,16 @@
         .nav-enhanced {
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            background: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(254, 255, 255, 0.75);
+            border-bottom: 1px solid rgba(255, 235, 234, 0.4);
         }
         .dark .nav-enhanced {
             background: rgba(17, 24, 39, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(196, 186, 210, 0.15);
         }
         .nav-enhanced.nav-scrolled {
-            background: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(254, 255, 255, 0.9);
+            box-shadow: 0 4px 30px rgba(255, 235, 234, 0.3);
         }
         .dark .nav-enhanced.nav-scrolled {
             background: rgba(17, 24, 39, 0.85);

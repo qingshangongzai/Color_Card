@@ -15,9 +15,9 @@
                 extend: {
                     colors: {
                         brand: {
-                            primary: '#FF6B6B',
-                            secondary: '#15AABF',
-                            accent: '#FAB005',
+                            primary: '#AEDBFC',
+                            secondary: '#C4BAD2',
+                            accent: '#FFEBEA',
                         },
                     },
                     animation: {
@@ -67,12 +67,12 @@
             content: '';
             position: absolute;
             inset: -50%;
-            background: 
-                radial-gradient(at 40% 20%, rgba(255, 107, 107, 0.4) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, rgba(21, 170, 191, 0.3) 0px, transparent 50%),
-                radial-gradient(at 0% 50%, rgba(250, 176, 5, 0.3) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, rgba(255, 107, 107, 0.3) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(21, 170, 191, 0.4) 0px, transparent 50%);
+            background:
+                radial-gradient(at 40% 20%, rgba(255, 235, 234, 0.6) 0px, transparent 50%),
+                radial-gradient(at 80% 0%, rgba(254, 255, 255, 0.5) 0px, transparent 50%),
+                radial-gradient(at 0% 50%, rgba(255, 235, 234, 0.55) 0px, transparent 50%),
+                radial-gradient(at 80% 50%, rgba(174, 219, 252, 0.3) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(254, 255, 255, 0.5) 0px, transparent 50%);
             animation: meshMove 20s ease infinite;
             filter: blur(60px);
         }
@@ -104,41 +104,42 @@
         }
         
         .gradient-text {
-            background: linear-gradient(135deg, #FF6B6B 0%, #15AABF 100%);
+            background: linear-gradient(135deg, #C4BAD2 0%, #AEDBFC 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         .glass-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(254, 255, 255, 0.85);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(229, 231, 235, 0.5);
+            border: 1px solid rgba(255, 235, 234, 0.6);
         }
         .dark .glass-card {
             background: rgba(17, 24, 39, 0.8);
-            border-color: rgba(55, 65, 81, 0.5);
+            border-color: rgba(196, 186, 210, 0.3);
         }
         .btn-primary {
-            background: #FF6B6B;
-            color: white;
+            background: #AEDBFC;
+            color: #2D3748;
             transition: all 0.2s;
         }
         .btn-primary:hover {
             opacity: 0.9;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(255, 107, 107, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(174, 219, 252, 0.5);
         }
         .btn-secondary {
-            background: #F3F4F6;
-            color: #111827;
+            background: #FFEBEA;
+            color: #4A5568;
             transition: all 0.2s;
         }
         .dark .btn-secondary {
-            background: #1F2937;
-            color: white;
+            background: #2D3748;
+            color: #FFEBEA;
         }
         .btn-secondary:hover {
             transform: translateY(-2px);
+            background: #FEFFFF;
         }
         .dark .btn-secondary:hover {
             background: #374151;
@@ -192,7 +193,7 @@
 
         /* Gradient Text Flow Animation */
         .gradient-text-flow {
-            background: linear-gradient(90deg, #FF6B6B, #15AABF, #FAB005, #FF6B6B);
+            background: linear-gradient(90deg, #C4BAD2, #AEDBFC, #FFEBEA, #C4BAD2);
             background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -264,8 +265,8 @@
             animation: pulseGlow 2s ease-in-out infinite;
         }
         @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(255, 107, 107, 0.5); }
+            0%, 100% { box-shadow: 0 0 20px rgba(174, 219, 252, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(174, 219, 252, 0.5); }
         }
 
         /* 文字逐字出现动画 */
@@ -274,7 +275,7 @@
             opacity: 0;
             transform: translateY(20px);
             animation: charReveal 0.6s var(--ease-out-expo) forwards;
-            background: linear-gradient(90deg, #FF6B6B, #15AABF, #FAB005, #FF6B6B);
+            background: linear-gradient(90deg, #C4BAD2, #AEDBFC, #FFEBEA, #C4BAD2);
             background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -316,7 +317,7 @@
         /* 渐变边框卡片 */
         .gradient-border-card {
             position: relative;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(254, 255, 255, 0.9);
             border-radius: 1rem;
             z-index: 1;
         }
@@ -328,7 +329,7 @@
             position: absolute;
             inset: -2px;
             border-radius: 1rem;
-            background: linear-gradient(135deg, #FFDCD5, #B8FFE7, #BCD2FF, #FFDCD5);
+            background: linear-gradient(135deg, #FEFFFF, #FFEBEA, #AEDBFC, #FEFFFF);
             background-size: 300% 300%;
             animation: borderGradient 4s ease infinite;
             z-index: -1;
@@ -347,16 +348,16 @@
         .nav-enhanced {
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            background: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(254, 255, 255, 0.75);
+            border-bottom: 1px solid rgba(255, 235, 234, 0.4);
         }
         .dark .nav-enhanced {
             background: rgba(17, 24, 39, 0.7);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(196, 186, 210, 0.15);
         }
         .nav-enhanced.nav-scrolled {
-            background: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(254, 255, 255, 0.9);
+            box-shadow: 0 4px 30px rgba(255, 235, 234, 0.3);
         }
         .dark .nav-enhanced.nav-scrolled {
             background: rgba(17, 24, 39, 0.85);
@@ -392,14 +393,14 @@
             transition: all 0.3s var(--ease-out-expo);
         }
         .scroll-progress-dot.active {
-            background: #FF0066;
+            background: #AEDBFC;
             transform: scale(1.3);
         }
         .scroll-progress-dot.active::before {
-            border-color: rgba(255, 0, 102, 0.3);
+            border-color: rgba(174, 219, 252, 0.3);
         }
         .scroll-progress-dot:hover {
-            background: rgba(255, 0, 102, 0.6);
+            background: rgba(174, 219, 252, 0.6);
             transform: scale(1.2);
         }
 
@@ -415,7 +416,7 @@
             left: var(--mouse-x, 50%);
             width: 200px;
             height: 200px;
-            background: radial-gradient(circle, rgba(255, 0, 102, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(174, 219, 252, 0.2) 0%, transparent 70%);
             transform: translate(-50%, -50%);
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -1164,14 +1165,14 @@
         function createParticles() {
             if (prefersReducedMotion) return;
             const container = document.getElementById('particles-container');
-            const colors = ['#FF6B6B', '#15AABF', '#FAB005'];
-            
+            const colors = ['#C4BAD2', '#AEDBFC', '#FFEBEA'];
+
             for (let i = 0; i < 15; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 const size = Math.random() * 8 + 4;
                 const color = colors[Math.floor(Math.random() * colors.length)];
-                
+
                 particle.style.cssText = `
                     width: ${size}px;
                     height: ${size}px;
