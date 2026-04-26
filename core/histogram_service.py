@@ -1,5 +1,5 @@
 # 标准库导入
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal, QTimer, Qt
