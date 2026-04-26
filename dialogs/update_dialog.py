@@ -9,10 +9,11 @@ import requests
 from PySide6.QtCore import Qt, QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, ScrollArea, isDarkTheme, qconfig
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, ScrollArea, qconfig
 
 # 项目模块导入
 from utils import tr, load_icon_universal
+from utils.theme_colors import get_text_color, get_secondary_text_color
 from dialogs import BaseFramelessDialog
 from core import get_app_mode, get_platform, AppMode, Platform
 
@@ -24,7 +25,7 @@ class UpdateCheckThread(QThread):
     避免阻塞主线程。
     """
 
-    check_finished = Signal(bool, str, str, str, str)
+    check_finished = Signal(bool, str, str, str, list)
 
     def __init__(self, current_version):
         """初始化检查更新线程
@@ -104,7 +105,7 @@ class UpdateCheckThread(QThread):
         # 默认返回第一个
         return assets[0].get("browser_download_url", "") if assets else ""
 
-    def _fetch_changelog(self, current_version: str, latest_version: str) -> str:
+    def _fetch_changelog(self, current_version: str, latest_version: str) -> List[Dict]:
         """从 Gitee 获取 changelog.json 并提取更新日志
 
         Args:
@@ -112,7 +113,7 @@ class UpdateCheckThread(QThread):
             latest_version: 最新版本号
 
         Returns:
-            str: 格式化后的更新日志内容
+            List[Dict]: 版本信息列表
         """
         try:
             # 获取 changelog.json 文件内容
@@ -120,7 +121,7 @@ class UpdateCheckThread(QThread):
             response = requests.get(changelog_url, timeout=10)
 
             if response.status_code != 200:
-                return ""
+                return []
 
             data = response.json()
             content = data.get("content", "")
@@ -132,9 +133,9 @@ class UpdateCheckThread(QThread):
             return self._format_changelog(changelog_data, current_version)
 
         except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
-            return ""
+            return []
 
-    def _format_changelog(self, changelog_data: Dict, current_version: str) -> str:
+    def _format_changelog(self, changelog_data: Dict, current_version: str) -> List[Dict]:
         """格式化更新日志
 
         Args:
@@ -142,52 +143,18 @@ class UpdateCheckThread(QThread):
             current_version: 当前版本号
 
         Returns:
-            str: 格式化后的 Markdown 字符串
+            List[Dict]: 版本信息列表，每个版本包含 version、date、changes
         """
         versions = changelog_data.get("versions", [])
-        if not versions:
-            return ""
 
         # 收集需要显示的版本（从当前版本之后到最新版本）
         versions_to_show = []
         for version_info in versions:
             version_str = version_info.get("version", "").lstrip("v")
-
-            # 只显示比当前版本新的版本
             if compare_versions(current_version, version_str) < 0:
                 versions_to_show.append(version_info)
 
-        if not versions_to_show:
-            return ""
-
-        # 格式化输出
-        lines = []
-        for i, version_info in enumerate(versions_to_show):
-            version_str = version_info.get("version", "")
-            date = version_info.get("date", "")
-            changes = version_info.get("changes", [])
-
-            # 版本之间添加分隔线（第一个版本除外）
-            if i > 0:
-                lines.append("---")
-
-            lines.append(f"## {version_str} ({date})")
-
-            for change in changes:
-                category = change.get("category", "")
-                items = change.get("items", [])
-
-                lines.append(f"**{category}**")
-
-                for item in items:
-                    if isinstance(item, str):
-                        lines.append(f"- {item}")
-                    elif isinstance(item, dict):
-                        title = item.get("title", "")
-                        desc = item.get("desc", "")
-                        lines.append(f"- **{title}**: {desc}")
-
-        return "\n".join(lines)
+        return versions_to_show
 
 
 _PRE_RELEASE_ORDER = {"alpha": -3, "beta": -2, "rc": -1}
@@ -277,7 +244,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
 
     _check_thread = None  # 类变量，用于保存检查更新的线程对象
 
-    def __init__(self, parent=None, current_version="", latest_version="", download_url="", changelog=""):
+    def __init__(self, parent=None, current_version="", latest_version="", download_url="", changelog=None):
         """初始化新版本提示对话框
 
         Args:
@@ -285,7 +252,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             current_version: 当前版本号
             latest_version: 最新版本号
             download_url: 下载链接
-            changelog: 更新日志内容
+            changelog: 版本信息列表
         """
         super().__init__(parent)
         self.setWindowTitle(tr('dialogs.update.title'))
@@ -310,47 +277,51 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             self._update_styles
         )
 
-    def _markdown_to_html(self, markdown_text: str) -> str:
-        """将 Markdown 文本转换为 HTML
+    def _changelog_to_html(self, versions: List[Dict]) -> str:
+        """将版本信息列表转换为 HTML
 
         Args:
-            markdown_text: Markdown 格式的文本
+            versions: 版本信息列表，每个版本包含 version、date、changes
 
         Returns:
             str: HTML 格式的文本
         """
-        text_color = "#ffffff" if isDarkTheme() else "#333333"
-        lines = markdown_text.split('\n')
+        if not versions:
+            return ""
+
+        text_color = get_text_color().name()
+        secondary_color = get_secondary_text_color().name()
         html_lines = []
 
-        for line in lines:
-            line = line.strip()
-            if not line:
-                html_lines.append('<br>')
-                continue
+        for i, version_info in enumerate(versions):
+            version = version_info.get("version", "")
+            date = version_info.get("date", "")
+            changes = version_info.get("changes", [])
 
-            # 处理分隔线
-            if line == '---':
+            # 版本之间添加分隔线（第一个版本除外）
+            if i > 0:
                 html_lines.append(f'<hr style="border: none; border-top: 1px solid rgba(128, 128, 128, 0.3); margin: 10px 0;">')
-                continue
 
-            # 处理标题 (## 标题)
-            if line.startswith('## '):
-                title = line[3:]
-                html_lines.append(f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">{title}</h2>')
-                continue
+            # 版本标题：版本号 + 日期（日期使用小字体和次要颜色）
+            html_lines.append(
+                f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">'
+                f'{version}<small style="font-size: 10px; color: {secondary_color};"> ({date})</small></h2>'
+            )
 
-            # 处理粗体 (**文本**)
-            line = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', line)
+            # 处理变更内容
+            for change in changes:
+                category = change.get("category", "")
+                items = change.get("items", [])
 
-            # 处理列表项 (- 文本)
-            if line.startswith('- '):
-                item_text = line[2:]
-                html_lines.append(f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• {item_text}</div>')
-                continue
+                html_lines.append(f'<div style="margin: 10px 0 5px 0; color: {text_color};"><b>{category}</b></div>')
 
-            # 普通文本
-            html_lines.append(f'<div style="margin: 5px 0; color: {text_color};">{line}</div>')
+                for item in items:
+                    if isinstance(item, str):
+                        html_lines.append(f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• {item}</div>')
+                    elif isinstance(item, dict):
+                        title = item.get("title", "")
+                        desc = item.get("desc", "")
+                        html_lines.append(f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• <b>{title}</b>: {desc}</div>')
 
         return ''.join(html_lines)
 
@@ -360,7 +331,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
 
         # 更新更新日志标签样式
         if hasattr(self, 'changelog_label') and self.changelog_label:
-            text_color = "#ffffff" if isDarkTheme() else "#333333"
+            text_color = get_text_color().name()
             self.changelog_label.setStyleSheet(f"""
                 QLabel {{
                     background-color: transparent;
@@ -407,8 +378,8 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             corner_widget.setStyleSheet("background: transparent;")
             scroll_area.setCornerWidget(corner_widget)
 
-            # 将 Markdown 转换为 HTML
-            html_content = self._markdown_to_html(self.changelog)
+            # 将版本信息转换为 HTML
+            html_content = self._changelog_to_html(self.changelog)
 
             # 创建 QLabel 显示 HTML 内容
             self.changelog_label = QLabel()
@@ -419,7 +390,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             self.changelog_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
             # 设置透明背景和文字颜色
-            text_color = "#ffffff" if isDarkTheme() else "#333333"
+            text_color = get_text_color().name()
             self.changelog_label.setStyleSheet(f"""
                 QLabel {{
                     background-color: transparent;
@@ -490,7 +461,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         # 创建并启动检查线程
         UpdateAvailableDialog._check_thread = UpdateCheckThread(current_version)
 
-        def on_check_finished(success, latest_version, error_msg, download_url, changelog=""):
+        def on_check_finished(success, latest_version, error_msg, download_url, changelog=None):
             if success:
                 result = compare_versions(current_version, latest_version)
                 if result >= 0:
