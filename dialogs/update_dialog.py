@@ -9,10 +9,11 @@ import requests
 from PySide6.QtCore import Qt, QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, ScrollArea, isDarkTheme, qconfig
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, ScrollArea, qconfig
 
 # 项目模块导入
 from utils import tr, load_icon_universal
+from utils.theme_colors import get_text_color, get_secondary_text_color
 from dialogs import BaseFramelessDialog
 from core import get_app_mode, get_platform, AppMode, Platform
 
@@ -319,7 +320,8 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         Returns:
             str: HTML 格式的文本
         """
-        text_color = "#ffffff" if isDarkTheme() else "#333333"
+        text_color = get_text_color().name()
+        secondary_color = get_secondary_text_color().name()
         lines = markdown_text.split('\n')
         html_lines = []
 
@@ -337,7 +339,14 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             # 处理标题 (## 标题)
             if line.startswith('## '):
                 title = line[3:]
-                html_lines.append(f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">{title}</h2>')
+                # 将版本号和日期分开渲染，日期使用更小字体和灰色
+                # 格式: "v1.9.0 (2026-04-26)" -> 按 " (" 分割
+                if ' (' in title and title.endswith(')'):
+                    version, date_part = title.rsplit(' (', 1)
+                    date = date_part[:-1]  # 去掉末尾的 ")"
+                    html_lines.append(f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">{version}<small style="font-size: 10px; color: {secondary_color};"> ({date})</small></h2>')
+                else:
+                    html_lines.append(f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">{title}</h2>')
                 continue
 
             # 处理粗体 (**文本**)
@@ -360,7 +369,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
 
         # 更新更新日志标签样式
         if hasattr(self, 'changelog_label') and self.changelog_label:
-            text_color = "#ffffff" if isDarkTheme() else "#333333"
+            text_color = get_text_color().name()
             self.changelog_label.setStyleSheet(f"""
                 QLabel {{
                     background-color: transparent;
@@ -419,7 +428,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             self.changelog_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
             # 设置透明背景和文字颜色
-            text_color = "#ffffff" if isDarkTheme() else "#333333"
+            text_color = get_text_color().name()
             self.changelog_label.setStyleSheet(f"""
                 QLabel {{
                     background-color: transparent;
