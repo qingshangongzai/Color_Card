@@ -1,7 +1,7 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QPalette
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QIcon, QPixmap, QPalette
 from qframelesswindow import FramelessDialog
 from qfluentwidgets import qconfig
 
@@ -73,13 +73,23 @@ class BaseFramelessDialog(FramelessDialog):
         logo_label = None
         if icon_path:
             logo_label = QLabel(title_bar)
-            pixmap = QPixmap(icon_path)
+            # 使用 QIcon 加载 ICO 以支持多分辨率
+            icon = QIcon(icon_path)
+            # 获取设备像素比
+            pixel_ratio = self.devicePixelRatio()
+            # 请求较大尺寸以获得更好质量
+            icon_size = int(64 * pixel_ratio)
+            pixmap = icon.pixmap(icon.actualSize(QSize(icon_size, icon_size)))
             if not pixmap.isNull():
-                logo_label.setPixmap(pixmap.scaled(
-                    20, 20,
+                # 缩放到目标显示尺寸
+                target_size = int(20 * pixel_ratio)
+                scaled_pixmap = pixmap.scaled(
+                    target_size, target_size,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation
-                ))
+                )
+                scaled_pixmap.setDevicePixelRatio(pixel_ratio)
+                logo_label.setPixmap(scaled_pixmap)
 
         # 3. Logo和标题之间的间距
         spacer_label = QLabel(title_bar)
