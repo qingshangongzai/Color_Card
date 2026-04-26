@@ -416,9 +416,50 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | 🚀 Feature Enhancement |   **1** | Feature enhancements                         |
 | 📛 Naming Adjustment   |   **1** | Panel name unification                       |
 
-### Key Features
+### ✨ Key Features
 
-**One-stop Color Solution**: Complete color workflow from image analysis to color application
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="25%">
+
+<span style="font-size: 24px;">🎨</span><br>
+<strong>Color Extraction</strong><br>
+<small>Multiple color spaces</small>
+
+</td>
+<td align="center" width="25%">
+
+<span style="font-size: 24px;">📊</span><br>
+<strong>Luminance Analysis</strong><br>
+<small>9-zone visualization</small>
+
+</td>
+<td align="center" width="25%">
+
+<span style="font-size: 24px;">🌈</span><br>
+<strong>Color Schemes</strong><br>
+<small>5 professional modes</small>
+
+</td>
+<td align="center" width="25%">
+
+<span style="font-size: 24px;">👁️</span><br>
+<strong>Color Preview</strong><br>
+<small>8 scene previews</small>
+
+</td>
+</tr>
+</table>
+
+</div>
+
+> <div style="background: linear-gradient(135deg, rgba(255, 235, 234, 0.4) 0%, rgba(174, 219, 252, 0.3) 100%); padding: 15px 25px; border-radius: 12px; border-left: 4px solid #AEDBFC;">
+> 
+> 🎯 **One-stop Color Solution**: Complete color workflow from image analysis to color application
+> 
+> </div>
 
 | Feature | Screenshot |
 |---------|------------|
@@ -431,26 +472,51 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 | **Color Preview**<br>8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support | ![Color Preview](docs/screenshots/color-preview.png) |
 | **Multi-language Support**<br>6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian | ![Multi-language](docs/screenshots/locales.png) |
 | **Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching | ![Dark/Light Mode](./docs/screenshots/Dark%20mode%26light%20mode.png) |
-### Use Cases
+<div style="background: linear-gradient(180deg, rgba(254, 255, 255, 0.8) 0%, rgba(255, 235, 234, 0.2) 100%); padding: 25px; border-radius: 16px; margin: 20px 0;">
 
-**Photographer Workflow**
+### 🎯 Use Cases
 
-- **Post-processing**: Analyze photo tone distribution, assist color grading decisions
-- **Color Reference**: Extract color schemes from excellent works for inspiration
-- **Luminance Analysis**: Evaluate luminance distribution, optimize exposure and contrast
+<table width="100%">
+<tr>
+<td width="50%" valign="top">
 
-**Designer Workflow**
+<div style="background: rgba(255, 255, 255, 0.7); padding: 20px; border-radius: 12px; margin: 10px;">
 
-- **Design Colors**: Extract colors from reference images for quick inspiration
-- **Color Preview**: Preview color effects in various scenes like illustration, typography, UI
-- **Color Management**: Save and manage color schemes, build personal color library
-- **Color Research**: Learn and understand color composition of different images
+**📷 Photographer Workflow**
 
-**General Applications**
+- ✨ **Post-processing**: Analyze photo tone distribution, assist color grading decisions
+- 🎨 **Color Reference**: Extract color schemes from excellent works for inspiration
+- 📊 **Luminance Analysis**: Evaluate luminance distribution, optimize exposure and contrast
 
-- **Cross-scene Collaboration**: Photographers and designers share color schemes for unified visual style
-- **Color Education**: Serve as a teaching tool for color theory and practice
-- **Rapid Prototyping**: Quickly generate and preview color schemes, accelerate design iteration
+</div>
+
+</td>
+<td width="50%" valign="top">
+
+<div style="background: rgba(255, 255, 255, 0.7); padding: 20px; border-radius: 12px; margin: 10px;">
+
+**🎨 Designer Workflow**
+
+- 💡 **Design Colors**: Extract colors from reference images for quick inspiration
+- 👁️ **Color Preview**: Preview color effects in various scenes like illustration, typography, UI
+- 📚 **Color Management**: Save and manage color schemes, build personal color library
+- 🔬 **Color Research**: Learn and understand color composition of different images
+
+</div>
+
+</td>
+</tr>
+</table>
+
+<div align="center" style="margin-top: 20px;">
+
+<span style="background: linear-gradient(90deg, #FFEBEA, #AEDBFC); padding: 8px 20px; border-radius: 20px;">
+🔗 **Cross-scene Collaboration** · 📖 **Color Education** · 🚀 **Rapid Prototyping**
+</span>
+
+</div>
+
+</div>
 
 ***
 
@@ -498,13 +564,29 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
    python main.py
    ```
 
+<div align="center" style="margin-top: 15px;">
+
+<span style="background: linear-gradient(90deg, #FFEBEA, #AEDBFC); padding: 6px 16px; border-radius: 16px; font-size: 12px;">
+🎉 Installation complete! Start exploring the infinite possibilities of color
+</span>
+
+</div>
+
+</div>
+
 ***
 
-## Usage
+<div style="background: linear-gradient(90deg, #FFEBEA 0%, #FEFFFF 50%, #AEDBFC 100%); height: 3px; border-radius: 2px; margin: 25px 0;"></div>
+
+## 📖 Usage
+
+<div align="center">
 
 📺 **Video Tutorial**: [Color Card Tutorial (in Chinese)](https://www.bilibili.com/video/BV1vpckzhEH8/)
 
-### Basic Operations
+</div>
+
+### 🚀 Basic Operations
 
 1. **Import Image**: Click "Open Image" button, supports drag-and-drop
 2. **Color Extraction**: Drag color pickers to any position on the image, real-time display of HSB, LAB, HSL, CMYK, RGB values
