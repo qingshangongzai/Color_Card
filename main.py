@@ -49,8 +49,8 @@ def setup_global_exception_handler(logger):
 set_app_user_model_id()
 
 # 只导入启动画面必需的模块
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QPixmap
+from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtGui import QColor, QIcon, QPixmap
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
 
@@ -76,17 +76,16 @@ def _create_splash_screen():
     base_path = _get_base_path()
     logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
-    splash_pixmap = QPixmap(logo_path)
-    if splash_pixmap.isNull():
+    # 使用 QIcon 加载 ICO 以支持多分辨率，直接请求 256x256
+    icon = QIcon(logo_path)
+    if icon.isNull():
         return None
 
-    splash_pixmap = splash_pixmap.scaled(
-        250, 250,
-        Qt.AspectRatioMode.KeepAspectRatio,
-        Qt.TransformationMode.SmoothTransformation
-    )
+    pixmap = icon.pixmap(QSize(256, 256))
+    if pixmap.isNull():
+        return None
 
-    splash = QSplashScreen(splash_pixmap)
+    splash = QSplashScreen(pixmap)
     splash.setWindowFlags(
         Qt.WindowType.FramelessWindowHint |
         Qt.WindowType.WindowStaysOnTopHint |
@@ -97,8 +96,8 @@ def _create_splash_screen():
     screen = QApplication.primaryScreen()
     if screen:
         screen_geometry = screen.geometry()
-        x = (screen_geometry.width() - splash_pixmap.width()) // 2
-        y = (screen_geometry.height() - splash_pixmap.height()) // 2
+        x = (screen_geometry.width() - pixmap.width()) // 2
+        y = (screen_geometry.height() - pixmap.height()) // 2
         splash.move(x, y)
 
     splash.show()
