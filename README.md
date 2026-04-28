@@ -625,5 +625,11 @@ This project uses the following third-party libraries(portion):
 
 ***
 
-**Color Card** - An all-in-one color tool and image color analysis tool for photographers and designers\
+
+<div align="center">
+
+**Color Card** - An all-in-one color tool and image color analysis tool for photographers and designers
+
 <small>Copyright © 2026 浮晓 HXiao Studio</small>
+
+</div>
