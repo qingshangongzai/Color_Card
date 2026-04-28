@@ -21,6 +21,7 @@
 
 </div>
 
+
 ***
 
 <a name="中文版"></a>
@@ -47,29 +48,29 @@
 
 自 2026-02-05 发布 v1.0.0 以来，项目保持快速稳定的迭代节奏：
 
-| 指标    | 数据                      |
-| :---- | :---------------------- |
-| 发布版本  | 13 个版本（v1.0.0 → v1.9.0） |
-| 开发周期  | 80 天                    |
-| 总更新项  | **159 项**               |
-| 平均每版本 | 12.2 项                  |
+|指标 |数据 |
+|:---|:---|
+|发布版本 |13 个版本（v1.0.0 → v1.9.0） |
+|开发周期 |80 天 |
+|总更新项 |**159 项** |
+|平均每版本 |12.2 项 |
 
 **详细分类统计**：
 
-| 分类       |   数量   | 说明              |
-| :------- | :----: | :-------------- |
-| ✨ 新增功能   | **42** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **37** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **41** | 用户体验打磨          |
-| ⚡ 性能提升   | **12** | 缓存机制、启动优化等      |
-| 📝 内容调整  |  **8** | 文本、名称等调整        |
-| ⚙️ 体验优化  |  **6** | 交互体验改进          |
-| 🏗️ 代码优化 |  **4** | 代码结构优化          |
-| 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
-| 🖥️ 平台支持 |  **1** | Mac 版本适配        |
-| 📜 许可证完善 |  **1** | 开源合规性           |
-| 🚀 功能优化  |  **1** | 功能增强            |
-| 📛 命名调整  |  **1** | 面板名称统一          |
+|分类 |数量 |说明 |
+|:---|:---:|:---|
+|✨ 新增功能 |**42** |包含首次发布的 9 项核心功能 |
+|🔧 问题修复 |**37** |持续修复 Bug，提升稳定性 |
+|🎨 界面优化 |**41** |用户体验打磨 |
+|⚡ 性能提升 |**12** |缓存机制、启动优化等 |
+|📝 内容调整 |**8** |文本、名称等调整 |
+|⚙️ 体验优化 |**6** |交互体验改进 |
+|🏗️ 代码优化 |**4** |代码结构优化 |
+|🔮 逻辑优化 |**2** |算法逻辑改进 |
+|🖥️ 平台支持 |**1** |Mac 版本适配 |
+|📜 许可证完善 |**1** |开源合规性 |
+|🚀 功能优化 |**1** |功能增强 |
+|📛 命名调整 |**1** |面板名称统一 |
 
 ### ✨ 核心功能特色
 
@@ -112,17 +113,17 @@
 
 > 🎯 **一站式色彩解决方案**：从图片分析到配色应用，提供完整的色彩工作流
 
-| 功能 | 截图预览 |
-|------|---------|
-| **色彩信息分析**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） | ![色彩分析](docs/screenshots/color-extract.png) |
-| **明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 | ![明度分析](docs/screenshots/luminance-extract.png) |
-| **渐变色提取**<br>支持双色渐变和单色明度梯度两种模式，双色渐变通过起始色和结束色生成渐变色序列，单色明度梯度固定色相饱和度按明度分级生成色阶（类似 Tailwind 50-900），支持 RGB/HSB/HSL/LAB 四种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
-| **配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 | ![配色生成](docs/screenshots/color-generation.png) |
-| **配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式 | ![配色管理](docs/screenshots/palette-management.png) |
-| **内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 | ![内置色彩库](docs/screenshots/preset-colors.png) |
-| **配色预览**<br>支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG | ![配色预览](docs/screenshots/color-preview.png) |
-| **多语言支持**<br>支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言 | ![多语言支持](docs/screenshots/locales.png) |
-| **现代化界面**<br>基于 Fluent Design 设计语言，支持深色/浅色主题切换 | ![深色/浅色模式](./docs/screenshots/Dark%20mode%26light%20mode.png) |
+|功能 |截图预览 |
+|---|---|
+|**色彩信息分析**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） |![色彩分析](docs/screenshots/color-extract.png) |
+|**明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 |![明度分析](docs/screenshots/luminance-extract.png) |
+|**渐变色提取**<br>支持双色渐变和单色明度梯度两种模式，双色渐变通过起始色和结束色生成渐变色序列，单色明度梯度固定色相饱和度按明度分级生成色阶（类似 Tailwind 50-900），支持 RGB/HSB/HSL/LAB 四种颜色空间插值 |![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
+|**配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 |![配色生成](docs/screenshots/color-generation.png) |
+|**配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式 |![配色管理](docs/screenshots/palette-management.png) |
+|**内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 |![内置色彩库](docs/screenshots/preset-colors.png) |
+|**配色预览**<br>支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG |![配色预览](docs/screenshots/color-preview.png) |
+|**多语言支持**<br>支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言 |![多语言支持](docs/screenshots/locales.png) |
+|**现代化界面**<br>基于 Fluent Design 设计语言，支持深色/浅色主题切换 |![深色/浅色模式](./docs/screenshots/Dark mode&light mode.png) |
 
 ### 🎯 适用场景
 
@@ -158,6 +159,7 @@
 
 </div>
 
+
 ***
 
 <div style="background: linear-gradient(90deg, #FFEBEA 0%, #FEFFFF 50%, #AEDBFC 100%); height: 4px; border-radius: 2px; margin: 30px 0;"></div>
@@ -182,15 +184,18 @@
 #### 依赖安装与运行
 
 1. **克隆仓库**：
+
    ```bash
    # 从 Gitee 克隆（国内推荐）
    git clone https://gitee.com/qingshangongzai/Color_Card.git
-
+   
    # 或从 GitHub 克隆
    git clone https://github.com/qingshangongzai/Color_Card.git
-
+   
    cd color_card
-```
+   ```
+
+```text
 
 2. **创建虚拟环境（推荐）**：
 
@@ -198,7 +203,8 @@
    python -m venv .venv
    # 激活虚拟环境
    .\.venv\Scripts\activate  # Windows
-   ```
+```
+
 3. **安装项目依赖**：
 
    ```bash
@@ -457,7 +463,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 |**Built-in Color Library**<br>13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes |![Preset Colors](docs/screenshots/preset-colors.png) |
 |**Color Preview**<br>8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support |![Color Preview](docs/screenshots/color-preview.png) |
 |**Multi-language Support**<br>6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian |![Multi-language](docs/screenshots/locales.png) |
-|**Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching |![Dark/Light Mode](./docs/screenshots/Dark%20mode) |
+|**Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching |![Dark/Light Mode](./docs/screenshots/Dark mode&light mode.png) |
 
 ### 🎯 Use Cases
 
@@ -679,5 +685,3 @@ This project uses the following third-party libraries(portion):
 
 **Color Card** - An all-in-one color tool and image color analysis tool for photographers and designers\
 Copyright © 2026 浮晓 HXiao Studio
-
-
