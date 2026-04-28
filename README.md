@@ -123,7 +123,7 @@
 |**内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 |![内置色彩库](docs/screenshots/preset-colors.png) |
 |**配色预览**<br>支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG |![配色预览](docs/screenshots/color-preview.png) |
 |**多语言支持**<br>支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言 |![多语言支持](docs/screenshots/locales.png) |
-|**现代化界面**<br>基于 Fluent Design 设计语言，支持深色/浅色主题切换 |![深色/浅色模式](./docs/screenshots/Dark mode&light mode.png) |
+| **现代化界面**<br>基于 Fluent Design 设计语言，支持深色/浅色主题切换 | ![深色/浅色模式](./docs/screenshots/Dark%20mode%26light%20mode.png) |
 
 ### 🎯 适用场景
 
@@ -463,7 +463,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 |**Built-in Color Library**<br>13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes |![Preset Colors](docs/screenshots/preset-colors.png) |
 |**Color Preview**<br>8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support |![Color Preview](docs/screenshots/color-preview.png) |
 |**Multi-language Support**<br>6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian |![Multi-language](docs/screenshots/locales.png) |
-|**Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching |![Dark/Light Mode](./docs/screenshots/Dark mode&light mode.png) |
+|**Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching |![Dark/Light Mode](./docs/screenshots/Dark%20mode%26light%20mode.png) |
 
 ### 🎯 Use Cases
 
