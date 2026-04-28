@@ -195,7 +195,6 @@
    cd color_card
    ```
 
-```text
 
 2. **创建虚拟环境（推荐）**：
 
@@ -210,6 +209,7 @@
    ```bash
    pip install -r requirements.txt
    ```
+
 4. **启动应用程序**：
 
    ```bash
@@ -534,6 +534,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
    
    cd color_card
    ```
+
 2. **Create virtual environment (recommended)**:
 
    ```bash
@@ -541,11 +542,13 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
    # Activate virtual environment
    .\.venv\Scripts\activate  # Windows
    ```
+
 3. **Install dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
+
 4. **Launch the application**:
 
    ```bash
