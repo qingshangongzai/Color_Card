@@ -212,11 +212,48 @@ class ImageData:
 
 # ==================== ICC 色彩空间转换 ====================
 
-def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
-    """将图片转换为 sRGB 用于显示
+def _convert_to_display(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
+    """将图片转换为显示器色彩空间用于显示
 
-    有 ICC 配置文件且非 sRGB 时使用 ImageCms 感知意图转换，
-    广色域图片压缩到 sRGB 同时保持视觉关系。
+    优先使用系统显示器的 ICC Profile 作为输出目标，
+    获取失败时回退到 sRGB。
+
+    Args:
+        pil_image: PIL Image 对象
+        colorspace_info: 色彩空间信息
+
+    Returns:
+        Image.Image: 显示器色彩空间的 PIL Image
+    """
+    try:
+        from PIL import ImageCms
+
+        display_profile = ImageCms.get_display_profile()
+        if display_profile is None:
+            return _convert_to_srgb(pil_image, colorspace_info)
+
+        icc_data = pil_image.info.get('icc_profile')
+        if icc_data:
+            source_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc_data))
+        else:
+            source_profile = ImageCms.createProfile(colorspace_info.name)
+
+        rendering_intent = getattr(ImageCms, 'INTENT_PERCEPTUAL', 0)
+
+        return ImageCms.profileToProfile(
+            pil_image,
+            inputProfile=source_profile,
+            outputProfile=display_profile,
+            renderingIntent=rendering_intent,
+            outputMode='RGB'
+        )
+    except (ImportError, OSError, ValueError) as e:
+        logger.warning(f"显示器 ICC 转换失败，回退到 sRGB: {e}")
+        return _convert_to_srgb(pil_image, colorspace_info)
+
+
+def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
+    """将图片转换为 sRGB 用于显示（回退用）
 
     Args:
         pil_image: PIL Image 对象
@@ -354,7 +391,7 @@ class ProgressiveImageLoader(QThread):
                         original_pil = original_pil.convert('RGB')
                     self._original_pixels = np.array(original_pil, dtype=np.uint8)
 
-                    display_pil = _convert_to_srgb(pil_image, self._colorspace_info)
+                    display_pil = _convert_to_display(pil_image, self._colorspace_info)
 
                     width, height = display_pil.size
                     max_dim = max(width, height)
