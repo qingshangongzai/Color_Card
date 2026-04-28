@@ -94,6 +94,7 @@ delete_confirm_content = "Êtes-vous sûr de vouloir supprimer {count} palettes 
 delete_success = "{count} palettes supprimées"
 delete_single_success = """Palette "{name}" supprimée"""
 no_selection = "Veuillez d'abord sélectionner des palettes à supprimer"
+palette_copied = "{count} couleurs copiées dans le presse-papiers"
 
 [color_preview]
 title = "Aperçu des couleurs"

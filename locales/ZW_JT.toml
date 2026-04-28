@@ -94,6 +94,7 @@ delete_confirm_content = "确定要删除选中的 {count} 个配色吗？"
 delete_success = "已删除 {count} 个配色"
 delete_single_success = "配色「{name}」已删除"
 no_selection = "请先选择要删除的配色"
+palette_copied = "已复制 {count} 个颜色到剪贴板"
 
 [color_preview]
 title = "配色预览"
