@@ -446,7 +446,9 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 </tr>
 </table>
 
-🔗 **Cross-scene Collaboration** · 📖 **Color Education** · 🚀 **Rapid Prototyping**
+<p align="center">
+🔗 跨场景协作 · 📖 色彩教学 · 🚀 快速原型
+</p>
 
 ***
 
