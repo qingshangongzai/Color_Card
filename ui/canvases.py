@@ -757,6 +757,18 @@ class BaseCanvas(QWidget):
         """
         return self._image
 
+    def get_colorspace_info(self):
+        """获取当前图片的色彩空间信息"""
+        if self._image_data is not None:
+            return self._image_data.colorspace_info
+        return None
+
+    def get_original_pixels(self):
+        """获取当前图片的原始像素数据"""
+        if self._image_data is not None:
+            return self._image_data.original_pixels
+        return None
+
     def dragEnterEvent(self, event) -> None:
         """拖拽进入事件 - 检查是否为可接受的文件类型"""
         if event.mimeData().hasUrls():

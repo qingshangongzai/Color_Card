@@ -1,6 +1,6 @@
 # 标准库导入
 import colorsys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 # 第三方库导入
 import numpy as np
@@ -8,6 +8,92 @@ from PySide6.QtGui import QImage
 
 # 项目模块导入
 from .color_scheme_cache import get_color_scheme_cache
+
+
+# ==================== 色彩空间转换矩阵 ====================
+
+_COLORSPACE_MATRICES = {
+    'sRGB': {
+        'rgb_to_xyz': [
+            [0.4124564, 0.3575761, 0.1804375],
+            [0.2126729, 0.7151522, 0.0721750],
+            [0.0193339, 0.1191920, 0.9503041],
+        ],
+        'xyz_to_rgb': [
+            [ 3.2404542, -1.5371385, -0.4985314],
+            [-0.9692660,  1.8760108,  0.0415560],
+            [ 0.0556434, -0.2040259,  1.0572252],
+        ],
+        'white_point': (0.95047, 1.00000, 1.08883),
+        'gamma': 2.2,
+        'use_srgb_curve': True,
+    },
+    'Adobe RGB': {
+        'rgb_to_xyz': [
+            [0.5767309, 0.1855540, 0.1881852],
+            [0.2973769, 0.6273491, 0.0752741],
+            [0.0270343, 0.0706872, 0.9911085],
+        ],
+        'xyz_to_rgb': [
+            [ 2.0413690, -0.5649464, -0.3446944],
+            [-0.9692660,  1.8760108,  0.0415560],
+            [ 0.0134474, -0.1183897,  1.0154096],
+        ],
+        'white_point': (0.95047, 1.00000, 1.08883),
+        'gamma': 2.2,
+        'use_srgb_curve': True,
+    },
+    'ProPhoto RGB': {
+        'rgb_to_xyz': [
+            [0.7976749, 0.1351917, 0.0313534],
+            [0.2880402, 0.7118741, 0.0000857],
+            [0.0000000, 0.0000000, 0.8252100],
+        ],
+        'xyz_to_rgb': [
+            [ 1.3459433, -0.2556075, -0.0511118],
+            [-0.5445989,  1.5081673,  0.0205351],
+            [ 0.0000000,  0.0000000,  1.2118128],
+        ],
+        'white_point': (0.96422, 1.00000, 0.82521),
+        'gamma': 1.8,
+        'use_srgb_curve': False,
+    },
+    'DCI-P3': {
+        'rgb_to_xyz': [
+            [0.4865709, 0.2656677, 0.1982173],
+            [0.2289746, 0.6917385, 0.0792869],
+            [0.0000000, 0.0451134, 1.0439444],
+        ],
+        'xyz_to_rgb': [
+            [ 2.4934969, -0.9313836, -0.4027108],
+            [-0.8294890,  1.7626641,  0.0236247],
+            [ 0.0358458, -0.0761724,  0.9568845],
+        ],
+        'white_point': (0.89459, 1.00000, 1.40634),
+        'gamma': 2.6,
+        'use_srgb_curve': False,
+    },
+    'Display P3': {
+        'rgb_to_xyz': [
+            [0.4865709, 0.2656677, 0.1982173],
+            [0.2289746, 0.6917385, 0.0792869],
+            [0.0000000, 0.0451134, 1.0439444],
+        ],
+        'xyz_to_rgb': [
+            [ 2.4934969, -0.9313836, -0.4027108],
+            [-0.8294890,  1.7626641,  0.0236247],
+            [ 0.0358458, -0.0761724,  0.9568845],
+        ],
+        'white_point': (0.95047, 1.00000, 1.08883),
+        'gamma': 2.2,
+        'use_srgb_curve': True,
+    },
+}
+
+
+def _get_colorspace_matrices(colorspace_name: str) -> dict:
+    """获取色彩空间转换矩阵，未知色彩空间回退 sRGB"""
+    return _COLORSPACE_MATRICES.get(colorspace_name, _COLORSPACE_MATRICES['sRGB'])
 
 
 def calculate_luminance_from_array(rgb_array: np.ndarray, gamma: float = 2.2) -> np.ndarray:
@@ -146,60 +232,44 @@ def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
     return h * 360, s * 100, v * 100
 
 
-def rgb_to_lab(r: int, g: int, b: int) -> Tuple[float, float, float]:
+def rgb_to_lab(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> Tuple[float, float, float]:
     """将RGB转换为LAB颜色空间
-
-    LAB颜色空间是一种设备无关的颜色空间，L代表亮度(0-100)，
-    A和B代表颜色对立通道(-128到127)，适合用于颜色差异计算。
-
-    转换步骤：
-    1. RGB归一化到0-1范围
-    2. 应用sRGB Gamma校正（转换到线性空间）
-    3. 转换为XYZ颜色空间（使用sRGB转换矩阵）
-    4. 使用D65参考白点归一化XYZ值
-    5. 转换为LAB颜色空间
 
     Args:
         r: 红色通道值 (0-255)
         g: 绿色通道值 (0-255)
         b: 蓝色通道值 (0-255)
+        colorspace_name: 色彩空间名称，默认 sRGB
 
     Returns:
         tuple: (L 0-100, A -128-127, B -128-127)
     """
-    # 步骤1: 归一化到 0-1 范围
+    cs = _get_colorspace_matrices(colorspace_name)
+    m = cs['rgb_to_xyz']
+    wp = cs['white_point']
+    gamma = cs['gamma']
+    use_srgb_curve = cs.get('use_srgb_curve', False)
+
     r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
 
-    # 步骤2: 应用gamma校正（转换到线性空间）
-    # sRGB的gamma曲线近似于gamma 2.2，但使用更精确的分段公式
-    # 小于等于0.04045的值使用线性转换，大于0.04045的值使用幂函数
-    r_norm = r_norm ** 2.2 if r_norm > 0.04045 else r_norm / 12.92
-    g_norm = g_norm ** 2.2 if g_norm > 0.04045 else g_norm / 12.92
-    b_norm = b_norm ** 2.2 if b_norm > 0.04045 else b_norm / 12.92
+    if use_srgb_curve:
+        r_norm = ((r_norm + 0.055) / 1.055) ** 2.4 if r_norm > 0.04045 else r_norm / 12.92
+        g_norm = ((g_norm + 0.055) / 1.055) ** 2.4 if g_norm > 0.04045 else g_norm / 12.92
+        b_norm = ((b_norm + 0.055) / 1.055) ** 2.4 if b_norm > 0.04045 else b_norm / 12.92
+    else:
+        r_norm = r_norm ** gamma
+        g_norm = g_norm ** gamma
+        b_norm = b_norm ** gamma
 
-    # 步骤3: 转换为XYZ颜色空间
-    # 使用sRGB到XYZ的转换矩阵（基于CIE 1931标准）
-    # X = 0.4124564*R + 0.3575761*G + 0.1804375*B
-    # Y = 0.2126729*R + 0.7151522*G + 0.0721750*B
-    # Z = 0.0193339*R + 0.1191920*G + 0.9503041*B
-    x = r_norm * 0.4124564 + g_norm * 0.3575761 + b_norm * 0.1804375
-    y = r_norm * 0.2126729 + g_norm * 0.7151522 + b_norm * 0.0721750
-    z = r_norm * 0.0193339 + g_norm * 0.1191920 + b_norm * 0.9503041
+    x = r_norm * m[0][0] + g_norm * m[0][1] + b_norm * m[0][2]
+    y = r_norm * m[1][0] + g_norm * m[1][1] + b_norm * m[1][2]
+    z = r_norm * m[2][0] + g_norm * m[2][1] + b_norm * m[2][2]
 
-    # 步骤4: 使用D65参考白点归一化XYZ值
-    # D65是标准日光白点，色温约6500K，是sRGB和大多数显示器的标准白点
-    x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
-    x, y, z = x / x_ref, y / y_ref, z / z_ref
+    x, y, z = x / wp[0], y / wp[1], z / wp[2]
 
-    # 步骤5: 转换为LAB颜色空间
-    # 使用分段函数f(t)处理非线性转换
     def f(t: float) -> float:
-        # 大于0.008856的值使用立方根，小于等于的值使用线性转换
         return t ** (1/3) if t > 0.008856 else 7.787 * t + 16/116
 
-    # L = 116*f(Y) - 16 (亮度分量)
-    # A = 500*(f(X) - f(Y)) (红绿对立分量)
-    # B = 200*(f(Y) - f(Z)) (黄蓝对立分量)
     L = 116 * f(y) - 16
     A = 500 * (f(x) - f(y))
     B = 200 * (f(y) - f(z))
@@ -292,19 +362,20 @@ def rgb_to_cmyk(r: int, g: int, b: int) -> Tuple[float, float, float, float]:
     return c * 100, m * 100, y * 100, k * 100
 
 
-def get_color_info(r: int, g: int, b: int) -> Dict[str, Any]:
+def get_color_info(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> Dict[str, Any]:
     """获取颜色的完整信息
 
     Args:
         r: 红色通道值 (0-255)
         g: 绿色通道值 (0-255)
         b: 蓝色通道值 (0-255)
+        colorspace_name: 色彩空间名称，默认 sRGB
 
     Returns:
         dict: 包含RGB、HSB、LAB、HEX、HSL、CMYK颜色信息的字典
     """
     H, S, B = rgb_to_hsb(r, g, b)
-    L, A, B_lab = rgb_to_lab(r, g, b)
+    L, A, B_lab = rgb_to_lab(r, g, b, colorspace_name)
     H2, S2, L2 = rgb_to_hsl(r, g, b)
     C, M, Y, K = rgb_to_cmyk(r, g, b)
 
@@ -566,27 +637,25 @@ def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
-def lab_to_rgb(L: float, A: float, B: float) -> Tuple[int, int, int]:
+def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> Tuple[int, int, int]:
     """将LAB转换为RGB
-
-    转换步骤：
-    1. 使用D65参考白点反归一化
-    2. 从LAB转换到XYZ
-    3. 从XYZ转换到线性RGB
-    4. 应用sRGB Gamma编码
-    5. 转换到0-255范围
 
     Args:
         L: 亮度 (0-100)
         A: 红绿对立通道 (-128-127)
         B: 黄蓝对立通道 (-128-127)
+        colorspace_name: 色彩空间名称，默认 sRGB
 
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    # 步骤1: 从LAB转换到XYZ
+    cs = _get_colorspace_matrices(colorspace_name)
+    m = cs['xyz_to_rgb']
+    wp = cs['white_point']
+    gamma = cs['gamma']
+    use_srgb_curve = cs.get('use_srgb_curve', False)
+
     def f_inv(t: float) -> float:
-        """LAB到XYZ的逆转换函数"""
         delta = 6 / 29
         if t > delta:
             return t ** 3
@@ -597,29 +666,28 @@ def lab_to_rgb(L: float, A: float, B: float) -> Tuple[int, int, int]:
     x = y + A / 500
     z = y - B / 200
 
-    # 使用D65参考白点
-    x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
-    x = x_ref * f_inv(x)
-    y = y_ref * f_inv(y)
-    z = z_ref * f_inv(z)
+    x = wp[0] * f_inv(x)
+    y = wp[1] * f_inv(y)
+    z = wp[2] * f_inv(z)
 
-    # 步骤2: 从XYZ转换到线性RGB
-    r_linear = x * 3.2404542 + y * -1.5371385 + z * -0.4985314
-    g_linear = x * -0.9692660 + y * 1.8760108 + z * 0.0415560
-    b_linear = x * 0.0556434 + y * -0.2040259 + z * 1.0572252
+    r_linear = x * m[0][0] + y * m[0][1] + z * m[0][2]
+    g_linear = x * m[1][0] + y * m[1][1] + z * m[1][2]
+    b_linear = x * m[2][0] + y * m[2][1] + z * m[2][2]
 
-    # 步骤3: 应用sRGB Gamma编码
-    def linear_to_srgb(c: float) -> float:
-        if c <= 0.0031308:
-            return c * 12.92
-        else:
-            return 1.055 * (c ** (1 / 2.4)) - 0.055
+    if use_srgb_curve:
+        def linear_to_gamma(c: float) -> float:
+            if c <= 0.0031308:
+                return c * 12.92
+            else:
+                return 1.055 * (c ** (1 / 2.4)) - 0.055
+    else:
+        def linear_to_gamma(c: float) -> float:
+            return c ** (1.0 / gamma)
 
-    r = linear_to_srgb(r_linear)
-    g = linear_to_srgb(g_linear)
-    b_out = linear_to_srgb(b_linear)
+    r = linear_to_gamma(r_linear)
+    g = linear_to_gamma(g_linear)
+    b_out = linear_to_gamma(b_linear)
 
-    # 步骤4: 限制范围并转换为0-255
     r = max(0, min(1, r))
     g = max(0, min(1, g))
     b_out = max(0, min(1, b_out))
@@ -1250,37 +1318,38 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
 def extract_dominant_colors(
     image,
     count: int = 5,
-    sample_step: int = 4
+    sample_step: int = 4,
+    original_pixels: Optional[np.ndarray] = None,
 ) -> List[Tuple[int, int, int]]:
     """使用 MMCQ 算法提取图片主色调
-
-    基于中位切分量化算法，递归分割颜色空间来提取主要颜色。
-    使用采样策略和 numpy 优化性能。
 
     Args:
         image: QImage 或 PIL Image 对象
         count: 提取颜色数量 (3-8，默认5)
         sample_step: 采样步长，每隔N个像素采样一次（默认4）
+        original_pixels: 原始色彩空间像素数组 (H,W,3)，优先于 image 使用
 
     Returns:
         list: RGB 主色调列表 [(r, g, b), ...]，按重要性排序
     """
-    # 限制颜色数量范围
     count = max(3, min(8, count))
 
-    # 提取像素数据（使用优化后的方法）
-    pixels = _extract_pixels_fast(image, sample_step)
+    if original_pixels is not None:
+        arr_sampled = original_pixels[::sample_step, ::sample_step]
+        pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+        if original_pixels.size > 0:
+            right_edge = original_pixels[::sample_step, -1]
+            bottom_edge = original_pixels[-1, ::sample_step]
+            pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
+            pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+    else:
+        pixels = _extract_pixels_fast(image, sample_step)
 
     if not pixels:
         return []
 
-    # 执行 MMCQ 算法
     cubes = _mmcq_quantize(pixels, count)
-
-    # 按像素数量排序（数量越多越重要）
     cubes.sort(key=lambda c: c.get_count(), reverse=True)
-
-    # 提取平均颜色
     dominant_colors = [cube.get_average_color() for cube in cubes]
 
     return dominant_colors
@@ -1351,17 +1420,16 @@ def _extract_pixels_with_positions_fast(
 def find_dominant_color_positions(
     image,
     dominant_colors: List[Tuple[int, int, int]],
-    sample_step: int = 4
+    sample_step: int = 4,
+    original_pixels: Optional[np.ndarray] = None,
 ) -> List[Tuple[float, float]]:
     """找到每种主色调在图片中的代表性位置
-
-    使用聚类思想，找到每种主色调在图片中的重心位置。
-    使用 numpy 优化性能。
 
     Args:
         image: QImage 或 PIL Image 对象
         dominant_colors: 主色调列表 [(r, g, b), ...]
         sample_step: 采样步长（默认4）
+        original_pixels: 原始色彩空间像素数组 (H,W,3)，优先于 image 使用
 
     Returns:
         list: 相对坐标列表 [(rel_x, rel_y), ...]，与 dominant_colors 一一对应
@@ -1369,30 +1437,30 @@ def find_dominant_color_positions(
     if not dominant_colors:
         return []
 
-    # 提取像素数据及其位置（使用优化后的方法）
-    width, height, pixel_data = _extract_pixels_with_positions_fast(image, sample_step)
+    if original_pixels is not None:
+        height, width = original_pixels.shape[:2]
+        arr = original_pixels[::sample_step, ::sample_step]
+        ys, xs = np.mgrid[0:height:sample_step, 0:width:sample_step]
+        pixel_data = [
+            (int(x), int(y), int(r), int(g), int(b))
+            for y, x, r, g, b in zip(ys.flat, xs.flat, arr[:, :, 0].flat, arr[:, :, 1].flat, arr[:, :, 2].flat)
+        ]
+    else:
+        width, height, pixel_data = _extract_pixels_with_positions_fast(image, sample_step)
 
     if not pixel_data or width == 0 or height == 0:
-        # 返回默认中心位置
         return [(0.5, 0.5)] * len(dominant_colors)
 
-    # 使用 numpy 加速聚类计算
-    # 转换为 numpy 数组
-    pixel_array = np.array(pixel_data, dtype=np.float32)  # [x, y, r, g, b]
-    dominant_array = np.array(dominant_colors, dtype=np.float32)  # [r, g, b]
+    pixel_array = np.array(pixel_data, dtype=np.float32)
+    dominant_array = np.array(dominant_colors, dtype=np.float32)
 
-    # 提取颜色部分
-    pixel_colors = pixel_array[:, 2:5]  # [r, g, b]
+    pixel_colors = pixel_array[:, 2:5]
 
-    # 计算每个像素到每个主色调的距离
-    # 使用广播: (n_pixels, 1, 3) - (1, n_colors, 3) -> (n_pixels, n_colors)
     diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
-    distances = np.sum(diff ** 2, axis=2)  # 平方距离
+    distances = np.sum(diff ** 2, axis=2)
 
-    # 找到每个像素最接近的主色调
     closest_indices = np.argmin(distances, axis=1)
 
-    # 计算每种颜色的重心位置
     positions = []
     for i in range(len(dominant_colors)):
         mask = closest_indices == i

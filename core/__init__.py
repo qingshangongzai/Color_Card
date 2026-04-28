@@ -83,7 +83,7 @@ from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loa
 from .cache_base import BaseCache
 
 # 图片数据容器（从 image_service 导出，避免循环导入）
-from .image_service import ImageData
+from .image_service import ImageData, ColorSpaceInfo
 
 # UI直接使用的服务类（轻量级，立即导入）
 from .histogram_service import HistogramService, HistogramCalculator
@@ -210,6 +210,7 @@ __all__ = [
     'BaseCache',
     # 图片数据容器
     'ImageData',
+    'ColorSpaceInfo',
     # 日志
     'LoggerManager',
     'get_logger_manager',

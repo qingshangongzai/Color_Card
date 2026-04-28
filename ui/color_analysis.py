@@ -240,9 +240,10 @@ class ColorAnalysisInterface(QWidget):
 
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
-        color_info = get_color_info(*rgb)
+        colorspace_info = self.image_canvas.get_colorspace_info()
+        colorspace_name = colorspace_info.name if colorspace_info else 'sRGB'
+        color_info = get_color_info(*rgb, colorspace_name=colorspace_name)
         self.color_card_panel.update_color(index, color_info)
-        # 更新HSB色环上的采样点
         self.hsb_color_wheel.update_sample_point(index, rgb)
 
     def clear_all(self, emit_signal: bool = True):
@@ -405,7 +406,10 @@ class ColorAnalysisInterface(QWidget):
             params={"count": count, "source": "color_analysis"}
         )
 
-        self._get_color_service().extract_dominant_colors(image, count=count)
+        original_pixels = self.image_canvas.get_original_pixels()
+        self._get_color_service().extract_dominant_colors(
+            image, count=count, original_pixels=original_pixels
+        )
 
     def _on_extraction_started(self):
         """提取开始回调"""
