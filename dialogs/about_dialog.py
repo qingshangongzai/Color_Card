@@ -42,6 +42,9 @@ class AboutDialog(BaseFramelessDialog):
             self._update_styles
         )
 
+        # 样式准备好后允许显示
+        self._enable_show()
+
     def setup_ui(self):
         """设置界面布局"""
         layout = QVBoxLayout(self)
