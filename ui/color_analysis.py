@@ -34,7 +34,7 @@ class ColorAnalysisInterface(QWidget):
     """色彩分析界面"""
 
     # 图片同步信号（替代中介者）
-    image_sync_requested = Signal(object, object)  # QPixmap, QImage
+    image_sync_requested = Signal(object)  # ImageData
     clear_sync_requested = Signal()
 
     def __init__(self, parent=None):
@@ -226,18 +226,17 @@ class ColorAnalysisInterface(QWidget):
             set_last_directory("image_import", str(Path(file_path).parent))
             self.image_canvas.set_image(file_path)
 
-    def on_image_loaded(self, file_path):
+    def on_image_loaded(self, image_path):
         """图片加载完成回调"""
         # 图片数据处理已在 _setup_after_load 中完成
-        pixmap = self.image_canvas._original_pixmap
-        image = self.image_canvas._image
-        if pixmap and not pixmap.isNull() and image and not image.isNull():
+        image_data = self.image_canvas._image_data
+        if image_data is not None:
             # 直接发射同步信号
-            self.image_sync_requested.emit(pixmap, image)
+            self.image_sync_requested.emit(image_data)
 
             # 更新RGB直方图和色相直方图
-            self.rgb_histogram_widget.set_image(image)
-            self.hue_histogram_widget.set_image(image)
+            self.rgb_histogram_widget.set_image(image_data.display_image)
+            self.hue_histogram_widget.set_image(image_data.display_image)
 
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
@@ -272,17 +271,16 @@ class ColorAnalysisInterface(QWidget):
         # 直接发射同步信号
         self.clear_sync_requested.emit()
 
-    def set_image_data(self, pixmap, image):
+    def set_image_data(self, image_data):
         """设置图片数据（从其他面板同步）
 
         Args:
-            pixmap: QPixmap 对象
-            image: QImage 对象
+            image_data: ImageData 对象
         """
         # emit_sync=False 防止循环同步
-        self.image_canvas.set_image_data(pixmap, image, emit_sync=False)
-        self.rgb_histogram_widget.set_image(image)
-        self.hue_histogram_widget.set_image(image)
+        self.image_canvas.set_image_data(image_data, emit_sync=False)
+        self.rgb_histogram_widget.set_image(image_data.display_image)
+        self.hue_histogram_widget.set_image(image_data.display_image)
 
         # 延迟更新HSB色环采样点，等待颜色提取完成
         # extract_all 使用 100ms 延迟，这里使用 300ms 确保颜色已提取

@@ -1,6 +1,6 @@
 """图片内存管理模块
 
-管理QPixmap和QImage的内存使用，实现LRU缓存策略，
+管理ImageData的内存使用，实现LRU缓存策略，
 限制最大内存占用，自动清理旧图片。
 """
 
@@ -11,13 +11,15 @@ from collections import OrderedDict
 from typing import Dict, Optional, Tuple
 
 # 第三方库导入
-from PySide6.QtGui import QImage, QPixmap
+
+# 项目模块导入
+from .image_service import ImageData
 
 
 class ImageMemoryManager:
     """图片内存管理器
 
-    管理QPixmap和QImage的内存使用，实现LRU缓存策略，
+    管理ImageData的内存使用，实现LRU缓存策略，
     限制最大内存占用，自动清理旧图片。
 
     Attributes:
@@ -36,17 +38,16 @@ class ImageMemoryManager:
         """
         self._max_memory: int = max_memory_mb * 1024 * 1024
         self._current_memory: int = 0
-        self._images: OrderedDict[str, Tuple[QPixmap, QImage, int, float]] = (
+        self._images: OrderedDict[str, Tuple[ImageData, int, float]] = (
             OrderedDict()
         )
 
-        # 统计信息
         self._cache_hits: int = 0
         self._cache_misses: int = 0
         self._evictions: int = 0
 
     def add_image(
-        self, source_id: str, pixmap: QPixmap, image: QImage
+        self, source_id: str, image_data: ImageData
     ) -> None:
         """添加图片到内存管理器
 
@@ -54,34 +55,29 @@ class ImageMemoryManager:
 
         Args:
             source_id: 图片唯一标识（如文件路径）
-            pixmap: QPixmap对象
-            image: QImage对象
+            image_data: ImageData 对象
         """
-        if pixmap.isNull() or image.isNull():
+        if image_data.display_pixmap.isNull() or image_data.display_image.isNull():
             return
 
-        # 计算图片内存占用
-        size = self._calculate_size(pixmap, image)
+        size = self._calculate_size(image_data)
 
-        # 如果已存在，先移除旧数据
         if source_id in self._images:
             self._remove_image(source_id)
 
-        # 超过限制时清理旧图片
         while (
             self._current_memory + size > self._max_memory
             and self._images
         ):
             self._evict_oldest()
 
-        # 添加新图片
         timestamp = time.time()
-        self._images[source_id] = (pixmap, image, size, timestamp)
+        self._images[source_id] = (image_data, size, timestamp)
         self._current_memory += size
 
     def get_image(
         self, source_id: str
-    ) -> Optional[Tuple[QPixmap, QImage]]:
+    ) -> Optional[ImageData]:
         """获取图片
 
         更新访问时间，实现LRU策略。
@@ -90,21 +86,18 @@ class ImageMemoryManager:
             source_id: 图片唯一标识
 
         Returns:
-            (QPixmap, QImage) 元组，如果不存在则返回None
+            ImageData 对象，如果不存在则返回 None
         """
         if source_id not in self._images:
             self._cache_misses += 1
             return None
 
-        # 更新访问时间
-        pixmap, image, size, _ = self._images[source_id]
-        self._images[source_id] = (pixmap, image, size, time.time())
-
-        # 移动到末尾（最新使用）
+        image_data, size, _ = self._images[source_id]
+        self._images[source_id] = (image_data, size, time.time())
         self._images.move_to_end(source_id)
 
         self._cache_hits += 1
-        return pixmap, image
+        return image_data
 
     def remove_image(self, source_id: str) -> bool:
         """移除指定图片
@@ -130,53 +123,47 @@ class ImageMemoryManager:
         if source_id not in self._images:
             return
 
-        pixmap, image, size, _ = self._images.pop(source_id)
+        image_data, size, _ = self._images.pop(source_id)
         self._current_memory -= size
 
-        # 直接赋值为 None，让 Python 垃圾回收处理
-        # 注意：QPixmap 和 QImage 没有 detach() 方法
-        del pixmap
-        del image
+        del image_data
 
     def _evict_oldest(self) -> None:
         """清理最久未使用的图片"""
         if not self._images:
             return
 
-        # 获取最久未使用的图片（OrderedDict的第一个元素）
         oldest_id = next(iter(self._images))
         self._remove_image(oldest_id)
         self._evictions += 1
 
     def clear_all(self) -> None:
         """清空所有图片"""
-        # 显式释放所有Qt对象
         for source_id in list(self._images.keys()):
             self._remove_image(source_id)
 
         self._images.clear()
         self._current_memory = 0
 
-        # 触发垃圾回收
         gc.collect()
 
     def _calculate_size(
-        self, pixmap: QPixmap, image: QImage
+        self, image_data: ImageData
     ) -> int:
         """计算图片内存占用
 
         Args:
-            pixmap: QPixmap对象
-            image: QImage对象
+            image_data: ImageData 对象
 
         Returns:
             内存占用（字节）
         """
-        # QPixmap 没有 sizeInBytes() 方法，使用 QImage 计算
-        # QPixmap 和 QImage 共享相同的像素数据时内存占用相近
-        image_size = image.sizeInBytes()
-        # QPixmap 通常有一些额外开销，估算为 image 的 1.1 倍
-        return int(image_size * 1.1)
+        image_size = image_data.display_image.sizeInBytes()
+        pixmap_overhead = int(image_size * 1.1)
+        pixels_size = 0
+        if image_data.original_pixels is not None:
+            pixels_size = image_data.original_pixels.nbytes
+        return image_size + pixmap_overhead + pixels_size
 
     def get_memory_stats(self) -> Dict[str, int]:
         """获取内存统计信息

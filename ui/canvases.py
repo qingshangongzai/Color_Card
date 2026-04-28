@@ -77,7 +77,7 @@ class BaseCanvas(QWidget):
     """
 
     image_loaded = Signal(str)  # 信号：图片路径
-    image_data_loaded = Signal(object, object)  # 信号：QPixmap, QImage（用于同步到其他面板）
+    image_data_loaded = Signal(object)  # 信号：ImageData（用于同步到其他面板）
     open_image_requested = Signal()  # 信号：请求打开图片
     change_image_requested = Signal()  # 信号：请求更换图片
     clear_image_requested = Signal()  # 信号：请求清空图片
@@ -98,6 +98,7 @@ class BaseCanvas(QWidget):
 
         self._original_pixmap: Optional[QPixmap] = None
         self._image: Optional[QImage] = None
+        self._image_data = None  # ImageData 对象，包含原始取色数据和色彩空间信息
         self._picker_positions: List[QPoint] = []
         self._picker_rel_positions: List[QPointF] = []
         self._image_service = None
@@ -241,15 +242,15 @@ class BaseCanvas(QWidget):
         self._setup_display_preview()
         self.update()
 
-    def _on_image_loaded_from_service(self, pixmap: QPixmap, image: QImage) -> None:
+    def _on_image_loaded_from_service(self, image_data) -> None:
         """图片从ImageService加载完成的回调
 
         Args:
-            pixmap: QPixmap对象
-            image: QImage对象
+            image_data: ImageData 对象，包含显示数据和原始取色数据
         """
-        self._image = image
-        self._original_pixmap = pixmap
+        self._image_data = image_data
+        self._image = image_data.display_image
+        self._original_pixmap = image_data.display_pixmap
 
         self.hide_loading()
 
@@ -283,16 +284,16 @@ class BaseCanvas(QWidget):
         self.hide_loading()
         print(f"图片加载失败: {error_msg}")
 
-    def set_image_data(self, pixmap: QPixmap, image: QImage, emit_sync: bool = True) -> None:
+    def set_image_data(self, image_data, emit_sync: bool = True) -> None:
         """直接使用已加载的图片数据（避免重复加载）
 
         Args:
-            pixmap: QPixmap 对象
-            image: QImage 对象
+            image_data: ImageData 对象
             emit_sync: 是否发射同步信号（默认True，从其他面板同步时设为False）
         """
-        self._original_pixmap = pixmap
-        self._image = image
+        self._image_data = image_data
+        self._original_pixmap = image_data.display_pixmap
+        self._image = image_data.display_image
         self._setup_after_load(emit_sync=emit_sync)
 
     def _setup_after_load(self, emit_sync: bool = True) -> None:
@@ -727,6 +728,7 @@ class BaseCanvas(QWidget):
         # 直接赋值为 None，让 Python 垃圾回收处理
         self._original_pixmap = None
         self._image = None
+        self._image_data = None
 
         # 释放ImageService中的图片内存
         self._get_image_service().release_current_image()
@@ -884,7 +886,7 @@ class ImageCanvas(BaseCanvas):
             if emit_sync and self._pending_image_path:
                 self.image_loaded.emit(self._pending_image_path)
                 # 同时发送图片数据信号，用于同步到其他面板
-                self.image_data_loaded.emit(self._original_pixmap, self._image)
+                self.image_data_loaded.emit(self._image_data)
 
             # 延迟提取颜色，让UI先响应，用户可以立即切换面板
             QTimer.singleShot(100, self.extract_all)
@@ -946,25 +948,27 @@ class ImageCanvas(BaseCanvas):
 
     def extract_at(self, index: int) -> None:
         """提取指定取色点的颜色"""
-        if self._image is None or self._image.isNull():
+        if self._image_data is None:
+            return
+        original_pixels = self._image_data.original_pixels
+        if original_pixels is None:
             return
 
         pos = self._picker_positions[index]
         image_pos = self.canvas_to_image_pos(pos)
 
         if image_pos:
-            # 获取像素颜色
-            color = self._image.pixelColor(image_pos.x(), image_pos.y())
-            rgb = (color.red(), color.green(), color.blue())
+            y, x = image_pos.y(), image_pos.x()
+            h, w = original_pixels.shape[:2]
+            if 0 <= x < w and 0 <= y < h:
+                r, g, b = int(original_pixels[y, x, 0]), int(original_pixels[y, x, 1]), int(original_pixels[y, x, 2])
+                rgb = (r, g, b)
 
-            # 更新取色点显示的颜色
-            if index < len(self._pickers):
-                self._pickers[index].set_color(color)
+                if index < len(self._pickers):
+                    self._pickers[index].set_color(QColor(r, g, b))
 
-            # 发送信号
-            self.color_picked.emit(index, rgb)
+                self.color_picked.emit(index, rgb)
 
-        # 更新放大视图
         self._update_zoom_viewer()
 
     def extract_all(self) -> None:
