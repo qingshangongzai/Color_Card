@@ -94,6 +94,7 @@ delete_confirm_content = "選択した {count} 個のパレットを削除して
 delete_success = "{count} 個のパレットを削除しました"
 delete_single_success = "パレット「{name}」を削除しました"
 no_selection = "削除するパレットを選択してください"
+palette_copied = "{count} 個の色をクリップボードにコピーしました"
 
 [color_preview]
 title = "カラープレビュー"

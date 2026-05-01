@@ -94,6 +94,7 @@ delete_confirm_content = "Are you sure you want to delete {count} selected palet
 delete_success = "Deleted {count} palettes"
 delete_single_success = """Palette "{name}" deleted"""
 no_selection = "Please select palettes to delete first"
+palette_copied = "{count} colors copied to clipboard"
 
 [color_preview]
 title = "Color Preview"
