@@ -203,16 +203,71 @@ class ImageData:
         display_pixmap: sRGB QPixmap，用于高效绘制
         original_pixels: 原始 RGB 数组 (H, W, 3) dtype=uint8，用于取色
         colorspace_info: 色彩空间信息
+        display_colorspace: 显示器色彩空间名称，用于显示值模式取色
     """
     display_image: QImage
     display_pixmap: QPixmap
     original_pixels: np.ndarray
     colorspace_info: ColorSpaceInfo
+    display_colorspace: Optional[str] = None
 
 
 # ==================== ICC 色彩空间转换 ====================
 
-def _convert_to_display(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
+def _detect_colorspace_from_text(text: str) -> Optional[str]:
+    """从文本中检测色彩空间名称
+
+    Args:
+        text: 要检测的文本（已转为小写）
+
+    Returns:
+        str: 色彩空间名称，未检测到返回 None
+    """
+    if 'adobe' in text and 'rgb' in text:
+        return 'Adobe RGB'
+    if 'display p3' in text or 'displayp3' in text:
+        return 'Display P3'
+    if 'dci-p3' in text or 'dcip3' in text:
+        return 'DCI-P3'
+    if 'prophoto' in text:
+        return 'ProPhoto RGB'
+    return None
+
+
+def _detect_display_colorspace(display_profile) -> str:
+    """从显示器ICC Profile检测色彩空间名称
+
+    Args:
+        display_profile: PIL ImageCmsProfile 对象
+
+    Returns:
+        str: 色彩空间名称，无法识别时返回 'sRGB'
+    """
+    try:
+        from PIL import ImageCms
+
+        # getProfileInfo 返回字符串
+        profile_info = ImageCms.getProfileInfo(display_profile)
+        info_str = profile_info.lower() if isinstance(profile_info, str) else profile_info.decode('utf-8', errors='ignore').lower()
+
+        colorspace = _detect_colorspace_from_text(info_str)
+        if colorspace:
+            return colorspace
+
+        # getProfileName 返回字符串
+        profile_name = ImageCms.getProfileName(display_profile)
+        name_str = profile_name.lower() if isinstance(profile_name, str) else profile_name.decode('utf-8', errors='ignore').lower()
+
+        colorspace = _detect_colorspace_from_text(name_str)
+        if colorspace:
+            return colorspace
+    except (OSError, ValueError, AttributeError):
+        pass
+
+    return 'sRGB'
+
+
+def _convert_to_display(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Tuple[Image.Image, str]:
     """将图片转换为显示器色彩空间用于显示
 
     优先使用系统显示器的 ICC Profile 作为输出目标，
@@ -223,14 +278,17 @@ def _convert_to_display(pil_image: Image.Image, colorspace_info: ColorSpaceInfo)
         colorspace_info: 色彩空间信息
 
     Returns:
-        Image.Image: 显示器色彩空间的 PIL Image
+        tuple: (显示器色彩空间的 PIL Image, 目标色彩空间名称)
     """
     try:
         from PIL import ImageCms
 
         display_profile = ImageCms.get_display_profile()
         if display_profile is None:
-            return _convert_to_srgb(pil_image, colorspace_info)
+            result = _convert_to_srgb(pil_image, colorspace_info)
+            return result, 'sRGB'
+
+        display_colorspace = _detect_display_colorspace(display_profile)
 
         icc_data = pil_image.info.get('icc_profile')
         if icc_data:
@@ -240,16 +298,18 @@ def _convert_to_display(pil_image: Image.Image, colorspace_info: ColorSpaceInfo)
 
         rendering_intent = getattr(ImageCms, 'INTENT_PERCEPTUAL', 0)
 
-        return ImageCms.profileToProfile(
+        result = ImageCms.profileToProfile(
             pil_image,
             inputProfile=source_profile,
             outputProfile=display_profile,
             renderingIntent=rendering_intent,
             outputMode='RGB'
         )
+        return result, display_colorspace
     except (ImportError, OSError, ValueError) as e:
         logger.warning(f"显示器 ICC 转换失败，回退到 sRGB: {e}")
-        return _convert_to_srgb(pil_image, colorspace_info)
+        result = _convert_to_srgb(pil_image, colorspace_info)
+        return result, 'sRGB'
 
 
 def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
@@ -348,6 +408,7 @@ class ProgressiveImageLoader(QThread):
         self._is_cancelled: bool = False
         self._colorspace_info: Optional[ColorSpaceInfo] = None
         self._original_pixels: Optional[np.ndarray] = None
+        self._display_colorspace: Optional[str] = None
 
     def cancel(self) -> None:
         """取消任务（异步，不阻塞调用线程）
@@ -391,7 +452,8 @@ class ProgressiveImageLoader(QThread):
                         original_pil = original_pil.convert('RGB')
                     self._original_pixels = np.array(original_pil, dtype=np.uint8)
 
-                    display_pil = _convert_to_display(pil_image, self._colorspace_info)
+                    display_pil, display_colorspace = _convert_to_display(pil_image, self._colorspace_info)
+                    self._display_colorspace = display_colorspace
 
                     width, height = display_pil.size
                     max_dim = max(width, height)
@@ -647,11 +709,14 @@ class ImageService(QObject):
             gamma=2.2, source='default'
         )
 
+        display_colorspace = getattr(self._loader, '_display_colorspace', None) if self._loader else None
+
         img_data = ImageData(
             display_image=display_image,
             display_pixmap=display_pixmap,
             original_pixels=original_pixels,
-            colorspace_info=colorspace_info
+            colorspace_info=colorspace_info,
+            display_colorspace=display_colorspace
         )
 
         if self._current_path:

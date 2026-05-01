@@ -34,6 +34,7 @@ from .color import (
     hsl_to_rgb,
     cmyk_to_rgb,
     get_color_info,
+    convert_rgb_colorspace,
     get_luminance,
     get_zone,
     get_zone_bounds,

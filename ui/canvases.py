@@ -769,6 +769,16 @@ class BaseCanvas(QWidget):
             return self._image_data.original_pixels
         return None
 
+    def get_display_colorspace(self):
+        """获取当前显示所用的色彩空间名称
+
+        Returns:
+            str: 色彩空间名称（如'sRGB'、'Adobe RGB'等），未加载图片时返回None
+        """
+        if self._image_data is not None:
+            return getattr(self._image_data, 'display_colorspace', None)
+        return None
+
     def dragEnterEvent(self, event) -> None:
         """拖拽进入事件 - 检查是否为可接受的文件类型"""
         if event.mimeData().hasUrls():

@@ -362,6 +362,35 @@ def rgb_to_cmyk(r: int, g: int, b: int) -> Tuple[float, float, float, float]:
     return c * 100, m * 100, y * 100, k * 100
 
 
+def convert_rgb_colorspace(
+    r: int, g: int, b: int,
+    source_colorspace: str,
+    target_colorspace: str
+) -> Tuple[int, int, int]:
+    """将RGB值从源色彩空间转换到目标色彩空间
+
+    使用LAB作为中介色彩空间进行转换。
+
+    Args:
+        r: 红色通道值 (0-255)
+        g: 绿色通道值 (0-255)
+        b: 蓝色通道值 (0-255)
+        source_colorspace: 源色彩空间名称
+        target_colorspace: 目标色彩空间名称
+
+    Returns:
+        tuple: (R, G, B) 目标色彩空间的RGB值
+    """
+    if source_colorspace == target_colorspace:
+        return r, g, b
+
+    try:
+        L, A, B_lab = rgb_to_lab(r, g, b, source_colorspace)
+        return lab_to_rgb(L, A, B_lab, target_colorspace)
+    except (ValueError, KeyError):
+        return r, g, b
+
+
 def get_color_info(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> Dict[str, Any]:
     """获取颜色的完整信息
 

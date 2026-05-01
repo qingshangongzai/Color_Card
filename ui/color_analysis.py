@@ -21,7 +21,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, get_color_service, log_user_action
+from core import get_color_info, convert_rgb_colorspace, get_config_manager, get_color_service, log_user_action
 from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
@@ -241,10 +241,27 @@ class ColorAnalysisInterface(QWidget):
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
         colorspace_info = self.image_canvas.get_colorspace_info()
-        colorspace_name = colorspace_info.name if colorspace_info else 'sRGB'
-        color_info = get_color_info(*rgb, colorspace_name=colorspace_name)
+        source_colorspace = colorspace_info.name if colorspace_info else 'sRGB'
+
+        picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
+
+        if picker_mode == 'display':
+            display_colorspace = self.image_canvas.get_display_colorspace()
+            if display_colorspace and display_colorspace != source_colorspace:
+                rgb = convert_rgb_colorspace(*rgb, source_colorspace, display_colorspace)
+                target_colorspace = display_colorspace
+            else:
+                target_colorspace = source_colorspace
+        else:
+            target_colorspace = source_colorspace
+
+        color_info = get_color_info(*rgb, colorspace_name=target_colorspace)
         self.color_card_panel.update_color(index, color_info)
-        self.hsb_color_wheel.update_sample_point(index, rgb)
+        self.hsb_color_wheel.update_sample_point(index, color_info['rgb'])
+
+    def refresh_color_cards(self):
+        """刷新所有颜色卡片（设置更改后调用）"""
+        self.image_canvas.extract_all()
 
     def clear_all(self, emit_signal: bool = True):
         """清空所有相关内容（图片、色卡、色环、直方图）

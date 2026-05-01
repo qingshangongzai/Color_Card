@@ -409,6 +409,11 @@ class MainWindow(FluentWindow):
             self._on_brightness_threshold_changed
         )
 
+        # 连接取色模式改变信号到色彩分析界面
+        settings_interface.color_picker_mode_changed.connect(
+            color_analysis_interface.refresh_color_cards
+        )
+
         # 连接色环标签显示开关信号
         settings_interface.color_wheel_labels_visible_changed.connect(
             lambda visible: HSBColorWheel.set_labels_visible(visible)
