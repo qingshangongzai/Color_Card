@@ -137,3 +137,5 @@ test_lazy_loading.py
 文档/core模块启动优化方案.md
 
 文档/延迟加载机制分析.md
+文档/Color Card 启动速度分析报告.md
+文档/软打样模式实现方案.md
