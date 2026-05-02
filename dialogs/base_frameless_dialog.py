@@ -1,6 +1,6 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QIcon, QPixmap, QPalette
 from qframelesswindow import FramelessDialog
 from qfluentwidgets import qconfig
@@ -50,6 +50,32 @@ class BaseFramelessDialog(FramelessDialog):
                     pass
                 super().closeEvent(event)
     """
+
+    def __init__(self, parent=None):
+        """初始化对话框，延迟显示直到样式准备好"""
+        super().__init__(parent)
+        # 初始透明度为0，避免闪烁
+        self.setWindowOpacity(0.0)
+        # 动画对象，防止被垃圾回收
+        self._fade_animation = None
+
+    def _enable_show(self):
+        """允许窗口显示，在样式设置完成后调用
+
+        使用 QPropertyAnimation 实现淡入动画效果，
+        避免深色模式下的白色闪烁问题，同时让显示更平滑。
+        """
+        # 延迟一帧启动淡入动画，确保样式已完全应用
+        QTimer.singleShot(0, self._start_fade_in)
+
+    def _start_fade_in(self):
+        """启动淡入动画"""
+        self._fade_animation = QPropertyAnimation(self, b"windowOpacity")
+        self._fade_animation.setDuration(120)
+        self._fade_animation.setStartValue(0.0)
+        self._fade_animation.setEndValue(1.0)
+        self._fade_animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+        self._fade_animation.start()
 
     def _setup_title_bar(self):
         """设置自定义 Fluent Design 风格标题栏"""

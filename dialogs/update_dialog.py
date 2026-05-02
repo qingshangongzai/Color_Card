@@ -277,6 +277,9 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             self._update_styles
         )
 
+        # 样式准备好后允许显示
+        self._enable_show()
+
     def _changelog_to_html(self, versions: List[Dict]) -> str:
         """将版本信息列表转换为 HTML
 

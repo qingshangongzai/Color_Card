@@ -542,6 +542,12 @@ class PaletteManagementCard(CardWidget):
         self.edit_button.clicked.connect(self._on_edit_clicked)
         button_layout.addWidget(self.edit_button)
 
+        # 复制配色按钮
+        self.copy_palette_button = ToolButton(FluentIcon.COPY)
+        self.copy_palette_button.setFixedSize(28, 28)
+        self.copy_palette_button.clicked.connect(self._on_copy_palette_clicked)
+        button_layout.addWidget(self.copy_palette_button)
+
         # ASE 导出按钮
         self.export_ase_button = ToolButton(FluentIcon.SHARE)
         self.export_ase_button.setFixedSize(28, 28)
@@ -700,6 +706,31 @@ class PaletteManagementCard(CardWidget):
         """ASE 导出按钮点击"""
         self.export_ase_requested.emit(self._favorite_data)
 
+    def _on_copy_palette_clicked(self):
+        """复制配色按钮点击"""
+        colors = self._favorite_data.get('colors', [])
+        if not colors:
+            return
+
+        hex_values = [
+            '#' + c['hex'] if not c['hex'].startswith('#') else c['hex']
+            for c in colors if c.get('hex')
+        ]
+
+        text = ' '.join(hex_values)
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+
+        InfoBar.success(
+            title=tr('messages.copy_success.title'),
+            content=tr('palette_management.palette_copied', count=len(hex_values)),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
         self._hex_visible = visible
@@ -734,6 +765,7 @@ class PaletteManagementCard(CardWidget):
         self.contrast_button.setVisible(not enabled)
         self.preview_button.setVisible(not enabled)
         self.edit_button.setVisible(not enabled)
+        self.copy_palette_button.setVisible(not enabled)
         self.export_ase_button.setVisible(not enabled)
         self.delete_button.setVisible(not enabled)
         # 重置选中状态

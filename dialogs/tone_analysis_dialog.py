@@ -670,6 +670,9 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         if self._img_array is not None:
             self.start_analysis()
 
+        # 样式准备好后允许显示
+        self._enable_show()
+
     def _setup_ui(self) -> None:
         """设置界面"""
         main_layout = QVBoxLayout(self)

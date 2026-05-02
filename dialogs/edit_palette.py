@@ -444,6 +444,9 @@ class ColorPickerDialog(BaseFramelessDialog):
             self._update_styles
         )
 
+        # 样式准备好后允许显示
+        self._enable_show()
+
     def closeEvent(self, event):
         """关闭事件"""
         try:
@@ -1210,6 +1213,9 @@ class EditPaletteDialog(BaseFramelessDialog):
         self._theme_connection = qconfig.themeChangedFinished.connect(
             self._update_styles
         )
+
+        # 样式准备好后允许显示
+        self._enable_show()
 
     def closeEvent(self, event):
         """关闭事件"""
