@@ -351,3 +351,39 @@ def get_tone_chart_mean_line_color():
 def get_tone_chart_median_line_color():
     """获取影调分析图表中位数线颜色"""
     return QColor(81, 207, 102)
+
+
+# ========== 和谐度分析颜色 ==========
+def get_harmony_wheel_bg_color():
+    """获取和谐度色相环背景颜色"""
+    return QColor(42, 42, 42) if isDarkTheme() else QColor(245, 245, 245)
+
+
+def get_harmony_wheel_line_color():
+    """获取和谐度色相环连线颜色"""
+    return QColor(255, 255, 255, 160) if isDarkTheme() else QColor(0, 0, 0, 120)
+
+
+def get_harmony_wheel_dot_border_color():
+    """获取和谐度色相环标记点边框颜色"""
+    return QColor(255, 255, 255) if isDarkTheme() else QColor(0, 0, 0)
+
+
+def get_harmony_score_excellent_color():
+    """获取和谐度评分-优秀颜色"""
+    return QColor(76, 175, 80) if not isDarkTheme() else QColor(129, 199, 132)
+
+
+def get_harmony_score_good_color():
+    """获取和谐度评分-良好颜色"""
+    return QColor(33, 150, 243) if not isDarkTheme() else QColor(100, 181, 246)
+
+
+def get_harmony_score_average_color():
+    """获取和谐度评分-一般颜色"""
+    return QColor(255, 152, 0) if not isDarkTheme() else QColor(255, 183, 77)
+
+
+def get_harmony_score_poor_color():
+    """获取和谐度评分-较差颜色"""
+    return QColor(244, 67, 54) if not isDarkTheme() else QColor(239, 83, 80)

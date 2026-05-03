@@ -82,6 +82,7 @@ from .gradient import (
 from .async_loader import BaseBatchLoader
 from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
 from .cache_base import BaseCache
+from .harmony import analyze_harmony
 
 # 图片数据容器（从 image_service 导出，避免循环导入）
 from .image_service import ImageData, ColorSpaceInfo
@@ -209,6 +210,8 @@ __all__ = [
     'generate_groups',
     'should_use_batch_loading',
     'BaseCache',
+    # 和谐度分析
+    'analyze_harmony',
     # 图片数据容器
     'ImageData',
     'ColorSpaceInfo',
