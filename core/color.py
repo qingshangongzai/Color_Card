@@ -41,7 +41,7 @@ _COLORSPACE_MATRICES = {
         ],
         'white_point': (0.95047, 1.00000, 1.08883),
         'gamma': 2.2,
-        'use_srgb_curve': True,
+        'use_srgb_curve': False,
     },
     'ProPhoto RGB': {
         'rgb_to_xyz': [
@@ -703,6 +703,10 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> T
     g_linear = x * m[1][0] + y * m[1][1] + z * m[1][2]
     b_linear = x * m[2][0] + y * m[2][1] + z * m[2][2]
 
+    r_linear = max(0, r_linear)
+    g_linear = max(0, g_linear)
+    b_linear = max(0, b_linear)
+
     if use_srgb_curve:
         def linear_to_gamma(c: float) -> float:
             if c <= 0.0031308:
@@ -717,9 +721,9 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> T
     g = linear_to_gamma(g_linear)
     b_out = linear_to_gamma(b_linear)
 
-    r = max(0, min(1, r))
-    g = max(0, min(1, g))
-    b_out = max(0, min(1, b_out))
+    r = min(1, r)
+    g = min(1, g)
+    b_out = min(1, b_out)
 
     return round(r * 255), round(g * 255), round(b_out * 255)
 
