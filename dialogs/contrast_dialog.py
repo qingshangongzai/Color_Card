@@ -10,8 +10,7 @@ from typing import List, Dict, Tuple
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal, QPointF
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QVBoxLayout, QWidget,
-    QFrame
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QPolygonF
 from qfluentwidgets import (
@@ -465,15 +464,9 @@ class ContrastCheckDialog(BaseFramelessDialog):
         result_layout.addWidget(self.level_label)
         
         result_layout.addStretch()
-        
+
         main_layout.addWidget(result_card)
-        
-        # 分隔线
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setStyleSheet(f"color: {border_color.name()};")
-        main_layout.addWidget(line)
-        
+
         # 预览区域标题
         preview_title = QLabel(tr('dialogs.contrast.preview_effect'))
         preview_title.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {text_color.name()};")
