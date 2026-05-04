@@ -9,9 +9,9 @@ import math
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPainter, QPen, QBrush
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QFrame
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
-from qfluentwidgets import qconfig
+from qfluentwidgets import qconfig, ScrollArea
 
 # 项目模块导入
 from utils import tr, load_icon_universal
@@ -44,8 +44,7 @@ class HarmonyWheel(QWidget):
         self._hue_values = []
         for color in self._colors:
             hsb = color.get('hsb', (0, 0, 0))
-            if isinstance(hsb, (list, tuple)) and len(hsb) >= 3:
-                self._hue_values.append(float(hsb[0]))
+            self._hue_values.append(float(hsb[0]))
 
     def paintEvent(self, event):
         """绘制色相环和颜色标记"""
@@ -121,7 +120,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
 
         self.setWindowTitle(tr('dialogs.harmony.window_title', name=scheme_name))
         self.setWindowIcon(load_icon_universal())
-        self.setFixedSize(520, 580)
+        self.setFixedWidth(520)
 
         self._setup_title_bar()
         self.setup_ui()
@@ -187,10 +186,6 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
 
         suggestions = self._analysis_result.get('suggestions', [])
         if suggestions:
-            line = QFrame()
-            line.setFrameShape(QFrame.Shape.HLine)
-            main_layout.addWidget(line)
-
             suggest_title = QLabel(tr('dialogs.harmony.suggestions'))
             suggest_title.setStyleSheet("font-size: 13px; font-weight: bold;")
             main_layout.addWidget(suggest_title)
@@ -200,10 +195,6 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
                 sug_label.setWordWrap(True)
                 sug_label.setStyleSheet("font-size: 12px;")
                 main_layout.addWidget(sug_label)
-
-        line2 = QFrame()
-        line2.setFrameShape(QFrame.Shape.HLine)
-        main_layout.addWidget(line2)
 
         analysis_title = QLabel(tr('dialogs.harmony.hue_analysis'))
         analysis_title.setStyleSheet("font-size: 13px; font-weight: bold;")
@@ -219,6 +210,25 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
         Args:
             layout: 父布局
         """
+        scroll_area = ScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("""
+            ScrollArea {
+                background-color: transparent;
+                border: none;
+            }
+            ScrollArea > QWidget > QWidget {
+                background-color: transparent;
+            }
+        """)
+        scroll_area.setMinimumHeight(80)
+        scroll_area.setMaximumHeight(200)
+
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(2)
+
         header_widget = QWidget()
         header_layout = QHBoxLayout(header_widget)
         header_layout.setContentsMargins(0, 0, 0, 0)
@@ -238,7 +248,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             h_label.setStyleSheet("font-size: 11px; font-weight: bold;")
             header_layout.addWidget(h_label)
 
-        layout.addWidget(header_widget)
+        container_layout.addWidget(header_widget)
 
         hue_distances = self._analysis_result.get('hue_distances', [])
 
@@ -259,9 +269,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             row_layout.addWidget(color_block)
 
             hsb = color.get('hsb', (0, 0, 0))
-            h_val = f"{hsb[0]:.0f}°" if isinstance(hsb, (list, tuple)) and len(hsb) >= 3 else "--"
-            s_val = f"{hsb[1]:.0f}%" if isinstance(hsb, (list, tuple)) and len(hsb) >= 3 else "--"
-            b_val = f"{hsb[2]:.0f}%" if isinstance(hsb, (list, tuple)) and len(hsb) >= 3 else "--"
+            h_val, s_val, b_val = f"{hsb[0]:.0f}°", f"{hsb[1]:.0f}%", f"{hsb[2]:.0f}%"
 
             for val_text, width in zip([h_val, s_val, b_val], [50, 50, 50]):
                 val_label = QLabel(val_text)
@@ -269,7 +277,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
                 val_label.setStyleSheet("font-size: 11px;")
                 row_layout.addWidget(val_label)
 
-            if i > 0 and i - 1 < len(hue_distances):
+            if 0 < i <= len(hue_distances):
                 dist_text = f"{hue_distances[i - 1]}°"
             else:
                 dist_text = "--"
@@ -278,7 +286,11 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             dist_label.setStyleSheet("font-size: 11px;")
             row_layout.addWidget(dist_label)
 
-            layout.addWidget(row_widget)
+            container_layout.addWidget(row_widget)
+
+        container_layout.addStretch()
+        scroll_area.setWidget(container)
+        layout.addWidget(scroll_area)
 
     def _update_styles(self):
         """更新样式以适配主题"""
