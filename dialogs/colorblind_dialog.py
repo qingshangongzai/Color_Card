@@ -9,8 +9,7 @@ from typing import List, Dict, Tuple
 # 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QVBoxLayout, QWidget,
-    QFrame
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
@@ -218,15 +217,9 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
         self.type_combo.currentIndexChanged.connect(self._on_type_changed)
         type_layout.addWidget(self.type_combo)
         type_layout.addStretch()
-        
+
         main_layout.addLayout(type_layout)
-        
-        # 分隔线
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setStyleSheet(f"color: {border_color.name()};")
-        main_layout.addWidget(line)
-        
+
         # 列标题
         header_layout = QHBoxLayout()
         header_layout.setSpacing(10)
