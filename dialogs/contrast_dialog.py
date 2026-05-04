@@ -167,7 +167,7 @@ class PreviewCard(QWidget):
     
     def setup_ui(self):
         """设置界面"""
-        self.setFixedSize(140, 100)
+        self.setFixedSize(140, 120)
         
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)
@@ -281,12 +281,12 @@ class GraphicPreviewCard(QWidget):
     
     def setup_ui(self):
         """设置界面"""
-        self.setFixedSize(140, 100)
-        
+        self.setFixedSize(140, 120)
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 8, 10, 8)
         layout.setSpacing(4)
-        
+
         # 标题
         self.title_label = QLabel(tr('dialogs.contrast.graphic_element'))
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
@@ -446,8 +446,9 @@ class ContrastCheckDialog(BaseFramelessDialog):
         main_layout.addLayout(level_layout)
         
         # 对比度结果显示区域
-        result_card = CardWidget()
+        result_card = QWidget()
         result_card.setFixedHeight(70)
+        result_card.setStyleSheet("background: transparent; border: none;")
         result_layout = QHBoxLayout(result_card)
         result_layout.setContentsMargins(15, 10, 15, 10)
         
