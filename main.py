@@ -76,12 +76,12 @@ def _create_splash_screen():
     base_path = _get_base_path()
     logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
-    # 使用 QIcon 加载 ICO 以支持多分辨率，直接请求 256x256
+    # 使用 QIcon 加载 ICO 以支持多分辨率，直接请求 192x192
     icon = QIcon(logo_path)
     if icon.isNull():
         return None
 
-    pixmap = icon.pixmap(QSize(256, 256))
+    pixmap = icon.pixmap(QSize(192, 192))
     if pixmap.isNull():
         return None
 
