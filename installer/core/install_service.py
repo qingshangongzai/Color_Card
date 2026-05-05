@@ -12,6 +12,7 @@ from PySide6.QtCore import QObject, Signal, QThread
 from core import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.registry_installer import RegistryInstaller
+from installer.core.permission_checker import is_frozen
 
 # 获取应用信息
 try:
@@ -49,7 +50,7 @@ class InstallWorker(QThread):
         """执行安装"""
         try:
             # 开发环境检测
-            is_dev = not getattr(sys, 'frozen', False)
+            is_dev = not is_frozen()
 
             # 测试模式重定向安装路径
             if self._test_mode:
@@ -109,7 +110,7 @@ class InstallWorker(QThread):
         """
         try:
             # 获取可执行文件路径
-            if getattr(sys, 'frozen', False):
+            if is_frozen():
                 # 打包后：使用当前可执行文件
                 src_exe = Path(sys.executable)
             else:

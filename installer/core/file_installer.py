@@ -7,6 +7,7 @@ from typing import Callable
 
 # 项目模块导入
 from core import get_logger
+from installer.core.permission_checker import is_frozen
 
 logger = get_logger("installer.file_installer")
 
@@ -148,7 +149,7 @@ class FileInstaller:
         Returns:
             Path: 源文件目录
         """
-        if getattr(sys, 'frozen', False):
+        if is_frozen():
             return Path(sys.executable).parent
         else:
             project_root = Path(__file__).parent.parent.parent

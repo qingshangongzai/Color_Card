@@ -5,6 +5,19 @@ import sys
 from pathlib import Path
 
 
+def is_frozen() -> bool:
+    """检测是否为打包后的环境（支持 PyInstaller 和 Nuitka）
+
+    Returns:
+        bool: 是否为打包后的环境
+    """
+    if getattr(sys, 'frozen', False):
+        return True
+    # Nuitka 检测
+    import __main__
+    return getattr(__main__, '__compiled__', False)
+
+
 def is_admin() -> bool:
     """检测当前进程是否具有管理员权限
 
@@ -74,7 +87,7 @@ def run_as_admin(
         is_uninstall: 是否为卸载模式
         delete_config: 是否删除用户配置（卸载模式）
     """
-    if getattr(sys, 'frozen', False):
+    if is_frozen():
         exe_path = sys.executable
         args = ""
     else:

@@ -60,20 +60,12 @@ from qfluentwidgets import setTheme, Theme
 # 项目模块导入
 from installer.core.registry_installer import REGISTRY_KEY
 from installer.core.install_service import InstallService
+from installer.core.permission_checker import is_frozen
 from installer.wizard.install_wizard import InstallWizard
 from installer.wizard.pages.welcome_page import WelcomePage
 from installer.wizard.pages.install_path_page import InstallPathPage
 from installer.wizard.pages.progress_page import ProgressPage
 from installer.wizard.pages.finish_page import FinishPage
-
-
-def is_frozen() -> bool:
-    """检测是否为打包后的环境
-
-    Returns:
-        bool: 是否为打包后的exe
-    """
-    return getattr(sys, 'frozen', False)
 
 
 def _get_install_path() -> str:
