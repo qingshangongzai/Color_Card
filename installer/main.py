@@ -28,6 +28,27 @@ def set_app_user_model_id():
 # 立即调用（在导入 PySide6 之前）
 set_app_user_model_id()
 
+
+def setup_global_exception_handler(logger):
+    """设置全局异常处理器
+
+    Args:
+        logger: 日志记录器
+    """
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        """处理未捕获的异常"""
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logger.critical(
+            "未捕获的异常",
+            exc_info=(exc_type, exc_value, exc_traceback)
+        )
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+    sys.excepthook = handle_exception
+
+
 # Windows 注册表支持
 if sys.platform == 'win32':
     import winreg
@@ -212,6 +233,9 @@ def run_main_app():
     logger_manager = get_logger_manager()
     logger_manager.initialize()
     logger = get_logger("installer")
+
+    # 设置全局异常处理器
+    setup_global_exception_handler(logger)
 
     # 加载配置
     from core import get_config_manager
