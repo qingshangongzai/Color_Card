@@ -10,8 +10,8 @@ from PySide6.QtCharts import (
     QBarSeries, QBarSet, QChart, QChartView, QLineSeries,
     QPieSeries, QValueAxis
 )
-from PySide6.QtCore import QMargins, QThread, Signal, Qt
-from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap
+from PySide6.QtCore import QMargins, QRectF, QThread, Signal, Qt
+from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
 
@@ -225,6 +225,88 @@ class PieChartWidget(QWidget):
                         lbl.setStyleSheet(f"color: {text_hex}; font-size: 12px;")
 
 
+class HistogramChartView(QChartView):
+    """自定义图表视图，支持自定义Y轴刻度标签"""
+
+    def __init__(self, chart, parent=None):
+        super().__init__(chart, parent)
+        self._max_value: float = 0.0
+        self._cv: float = 0.0
+        self._scaling_mode: str = "linear"
+
+    def set_scale_params(self, max_value: float, cv: float, scaling_mode: str) -> None:
+        """设置缩放参数
+
+        Args:
+            max_value: 真实最大值
+            cv: 变异系数
+            scaling_mode: 缩放模式
+        """
+        self._max_value = max_value
+        self._cv = cv
+        self._scaling_mode = scaling_mode
+
+    def _inverse_scale(self, normalized: float) -> float:
+        """反向缩放：从归一化值计算真实值"""
+        if self._max_value == 0:
+            return 0.0
+
+        if self._scaling_mode == "linear" or self._cv < 0.8:
+            return normalized * self._max_value
+        elif self._cv > 2.0:
+            return (normalized ** 2) * self._max_value
+        else:
+            t = (self._cv - 0.8) / (2.0 - 0.8)
+            exponent = 0.75 - t * 0.2
+            return (normalized ** (1.0 / exponent)) * self._max_value
+
+    def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
+        """绘制前景（自定义Y轴刻度标签）"""
+        super().drawForeground(painter, rect)
+
+        if self._max_value == 0:
+            return
+
+        # 获取Y轴
+        axes = self.chart().axes(Qt.Orientation.Vertical)
+        if not axes:
+            return
+
+        # 获取图表的绘图区域
+        plot_area = self.chart().plotArea()
+
+        # 设置字体
+        font = QFont()
+        font.setPointSize(8)
+        painter.setFont(font)
+
+        # 获取文本颜色
+        text_color = get_tone_chart_text_color()
+        painter.setPen(text_color)
+
+        # 绘制Y轴刻度标签
+        tick_values = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        for tick in tick_values:
+            # 计算Y坐标（从底部向上）
+            y = plot_area.bottom() - tick * plot_area.height()
+
+            # 计算真实值
+            real_value = self._inverse_scale(tick)
+
+            # 格式化标签：显示完整数字，使用千分位分隔
+            if real_value >= 1000:
+                label = f"{int(real_value):,}"
+            else:
+                label = f"{int(real_value)}"
+
+            # 计算文本宽度，右对齐
+            text_rect = painter.fontMetrics().boundingRect(label)
+            x = int(plot_area.left() - text_rect.width() - 5)
+
+            # 绘制标签（在Y轴左侧，右对齐）
+            painter.drawText(x, int(y + 4), label)
+
+
 class HistogramWidget(QWidget):
     """直方图组件，支持线连接和柱状图两种显示模式，支持缩放模式切换"""
 
@@ -234,6 +316,7 @@ class HistogramWidget(QWidget):
         self._scaling_mode = "adaptive"  # "linear" 或 "adaptive"
         self._hist_data: Optional[np.ndarray] = None
         self._result_data: Optional[ToneAnalysisResult] = None
+        self._cv: float = 0.0  # 变异系数
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -243,9 +326,12 @@ class HistogramWidget(QWidget):
         self._chart.legend().setVisible(True)
         self._chart.legend().setAlignment(Qt.AlignmentFlag.AlignTop)
         self._chart.setBackgroundVisible(False)
+        self._chart.layout().setContentsMargins(0, 0, 0, 0)
+        # 增加左边距，为Y轴标签留出空间
+        self._chart.setMargins(QMargins(50, 0, 0, 0))
 
-        # 图表视图
-        self._chart_view = QChartView(self._chart)
+        # 使用自定义图表视图（支持自定义Y轴刻度标签）
+        self._chart_view = HistogramChartView(self._chart)
         self._chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self._chart_view.setStyleSheet("background: transparent; border: none;")
         layout.addWidget(self._chart_view)
@@ -301,10 +387,13 @@ class HistogramWidget(QWidget):
 
         # 计算原始数据
         bar_values = [float(hist[i]) for i in range(256)]
+        max_value = max(bar_values)
 
-        # 应用缩放模式
-        scaled_values = self._apply_scaling(bar_values)
-        max_value = max(scaled_values)
+        # 计算CV值（用于自适应缩放）
+        self._cv = self._calculate_cv(bar_values)
+
+        # 应用缩放模式，获取归一化比例(0-1)
+        normalized_values = self._apply_scaling(bar_values)
 
         # 创建X轴（均匀九段分区）
         axis_x = QValueAxis()
@@ -313,31 +402,38 @@ class HistogramWidget(QWidget):
         axis_x.setLabelFormat("%d")
         axis_x.setTitleText("")
 
+        # 创建Y轴，范围0-1（归一化），刻度标签显示真实值
         axis_y = QValueAxis()
+        axis_y.setRange(0, 1.0)
+        axis_y.setTickCount(6)  # 6个刻度点
         axis_y.setTitleText("")
+        # 隐藏原始刻度标签，使用自定义绘制
+        axis_y.setLabelsVisible(False)
 
         self._chart.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
         self._chart.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
 
-        # 根据样式绘制直方图
-        if self._histogram_style == "line":
-            self._create_line_series(scaled_values, max_value, axis_x, axis_y)
-        else:
-            self._create_bar_series(scaled_values, max_value, axis_x, axis_y)
+        # 设置自定义图表视图的缩放参数
+        self._chart_view.set_scale_params(max_value, self._cv, self._scaling_mode)
 
-        # 添加参考线（使用缩放后的最大值）
-        self._add_reference_lines(result, max_value, axis_x, axis_y)
+        # 根据样式绘制直方图（使用归一化比例）
+        if self._histogram_style == "line":
+            self._create_line_series(normalized_values, axis_x, axis_y)
+        else:
+            self._create_bar_series(normalized_values, axis_x, axis_y)
+
+        # 添加参考线（使用归一化比例）
+        self._add_reference_lines_normalized(result, axis_x, axis_y)
 
         # 更新主题颜色
         self._update_theme_colors()
 
-    def _create_bar_series(self, bar_values: List[float], max_value: float,
+    def _create_bar_series(self, normalized_values: List[float],
                            axis_x: QValueAxis, axis_y: QValueAxis) -> QBarSeries:
         """创建柱状图系列
 
         Args:
-            bar_values: 柱状图数据值列表
-            max_value: 最大值
+            normalized_values: 归一化比例列表(0-1)
             axis_x: X轴
             axis_y: Y轴
 
@@ -347,8 +443,9 @@ class HistogramWidget(QWidget):
         bar_series = QBarSeries()
         bar_set = QBarSet("")
 
-        for value in bar_values:
-            bar_set.append(value)
+        # 直接使用归一化比例作为Y值
+        for ratio in normalized_values:
+            bar_set.append(ratio)
 
         bar_series.append(bar_set)
         bar_series.setName("")
@@ -367,13 +464,12 @@ class HistogramWidget(QWidget):
 
         return bar_series
 
-    def _create_line_series(self, bar_values: List[float], max_value: float,
+    def _create_line_series(self, normalized_values: List[float],
                             axis_x: QValueAxis, axis_y: QValueAxis) -> QLineSeries:
         """创建线连接系列
 
         Args:
-            bar_values: 数据值列表
-            max_value: 最大值
+            normalized_values: 归一化比例列表(0-1)
             axis_x: X轴
             axis_y: Y轴
 
@@ -383,9 +479,9 @@ class HistogramWidget(QWidget):
         line_series = QLineSeries()
         line_series.setName("")
 
-        # 添加数据点
-        for i, value in enumerate(bar_values):
-            line_series.append(i, value)
+        # 添加数据点（直接使用归一化比例）
+        for i, ratio in enumerate(normalized_values):
+            line_series.append(i, ratio)
 
         self._chart.addSeries(line_series)
 
@@ -402,44 +498,38 @@ class HistogramWidget(QWidget):
         return line_series
 
     def _apply_scaling(self, values: List[float]) -> List[float]:
-        """应用缩放模式到数据
+        """应用缩放模式到数据，返回归一化比例(0-1)
 
         Args:
             values: 原始数据值列表
 
         Returns:
-            List[float]: 缩放后的数据值列表
+            List[float]: 归一化比例列表(0-1)
         """
-        if self._scaling_mode == "linear":
-            return values
-
-        # adaptive: 自适应缩放
         max_value = max(values)
         if max_value == 0:
-            return values
+            return [0.0] * len(values)
 
-        # 计算CV值
-        cv = self._calculate_cv(values)
+        if self._scaling_mode == "linear":
+            return [v / max_value for v in values]
 
+        # adaptive: 自适应缩放（使用已计算的CV值）
         scaled_values = []
         for value in values:
             if value == 0:
-                scaled_values.append(0)
+                scaled_values.append(0.0)
                 continue
 
-            if cv < 0.8:
-                # 分布平坦：线性缩放
+            if self._cv < 0.8:
                 normalized = value / max_value
-            elif cv > 2.0:
-                # 分布集中：平方根缩放
+            elif self._cv > 2.0:
                 normalized = math.sqrt(value) / math.sqrt(max_value)
             else:
-                # 中间态：动态指数
-                t = (cv - 0.8) / (2.0 - 0.8)
+                t = (self._cv - 0.8) / (2.0 - 0.8)
                 exponent = 0.75 - t * 0.2
                 normalized = (value / max_value) ** exponent
 
-            scaled_values.append(normalized * max_value)
+            scaled_values.append(normalized)
 
         return scaled_values
 
@@ -460,19 +550,15 @@ class HistogramWidget(QWidget):
             return 0.0
 
         mean_val = sum(non_zero) / len(non_zero)
-        if mean_val == 0:
-            return 0.0
-
         variance = sum((x - mean_val) ** 2 for x in non_zero) / len(non_zero)
         return math.sqrt(variance) / mean_val
 
-    def _add_reference_lines(self, result: ToneAnalysisResult, max_value: float,
-                             axis_x: QValueAxis, axis_y: QValueAxis) -> None:
-        """添加均值和中位数参考线
+    def _add_reference_lines_normalized(self, result: ToneAnalysisResult,
+                                         axis_x: QValueAxis, axis_y: QValueAxis) -> None:
+        """添加均值和中位数参考线（使用归一化比例）
 
         Args:
             result: 分析结果
-            max_value: 最大值
             axis_x: X轴
             axis_y: Y轴
         """
@@ -484,7 +570,7 @@ class HistogramWidget(QWidget):
 
         mean_index = int(result.mean)
         mean_line.append(mean_index, 0)
-        mean_line.append(mean_index, max_value * 1.1)
+        mean_line.append(mean_index, 1.1)
 
         self._chart.addSeries(mean_line)
         mean_line.attachAxis(axis_x)
@@ -498,7 +584,7 @@ class HistogramWidget(QWidget):
 
         median_index = int(result.median)
         median_line.append(median_index, 0)
-        median_line.append(median_index, max_value * 1.1)
+        median_line.append(median_index, 1.1)
 
         self._chart.addSeries(median_line)
         median_line.attachAxis(axis_x)
