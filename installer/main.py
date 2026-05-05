@@ -1,0 +1,293 @@
+# 标准库导入
+import argparse
+import ctypes
+import os
+import sys
+from pathlib import Path
+
+# 将项目根目录添加到 sys.path（确保 installer 模块可导入）
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+
+def set_app_user_model_id():
+    """设置 Windows AppUserModelID
+
+    这必须在创建 QApplication 之前调用！
+    """
+    if os.name != 'nt':
+        return False
+
+    try:
+        app_id = 'HXiaoStudio.ColorCard.1.0.0'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+        return True
+    except (OSError, AttributeError):
+        return False
+
+
+# 立即调用（在导入 PySide6 之前）
+set_app_user_model_id()
+
+# Windows 注册表支持
+if sys.platform == 'win32':
+    import winreg
+
+# 第三方库导入
+from PySide6.QtWidgets import QApplication
+from qfluentwidgets import setTheme, Theme
+
+# 项目模块导入
+from installer.core.registry_installer import REGISTRY_KEY
+from installer.wizard.install_wizard import InstallWizard
+from installer.wizard.pages.welcome_page import WelcomePage
+from installer.wizard.pages.install_path_page import InstallPathPage
+from installer.wizard.pages.progress_page import ProgressPage
+from installer.wizard.pages.finish_page import FinishPage
+from installer.core.install_service import InstallService
+
+
+def is_admin() -> bool:
+    """检测是否具有管理员权限
+
+    Returns:
+        bool: 是否具有管理员权限
+    """
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except (OSError, AttributeError):
+        return False
+
+
+def is_frozen() -> bool:
+    """检测是否为打包后的环境
+
+    Returns:
+        bool: 是否为打包后的exe
+    """
+    return getattr(sys, 'frozen', False)
+
+
+def run_as_admin():
+    """以管理员权限重新启动程序"""
+    if is_frozen():
+        exe_path = sys.executable
+        args = " ".join(sys.argv[1:])
+    else:
+        exe_path = sys.executable
+        args = f'"{Path(__file__).resolve()}" {" ".join(sys.argv[1:])}'
+
+    try:
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", exe_path, args, None, 1
+        )
+    except (OSError, AttributeError) as e:
+        print(f"无法以管理员权限运行: {str(e)}")
+
+    sys.exit(0)
+
+
+def is_installed() -> bool:
+    """检测是否已安装
+
+    Returns:
+        bool: 是否已安装
+    """
+    if sys.platform != 'win32':
+        return False
+
+    try:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
+        winreg.CloseKey(key)
+        return True
+    except FileNotFoundError:
+        return False
+
+
+def _get_install_path() -> str:
+    """从注册表获取旧版本的安装路径
+
+    Returns:
+        str: 安装路径，未找到返回空字符串
+    """
+    if sys.platform != 'win32':
+        return ''
+
+    try:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
+        with key:
+            path, _ = winreg.QueryValueEx(key, "InstallPath")
+            return path if path else ''
+    except (OSError, FileNotFoundError):
+        return ''
+
+
+def _is_running_installer() -> bool:
+    """检测当前是否以安装程序身份运行（而非已安装的程序）
+
+    判断依据：exe 所在位置
+    - 开发环境 → 始终是安装程序
+    - 打包后在临时目录 → 安装程序（NSIS/Inno 释放的安装包）
+    - 打包后在安装目录内 → 已安装的程序
+    - 打包后在下载目录等 → 安装程序（用户刚下载的新安装包）
+
+    Returns:
+        bool: 是否为安装程序
+    """
+    if not is_frozen():
+        return True
+
+    exe_path = Path(sys.executable).resolve()
+
+    # 在临时目录 → 安装程序
+    temp_dir = os.environ.get('TEMP', '')
+    if temp_dir and str(exe_path).lower().startswith(temp_dir.lower()):
+        return True
+
+    # 检查是否在已安装的目录内
+    old_install_path = _get_install_path()
+    if old_install_path:
+        try:
+            exe_path.relative_to(Path(old_install_path))
+            return False  # 在安装目录内 → 已安装的程序
+        except ValueError:
+            return True  # 不在安装目录内 → 新下载的安装程序
+
+    return True
+
+
+def run_installer(test_mode: bool = False, old_install_path: str = '') -> dict:
+    """运行安装向导
+
+    Args:
+        test_mode: 测试模式
+        old_install_path: 旧版本安装路径（用于升级时预填）
+
+    Returns:
+        dict: 安装配置
+    """
+    wizard = InstallWizard()
+
+    wizard.add_page(WelcomePage())
+
+    # 路径选择页面：升级模式下预填旧路径
+    path_page = InstallPathPage()
+    if old_install_path:
+        path_page.set_default_path(old_install_path)
+    wizard.add_page(path_page)
+
+    progress_page = ProgressPage()
+    install_service = InstallService(test_mode)
+    progress_page.set_install_service(install_service)
+    wizard.add_page(progress_page)
+
+    wizard.add_page(FinishPage())
+
+    wizard.exec()
+    return wizard.get_config()
+
+
+def _get_project_root() -> str:
+    """获取项目根目录
+
+    开发环境：installer/main.py 的父目录
+    打包环境：exe 所在目录
+
+    Returns:
+        str: 项目根目录
+    """
+    if is_frozen():
+        return os.path.dirname(sys.executable)
+    return str(Path(__file__).resolve().parent.parent)
+
+
+def run_main_app():
+    """运行主程序
+
+    执行完整的初始化流程，包括日志、配置、语言包、主题等。
+    """
+    # 切换工作目录到项目根目录，确保相对路径正确
+    project_root = _get_project_root()
+    os.chdir(project_root)
+
+    # 初始化日志系统
+    from core import get_logger_manager, get_logger
+    logger_manager = get_logger_manager()
+    logger_manager.initialize()
+    logger = get_logger("installer")
+
+    # 加载配置
+    from core import get_config_manager
+    config_manager = get_config_manager()
+    config_manager.load()
+
+    # 初始化语言管理器并加载用户语言配置
+    from utils import get_locale_manager
+    locale_manager = get_locale_manager()
+    language_setting = config_manager.get('settings.language', 'ZW_JT')
+    locale_manager.load_language(language_setting)
+
+    # 设置主题
+    from qfluentwidgets import setTheme, setThemeColor, Theme
+    theme_setting = config_manager.get('settings.theme', 'auto')
+    if theme_setting == 'light':
+        setTheme(Theme.LIGHT)
+    elif theme_setting == 'dark':
+        setTheme(Theme.DARK)
+    else:
+        setTheme(Theme.AUTO)
+    setThemeColor('#0078d4')
+
+    # 创建主窗口
+    from ui.main_window import MainWindow
+    window = MainWindow()
+    window.show()
+
+    return window
+
+
+def main():
+    """主入口"""
+    # 解析命令行参数
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--uninstall', action='store_true', help='运行卸载程序')
+    parser.add_argument('--test', action='store_true', help='测试模式')
+    args = parser.parse_args()
+
+    # 创建应用
+    app = QApplication(sys.argv)
+
+    # 设置主题
+    setTheme(Theme.AUTO)
+
+    # 卸载模式（第二阶段实现）
+    if args.uninstall:
+        print("卸载功能将在第二阶段实现")
+        sys.exit(0)
+
+    # 测试模式
+    test_mode = args.test
+
+    # 打包后的环境，非测试模式，提权检查
+    if is_frozen() and not test_mode and not is_admin():
+        run_as_admin()
+        return
+
+    # 判断当前角色：安装程序 or 已安装的程序
+    if _is_running_installer():
+        # 检查是否有旧版本（升级场景）
+        old_path = _get_install_path()
+        config = run_installer(test_mode, old_install_path=old_path)
+
+        if config.get('run_after_install', False):
+            window = run_main_app()
+            sys.exit(app.exec())
+        else:
+            sys.exit(0)
+    else:
+        # 已安装的程序，直接启动主界面
+        window = run_main_app()
+        sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
