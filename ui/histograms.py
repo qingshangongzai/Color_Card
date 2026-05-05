@@ -43,7 +43,7 @@ class BaseHistogram(QWidget):
         # 绘图边距
         self._margin_left = 35
         self._margin_right = 15
-        self._margin_top = 15
+        self._margin_top = 5
         self._margin_bottom = 30
 
         # 背景色
@@ -156,8 +156,8 @@ class BaseHistogram(QWidget):
             return 0
 
         if self._scaling_mode == "linear":
-            # 线性缩放，保留5%头部空间
-            return (count / max_count) * height * 0.95
+            # 线性缩放
+            return (count / max_count) * height
         else:  # adaptive: 自适应缩放
             # 计算CV值
             cv = self._calculate_cv(self._histogram)
@@ -167,7 +167,7 @@ class BaseHistogram(QWidget):
                 # 分布非常平坦：使用线性缩放
                 normalized = count / max_count
             elif cv > 2.0:
-                # 分布集中：使用平方根缩放
+                # 分布集中：平方根缩放
                 sqrt_max = math.sqrt(max_count)
                 sqrt_count = math.sqrt(count)
                 normalized = sqrt_count / sqrt_max
@@ -178,8 +178,7 @@ class BaseHistogram(QWidget):
                 exponent = 0.75 - t * 0.2
                 normalized = (count / max_count) ** exponent
 
-            # 保留5%头部空间
-            return min(0.95, normalized) * height
+            return normalized * height
 
     def paintEvent(self, event):
         """绘制直方图"""
