@@ -19,13 +19,6 @@
 
 ***
 
-## 📑 目录 / Table of Contents
-
-- [📖 中文版](#中文版)
-- [📖 English Version](#english-version)
-
-***
-
 <a name="中文版"></a>
 
 ## 📖 项目概述
