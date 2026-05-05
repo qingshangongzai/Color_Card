@@ -1,4 +1,3 @@
-```markdown
 <p align="center">
   <img src="./docs/logo.png" alt="Color Card Logo" width="180">
 </p>
@@ -638,4 +637,3 @@ This project uses the following third-party libraries (portion):
 <small>版权所有/Copyright © 2026 浮晓 HXiao Studio</small>
 
 </div>
-```
