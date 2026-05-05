@@ -9,11 +9,14 @@ from qfluentwidgets import setThemeColor
 # 项目模块导入
 from dialogs import BaseFramelessDialog
 from installer.wizard.base_page import BasePage
+from installer.core.permission_checker import run_as_admin
 from utils import load_icon_universal, fix_windows_taskbar_icon_for_window
 
 
 class InstallWizard(BaseFramelessDialog):
     """安装向导主窗口"""
+
+    PROGRESS_PAGE_INDEX = 2  # 进度页面索引
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -58,6 +61,36 @@ class InstallWizard(BaseFramelessDialog):
         page.next_requested.connect(self.next_page)
         page.back_requested.connect(self.prev_page)
         page.close_requested.connect(self.close)
+
+        # 连接提权请求信号
+        if hasattr(page, 'elevation_requested'):
+            page.elevation_requested.connect(self._on_elevation_requested)
+
+    def _on_elevation_requested(self, install_path: str, create_desktop: bool, create_start_menu: bool):
+        """处理提权请求
+
+        Args:
+            install_path: 用户选择的安装路径
+            create_desktop: 是否创建桌面快捷方式
+            create_start_menu: 是否创建开始菜单快捷方式
+        """
+        run_as_admin(install_path, create_desktop, create_start_menu)
+
+    def set_preset_config(self, config: dict[str, Any]):
+        """设置预设配置
+
+        Args:
+            config: 预设配置
+        """
+        self._config.update(config)
+
+    def skip_to_progress_page(self):
+        """直接跳转到进度页面"""
+        if self.PROGRESS_PAGE_INDEX < len(self._pages):
+            self._current_page_index = self.PROGRESS_PAGE_INDEX
+            progress_page = self._pages[self.PROGRESS_PAGE_INDEX]
+            self._stack.setCurrentWidget(progress_page)
+            progress_page.on_enter()
 
     def next_page(self):
         if self._current_page_index < len(self._pages) - 1:

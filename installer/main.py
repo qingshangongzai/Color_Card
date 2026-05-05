@@ -46,18 +46,6 @@ from installer.wizard.pages.progress_page import ProgressPage
 from installer.wizard.pages.finish_page import FinishPage
 
 
-def is_admin() -> bool:
-    """检测是否具有管理员权限
-
-    Returns:
-        bool: 是否具有管理员权限
-    """
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except (OSError, AttributeError):
-        return False
-
-
 def is_frozen() -> bool:
     """检测是否为打包后的环境
 
@@ -65,25 +53,6 @@ def is_frozen() -> bool:
         bool: 是否为打包后的exe
     """
     return getattr(sys, 'frozen', False)
-
-
-def run_as_admin():
-    """以管理员权限重新启动程序"""
-    if is_frozen():
-        exe_path = sys.executable
-        args = " ".join(sys.argv[1:])
-    else:
-        exe_path = sys.executable
-        args = f'"{Path(__file__).resolve()}" {" ".join(sys.argv[1:])}'
-
-    try:
-        ctypes.windll.shell32.ShellExecuteW(
-            None, "runas", exe_path, args, None, 1
-        )
-    except (OSError, AttributeError) as e:
-        print(f"无法以管理员权限运行: {str(e)}")
-
-    sys.exit(0)
 
 
 def _get_install_path() -> str:
@@ -138,12 +107,19 @@ def _is_running_installer() -> bool:
     return True
 
 
-def run_installer(test_mode: bool = False, old_install_path: str = '') -> dict:
+def run_installer(
+    test_mode: bool = False,
+    old_install_path: str = '',
+    skip_to_progress: bool = False,
+    preset_config: dict | None = None
+) -> dict:
     """运行安装向导
 
     Args:
         test_mode: 测试模式
         old_install_path: 旧版本安装路径（用于升级时预填）
+        skip_to_progress: 是否直接跳转到进度页面
+        preset_config: 预设配置（提权重启后恢复）
 
     Returns:
         dict: 安装配置
@@ -165,6 +141,11 @@ def run_installer(test_mode: bool = False, old_install_path: str = '') -> dict:
 
     wizard.add_page(FinishPage())
 
+    # 如果需要直接跳转到进度页面
+    if skip_to_progress and preset_config:
+        wizard.set_preset_config(preset_config)
+        wizard.skip_to_progress_page()
+
     wizard.exec()
     return wizard.get_config()
 
@@ -183,11 +164,21 @@ def _get_project_root() -> str:
     return str(Path(__file__).resolve().parent.parent)
 
 
-def run_uninstaller():
-    """运行卸载程序"""
+def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False):
+    """运行卸载程序
+
+    Args:
+        skip_to_progress: 是否直接开始卸载
+        delete_config: 是否删除用户配置
+    """
     from installer.uninstaller.uninstall_dialog import UninstallDialog
 
     dialog = UninstallDialog()
+
+    # 如果需要直接开始卸载
+    if skip_to_progress:
+        dialog.start_uninstall(delete_config)
+
     result = dialog.exec()
 
     # 如果卸载成功，执行自删除批处理脚本
@@ -263,6 +254,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--uninstall', action='store_true', help='运行卸载程序')
     parser.add_argument('--test', action='store_true', help='测试模式')
+    parser.add_argument('--install-path', type=str, help='用户选择的安装路径')
+    parser.add_argument('--skip-to-progress', action='store_true', help='直接跳转到安装进度页面')
+    parser.add_argument('--desktop-shortcut', action='store_true', help='创建桌面快捷方式')
+    parser.add_argument('--start-menu-shortcut', action='store_true', help='创建开始菜单快捷方式')
+    parser.add_argument('--skip-to-uninstall-progress', action='store_true', help='直接开始卸载')
+    parser.add_argument('--delete-config', action='store_true', help='删除用户配置')
     args = parser.parse_args()
 
     # 创建应用
@@ -278,22 +275,38 @@ def main():
 
     # 卸载模式
     if args.uninstall:
-        run_uninstaller()
+        run_uninstaller(
+            skip_to_progress=args.skip_to_uninstall_progress,
+            delete_config=args.delete_config
+        )
         sys.exit(0)
 
     # 测试模式
     test_mode = args.test
 
-    # 打包后的环境，非测试模式，提权检查
-    if is_frozen() and not test_mode and not is_admin():
-        run_as_admin()
-        return
-
     # 判断当前角色：安装程序 or 已安装的程序
     if _is_running_installer():
         # 检查是否有旧版本（升级场景）
         old_path = _get_install_path()
-        config = run_installer(test_mode, old_install_path=old_path)
+
+        # 提权重启后恢复用户选择的路径
+        preset_path = args.install_path or old_path
+
+        # 构建预设配置（提权重启后恢复）
+        preset_config = None
+        if args.skip_to_progress and args.install_path:
+            preset_config = {
+                'install_path': args.install_path,
+                'create_desktop_shortcut': args.desktop_shortcut,
+                'create_start_menu': args.start_menu_shortcut,
+            }
+
+        config = run_installer(
+            test_mode,
+            old_install_path=preset_path,
+            skip_to_progress=args.skip_to_progress,
+            preset_config=preset_config
+        )
 
         if config.get('run_after_install', False):
             # 启动已安装的主程序（新进程）

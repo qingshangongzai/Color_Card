@@ -192,7 +192,6 @@ jobs:
           --include-data-dir=ui=ui ^
           --include-data-dir=utils=utils ^
           --include-data-dir=installer=installer ^
-          --windows-uac-admin ^
           --enable-plugin=pyside6 ^
           --lto=yes ^
           --jobs=4 ^

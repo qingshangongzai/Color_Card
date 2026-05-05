@@ -5,12 +5,13 @@ from pathlib import Path
 
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFileDialog
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton, CheckBox
 
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.core.permission_checker import is_admin, requires_admin
 
 
 class InstallPathPage(BasePage):
@@ -18,6 +19,8 @@ class InstallPathPage(BasePage):
 
     选择安装位置和快捷方式选项。
     """
+
+    elevation_requested = Signal(str, bool, bool)  # 参数：安装路径, 桌面快捷方式, 开始菜单快捷方式
 
     def __init__(self, parent=None):
         """初始化页面
@@ -184,10 +187,28 @@ class InstallPathPage(BasePage):
         if not self._validate_path(path):
             return
 
+        # 获取快捷方式选项
+        create_desktop = self._desktop_checkbox.isChecked()
+        create_start_menu = self._start_menu_checkbox.isChecked()
+
+        # 检测是否需要管理员权限
+        if requires_admin(path) and not is_admin():
+            # 显示确认对话框
+            from installer.wizard.elevation_dialog import ElevationDialog
+            dialog = ElevationDialog(self.window())
+            dialog.set_message(
+                "安装到该位置需要管理员权限。\n"
+                "点击「确定」后，Windows 将请求您的确认。"
+            )
+            if dialog.exec():
+                # 用户确认，发射提权请求
+                self.elevation_requested.emit(path, create_desktop, create_start_menu)
+            return
+
         # 保存配置
         self._config['install_path'] = path
-        self._config['create_desktop_shortcut'] = self._desktop_checkbox.isChecked()
-        self._config['create_start_menu'] = self._start_menu_checkbox.isChecked()
+        self._config['create_desktop_shortcut'] = create_desktop
+        self._config['create_start_menu'] = create_start_menu
 
         # 进入下一页
         self.next_requested.emit()

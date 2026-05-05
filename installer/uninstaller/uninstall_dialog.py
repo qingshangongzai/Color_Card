@@ -1,4 +1,6 @@
 # 标准库导入
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -16,6 +18,7 @@ from qfluentwidgets import (
 # 项目模块导入
 from dialogs import BaseFramelessDialog
 from installer.uninstaller.uninstall_service import UninstallService
+from installer.core.permission_checker import is_admin, requires_admin, run_as_admin
 from utils.icon import load_icon_universal
 from utils.platform import fix_windows_taskbar_icon_for_window
 
@@ -38,7 +41,7 @@ class UninstallDialog(BaseFramelessDialog):
         """
         super().__init__(parent)
         self.setWindowTitle(f"卸载 {APP_NAME}")
-        self.setFixedSize(420, 210)
+        self.setFixedSize(440, 230)
 
         # 设置主题色（与主程序一致）
         setThemeColor('#0078d4')
@@ -139,8 +142,88 @@ class UninstallDialog(BaseFramelessDialog):
         button_layout.addStretch()
         layout.addLayout(button_layout)
 
+    def _close_main_app(self):
+        """关闭主程序进程（排除当前卸载程序进程）"""
+        try:
+            current_pid = os.getpid()
+            # 使用 tasklist 获取所有同名进程
+            result = subprocess.run(
+                ["tasklist", "/FI", "IMAGENAME eq Color Card.exe", "/FO", "CSV", "/NH"],
+                capture_output=True,
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW
+            )
+
+            # 解析输出，关闭其他同名进程
+            for line in result.stdout.strip().split('\n'):
+                if not line or 'Color Card.exe' not in line:
+                    continue
+                # 格式: "Color Card.exe","PID","Session Name","Session#","Mem Usage"
+                parts = line.split(',')
+                if len(parts) >= 2:
+                    pid_str = parts[1].strip('"')
+                    try:
+                        pid = int(pid_str)
+                        if pid != current_pid:
+                            subprocess.run(
+                                ["taskkill", "/F", "/PID", str(pid)],
+                                capture_output=True,
+                                creationflags=subprocess.CREATE_NO_WINDOW
+                            )
+                    except ValueError:
+                        continue
+        except (OSError, subprocess.SubprocessError):
+            pass
+
+    def start_uninstall(self, delete_config: bool = False):
+        """直接开始卸载（提权重启后调用）
+
+        Args:
+            delete_config: 是否删除用户配置
+        """
+        self._execute_uninstall(delete_config)
+
     def _on_uninstall_clicked(self):
         """卸载按钮点击"""
+        # 获取安装路径
+        install_path = self._get_install_path()
+        if not install_path:
+            self._on_uninstall_completed(False, "未找到安装路径")
+            return
+
+        # 检测是否需要管理员权限
+        if requires_admin(install_path) and not is_admin():
+            # 显示确认对话框
+            from installer.wizard.elevation_dialog import ElevationDialog
+            dialog = ElevationDialog(self.window())
+            dialog.setWindowTitle("需要管理员权限")
+            dialog.set_message(
+                "卸载该程序需要管理员权限。\n"
+                "点击「确定」后，Windows 将请求您的确认。"
+            )
+            if dialog.exec():
+                delete_config = self.delete_config_checkbox.isChecked()
+                run_as_admin(is_uninstall=True, delete_config=delete_config)
+            return
+
+        delete_config = self.delete_config_checkbox.isChecked()
+        self._execute_uninstall(delete_config)
+
+    def _execute_uninstall(self, delete_config: bool):
+        """执行卸载操作
+
+        Args:
+            delete_config: 是否删除用户配置
+        """
+        # 关闭主程序
+        self._close_main_app()
+
+        # 获取安装路径
+        install_path = self._get_install_path()
+        if not install_path:
+            self._on_uninstall_completed(False, "未找到安装路径")
+            return
+
         # 禁用按钮
         self.uninstall_button.setEnabled(False)
         self.cancel_button.setEnabled(False)
@@ -149,14 +232,8 @@ class UninstallDialog(BaseFramelessDialog):
         # 显示进度区域
         self.progress_widget.setVisible(True)
 
-        # 获取安装路径
-        install_path = self._get_install_path()
-        if not install_path:
-            self._on_uninstall_completed(False, "未找到安装路径")
-            return
-
-        # 获取是否删除用户配置
-        delete_config = self.delete_config_checkbox.isChecked()
+        # 调整对话框大小以容纳进度区域
+        self.setFixedSize(440, 290)
 
         # 创建卸载服务
         self._uninstall_service = UninstallService()

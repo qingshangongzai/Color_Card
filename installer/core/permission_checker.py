@@ -1,0 +1,104 @@
+# 标准库导入
+import ctypes
+import os
+import sys
+from pathlib import Path
+
+
+def is_admin() -> bool:
+    """检测当前进程是否具有管理员权限
+
+    Returns:
+        bool: 是否具有管理员权限
+    """
+    if os.name != 'nt':
+        return True
+
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except (OSError, AttributeError):
+        return False
+
+
+def requires_admin(path: str | Path) -> bool:
+    """检测写入指定路径是否需要管理员权限
+
+    通过尝试在目标目录创建临时文件来判断。
+
+    Args:
+        path: 目标路径
+
+    Returns:
+        bool: 是否需要管理员权限
+    """
+    path = Path(path)
+
+    # 如果目录不存在，检查父目录
+    check_path = path
+    while not check_path.exists():
+        check_path = check_path.parent
+        if check_path == check_path.parent:
+            break
+
+    # 如果是根目录，检查驱动器
+    if not check_path.exists():
+        drive = os.path.splitdrive(path)[0]
+        if drive:
+            check_path = Path(drive + '\\')
+        else:
+            return True
+
+    # 尝试创建临时文件
+    try:
+        test_file = check_path / '.write_test_temp_file'
+        test_file.touch()
+        test_file.unlink()
+        return False
+    except (OSError, PermissionError):
+        return True
+
+
+def run_as_admin(
+    install_path: str | None = None,
+    create_desktop_shortcut: bool = True,
+    create_start_menu: bool = True,
+    is_uninstall: bool = False,
+    delete_config: bool = False
+) -> None:
+    """以管理员权限重新启动程序
+
+    Args:
+        install_path: 用户选择的安装路径（用于提权重启后恢复）
+        create_desktop_shortcut: 是否创建桌面快捷方式
+        create_start_menu: 是否创建开始菜单快捷方式
+        is_uninstall: 是否为卸载模式
+        delete_config: 是否删除用户配置（卸载模式）
+    """
+    if getattr(sys, 'frozen', False):
+        exe_path = sys.executable
+        args = ""
+    else:
+        exe_path = sys.executable
+        script_path = Path(__file__).resolve().parent.parent / 'main.py'
+        args = f'"{script_path}"'
+
+    if is_uninstall:
+        args += " --uninstall --skip-to-uninstall-progress"
+        if delete_config:
+            args += " --delete-config"
+    elif install_path:
+        args += f' --install-path "{install_path}"'
+        if create_desktop_shortcut:
+            args += " --desktop-shortcut"
+        if create_start_menu:
+            args += " --start-menu-shortcut"
+        args += " --skip-to-progress"
+
+    try:
+        ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", exe_path, args, None, 1
+        )
+    except (OSError, AttributeError):
+        pass
+
+    sys.exit(0)
