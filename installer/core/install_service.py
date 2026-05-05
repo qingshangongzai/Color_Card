@@ -12,7 +12,7 @@ from PySide6.QtCore import QObject, Signal, QThread
 from core import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.registry_installer import RegistryInstaller
-from installer.core.permission_checker import is_frozen
+from installer.core.permission_checker import is_frozen, get_exe_path
 
 # 获取应用信息
 try:
@@ -112,7 +112,7 @@ class InstallWorker(QThread):
             # 获取可执行文件路径
             if is_frozen():
                 # 打包后：使用当前可执行文件
-                src_exe = Path(sys.executable)
+                src_exe = get_exe_path()
             else:
                 # 开发环境：使用 test_dist/ColorCard.exe（如果存在）
                 project_root = Path(__file__).parent.parent.parent

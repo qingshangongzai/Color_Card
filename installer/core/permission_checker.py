@@ -18,6 +18,26 @@ def is_frozen() -> bool:
     return getattr(__main__, '__compiled__', False)
 
 
+def get_exe_path() -> Path:
+    """获取当前可执行文件路径（支持 PyInstaller 和 Nuitka）
+
+    Nuitka 下 sys.executable 指向编译时的 Python 解释器，
+    需要用 sys.argv[0] 获取实际的 exe 路径。
+
+    Returns:
+        Path: 可执行文件路径
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller: sys.executable 就是 exe 路径
+        return Path(sys.executable)
+    # Nuitka: sys.argv[0] 是 exe 路径
+    import __main__
+    if getattr(__main__, '__compiled__', False):
+        return Path(sys.argv[0]).resolve()
+    # 开发环境
+    return Path(sys.executable)
+
+
 def is_admin() -> bool:
     """检测当前进程是否具有管理员权限
 
@@ -88,7 +108,7 @@ def run_as_admin(
         delete_config: 是否删除用户配置（卸载模式）
     """
     if is_frozen():
-        exe_path = sys.executable
+        exe_path = str(get_exe_path())
         args = ""
     else:
         exe_path = sys.executable

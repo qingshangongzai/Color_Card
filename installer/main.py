@@ -60,7 +60,7 @@ from qfluentwidgets import setTheme, Theme
 # 项目模块导入
 from installer.core.registry_installer import REGISTRY_KEY
 from installer.core.install_service import InstallService
-from installer.core.permission_checker import is_frozen
+from installer.core.permission_checker import is_frozen, get_exe_path
 from installer.wizard.install_wizard import InstallWizard
 from installer.wizard.pages.welcome_page import WelcomePage
 from installer.wizard.pages.install_path_page import InstallPathPage
@@ -101,7 +101,7 @@ def _is_running_installer() -> bool:
     if not is_frozen():
         return True
 
-    exe_path = Path(sys.executable).resolve()
+    exe_path = get_exe_path()
 
     # 在临时目录 → 安装程序
     temp_dir = os.environ.get('TEMP', '')
@@ -173,7 +173,7 @@ def _get_project_root() -> str:
         str: 项目根目录
     """
     if is_frozen():
-        return os.path.dirname(sys.executable)
+        return str(get_exe_path().parent)
     return str(Path(__file__).resolve().parent.parent)
 
 
