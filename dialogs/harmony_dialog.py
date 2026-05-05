@@ -7,7 +7,7 @@ import math
 
 # 第三方库导入
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPainter, QPen, QBrush
+from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
@@ -19,7 +19,6 @@ from dialogs import BaseFramelessDialog
 from core.harmony import analyze_harmony
 from utils.theme_colors import (
     get_border_color,
-    get_harmony_wheel_bg_color,
     get_harmony_wheel_line_color,
     get_harmony_wheel_dot_border_color,
     get_harmony_score_excellent_color,
@@ -30,13 +29,14 @@ from utils.theme_colors import (
 
 
 class HarmonyWheel(QWidget):
-    """色相环可视化组件"""
+    """色相环可视化组件，透明背景"""
 
     def __init__(self, colors: list[dict], parent=None):
         self._colors = colors
         self._hue_values = []
         super().__init__(parent)
         self.setFixedSize(200, 200)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self._extract_hues()
 
     def _extract_hues(self):
@@ -56,11 +56,6 @@ class HarmonyWheel(QWidget):
         outer_radius = min(center_x, center_y) - 10
         inner_radius = outer_radius - 20
 
-        bg_color = get_harmony_wheel_bg_color()
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(bg_color))
-        painter.drawRoundedRect(0, 0, self.width(), self.height(), 8, 8)
-
         for angle_deg in range(360):
             hue_color = QColor.fromHsv(angle_deg, 255, 255)
             painter.setPen(QPen(hue_color, 1))
@@ -75,7 +70,7 @@ class HarmonyWheel(QWidget):
             )
 
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(bg_color))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(
             int(center_x - inner_radius),
             int(center_y - inner_radius),
@@ -105,7 +100,7 @@ class HarmonyWheel(QWidget):
             dot_color = QColor(rgb[0], rgb[1], rgb[2])
 
             painter.setPen(QPen(dot_border_color, 2))
-            painter.setBrush(QBrush(dot_color))
+            painter.setBrush(dot_color)
             painter.drawEllipse(int(x - 7), int(y - 7), 14, 14)
 
 
