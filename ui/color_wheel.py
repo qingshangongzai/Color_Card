@@ -245,10 +245,10 @@ class HSBColorWheel(QWidget):
             x, y = self._hsb_to_position(h, s, v)
 
             # 绘制采样点（带白色边框的圆点）
-            point_radius = 8
+            point_radius = 4
 
             # 白色外边框
-            painter.setPen(QPen(sample_border_color, 3))
+            painter.setPen(QPen(sample_border_color, 1))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawEllipse(x - point_radius, y - point_radius,
                               point_radius * 2, point_radius * 2)
@@ -256,8 +256,8 @@ class HSBColorWheel(QWidget):
             # 填充颜色（使用实际颜色，但确保可见性）
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor(r, g, b))
-            painter.drawEllipse(x - point_radius + 2, y - point_radius + 2,
-                              (point_radius - 2) * 2, (point_radius - 2) * 2)
+            painter.drawEllipse(x - point_radius + 1, y - point_radius + 1,
+                              (point_radius - 1) * 2, (point_radius - 1) * 2)
 
     def _draw_title(self, painter):
         """绘制标题"""
@@ -528,7 +528,7 @@ class InteractiveColorWheel(QWidget):
         Returns:
             采样点索引（0为基准点），未命中返回-1
         """
-        hit_radius = 15  # 点击检测半径
+        hit_radius = 8  # 点击检测半径
 
         # 先检测基准点（索引0）
         px, py = self._get_point_position(0)
@@ -703,7 +703,7 @@ class InteractiveColorWheel(QWidget):
             return
 
         colors = self._get_theme_colors()
-        base_point_radius = 8
+        base_point_radius = 4
 
         # 全局明度值直接作为HSB的B值
         global_brightness_value = self._global_brightness
@@ -721,7 +721,7 @@ class InteractiveColorWheel(QWidget):
 
             # 判断是否选中
             is_selected = (i == self._selected_point_index)
-            point_radius = base_point_radius + 2 if is_selected else base_point_radius
+            point_radius = base_point_radius + 1 if is_selected else base_point_radius
 
             # 绘制连线（从圆心到采样点）
             line_color = colors['line_selected'] if is_selected else colors['line']
@@ -729,7 +729,7 @@ class InteractiveColorWheel(QWidget):
             painter.drawLine(self._center_x, self._center_y, x, y)
 
             # 绘制白色外边框
-            painter.setPen(QPen(colors['scheme_point_border'], 2))
+            painter.setPen(QPen(colors['scheme_point_border'], 1))
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.drawEllipse(x - point_radius, y - point_radius,
                               point_radius * 2, point_radius * 2)
@@ -739,8 +739,8 @@ class InteractiveColorWheel(QWidget):
             rgb = hsb_to_rgb(h, s, adjusted_b)
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor(rgb[0], rgb[1], rgb[2]))
-            painter.drawEllipse(x - point_radius + 2, y - point_radius + 2,
-                              (point_radius - 2) * 2, (point_radius - 2) * 2)
+            painter.drawEllipse(x - point_radius + 1, y - point_radius + 1,
+                              (point_radius - 1) * 2, (point_radius - 1) * 2)
 
     def _draw_selector(self, painter):
         """绘制选择器（基准色）及连线"""
@@ -754,7 +754,7 @@ class InteractiveColorWheel(QWidget):
 
         # 判断是否选中（基准点索引为0）
         is_selected = (self._selected_point_index == 0)
-        selector_radius = 10
+        selector_radius = 5
 
         # 计算连线终点（圆的边缘，而非圆心）
         dx = x - self._center_x
@@ -773,15 +773,15 @@ class InteractiveColorWheel(QWidget):
         painter.drawLine(self._center_x, self._center_y, int(edge_x), int(edge_y))
 
         # 白色外边框
-        painter.setPen(QPen(colors['selector_border'], 3))
+        painter.setPen(QPen(colors['selector_border'], 1))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(x - selector_radius, y - selector_radius,
                           selector_radius * 2, selector_radius * 2)
 
         # 黑色内边框
-        painter.setPen(QPen(colors['selector_inner'], 2))
-        painter.drawEllipse(x - selector_radius + 3, y - selector_radius + 3,
-                          (selector_radius - 3) * 2, (selector_radius - 3) * 2)
+        painter.setPen(QPen(colors['selector_inner'], 1))
+        painter.drawEllipse(x - selector_radius + 1, y - selector_radius + 1,
+                          (selector_radius - 1) * 2, (selector_radius - 1) * 2)
 
     def mousePressEvent(self, event):
         """处理鼠标按下"""
