@@ -1243,12 +1243,6 @@ class EditPaletteDialog(BaseFramelessDialog):
             name_layout.addWidget(self.name_input)
             layout.addLayout(name_layout)
 
-            # 分隔线
-            separator = QLabel()
-            separator.setFixedHeight(1)
-            separator.setStyleSheet(f"background-color: {get_border_color().name()};")
-            layout.addWidget(separator)
-
         # 颜色列表标题
         colors_title = QLabel(tr('dialogs.edit_palette.colors_title'))
         colors_title.setStyleSheet(f"color: {get_text_color().name()}; font-size: 13px; background: transparent;")
