@@ -38,12 +38,12 @@ from qfluentwidgets import setTheme, Theme
 
 # 项目模块导入
 from installer.core.registry_installer import REGISTRY_KEY
+from installer.core.install_service import InstallService
 from installer.wizard.install_wizard import InstallWizard
 from installer.wizard.pages.welcome_page import WelcomePage
 from installer.wizard.pages.install_path_page import InstallPathPage
 from installer.wizard.pages.progress_page import ProgressPage
 from installer.wizard.pages.finish_page import FinishPage
-from installer.core.install_service import InstallService
 
 
 def is_admin() -> bool:
@@ -84,23 +84,6 @@ def run_as_admin():
         print(f"无法以管理员权限运行: {str(e)}")
 
     sys.exit(0)
-
-
-def is_installed() -> bool:
-    """检测是否已安装
-
-    Returns:
-        bool: 是否已安装
-    """
-    if sys.platform != 'win32':
-        return False
-
-    try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
-        winreg.CloseKey(key)
-        return True
-    except FileNotFoundError:
-        return False
 
 
 def _get_install_path() -> str:
@@ -200,6 +183,30 @@ def _get_project_root() -> str:
     return str(Path(__file__).resolve().parent.parent)
 
 
+def run_uninstaller():
+    """运行卸载程序"""
+    from installer.uninstaller.uninstall_dialog import UninstallDialog
+
+    dialog = UninstallDialog()
+    result = dialog.exec()
+
+    # 如果卸载成功，执行自删除批处理脚本
+    if result == 1:  # QDialog.Accepted
+        from installer.core.registry_installer import RegistryInstaller
+        registry_installer = RegistryInstaller()
+        install_path = registry_installer.get_install_path()
+
+        if install_path:
+            batch_path = install_path / "uninstall_cleanup.bat"
+            if batch_path.exists():
+                import subprocess
+                subprocess.Popen(
+                    str(batch_path),
+                    shell=True,
+                    creationflags=subprocess.DETACHED_PROCESS
+                )
+
+
 def run_main_app():
     """运行主程序
 
@@ -239,8 +246,13 @@ def run_main_app():
 
     # 创建主窗口
     from ui.main_window import MainWindow
+    from utils import fix_windows_taskbar_icon_for_window
     window = MainWindow()
+    
     window.show()
+    
+    # 修复任务栏图标
+    fix_windows_taskbar_icon_for_window(window)
 
     return window
 
@@ -259,9 +271,14 @@ def main():
     # 设置主题
     setTheme(Theme.AUTO)
 
-    # 卸载模式（第二阶段实现）
+    # 设置应用程序图标（用于任务栏和窗口标题栏）
+    from utils import load_icon_universal
+    app_icon = load_icon_universal()
+    app.setWindowIcon(app_icon)
+
+    # 卸载模式
     if args.uninstall:
-        print("卸载功能将在第二阶段实现")
+        run_uninstaller()
         sys.exit(0)
 
     # 测试模式
@@ -279,8 +296,18 @@ def main():
         config = run_installer(test_mode, old_install_path=old_path)
 
         if config.get('run_after_install', False):
-            window = run_main_app()
-            sys.exit(app.exec())
+            # 启动已安装的主程序（新进程）
+            install_path = config.get('install_path', '')
+            if install_path:
+                exe_path = Path(install_path) / "Color Card.exe"
+                if exe_path.exists():
+                    import subprocess
+                    subprocess.Popen(
+                        [str(exe_path)],
+                        shell=True,
+                        creationflags=subprocess.DETACHED_PROCESS
+                    )
+            sys.exit(0)
         else:
             sys.exit(0)
     else:

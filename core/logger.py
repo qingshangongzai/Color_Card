@@ -133,6 +133,21 @@ class LoggerManager:
         """
         return self._log_dir
 
+    def shutdown(self) -> None:
+        """关闭日志系统，释放文件占用"""
+        if not self._initialized or not self._logger:
+            return
+
+        try:
+            # 关闭所有处理器
+            for handler in self._logger.handlers[:]:
+                handler.close()
+                self._logger.removeHandler(handler)
+
+            self._initialized = False
+        except (OSError, RuntimeError):
+            pass
+
 
 _logger_manager: Optional[LoggerManager] = None
 

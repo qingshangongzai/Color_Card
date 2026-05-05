@@ -98,7 +98,7 @@ class RegistryInstaller:
 
         try:
             install_path = Path(config['install_path'])
-            exe_path = install_path / "ColorCard.exe"
+            exe_path = install_path / "Color Card.exe"
 
             # 创建或打开卸载键
             uninstall_key_path = f"{UNINSTALL_KEY}\\{APP_ID}"

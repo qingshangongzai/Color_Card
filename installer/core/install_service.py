@@ -13,6 +13,13 @@ from core import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.registry_installer import RegistryInstaller
 
+# 获取应用信息
+try:
+    from version import version_manager
+    APP_NAME = version_manager.app_info['name']
+except ImportError:
+    APP_NAME = "取色卡"
+
 logger = get_logger("installer.install_service")
 
 
@@ -101,18 +108,31 @@ class InstallWorker(QThread):
             bool: 是否成功
         """
         try:
-            # 获取源目录
-            src_dir = FileInstaller.get_source_dir()
+            # 获取可执行文件路径
+            if getattr(sys, 'frozen', False):
+                # 打包后：使用当前可执行文件
+                src_exe = Path(sys.executable)
+            else:
+                # 开发环境：使用 test_dist/ColorCard.exe（如果存在）
+                project_root = Path(__file__).parent.parent.parent
+                test_exe = project_root / 'test_dist' / 'ColorCard.exe'
+                if test_exe.exists():
+                    src_exe = test_exe
+                else:
+                    # 如果不存在，使用当前 Python 解释器（仅用于测试）
+                    logger.warning("未找到测试可执行文件，跳过文件复制")
+                    return True
 
-            # 复制文件
+            # 复制可执行文件
             def progress_callback(percent: int, message: str):
                 # 映射到 0-80% 的进度范围
                 mapped_percent = int(percent * 0.8)
                 self.progress_updated.emit(mapped_percent, message)
 
-            return self._file_installer.copy_files(
-                src_dir,
+            return self._file_installer.copy_executable(
+                src_exe,
                 install_path,
+                "Color Card.exe",
                 progress_callback
             )
 
@@ -161,10 +181,25 @@ class InstallWorker(QThread):
             bool: 是否成功
         """
         try:
-            # Windows 快捷方式创建需要 win32com
-            # 这里先返回 True，实际实现在后续完善
-            # TODO: 实现快捷方式创建
-            logger.info("快捷方式创建功能待实现")
+            from installer.core.shortcut_installer import ShortcutInstaller
+
+            shortcut_installer = ShortcutInstaller(self._test_mode)
+            exe_path = install_path / "Color Card.exe"
+
+            # 创建桌面快捷方式
+            if self._config.get('create_desktop_shortcut', True):
+                if not shortcut_installer.create_desktop_shortcut(exe_path, APP_NAME):
+                    return False
+
+            # 创建开始菜单快捷方式
+            if self._config.get('create_start_menu', True):
+                if not shortcut_installer.create_start_menu_shortcut(exe_path, APP_NAME):
+                    return False
+
+            # 创建卸载快捷方式
+            if not shortcut_installer.create_uninstall_shortcut(exe_path, APP_NAME):
+                return False
+
             return True
 
         except Exception as e:
