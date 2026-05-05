@@ -140,3 +140,4 @@ test_lazy_loading.py
 文档/Color Card 启动速度分析报告.md
 文档/软打样模式实现方案.md
 文档/基于直方图的影调自动分类算法.md
+/dist
