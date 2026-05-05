@@ -61,8 +61,9 @@ class SettingsInterface(QWidget):
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
         self._histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
-        self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
+        self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
+        self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
         self._update_color_space_availability(self._gradient_mode)
@@ -108,6 +109,9 @@ class SettingsInterface(QWidget):
             tr('settings.hex_display'),
             tr('settings.hex_display_desc'),
             self._hex_visible
+        )
+        self.hex_display_card.switch_button.checkedChanged.connect(
+            self._on_hex_display_changed
         )
         self.card_display_group.addSettingCard(self.hex_display_card)
 
@@ -231,6 +235,17 @@ class SettingsInterface(QWidget):
         layout.addWidget(self.luminance_group)
 
         self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
+
+        self.auto_check_update_card = self._create_switch_card(
+            FluentIcon.SYNC,
+            tr('settings.auto_check_update'),
+            tr('settings.auto_check_update_desc'),
+            self._auto_check_update
+        )
+        self.auto_check_update_card.switch_button.checkedChanged.connect(
+            self._on_auto_check_update_changed
+        )
+        self.help_group.addSettingCard(self.auto_check_update_card)
 
         self.update_card = PushSettingCard(
             tr('settings.check_update'),
@@ -413,6 +428,12 @@ class SettingsInterface(QWidget):
         # 重建颜色空间下拉框（单色模式下无RGB选项）
         self._update_color_space_availability(self._gradient_mode)
 
+        # 更新自动检查更新卡片
+        self.auto_check_update_card.titleLabel.setText(tr('settings.auto_check_update'))
+        self.auto_check_update_card.contentLabel.setText(tr('settings.auto_check_update_desc'))
+        self.auto_check_update_card.switch_button.setOnText(tr('settings.switch_on'))
+        self.auto_check_update_card.switch_button.setOffText(tr('settings.switch_off'))
+
         # 更新帮助卡片
         self.update_card.titleLabel.setText(tr('settings.version_update'))
         self.update_card.contentLabel.setText(tr('settings.version_update_desc'))
@@ -431,7 +452,6 @@ class SettingsInterface(QWidget):
         switch.setChecked(initial_checked)
         switch.setOnText(tr('settings.switch_on'))
         switch.setOffText(tr('settings.switch_off'))
-        switch.checkedChanged.connect(self._on_hex_display_changed)
 
         card.hBoxLayout.addWidget(switch, 0, Qt.AlignmentFlag.AlignRight)
         card.hBoxLayout.addSpacing(16)
@@ -1010,6 +1030,13 @@ class SettingsInterface(QWidget):
                 if combo_box.itemData(i) == mode:
                     combo_box.setCurrentIndex(i)
                     break
+
+    def _on_auto_check_update_changed(self, checked):
+        """自动检查更新开关状态改变"""
+        self._auto_check_update = checked
+        self._config_manager.set('settings.auto_check_update', checked)
+        self._config_manager.save()
+        log_user_action("toggle_auto_check_update", {"enabled": checked})
 
     def on_check_update(self):
         """检查更新按钮点击"""

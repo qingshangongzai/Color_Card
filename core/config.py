@@ -78,7 +78,9 @@ class ConfigManager:
                 "language": "auto",
                 "gradient_mode": "gradient",
                 "luminance_default_grayscale": False,
-                "color_picker_mode": "original"
+                "color_picker_mode": "original",
+                "auto_check_update": True,
+                "last_check_time": None
             },
             "scheme": {
                 "default_scheme": "monochromatic",
