@@ -3,6 +3,7 @@ import argparse
 import ctypes
 import os
 import sys
+import time
 from pathlib import Path
 
 # 将项目根目录添加到 sys.path（确保 installer 模块可导入）
@@ -46,6 +47,54 @@ def setup_global_exception_handler(logger):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
     sys.excepthook = handle_exception
+
+
+def _create_splash_screen(project_root: str):
+    """创建并显示启动画面
+
+    Args:
+        project_root: 项目根目录路径
+
+    Returns:
+        QSplashScreen | None: 启动画面对象，失败时返回 None
+    """
+    from PySide6.QtCore import Qt, QSize
+    from PySide6.QtGui import QColor, QIcon
+    from PySide6.QtWidgets import QSplashScreen
+
+    logo_path = os.path.join(project_root, 'logo', 'Color Card_logo.ico')
+    icon = QIcon(logo_path)
+    if icon.isNull():
+        return None
+
+    pixmap = icon.pixmap(QSize(192, 192))
+    if pixmap.isNull():
+        return None
+
+    splash = QSplashScreen(pixmap)
+    splash.setWindowFlags(
+        Qt.WindowType.FramelessWindowHint
+        | Qt.WindowType.WindowStaysOnTopHint
+        | Qt.WindowType.SplashScreen
+        | Qt.WindowType.WindowDoesNotAcceptFocus
+    )
+
+    screen = QApplication.primaryScreen()
+    if screen:
+        screen_geometry = screen.geometry()
+        x = (screen_geometry.width() - pixmap.width()) // 2
+        y = (screen_geometry.height() - pixmap.height()) // 2
+        splash.move(x, y)
+
+    splash.show()
+    QApplication.processEvents()
+    splash.showMessage(
+        "启动中……",
+        alignment=Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignCenter,
+        color=QColor(128, 128, 128)
+    )
+
+    return splash
 
 
 # Windows 注册表支持
@@ -159,12 +208,15 @@ def _get_project_root() -> str:
     """获取项目根目录
 
     开发环境：installer/main.py 的父目录
-    打包环境：exe 所在目录
+    PyInstaller：sys._MEIPASS（临时解压目录，包含所有打包数据）
+    Nuitka：exe 所在目录
 
     Returns:
         str: 项目根目录
     """
     if is_frozen():
+        if hasattr(sys, '_MEIPASS'):
+            return sys._MEIPASS
         return str(get_exe_path().parent)
     return str(Path(__file__).resolve().parent.parent)
 
@@ -206,14 +258,22 @@ def run_main_app():
 
     执行完整的初始化流程，包括日志、配置、语言包、主题等。
     """
+    startup_start_time = time.perf_counter()
+
     project_root = _get_project_root()
     os.chdir(project_root)
+
+    splash = _create_splash_screen(project_root)
 
     from core import get_logger_manager, get_logger
     logger_manager = get_logger_manager()
     logger_manager.initialize()
     logger = get_logger("installer")
     setup_global_exception_handler(logger)
+
+    from io import StringIO
+    _old_stdout = sys.stdout
+    sys.stdout = StringIO()
 
     from core import get_config_manager
     config_manager = get_config_manager()
@@ -225,6 +285,9 @@ def run_main_app():
     locale_manager.load_language(language_setting)
 
     from qfluentwidgets import setTheme, setThemeColor, Theme
+
+    sys.stdout = _old_stdout
+
     theme_setting = config_manager.get('settings.theme', 'auto')
     if theme_setting == 'light':
         setTheme(Theme.LIGHT)
@@ -235,10 +298,17 @@ def run_main_app():
     setThemeColor('#0078d4')
 
     from ui.main_window import MainWindow
-    from utils import fix_windows_taskbar_icon_for_window
+    from utils import fix_windows_taskbar_icon_for_window, force_window_to_front
     window = MainWindow()
     window.show()
+
+    if splash:
+        splash.finish(window)
     fix_windows_taskbar_icon_for_window(window)
+    force_window_to_front(window)
+
+    startup_time = (time.perf_counter() - startup_start_time) * 1000
+    logger.info(f"启动完成，总耗时: {startup_time:.2f}ms")
 
     return window
 
