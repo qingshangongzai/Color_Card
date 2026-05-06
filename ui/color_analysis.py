@@ -177,9 +177,6 @@ class ColorAnalysisInterface(QWidget):
         self.hsb_color_wheel = HSBColorWheel()
         self.hsb_color_wheel.setMinimumHeight(100)
         self.hsb_color_wheel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        # 初始化采样点数量，否则 update_sample_point 因边界检查无法写入
-        count = self._config_manager.get('settings.color_sample_count', 5)
-        self.hsb_color_wheel.set_sample_count(count)
         self.right_splitter.addWidget(self.hsb_color_wheel)
 
         # 直方图堆叠窗口（RGB/色相切换）
