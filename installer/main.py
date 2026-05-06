@@ -270,6 +270,11 @@ def run_main_app():
     logger = get_logger("installer")
     setup_global_exception_handler(logger)
 
+    # 诊断：启动画面状态
+    logo_file = os.path.join(project_root, 'logo', 'Color Card_logo.ico')
+    logger.info(f"启动诊断: project_root={project_root}")
+    logger.info(f"启动诊断: logo存在={os.path.exists(logo_file)}, splash={'OK' if splash else 'NULL'}")
+
     try:
         from io import StringIO
         _old_stdout = sys.stdout
