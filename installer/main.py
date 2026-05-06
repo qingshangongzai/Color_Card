@@ -4,6 +4,7 @@ import ctypes
 import os
 import sys
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # 将项目根目录添加到 sys.path（确保 installer 模块可导入）
@@ -271,46 +272,81 @@ def run_main_app():
     logger = get_logger("installer")
     setup_global_exception_handler(logger)
 
-    from io import StringIO
-    _old_stdout = sys.stdout
-    sys.stdout = StringIO()
+    try:
+        from io import StringIO
+        _old_stdout = sys.stdout
+        sys.stdout = StringIO()
 
-    from core import get_config_manager
-    config_manager = get_config_manager()
-    config_manager.load()
+        from core import get_config_manager
+        config_manager = get_config_manager()
+        config_manager.load()
 
-    from utils import get_locale_manager
-    locale_manager = get_locale_manager()
-    language_setting = config_manager.get('settings.language', 'ZW_JT')
-    locale_manager.load_language(language_setting)
+        from utils import get_locale_manager
+        locale_manager = get_locale_manager()
+        language_setting = config_manager.get('settings.language', 'ZW_JT')
+        locale_manager.load_language(language_setting)
 
-    from qfluentwidgets import setTheme, setThemeColor, Theme
+        from PySide6.QtCore import qInstallMessageHandler, QTimer
+        from qfluentwidgets import setTheme, setThemeColor, Theme
 
-    sys.stdout = _old_stdout
+        sys.stdout = _old_stdout
 
-    theme_setting = config_manager.get('settings.theme', 'auto')
-    if theme_setting == 'light':
-        setTheme(Theme.LIGHT)
-    elif theme_setting == 'dark':
-        setTheme(Theme.DARK)
-    else:
-        setTheme(Theme.AUTO)
-    setThemeColor('#0078d4')
+        def _qt_message_handler(mode, _context, message):
+            if "QFont::setPointSize: Point size <= 0" in message:
+                return
+            sys.__stdout__.write(message + '\n')
 
-    from ui.main_window import MainWindow
-    from utils import fix_windows_taskbar_icon_for_window, force_window_to_front
-    window = MainWindow()
-    window.show()
+        qInstallMessageHandler(_qt_message_handler)
 
-    if splash:
-        splash.finish(window)
-    fix_windows_taskbar_icon_for_window(window)
-    force_window_to_front(window)
+        theme_setting = config_manager.get('settings.theme', 'auto')
+        if theme_setting == 'light':
+            setTheme(Theme.LIGHT)
+        elif theme_setting == 'dark':
+            setTheme(Theme.DARK)
+        else:
+            setTheme(Theme.AUTO)
+        setThemeColor('#0078d4')
 
-    startup_time = (time.perf_counter() - startup_start_time) * 1000
-    logger.info(f"启动完成，总耗时: {startup_time:.2f}ms")
+        from ui.main_window import MainWindow
+        from utils import fix_windows_taskbar_icon_for_window, force_window_to_front
+        window = MainWindow()
+        window.show()
 
-    return window
+        if hasattr(window, 'titleBar') and hasattr(window.titleBar, 'init_theme'):
+            window.titleBar.init_theme(theme_setting)
+
+        if splash:
+            splash.finish(window)
+        fix_windows_taskbar_icon_for_window(window)
+        force_window_to_front(window)
+
+        startup_time = (time.perf_counter() - startup_start_time) * 1000
+        logger.info(f"启动完成，总耗时: {startup_time:.2f}ms")
+
+        def _auto_check_update(window, config_manager):
+            if not config_manager.get('settings.auto_check_update', True):
+                return
+            last_check = config_manager.get('settings.last_check_time')
+            if last_check:
+                try:
+                    last_time = datetime.fromisoformat(last_check)
+                    if datetime.now() - last_time < timedelta(days=7):
+                        return
+                except (ValueError, TypeError):
+                    pass
+            from version import version_manager
+            from dialogs import UpdateAvailableDialog
+            UpdateAvailableDialog.check_update(window, version_manager.get_version())
+            config_manager.set('settings.last_check_time', datetime.now().isoformat())
+            config_manager.save()
+
+        QTimer.singleShot(3000, lambda: _auto_check_update(window, config_manager))
+
+        return window
+
+    except (OSError, ImportError, ValueError) as e:
+        logger.critical(f"程序启动失败: {str(e)}", exc_info=True)
+        raise
 
 
 def main():
@@ -324,6 +360,8 @@ def main():
     parser.add_argument('--skip-to-uninstall-progress', action='store_true', help='直接开始卸载')
     parser.add_argument('--delete-config', action='store_true', help='删除用户配置')
     args = parser.parse_args()
+
+    os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
 
     app = QApplication(sys.argv)
     setTheme(Theme.AUTO)
