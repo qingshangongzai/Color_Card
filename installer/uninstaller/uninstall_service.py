@@ -143,7 +143,7 @@ class UninstallWorker(QThread):
                 from core import get_logger_manager
                 logger_manager = get_logger_manager()
                 logger_manager.shutdown()
-            except Exception:
+            except (OSError, RuntimeError):
                 pass
 
             # 删除用户配置目录

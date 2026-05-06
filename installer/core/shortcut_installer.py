@@ -1,5 +1,4 @@
 # 标准库导入
-import os
 import sys
 from pathlib import Path
 
@@ -25,14 +24,6 @@ class ShortcutInstaller:
     负责创建和删除 Windows 快捷方式。
     """
 
-    def __init__(self, test_mode: bool = False):
-        """初始化快捷方式安装器
-
-        Args:
-            test_mode: 测试模式，不实际创建快捷方式
-        """
-        self._test_mode = test_mode
-
     def create_desktop_shortcut(self, exe_path: Path, name: str) -> bool:
         """创建桌面快捷方式
 
@@ -43,10 +34,6 @@ class ShortcutInstaller:
         Returns:
             bool: 是否成功
         """
-        if self._test_mode:
-            logger.info("测试模式：跳过桌面快捷方式创建")
-            return True
-
         if not HAS_WIN32COM:
             logger.warning("缺少 win32com 模块：跳过快捷方式创建")
             return True
@@ -54,17 +41,9 @@ class ShortcutInstaller:
         try:
             desktop = Path.home() / "Desktop"
             shortcut_path = desktop / f"{name}.lnk"
-
-            self._create_shortcut(
-                shortcut_path,
-                str(exe_path),
-                "",
-                f"启动 {name}"
-            )
-
+            self._create_shortcut(shortcut_path, str(exe_path), "", f"启动 {name}")
             logger.info(f"桌面快捷方式创建成功: {shortcut_path}")
             return True
-
         except (OSError, PermissionError) as e:
             logger.error(f"桌面快捷方式创建失败: {str(e)}")
             return False
@@ -79,34 +58,18 @@ class ShortcutInstaller:
         Returns:
             bool: 是否成功
         """
-        if self._test_mode:
-            logger.info("测试模式：跳过开始菜单快捷方式创建")
-            return True
-
         if not HAS_WIN32COM:
             logger.warning("缺少 win32com 模块：跳过快捷方式创建")
             return True
 
         try:
-            # 开始菜单路径
             start_menu = Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs"
-
-            # 创建程序组目录
             program_group = start_menu / name
             program_group.mkdir(parents=True, exist_ok=True)
-
             shortcut_path = program_group / f"{name}.lnk"
-
-            self._create_shortcut(
-                shortcut_path,
-                str(exe_path),
-                "",
-                f"启动 {name}"
-            )
-
+            self._create_shortcut(shortcut_path, str(exe_path), "", f"启动 {name}")
             logger.info(f"开始菜单快捷方式创建成功: {shortcut_path}")
             return True
-
         except (OSError, PermissionError) as e:
             logger.error(f"开始菜单快捷方式创建失败: {str(e)}")
             return False
@@ -121,33 +84,17 @@ class ShortcutInstaller:
         Returns:
             bool: 是否成功
         """
-        if self._test_mode:
-            logger.info("测试模式：跳过卸载快捷方式创建")
-            return True
-
         if not HAS_WIN32COM:
             logger.warning("缺少 win32com 模块：跳过快捷方式创建")
             return True
 
         try:
-            # 开始菜单路径
             start_menu = Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs"
-
-            # 程序组目录
             program_group = start_menu / name
-
             shortcut_path = program_group / "卸载.lnk"
-
-            self._create_shortcut(
-                shortcut_path,
-                str(exe_path),
-                "--uninstall",
-                f"卸载 {name}"
-            )
-
+            self._create_shortcut(shortcut_path, str(exe_path), "--uninstall", f"卸载 {name}")
             logger.info(f"卸载快捷方式创建成功: {shortcut_path}")
             return True
-
         except (OSError, PermissionError) as e:
             logger.error(f"卸载快捷方式创建失败: {str(e)}")
             return False
@@ -164,13 +111,10 @@ class ShortcutInstaller:
         try:
             desktop = Path.home() / "Desktop"
             shortcut_path = desktop / f"{name}.lnk"
-
             if shortcut_path.exists():
                 shortcut_path.unlink()
                 logger.info(f"桌面快捷方式删除成功: {shortcut_path}")
-
             return True
-
         except (OSError, PermissionError) as e:
             logger.error(f"桌面快捷方式删除失败: {str(e)}")
             return False
@@ -187,19 +131,13 @@ class ShortcutInstaller:
         try:
             start_menu = Path.home() / "AppData" / "Roaming" / "Microsoft" / "Windows" / "Start Menu" / "Programs"
             program_group = start_menu / name
-
             if program_group.exists():
-                # 删除目录下所有文件
                 for item in program_group.iterdir():
                     if item.is_file():
                         item.unlink()
-
-                # 删除目录
                 program_group.rmdir()
                 logger.info(f"开始菜单快捷方式删除成功: {program_group}")
-
             return True
-
         except (OSError, PermissionError) as e:
             logger.error(f"开始菜单快捷方式删除失败: {str(e)}")
             return False

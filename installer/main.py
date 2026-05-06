@@ -36,7 +36,6 @@ def setup_global_exception_handler(logger):
         logger: 日志记录器
     """
     def handle_exception(exc_type, exc_value, exc_traceback):
-        """处理未捕获的异常"""
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return
@@ -90,7 +89,6 @@ def _is_running_installer() -> bool:
     """检测当前是否以安装程序身份运行（而非已安装的程序）
 
     判断依据：exe 所在位置
-    - 开发环境 → 始终是安装程序
     - 打包后在临时目录 → 安装程序（NSIS/Inno 释放的安装包）
     - 打包后在安装目录内 → 已安装的程序
     - 打包后在下载目录等 → 安装程序（用户刚下载的新安装包）
@@ -103,25 +101,22 @@ def _is_running_installer() -> bool:
 
     exe_path = get_exe_path()
 
-    # 在临时目录 → 安装程序
     temp_dir = os.environ.get('TEMP', '')
     if temp_dir and str(exe_path).lower().startswith(temp_dir.lower()):
         return True
 
-    # 检查是否在已安装的目录内
     old_install_path = _get_install_path()
     if old_install_path:
         try:
             exe_path.relative_to(Path(old_install_path))
-            return False  # 在安装目录内 → 已安装的程序
+            return False
         except ValueError:
-            return True  # 不在安装目录内 → 新下载的安装程序
+            return True
 
     return True
 
 
 def run_installer(
-    test_mode: bool = False,
     old_install_path: str = '',
     skip_to_progress: bool = False,
     preset_config: dict | None = None
@@ -129,7 +124,6 @@ def run_installer(
     """运行安装向导
 
     Args:
-        test_mode: 测试模式
         old_install_path: 旧版本安装路径（用于升级时预填）
         skip_to_progress: 是否直接跳转到进度页面
         preset_config: 预设配置（提权重启后恢复）
@@ -141,20 +135,18 @@ def run_installer(
 
     wizard.add_page(WelcomePage())
 
-    # 路径选择页面：升级模式下预填旧路径
     path_page = InstallPathPage()
     if old_install_path:
         path_page.set_default_path(old_install_path)
     wizard.add_page(path_page)
 
     progress_page = ProgressPage()
-    install_service = InstallService(test_mode)
+    install_service = InstallService()
     progress_page.set_install_service(install_service)
     wizard.add_page(progress_page)
 
     wizard.add_page(FinishPage())
 
-    # 如果需要直接跳转到进度页面
     if skip_to_progress and preset_config:
         wizard.set_preset_config(preset_config)
         wizard.skip_to_progress_page()
@@ -188,14 +180,12 @@ def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False)
 
     dialog = UninstallDialog()
 
-    # 如果需要直接开始卸载
     if skip_to_progress:
         dialog.start_uninstall(delete_config)
 
     result = dialog.exec()
 
-    # 如果卸载成功，执行自删除批处理脚本
-    if result == 1:  # QDialog.Accepted
+    if result == 1:
         from installer.core.registry_installer import RegistryInstaller
         registry_installer = RegistryInstaller()
         install_path = registry_installer.get_install_path()
@@ -216,31 +206,24 @@ def run_main_app():
 
     执行完整的初始化流程，包括日志、配置、语言包、主题等。
     """
-    # 切换工作目录到项目根目录，确保相对路径正确
     project_root = _get_project_root()
     os.chdir(project_root)
 
-    # 初始化日志系统
     from core import get_logger_manager, get_logger
     logger_manager = get_logger_manager()
     logger_manager.initialize()
     logger = get_logger("installer")
-
-    # 设置全局异常处理器
     setup_global_exception_handler(logger)
 
-    # 加载配置
     from core import get_config_manager
     config_manager = get_config_manager()
     config_manager.load()
 
-    # 初始化语言管理器并加载用户语言配置
     from utils import get_locale_manager
     locale_manager = get_locale_manager()
     language_setting = config_manager.get('settings.language', 'ZW_JT')
     locale_manager.load_language(language_setting)
 
-    # 设置主题
     from qfluentwidgets import setTheme, setThemeColor, Theme
     theme_setting = config_manager.get('settings.theme', 'auto')
     if theme_setting == 'light':
@@ -251,14 +234,10 @@ def run_main_app():
         setTheme(Theme.AUTO)
     setThemeColor('#0078d4')
 
-    # 创建主窗口
     from ui.main_window import MainWindow
     from utils import fix_windows_taskbar_icon_for_window
     window = MainWindow()
-    
     window.show()
-    
-    # 修复任务栏图标
     fix_windows_taskbar_icon_for_window(window)
 
     return window
@@ -266,10 +245,8 @@ def run_main_app():
 
 def main():
     """主入口"""
-    # 解析命令行参数
     parser = argparse.ArgumentParser()
     parser.add_argument('--uninstall', action='store_true', help='运行卸载程序')
-    parser.add_argument('--test', action='store_true', help='测试模式')
     parser.add_argument('--install-path', type=str, help='用户选择的安装路径')
     parser.add_argument('--skip-to-progress', action='store_true', help='直接跳转到安装进度页面')
     parser.add_argument('--desktop-shortcut', action='store_true', help='创建桌面快捷方式')
@@ -278,18 +255,13 @@ def main():
     parser.add_argument('--delete-config', action='store_true', help='删除用户配置')
     args = parser.parse_args()
 
-    # 创建应用
     app = QApplication(sys.argv)
-
-    # 设置主题
     setTheme(Theme.AUTO)
 
-    # 设置应用程序图标（用于任务栏和窗口标题栏）
     from utils import load_icon_universal
     app_icon = load_icon_universal()
     app.setWindowIcon(app_icon)
 
-    # 卸载模式
     if args.uninstall:
         run_uninstaller(
             skip_to_progress=args.skip_to_uninstall_progress,
@@ -297,18 +269,10 @@ def main():
         )
         sys.exit(0)
 
-    # 测试模式
-    test_mode = args.test
-
-    # 判断当前角色：安装程序 or 已安装的程序
     if _is_running_installer():
-        # 检查是否有旧版本（升级场景）
         old_path = _get_install_path()
-
-        # 提权重启后恢复用户选择的路径
         preset_path = args.install_path or old_path
 
-        # 构建预设配置（提权重启后恢复）
         preset_config = None
         if args.skip_to_progress and args.install_path:
             preset_config = {
@@ -318,14 +282,12 @@ def main():
             }
 
         config = run_installer(
-            test_mode,
             old_install_path=preset_path,
             skip_to_progress=args.skip_to_progress,
             preset_config=preset_config
         )
 
         if config.get('run_after_install', False):
-            # 启动已安装的主程序（新进程）
             install_path = config.get('install_path', '')
             if install_path:
                 exe_path = Path(install_path) / "Color Card.exe"
@@ -340,7 +302,6 @@ def main():
         else:
             sys.exit(0)
     else:
-        # 已安装的程序，直接启动主界面
         window = run_main_app()
         sys.exit(app.exec())
 

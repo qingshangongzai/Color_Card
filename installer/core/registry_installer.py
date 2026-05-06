@@ -14,10 +14,8 @@ from version import version_manager
 
 logger = get_logger("installer.registry_installer")
 
-# 应用 GUID
 APP_ID = "{8EBD3944-B989-4878-B943-DE4558FDF22C}"
 
-# 注册表路径
 REGISTRY_KEY = r"Software\Color Card"
 UNINSTALL_KEY = r"Software\Microsoft\Windows\CurrentVersion\Uninstall"
 
@@ -27,14 +25,6 @@ class RegistryInstaller:
 
     负责写入和删除安装信息到 Windows 注册表。
     """
-
-    def __init__(self, test_mode: bool = False):
-        """初始化注册表安装器
-
-        Args:
-            test_mode: 测试模式，不实际写入注册表
-        """
-        self._test_mode = test_mode
 
     def write_install_info(self, config: dict[str, Any]) -> bool:
         """写入安装信息到注册表
@@ -46,16 +36,11 @@ class RegistryInstaller:
         Returns:
             bool: 是否成功
         """
-        if self._test_mode:
-            logger.info("测试模式：跳过注册表写入")
-            return True
-
         if sys.platform != 'win32':
             logger.warning("非 Windows 平台：跳过注册表写入")
             return True
 
         try:
-            # 创建或打开注册表键
             key = winreg.CreateKeyEx(
                 winreg.HKEY_CURRENT_USER,
                 REGISTRY_KEY,
@@ -64,7 +49,6 @@ class RegistryInstaller:
             )
 
             with key:
-                # 写入安装信息
                 winreg.SetValueEx(key, "AppId", 0, winreg.REG_SZ, APP_ID)
                 winreg.SetValueEx(key, "InstallPath", 0, winreg.REG_SZ, str(config['install_path']))
                 winreg.SetValueEx(key, "Version", 0, winreg.REG_SZ, version_manager.version)
@@ -88,10 +72,6 @@ class RegistryInstaller:
         Returns:
             bool: 是否成功
         """
-        if self._test_mode:
-            logger.info("测试模式：跳过卸载条目写入")
-            return True
-
         if sys.platform != 'win32':
             logger.warning("非 Windows 平台：跳过卸载条目写入")
             return True
@@ -100,7 +80,6 @@ class RegistryInstaller:
             install_path = Path(config['install_path'])
             exe_path = install_path / "Color Card.exe"
 
-            # 创建或打开卸载键
             uninstall_key_path = f"{UNINSTALL_KEY}\\{APP_ID}"
             key = winreg.CreateKeyEx(
                 winreg.HKEY_CURRENT_USER,
@@ -110,7 +89,6 @@ class RegistryInstaller:
             )
 
             with key:
-                # 写入卸载信息
                 winreg.SetValueEx(key, "DisplayName", 0, winreg.REG_SZ,
                                   f"{version_manager.app_info['name']} - {version_manager.app_info['name_en']}")
                 winreg.SetValueEx(key, "DisplayVersion", 0, winreg.REG_SZ, version_manager.version)
@@ -122,7 +100,6 @@ class RegistryInstaller:
                                   f'"{str(exe_path)}" --uninstall')
                 winreg.SetValueEx(key, "DisplayIcon", 0, winreg.REG_SZ, str(exe_path))
 
-                # 写入安装大小（如果提供）
                 if 'install_size_kb' in config:
                     winreg.SetValueEx(key, "EstimatedSize", 0, winreg.REG_DWORD,
                                       int(config['install_size_kb']))
