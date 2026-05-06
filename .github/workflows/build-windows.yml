@@ -23,16 +23,21 @@ jobs:
       with:
         python-version: '3.13'
 
-    - name: Cache pip packages
+    - name: Restore pip cache
       uses: actions/cache@v4
       with:
-        path: |
-          ~\AppData\Local\pip\Cache
-          ~\AppData\Local\Nuitka
-        key: ${{ runner.os }}-pip-nuitka-${{ hashFiles('requirements.txt') }}-${{ hashFiles('main.py') }}
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-nuitka-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-pip-nuitka-
+          ${{ runner.os }}-pip-
+
+    - name: Restore Nuitka compilation cache
+      uses: actions/cache@v4
+      with:
+        path: ~\AppData\Local\Nuitka
+        key: ${{ runner.os }}-nuitka-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-nuitka-
 
     - name: Install dependencies
       run: |
@@ -126,16 +131,21 @@ jobs:
       with:
         python-version: '3.13'
 
-    - name: Cache pip packages
+    - name: Restore pip cache
       uses: actions/cache@v4
       with:
-        path: |
-          ~\AppData\Local\pip\Cache
-          ~\AppData\Local\Nuitka
-        key: ${{ runner.os }}-pip-nuitka-installer-${{ hashFiles('requirements.txt') }}-${{ hashFiles('installer/main.py') }}
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-pip-nuitka-installer-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-pip-nuitka-installer-
+          ${{ runner.os }}-pip-
+
+    - name: Restore Nuitka compilation cache
+      uses: actions/cache@v4
+      with:
+        path: ~\AppData\Local\Nuitka
+        key: ${{ runner.os }}-nuitka-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-nuitka-
 
     - name: Install dependencies
       run: |
