@@ -1348,23 +1348,85 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, in
     return pixels
 
 
+def _kmeans_plus_plus_init(pixels: np.ndarray, k: int) -> np.ndarray:
+    """K-Means++ 初始化聚类中心"""
+    rng = np.random.default_rng()
+    centroids = [pixels[rng.integers(len(pixels))]]
+    for _ in range(1, k):
+        dist_sq = np.min(
+            np.sum((pixels[:, np.newaxis] - np.array(centroids)[np.newaxis]) ** 2, axis=2),
+            axis=1
+        )
+        probs = dist_sq / dist_sq.sum()
+        centroids.append(pixels[rng.choice(len(pixels), p=probs)])
+    return np.array(centroids, dtype=np.float32)
+
+
+def extract_dominant_colors_kmeans(
+    image,
+    count: int = 5,
+    sample_step: int = 4,
+    original_pixels: Optional[np.ndarray] = None,
+    max_iterations: int = 10
+) -> List[Tuple[int, int, int]]:
+    """使用 K-Means 聚类提取主色调"""
+    count = max(3, min(8, count))
+
+    if original_pixels is not None:
+        arr_sampled = original_pixels[::sample_step, ::sample_step]
+        pixels_list = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+    else:
+        pixels_list = _extract_pixels_fast(image, sample_step)
+
+    if not pixels_list:
+        return []
+
+    pixels_np = np.array(pixels_list, dtype=np.float32)
+    centroids = _kmeans_plus_plus_init(pixels_np, count)
+
+    for _ in range(max_iterations):
+        distances = np.sum(
+            (pixels_np[:, np.newaxis] - centroids[np.newaxis]) ** 2, axis=2
+        )
+        labels = np.argmin(distances, axis=1)
+        new_centroids = np.array([
+            pixels_np[labels == k].mean(axis=0) if (labels == k).any() else centroids[k]
+            for k in range(count)
+        ], dtype=np.float32)
+        if np.allclose(centroids, new_centroids):
+            break
+        centroids = new_centroids
+
+    cluster_sizes = [(labels == k).sum() for k in range(count)]
+    sorted_indices = np.argsort(cluster_sizes)[::-1]
+
+    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]
+
+
 def extract_dominant_colors(
     image,
     count: int = 5,
     sample_step: int = 4,
     original_pixels: Optional[np.ndarray] = None,
+    algorithm: str = 'mmcq',
 ) -> List[Tuple[int, int, int]]:
-    """使用 MMCQ 算法提取图片主色调
+    """提取图片主色调，支持 MMCQ 和 K-Means 两种算法
 
     Args:
         image: QImage 或 PIL Image 对象
         count: 提取颜色数量 (3-8，默认5)
         sample_step: 采样步长，每隔N个像素采样一次（默认4）
         original_pixels: 原始色彩空间像素数组 (H,W,3)，优先于 image 使用
+        algorithm: 算法类型 ('mmcq' 或 'kmeans'，默认 'mmcq')
 
     Returns:
         list: RGB 主色调列表 [(r, g, b), ...]，按重要性排序
     """
+    if algorithm == 'kmeans':
+        return extract_dominant_colors_kmeans(
+            image, count, sample_step, original_pixels
+        )
+
     count = max(3, min(8, count))
 
     if original_pixels is not None:

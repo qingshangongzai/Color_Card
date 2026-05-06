@@ -27,7 +27,7 @@ class DominantColorExtractor(QThread):
     extraction_progress = Signal(int)
 
     def __init__(self, image, count: int = 5, original_pixels: Optional[np.ndarray] = None,
-                 parent=None):
+                 algorithm: str = 'mmcq', parent=None):
         """
         Args:
             image: QImage 对象
@@ -39,6 +39,7 @@ class DominantColorExtractor(QThread):
         self._image = image
         self._count = count
         self._original_pixels = original_pixels
+        self._algorithm = algorithm
         self._is_cancelled = False
 
     def cancel(self):
@@ -57,7 +58,8 @@ class DominantColorExtractor(QThread):
 
             with log_performance("extract_dominant_colors", {"count": self._count}):
                 dominant_colors = extract_dominant_colors(
-                    self._image, count=self._count, original_pixels=self._original_pixels
+                    self._image, count=self._count, original_pixels=self._original_pixels,
+                    algorithm=self._algorithm
                 )
 
             if not dominant_colors:
@@ -99,23 +101,27 @@ class ColorService(QObject):
             self._extractor.wait(1000)
 
     def extract_dominant_colors(self, image, count: int = 5,
-                                original_pixels: Optional[np.ndarray] = None):
+                                original_pixels: Optional[np.ndarray] = None,
+                                algorithm: str = 'mmcq'):
         """开始提取主色调
+
+        异步执行主色调提取，通过信号通知结果。
 
         Args:
             image: QImage 对象
             count: 提取颜色数量 (3-8，默认5)
             original_pixels: 原始色彩空间像素数组 (H,W,3)
+            algorithm: 算法类型 ('mmcq' 或 'kmeans'，默认 'mmcq')
         """
         if self._extractor is not None and self._extractor.isRunning():
             self._extractor.cancel()
             self._extractor = None
 
-        logger.info(f"开始提取主色调: count={count}")
+        logger.info(f"开始提取主色调: count={count}, algorithm={algorithm}")
         self.extraction_started.emit()
 
         self._extractor = DominantColorExtractor(
-            image, count, original_pixels, self
+            image, count, original_pixels, algorithm, self
         )
         self._extractor.extraction_finished.connect(
             self._on_extraction_finished, Qt.ConnectionType.QueuedConnection

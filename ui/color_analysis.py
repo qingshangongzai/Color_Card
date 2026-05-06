@@ -418,14 +418,15 @@ class ColorAnalysisInterface(QWidget):
             return
 
         count = self._config_manager.get('settings.color_sample_count', 5)
+        algorithm = self._config_manager.get('settings.dominant_color_algorithm', 'mmcq')
         log_user_action(
             action="extract_dominant",
-            params={"count": count, "source": "color_analysis"}
+            params={"count": count, "algorithm": algorithm, "source": "color_analysis"}
         )
 
         original_pixels = self.image_canvas.get_original_pixels()
         self._get_color_service().extract_dominant_colors(
-            image, count=count, original_pixels=original_pixels
+            image, count=count, original_pixels=original_pixels, algorithm=algorithm
         )
 
     def _on_extraction_started(self):

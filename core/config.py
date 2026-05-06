@@ -77,6 +77,7 @@ class ConfigManager:
                 "color_wheel_labels_visible": True,
                 "language": "auto",
                 "gradient_mode": "gradient",
+                "dominant_color_algorithm": "mmcq",
                 "luminance_default_grayscale": False,
                 "color_picker_mode": "original",
                 "auto_check_update": True,
