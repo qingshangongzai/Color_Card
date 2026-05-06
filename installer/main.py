@@ -271,9 +271,19 @@ def run_main_app():
     setup_global_exception_handler(logger)
 
     # 诊断：启动画面状态
-    logo_file = os.path.join(project_root, 'logo', 'Color Card_logo.ico')
+    import __main__ as _main_mod
+    logger.info(f"启动诊断: __file__={__file__}")
+    logger.info(f"启动诊断: parent={Path(__file__).parent}")
+    logger.info(f"启动诊断: parent.parent={Path(__file__).parent.parent}")
     logger.info(f"启动诊断: project_root={project_root}")
-    logger.info(f"启动诊断: logo存在={os.path.exists(logo_file)}, splash={'OK' if splash else 'NULL'}")
+    logger.info(f"启动诊断: __compiled__={getattr(_main_mod, '__compiled__', False)}")
+    logger.info(f"启动诊断: frozen={getattr(sys, 'frozen', False)}")
+    logger.info(f"启动诊断: _MEIPASS={hasattr(sys, '_MEIPASS')}")
+    logger.info(f"启动诊断: sys.argv[0]={sys.argv[0]}")
+    logger.info(f"启动诊断: sys.executable={sys.executable}")
+    logger.info(f"启动诊断: cwd={os.getcwd()}")
+    logo_file = os.path.join(project_root, 'logo', 'Color Card_logo.ico')
+    logger.info(f"启动诊断: logo_path={logo_file}, exists={os.path.exists(logo_file)}, splash={'OK' if splash else 'NULL'}")
 
     try:
         from io import StringIO
