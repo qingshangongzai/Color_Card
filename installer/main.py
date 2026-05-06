@@ -208,15 +208,18 @@ def run_installer(
 def _get_project_root() -> str:
     """获取项目根目录
 
-    开发环境：installer/main.py 的父目录
     PyInstaller：sys._MEIPASS（临时解压目录）
-    Nuitka：__file__ 指向临时解压目录，与开发环境使用相同逻辑
+    Nuitka：__file__ 所在目录（与 logo 在同一临时解压目录）
+    开发环境：installer/main.py 的父目录
 
     Returns:
         str: 项目根目录
     """
     if hasattr(sys, '_MEIPASS'):
         return sys._MEIPASS
+    import __main__
+    if getattr(__main__, '__compiled__', False):
+        return str(Path(__file__).resolve().parent)
     return str(Path(__file__).resolve().parent.parent)
 
 
@@ -269,21 +272,6 @@ def run_main_app():
     logger_manager.initialize()
     logger = get_logger("installer")
     setup_global_exception_handler(logger)
-
-    # 诊断：启动画面状态
-    import __main__ as _main_mod
-    logger.info(f"启动诊断: __file__={__file__}")
-    logger.info(f"启动诊断: parent={Path(__file__).parent}")
-    logger.info(f"启动诊断: parent.parent={Path(__file__).parent.parent}")
-    logger.info(f"启动诊断: project_root={project_root}")
-    logger.info(f"启动诊断: __compiled__={getattr(_main_mod, '__compiled__', False)}")
-    logger.info(f"启动诊断: frozen={getattr(sys, 'frozen', False)}")
-    logger.info(f"启动诊断: _MEIPASS={hasattr(sys, '_MEIPASS')}")
-    logger.info(f"启动诊断: sys.argv[0]={sys.argv[0]}")
-    logger.info(f"启动诊断: sys.executable={sys.executable}")
-    logger.info(f"启动诊断: cwd={os.getcwd()}")
-    logo_file = os.path.join(project_root, 'logo', 'Color Card_logo.ico')
-    logger.info(f"启动诊断: logo_path={logo_file}, exists={os.path.exists(logo_file)}, splash={'OK' if splash else 'NULL'}")
 
     try:
         from io import StringIO
