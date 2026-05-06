@@ -78,16 +78,16 @@ class UninstallDialog(BaseFramelessDialog):
         layout.setSpacing(20)
 
         # 标题
-        title_label = QLabel(f"确定要卸载 {APP_NAME} 吗？")
-        title_label.setStyleSheet("font-size: 16px; font-weight: bold;")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(title_label)
+        self.title_label = QLabel(f"确定要卸载 {APP_NAME} 吗？")
+        self.title_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.title_label)
 
         # 描述
-        desc_label = QLabel("卸载将删除程序文件和注册表项。")
-        desc_label.setStyleSheet("font-size: 13px;")
-        desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(desc_label)
+        self.desc_label = QLabel("卸载将删除程序文件和注册表项。")
+        self.desc_label.setStyleSheet("font-size: 13px;")
+        self.desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.desc_label)
 
         # 添加弹性空间
         layout.addStretch()
@@ -193,16 +193,18 @@ class UninstallDialog(BaseFramelessDialog):
             self._on_uninstall_completed(False, "未找到安装路径")
             return
 
-        # 禁用按钮
-        self.uninstall_button.setEnabled(False)
-        self.cancel_button.setEnabled(False)
-        self.delete_config_checkbox.setEnabled(False)
+        # 隐藏标题、描述、复选框、按钮
+        self.title_label.setVisible(False)
+        self.desc_label.setVisible(False)
+        self.delete_config_checkbox.setVisible(False)
+        self.uninstall_button.setVisible(False)
+        self.cancel_button.setVisible(False)
 
         # 显示进度区域
         self.progress_widget.setVisible(True)
 
-        # 调整对话框大小以容纳进度区域
-        self.setFixedSize(440, 290)
+        # 调整对话框大小为更紧凑的尺寸
+        self.setFixedSize(440, 120)
 
         # 创建卸载服务
         self._uninstall_service = UninstallService()
