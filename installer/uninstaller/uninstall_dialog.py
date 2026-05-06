@@ -1,6 +1,4 @@
 # 标准库导入
-import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -18,7 +16,7 @@ from qfluentwidgets import (
 # 项目模块导入
 from dialogs import BaseFramelessDialog
 from installer.uninstaller.uninstall_service import UninstallService
-from installer.core.permission_checker import is_admin, requires_admin, run_as_admin
+from installer.core.permission_checker import is_admin, requires_admin, run_as_admin, close_app_processes
 from utils.icon import load_icon_universal
 from utils.platform import fix_windows_taskbar_icon_for_window
 
@@ -144,36 +142,7 @@ class UninstallDialog(BaseFramelessDialog):
 
     def _close_main_app(self):
         """关闭主程序进程（排除当前卸载程序进程）"""
-        try:
-            current_pid = os.getpid()
-            # 使用 tasklist 获取所有同名进程
-            result = subprocess.run(
-                ["tasklist", "/FI", "IMAGENAME eq Color Card.exe", "/FO", "CSV", "/NH"],
-                capture_output=True,
-                text=True,
-                creationflags=subprocess.CREATE_NO_WINDOW
-            )
-
-            # 解析输出，关闭其他同名进程
-            for line in result.stdout.strip().split('\n'):
-                if not line or 'Color Card.exe' not in line:
-                    continue
-                # 格式: "Color Card.exe","PID","Session Name","Session#","Mem Usage"
-                parts = line.split(',')
-                if len(parts) >= 2:
-                    pid_str = parts[1].strip('"')
-                    try:
-                        pid = int(pid_str)
-                        if pid != current_pid:
-                            subprocess.run(
-                                ["taskkill", "/F", "/PID", str(pid)],
-                                capture_output=True,
-                                creationflags=subprocess.CREATE_NO_WINDOW
-                            )
-                    except ValueError:
-                        continue
-        except (OSError, subprocess.SubprocessError):
-            pass
+        close_app_processes("Color Card.exe")
 
     def start_uninstall(self, delete_config: bool = False):
         """直接开始卸载（提权重启后调用）

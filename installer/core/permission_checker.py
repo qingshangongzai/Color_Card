@@ -38,6 +38,46 @@ def get_exe_path() -> Path:
     return Path(sys.executable)
 
 
+def close_app_processes(exe_name: str = "Color Card.exe") -> None:
+    """关闭指定名称的应用程序进程（排除当前进程）
+
+    用于卸载和覆盖安装场景，关闭旧版本程序。
+
+    Args:
+        exe_name: 可执行文件名称，默认为 "Color Card.exe"
+    """
+    try:
+        current_pid = os.getpid()
+        # 使用 tasklist 获取所有同名进程
+        result = subprocess.run(
+            ["tasklist", "/FI", f"IMAGENAME eq {exe_name}", "/FO", "CSV", "/NH"],
+            capture_output=True,
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+
+        # 解析输出，关闭其他同名进程
+        for line in result.stdout.strip().split('\n'):
+            if not line or exe_name not in line:
+                continue
+            # 格式: "Color Card.exe","PID","Session Name","Session#","Mem Usage"
+            parts = line.split(',')
+            if len(parts) >= 2:
+                pid_str = parts[1].strip('"')
+                try:
+                    pid = int(pid_str)
+                    if pid != current_pid:
+                        subprocess.run(
+                            ["taskkill", "/F", "/PID", str(pid)],
+                            capture_output=True,
+                            creationflags=subprocess.CREATE_NO_WINDOW
+                        )
+                except ValueError:
+                    continue
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 def is_admin() -> bool:
     """检测当前进程是否具有管理员权限
 

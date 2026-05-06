@@ -12,7 +12,7 @@ from PySide6.QtCore import QObject, Signal, QThread
 from core import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.registry_installer import RegistryInstaller
-from installer.core.permission_checker import is_frozen, get_exe_path
+from installer.core.permission_checker import is_frozen, get_exe_path, close_app_processes
 
 # 获取应用信息
 try:
@@ -99,6 +99,19 @@ class InstallWorker(QThread):
             logger.error(f"安装过程异常: {str(e)}")
             self.install_completed.emit(False, f"安装失败: {str(e)}")
 
+    def _close_old_app(self, install_path: Path) -> None:
+        """关闭旧版本程序（覆盖安装场景）
+
+        Args:
+            install_path: 安装路径
+        """
+        exe_path = install_path / "Color Card.exe"
+        if not exe_path.exists():
+            return
+
+        close_app_processes("Color Card.exe")
+        logger.info("已关闭旧版本程序")
+
     def _copy_files(self, install_path: Path) -> bool:
         """复制程序文件
 
@@ -109,6 +122,9 @@ class InstallWorker(QThread):
             bool: 是否成功
         """
         try:
+            # 关闭旧版本程序（覆盖安装场景）
+            self._close_old_app(install_path)
+
             # 获取可执行文件路径
             if is_frozen():
                 # 打包后：使用当前可执行文件
