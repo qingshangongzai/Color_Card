@@ -230,7 +230,16 @@ def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False)
         skip_to_progress: 是否直接开始卸载
         delete_config: 是否删除用户配置
     """
+    import subprocess
     from installer.uninstaller.uninstall_dialog import UninstallDialog
+    from installer.core.registry_installer import RegistryInstaller
+    from core import get_logger
+
+    logger = get_logger("installer")
+
+    # 对话框启动前读取安装路径（注册表在卸载过程中会被删除）
+    registry_installer = RegistryInstaller()
+    install_path = registry_installer.get_install_path()
 
     dialog = UninstallDialog()
 
@@ -239,20 +248,18 @@ def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False)
 
     result = dialog.exec()
 
-    if result == 1:
-        from installer.core.registry_installer import RegistryInstaller
-        registry_installer = RegistryInstaller()
-        install_path = registry_installer.get_install_path()
-
-        if install_path:
-            batch_path = install_path / "uninstall_cleanup.bat"
-            if batch_path.exists():
-                import subprocess
+    if result == 1 and install_path:
+        batch_path = install_path / "uninstall_cleanup.bat"
+        if batch_path.exists():
+            try:
                 subprocess.Popen(
-                    str(batch_path),
-                    shell=True,
+                    ['cmd.exe', '/c', str(batch_path)],
+                    cwd=os.environ['TEMP'],
                     creationflags=subprocess.DETACHED_PROCESS
                 )
+                logger.info("自删除脚本已启动")
+            except (OSError, subprocess.SubprocessError) as e:
+                logger.error(f"自删除脚本启动失败: {e}")
 
 
 def run_main_app():

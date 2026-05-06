@@ -166,40 +166,20 @@ class UninstallWorker(QThread):
             # 批处理脚本路径
             batch_path = self._install_path / "uninstall_cleanup.bat"
 
-            # 批处理脚本内容 - 改进版本
+            # 用GBK编码写入，确保cmd.exe正确解析中文路径
             batch_content = f"""@echo off
-title 卸载 取色卡
-echo 正在清理安装文件，请稍候...
-echo.
-
-REM 等待程序退出
-ping 127.0.0.1 -n 3 > nul
-
-REM 尝试删除安装目录
-echo 正在删除程序文件...
+cd /d "%TEMP%"
+ping 127.0.0.1 -n 4 > nul
 rd /s /q "{self._install_path}" 2>nul
-
-REM 如果删除失败，等待后重试
 if exist "{self._install_path}" (
-    echo 文件正在使用，等待后重试...
-    ping 127.0.0.1 -n 3 > nul
+    ping 127.0.0.1 -n 4 > nul
     rd /s /q "{self._install_path}" 2>nul
 )
-
-REM 最终检查
-if exist "{self._install_path}" (
-    echo 部分文件无法删除，请手动删除: {self._install_path}
-    pause
-) else (
-    echo 卸载完成！
-)
-
-REM 删除批处理脚本自身
 (goto) 2>nul & del "%~f0"
 """
 
             # 写入批处理脚本
-            batch_path.write_text(batch_content, encoding='utf-8')
+            batch_path.write_text(batch_content, encoding='gbk')
 
             logger.info(f"自删除脚本创建成功: {batch_path}")
             return True
