@@ -252,10 +252,13 @@ def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False)
         batch_path = install_path / "uninstall_cleanup.bat"
         if batch_path.exists():
             try:
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startupinfo.wShowWindow = subprocess.SW_HIDE
                 subprocess.Popen(
                     ['cmd.exe', '/c', str(batch_path)],
                     cwd=os.environ['TEMP'],
-                    creationflags=subprocess.DETACHED_PROCESS
+                    startupinfo=startupinfo
                 )
                 logger.info("自删除脚本已启动")
             except (OSError, subprocess.SubprocessError) as e:
