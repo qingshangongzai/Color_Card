@@ -31,13 +31,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Restore Nuitka compilation cache
+    - name: Restore ccache
       uses: actions/cache@v4
       with:
-        path: ~\AppData\Local\Nuitka
-        key: ${{ runner.os }}-nuitka-${{ hashFiles('requirements.txt') }}
+        path: |
+          ~\AppData\Local\Nuitka\ccache
+          ~\.ccache
+        key: ${{ runner.os }}-ccache-portable-${{ hashFiles('requirements.txt') }}-${{ github.run_id }}
         restore-keys: |
-          ${{ runner.os }}-nuitka-
+          ${{ runner.os }}-ccache-portable-${{ hashFiles('requirements.txt') }}-
+          ${{ runner.os }}-ccache-portable-
 
     - name: Install dependencies
       run: |
@@ -67,36 +70,34 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
 
     - name: Build Portable EXE with Nuitka
-      shell: cmd
-      env:
-        NUITKA_CACHE_DIR: "%LOCALAPPDATA%\Nuitka"
+      shell: pwsh
       run: |
-        python -m nuitka ^
-          --standalone ^
-          --onefile ^
-          --assume-yes-for-downloads ^
-          --windows-console-mode=disable ^
-          --windows-icon-from-ico="logo/Color Card_logo.ico" ^
-          --company-name="${{ steps.version.outputs.company_name }}" ^
-          --product-name="${{ steps.version.outputs.app_name }}" ^
-          --file-version="${{ steps.version.outputs.file_version }}" ^
-          --product-version="${{ steps.version.outputs.product_version }}" ^
-          --file-description="取色卡 - Color Card (Portable)" ^
-          --copyright="${{ steps.version.outputs.copyright }}" ^
-          --include-data-files=version.py=version.py ^
-          --include-data-dir=color_data=color_data ^
-          --include-data-dir=core=core ^
-          --include-data-dir=dialogs=dialogs ^
-          --include-data-dir=file=file ^
-          --include-data-dir=locales=locales ^
-          --include-data-dir=logo=logo ^
-          --include-data-dir=scenes_data=scenes_data ^
-          --include-data-dir=ui=ui ^
-          --include-data-dir=utils=utils ^
-          --enable-plugin=pyside6 ^
-          --lto=yes ^
-          --jobs=4 ^
-          --output-filename="Color Card Portable" ^
+        python -m nuitka `
+          --standalone `
+          --onefile `
+          --assume-yes-for-downloads `
+          --windows-console-mode=disable `
+          --windows-icon-from-ico="logo/Color Card_logo.ico" `
+          --company-name="${{ steps.version.outputs.company_name }}" `
+          --product-name="${{ steps.version.outputs.app_name }}" `
+          --file-version="${{ steps.version.outputs.file_version }}" `
+          --product-version="${{ steps.version.outputs.product_version }}" `
+          --file-description="取色卡 - Color Card (Portable)" `
+          --copyright="${{ steps.version.outputs.copyright }}" `
+          --include-data-files=version.py=version.py `
+          --include-data-dir=color_data=color_data `
+          --include-data-dir=core=core `
+          --include-data-dir=dialogs=dialogs `
+          --include-data-dir=file=file `
+          --include-data-dir=locales=locales `
+          --include-data-dir=logo=logo `
+          --include-data-dir=scenes_data=scenes_data `
+          --include-data-dir=ui=ui `
+          --include-data-dir=utils=utils `
+          --enable-plugin=pyside6 `
+          --lto=yes `
+          --jobs=4 `
+          --output-filename="Color Card Portable" `
           main.py
 
     - name: Create distribution folder
@@ -139,13 +140,16 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Restore Nuitka compilation cache
+    - name: Restore ccache
       uses: actions/cache@v4
       with:
-        path: ~\AppData\Local\Nuitka
-        key: ${{ runner.os }}-nuitka-${{ hashFiles('requirements.txt') }}
+        path: |
+          ~\AppData\Local\Nuitka\ccache
+          ~\.ccache
+        key: ${{ runner.os }}-ccache-installer-${{ hashFiles('requirements.txt') }}-${{ github.run_id }}
         restore-keys: |
-          ${{ runner.os }}-nuitka-
+          ${{ runner.os }}-ccache-installer-${{ hashFiles('requirements.txt') }}-
+          ${{ runner.os }}-ccache-installer-
 
     - name: Install dependencies
       run: |
@@ -175,37 +179,35 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
 
     - name: Build Installer EXE with Nuitka
-      shell: cmd
-      env:
-        NUITKA_CACHE_DIR: "%LOCALAPPDATA%\Nuitka"
+      shell: pwsh
       run: |
-        python -m nuitka ^
-          --standalone ^
-          --onefile ^
-          --assume-yes-for-downloads ^
-          --windows-console-mode=disable ^
-          --windows-icon-from-ico="logo/Color Card_logo.ico" ^
-          --company-name="${{ steps.version.outputs.company_name }}" ^
-          --product-name="${{ steps.version.outputs.app_name }}" ^
-          --file-version="${{ steps.version.outputs.file_version }}" ^
-          --product-version="${{ steps.version.outputs.product_version }}" ^
-          --file-description="取色卡 - Color Card (Installer)" ^
-          --copyright="${{ steps.version.outputs.copyright }}" ^
-          --include-data-files=version.py=version.py ^
-          --include-data-dir=color_data=color_data ^
-          --include-data-dir=core=core ^
-          --include-data-dir=dialogs=dialogs ^
-          --include-data-dir=file=file ^
-          --include-data-dir=locales=locales ^
-          --include-data-dir=logo=logo ^
-          --include-data-dir=scenes_data=scenes_data ^
-          --include-data-dir=ui=ui ^
-          --include-data-dir=utils=utils ^
-          --include-data-dir=installer=installer ^
-          --enable-plugin=pyside6 ^
-          --lto=yes ^
-          --jobs=4 ^
-          --output-filename="ColorCard" ^
+        python -m nuitka `
+          --standalone `
+          --onefile `
+          --assume-yes-for-downloads `
+          --windows-console-mode=disable `
+          --windows-icon-from-ico="logo/Color Card_logo.ico" `
+          --company-name="${{ steps.version.outputs.company_name }}" `
+          --product-name="${{ steps.version.outputs.app_name }}" `
+          --file-version="${{ steps.version.outputs.file_version }}" `
+          --product-version="${{ steps.version.outputs.product_version }}" `
+          --file-description="取色卡 - Color Card (Installer)" `
+          --copyright="${{ steps.version.outputs.copyright }}" `
+          --include-data-files=version.py=version.py `
+          --include-data-dir=color_data=color_data `
+          --include-data-dir=core=core `
+          --include-data-dir=dialogs=dialogs `
+          --include-data-dir=file=file `
+          --include-data-dir=locales=locales `
+          --include-data-dir=logo=logo `
+          --include-data-dir=scenes_data=scenes_data `
+          --include-data-dir=ui=ui `
+          --include-data-dir=utils=utils `
+          --include-data-dir=installer=installer `
+          --enable-plugin=pyside6 `
+          --lto=yes `
+          --jobs=4 `
+          --output-filename="ColorCard" `
           installer/main.py
 
     - name: Create distribution folder
