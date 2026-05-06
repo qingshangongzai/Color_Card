@@ -209,16 +209,14 @@ def _get_project_root() -> str:
     """获取项目根目录
 
     开发环境：installer/main.py 的父目录
-    PyInstaller：sys._MEIPASS（临时解压目录，包含所有打包数据）
-    Nuitka：exe 所在目录
+    PyInstaller：sys._MEIPASS（临时解压目录）
+    Nuitka：__file__ 指向临时解压目录，与开发环境使用相同逻辑
 
     Returns:
         str: 项目根目录
     """
-    if is_frozen():
-        if hasattr(sys, '_MEIPASS'):
-            return sys._MEIPASS
-        return str(get_exe_path().parent)
+    if hasattr(sys, '_MEIPASS'):
+        return sys._MEIPASS
     return str(Path(__file__).resolve().parent.parent)
 
 
