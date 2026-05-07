@@ -189,7 +189,7 @@ def main():
         # 初始化语言管理器并加载用户语言配置
         logger.info("初始化语言管理器...")
         locale_manager = get_locale_manager()
-        language_setting = config_manager.get('settings.language', 'ZW_JT')
+        language_setting = config_manager.get('settings.language', 'auto')
         locale_manager.load_language(language_setting)
         logger.info(f"语言设置: {language_setting}")
 
