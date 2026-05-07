@@ -206,7 +206,7 @@ jobs:
         # 使用 create-dmg 创建带自定义背景的 DMG
         if [ -f "logo/dmg_background.png" ]; then
           create-dmg \
-            --volname "ColorCard" \
+            --volname "取色卡" \
             --volicon "logo/ColorCard.icns" \
             --window-pos 200 120 \
             --window-size 800 500 \
@@ -221,7 +221,7 @@ jobs:
         else
           # 如果没有背景图片，使用简洁布局
           create-dmg \
-            --volname "ColorCard" \
+            --volname "取色卡" \
             --volicon "logo/ColorCard.icns" \
             --window-pos 200 120 \
             --window-size 600 400 \
