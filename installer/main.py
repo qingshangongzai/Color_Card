@@ -294,7 +294,7 @@ def run_main_app():
 
         from utils import get_locale_manager
         locale_manager = get_locale_manager()
-        language_setting = config_manager.get('settings.language', 'ZW_JT')
+        language_setting = config_manager.get('settings.language', 'auto')
         locale_manager.load_language(language_setting)
 
         from PySide6.QtCore import qInstallMessageHandler, QTimer
