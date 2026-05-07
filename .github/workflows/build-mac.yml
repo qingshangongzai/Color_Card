@@ -2,7 +2,7 @@ name: Build Mac App with Nuitka
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/installer ]
   pull_request:
     branches: [ main ]
 
@@ -149,8 +149,9 @@ jobs:
 
           # 使用plutil修改plist（macOS原生工具）
           # 注意：CFBundleExecutable保持Color Card（与Nuitka生成的可执行文件名一致）
-          plutil -replace CFBundleName -string "Color Card" "$INFO_PLIST"
-          plutil -replace CFBundleDisplayName -string "Color Card" "$INFO_PLIST"
+          # 包名保持ColorCard.app，但显示名改为中文"取色卡"
+          plutil -replace CFBundleName -string "取色卡" "$INFO_PLIST"
+          plutil -replace CFBundleDisplayName -string "取色卡" "$INFO_PLIST"
 
           echo "After modification:"
           cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
