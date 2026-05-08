@@ -56,6 +56,7 @@ from .color import (
     generate_ryb_double_complementary,
     get_scheme_preview_colors_ryb,
     extract_dominant_colors,
+    extract_dominant_colors_kmeans,
     find_dominant_color_positions,
     ZONE_WIDTH,
 )
@@ -179,6 +180,7 @@ __all__ = [
     'generate_ryb_double_complementary',
     'get_scheme_preview_colors_ryb',
     'extract_dominant_colors',
+    'extract_dominant_colors_kmeans',
     'find_dominant_color_positions',
     'ZONE_WIDTH',
     # 配置管理

@@ -61,6 +61,7 @@ class SettingsInterface(QWidget):
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
         self._histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
+        self._dominant_color_algorithm = self._config_manager.get('settings.dominant_color_algorithm', 'mmcq')
         self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
         self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
         self._language = self._config_manager.get('settings.language', 'ZW_JT')
@@ -146,6 +147,9 @@ class SettingsInterface(QWidget):
             self._on_luminance_sample_count_changed
         )
         self.sampling_group.addSettingCard(self.luminance_sample_count_card)
+
+        self.dominant_algorithm_card = self._create_dominant_algorithm_card()
+        self.sampling_group.addSettingCard(self.dominant_algorithm_card)
 
         layout.addWidget(self.sampling_group)
 
@@ -377,6 +381,10 @@ class SettingsInterface(QWidget):
         self.color_sample_count_card.contentLabel.setText(tr('settings.color_sample_count_desc'))
         self.luminance_sample_count_card.titleLabel.setText(tr('settings.luminance_sample_count'))
         self.luminance_sample_count_card.contentLabel.setText(tr('settings.luminance_sample_count_desc'))
+        self.dominant_algorithm_card.titleLabel.setText(tr('settings.dominant_algorithm'))
+        self.dominant_algorithm_card.contentLabel.setText(tr('settings.dominant_algorithm_desc'))
+        self.dominant_algorithm_card.combo_box.setItemText(0, tr('settings.algorithm_mmcq'))
+        self.dominant_algorithm_card.combo_box.setItemText(1, tr('settings.algorithm_kmeans'))
 
         # 更新直方图卡片
         self.histogram_scaling_card.titleLabel.setText(tr('settings.histogram_scaling'))
@@ -758,7 +766,7 @@ class SettingsInterface(QWidget):
         """创建直方图采样模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.SPEED_HIGH,
+            FluentIcon.BACKGROUND_FILL,
             tr('settings.histogram_sampling'),
             tr('settings.histogram_sampling_desc'),
             self.content_widget
@@ -1081,6 +1089,47 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("change_luminance_default_grayscale", {"enabled": checked})
         self.luminance_default_grayscale_changed.emit(checked)
+
+    def _create_dominant_algorithm_card(self):
+        """创建主色调提取算法选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.BACKGROUND_FILL,
+            tr('settings.dominant_algorithm'),
+            tr('settings.dominant_algorithm_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.algorithm_mmcq'))
+        combo_box.setItemData(0, "mmcq")
+        combo_box.addItem(tr('settings.algorithm_kmeans'))
+        combo_box.setItemData(1, "kmeans")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._dominant_color_algorithm:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_dominant_algorithm_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_dominant_algorithm_changed(self, index):
+        """提取算法切换"""
+        combo_box = self.dominant_algorithm_card.combo_box
+        algorithm = combo_box.itemData(index)
+        self._dominant_color_algorithm = algorithm
+        self._config_manager.set('settings.dominant_color_algorithm', algorithm)
+        self._config_manager.save()
+        log_user_action("change_dominant_color_algorithm", {"algorithm": algorithm})
 
     def _update_styles(self):
         """更新样式以适配主题"""
