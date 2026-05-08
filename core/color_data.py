@@ -3,7 +3,7 @@ import json
 import os
 import random
 import sys
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 
 def get_base_path() -> str:
@@ -26,7 +26,7 @@ def get_base_path() -> str:
 class ColorSource:
     """配色源类（直接读取新格式JSON）"""
     
-    def __init__(self, json_data: Dict[str, Any]):
+    def __init__(self, json_data: dict[str, Any]):
         self._data = json_data
         self._id = json_data.get("id", "")
         self._name = json_data.get("name", "")
@@ -68,44 +68,44 @@ class ColorSource:
     def total_groups(self) -> int:
         return len(self._groups)
     
-    def get_groups(self) -> List[Dict[str, str]]:
+    def get_groups(self) -> list[dict[str, str]]:
         """获取分组列表
         
         Returns:
-            List[Dict[str, str]]: 分组列表，每个元素为 {"name": 分组名称}
+            list[dict[str, str]]: 分组列表，每个元素为 {"name": 分组名称}
         """
         return [{"name": g["name"]} for g in self._groups]
     
-    def get_palettes_for_group(self, group_index: int) -> List[Dict[str, Any]]:
+    def get_palettes_for_group(self, group_index: int) -> list[dict[str, Any]]:
         """获取指定分组下的配色
         
         Args:
             group_index: 分组索引
         
         Returns:
-            List[Dict[str, Any]]: 配色列表
+            list[dict[str, Any]]: 配色列表
         """
         if group_index < 0 or group_index >= len(self._groups):
             return self._palettes
         indices = self._groups[group_index].get("indices", [])
         return [self._palettes[i] for i in indices if i < len(self._palettes)]
     
-    def get_all_palettes(self) -> List[Dict[str, Any]]:
+    def get_all_palettes(self) -> list[dict[str, Any]]:
         """获取所有配色（无分组时使用）
         
         Returns:
-            List[Dict[str, Any]]: 所有配色列表
+            list[dict[str, Any]]: 所有配色列表
         """
         return self._palettes
     
-    def get_group_info(self, group_index: int) -> Dict[str, Any]:
+    def get_group_info(self, group_index: int) -> dict[str, Any]:
         """获取分组信息
         
         Args:
             group_index: 分组索引
         
         Returns:
-            Dict[str, Any]: 分组信息，包含 name, total_items, indices
+            dict[str, Any]: 分组信息，包含 name, total_items, indices
         """
         if group_index < 0 or group_index >= len(self._groups):
             return {
@@ -224,23 +224,23 @@ def get_color_source_registry() -> ColorSourceRegistry:
     return ColorSourceRegistry.get_instance()
 
 
-def get_color_source(source_id: str) -> Optional[ColorSource]:
+def get_color_source(source_id: str) -> ColorSource | None:
     """获取指定配色源
     
     Args:
         source_id: 配色源ID
     
     Returns:
-        Optional[ColorSource]: 配色源对象，不存在则返回 None
+        ColorSource | None: 配色源对象，不存在则返回 None
     """
     return get_color_source_registry().get(source_id)
 
 
-def get_all_color_sources() -> List[ColorSource]:
+def get_all_color_sources() -> list[ColorSource]:
     """获取所有配色源
     
     Returns:
-        List[ColorSource]: ColorSource 对象列表
+        list[ColorSource]: ColorSource 对象列表
     """
     return get_color_source_registry().get_all_sources()
 
@@ -275,14 +275,14 @@ def get_all_palettes():
     return all_palettes
 
 
-def get_random_palettes(count: int = 10) -> List[Dict[str, Any]]:
+def get_random_palettes(count: int = 10) -> list[dict[str, Any]]:
     """随机获取指定数量的配色方案
     
     Args:
         count: 需要返回的配色组数量（默认10）
     
     Returns:
-        List[Dict[str, Any]]: 随机选择的配色组列表
+        list[dict[str, Any]]: 随机选择的配色组列表
     """
     all_palettes = get_all_palettes()
     total = len(all_palettes)

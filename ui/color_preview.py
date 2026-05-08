@@ -13,7 +13,7 @@
 """
 # 标准库导入
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Type
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal, QPoint, QRect, QMimeData, QTimer
@@ -211,8 +211,8 @@ class ColorDotBar(QWidget):
         Args:
             parent: 父控件
         """
-        self._colors: List[str] = []
-        self._dots: List[DraggableColorDot] = []
+        self._colors: list[str] = []
+        self._dots: list[DraggableColorDot] = []
         self._insert_indicator_pos = -1    # 插入指示器位置（-1表示不显示）
         self._hex_visible = True             # HEX值显示开关
         super().__init__(parent)
@@ -227,7 +227,7 @@ class ColorDotBar(QWidget):
         layout.addStretch()
         self.setFixedHeight(50)
 
-    def set_colors(self, colors: List[str]):
+    def set_colors(self, colors: list[str]):
         """设置颜色列表
 
         Args:
@@ -446,7 +446,7 @@ class ColorDotBar(QWidget):
 class BasePreviewScene(QWidget):
     """预览场景基类 - 所有预览场景必须继承此类"""
 
-    def __init__(self, scene_config: Dict[str, Any], parent=None):
+    def __init__(self, scene_config: dict[str, Any], parent=None):
         """初始化基类
 
         Args:
@@ -454,14 +454,14 @@ class BasePreviewScene(QWidget):
             parent: 父控件
         """
         self._config = scene_config
-        self._colors: List[str] = []
+        self._colors: list[str] = []
         self._scene_id = scene_config.get("id", "unknown")
         self._scene_type = scene_config.get("type", "unknown")
         super().__init__(parent)
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def set_colors(self, colors: List[str]):
+    def set_colors(self, colors: list[str]):
         """设置配色 - 子类必须重写此方法
 
         Args:
@@ -482,12 +482,12 @@ class BasePreviewScene(QWidget):
         """获取场景类型"""
         return self._scene_type
 
-    def get_scene_config(self) -> Dict[str, Any]:
+    def get_scene_config(self) -> dict[str, Any]:
         """获取场景配置"""
         return self._config.copy()
 
     @classmethod
-    def from_config(cls, config: Dict[str, Any], parent=None):
+    def from_config(cls, config: dict[str, Any], parent=None):
         """从配置创建实例 - 工厂方法
 
         Args:
@@ -507,10 +507,10 @@ class BasePreviewScene(QWidget):
 class PreviewSceneFactory:
     """预览场景工厂 - 根据配置动态创建场景实例"""
 
-    _registry: Dict[str, Type['BasePreviewScene']] = {}
+    _registry: dict[str, type['BasePreviewScene']] = {}
 
     @classmethod
-    def register(cls, scene_type: str, scene_class: Type['BasePreviewScene']) -> None:
+    def register(cls, scene_type: str, scene_class: type['BasePreviewScene']) -> None:
         """注册场景类型
 
         Args:
@@ -523,7 +523,7 @@ class PreviewSceneFactory:
         logger.debug(f"已注册场景类型: {scene_type} -> {scene_class.__name__}")
 
     @classmethod
-    def create(cls, scene_config: Dict[str, Any], parent=None) -> 'BasePreviewScene':
+    def create(cls, scene_config: dict[str, Any], parent=None) -> 'BasePreviewScene':
         """根据配置创建场景实例
 
         Args:
@@ -557,11 +557,11 @@ class PreviewSceneFactory:
         return scene_type in cls._registry
 
     @classmethod
-    def get_registered_types(cls) -> List[str]:
+    def get_registered_types(cls) -> list[str]:
         """获取所有已注册的场景类型
 
         Returns:
-            List[str]: 场景类型列表
+            list[str]: 场景类型列表
         """
         return list(cls._registry.keys())
 
@@ -581,7 +581,7 @@ class SVGPreviewWidget(BasePreviewScene):
 
     delete_requested = Signal(str)
 
-    def __init__(self, scene_config: Optional[Dict[str, Any]] = None, parent=None):
+    def __init__(self, scene_config: dict[str, Any] | None = None, parent=None):
         """初始化SVG预览组件
 
         Args:
@@ -593,15 +593,15 @@ class SVGPreviewWidget(BasePreviewScene):
 
         super().__init__(scene_config, parent)
 
-        self._svg_renderer: Optional[QSvgRenderer] = None
+        self._svg_renderer: QSvgRenderer | None = None
         self._svg_content: str = ""
         self._original_svg_content: str = ""
-        self._color_mapper: Optional[Any] = None
+        self._color_mapper: Any | None = None
         self._template_mode: bool = False
 
         self._is_builtin: bool = False
-        self._template_path: Optional[str] = None
-        self._preview_service: Optional[PreviewService] = None
+        self._template_path: str | None = None
+        self._preview_service: PreviewService | None = None
 
         self.setStyleSheet("border: none;")
 
@@ -722,7 +722,7 @@ class SVGPreviewWidget(BasePreviewScene):
             logger.error(f"加载内置SVG失败: {e}", exc_info=True)
             return False
 
-    def set_colors(self, colors: List[str]):
+    def set_colors(self, colors: list[str]):
         """设置配色并应用到 SVG
 
         Args:
@@ -874,23 +874,23 @@ class BaseLayout(QWidget):
     current_index_changed = Signal(int)
     template_deleted = Signal(str)
 
-    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
+    def __init__(self, templates: list[str], config: dict[str, Any], parent=None):
         super().__init__(parent)
-        self._templates: List[str] = templates if templates else []
-        self._config: Dict[str, Any] = config if config else {}
-        self._svg_widgets: List[Any] = []
-        self._colors: List[str] = []
+        self._templates: list[str] = templates if templates else []
+        self._config: dict[str, Any] = config if config else {}
+        self._svg_widgets: list[Any] = []
+        self._colors: list[str] = []
 
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def set_colors(self, colors: List[str]):
+    def set_colors(self, colors: list[str]):
         self._colors = colors.copy() if colors else []
         for svg_widget in self._svg_widgets:
             if svg_widget and hasattr(svg_widget, 'set_colors'):
                 svg_widget.set_colors(self._colors)
 
-    def get_svg_widgets(self) -> List[Any]:
+    def get_svg_widgets(self) -> list[Any]:
         return self._svg_widgets
 
     def clear(self):
@@ -952,7 +952,7 @@ class BaseLayout(QWidget):
 class SingleLayout(BaseLayout):
     """单图布局 - 一次显示一个SVG，支持左右切换"""
 
-    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
+    def __init__(self, templates: list[str], config: dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self._current_index: int = 0
         self.setup_ui()
@@ -1098,7 +1098,7 @@ class SingleLayout(BaseLayout):
 class ScrollVLayout(BaseLayout):
     """垂直滚动布局 - 多个SVG垂直排列，可滚动"""
 
-    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
+    def __init__(self, templates: list[str], config: dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
         # load_templates 延迟到 showEvent 中调用
@@ -1295,7 +1295,7 @@ class GridLayout(BaseLayout):
 class MixedLayout(BaseLayout):
     """混合布局 - 左侧2x2网格 + 右侧大图"""
 
-    def __init__(self, templates: List[str], config: Dict[str, Any], parent=None):
+    def __init__(self, templates: list[str], config: dict[str, Any], parent=None):
         super().__init__(templates, config, parent)
         self.setup_ui()
         # load_templates 延迟到 showEvent 中调用
@@ -1365,7 +1365,7 @@ class MixedLayout(BaseLayout):
 class LayoutFactory:
     """布局工厂类 - 根据类型创建布局实例"""
 
-    _layout_registry: Dict[str, type] = {
+    _layout_registry: dict[str, type] = {
         'single': SingleLayout,
         'scroll_v': ScrollVLayout,
         'scroll_h': ScrollHLayout,
@@ -1375,7 +1375,7 @@ class LayoutFactory:
     }
 
     @classmethod
-    def create(cls, layout_type: str, templates: List[str], config: Dict[str, Any], parent=None) -> Optional[BaseLayout]:
+    def create(cls, layout_type: str, templates: list[str], config: dict[str, Any], parent=None) -> BaseLayout | None:
         layout_class = cls._layout_registry.get(layout_type)
 
         if layout_class is None:
@@ -1392,14 +1392,14 @@ class LayoutFactory:
         return layout_class(templates, config, parent)
 
     @classmethod
-    def register(cls, layout_type: str, layout_class: Type[BaseLayout]) -> None:
+    def register(cls, layout_type: str, layout_class: type[BaseLayout]) -> None:
         if not issubclass(layout_class, BaseLayout):
             raise ValueError(f"布局类必须继承 BaseLayout: {layout_class}")
         cls._layout_registry[layout_type] = layout_class
         logger.debug(f"已注册布局类型: {layout_type} -> {layout_class.__name__}")
 
     @classmethod
-    def get_available_types(cls) -> List[str]:
+    def get_available_types(cls) -> list[str]:
         return list(cls._layout_registry.keys())
 
     @classmethod
@@ -1422,7 +1422,7 @@ class PreviewSceneSelector(ComboBox):
         Args:
             parent: 父控件
         """
-        self._scene_types: List[dict] = []
+        self._scene_types: list[dict] = []
         self._scene_types_loaded = False
         super().__init__(parent)
         self._setup_items()
@@ -1487,14 +1487,14 @@ class PreviewSceneSelector(ComboBox):
         self._scene_types_loaded = True
         self._setup_items()
 
-    def get_scene_type_config(self, scene_id: str) -> Optional[dict]:
+    def get_scene_type_config(self, scene_id: str) -> dict | None:
         """获取场景类型配置
 
         Args:
             scene_id: 场景ID
 
         Returns:
-            Optional[dict]: 场景配置，如果不存在则返回None
+            dict | None: 场景配置，如果不存在则返回None
         """
         for scene_type in self._scene_types:
             if scene_type.get("id") == scene_id:
@@ -1515,12 +1515,12 @@ class MixedPreviewPanel(QWidget):
         Args:
             parent: 父控件
         """
-        self._colors: List[str] = []
+        self._colors: list[str] = []
         self._current_scene: str = "showcase"
-        self._current_layout: Optional[BaseLayout] = None
-        self._svg_preview: Optional[SVGPreviewWidget] = None
-        self._custom_svg_path: Optional[str] = None
-        self._preview_service: Optional[PreviewService] = None
+        self._current_layout: BaseLayout | None = None
+        self._svg_preview: SVGPreviewWidget | None = None
+        self._custom_svg_path: str | None = None
+        self._preview_service: PreviewService | None = None
         super().__init__(parent)
         self.setup_ui()
 
@@ -1631,7 +1631,7 @@ class MixedPreviewPanel(QWidget):
         if layout == self._current_layout:
             layout.set_colors(self._colors)
 
-    def set_colors(self, colors: List[str]):
+    def set_colors(self, colors: list[str]):
         """设置配色
 
         Args:
@@ -1643,11 +1643,11 @@ class MixedPreviewPanel(QWidget):
         if self._svg_preview is not None:
             self._svg_preview.set_colors(self._colors)
 
-    def get_svg_preview(self) -> Optional[SVGPreviewWidget]:
+    def get_svg_preview(self) -> SVGPreviewWidget | None:
         """获取 SVG 预览组件（用于 custom 场景）
 
         Returns:
-            Optional[SVGPreviewWidget]: SVG预览组件，如果不存在则返回None
+            SVGPreviewWidget | None: SVG预览组件，如果不存在则返回None
         """
         if self._svg_preview is not None:
             return self._svg_preview
@@ -1658,11 +1658,11 @@ class MixedPreviewPanel(QWidget):
                 return widgets[0]
         return None
 
-    def get_all_svg_widgets(self) -> List[SVGPreviewWidget]:
+    def get_all_svg_widgets(self) -> list[SVGPreviewWidget]:
         """获取所有 SVG 预览组件
 
         Returns:
-            List[SVGPreviewWidget]: SVG预览组件列表
+            list[SVGPreviewWidget]: SVG预览组件列表
         """
         widgets = []
 
@@ -1814,7 +1814,7 @@ class PreviewToolbar(QWidget):
         self._import_button.setText(tr('color_preview.import_btn'))
         self._export_button.setText(tr('color_preview.export_btn'))
 
-    def set_colors(self, colors: List[str]):
+    def set_colors(self, colors: list[str]):
         """设置颜色
 
         Args:

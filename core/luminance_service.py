@@ -5,7 +5,7 @@ UI层通过LuminanceService调用业务功能，实现UI与业务逻辑分离。
 """
 
 # 标准库导入
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 # 第三方库导入
 import numpy as np
@@ -100,7 +100,7 @@ class LuminanceCalculator(QThread):
                 logger.error(f"明度计算失败: {e}", exc_info=True)
                 self.calculation_error.emit(str(e))
 
-    def _calculate_distribution(self) -> List[int]:
+    def _calculate_distribution(self) -> list[int]:
         """计算明度分布
 
         Returns:
@@ -182,10 +182,10 @@ class LuminanceService(QObject):
             parent: 父对象
         """
         super().__init__(parent)
-        self._calculator: Optional[LuminanceCalculator] = None
+        self._calculator: LuminanceCalculator | None = None
         
-        self._pending_cleanup: List[LuminanceCalculator] = []
-        self._cleanup_timer: Optional[QTimer] = None
+        self._pending_cleanup: list[LuminanceCalculator] = []
+        self._cleanup_timer: QTimer | None = None
 
     def __del__(self):
         """析构函数：确保线程在对象销毁前停止"""
@@ -289,7 +289,7 @@ class LuminanceService(QObject):
         luminance = get_luminance(color.red(), color.green(), color.blue())
         return get_zone(luminance)
 
-    def get_zone_distribution(self, image: QImage, sample_step: int = 4) -> List[int]:
+    def get_zone_distribution(self, image: QImage, sample_step: int = 4) -> list[int]:
         """获取明度分布统计
 
         Args:
@@ -334,7 +334,7 @@ class LuminanceService(QObject):
             logger.error(f"Zone分布计算失败: {e}")
             return [0] * 8
 
-    def _on_calculation_finished(self, result: Dict[str, Any]):
+    def _on_calculation_finished(self, result: dict[str, Any]):
         """计算完成处理
 
         Args:
@@ -353,11 +353,11 @@ class LuminanceService(QObject):
         image: QImage,
         mode: str,
         threshold: float,
-        canvas_size: Tuple[int, int],
-        display_rect: Tuple[int, int, int, int],
+        canvas_size: tuple[int, int],
+        display_rect: tuple[int, int, int, int],
         highlight_color: QColor,
         sample_step: int = 4
-    ) -> Optional[QPixmap]:
+    ) -> QPixmap | None:
         """使用NumPy生成高亮遮罩图
 
         Args:
@@ -442,11 +442,11 @@ class LuminanceService(QObject):
         self,
         image: QImage,
         zone: int,
-        canvas_size: Tuple[int, int],
-        display_rect: Tuple[int, int, int, int],
+        canvas_size: tuple[int, int],
+        display_rect: tuple[int, int, int, int],
         zone_color: QColor,
         sample_step: int = 4
-    ) -> Optional[QPixmap]:
+    ) -> QPixmap | None:
         """使用NumPy生成Zone高亮遮罩图
 
         Args:

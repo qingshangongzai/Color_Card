@@ -1,7 +1,7 @@
 # 标准库导入
 import os
 import sys
-from typing import Optional
+
 
 # 第三方库导入
 from PySide6.QtCore import Qt
@@ -25,7 +25,7 @@ def get_base_path() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def get_icon_path() -> Optional[str]:
+def get_icon_path() -> str | None:
     """获取图标文件路径
 
     Returns:

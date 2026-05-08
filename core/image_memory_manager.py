@@ -8,7 +8,7 @@
 import gc
 import time
 from collections import OrderedDict
-from typing import Dict, Optional, Tuple
+
 
 # 第三方库导入
 
@@ -38,7 +38,7 @@ class ImageMemoryManager:
         """
         self._max_memory: int = max_memory_mb * 1024 * 1024
         self._current_memory: int = 0
-        self._images: OrderedDict[str, Tuple[ImageData, int, float]] = (
+        self._images: OrderedDict[str, tuple[ImageData, int, float]] = (
             OrderedDict()
         )
 
@@ -77,7 +77,7 @@ class ImageMemoryManager:
 
     def get_image(
         self, source_id: str
-    ) -> Optional[ImageData]:
+    ) -> ImageData | None:
         """获取图片
 
         更新访问时间，实现LRU策略。
@@ -165,7 +165,7 @@ class ImageMemoryManager:
             pixels_size = image_data.original_pixels.nbytes
         return image_size + pixmap_overhead + pixels_size
 
-    def get_memory_stats(self) -> Dict[str, int]:
+    def get_memory_stats(self) -> dict[str, int]:
         """获取内存统计信息
 
         Returns:
@@ -199,7 +199,7 @@ class ImageMemoryManager:
 
 
 # 全局内存管理器实例
-_memory_manager: Optional[ImageMemoryManager] = None
+_memory_manager: ImageMemoryManager | None = None
 
 
 def get_memory_manager() -> ImageMemoryManager:

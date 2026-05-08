@@ -4,7 +4,7 @@ import os
 import sys
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+
 
 # Windows 注册表支持
 if sys.platform == 'win32':
@@ -31,15 +31,15 @@ class Platform(Enum):
 
 
 # 缓存检测结果
-_mode_cache: Optional[AppMode] = None
-_platform_cache: Optional[Platform] = None
+_mode_cache: AppMode | None = None
+_platform_cache: Platform | None = None
 
 
-def _check_registry_install() -> Optional[Path]:
+def _check_registry_install() -> Path | None:
     """从注册表检查安装路径
 
     Returns:
-        Optional[Path]: 安装路径，未找到返回 None
+        Path | None: 安装路径，未找到返回 None
     """
     if sys.platform != 'win32':
         return None

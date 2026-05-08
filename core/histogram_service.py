@@ -1,5 +1,5 @@
 # 标准库导入
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal, QTimer, Qt
@@ -114,7 +114,7 @@ class HistogramCalculator(QThread):
                 logger.error(f"直方图计算失败: {self._calc_type}, 错误: {e}", exc_info=True)
                 self.error.emit(str(e))
 
-    def _calculate_hue_histogram(self) -> List[int]:
+    def _calculate_hue_histogram(self) -> list[int]:
         """计算色相直方图
 
         使用NumPy向量化计算，性能比纯Python实现提升100+倍。
@@ -170,22 +170,22 @@ class HistogramService(QObject):
             use_cache: 是否使用缓存（默认True）
         """
         super().__init__(parent)
-        self._luminance_calculator: Optional[HistogramCalculator] = None
-        self._rgb_calculator: Optional[HistogramCalculator] = None
-        self._hue_calculator: Optional[HistogramCalculator] = None
-        self._pending_image: Optional[QImage] = None
+        self._luminance_calculator: HistogramCalculator | None = None
+        self._rgb_calculator: HistogramCalculator | None = None
+        self._hue_calculator: HistogramCalculator | None = None
+        self._pending_image: QImage | None = None
         self._use_cache = use_cache
         self._current_image_key: str = ""
-        self._colorspace_info: Optional[ColorSpaceInfo] = None
+        self._colorspace_info: ColorSpaceInfo | None = None
         self._gamma: float = 2.2
         self._sampling_mode: str = "fast"
 
-        self._luminance_delay_timer: Optional[QTimer] = None
-        self._rgb_delay_timer: Optional[QTimer] = None
-        self._hue_delay_timer: Optional[QTimer] = None
+        self._luminance_delay_timer: QTimer | None = None
+        self._rgb_delay_timer: QTimer | None = None
+        self._hue_delay_timer: QTimer | None = None
 
-        self._pending_cleanup: List[HistogramCalculator] = []
-        self._cleanup_timer: Optional[QTimer] = None
+        self._pending_cleanup: list[HistogramCalculator] = []
+        self._cleanup_timer: QTimer | None = None
 
     def __del__(self):
         """析构函数：确保所有线程在对象销毁前停止"""
@@ -199,7 +199,7 @@ class HistogramService(QObject):
             if calculator is not None and calculator.isRunning():
                 calculator.wait()
 
-    def set_colorspace_info(self, colorspace_info: Optional[ColorSpaceInfo]) -> None:
+    def set_colorspace_info(self, colorspace_info: ColorSpaceInfo | None) -> None:
         """设置色彩空间信息
 
         Args:
@@ -306,7 +306,7 @@ class HistogramService(QObject):
         )
         self._luminance_calculator.start()
 
-    def _on_luminance_finished(self, histogram: List[int]) -> None:
+    def _on_luminance_finished(self, histogram: list[int]) -> None:
         """明度直方图计算完成回调"""
         if self._luminance_calculator is None:
             return
@@ -323,7 +323,7 @@ class HistogramService(QObject):
         self._safe_stop_calculator(self._luminance_calculator)
         self._luminance_calculator = None
 
-    def _calculate_histogram_stats(self, histogram: List[int]) -> Dict[str, Any]:
+    def _calculate_histogram_stats(self, histogram: list[int]) -> dict[str, Any]:
         """计算直方图的基础统计信息
 
         使用加权计算直接从直方图得出统计信息，避免重建像素数组。
@@ -332,7 +332,7 @@ class HistogramService(QObject):
             histogram: 直方图数据（256个整数）
 
         Returns:
-            Dict[str, Any]: 统计信息字典，包含 mean, median, std, min_val, max_val
+            dict[str, Any]: 统计信息字典，包含 mean, median, std, min_val, max_val
         """
         import numpy as np
 
@@ -426,7 +426,7 @@ class HistogramService(QObject):
         )
         self._rgb_calculator.start()
 
-    def _on_rgb_finished(self, result: Tuple[List[int], List[int], List[int]]) -> None:
+    def _on_rgb_finished(self, result: tuple[list[int], list[int], list[int]]) -> None:
         """RGB直方图计算完成回调"""
         if self._rgb_calculator is None:
             return
@@ -488,7 +488,7 @@ class HistogramService(QObject):
         )
         self._hue_calculator.start()
 
-    def _on_hue_finished(self, histogram: List[int]) -> None:
+    def _on_hue_finished(self, histogram: list[int]) -> None:
         """色相直方图计算完成回调"""
         if self._hue_calculator is None:
             return
@@ -501,7 +501,7 @@ class HistogramService(QObject):
         self._safe_stop_calculator(self._hue_calculator)
         self._hue_calculator = None
 
-    def _safe_stop_calculator(self, calculator: Optional[HistogramCalculator]) -> None:
+    def _safe_stop_calculator(self, calculator: HistogramCalculator | None) -> None:
         """安全地停止计算器线程（不阻塞等待）
 
         Args:
