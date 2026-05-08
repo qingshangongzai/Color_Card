@@ -84,6 +84,8 @@ export_title = "導出收藏"
 json_filter = "JSON 文件 (*.json);;所有文件 (*)"
 export_ase_title = "導出 ASE 色板"
 ase_filter = "ASE 文件 (*.ase);;所有文件 (*)"
+export_image_title = "導出色卡圖片"
+image_filter = "PNG 圖片 (*.png);;JPEG 圖片 (*.jpg *.jpeg)"
 batch_manage = "批量管理"
 select_all = "全選"
 clear_selection = "取消全選"
@@ -479,6 +481,18 @@ title = "導出失敗"
 content = "{error}"
 
 [messages.export_ase_no_colors]
+title = "導出失敗"
+content = "配色中沒有顏色數據"
+
+[messages.export_image_success]
+title = "導出成功"
+content = "色卡圖片已導出到：{path}"
+
+[messages.export_image_failed]
+title = "導出失敗"
+content = "{error}"
+
+[messages.export_image_no_colors]
 title = "導出失敗"
 content = "配色中沒有顏色數據"
 

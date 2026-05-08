@@ -84,6 +84,8 @@ export_title = "パレットをエクスポート"
 json_filter = "JSONファイル (*.json);;すべてのファイル (*)"
 export_ase_title = "ASEスウォッチをエクスポート"
 ase_filter = "ASEファイル (*.ase);;すべてのファイル (*)"
+export_image_title = "パレット画像をエクスポート"
+image_filter = "PNG画像 (*.png);;JPEG画像 (*.jpg *.jpeg)"
 batch_manage = "一括管理"
 select_all = "すべて選択"
 clear_selection = "選択解除"
@@ -478,6 +480,18 @@ title = "エクスポート失敗"
 content = "{error}"
 
 [messages.export_ase_no_colors]
+title = "エクスポート失敗"
+content = "パレットにカラーデータがありません"
+
+[messages.export_image_success]
+title = "エクスポート成功"
+content = "パレット画像をエクスポートしました: {path}"
+
+[messages.export_image_failed]
+title = "エクスポート失敗"
+content = "{error}"
+
+[messages.export_image_no_colors]
 title = "エクスポート失敗"
 content = "パレットにカラーデータがありません"
 
