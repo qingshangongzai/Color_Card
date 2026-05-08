@@ -76,7 +76,7 @@ jobs:
           --standalone `
           --onefile `
           --assume-yes-for-downloads `
-          --windows-console-mode=disable `
+          --windows-console-mode=force `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
           --company-name="${{ steps.version.outputs.company_name }}" `
           --product-name="${{ steps.version.outputs.app_name }}" `
@@ -107,7 +107,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path $distDir
 
         $version = "${{ steps.version.outputs.version }}"
-        $portableName = "Color_Card_${version}_x64_Portable.exe"
+        $portableName = "Color_Card_${version}_x64.exe"
 
         Copy-Item "Color Card Portable.exe" -Destination "$distDir\$portableName"
 
@@ -185,7 +185,7 @@ jobs:
           --standalone `
           --onefile `
           --assume-yes-for-downloads `
-          --windows-console-mode=disable `
+          --windows-console-mode=force `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
           --company-name="${{ steps.version.outputs.company_name }}" `
           --product-name="${{ steps.version.outputs.app_name }}" `
