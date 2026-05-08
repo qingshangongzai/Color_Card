@@ -76,7 +76,7 @@ jobs:
           --standalone `
           --onefile `
           --assume-yes-for-downloads `
-          --windows-console-mode=force `
+          --windows-console-mode=disable `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
           --company-name="${{ steps.version.outputs.company_name }}" `
           --product-name="${{ steps.version.outputs.app_name }}" `
@@ -95,7 +95,6 @@ jobs:
           --include-data-dir=ui=ui `
           --include-data-dir=utils=utils `
           --enable-plugin=pyside6 `
-          --lto=yes `
           --jobs=4 `
           --output-filename="Color Card Portable" `
           main.py
@@ -185,7 +184,7 @@ jobs:
           --standalone `
           --onefile `
           --assume-yes-for-downloads `
-          --windows-console-mode=force `
+          --windows-console-mode=disable `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
           --company-name="${{ steps.version.outputs.company_name }}" `
           --product-name="${{ steps.version.outputs.app_name }}" `
@@ -205,7 +204,6 @@ jobs:
           --include-data-dir=utils=utils `
           --include-data-dir=installer=installer `
           --enable-plugin=pyside6 `
-          --lto=yes `
           --jobs=4 `
           --output-filename="ColorCard" `
           installer/main.py
