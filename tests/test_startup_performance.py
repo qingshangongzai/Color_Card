@@ -170,7 +170,7 @@ def test_startup_performance():
     # 8. 语言设置
     with profiler.measure("语言设置"):
         locale_manager = get_locale_manager()
-        language_setting = config_manager.get('settings.language', 'ZW_JT')
+        language_setting = config_manager.get('settings.language', 'HY_JT')
         locale_manager.load_language(language_setting)
     
     # 9. 主题设置

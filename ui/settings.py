@@ -63,7 +63,7 @@ class SettingsInterface(QWidget):
         self._dominant_color_algorithm = self._config_manager.get('settings.dominant_color_algorithm', 'mmcq')
         self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
         self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
-        self._language = self._config_manager.get('settings.language', 'ZW_JT')
+        self._language = self._config_manager.get('settings.language', 'HY_JT')
         self.setup_ui()
         self._update_styles()
         self._update_color_space_availability(self._gradient_mode)
