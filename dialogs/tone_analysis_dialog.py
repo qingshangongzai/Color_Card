@@ -1,5 +1,7 @@
 """明度分析对话框"""
 
+from __future__ import annotations
+
 import math
 import sys
 

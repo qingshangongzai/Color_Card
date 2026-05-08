@@ -3,6 +3,8 @@
 测试色卡关闭事件等功能。
 """
 
+from __future__ import annotations
+
 # 第三方库导入
 import pytest
 from PySide6.QtCore import Qt

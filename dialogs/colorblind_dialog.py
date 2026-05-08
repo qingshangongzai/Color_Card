@@ -3,6 +3,8 @@
 提供配色方案的色盲模拟预览功能，支持多种色盲类型切换。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 # 第三方库导入
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt, QSize, QTimer, QPropertyAnimation, QEasingCurve

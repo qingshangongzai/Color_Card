@@ -4,6 +4,8 @@
 高饱和度/高明度区域显示等功能。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 import uuid
 from datetime import datetime

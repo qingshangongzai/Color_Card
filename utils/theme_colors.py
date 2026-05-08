@@ -2,6 +2,8 @@
 
 提供统一的颜色获取接口，根据当前主题（暗黑/明亮）返回对应的颜色值。
 """
+from __future__ import annotations
+
 from PySide6.QtGui import QColor
 from qfluentwidgets import isDarkTheme
 

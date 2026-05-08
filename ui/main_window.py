@@ -1,3 +1,4 @@
+from __future__ import annotations
 # 标准库导入
 import sys
 from typing import Any, TYPE_CHECKING

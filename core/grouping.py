@@ -3,6 +3,8 @@
 提供配色数据分组的通用逻辑，用于配色管理和内置色彩面板等场景。
 """
 
+from __future__ import annotations
+
 from typing import Any
 
 

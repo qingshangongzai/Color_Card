@@ -3,6 +3,8 @@
 提供应用程序的多语言支持，包括语言包加载、切换和翻译文本获取。
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tomllib

@@ -1,3 +1,4 @@
+from __future__ import annotations
 #!/usr/bin/env python3
 """批量将JSON色卡文件中的Hex颜色值转换为大写
 

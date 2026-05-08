@@ -1,5 +1,7 @@
 """核心功能模块"""
 
+from __future__ import annotations
+
 # 启动必需的模块立即导入
 from .config import ConfigManager, get_config_manager, SceneConfigManager, get_scene_config_manager, SceneTypeManager, get_scene_type_manager
 

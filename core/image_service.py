@@ -4,6 +4,8 @@
 UI层通过ImageService调用业务功能，实现UI与业务逻辑分离。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 import io
 import struct

@@ -3,6 +3,8 @@
 测试所有线程类的线程安全性、取消机制和信号连接。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 import time
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 # 第三方库导入
 from PySide6.QtCore import QPoint, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QPen

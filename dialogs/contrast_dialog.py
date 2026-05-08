@@ -4,6 +4,8 @@
 支持 WCAG 2.1 标准，实时预览文字可读性效果。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 
 

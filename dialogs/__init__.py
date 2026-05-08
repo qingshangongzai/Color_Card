@@ -1,5 +1,7 @@
 """对话框模块"""
 
+from __future__ import annotations
+
 from .about_dialog import AboutDialog
 from .base_frameless_dialog import BaseFramelessDialog
 from .colorblind_dialog import ColorblindPreviewDialog

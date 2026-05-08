@@ -7,6 +7,8 @@
 
 
 
+from __future__ import annotations
+
 # 色盲类型定义
 COLORBLIND_TYPES = {
     'normal': {
