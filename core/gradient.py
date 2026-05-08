@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # 标准库导入
 
 

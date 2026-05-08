@@ -1,5 +1,7 @@
 """影调分析服务"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 

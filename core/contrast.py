@@ -3,7 +3,7 @@
 提供 WCAG 2.1 标准的颜色对比度计算和等级判断功能。
 """
 
-
+from __future__ import annotations
 
 
 def calculate_relative_luminance(rgb: tuple[int, int, int]) -> float:

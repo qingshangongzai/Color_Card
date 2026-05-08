@@ -1,5 +1,7 @@
 """SVG 配色映射模块 - 智能识别 SVG 中的配色区域并应用配色方案"""
 
+from __future__ import annotations
+
 # 标准库导入
 import logging
 import re
