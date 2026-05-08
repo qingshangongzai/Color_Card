@@ -617,11 +617,10 @@ class BaseCanvas(QWidget):
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
         elif not self._is_loading:
-            # 没有图片且不在加载状态时显示提示文字
             painter.setPen(get_canvas_empty_text_color())
             font = QFont("Arial", 11)
             painter.setFont(font)
-            text = tr('canvases.click_to_import')
+            text = tr('canvases.click_to_import') + '\n' + tr('canvases.paste_hint')
             text_rect = painter.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
@@ -816,6 +815,19 @@ class BaseCanvas(QWidget):
                     event.acceptProposedAction()
                     return
         event.ignore()
+
+    def paste_from_clipboard(self) -> None:
+        """从剪贴板粘贴图片"""
+        from core.image_service import ImageService
+
+        image_path = ImageService.save_clipboard_image()
+        if image_path:
+            log_user_action(
+                action="open_image",
+                params={"path": image_path, "source": "clipboard"},
+                result="success"
+            )
+            self.set_image(image_path)
 
 
 class ImageCanvas(BaseCanvas):
