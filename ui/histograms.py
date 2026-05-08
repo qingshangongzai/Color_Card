@@ -1,6 +1,6 @@
 # 第三方库导入
 import math
-from typing import List
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QMouseEvent
 from PySide6.QtWidgets import QWidget
@@ -35,7 +35,7 @@ class BaseHistogram(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._histogram: List[int] = []
+        self._histogram: list[int] = []
         self._max_count = 0
         self._scaling_mode = "linear"  # "linear" 或 "adaptive"
         self._is_loading = False  # 加载状态标志
@@ -89,7 +89,7 @@ class BaseHistogram(QWidget):
         painter.setPen(text_color)
         painter.drawText(text_x, text_y, text)
 
-    def set_data(self, data: List[int]):
+    def set_data(self, data: list[int]):
         """设置直方图数据
         
         Args:
@@ -115,7 +115,7 @@ class BaseHistogram(QWidget):
             self._scaling_mode = mode
             self.update()
 
-    def _calculate_cv(self, histogram: List[int]) -> float:
+    def _calculate_cv(self, histogram: list[int]) -> float:
         """计算直方图的变异系数（CV）
 
         CV = 标准差 / 平均值

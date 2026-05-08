@@ -7,7 +7,7 @@
 # 标准库导入
 import uuid
 from datetime import datetime
-from typing import Tuple
+
 
 # 第三方库导入
 from PySide6.QtWidgets import (
@@ -183,7 +183,7 @@ class GenerationColorInfoCard(BaseCard):
         if self._current_color_info:
             self.update_color_display()
 
-    def set_color(self, rgb: Tuple[int, int, int]):
+    def set_color(self, rgb: tuple[int, int, int]):
         """设置颜色
 
         Args:

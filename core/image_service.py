@@ -8,7 +8,7 @@ UI层通过ImageService调用业务功能，实现UI与业务逻辑分离。
 import io
 import struct
 from dataclasses import dataclass
-from typing import Optional
+
 
 # 第三方库导入
 import numpy as np
@@ -37,7 +37,7 @@ class ColorSpaceInfo:
     name: str
     has_icc_profile: bool
     icc_profile_size: int
-    gamma: Optional[float]
+    gamma: float | None
     source: str
 
 
@@ -152,14 +152,14 @@ class ColorSpaceDetector:
             return 'Unknown ICC'
     
     @classmethod
-    def _detect_from_exif(cls, image: Image.Image) -> Optional[ColorSpaceInfo]:
+    def _detect_from_exif(cls, image: Image.Image) -> ColorSpaceInfo | None:
         """从 EXIF 信息检测色彩空间
         
         Args:
             image: PIL Image 对象
             
         Returns:
-            Optional[ColorSpaceInfo]: 色彩空间信息，如果无法检测则返回 None
+            ColorSpaceInfo | None: 色彩空间信息，如果无法检测则返回 None
         """
         try:
             exif = image._getexif()
@@ -209,12 +209,12 @@ class ImageData:
     display_pixmap: QPixmap
     original_pixels: np.ndarray
     colorspace_info: ColorSpaceInfo
-    display_colorspace: Optional[str] = None
+    display_colorspace: str | None = None
 
 
 # ==================== ICC 色彩空间转换 ====================
 
-def _detect_colorspace_from_text(text: str) -> Optional[str]:
+def _detect_colorspace_from_text(text: str) -> str | None:
     """从文本中检测色彩空间名称
 
     Args:
@@ -328,9 +328,9 @@ class ProgressiveImageLoader(QThread):
         self._image_path: str = image_path
         self._display_size: int = display_size
         self._is_cancelled: bool = False
-        self._colorspace_info: Optional[ColorSpaceInfo] = None
-        self._original_pixels: Optional[np.ndarray] = None
-        self._display_colorspace: Optional[str] = None
+        self._colorspace_info: ColorSpaceInfo | None = None
+        self._original_pixels: np.ndarray | None = None
+        self._display_colorspace: str | None = None
 
     def cancel(self) -> None:
         """取消任务（异步，不阻塞调用线程）
@@ -348,11 +348,11 @@ class ProgressiveImageLoader(QThread):
         """
         return self._is_cancelled
     
-    def get_colorspace_info(self) -> Optional[ColorSpaceInfo]:
+    def get_colorspace_info(self) -> ColorSpaceInfo | None:
         """获取检测到的色彩空间信息
         
         Returns:
-            Optional[ColorSpaceInfo]: 色彩空间信息
+            ColorSpaceInfo | None: 色彩空间信息
         """
         return self._colorspace_info
 
@@ -488,9 +488,9 @@ class ImageService(QObject):
             parent: 父对象
         """
         super().__init__(parent)
-        self._loader: Optional[ProgressiveImageLoader] = None
-        self._current_path: Optional[str] = None
-        self._colorspace_info: Optional[ColorSpaceInfo] = None
+        self._loader: ProgressiveImageLoader | None = None
+        self._current_path: str | None = None
+        self._colorspace_info: ColorSpaceInfo | None = None
         self._memory_manager = None
 
     def __del__(self):
@@ -569,11 +569,11 @@ class ImageService(QObject):
             self._loader.cancel()
             logger.debug("加载任务已取消")
 
-    def get_colorspace_info(self) -> Optional[ColorSpaceInfo]:
+    def get_colorspace_info(self) -> ColorSpaceInfo | None:
         """获取当前图片的色彩空间信息
         
         Returns:
-            Optional[ColorSpaceInfo]: 色彩空间信息，如果未加载图片则返回 None
+            ColorSpaceInfo | None: 色彩空间信息，如果未加载图片则返回 None
         """
         return self._colorspace_info
 

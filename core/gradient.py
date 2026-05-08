@@ -1,11 +1,11 @@
 # 标准库导入
-from typing import List, Tuple
+
 
 # 项目模块导入
 from .color import hex_to_rgb, rgb_to_hsb, rgb_to_lab, hsb_to_rgb, rgb_to_hsl, hsl_to_rgb
 
 
-def _normalize_hue_for_interpolation(h1: float, h2: float) -> Tuple[float, float]:
+def _normalize_hue_for_interpolation(h1: float, h2: float) -> tuple[float, float]:
     """归一化色相值，使插值沿最短路径
 
     当色相差值超过180°时，调整色相值使插值沿最短路径
@@ -16,7 +16,7 @@ def _normalize_hue_for_interpolation(h1: float, h2: float) -> Tuple[float, float
         h2: 结束色相 (0-360)
 
     Returns:
-        Tuple[float, float]: 调整后的起始色相和结束色相
+        tuple[float, float]: 调整后的起始色相和结束色相
     """
     diff = h2 - h1
     if diff > 180:
@@ -26,7 +26,7 @@ def _normalize_hue_for_interpolation(h1: float, h2: float) -> Tuple[float, float
     return h1, h2
 
 
-def _interpolate_rgb(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, int], steps: int) -> List[Tuple[int, int, int]]:
+def _interpolate_rgb(start_rgb: tuple[int, int, int], end_rgb: tuple[int, int, int], steps: int) -> list[tuple[int, int, int]]:
     """在RGB空间进行线性插值
 
     Args:
@@ -35,7 +35,7 @@ def _interpolate_rgb(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
         steps: 中间色数量
 
     Returns:
-        List[Tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
+        list[tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
     """
     colors = [start_rgb]
     r1, g1, b1 = start_rgb
@@ -53,7 +53,7 @@ def _interpolate_rgb(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
     return colors
 
 
-def _interpolate_hsb(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, int], steps: int) -> List[Tuple[int, int, int]]:
+def _interpolate_hsb(start_rgb: tuple[int, int, int], end_rgb: tuple[int, int, int], steps: int) -> list[tuple[int, int, int]]:
     """在HSB空间进行插值，色相沿最短路径过渡
 
     Args:
@@ -62,7 +62,7 @@ def _interpolate_hsb(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
         steps: 中间色数量
 
     Returns:
-        List[Tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
+        list[tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
     """
     # 转换为HSB
     h1, s1, b1 = rgb_to_hsb(*start_rgb)
@@ -87,7 +87,7 @@ def _interpolate_hsb(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
     return colors
 
 
-def _interpolate_hsl(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, int], steps: int) -> List[Tuple[int, int, int]]:
+def _interpolate_hsl(start_rgb: tuple[int, int, int], end_rgb: tuple[int, int, int], steps: int) -> list[tuple[int, int, int]]:
     """在HSL空间进行插值，色相沿最短路径过渡
 
     Args:
@@ -96,7 +96,7 @@ def _interpolate_hsl(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
         steps: 中间色数量
 
     Returns:
-        List[Tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
+        list[tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
     """
     h1, s1, l1 = rgb_to_hsl(*start_rgb)
     h2, s2, l2 = rgb_to_hsl(*end_rgb)
@@ -118,7 +118,7 @@ def _interpolate_hsl(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
     return colors
 
 
-def _interpolate_lab(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, int], steps: int) -> List[Tuple[int, int, int]]:
+def _interpolate_lab(start_rgb: tuple[int, int, int], end_rgb: tuple[int, int, int], steps: int) -> list[tuple[int, int, int]]:
     """在LAB空间进行线性插值
 
     LAB颜色空间是感知均匀的，插值结果在人眼看来更平滑
@@ -129,7 +129,7 @@ def _interpolate_lab(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
         steps: 中间色数量
 
     Returns:
-        List[Tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
+        list[tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
     """
     # 转换为LAB
     L1, A1, B1 = rgb_to_lab(*start_rgb)
@@ -150,7 +150,7 @@ def _interpolate_lab(start_rgb: Tuple[int, int, int], end_rgb: Tuple[int, int, i
     return colors
 
 
-def _lab_to_rgb(L: float, A: float, B: float) -> Tuple[int, int, int]:
+def _lab_to_rgb(L: float, A: float, B: float) -> tuple[int, int, int]:
     """将LAB颜色空间转换为RGB
 
     这是rgb_to_lab的逆运算
@@ -161,7 +161,7 @@ def _lab_to_rgb(L: float, A: float, B: float) -> Tuple[int, int, int]:
         B: 黄蓝对立分量 (-128-127)
 
     Returns:
-        Tuple[int, int, int]: RGB颜色值 (R, G, B)，每个值范围0-255
+        tuple[int, int, int]: RGB颜色值 (R, G, B)，每个值范围0-255
     """
     # 步骤1: 从LAB转换到XYZ
     def f_inv(t: float) -> float:
@@ -208,7 +208,7 @@ def generate_gradient(
     end_hex: str,
     steps: int,
     color_space: str = 'lab'
-) -> List[Tuple[int, int, int]]:
+) -> list[tuple[int, int, int]]:
     """生成渐变色序列
 
     支持RGB、HSB、HSL、LAB四种颜色空间的插值
@@ -220,7 +220,7 @@ def generate_gradient(
         color_space: 颜色空间 ('rgb', 'hsb', 'hsl', 'lab')，默认'lab'
 
     Returns:
-        List[Tuple[int, int, int]]: RGB颜色列表，包含起始色、所有中间色、结束色
+        list[tuple[int, int, int]]: RGB颜色列表，包含起始色、所有中间色、结束色
 
     Raises:
         ValueError: 当输入的HEX值格式无效时
@@ -242,7 +242,7 @@ def generate_gradient(
         return _interpolate_lab(start_rgb, end_rgb, steps)
 
 
-def generate_random_gradient(steps: int = 2, color_space: str = 'lab') -> Tuple[str, str, List[Tuple[int, int, int]]]:
+def generate_random_gradient(steps: int = 2, color_space: str = 'lab') -> tuple[str, str, list[tuple[int, int, int]]]:
     """生成随机渐变色
 
     Args:
@@ -250,7 +250,7 @@ def generate_random_gradient(steps: int = 2, color_space: str = 'lab') -> Tuple[
         color_space: 颜色空间 ('rgb', 'hsb', 'hsl', 'lab')，默认'lab'
 
     Returns:
-        Tuple[str, str, List[Tuple[int, int, int]]]: (起始色HEX, 结束色HEX, RGB颜色列表)
+        tuple[str, str, list[tuple[int, int, int]]]: (起始色HEX, 结束色HEX, RGB颜色列表)
     """
     import random
 
@@ -273,7 +273,7 @@ def generate_lightness_shades(
     base_hex: str,
     count: int = 9,
     color_space: str = 'hsb'
-) -> List[Tuple[int, int, int]]:
+) -> list[tuple[int, int, int]]:
     """生成单色明度梯度
 
     固定色相和饱和度，明度从高到低均匀分布
@@ -285,7 +285,7 @@ def generate_lightness_shades(
         color_space: 颜色空间 ('hsb', 'hsl', 'lab')，默认'hsb'
 
     Returns:
-        List[Tuple[int, int, int]]: RGB颜色列表
+        list[tuple[int, int, int]]: RGB颜色列表
 
     Raises:
         ValueError: 当输入的HEX值格式无效时
@@ -325,7 +325,7 @@ def generate_lightness_shades(
 def generate_random_lightness_shade(
     count: int = 9,
     color_space: str = 'hsb'
-) -> Tuple[str, List[Tuple[int, int, int]]]:
+) -> tuple[str, list[tuple[int, int, int]]]:
     """生成随机单色明度梯度
 
     Args:
@@ -333,7 +333,7 @@ def generate_random_lightness_shade(
         color_space: 颜色空间 ('hsb', 'hsl', 'lab')，默认'hsb'
 
     Returns:
-        Tuple[str, List[Tuple[int, int, int]]]: (基准色HEX, RGB颜色列表)
+        tuple[str, list[tuple[int, int, int]]]: (基准色HEX, RGB颜色列表)
     """
     import random
     from .color import rgb_to_hex

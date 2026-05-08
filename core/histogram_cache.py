@@ -1,6 +1,6 @@
 # 标准库导入
 import hashlib
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtGui import QImage
@@ -18,7 +18,7 @@ class HistogramCache(BaseCache):
     缓存键格式: (image_key, histogram_type)
     图片指纹基于图片尺寸和像素采样生成。
 
-    存储格式: {'histogram': List[int], 'metadata': Dict[str, Any]}
+    存储格式: {'histogram': list[int], 'metadata': dict[str, Any]}
     """
 
     def __init__(self, max_size: int = 50):
@@ -29,7 +29,7 @@ class HistogramCache(BaseCache):
         """
         super().__init__(max_size)
 
-    def get(self, image_key: str, histogram_type: str) -> Optional[List[int]]:
+    def get(self, image_key: str, histogram_type: str) -> list[int] | None:
         """获取缓存的直方图数据
 
         Args:
@@ -37,7 +37,7 @@ class HistogramCache(BaseCache):
             histogram_type: 直方图类型 ('luminance', 'rgb', 'hue')
 
         Returns:
-            Optional[List[int]]: 缓存的直方图数据，如果缓存未命中则返回None
+            list[int] | None: 缓存的直方图数据，如果缓存未命中则返回None
         """
         key = self._get_key(image_key, histogram_type)
         cached = self._get_from_cache(key)
@@ -45,7 +45,7 @@ class HistogramCache(BaseCache):
             return None
         return cached['histogram']
 
-    def get_with_metadata(self, image_key: str, histogram_type: str) -> Optional[Dict[str, Any]]:
+    def get_with_metadata(self, image_key: str, histogram_type: str) -> dict[str, Any] | None:
         """获取缓存的直方图数据及元数据
 
         Args:
@@ -53,8 +53,8 @@ class HistogramCache(BaseCache):
             histogram_type: 直方图类型 ('luminance', 'rgb', 'hue')
 
         Returns:
-            Optional[Dict[str, Any]]: 包含直方图数据和元数据的字典，未命中返回None
-            格式: {'histogram': List[int], 'metadata': Dict[str, Any]}
+            dict[str, Any] | None: 包含直方图数据和元数据的字典，未命中返回None
+            格式: {'histogram': list[int], 'metadata': dict[str, Any]}
         """
         key = self._get_key(image_key, histogram_type)
         return self._get_from_cache(key)
@@ -63,8 +63,8 @@ class HistogramCache(BaseCache):
         self,
         image_key: str,
         histogram_type: str,
-        histogram_data: List[int],
-        metadata: Dict[str, Any]
+        histogram_data: list[int],
+        metadata: dict[str, Any]
     ) -> None:
         """存储直方图数据到缓存
 
@@ -158,7 +158,7 @@ class ImageFingerprintGenerator:
 
 
 # 全局缓存实例
-_histogram_cache: Optional[HistogramCache] = None
+_histogram_cache: HistogramCache | None = None
 
 
 def get_histogram_cache() -> HistogramCache:

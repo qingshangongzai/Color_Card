@@ -1,6 +1,6 @@
 # 标准库导入
 from collections import OrderedDict
-from typing import Optional, Any, Tuple, Dict
+from typing import Any
 
 
 class BaseCache:
@@ -41,14 +41,14 @@ class BaseCache:
         """
         raise NotImplementedError("子类必须实现 _get_key 方法")
 
-    def _get_from_cache(self, key: Tuple) -> Optional[Any]:
+    def _get_from_cache(self, key: Tuple) -> Any | None:
         """从缓存获取数据，内部方法
 
         Args:
             key: 缓存键
 
         Returns:
-            Optional[Any]: 缓存数据，未命中返回None
+            Any | None: 缓存数据，未命中返回None
         """
         if key in self._cache:
             # 移动到末尾（最近使用）
@@ -84,11 +84,11 @@ class BaseCache:
         self._hits = 0
         self._misses = 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取缓存统计信息
 
         Returns:
-            Dict[str, Any]: 包含命中率、命中次数、未命中次数、缓存大小的字典
+            dict[str, Any]: 包含命中率、命中次数、未命中次数、缓存大小的字典
         """
         total = self._hits + self._misses
         hit_rate = self._hits / total if total > 0 else 0.0

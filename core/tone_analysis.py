@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
+
 
 import numpy as np
 
@@ -229,7 +229,7 @@ class ToneAnalysisService:
 
     def _classify_tone(self, peak: float, min_val: int, max_val: int,
                        shadows: float, midtones: float, highlights: float,
-                       hist: np.ndarray) -> Tuple[ToneKey, ToneRange, float, float]:
+                       hist: np.ndarray) -> tuple[ToneKey, ToneRange, float, float]:
         """判断影调类型
 
         Args:
@@ -242,7 +242,7 @@ class ToneAnalysisService:
             hist: 直方图数据
 
         Returns:
-            Tuple[ToneKey, ToneRange, float, float]: 基调、跨度、基调置信度、跨度置信度
+            tuple[ToneKey, ToneRange, float, float]: 基调、跨度、基调置信度、跨度置信度
         """
         # 全长调判断（带置信度）
         is_full, full_confidence = self._is_full_tone(hist, shadows, highlights, min_val, max_val)
@@ -260,7 +260,7 @@ class ToneAnalysisService:
         return tone_key, tone_range, key_confidence, range_confidence
 
     def _is_full_tone(self, hist: np.ndarray, shadows: float,
-                      highlights: float, min_val: int, max_val: int) -> Tuple[bool, float]:
+                      highlights: float, min_val: int, max_val: int) -> tuple[bool, float]:
         """判断是否为全长调并返回置信度
 
         特征：两端都有明显像素，中间相对较少
@@ -273,7 +273,7 @@ class ToneAnalysisService:
             max_val: 最大亮度值
 
         Returns:
-            Tuple[bool, float]: (是否全长调, 置信度0.5-1.0)
+            tuple[bool, float]: (是否全长调, 置信度0.5-1.0)
         """
         # 基础条件检查
         has_shadows = shadows > self.MIN_ZONE_PERCENTAGE
@@ -305,7 +305,7 @@ class ToneAnalysisService:
 
         return True, confidence
 
-    def _get_tone_key(self, peak: float, hist: np.ndarray) -> Tuple[ToneKey, float]:
+    def _get_tone_key(self, peak: float, hist: np.ndarray) -> tuple[ToneKey, float]:
         """根据波峰位置确定基调及置信度
 
         结合波峰位置和波峰尖锐度评估基调置信度，
@@ -316,7 +316,7 @@ class ToneAnalysisService:
             hist: 直方图数据
 
         Returns:
-            Tuple[ToneKey, float]: 基调类型、置信度(0.5-1.0)
+            tuple[ToneKey, float]: 基调类型、置信度(0.5-1.0)
         """
         # 计算波峰尖锐度因子
         sharpness = self._calc_peak_sharpness(hist, int(peak))
@@ -356,7 +356,7 @@ class ToneAnalysisService:
 
     def _get_tone_range_by_distribution(
         self, shadows: float, midtones: float, highlights: float, hist: np.ndarray
-    ) -> Tuple[ToneRange, float]:
+    ) -> tuple[ToneRange, float]:
         """根据区域分布占比确定跨度及置信度
 
         基于影调分类的核心原则：
@@ -373,7 +373,7 @@ class ToneAnalysisService:
             hist: 直方图数据
 
         Returns:
-            Tuple[ToneRange, float]: 跨度类型、置信度(0.5-1.0)
+            tuple[ToneRange, float]: 跨度类型、置信度(0.5-1.0)
         """
         # 定义"明显分布"的阈值
         SIGNIFICANT_THRESHOLD = 0.5  # 占比超过0.5%认为有明显分布（仅过滤极端噪声）
@@ -473,14 +473,14 @@ class ToneAnalysisCache(BaseCache):
         """
         super().__init__(max_size)
 
-    def get(self, image_key: str) -> Optional[ToneAnalysisResult]:
+    def get(self, image_key: str) -> ToneAnalysisResult | None:
         """获取缓存的分析结果
 
         Args:
             image_key: 图片指纹键
 
         Returns:
-            Optional[ToneAnalysisResult]: 缓存的分析结果，未命中返回None
+            ToneAnalysisResult | None: 缓存的分析结果，未命中返回None
         """
         key = self._get_key(image_key)
         return self._get_from_cache(key)
@@ -508,7 +508,7 @@ class ToneAnalysisCache(BaseCache):
 
 
 # 全局缓存实例
-_tone_analysis_cache: Optional[ToneAnalysisCache] = None
+_tone_analysis_cache: ToneAnalysisCache | None = None
 
 
 def get_tone_analysis_cache() -> ToneAnalysisCache:

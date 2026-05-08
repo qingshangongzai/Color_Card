@@ -11,7 +11,7 @@ import sys
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import List, Optional
+
 
 # 确保项目根目录在路径中
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +23,7 @@ class TimingResult:
     """计时结果"""
     name: str
     duration_ms: float
-    children: List['TimingResult'] = field(default_factory=list)
+    children: list['TimingResult'] = field(default_factory=list)
     
     def print_tree(self, indent: int = 0, threshold_ms: float = 0):
         """打印树形结构"""
@@ -39,9 +39,9 @@ class StartupProfiler:
     """启动性能分析器"""
     
     def __init__(self):
-        self.results: List[TimingResult] = []
-        self._current_result: Optional[TimingResult] = None
-        self._result_stack: List[TimingResult] = []
+        self.results: list[TimingResult] = []
+        self._current_result: TimingResult | None = None
+        self._result_stack: list[TimingResult] = []
     
     @contextmanager
     def measure(self, name: str):
@@ -93,7 +93,7 @@ class StartupProfiler:
             percentage = (result.duration_ms / total) * 100 if total > 0 else 0
             print(f"{i:2}. {result.name}: {result.duration_ms:.1f}ms ({percentage:.1f}%)")
     
-    def _flatten_results(self, results: List[TimingResult]) -> List[TimingResult]:
+    def _flatten_results(self, results: list[TimingResult]) -> list[TimingResult]:
         """扁平化结果列表"""
         flat = []
         for result in results:
