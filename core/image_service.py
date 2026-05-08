@@ -8,6 +8,8 @@ UI层通过ImageService调用业务功能，实现UI与业务逻辑分离。
 import io
 import struct
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
 
 # 第三方库导入
@@ -600,6 +602,37 @@ class ImageService(QObject):
         )
 
         return QPixmap.fromImage(thumbnail_image)
+
+    @staticmethod
+    def save_clipboard_image() -> str | None:
+        """从剪贴板保存图片到临时文件
+
+        Returns:
+            str | None: 临时文件路径，剪贴板无图片返回 None
+        """
+        from PySide6.QtWidgets import QApplication
+        from .app_mode import get_config_dir
+
+        clipboard = QApplication.clipboard()
+        mime_data = clipboard.mimeData()
+
+        if not mime_data.hasImage():
+            return None
+
+        pixmap = clipboard.pixmap()
+        if pixmap.isNull():
+            return None
+
+        temp_dir = Path(get_config_dir()) / 'temp'
+        temp_dir.mkdir(parents=True, exist_ok=True)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        temp_path = str(temp_dir / f'clipboard_{timestamp}.png')
+
+        if pixmap.save(temp_path, 'PNG'):
+            return temp_path
+
+        return None
 
     def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
         """显示图片就绪的回调
