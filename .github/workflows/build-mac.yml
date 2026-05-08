@@ -2,9 +2,9 @@ name: Build Mac App with Nuitka
 
 on:
   push:
-    branches: [ main, feature/installer ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   build-macos:

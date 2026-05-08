@@ -2,9 +2,9 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, feature/installer ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
   TZ: Asia/Shanghai
