@@ -147,6 +147,41 @@ class RegistryInstaller:
             logger.warning(f"卸载条目删除失败: {str(e)}")
             return False
 
+    def find_inno_install_path(self) -> Path | None:
+        """从 HKLM 读取旧 Inno Setup 安装的路径
+
+        Returns:
+            Path | None: 安装路径，未找到返回 None
+        """
+        if sys.platform != 'win32':
+            return None
+
+        inno_key = f"{UNINSTALL_KEY}\\{APP_ID}_is1"
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, inno_key)
+            with key:
+                install_path, _ = winreg.QueryValueEx(key, "InstallLocation")
+                return Path(install_path) if install_path else None
+        except (OSError, FileNotFoundError):
+            return None
+
+    def remove_inno_entry(self) -> bool:
+        """删除 HKLM 下旧 Inno Setup 的卸载条目
+
+        Returns:
+            bool: 是否成功
+        """
+        if sys.platform != 'win32':
+            return False
+
+        inno_key = f"{UNINSTALL_KEY}\\{APP_ID}_is1"
+        try:
+            winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, inno_key)
+            logger.info(f"已删除旧 Inno 注册表项: {inno_key}")
+            return True
+        except (OSError, FileNotFoundError):
+            return False
+
     def get_install_path(self) -> Path | None:
         """从注册表获取安装路径
 

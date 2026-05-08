@@ -116,6 +116,8 @@ class InstallWorker(QThread):
             bool: 是否成功
         """
         try:
+            self._registry_installer.remove_inno_entry()
+
             install_size_kb = FileInstaller.calculate_size(install_path)
             config = {
                 'install_path': str(install_path),

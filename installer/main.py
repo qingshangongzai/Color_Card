@@ -119,6 +119,8 @@ from installer.wizard.pages.finish_page import FinishPage
 def _get_install_path() -> str:
     """从注册表获取旧版本的安装路径
 
+    HKCU 优先（新版安装器），HKLM 回退（旧 Inno Setup）。
+
     Returns:
         str: 安装路径，未找到返回空字符串
     """
@@ -129,9 +131,18 @@ def _get_install_path() -> str:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
         with key:
             path, _ = winreg.QueryValueEx(key, "InstallPath")
-            return path if path else ''
+            if path:
+                return path
     except (OSError, FileNotFoundError):
-        return ''
+        pass
+
+    from installer.core.registry_installer import RegistryInstaller
+    registry = RegistryInstaller()
+    inno_path = registry.find_inno_install_path()
+    if inno_path:
+        return str(inno_path)
+
+    return ''
 
 
 def _is_running_installer() -> bool:
