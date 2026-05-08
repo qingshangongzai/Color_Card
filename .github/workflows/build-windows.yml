@@ -84,6 +84,7 @@ jobs:
           --product-version="${{ steps.version.outputs.product_version }}" `
           --file-description="取色卡 - Color Card (Portable)" `
           --copyright="${{ steps.version.outputs.copyright }}" `
+          --include-data-files=version.py=version.py `
           --include-data-dir=color_data=color_data `
           --include-data-dir=core=core `
           --include-data-dir=dialogs=dialogs `
@@ -191,6 +192,7 @@ jobs:
           --product-version="${{ steps.version.outputs.product_version }}" `
           --file-description="取色卡 - Color Card (Installer)" `
           --copyright="${{ steps.version.outputs.copyright }}" `
+          --include-data-files=version.py=version.py `
           --include-data-dir=color_data=color_data `
           --include-data-dir=core=core `
           --include-data-dir=dialogs=dialogs `
