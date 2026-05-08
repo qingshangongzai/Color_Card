@@ -13,16 +13,16 @@ from PySide6.QtCore import QLocale, QObject, Signal
 
 
 SYSTEM_LANGUAGE_MAPPING: Dict[str, str] = {
-    'zh_CN': 'ZW_JT',
-    'zh_Hans': 'ZW_JT',
-    'zh_Hans_CN': 'ZW_JT',
-    'zh': 'ZW_JT',
-    'zh_TW': 'ZW_FT',
-    'zh_HK': 'ZW_FT',
-    'zh_Hant': 'ZW_FT',
-    'zh_Hant_CN': 'ZW_FT',
-    'zh_Hant_TW': 'ZW_FT',
-    'zh_Hant_HK': 'ZW_FT',
+    'zh_CN': 'HY_JT',
+    'zh_Hans': 'HY_JT',
+    'zh_Hans_CN': 'HY_JT',
+    'zh': 'HY_JT',
+    'zh_TW': 'HY_FT',
+    'zh_HK': 'HY_FT',
+    'zh_Hant': 'HY_FT',
+    'zh_Hant_CN': 'HY_FT',
+    'zh_Hant_TW': 'HY_FT',
+    'zh_Hant_HK': 'HY_FT',
     'en': 'EN_US',
     'en_US': 'EN_US',
     'en_GB': 'EN_US',
@@ -62,8 +62,8 @@ class LocaleManager(QObject):
 
     SUPPORTED_LANGUAGES = {
         'auto': '跟随系统',
-        'ZW_JT': '简体中文',
-        'ZW_FT': '繁體中文',
+        'HY_JT': '简体中文',
+        'HY_FT': '繁體中文',
         'EN_US': 'English',
         'JA_JP': '日本語',
         'FR_FR': 'Français',
@@ -71,7 +71,7 @@ class LocaleManager(QObject):
     }
 
     DEFAULT_LANGUAGE = 'auto'
-    FALLBACK_LANGUAGE = 'ZW_JT'
+    FALLBACK_LANGUAGE = 'HY_JT'
 
     def __init__(self):
         """初始化多语言管理器"""
@@ -93,7 +93,7 @@ class LocaleManager(QObject):
         """加载指定语言的翻译数据
 
         Args:
-            language_code: 语言代码（如 'ZW_JT', 'EN_US', 'auto'）
+            language_code: 语言代码（如 'HY_JT', 'EN_US', 'auto'）
 
         Returns:
             bool: 是否加载成功
@@ -122,7 +122,7 @@ class LocaleManager(QObject):
         """解析语言代码，如果是 'auto' 则返回系统语言
 
         Args:
-            language_code: 语言代码（如 'auto', 'ZW_JT', 'EN_US'）
+            language_code: 语言代码（如 'auto', 'HY_JT', 'EN_US'）
 
         Returns:
             str: 实际的语言代码
