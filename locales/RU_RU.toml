@@ -84,6 +84,8 @@ export_title = "Экспорт палитр"
 json_filter = "JSON файлы (*.json);;Все файлы (*)"
 export_ase_title = "Экспорт ASE палитры"
 ase_filter = "ASE файлы (*.ase);;Все файлы (*)"
+export_image_title = "Экспорт изображения палитры"
+image_filter = "PNG изображение (*.png);;JPEG изображение (*.jpg *.jpeg)"
 palette = "Палитра"
 batch_manage = "Пакетное управление"
 select_all = "Выбрать все"
@@ -479,6 +481,18 @@ title = "Ошибка экспорта"
 content = "{error}"
 
 [messages.export_ase_no_colors]
+title = "Ошибка экспорта"
+content = "В палитре нет данных о цветах"
+
+[messages.export_image_success]
+title = "Экспорт успешен"
+content = "Изображение палитры экспортировано в: {path}"
+
+[messages.export_image_failed]
+title = "Ошибка экспорта"
+content = "{error}"
+
+[messages.export_image_no_colors]
 title = "Ошибка экспорта"
 content = "В палитре нет данных о цветах"
 

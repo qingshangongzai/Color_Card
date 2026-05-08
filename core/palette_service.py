@@ -8,7 +8,9 @@ from __future__ import annotations
 
 # 标准库导入
 import json
+import os
 import struct
+import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +18,7 @@ from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal, Qt
+from PySide6.QtGui import QImage, QPainter, QColor, QFont, QFontMetrics, QPixmap
 
 # 项目模块导入
 from .color import hex_to_rgb, get_color_info
@@ -486,6 +489,203 @@ class AseExporter(QThread):
         return struct.pack('>H', 0x0001) + struct.pack('>I', block_len) + block_data
 
 
+class ImageExporter(QThread):
+    """色卡图片导出线程
+
+    在后台线程中使用 QPainter 绘制色卡图片并保存。
+    支持取消操作。
+
+    信号：
+        finished: 导出完成时发射，参数为文件路径
+        error: 导出出错时发射，参数为错误信息
+    """
+
+    finished = Signal(str)
+    error = Signal(str)
+
+    # 绘制常量
+    IMAGE_WIDTH = 900
+    MARGIN_H = 30
+    MARGIN_V = 24
+    BLOCK_WIDTH = 120
+    BLOCK_HEIGHT = 80
+    BLOCK_RADIUS = 6
+    BLOCK_SPACING = 16
+    ROW_SPACING = 20
+    MAX_COLORS_PER_ROW = 6
+    NAME_FONT_SIZE = 20
+    HEX_FONT_SIZE = 13
+    TITLE_BOTTOM_MARGIN = 28
+    HEX_TOP_MARGIN = 8
+    LOGO_SIZE = 20
+    LOGO_TEXT_SIZE = 11
+    LOGO_TOP_MARGIN = 16
+    LOGO_BOTTOM_MARGIN = 12
+
+    def __init__(self, palette: dict[str, Any], file_path: str, parent=None):
+        super().__init__(parent)
+        self._palette = palette
+        self._file_path = file_path
+        self._is_cancelled = False
+
+    def cancel(self):
+        self._is_cancelled = True
+
+    def _check_cancelled(self) -> bool:
+        return self._is_cancelled
+
+    def run(self):
+        with log_performance("image_export", {"file": self._file_path}):
+            try:
+                if self._check_cancelled():
+                    return
+
+                colors = self._palette.get("colors", [])
+                if not colors:
+                    self.error.emit("配色中没有颜色数据")
+                    return
+
+                palette_name = self._palette.get("name", "")
+
+                if self._check_cancelled():
+                    return
+
+                self._draw_and_save(colors, palette_name)
+
+                logger.info(f"图片导出成功，共 {len(colors)} 个颜色")
+                self.finished.emit(self._file_path)
+
+            except (IOError, OSError) as e:
+                if not self._check_cancelled():
+                    logger.error(f"文件写入错误: {e}", exc_info=True)
+                    self.error.emit(f"文件写入错误: {e}")
+
+    def _draw_and_save(self, colors: list[dict[str, Any]], palette_name: str):
+        color_count = len(colors)
+        row_count = (color_count + self.MAX_COLORS_PER_ROW - 1) // self.MAX_COLORS_PER_ROW
+        last_row_count = color_count % self.MAX_COLORS_PER_ROW
+        if last_row_count == 0:
+            last_row_count = self.MAX_COLORS_PER_ROW
+
+        image_height = (
+            self.MARGIN_V
+            + self.NAME_FONT_SIZE + self.TITLE_BOTTOM_MARGIN
+            + row_count * (self.BLOCK_HEIGHT + self.HEX_FONT_SIZE + self.HEX_TOP_MARGIN)
+            + (row_count - 1) * self.ROW_SPACING
+            + self.LOGO_TOP_MARGIN + self.LOGO_SIZE + self.LOGO_BOTTOM_MARGIN
+        )
+
+        image = QImage(self.IMAGE_WIDTH, image_height, QImage.Format.Format_ARGB32)
+        image.fill(QColor(255, 255, 255))
+
+        painter = QPainter(image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        self._draw_name(painter, palette_name)
+        self._draw_colors(painter, colors, row_count, last_row_count)
+        self._draw_logo(painter, image_height)
+
+        painter.end()
+
+        if self._check_cancelled():
+            return
+
+        image.save(self._file_path)
+
+    def _draw_name(self, painter: QPainter, palette_name: str):
+        painter.setPen(QColor(40, 40, 40))
+        font = QFont("Microsoft YaHei", self.NAME_FONT_SIZE)
+        font.setBold(True)
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        text_rect = fm.boundingRect(palette_name)
+        name_height = max(text_rect.height(), self.NAME_FONT_SIZE) + 4
+        painter.drawText(
+            self.MARGIN_H, self.MARGIN_V,
+            self.IMAGE_WIDTH - self.MARGIN_H * 2, name_height,
+            Qt.AlignmentFlag.AlignCenter,
+            palette_name
+        )
+
+    def _draw_colors(self, painter: QPainter, colors: list[dict[str, Any]], row_count: int, last_row_count: int):
+        name_height = self.NAME_FONT_SIZE + 4
+        y = self.MARGIN_V + name_height + self.TITLE_BOTTOM_MARGIN
+
+        for row in range(row_count):
+            cols_in_row = self.MAX_COLORS_PER_ROW if row < row_count - 1 else last_row_count
+            total_width = cols_in_row * self.BLOCK_WIDTH + (cols_in_row - 1) * self.BLOCK_SPACING
+            x = (self.IMAGE_WIDTH - total_width) // 2
+
+            for col in range(cols_in_row):
+                idx = row * self.MAX_COLORS_PER_ROW + col
+
+                color = colors[idx]
+                hex_color = color.get("hex", "")
+                if hex_color and not hex_color.startswith("#"):
+                    hex_color = "#" + hex_color
+
+                rgb = color.get("rgb", [0, 0, 0])
+                painter.setBrush(QColor(rgb[0], rgb[1], rgb[2]))
+
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawRoundedRect(x, y, self.BLOCK_WIDTH, self.BLOCK_HEIGHT, self.BLOCK_RADIUS, self.BLOCK_RADIUS)
+
+                painter.setPen(QColor(80, 80, 80))
+                font = QFont("Microsoft YaHei", self.HEX_FONT_SIZE)
+                painter.setFont(font)
+                painter.drawText(
+                    x, y + self.BLOCK_HEIGHT + self.HEX_TOP_MARGIN,
+                    self.BLOCK_WIDTH, self.HEX_FONT_SIZE,
+                    Qt.AlignmentFlag.AlignCenter,
+                    hex_color.upper()
+                )
+
+                x += self.BLOCK_WIDTH + self.BLOCK_SPACING
+
+            y += self.BLOCK_HEIGHT + self.HEX_FONT_SIZE + self.HEX_TOP_MARGIN + self.ROW_SPACING
+
+    def _draw_logo(self, painter: QPainter, image_height: int):
+        """在图片底部绘制 logo 和标题"""
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS if hasattr(sys, '_MEIPASS') else os.path.dirname(sys.executable)
+        else:
+            base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.png')
+        if not os.path.exists(logo_path):
+            return
+
+        pixmap = QPixmap(logo_path)
+        if pixmap.isNull():
+            return
+
+        scaled_pixmap = pixmap.scaled(
+            self.LOGO_SIZE, self.LOGO_SIZE,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+
+        text = "取色卡（Color Card）"
+        font = QFont("Microsoft YaHei", self.LOGO_TEXT_SIZE)
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        text_width = fm.horizontalAdvance(text)
+
+        total_width = scaled_pixmap.width() + 6 + text_width
+        x = (self.IMAGE_WIDTH - total_width) // 2
+        y = image_height - self.LOGO_BOTTOM_MARGIN - self.LOGO_SIZE
+
+        painter.drawPixmap(x, y, scaled_pixmap)
+
+        painter.setPen(QColor(180, 180, 180))
+        painter.drawText(
+            x + scaled_pixmap.width() + 6, y,
+            text_width, self.LOGO_SIZE,
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            text
+        )
+
+
 class PaletteService(QObject):
     """配色服务，管理配色的导入导出业务逻辑
 
@@ -524,41 +724,46 @@ class PaletteService(QObject):
         ase_export_started: ASE 导出开始
         ase_export_finished: ASE 导出完成 (file_path)
         ase_export_error: ASE 导出错误 (error_message)
+        image_export_started: 图片导出开始
+        image_export_finished: 图片导出完成 (file_path)
+        image_export_error: 图片导出错误 (error_message)
     """
 
     # 信号
     import_started = Signal()
-    import_finished = Signal(list)  # 导入的配色列表
-    import_error = Signal(str)      # 错误信息
+    import_finished = Signal(list)
+    import_error = Signal(str)
     export_started = Signal()
-    export_finished = Signal(str)   # 导出文件路径
-    export_error = Signal(str)      # 错误信息
+    export_finished = Signal(str)
+    export_error = Signal(str)
     ase_export_started = Signal()
-    ase_export_finished = Signal(str)   # ASE 导出文件路径
-    ase_export_error = Signal(str)      # ASE 错误信息
+    ase_export_finished = Signal(str)
+    ase_export_error = Signal(str)
+    image_export_started = Signal()
+    image_export_finished = Signal(str)
+    image_export_error = Signal(str)
 
     def __init__(self, parent=None):
-        """初始化配色服务
-
-        Args:
-            parent: 父对象
-        """
         super().__init__(parent)
         self._importer = None
         self._exporter = None
         self._ase_exporter = None
+        self._image_exporter = None
 
     def __del__(self):
         """析构函数：确保线程在对象销毁前停止"""
         if self._importer is not None and self._importer.isRunning():
             self._importer.cancel()
-            self._importer.wait(1000)  # 等待最多1秒
+            self._importer.wait(1000)
         if self._exporter is not None and self._exporter.isRunning():
             self._exporter.cancel()
-            self._exporter.wait(1000)  # 等待最多1秒
+            self._exporter.wait(1000)
         if self._ase_exporter is not None and self._ase_exporter.isRunning():
             self._ase_exporter.cancel()
-            self._ase_exporter.wait(1000)  # 等待最多1秒
+            self._ase_exporter.wait(1000)
+        if self._image_exporter is not None and self._image_exporter.isRunning():
+            self._image_exporter.cancel()
+            self._image_exporter.wait(1000)
 
     def import_from_file(self, file_path: str) -> None:
         """从文件导入配色（异步）
@@ -714,6 +919,49 @@ class PaletteService(QObject):
         if self._ase_exporter is not None:
             self._ase_exporter.deleteLater()
             self._ase_exporter = None
+
+    def export_to_image(self, palette: dict[str, Any], file_path: str) -> None:
+        """导出配色到图片文件（异步）
+
+        Args:
+            palette: 配色数据字典
+            file_path: 导出文件路径
+        """
+        if self._image_exporter is not None and self._image_exporter.isRunning():
+            self._image_exporter.cancel()
+            self._image_exporter = None
+
+        self.image_export_started.emit()
+
+        self._image_exporter = ImageExporter(palette, file_path, self)
+        self._image_exporter.finished.connect(
+            self._on_image_export_finished, Qt.ConnectionType.QueuedConnection
+        )
+        self._image_exporter.error.connect(
+            self.image_export_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._image_exporter.finished.connect(
+            self._cleanup_image_exporter, Qt.ConnectionType.QueuedConnection
+        )
+        self._image_exporter.error.connect(
+            self._cleanup_image_exporter, Qt.ConnectionType.QueuedConnection
+        )
+        self._image_exporter.start()
+
+    def cancel_image_export(self) -> None:
+        """取消当前图片导出任务"""
+        if self._image_exporter is not None and self._image_exporter.isRunning():
+            self._image_exporter.cancel()
+
+    def _on_image_export_finished(self, file_path: str):
+        """图片导出完成处理"""
+        self.image_export_finished.emit(file_path)
+
+    def _cleanup_image_exporter(self):
+        """清理图片导出器"""
+        if self._image_exporter is not None:
+            self._image_exporter.deleteLater()
+            self._image_exporter = None
 
     @staticmethod
     def validate_palette(palette: dict[str, Any]) -> tuple[bool, str]:
