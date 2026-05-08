@@ -24,7 +24,7 @@ from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_title_color
-from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, ImportModeDialog
+from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, HarmonyAnalysisDialog, ImportModeDialog
 
 logger = get_logger("palette_management")
 
@@ -461,6 +461,7 @@ class PaletteManagementCard(CardWidget):
     delete_requested = Signal(str)
     preview_requested = Signal(dict)
     contrast_requested = Signal(dict)
+    harmony_requested = Signal(dict)
     color_changed = Signal(str, int, dict)
     preview_in_panel_requested = Signal(dict)
     edit_requested = Signal(dict)
@@ -529,6 +530,12 @@ class PaletteManagementCard(CardWidget):
         self.contrast_button.setFixedSize(28, 28)
         self.contrast_button.clicked.connect(self._on_contrast_clicked)
         button_layout.addWidget(self.contrast_button)
+
+        # 和谐度分析按钮
+        self.harmony_button = ToolButton(FluentIcon.EMOJI_TAB_SYMBOLS)
+        self.harmony_button.setFixedSize(28, 28)
+        self.harmony_button.clicked.connect(self._on_harmony_clicked)
+        button_layout.addWidget(self.harmony_button)
 
         # 预览按钮（色盲模拟）
         self.preview_button = ToolButton(FluentIcon.ZOOM_IN)
@@ -698,6 +705,10 @@ class PaletteManagementCard(CardWidget):
         """对比度检查按钮点击"""
         self.contrast_requested.emit(self._favorite_data)
 
+    def _on_harmony_clicked(self):
+        """和谐度分析按钮点击"""
+        self.harmony_requested.emit(self._favorite_data)
+
     def _on_edit_clicked(self):
         """管理按钮点击（编辑配色）"""
         self.edit_requested.emit(self._favorite_data)
@@ -763,6 +774,7 @@ class PaletteManagementCard(CardWidget):
         # 批量模式下隐藏操作按钮
         self.preview_panel_button.setVisible(not enabled)
         self.contrast_button.setVisible(not enabled)
+        self.harmony_button.setVisible(not enabled)
         self.preview_button.setVisible(not enabled)
         self.edit_button.setVisible(not enabled)
         self.copy_palette_button.setVisible(not enabled)
@@ -810,6 +822,7 @@ class PaletteManagementList(QWidget):
     favorite_deleted = Signal(str)
     favorite_preview = Signal(dict)
     favorite_contrast = Signal(dict)
+    favorite_harmony = Signal(dict)
     favorite_color_changed = Signal(str, int, dict)
     favorite_preview_in_panel = Signal(dict)
     favorite_edit = Signal(dict)
@@ -976,6 +989,7 @@ class PaletteManagementList(QWidget):
         card.delete_requested.connect(self.favorite_deleted)
         card.preview_requested.connect(self._on_preview_requested)
         card.contrast_requested.connect(self._on_contrast_requested)
+        card.harmony_requested.connect(self._on_harmony_requested)
         card.color_changed.connect(self._on_color_changed)
         card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
         card.edit_requested.connect(self._on_edit_requested)
@@ -1098,6 +1112,14 @@ class PaletteManagementList(QWidget):
             favorite_data: 收藏项数据
         """
         self.favorite_contrast.emit(favorite_data)
+
+    def _on_harmony_requested(self, favorite_data):
+        """和谐度分析请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_harmony.emit(favorite_data)
 
     def _on_color_changed(self, favorite_id: str, color_index: int, color_info: dict):
         """颜色变化请求处理
@@ -1450,6 +1472,7 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
         self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
         self.palette_management_list.favorite_contrast.connect(self._on_favorite_contrast)
+        self.palette_management_list.favorite_harmony.connect(self._on_favorite_harmony)
         self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
         self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
@@ -2107,6 +2130,34 @@ class PaletteManagementInterface(QWidget):
             scheme_name=scheme_name,
             colors=colors,
             parent=self.window()
+        )
+        dialog.exec()
+
+    def _on_favorite_harmony(self, favorite_data):
+        """收藏和谐度分析回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', tr('palette_management.unnamed'))
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title=tr('messages.preview_failed.title'),
+                content=tr('messages.preview_failed.content'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        dialog = HarmonyAnalysisDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=None
         )
         dialog.exec()
 
