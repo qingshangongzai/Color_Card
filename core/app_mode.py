@@ -1,11 +1,9 @@
-from __future__ import annotations
 # 标准库导入
 import logging
 import os
 import sys
 from enum import Enum
 from pathlib import Path
-
 
 # Windows 注册表支持
 if sys.platform == 'win32':

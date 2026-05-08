@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 import argparse
 import ctypes
@@ -7,7 +6,6 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-
 # 将项目根目录添加到 sys.path（确保 installer 模块可导入）
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 

@@ -3,8 +3,6 @@
 测试语言检测、加载和翻译功能。
 """
 
-from __future__ import annotations
-
 # 标准库导入
 from unittest.mock import patch
 

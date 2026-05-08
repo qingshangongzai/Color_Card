@@ -1,8 +1,6 @@
 """布局工具函数模块"""
 
 
-from __future__ import annotations
-
 def calculate_grid_columns(color_count: int) -> int:
     """计算网格布局的列数
 

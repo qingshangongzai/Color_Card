@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 import ctypes
 import os

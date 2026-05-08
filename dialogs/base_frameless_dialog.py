@@ -1,11 +1,9 @@
-from __future__ import annotations
 # 第三方库导入
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt, QSize, QTimer, QPropertyAnimation, QEasingCurve
 from PySide6.QtGui import QIcon, QPixmap, QPalette
 from qframelesswindow import FramelessDialog
 from qfluentwidgets import qconfig
-
 # 项目模块导入
 from utils.icon import get_icon_path
 from utils.theme_colors import (

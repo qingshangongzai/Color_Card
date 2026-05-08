@@ -1,8 +1,6 @@
-from __future__ import annotations
 # 第三方库导入
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel
 from qfluentwidgets import PrimaryPushButton, PushButton, RadioButton, qconfig
-
 # 项目模块导入
 from dialogs import BaseFramelessDialog
 from utils import tr

@@ -1,8 +1,6 @@
-from __future__ import annotations
 # 标准库导入
 import sys
 from pathlib import Path
-
 # 第三方库导入
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtCore import Qt

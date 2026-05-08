@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -7,7 +6,6 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     ComboBox, FluentIcon, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
 )
-
 # 项目模块导入
 from core import get_config_manager
 from core.logger import get_logger, log_user_action

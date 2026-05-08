@@ -1,7 +1,5 @@
 """UI模块，统一导出所有UI相关的类和函数"""
 
-from __future__ import annotations
-
 # 基础组件立即导出
 from .main_window import MainWindow
 from .canvases import BaseCanvas, ImageCanvas, LuminanceCanvas

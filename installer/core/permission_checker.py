@@ -1,11 +1,9 @@
-from __future__ import annotations
 # 标准库导入
 import ctypes
 import os
 import subprocess
 import sys
 from pathlib import Path
-
 
 def is_frozen() -> bool:
     """检测是否为打包后的环境（支持 PyInstaller 和 Nuitka）

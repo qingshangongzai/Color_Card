@@ -3,8 +3,6 @@
 测试日志管理器、日志记录器、用户操作日志和性能日志功能。
 """
 
-from __future__ import annotations
-
 # 标准库导入
 import logging
 import time

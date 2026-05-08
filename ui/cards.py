@@ -1,10 +1,8 @@
-from __future__ import annotations
 # 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPainter
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import FluentIcon, InfoBar, InfoBarPosition, PushButton, ToolButton, qconfig
-
 # 项目模块导入
 from utils.theme_colors import (
     get_border_color, get_placeholder_color, get_secondary_text_color,

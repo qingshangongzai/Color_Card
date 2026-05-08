@@ -1,8 +1,6 @@
-from __future__ import annotations
 # 标准库导入
 import sys
 from pathlib import Path
-
 # Windows 快捷方式支持
 if sys.platform == 'win32':
     try:
