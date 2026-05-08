@@ -620,7 +620,7 @@ class BaseCanvas(QWidget):
             painter.setPen(get_canvas_empty_text_color())
             font = QFont("Arial", 11)
             painter.setFont(font)
-            text = tr('canvases.click_to_import') + '\n' + tr('canvases.paste_hint')
+            text = tr('canvases.click_to_import')
             text_rect = painter.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
