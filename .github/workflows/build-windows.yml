@@ -76,7 +76,7 @@ jobs:
           --standalone `
           --onefile `
           --assume-yes-for-downloads `
-          --windows-console-mode=force `
+          --windows-console-mode=disable `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
           --company-name="${{ steps.version.outputs.company_name }}" `
           --product-name="${{ steps.version.outputs.app_name }}" `
@@ -184,7 +184,7 @@ jobs:
           --standalone `
           --onefile `
           --assume-yes-for-downloads `
-          --windows-console-mode=force `
+          --windows-console-mode=disable `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
           --company-name="${{ steps.version.outputs.company_name }}" `
           --product-name="${{ steps.version.outputs.app_name }}" `
