@@ -3,7 +3,6 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor
 
-
 class BasePage(QWidget):
     """向导页面基类
 

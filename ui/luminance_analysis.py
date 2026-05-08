@@ -3,9 +3,11 @@
 提供图片明度分析和提取功能，包含明度画布和直方图显示。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QFileDialog, QSplitter, QVBoxLayout, QWidget
@@ -113,7 +115,7 @@ class LuminanceAnalysisInterface(QWidget):
         self._luminance_service.calculation_finished.connect(self._on_luminance_calculation_finished)
         self._luminance_service.calculation_error.connect(self._on_luminance_calculation_error)
 
-    def _on_luminance_calculation_finished(self, result: Dict[str, Any]):
+    def _on_luminance_calculation_finished(self, result: dict[str, Any]):
         """明度计算完成回调
 
         Args:

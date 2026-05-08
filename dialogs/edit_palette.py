@@ -1,7 +1,8 @@
+from __future__ import annotations
 # 标准库导入
 import re
 from datetime import datetime
-from typing import Dict, Any, Tuple, Optional
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect, QMimeData
@@ -274,7 +275,7 @@ class ColorModeSliders(QWidget):
         label.setText(f"{value}{unit}")
         self.value_changed.emit()
 
-    def set_values(self, values: Tuple[float, ...]):
+    def set_values(self, values: tuple[float, ...]):
         """设置滑块值"""
         for i, value in enumerate(values):
             if i < len(self._sliders):
@@ -282,11 +283,11 @@ class ColorModeSliders(QWidget):
                 label, unit = self._labels[i]
                 label.setText(f"{int(value)}{unit}")
 
-    def get_values(self) -> Tuple[float, ...]:
+    def get_values(self) -> tuple[float, ...]:
         """获取当前滑块值"""
         return tuple(slider.get_value() for slider in self._sliders)
 
-    def update_gradient(self, current_rgb: Tuple[int, int, int]):
+    def update_gradient(self, current_rgb: tuple[int, int, int]):
         """根据当前颜色更新滑块渐变背景"""
         self._current_rgb = current_rgb
         r, g, b = current_rgb
@@ -420,7 +421,7 @@ class ColorModeSliders(QWidget):
 class ColorPickerDialog(BaseFramelessDialog):
     """颜色选择器对话框"""
 
-    def __init__(self, initial_color: Optional[Tuple[int, int, int]] = None, parent=None):
+    def __init__(self, initial_color: tuple[int, int, int] | None = None, parent=None):
         super().__init__(parent)
         self._initial_color = initial_color or (128, 128, 128)
         self._current_rgb = list(self._initial_color)
@@ -616,7 +617,7 @@ class ColorPickerDialog(BaseFramelessDialog):
             except ValueError:
                 pass
 
-    def _convert_mode_to_rgb(self, mode: str, values: Tuple[float, ...]) -> Tuple[int, int, int]:
+    def _convert_mode_to_rgb(self, mode: str, values: tuple[float, ...]) -> tuple[int, int, int]:
         """将模式值转换为RGB"""
         if mode == 'HSB':
             return hsb_to_rgb(values[0], values[1], values[2])
@@ -658,7 +659,7 @@ class ColorPickerDialog(BaseFramelessDialog):
             self.mode2_sliders.set_values(values)
         self.mode2_sliders.update_gradient((r, g, b))
 
-    def _convert_rgb_to_mode(self, mode: str, r: int, g: int, b: int) -> Tuple[float, ...]:
+    def _convert_rgb_to_mode(self, mode: str, r: int, g: int, b: int) -> tuple[float, ...]:
         """将RGB转换为模式值"""
         if mode == 'HSB':
             return rgb_to_hsb(r, g, b)
@@ -755,7 +756,7 @@ class ColorPickerDialog(BaseFramelessDialog):
         self._color_info = get_color_info(r, g, b)
         self.accept()
 
-    def get_color_info(self) -> Dict[str, Any]:
+    def get_color_info(self) -> dict[str, Any]:
         """获取选择的颜色信息"""
         return self._color_info
 
@@ -1158,7 +1159,7 @@ class ColorInputRow(QWidget):
         self._index = index
         self.index_label.setText(f"颜色 {index + 1}")
 
-    def set_color_info(self, color_info: Dict[str, Any]):
+    def set_color_info(self, color_info: dict[str, Any]):
         """设置颜色信息
 
         Args:

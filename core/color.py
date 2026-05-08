@@ -1,6 +1,7 @@
+from __future__ import annotations
 # 标准库导入
 import colorsys
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # 第三方库导入
 import numpy as np
@@ -181,7 +182,7 @@ DEFAULT_SPLIT_ANGLE = 30
 ZONE_WIDTH = 255 / 9
 
 
-def _generate_saturation_steps(base_saturation: float, count: int) -> List[float]:
+def _generate_saturation_steps(base_saturation: float, count: int) -> list[float]:
     """生成饱和度递减序列
 
     Args:
@@ -189,7 +190,7 @@ def _generate_saturation_steps(base_saturation: float, count: int) -> List[float
         count: 生成数量
 
     Returns:
-        List[float]: 饱和度列表，所有值不低于 MIN_SATURATION
+        list[float]: 饱和度列表，所有值不低于 MIN_SATURATION
     """
     if count == 4:
         return [
@@ -202,21 +203,21 @@ def _generate_saturation_steps(base_saturation: float, count: int) -> List[float
     return [max(MIN_SATURATION, base_saturation - i * step) for i in range(count)]
 
 
-def _generate_brightness_steps(count: int) -> List[float]:
+def _generate_brightness_steps(count: int) -> list[float]:
     """生成明度递减序列
 
     Args:
         count: 生成数量
 
     Returns:
-        List[float]: 明度列表
+        list[float]: 明度列表
     """
     if count == 4:
         return DEFAULT_BRIGHTNESS_STEPS.copy()
     return [100 - i * (30 / max(count - 1, 1)) for i in range(count)]
 
 
-def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
+def rgb_to_hsb(r: int, g: int, b: int) -> tuple[float, float, float]:
     """将RGB转换为HSB (Hue, Saturation, Brightness)
 
     Args:
@@ -232,7 +233,7 @@ def rgb_to_hsb(r: int, g: int, b: int) -> Tuple[float, float, float]:
     return h * 360, s * 100, v * 100
 
 
-def rgb_to_lab(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> Tuple[float, float, float]:
+def rgb_to_lab(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> tuple[float, float, float]:
     """将RGB转换为LAB颜色空间
 
     Args:
@@ -291,7 +292,7 @@ def rgb_to_hex(r: int, g: int, b: int) -> str:
     return f"#{r:02X}{g:02X}{b:02X}"
 
 
-def hex_to_rgb(hex_value: str) -> Tuple[int, int, int]:
+def hex_to_rgb(hex_value: str) -> tuple[int, int, int]:
     """将16进制颜色值转换为RGB
 
     Args:
@@ -322,7 +323,7 @@ def hex_to_rgb(hex_value: str) -> Tuple[int, int, int]:
     return r, g, b
 
 
-def rgb_to_hsl(r: int, g: int, b: int) -> Tuple[float, float, float]:
+def rgb_to_hsl(r: int, g: int, b: int) -> tuple[float, float, float]:
     """将RGB转换为HSL (Hue, Saturation, Lightness)
 
     Args:
@@ -338,7 +339,7 @@ def rgb_to_hsl(r: int, g: int, b: int) -> Tuple[float, float, float]:
     return H * 360, S * 100, L * 100
 
 
-def rgb_to_cmyk(r: int, g: int, b: int) -> Tuple[float, float, float, float]:
+def rgb_to_cmyk(r: int, g: int, b: int) -> tuple[float, float, float, float]:
     """将RGB转换为CMYK (Cyan, Magenta, Yellow, Key/Black)
 
     Args:
@@ -366,7 +367,7 @@ def convert_rgb_colorspace(
     r: int, g: int, b: int,
     source_colorspace: str,
     target_colorspace: str
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """将RGB值从源色彩空间转换到目标色彩空间
 
     使用LAB作为中介色彩空间进行转换。
@@ -391,7 +392,7 @@ def convert_rgb_colorspace(
         return r, g, b
 
 
-def get_color_info(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> Dict[str, Any]:
+def get_color_info(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> dict[str, Any]:
     """获取颜色的完整信息
 
     Args:
@@ -493,7 +494,7 @@ def get_zone(luminance: int) -> str:
     return f"{zone_index}-{zone_index + 1}"
 
 
-def get_zone_bounds(zone_str: str) -> Tuple[int, int]:
+def get_zone_bounds(zone_str: str) -> tuple[int, int]:
     """获取区域对应的明度范围
 
     Args:
@@ -533,7 +534,7 @@ def _qimage_to_numpy(image) -> np.ndarray:
     return arr
 
 
-def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List[int]:
+def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> list[int]:
     """计算图片的明度直方图（使用NumPy向量化优化）
 
     Args:
@@ -557,7 +558,7 @@ def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> List
     return histogram.tolist()
 
 
-def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], List[int], List[int]]:
+def calculate_rgb_histogram(image, sample_step: int = 4) -> tuple[list[int], list[int], list[int]]:
     """计算图片的RGB直方图（使用NumPy向量化优化）
 
     Args:
@@ -584,7 +585,7 @@ def calculate_rgb_histogram(image, sample_step: int = 4) -> Tuple[List[int], Lis
     return histogram_r.tolist(), histogram_g.tolist(), histogram_b.tolist()
 
 
-def calculate_hue_histogram(image, sample_step: int = 4) -> List[int]:
+def calculate_hue_histogram(image, sample_step: int = 4) -> list[int]:
     """计算色相直方图（使用NumPy向量化优化）
 
     Args:
@@ -614,7 +615,7 @@ def calculate_hue_histogram(image, sample_step: int = 4) -> List[int]:
     return histogram.tolist()
 
 
-def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """向量化RGB转HSV
 
     Args:
@@ -647,7 +648,7 @@ def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> Tuple
     return h, s, v
 
 
-def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
+def hsb_to_rgb(h: float, s: float, b: float) -> tuple[int, int, int]:
     """将HSB转换为RGB
 
     Args:
@@ -666,7 +667,7 @@ def hsb_to_rgb(h: float, s: float, b: float) -> Tuple[int, int, int]:
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
-def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> Tuple[int, int, int]:
+def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> tuple[int, int, int]:
     """将LAB转换为RGB
 
     Args:
@@ -728,7 +729,7 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> T
     return round(r * 255), round(g * 255), round(b_out * 255)
 
 
-def hsl_to_rgb(H: float, S: float, L: float) -> Tuple[int, int, int]:
+def hsl_to_rgb(H: float, S: float, L: float) -> tuple[int, int, int]:
     """将HSL转换为RGB
 
     Args:
@@ -747,7 +748,7 @@ def hsl_to_rgb(H: float, S: float, L: float) -> Tuple[int, int, int]:
     return round(R * 255), round(G * 255), round(B_out * 255)
 
 
-def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> Tuple[int, int, int]:
+def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> tuple[int, int, int]:
     """将CMYK转换为RGB
 
     Args:
@@ -773,7 +774,7 @@ def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> Tuple[int, int, int]:
 
 # ========== 配色方案内部实现（私有函数）==========
 
-def _build_monochromatic_colors(rgb_hue: float, count: int, base_saturation: float) -> List[Tuple[float, float, float]]:
+def _build_monochromatic_colors(rgb_hue: float, count: int, base_saturation: float) -> list[tuple[float, float, float]]:
     """构建同色系颜色（与色彩空间无关的内部实现）
 
     Args:
@@ -796,7 +797,7 @@ def _build_monochromatic_colors(rgb_hue: float, count: int, base_saturation: flo
     return colors
 
 
-def _calculate_analogous_hues(base_hue: float, angle: float, count: int) -> List[float]:
+def _calculate_analogous_hues(base_hue: float, angle: float, count: int) -> list[float]:
     """计算邻近色的色相值列表
 
     Args:
@@ -820,9 +821,9 @@ def _calculate_analogous_hues(base_hue: float, angle: float, count: int) -> List
 
 
 def _build_analogous_colors(
-    rgb_hues: List[float],
+    rgb_hues: list[float],
     base_saturation: float
-) -> List[Tuple[float, float, float]]:
+) -> list[tuple[float, float, float]]:
     """构建邻近色颜色（与色彩空间无关的内部实现）
 
     Args:
@@ -846,7 +847,7 @@ def _build_complementary_colors(
     comp_hue: float,
     count: int,
     base_saturation: float
-) -> List[Tuple[float, float, float]]:
+) -> list[tuple[float, float, float]]:
     """构建互补色颜色（与色彩空间无关的内部实现）
 
     Args:
@@ -896,7 +897,7 @@ def _build_split_complementary_colors(
     right_hue: float,
     count: int,
     base_saturation: float
-) -> List[Tuple[float, float, float]]:
+) -> list[tuple[float, float, float]]:
     """构建分离补色颜色（与色彩空间无关的内部实现）
 
     Args:
@@ -933,10 +934,10 @@ def _build_split_complementary_colors(
 
 
 def _build_double_complementary_colors(
-    hues: List[float],
-    saturations: List[float],
+    hues: list[float],
+    saturations: list[float],
     count: int
-) -> List[Tuple[float, float, float]]:
+) -> list[tuple[float, float, float]]:
     """构建双补色颜色（与色彩空间无关的内部实现）
 
     Args:
@@ -969,7 +970,7 @@ def _build_double_complementary_colors(
 
 # ========== RGB配色方案公共API ==========
 
-def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成同色系配色方案
 
     基于同一色相，通过调整饱和度和亮度生成和谐的颜色组合
@@ -985,7 +986,7 @@ def generate_monochromatic(hue: float, count: int = 4, base_saturation: float = 
     return _build_monochromatic_colors(hue, count, base_saturation)
 
 
-def generate_analogous(hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_analogous(hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成邻近色配色方案
 
     在色相环上选择与基准色相邻的颜色，创造和谐统一的视觉效果
@@ -1003,7 +1004,7 @@ def generate_analogous(hue: float, angle: float = 30, count: int = 4, base_satur
     return _build_analogous_colors(hues, base_saturation)
 
 
-def generate_complementary(hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_complementary(hue: float, count: int = 5, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成互补色配色方案
 
     选择色相环上相对位置的颜色（相差180度），创造强烈对比
@@ -1021,7 +1022,7 @@ def generate_complementary(hue: float, count: int = 5, base_saturation: float = 
     return _build_complementary_colors(hue, comp_hue, count, base_saturation)
 
 
-def generate_split_complementary(hue: float, angle: float = 30, count: int = 3, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_split_complementary(hue: float, angle: float = 30, count: int = 3, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成分离补色配色方案
 
     选择基准色和互补色两侧的颜色，既有对比又更柔和
@@ -1041,7 +1042,7 @@ def generate_split_complementary(hue: float, angle: float = 30, count: int = 3, 
     return _build_split_complementary_colors(hue, left_comp, right_comp, count, base_saturation)
 
 
-def generate_double_complementary(hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_double_complementary(hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成双补色配色方案
 
     选择两组互补色，创造丰富而平衡的配色方案
@@ -1069,7 +1070,7 @@ def generate_double_complementary(hue: float, angle: float = 30, count: int = 4,
     return _build_double_complementary_colors(hues, saturations, count)
 
 
-def adjust_brightness(hsb_colors: List[Tuple[float, float, float]], brightness_delta: float) -> List[Tuple[float, float, float]]:
+def adjust_brightness(hsb_colors: list[tuple[float, float, float]], brightness_delta: float) -> list[tuple[float, float, float]]:
     """调整配色方案的明度
 
     Args:
@@ -1092,7 +1093,7 @@ def get_scheme_preview_colors(
     count: int = 5,
     base_saturation: float = 100,
     use_cache: bool = True
-) -> List[Tuple[int, int, int]]:
+) -> list[tuple[int, int, int]]:
     """获取配色方案的预览颜色（RGB格式）
 
     Args:
@@ -1139,7 +1140,7 @@ def get_scheme_preview_colors(
 class _ColorCube:
     """MMCQ 颜色立方体，用于表示颜色空间中的一个区域"""
 
-    def __init__(self, pixels: List[Tuple[int, int, int]]):
+    def __init__(self, pixels: list[tuple[int, int, int]]):
         """
         Args:
             pixels: RGB 像素列表 [(r, g, b), ...]
@@ -1154,7 +1155,7 @@ class _ColorCube:
         if pixels:
             self._np_pixels = np.array(pixels, dtype=np.int32)
 
-    def _get_ranges(self) -> Tuple[int, int, int, int, int, int]:
+    def _get_ranges(self) -> tuple[int, int, int, int, int, int]:
         """获取各颜色通道的范围（使用缓存）"""
         if self._cache_ranges is not None:
             return self._cache_ranges
@@ -1188,7 +1189,7 @@ class _ColorCube:
         """获取像素数量"""
         return len(self.pixels)
 
-    def get_average_color(self) -> Tuple[int, int, int]:
+    def get_average_color(self) -> tuple[int, int, int]:
         """计算立方体内像素的平均颜色"""
         if self._cache_avg_color is not None:
             return self._cache_avg_color
@@ -1222,7 +1223,7 @@ class _ColorCube:
         else:
             return 'b'
 
-    def split(self) -> Tuple['_ColorCube', '_ColorCube']:
+    def split(self) -> tuple['_ColorCube', '_ColorCube']:
         """沿最长轴的中位数切分立方体"""
         if not self.pixels:
             return _ColorCube([]), _ColorCube([])
@@ -1244,7 +1245,7 @@ class _ColorCube:
         return cube1, cube2
 
 
-def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_ColorCube]:
+def _mmcq_quantize(pixels: list[tuple[int, int, int]], count: int) -> list[_ColorCube]:
     """MMCQ 算法核心实现
 
     Args:
@@ -1288,7 +1289,7 @@ def _mmcq_quantize(pixels: List[Tuple[int, int, int]], count: int) -> List[_Colo
     return cubes
 
 
-def _extract_pixels_fast(image, sample_step: int = 4) -> List[Tuple[int, int, int]]:
+def _extract_pixels_fast(image, sample_step: int = 4) -> list[tuple[int, int, int]]:
     """快速提取图片像素数据
 
     使用 numpy 优化像素提取性能。
@@ -1366,9 +1367,9 @@ def extract_dominant_colors_kmeans(
     image,
     count: int = 5,
     sample_step: int = 4,
-    original_pixels: Optional[np.ndarray] = None,
+    original_pixels: np.ndarray | None = None,
     max_iterations: int = 10
-) -> List[Tuple[int, int, int]]:
+) -> list[tuple[int, int, int]]:
     """使用 K-Means 聚类提取主色调"""
     count = max(3, min(8, count))
 
@@ -1407,9 +1408,9 @@ def extract_dominant_colors(
     image,
     count: int = 5,
     sample_step: int = 4,
-    original_pixels: Optional[np.ndarray] = None,
+    original_pixels: np.ndarray | None = None,
     algorithm: str = 'mmcq',
-) -> List[Tuple[int, int, int]]:
+) -> list[tuple[int, int, int]]:
     """提取图片主色调，支持 MMCQ 和 K-Means 两种算法
 
     Args:
@@ -1453,7 +1454,7 @@ def extract_dominant_colors(
 def _extract_pixels_with_positions_fast(
     image,
     sample_step: int = 4
-) -> Tuple[int, int, List[Tuple[int, int, int, int, int]]]:
+) -> tuple[int, int, list[tuple[int, int, int, int, int]]]:
     """快速提取图片像素数据及其位置
 
     Args:
@@ -1514,10 +1515,10 @@ def _extract_pixels_with_positions_fast(
 
 def find_dominant_color_positions(
     image,
-    dominant_colors: List[Tuple[int, int, int]],
+    dominant_colors: list[tuple[int, int, int]],
     sample_step: int = 4,
-    original_pixels: Optional[np.ndarray] = None,
-) -> List[Tuple[float, float]]:
+    original_pixels: np.ndarray | None = None,
+) -> list[tuple[float, float]]:
     """找到每种主色调在图片中的代表性位置
 
     Args:
@@ -1644,7 +1645,7 @@ def ryb_hue_to_rgb_hue(ryb_hue: float) -> float:
 
 # ========== RYB配色方案公共API ==========
 
-def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成 RYB 同色系配色方案
 
     Args:
@@ -1659,7 +1660,7 @@ def generate_ryb_monochromatic(ryb_hue: float, count: int = 4, base_saturation: 
     return _build_monochromatic_colors(rgb_hue, count, base_saturation)
 
 
-def generate_ryb_analogous(ryb_hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_ryb_analogous(ryb_hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成 RYB 邻近色配色方案
 
     Args:
@@ -1678,7 +1679,7 @@ def generate_ryb_analogous(ryb_hue: float, angle: float = 30, count: int = 4, ba
     return _build_analogous_colors(rgb_hues, base_saturation)
 
 
-def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成 RYB 互补色配色方案
 
     在RYB色轮中，互补色相差180度
@@ -1699,7 +1700,7 @@ def generate_ryb_complementary(ryb_hue: float, count: int = 5, base_saturation: 
     return _build_complementary_colors(rgb_hue, rgb_comp_hue, count, base_saturation)
 
 
-def generate_ryb_split_complementary(ryb_hue: float, angle: float = 30, count: int = 3, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_ryb_split_complementary(ryb_hue: float, angle: float = 30, count: int = 3, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成 RYB 分离补色配色方案
 
     Args:
@@ -1724,7 +1725,7 @@ def generate_ryb_split_complementary(ryb_hue: float, angle: float = 30, count: i
     return _build_split_complementary_colors(rgb_hue, rgb_left, rgb_right, count, base_saturation)
 
 
-def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> List[Tuple[float, float, float]]:
+def generate_ryb_double_complementary(ryb_hue: float, angle: float = 30, count: int = 4, base_saturation: float = 100) -> list[tuple[float, float, float]]:
     """生成 RYB 双补色配色方案
 
     Args:
@@ -1764,7 +1765,7 @@ def get_scheme_preview_colors_ryb(
     count: int = 5,
     base_saturation: float = 100,
     use_cache: bool = True
-) -> List[Tuple[int, int, int]]:
+) -> list[tuple[int, int, int]]:
     """获取 RYB 配色方案的预览颜色（RGB格式）
 
     Args:

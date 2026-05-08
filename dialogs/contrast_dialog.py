@@ -4,8 +4,10 @@
 支持 WCAG 2.1 标准，实时预览文字可读性效果。
 """
 
+from __future__ import annotations
+
 # 标准库导入
-from typing import List, Dict, Tuple
+
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal, QPointF
@@ -36,7 +38,7 @@ class ColorSelector(QWidget):
     
     color_selected = Signal(int)  # 信号：选中颜色的索引
     
-    def __init__(self, title: str, colors: List[Dict], parent=None):
+    def __init__(self, title: str, colors: list[Dict], parent=None):
         """初始化颜色选择器
         
         Args:
@@ -122,7 +124,7 @@ class ColorSelector(QWidget):
             self._update_color_display()
             self.color_selected.emit(self._selected_index)
     
-    def get_current_rgb(self) -> Tuple[int, int, int]:
+    def get_current_rgb(self) -> tuple[int, int, int]:
         """获取当前选中的 RGB 颜色
         
         Returns:
@@ -208,7 +210,7 @@ class PreviewCard(QWidget):
         
         self.update()
     
-    def set_colors(self, bg_rgb: Tuple[int, int, int], text_rgb: Tuple[int, int, int]):
+    def set_colors(self, bg_rgb: tuple[int, int, int], text_rgb: tuple[int, int, int]):
         """设置预览颜色
         
         Args:
@@ -239,7 +241,7 @@ class GraphicWidget(QWidget):
         self._graphic_rgb = (0, 0, 0)
         self.setFixedSize(120, 60)
     
-    def set_graphic_color(self, rgb: Tuple[int, int, int]):
+    def set_graphic_color(self, rgb: tuple[int, int, int]):
         """设置图形颜色"""
         self._graphic_rgb = rgb
         self.update()
@@ -306,7 +308,7 @@ class GraphicPreviewCard(QWidget):
         )
         self.update()
     
-    def set_colors(self, bg_rgb: Tuple[int, int, int], graphic_rgb: Tuple[int, int, int]):
+    def set_colors(self, bg_rgb: tuple[int, int, int], graphic_rgb: tuple[int, int, int]):
         """设置预览颜色
         
         Args:
@@ -337,7 +339,7 @@ class ContrastCheckDialog(BaseFramelessDialog):
     并实时预览文字可读性效果。
     """
 
-    def __init__(self, scheme_name: str, colors: List[Dict], parent=None):
+    def __init__(self, scheme_name: str, colors: list[Dict], parent=None):
         """初始化对比度检查对话框
 
         Args:

@@ -2,9 +2,9 @@ name: Build Windows App with Nuitka
 
 on:
   push:
-    branches: [ main, feature/installer ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 env:
   TZ: Asia/Shanghai
@@ -95,7 +95,6 @@ jobs:
           --include-data-dir=ui=ui `
           --include-data-dir=utils=utils `
           --enable-plugin=pyside6 `
-          --lto=yes `
           --jobs=4 `
           --output-filename="Color Card Portable" `
           main.py
@@ -107,7 +106,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path $distDir
 
         $version = "${{ steps.version.outputs.version }}"
-        $portableName = "Color_Card_${version}_x64_Portable.exe"
+        $portableName = "Color_Card_${version}_x64.exe"
 
         Copy-Item "Color Card Portable.exe" -Destination "$distDir\$portableName"
 
@@ -205,7 +204,6 @@ jobs:
           --include-data-dir=utils=utils `
           --include-data-dir=installer=installer `
           --enable-plugin=pyside6 `
-          --lto=yes `
           --jobs=4 `
           --output-filename="ColorCard" `
           installer/main.py

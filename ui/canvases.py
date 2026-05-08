@@ -1,7 +1,8 @@
+from __future__ import annotations
 # 标准库导入
 import colorsys
 import gc
-from typing import List, Optional, Tuple
+
 
 # 第三方库导入
 import numpy as np
@@ -84,7 +85,7 @@ class BaseCanvas(QWidget):
     image_cleared = Signal()  # 信号：图片已清空（用于同步到其他面板）
     picker_count_changed = Signal(int)  # 信号：采样点数量改变
 
-    def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
+    def __init__(self, parent: QWidget | None = None, picker_count: int = 5) -> None:
         super().__init__(parent)
         from PySide6.QtWidgets import QSizePolicy
 
@@ -96,13 +97,13 @@ class BaseCanvas(QWidget):
         self.setStyleSheet(f"background-color: {bg_color.name()}; border-radius: 8px;")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        self._original_pixmap: Optional[QPixmap] = None
-        self._image: Optional[QImage] = None
+        self._original_pixmap: QPixmap | None = None
+        self._image: QImage | None = None
         self._image_data = None  # ImageData 对象，包含原始取色数据和色彩空间信息
-        self._picker_positions: List[QPoint] = []
-        self._picker_rel_positions: List[QPointF] = []
+        self._picker_positions: list[QPoint] = []
+        self._picker_rel_positions: list[QPointF] = []
         self._image_service = None
-        self._pending_image_path: Optional[str] = None
+        self._pending_image_path: str | None = None
         self._picker_count: int = picker_count
         self._is_loading: bool = False  # 是否正在加载
 
@@ -489,7 +490,7 @@ class BaseCanvas(QWidget):
         """
         raise NotImplementedError("子类必须实现 extract_all 方法")
 
-    def canvas_to_image_pos(self, canvas_pos: QPoint) -> Optional[QPoint]:
+    def canvas_to_image_pos(self, canvas_pos: QPoint) -> QPoint | None:
         """将画布坐标转换为原始图片坐标
 
         坐标转换算法（画布坐标 → 原始图片坐标）：
@@ -542,7 +543,7 @@ class BaseCanvas(QWidget):
 
         return None
 
-    def get_display_rect(self) -> Optional[Tuple[int, int, int, int]]:
+    def get_display_rect(self) -> tuple[int, int, int, int] | None:
         """计算图片在画布中的显示区域
 
         使用保持比例的缩放算法，将图片完整显示在画布中心。
@@ -583,7 +584,7 @@ class BaseCanvas(QWidget):
 
         return x, y, scaled_size.width(), scaled_size.height()
 
-    def get_image_display_rect(self) -> Optional[Tuple[int, int, int, int]]:
+    def get_image_display_rect(self) -> tuple[int, int, int, int] | None:
         """获取图片在画布中的显示区域（供子组件使用）
 
         Returns:
@@ -624,7 +625,7 @@ class BaseCanvas(QWidget):
             text_rect = painter.boundingRect(self.rect(), Qt.AlignmentFlag.AlignCenter, text)
             painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
 
-    def _draw_overlay(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+    def _draw_overlay(self, painter: QPainter, display_rect: tuple[int, int, int, int]) -> None:
         """绘制叠加内容
 
         Args:
@@ -636,7 +637,7 @@ class BaseCanvas(QWidget):
         pass
 
     def _draw_info_box(self, painter: QPainter, text: str, text_color: QColor,
-                       display_rect: Tuple[int, int, int, int]) -> None:
+                       display_rect: tuple[int, int, int, int]) -> None:
         """绘制信息提示框
 
         Args:
@@ -749,7 +750,7 @@ class BaseCanvas(QWidget):
         if emit_signal:
             self.image_cleared.emit()
 
-    def get_image(self) -> Optional[QImage]:
+    def get_image(self) -> QImage | None:
         """获取当前图片
 
         Returns:
@@ -824,23 +825,23 @@ class ImageCanvas(BaseCanvas):
     picker_moved = Signal(int, tuple)  # 信号：索引, (rel_x, rel_y)
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
-    def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
+    def __init__(self, parent: QWidget | None = None, picker_count: int = 5) -> None:
         super().__init__(parent, picker_count)
         self.setMouseTracking(True)
 
-        self._pickers: List[ColorPicker] = []
-        self._zoom_viewer: Optional[ZoomViewer] = None
+        self._pickers: list[ColorPicker] = []
+        self._zoom_viewer: ZoomViewer | None = None
         self._active_picker_index: int = -1
 
         # 高饱和度区域高亮相关
         self._show_high_saturation = False  # 是否显示高饱和度区域
         self._saturation_threshold = 0.7  # 饱和度阈值 (0.0-1.0)
-        self._high_saturation_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
+        self._high_saturation_pixmap: QPixmap | None = None  # 高亮遮罩缓存
 
         # 高明度区域高亮相关
         self._show_high_brightness = False  # 是否显示高明度区域
         self._brightness_threshold = 0.7  # 明度阈值 (0.0-1.0)
-        self._high_brightness_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
+        self._high_brightness_pixmap: QPixmap | None = None  # 高亮遮罩缓存
 
         # 创建放大视图
         self._zoom_viewer = ZoomViewer(self)
@@ -998,7 +999,7 @@ class ImageCanvas(BaseCanvas):
         for i in range(len(self._pickers)):
             self.extract_at(i)
 
-    def set_picker_positions_by_colors(self, dominant_colors: List[Tuple[int, int, int]], positions: List[Tuple[float, float]]) -> None:
+    def set_picker_positions_by_colors(self, dominant_colors: list[tuple[int, int, int]], positions: list[tuple[float, float]]) -> None:
         """根据主色调位置批量设置取色点位置
 
         将取色点移动到提取的主色调位置，并更新颜色显示。
@@ -1042,7 +1043,7 @@ class ImageCanvas(BaseCanvas):
 
         self.update()
 
-    def get_image(self) -> Optional[QImage]:
+    def get_image(self) -> QImage | None:
         """获取当前图片
 
         Returns:
@@ -1119,7 +1120,7 @@ class ImageCanvas(BaseCanvas):
         self.update()
 
     def _generate_highlight_pixmap(self, mode: str, threshold: float,
-                                   display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
+                                   display_rect: tuple[int, int, int, int]) -> QPixmap | None:
         """生成高亮遮罩图
 
         Args:
@@ -1151,7 +1152,7 @@ class ImageCanvas(BaseCanvas):
         )
 
     def _draw_highlight(self, mode: str, painter: QPainter,
-                       display_rect: Tuple[int, int, int, int]) -> None:
+                       display_rect: tuple[int, int, int, int]) -> None:
         """绘制高亮遮罩
 
         Args:
@@ -1188,7 +1189,7 @@ class ImageCanvas(BaseCanvas):
         self._draw_highlight_info(mode, painter, display_rect)
 
     def _draw_highlight_info(self, mode: str, painter: QPainter,
-                            display_rect: Tuple[int, int, int, int]) -> None:
+                            display_rect: tuple[int, int, int, int]) -> None:
         """绘制高亮信息提示
 
         Args:
@@ -1231,7 +1232,7 @@ class ImageCanvas(BaseCanvas):
             self._high_brightness_pixmap = None  # 清除缓存，重新生成
         self.update()
 
-    def _draw_overlay(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+    def _draw_overlay(self, painter: QPainter, display_rect: tuple[int, int, int, int]) -> None:
         """绘制叠加内容
 
         Args:
@@ -1250,18 +1251,18 @@ class LuminanceCanvas(BaseCanvas):
     luminance_picked = Signal(int, str)  # 信号：索引, 区域编号
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
-    def __init__(self, parent: Optional[QWidget] = None, picker_count: int = 5) -> None:
+    def __init__(self, parent: QWidget | None = None, picker_count: int = 5) -> None:
         super().__init__(parent, picker_count)
 
-        self._pickers: List[ColorPicker] = []
-        self._picker_zones: List[str] = []  # 存储每个取色器的区域编号
+        self._pickers: list[ColorPicker] = []
+        self._picker_zones: list[str] = []  # 存储每个取色器的区域编号
 
         # Zone高亮相关
         self._highlighted_zone: int = -1  # 当前高亮显示的Zone (-1表示无)
-        self._zone_highlight_pixmap: Optional[QPixmap] = None  # 高亮遮罩缓存
+        self._zone_highlight_pixmap: QPixmap | None = None  # 高亮遮罩缓存
 
         # Zone高亮颜色配置 (Zone 0-8) - 按类型统一颜色
-        self._zone_highlight_colors: List[QColor] = get_zone_mask_colors()
+        self._zone_highlight_colors: list[QColor] = get_zone_mask_colors()
 
         # 黑白模式
         self._grayscale_mode = False
@@ -1400,7 +1401,7 @@ class LuminanceCanvas(BaseCanvas):
         for i in range(len(self._pickers)):
             self.extract_at(i)
 
-    def _draw_overlay(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+    def _draw_overlay(self, painter: QPainter, display_rect: tuple[int, int, int, int]) -> None:
         """绘制叠加内容"""
         # 绘制Zone高亮遮罩（在图片上方）
         self._draw_zone_highlight(painter, display_rect)
@@ -1408,7 +1409,7 @@ class LuminanceCanvas(BaseCanvas):
         # 绘制区域标注
         self._draw_zone_labels(painter, display_rect)
 
-    def _draw_zone_labels(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+    def _draw_zone_labels(self, painter: QPainter, display_rect: tuple[int, int, int, int]) -> None:
         """绘制区域标注（白色小方框+黑色文字）"""
         # 如果正在加载中或标签被隐藏，不显示Zone标签
         if self._is_loading or not self._pickers_visible:
@@ -1574,7 +1575,7 @@ class LuminanceCanvas(BaseCanvas):
         # 触发重绘以更新标签
         self.update()
 
-    def get_picker_zones(self) -> List[str]:
+    def get_picker_zones(self) -> list[str]:
         """获取所有取色器的区域编号
 
         Returns:
@@ -1604,7 +1605,7 @@ class LuminanceCanvas(BaseCanvas):
         self._zone_highlight_pixmap = None
         self.update()
 
-    def _generate_zone_highlight_pixmap(self, display_rect: Tuple[int, int, int, int]) -> Optional[QPixmap]:
+    def _generate_zone_highlight_pixmap(self, display_rect: tuple[int, int, int, int]) -> QPixmap | None:
         """生成Zone高亮遮罩图
 
         优先使用NumPy向量化计算，失败时回退到逐像素遍历。
@@ -1630,7 +1631,7 @@ class LuminanceCanvas(BaseCanvas):
             zone_color
         )
 
-    def _draw_zone_highlight(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+    def _draw_zone_highlight(self, painter: QPainter, display_rect: tuple[int, int, int, int]) -> None:
         """绘制Zone高亮遮罩
 
         Args:
@@ -1651,7 +1652,7 @@ class LuminanceCanvas(BaseCanvas):
         # 绘制Zone信息提示
         self._draw_zone_highlight_info(painter, display_rect)
 
-    def _draw_zone_highlight_info(self, painter: QPainter, display_rect: Tuple[int, int, int, int]) -> None:
+    def _draw_zone_highlight_info(self, painter: QPainter, display_rect: tuple[int, int, int, int]) -> None:
         """绘制Zone高亮信息提示
 
         Args:

@@ -1,7 +1,8 @@
+from __future__ import annotations
 # 标准库导入
 import math
 from abc import abstractmethod
-from typing import List, Any
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import QThread, Signal
@@ -81,7 +82,7 @@ class BaseBatchLoader(QThread):
         pass
     
     @abstractmethod
-    def load_batch(self, batch_idx: int) -> List[Any]:
+    def load_batch(self, batch_idx: int) -> list[Any]:
         """加载指定批次的数据
         
         Args:

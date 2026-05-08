@@ -6,7 +6,6 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-
 # 将项目根目录添加到 sys.path（确保 installer 模块可导入）
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -108,17 +107,13 @@ from qfluentwidgets import setTheme, Theme
 
 # 项目模块导入
 from installer.core.registry_installer import REGISTRY_KEY
-from installer.core.install_service import InstallService
 from installer.core.permission_checker import is_frozen, get_exe_path
-from installer.wizard.install_wizard import InstallWizard
-from installer.wizard.pages.welcome_page import WelcomePage
-from installer.wizard.pages.install_path_page import InstallPathPage
-from installer.wizard.pages.progress_page import ProgressPage
-from installer.wizard.pages.finish_page import FinishPage
 
 
 def _get_install_path() -> str:
     """从注册表获取旧版本的安装路径
+
+    HKCU 优先（新版安装器），HKLM 回退（旧 Inno Setup）。
 
     Returns:
         str: 安装路径，未找到返回空字符串
@@ -130,9 +125,18 @@ def _get_install_path() -> str:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
         with key:
             path, _ = winreg.QueryValueEx(key, "InstallPath")
-            return path if path else ''
+            if path:
+                return path
     except (OSError, FileNotFoundError):
-        return ''
+        pass
+
+    from installer.core.registry_installer import RegistryInstaller
+    registry = RegistryInstaller()
+    inno_path = registry.find_inno_install_path()
+    if inno_path:
+        return str(inno_path)
+
+    return ''
 
 
 def _is_running_installer() -> bool:
@@ -181,6 +185,13 @@ def run_installer(
     Returns:
         dict: 安装配置
     """
+    from installer.wizard.install_wizard import InstallWizard
+    from installer.wizard.pages.welcome_page import WelcomePage
+    from installer.wizard.pages.install_path_page import InstallPathPage
+    from installer.wizard.pages.progress_page import ProgressPage
+    from installer.wizard.pages.finish_page import FinishPage
+    from installer.core.install_service import InstallService
+
     wizard = InstallWizard()
 
     wizard.add_page(WelcomePage())
@@ -233,7 +244,7 @@ def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False)
     import subprocess
     from installer.uninstaller.uninstall_dialog import UninstallDialog
     from installer.core.registry_installer import RegistryInstaller
-    from core import get_logger
+    from core.logger import get_logger
 
     logger = get_logger("installer")
 

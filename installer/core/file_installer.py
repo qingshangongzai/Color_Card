@@ -1,11 +1,11 @@
 # 标准库导入
 import os
 import shutil
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 # 项目模块导入
-from core import get_logger
+from core.logger import get_logger
 
 logger = get_logger("installer.file_installer")
 

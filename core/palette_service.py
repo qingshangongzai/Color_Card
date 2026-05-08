@@ -4,13 +4,15 @@
 UI层通过PaletteService调用业务功能，实现UI与业务逻辑分离。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 import json
 import struct
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QThread, Signal, Qt
@@ -197,7 +199,7 @@ class PaletteExporter(QThread):
     # 信号：导出失败
     error = Signal(str)       # 错误信息
 
-    def __init__(self, palettes: List[Dict[str, Any]], file_path: str, parent=None):
+    def __init__(self, palettes: list[dict[str, Any]], file_path: str, parent=None):
         """初始化导出线程
 
         Args:
@@ -323,7 +325,7 @@ class AseExporter(QThread):
     # 信号：导出失败
     error = Signal(str)       # 错误信息
 
-    def __init__(self, palette: Dict[str, Any], file_path: str, parent=None):
+    def __init__(self, palette: dict[str, Any], file_path: str, parent=None):
         """初始化 ASE 导出线程
 
         Args:
@@ -385,7 +387,7 @@ class AseExporter(QThread):
                     logger.error(f"ASE 导出失败: {e}", exc_info=True)
                     self.error.emit(f"ASE 导出失败: {e}")
 
-    def _create_ase_data(self, colors: List[Dict[str, Any]], palette_name: str) -> bytes:
+    def _create_ase_data(self, colors: list[dict[str, Any]], palette_name: str) -> bytes:
         """创建 ASE 格式二进制数据
 
         Args:
@@ -451,7 +453,7 @@ class AseExporter(QThread):
         """
         return struct.pack('>H', 0xC002) + struct.pack('>I', 0)
 
-    def _create_color_block(self, name: str, rgb: List[int]) -> bytes:
+    def _create_color_block(self, name: str, rgb: list[int]) -> bytes:
         """创建颜色块
 
         Args:
@@ -595,7 +597,7 @@ class PaletteService(QObject):
         if self._importer is not None and self._importer.isRunning():
             self._importer.cancel()
 
-    def _on_import_finished(self, palettes: List[Dict[str, Any]]):
+    def _on_import_finished(self, palettes: list[dict[str, Any]]):
         """导入完成处理
 
         Args:
@@ -661,7 +663,7 @@ class PaletteService(QObject):
             self._exporter.deleteLater()
             self._exporter = None
 
-    def export_to_ase(self, palette: Dict[str, Any], file_path: str) -> None:
+    def export_to_ase(self, palette: dict[str, Any], file_path: str) -> None:
         """导出配色到 ASE 文件（异步）
 
         异步执行 ASE 格式导出，通过信号通知结果。
@@ -714,14 +716,14 @@ class PaletteService(QObject):
             self._ase_exporter = None
 
     @staticmethod
-    def validate_palette(palette: Dict[str, Any]) -> Tuple[bool, str]:
+    def validate_palette(palette: dict[str, Any]) -> tuple[bool, str]:
         """验证配色数据格式
 
         Args:
             palette: 配色数据字典
 
         Returns:
-            Tuple[bool, str]: (是否有效, 错误信息)
+            tuple[bool, str]: (是否有效, 错误信息)
         """
         if not isinstance(palette, dict):
             return False, "配色数据必须是字典"
@@ -754,7 +756,7 @@ class PaletteService(QObject):
         return True, ""
 
     @staticmethod
-    def validate_import_file(file_path: str) -> Tuple[bool, str]:
+    def validate_import_file(file_path: str) -> tuple[bool, str]:
         """验证导入文件
 
         Args:

@@ -1,5 +1,6 @@
+from __future__ import annotations
 # 标准库导入
-from typing import List, Tuple, Optional
+
 
 # 项目模块导入
 from .cache_base import BaseCache
@@ -29,7 +30,7 @@ class ColorSchemeCache(BaseCache):
         hue: float,
         count: int,
         saturation: float
-    ) -> Optional[List[Tuple[float, float, float]]]:
+    ) -> list[tuple[float, float, float]] | None:
         """获取缓存的配色计算结果
 
         Args:
@@ -39,7 +40,7 @@ class ColorSchemeCache(BaseCache):
             saturation: 基准饱和度 (0-100)
 
         Returns:
-            Optional[List[Tuple[float, float, float]]]: 缓存的HSB颜色列表，
+            list[tuple[float, float, float]] | None: 缓存的HSB颜色列表，
             如果缓存未命中则返回None
         """
         key = self._get_key(scheme_type, hue, count, saturation)
@@ -51,7 +52,7 @@ class ColorSchemeCache(BaseCache):
         hue: float,
         count: int,
         saturation: float,
-        colors: List[Tuple[float, float, float]]
+        colors: list[tuple[float, float, float]]
     ) -> None:
         """存储配色计算结果到缓存
 
@@ -95,7 +96,7 @@ class ColorSchemeCache(BaseCache):
 
 
 # 全局缓存实例
-_color_scheme_cache: Optional[ColorSchemeCache] = None
+_color_scheme_cache: ColorSchemeCache | None = None
 
 
 def get_color_scheme_cache() -> ColorSchemeCache:

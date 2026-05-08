@@ -1,14 +1,13 @@
 # 标准库导入
 import sys
 from pathlib import Path
-
 # 第三方库导入
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtCore import Qt
 from qfluentwidgets import PrimaryPushButton, PushButton, qconfig, setThemeColor
 
 # 项目模块导入
-from dialogs import BaseFramelessDialog
+from dialogs.base_frameless_dialog import BaseFramelessDialog
 from utils.icon import load_icon_universal
 from utils.platform import fix_windows_taskbar_icon_for_window
 

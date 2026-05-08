@@ -3,16 +3,18 @@
 提供应用程序的多语言支持，包括语言包加载、切换和翻译文本获取。
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tomllib
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PySide6.QtCore import QLocale, QObject, Signal
 
 
-SYSTEM_LANGUAGE_MAPPING: Dict[str, str] = {
+SYSTEM_LANGUAGE_MAPPING: dict[str, str] = {
     'zh_CN': 'ZW_JT',
     'zh_Hans': 'ZW_JT',
     'zh_Hans_CN': 'ZW_JT',
@@ -77,7 +79,7 @@ class LocaleManager(QObject):
         """初始化多语言管理器"""
         super().__init__()
         self._current_language: str = self.DEFAULT_LANGUAGE
-        self._translations: Dict[str, str] = {}
+        self._translations: dict[str, str] = {}
         self._locales_dir: Path = self._get_locales_dir()
 
     def _get_locales_dir(self) -> Path:
@@ -222,15 +224,15 @@ class LocaleManager(QObject):
         """
         return self._current_language
 
-    def get_supported_languages(self) -> Dict[str, str]:
+    def get_supported_languages(self) -> dict[str, str]:
         """获取支持的语言列表
 
         Returns:
-            Dict[str, str]: 语言代码到语言名称的映射
+            dict[str, str]: 语言代码到语言名称的映射
         """
         return self.SUPPORTED_LANGUAGES.copy()
 
-    def tr(self, key: str, default: Optional[str] = None, **kwargs) -> str:
+    def tr(self, key: str, default: str | None = None, **kwargs) -> str:
         """获取翻译文本
 
         Args:
@@ -270,7 +272,7 @@ class LocaleManager(QObject):
         except (KeyError, ValueError):
             return text
 
-_locale_manager: Optional[LocaleManager] = None
+_locale_manager: LocaleManager | None = None
 
 
 def get_locale_manager() -> LocaleManager:
@@ -285,7 +287,7 @@ def get_locale_manager() -> LocaleManager:
     return _locale_manager
 
 
-def tr(key: str, default: Optional[str] = None, **kwargs) -> str:
+def tr(key: str, default: str | None = None, **kwargs) -> str:
     """获取翻译文本的便捷函数
 
     Args:
@@ -320,10 +322,10 @@ def get_current_language() -> str:
     return get_locale_manager().get_current_language()
 
 
-def get_supported_languages() -> Dict[str, str]:
+def get_supported_languages() -> dict[str, str]:
     """获取支持的语言列表的便捷函数
 
     Returns:
-        Dict[str, str]: 语言代码到语言名称的映射
+        dict[str, str]: 语言代码到语言名称的映射
     """
     return get_locale_manager().get_supported_languages()

@@ -4,10 +4,12 @@
 UI层通过PreviewService调用业务功能，实现UI与业务逻辑分离。
 """
 
+from __future__ import annotations
+
 # 标准库导入
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import QObject, Signal
@@ -58,11 +60,11 @@ class PreviewService(QObject):
             self._scene_type_manager = get_scene_type_manager()
         return self._scene_type_manager
 
-    def load_scene_types(self) -> List[Dict[str, Any]]:
+    def load_scene_types(self) -> list[dict[str, Any]]:
         """加载所有场景类型
 
         Returns:
-            List[Dict[str, Any]]: 场景类型配置列表
+            list[dict[str, Any]]: 场景类型配置列表
         """
         try:
             with log_performance("load_scene_types"):
@@ -75,14 +77,14 @@ class PreviewService(QObject):
             self.error.emit(f"加载场景类型失败: {e}")
             return []
 
-    def get_scene_config(self, scene_id: str) -> Optional[Dict[str, Any]]:
+    def get_scene_config(self, scene_id: str) -> dict[str, Any] | None:
         """获取场景类型配置
 
         Args:
             scene_id: 场景类型ID
 
         Returns:
-            Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
+            dict[str, Any] | None: 场景配置，如果不存在则返回None
         """
         try:
             config = self._get_scene_type_manager().get_scene_type_by_id(scene_id)
@@ -93,14 +95,14 @@ class PreviewService(QObject):
             self.error.emit(f"获取场景配置失败: {e}")
             return None
 
-    def get_scene_templates(self, scene_id: str) -> List[Dict[str, Any]]:
+    def get_scene_templates(self, scene_id: str) -> list[dict[str, Any]]:
         """获取场景的所有模板（内置 + 用户）
 
         Args:
             scene_id: 场景类型ID
 
         Returns:
-            List[Dict[str, Any]]: 模板列表
+            list[dict[str, Any]]: 模板列表
         """
         try:
             templates = self._get_scene_type_manager().get_all_templates(scene_id)
@@ -111,14 +113,14 @@ class PreviewService(QObject):
             self.error.emit(f"获取场景模板失败: {e}")
             return []
 
-    def get_layout_config(self, scene_id: str) -> Dict[str, Any]:
+    def get_layout_config(self, scene_id: str) -> dict[str, Any]:
         """获取场景的布局配置
 
         Args:
             scene_id: 场景类型ID
 
         Returns:
-            Dict[str, Any]: 布局配置字典
+            dict[str, Any]: 布局配置字典
         """
         try:
             config = self._get_scene_type_manager().get_layout_config(scene_id)
@@ -129,7 +131,7 @@ class PreviewService(QObject):
             self.error.emit(f"获取布局配置失败: {e}")
             return {}
 
-    def add_user_template(self, scene_id: str, template_path: str) -> Tuple[bool, str]:
+    def add_user_template(self, scene_id: str, template_path: str) -> tuple[bool, str]:
         """添加用户模板到场景
 
         Args:
@@ -137,7 +139,7 @@ class PreviewService(QObject):
             template_path: 模板文件路径
 
         Returns:
-            Tuple[bool, str]: (是否成功, 消息)
+            tuple[bool, str]: (是否成功, 消息)
         """
         try:
             template_data = {
@@ -160,7 +162,7 @@ class PreviewService(QObject):
             logger.error(f"添加用户模板失败: scene_id={scene_id}, path={template_path}, error={e}", exc_info=True)
             return False, f"添加模板失败: {e}"
 
-    def remove_user_template(self, scene_id: str, template_path: str) -> Tuple[bool, str]:
+    def remove_user_template(self, scene_id: str, template_path: str) -> tuple[bool, str]:
         """移除用户模板
 
         Args:
@@ -168,7 +170,7 @@ class PreviewService(QObject):
             template_path: 模板文件路径
 
         Returns:
-            Tuple[bool, str]: (是否成功, 消息)
+            tuple[bool, str]: (是否成功, 消息)
         """
         try:
             success = self._config_manager.remove_scene_template(scene_id, template_path)
@@ -185,14 +187,14 @@ class PreviewService(QObject):
             logger.error(f"移除用户模板失败: scene_id={scene_id}, path={template_path}, error={e}", exc_info=True)
             return False, f"删除模板失败: {e}"
 
-    def get_builtin_svg_path(self, scene_type: str) -> Optional[str]:
+    def get_builtin_svg_path(self, scene_type: str) -> str | None:
         """获取内置SVG模板路径
 
         Args:
             scene_type: 场景类型ID
 
         Returns:
-            Optional[str]: SVG文件路径，如果不存在则返回None
+            str | None: SVG文件路径，如果不存在则返回None
         """
         try:
             path = self._get_scene_type_manager().get_builtin_svg_path(scene_type)
@@ -203,7 +205,7 @@ class PreviewService(QObject):
             self.error.emit(f"获取内置SVG路径失败: {e}")
             return None
 
-    def apply_colors_to_svg(self, svg_content: str, colors: List[str]) -> Tuple[bool, str]:
+    def apply_colors_to_svg(self, svg_content: str, colors: list[str]) -> tuple[bool, str]:
         """将配色应用到SVG内容
 
         Args:
@@ -211,7 +213,7 @@ class PreviewService(QObject):
             colors: 颜色值列表（HEX格式）
 
         Returns:
-            Tuple[bool, str]: (是否成功, 处理后的SVG内容或错误信息)
+            tuple[bool, str]: (是否成功, 处理后的SVG内容或错误信息)
         """
         try:
             with log_performance("apply_colors_to_svg", {"color_count": len(colors)}):
@@ -230,14 +232,14 @@ class PreviewService(QObject):
             logger.error(f"应用配色失败: color_count={len(colors)}, error={e}", exc_info=True)
             return False, f"应用配色失败: {e}"
 
-    def validate_svg_file(self, file_path: str) -> Tuple[bool, str]:
+    def validate_svg_file(self, file_path: str) -> tuple[bool, str]:
         """验证SVG文件是否有效
 
         Args:
             file_path: SVG文件路径
 
         Returns:
-            Tuple[bool, str]: (是否有效, 错误信息)
+            tuple[bool, str]: (是否有效, 错误信息)
         """
         path = Path(file_path)
 
@@ -327,14 +329,14 @@ class PreviewService(QObject):
             logger.error(f"添加SVG背景失败: bg_color={bg_color}, error={e}", exc_info=True)
             return svg_content
 
-    def extract_hex_colors_from_favorite(self, favorite: Dict[str, Any]) -> List[str]:
+    def extract_hex_colors_from_favorite(self, favorite: dict[str, Any]) -> list[str]:
         """从收藏数据中提取 HEX 颜色列表
 
         Args:
             favorite: 收藏数据字典
 
         Returns:
-            List[str]: HEX 颜色列表
+            list[str]: HEX 颜色列表
         """
         colors_data = favorite.get('colors', [])
         hex_colors = []
@@ -348,7 +350,7 @@ class PreviewService(QObject):
 
         return hex_colors if hex_colors else ["#E8E8E8"]
 
-    def save_svg_to_file(self, svg_content: str, file_path: str) -> Tuple[bool, str]:
+    def save_svg_to_file(self, svg_content: str, file_path: str) -> tuple[bool, str]:
         """保存 SVG 内容到文件
 
         Args:
@@ -356,7 +358,7 @@ class PreviewService(QObject):
             file_path: 文件路径
 
         Returns:
-            Tuple[bool, str]: (是否成功, 消息)
+            tuple[bool, str]: (是否成功, 消息)
         """
         try:
             path = Path(file_path)
@@ -386,7 +388,7 @@ class PreviewService(QObject):
         return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
 
     def save_svg_as_png(self, svg_content: str, file_path: str,
-                        width: int = None, height: int = None) -> Tuple[bool, str]:
+                        width: int = None, height: int = None) -> tuple[bool, str]:
         """将 SVG 内容保存为 PNG 文件
 
         使用 QSvgRenderer 将 SVG 渲染为 QImage，然后保存为 PNG 格式。
@@ -399,7 +401,7 @@ class PreviewService(QObject):
             height: 输出图片高度（默认使用 SVG 原始高度）
 
         Returns:
-            Tuple[bool, str]: (是否成功, 消息)
+            tuple[bool, str]: (是否成功, 消息)
         """
         try:
             from PySide6.QtSvg import QSvgRenderer

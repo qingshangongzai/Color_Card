@@ -1,3 +1,4 @@
+from __future__ import annotations
 # 标准库导入
 import logging
 import sys
@@ -5,7 +6,7 @@ import time
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # 项目模块导入
 from .app_mode import get_config_dir
@@ -21,9 +22,9 @@ class LoggerManager:
     def __init__(self) -> None:
         """初始化日志管理器"""
         self._log_dir: Path = self._get_log_dir()
-        self._logger: Optional[logging.Logger] = None
+        self._logger: logging.Logger | None = None
         self._initialized: bool = False
-        self._current_log_file: Optional[Path] = None
+        self._current_log_file: Path | None = None
 
     def _get_log_dir(self) -> Path:
         """获取日志目录路径
@@ -149,7 +150,7 @@ class LoggerManager:
             pass
 
 
-_logger_manager: Optional[LoggerManager] = None
+_logger_manager: LoggerManager | None = None
 
 
 def get_logger_manager() -> LoggerManager:
@@ -176,7 +177,7 @@ def get_logger(name: str) -> logging.Logger:
     return get_logger_manager().get_logger(name)
 
 
-def log_user_action(action: str, params: Optional[Dict[str, Any]] = None, result: str = "") -> None:
+def log_user_action(action: str, params: dict[str, Any] | None = None, result: str = "") -> None:
     """记录用户操作
 
     Args:
@@ -191,7 +192,7 @@ def log_user_action(action: str, params: Optional[Dict[str, Any]] = None, result
 
 
 @contextmanager
-def log_performance(operation: str, params: Optional[Dict[str, Any]] = None):
+def log_performance(operation: str, params: dict[str, Any] | None = None):
     """性能日志上下文管理器
 
     Args:

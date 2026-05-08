@@ -1,8 +1,9 @@
+from __future__ import annotations
 # 标准库导入
 import math
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -41,7 +42,7 @@ class FavoriteGroupLoaderThread(BaseBatchLoader):
     
     data_ready = Signal(int, list)
     
-    def __init__(self, favorites: List[Dict[str, Any]], group_indices: List[int], batch_size: int = 10, parent=None):
+    def __init__(self, favorites: list[dict[str, Any]], group_indices: list[int], batch_size: int = 10, parent=None):
         """初始化加载线程
         
         Args:
@@ -469,7 +470,7 @@ class PaletteManagementCard(CardWidget):
     card_clicked = Signal(str)  # 信号：卡片被点击，传递favorite_id
     MAX_COLORS_PER_ROW = 6
 
-    def __init__(self, favorite_data: Dict[str, Any], card_index: int = 0, parent=None):
+    def __init__(self, favorite_data: dict[str, Any], card_index: int = 0, parent=None):
         self._favorite_data = favorite_data
         self._card_index = card_index
         self._hex_visible = True
@@ -972,7 +973,7 @@ class PaletteManagementList(QWidget):
         else:
             self._load_group_directly(self._current_group_indices)
 
-    def _create_palette_card(self, favorite: Dict[str, Any], card_index: int) -> PaletteManagementCard:
+    def _create_palette_card(self, favorite: dict[str, Any], card_index: int) -> PaletteManagementCard:
         """创建配色卡片并设置连接
 
         Args:
@@ -1019,7 +1020,7 @@ class PaletteManagementList(QWidget):
         finally:
             self.content_widget.setUpdatesEnabled(True)
 
-    def _start_batch_loading(self, group_indices: List[int]):
+    def _start_batch_loading(self, group_indices: list[int]):
         """启动分批加载
         
         Args:
@@ -1032,7 +1033,7 @@ class PaletteManagementList(QWidget):
         self._loader.loading_finished.connect(self._on_loading_finished)
         self._loader.start()
 
-    def _on_batch_data_ready(self, batch_idx: int, batch_data: List[Dict[str, Any]]):
+    def _on_batch_data_ready(self, batch_idx: int, batch_data: list[dict[str, Any]]):
         """批次数据就绪回调，跳过已删除的数据"""
         start_index = batch_idx * self.BATCH_SIZE
         for i, favorite in enumerate(batch_data):
@@ -1281,7 +1282,7 @@ class PaletteManagementList(QWidget):
             card.set_selected(False)
         self.selection_changed.emit(self._selected_ids.copy())
 
-    def delete_selected(self, deleted_indices: Dict[str, int]) -> int:
+    def delete_selected(self, deleted_indices: dict[str, int]) -> int:
         """批量删除选中的收藏
 
         Args:
@@ -2161,7 +2162,7 @@ class PaletteManagementInterface(QWidget):
         )
         dialog.exec()
 
-    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: Dict[str, Any]):
+    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: dict[str, Any]):
         """收藏颜色变化回调
 
         Args:

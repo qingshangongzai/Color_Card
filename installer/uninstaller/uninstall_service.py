@@ -2,12 +2,11 @@
 import shutil
 import sys
 from pathlib import Path
-
 # 第三方库导入
 from PySide6.QtCore import QObject, Signal, QThread
 
 # 项目模块导入
-from core import get_logger
+from core.logger import get_logger
 from installer.core.registry_installer import RegistryInstaller
 from installer.core.shortcut_installer import ShortcutInstaller
 
@@ -140,7 +139,7 @@ class UninstallWorker(QThread):
 
             # 关闭日志系统，释放文件占用
             try:
-                from core import get_logger_manager
+                from core.logger import get_logger_manager
                 logger_manager = get_logger_manager()
                 logger_manager.shutdown()
             except (OSError, RuntimeError):

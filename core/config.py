@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # 标准库导入
 import json
 import os
@@ -5,7 +7,7 @@ import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 # 项目模块导入
 from version import version_manager
@@ -43,7 +45,7 @@ class ConfigManager:
     def __init__(self) -> None:
         """初始化配置管理器"""
         self._config_path: Path = self._get_config_path()
-        self._config: Dict[str, Any] = {}
+        self._config: dict[str, Any] = {}
         self._load_default_config()
 
     def _get_config_path(self) -> Path:
@@ -97,11 +99,11 @@ class ConfigManager:
             "scene_templates": {}
         }
 
-    def load(self) -> Dict[str, Any]:
+    def load(self) -> dict[str, Any]:
         """从文件加载配置
 
         Returns:
-            Dict[str, Any]: 加载的配置字典
+            dict[str, Any]: 加载的配置字典
         """
         if not self._config_path.exists():
             logger.info("配置文件不存在，使用默认配置")
@@ -136,7 +138,7 @@ class ConfigManager:
         except (IOError, OSError) as e:
             logger.warning(f"备份损坏配置文件失败: {e}")
 
-    def _merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> None:
+    def _merge_config(self, base: dict[str, Any], override: dict[str, Any]) -> None:
         """递归合并配置字典
 
         Args:
@@ -149,7 +151,7 @@ class ConfigManager:
             else:
                 base[key] = value
 
-    def save(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def save(self, config: dict[str, Any] | None = None) -> None:
         """保存配置到文件
 
         Args:
@@ -204,15 +206,15 @@ class ConfigManager:
 
         config[keys[-1]] = value
 
-    def get_settings(self) -> Dict[str, Any]:
+    def get_settings(self) -> dict[str, Any]:
         """获取设置配置
 
         Returns:
-            Dict[str, Any]: 设置配置字典
+            dict[str, Any]: 设置配置字典
         """
         return self._config.get("settings", {})
 
-    def set_settings(self, settings: Dict[str, Any]) -> None:
+    def set_settings(self, settings: dict[str, Any]) -> None:
         """设置设置配置
 
         Args:
@@ -220,15 +222,15 @@ class ConfigManager:
         """
         self._config["settings"] = settings
 
-    def get_window_config(self) -> Dict[str, Any]:
+    def get_window_config(self) -> dict[str, Any]:
         """获取窗口配置
 
         Returns:
-            Dict[str, Any]: 窗口配置字典
+            dict[str, Any]: 窗口配置字典
         """
         return self._config.get("window", {})
 
-    def set_window_config(self, window_config: Dict[str, Any]) -> None:
+    def set_window_config(self, window_config: dict[str, Any]) -> None:
         """设置窗口配置
 
         Args:
@@ -236,21 +238,21 @@ class ConfigManager:
         """
         self._config["window"] = window_config
 
-    def get_favorites(self, include_deleted: bool = False) -> List[Dict[str, Any]]:
+    def get_favorites(self, include_deleted: bool = False) -> list[dict[str, Any]]:
         """获取收藏列表
 
         Args:
             include_deleted: 是否包含已删除的收藏
 
         Returns:
-            List[Dict[str, Any]]: 收藏配色方案列表
+            list[dict[str, Any]]: 收藏配色方案列表
         """
         favorites = self._config.get("favorites", [])
         if include_deleted:
             return favorites
         return [f for f in favorites if not f.get('_deleted')]
 
-    def get_favorite(self, favorite_id: str, include_deleted: bool = False) -> Optional[Dict[str, Any]]:
+    def get_favorite(self, favorite_id: str, include_deleted: bool = False) -> dict[str, Any] | None:
         """获取单个收藏项
 
         Args:
@@ -258,7 +260,7 @@ class ConfigManager:
             include_deleted: 是否包含已删除的收藏
 
         Returns:
-            Optional[Dict[str, Any]]: 收藏数据字典，未找到返回None
+            dict[str, Any] | None: 收藏数据字典，未找到返回None
         """
         favorites = self.get_favorites(include_deleted=include_deleted)
         for favorite in favorites:
@@ -266,7 +268,7 @@ class ConfigManager:
                 return favorite
         return None
 
-    def add_favorite(self, favorite_data: Dict[str, Any]) -> str:
+    def add_favorite(self, favorite_data: dict[str, Any]) -> str:
         """添加收藏
 
         Args:
@@ -315,11 +317,11 @@ class ConfigManager:
         self._config['favorites'] = [f for f in favorites if not f.get('_deleted')]
         return original_count - len(self._config['favorites'])
 
-    def get_valid_indices(self) -> Set[int]:
+    def get_valid_indices(self) -> set[int]:
         """获取有效（未删除）数据的索引集合
 
         Returns:
-            Set[int]: 有效数据的索引集合
+            set[int]: 有效数据的索引集合
         """
         favorites = self._config.get('favorites', [])
         return {i for i, f in enumerate(favorites) if not f.get('_deleted')}
@@ -364,7 +366,7 @@ class ConfigManager:
         """清空所有收藏"""
         self._config["favorites"] = []
 
-    def set_favorites(self, favorites: List[Dict[str, Any]]) -> None:
+    def set_favorites(self, favorites: list[dict[str, Any]]) -> None:
         """设置收藏列表（用于批量替换）
 
         Args:
@@ -372,7 +374,7 @@ class ConfigManager:
         """
         self._config["favorites"] = favorites
 
-    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: Dict[str, Any]) -> bool:
+    def update_favorite_color(self, favorite_id: str, color_index: int, color_info: dict[str, Any]) -> bool:
         """更新收藏中的颜色
 
         Args:
@@ -396,7 +398,7 @@ class ConfigManager:
 
         return False
 
-    def update_favorite(self, favorite_id: str, palette_data: Dict[str, Any]) -> bool:
+    def update_favorite(self, favorite_id: str, palette_data: dict[str, Any]) -> bool:
         """更新整个收藏配色
 
         Args:
@@ -418,7 +420,7 @@ class ConfigManager:
 
         return False
 
-    def reorder_favorites(self, new_order_ids: List[str]) -> bool:
+    def reorder_favorites(self, new_order_ids: list[str]) -> bool:
         """根据ID列表重新排序收藏
 
         Args:
@@ -452,15 +454,15 @@ class ConfigManager:
         self._config["favorites"] = new_favorites
         return True
 
-    def get_scene_templates(self) -> Dict[str, List[Dict[str, Any]]]:
+    def get_scene_templates(self) -> dict[str, list[dict[str, Any]]]:
         """获取用户场景模板索引
 
         Returns:
-            Dict[str, List[Dict[str, Any]]]: 场景模板索引字典
+            dict[str, list[dict[str, Any]]]: 场景模板索引字典
         """
         return self._config.get("scene_templates", {})
 
-    def add_scene_template(self, scene_type: str, template_data: Dict[str, Any]) -> bool:
+    def add_scene_template(self, scene_type: str, template_data: dict[str, Any]) -> bool:
         """添加场景模板
 
         Args:
@@ -509,14 +511,14 @@ class ConfigManager:
 
         return len(self._config["scene_templates"][scene_type]) < original_count
 
-    def get_scene_templates_by_type(self, scene_type: str) -> List[Dict[str, Any]]:
+    def get_scene_templates_by_type(self, scene_type: str) -> list[dict[str, Any]]:
         """获取指定场景类型的模板列表
 
         Args:
             scene_type: 场景类型ID
 
         Returns:
-            List[Dict[str, Any]]: 模板列表
+            list[dict[str, Any]]: 模板列表
         """
         templates = self._config.get("scene_templates", {})
         return templates.get(scene_type, [])
@@ -532,7 +534,7 @@ class SceneConfigManager:
         """初始化场景配置管理器"""
         self._scenes_dir: Path = self._get_scenes_dir()
         self._user_scenes_dir: Path = self._scenes_dir / self.USER_SCENES_DIR_NAME
-        self._user_scenes: List[Dict[str, Any]] = []
+        self._user_scenes: list[dict[str, Any]] = []
         self._loaded: bool = False  # 延迟加载标志
 
     def _get_scenes_dir(self) -> Path:
@@ -580,32 +582,32 @@ class SceneConfigManager:
 
         print(f"已加载 {len(self._user_scenes)} 个用户场景")
 
-    def get_all_scenes(self) -> List[Dict[str, Any]]:
+    def get_all_scenes(self) -> list[dict[str, Any]]:
         """获取所有场景配置
 
         Returns:
-            List[Dict[str, Any]]: 所有场景配置列表
+            list[dict[str, Any]]: 所有场景配置列表
         """
         self._ensure_loaded()
         return self._user_scenes.copy()
 
-    def get_user_scenes(self) -> List[Dict[str, Any]]:
+    def get_user_scenes(self) -> list[dict[str, Any]]:
         """获取用户自定义场景配置
 
         Returns:
-            List[Dict[str, Any]]: 用户场景配置列表
+            list[dict[str, Any]]: 用户场景配置列表
         """
         self._ensure_loaded()
         return self._user_scenes.copy()
 
-    def get_scene_by_id(self, scene_id: str) -> Optional[Dict[str, Any]]:
+    def get_scene_by_id(self, scene_id: str) -> dict[str, Any] | None:
         """根据ID获取场景配置
 
         Args:
             scene_id: 场景ID
 
         Returns:
-            Optional[Dict[str, Any]]: 场景配置，如果不存在则返回None
+            dict[str, Any] | None: 场景配置，如果不存在则返回None
         """
         self._ensure_loaded()
         for scene in self._user_scenes:
@@ -614,14 +616,14 @@ class SceneConfigManager:
 
         return None
 
-    def import_scene(self, file_path: str) -> Tuple[bool, str]:
+    def import_scene(self, file_path: str) -> tuple[bool, str]:
         """导入场景配置文件
 
         Args:
             file_path: 配置文件路径
 
         Returns:
-            Tuple[bool, str]: (是否成功, 错误信息或成功消息)
+            tuple[bool, str]: (是否成功, 错误信息或成功消息)
         """
         self._ensure_loaded()
         try:
@@ -665,7 +667,7 @@ class SceneConfigManager:
         except Exception as e:
             return False, f"导入失败: {e}"
 
-    def export_scene(self, scene_id: str, file_path: str) -> Tuple[bool, str]:
+    def export_scene(self, scene_id: str, file_path: str) -> tuple[bool, str]:
         """导出场景配置到文件
 
         Args:
@@ -673,7 +675,7 @@ class SceneConfigManager:
             file_path: 导出文件路径
 
         Returns:
-            Tuple[bool, str]: (是否成功, 错误信息或成功消息)
+            tuple[bool, str]: (是否成功, 错误信息或成功消息)
         """
         scene_config = self.get_scene_by_id(scene_id)
         if not scene_config:
@@ -702,14 +704,14 @@ class SceneConfigManager:
         except Exception as e:
             return False, f"导出失败: {e}"
 
-    def save_user_scene(self, scene_config: Dict[str, Any]) -> Tuple[bool, str]:
+    def save_user_scene(self, scene_config: dict[str, Any]) -> tuple[bool, str]:
         """保存用户自定义场景
 
         Args:
             scene_config: 场景配置字典
 
         Returns:
-            Tuple[bool, str]: (是否成功, 错误信息或成功消息)
+            tuple[bool, str]: (是否成功, 错误信息或成功消息)
         """
         self._ensure_loaded()
         # 验证配置格式
@@ -772,8 +774,8 @@ class SceneConfigManager:
 
 
 # 全局配置管理器实例
-_config_manager: Optional[ConfigManager] = None
-_scene_config_manager: Optional[SceneConfigManager] = None
+_config_manager: ConfigManager | None = None
+_scene_config_manager: SceneConfigManager | None = None
 
 
 def get_config_manager() -> ConfigManager:
@@ -809,7 +811,7 @@ class SceneTypeManager:
     def __init__(self) -> None:
         """初始化场景类型管理器"""
         self._scenes_data_dir: Path = self._get_scenes_data_dir()
-        self._scene_types: List[Dict[str, Any]] = []
+        self._scene_types: list[dict[str, Any]] = []
         self._loaded: bool = False
 
     def _get_scenes_data_dir(self) -> Path:
@@ -845,23 +847,23 @@ class SceneTypeManager:
             logger.error(f"加载场景类型配置失败: {e}", exc_info=True)
             self._scene_types = []
 
-    def get_all_scene_types(self) -> List[Dict[str, Any]]:
+    def get_all_scene_types(self) -> list[dict[str, Any]]:
         """获取所有场景类型配置
 
         Returns:
-            List[Dict[str, Any]]: 场景类型配置列表
+            list[dict[str, Any]]: 场景类型配置列表
         """
         self._ensure_loaded()
         return self._scene_types.copy()
 
-    def get_scene_type_by_id(self, scene_id: str) -> Optional[Dict[str, Any]]:
+    def get_scene_type_by_id(self, scene_id: str) -> dict[str, Any] | None:
         """根据ID获取场景类型配置
 
         Args:
             scene_id: 场景类型ID
 
         Returns:
-            Optional[Dict[str, Any]]: 场景类型配置，如果不存在则返回None
+            dict[str, Any] | None: 场景类型配置，如果不存在则返回None
         """
         self._ensure_loaded()
         for scene_type in self._scene_types:
@@ -869,7 +871,7 @@ class SceneTypeManager:
                 return scene_type.copy()
         return None
 
-    def get_builtin_svg_path(self, scene_type: str) -> Optional[str]:
+    def get_builtin_svg_path(self, scene_type: str) -> str | None:
         """获取内置SVG模板路径
 
         Args:
@@ -885,7 +887,7 @@ class SceneTypeManager:
         logger.warning(f"SVG file not found: {svg_path}")
         return None
 
-    def get_layout_config(self, scene_type: str) -> Dict[str, Any]:
+    def get_layout_config(self, scene_type: str) -> dict[str, Any]:
         """加载场景的布局配置
 
         Args:
@@ -906,14 +908,14 @@ class SceneTypeManager:
             print(f"加载布局配置失败: {e}")
             return {}
 
-    def get_all_templates(self, scene_type: str) -> List[Dict[str, Any]]:
+    def get_all_templates(self, scene_type: str) -> list[dict[str, Any]]:
         """获取场景类型的所有模板（内置 + 用户模板）
 
         Args:
             scene_type: 场景类型ID
 
         Returns:
-            List[Dict[str, Any]]: 模板列表，每个模板包含 path, is_builtin 字段
+            list[dict[str, Any]]: 模板列表，每个模板包含 path, is_builtin 字段
         """
         templates = []
 
@@ -944,7 +946,7 @@ class SceneTypeManager:
         return templates
 
 
-_scene_type_manager: Optional[SceneTypeManager] = None
+_scene_type_manager: SceneTypeManager | None = None
 
 
 def get_scene_type_manager() -> SceneTypeManager:

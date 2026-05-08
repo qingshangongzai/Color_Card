@@ -1,8 +1,10 @@
 """明度分析对话框"""
 
+from __future__ import annotations
+
 import math
 import sys
-from typing import List, Optional
+
 
 import numpy as np
 from PySide6.QtCharts import (
@@ -48,7 +50,7 @@ class AnalysisWorker(QThread):
 class ImageDisplayWidget(QWidget):
     """图片显示组件"""
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         layout = QHBoxLayout(self)
         layout.setSpacing(10)
@@ -70,8 +72,8 @@ class ImageDisplayWidget(QWidget):
         layout.addWidget(self._grayscale_label)
 
         # 保存原始图片数据用于重绘
-        self._img_rgb: Optional[np.ndarray] = None
-        self._gray: Optional[np.ndarray] = None
+        self._img_rgb: np.ndarray | None = None
+        self._gray: np.ndarray | None = None
 
     def set_images(self, img_rgb: np.ndarray, gray: np.ndarray) -> None:
         """设置图片"""
@@ -119,7 +121,7 @@ class ImageDisplayWidget(QWidget):
 class PieChartWidget(QWidget):
     """QtCharts 饼图组件"""
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -309,12 +311,12 @@ class HistogramChartView(QChartView):
 class HistogramWidget(QWidget):
     """直方图组件，支持线连接和柱状图两种显示模式，支持缩放模式切换"""
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self._histogram_style = "bar"  # "line" 或 "bar"
         self._scaling_mode = "adaptive"  # "linear" 或 "adaptive"
-        self._hist_data: Optional[np.ndarray] = None
-        self._result_data: Optional[ToneAnalysisResult] = None
+        self._hist_data: np.ndarray | None = None
+        self._result_data: ToneAnalysisResult | None = None
         self._cv: float = 0.0  # 变异系数
 
         layout = QVBoxLayout(self)
@@ -427,7 +429,7 @@ class HistogramWidget(QWidget):
         # 更新主题颜色
         self._update_theme_colors()
 
-    def _create_bar_series(self, normalized_values: List[float],
+    def _create_bar_series(self, normalized_values: list[float],
                            axis_x: QValueAxis, axis_y: QValueAxis) -> QBarSeries:
         """创建柱状图系列
 
@@ -463,7 +465,7 @@ class HistogramWidget(QWidget):
 
         return bar_series
 
-    def _create_line_series(self, normalized_values: List[float],
+    def _create_line_series(self, normalized_values: list[float],
                             axis_x: QValueAxis, axis_y: QValueAxis) -> QLineSeries:
         """创建线连接系列
 
@@ -496,14 +498,14 @@ class HistogramWidget(QWidget):
 
         return line_series
 
-    def _apply_scaling(self, values: List[float]) -> List[float]:
+    def _apply_scaling(self, values: list[float]) -> list[float]:
         """应用缩放模式到数据，返回归一化比例(0-1)
 
         Args:
             values: 原始数据值列表
 
         Returns:
-            List[float]: 归一化比例列表(0-1)
+            list[float]: 归一化比例列表(0-1)
         """
         max_value = max(values)
         if max_value == 0:
@@ -532,7 +534,7 @@ class HistogramWidget(QWidget):
 
         return scaled_values
 
-    def _calculate_cv(self, values: List[float]) -> float:
+    def _calculate_cv(self, values: list[float]) -> float:
         """计算变异系数（CV）
 
         CV = 标准差 / 平均值
@@ -607,7 +609,7 @@ class HistogramWidget(QWidget):
 class ChartsWidget(QWidget):
     """Qt 图表组件（替代 MatplotlibWidget）"""
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setMinimumHeight(400)
 
@@ -683,7 +685,7 @@ class ChartsWidget(QWidget):
 class StatCard(CardWidget):
     """统计信息卡片"""
 
-    def __init__(self, title: str, value: str, parent: Optional[QWidget] = None,
+    def __init__(self, title: str, value: str, parent: QWidget | None = None,
                  hint: str = ""):
         super().__init__(parent)
         self._title = title
@@ -723,13 +725,13 @@ class StatCard(CardWidget):
 class ToneAnalysisDialog(BaseFramelessDialog):
     """明度分析对话框"""
 
-    def __init__(self, img_array: Optional[np.ndarray], image_key: Optional[str] = None,
-                 parent: Optional[QWidget] = None):
+    def __init__(self, img_array: np.ndarray | None, image_key: str | None = None,
+                 parent: QWidget | None = None):
         super().__init__(parent)
         self._img_array = img_array
         self._image_key = image_key
         self._service = ToneAnalysisService()
-        self._worker: Optional[AnalysisWorker] = None
+        self._worker: AnalysisWorker | None = None
 
         self.setWindowTitle(tr('tone_analysis.dialog_title'))
         self.setMinimumSize(900, 600)

@@ -2,9 +2,9 @@ name: Build Mac App with Nuitka
 
 on:
   push:
-    branches: [ main, feature/installer ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   build-macos:
@@ -76,7 +76,6 @@ jobs:
           --include-data-dir=ui=ui \
           --include-data-dir=utils=utils \
           --enable-plugin=pyside6 \
-          --lto=yes \
           --jobs=4 \
           --output-dir=dist \
           main.py

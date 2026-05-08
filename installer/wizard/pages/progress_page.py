@@ -3,7 +3,6 @@ from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
 from qfluentwidgets import ProgressBar
-
 # 项目模块导入
 from installer.wizard.base_page import BasePage
 

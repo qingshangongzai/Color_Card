@@ -4,8 +4,10 @@
 使用 LMS 色彩空间转换矩阵实现准确的色盲模拟。
 """
 
-from typing import Tuple, Dict
 
+
+
+from __future__ import annotations
 
 # 色盲类型定义
 COLORBLIND_TYPES = {
@@ -32,7 +34,7 @@ COLORBLIND_TYPES = {
 }
 
 
-def rgb_to_lms(r: int, g: int, b: int) -> Tuple[float, float, float]:
+def rgb_to_lms(r: int, g: int, b: int) -> tuple[float, float, float]:
     """将 RGB 转换为 LMS 色彩空间
     
     LMS 代表长波(L)、中波(M)、短波(S)视锥细胞的响应值。
@@ -70,7 +72,7 @@ def rgb_to_lms(r: int, g: int, b: int) -> Tuple[float, float, float]:
     return (L, M, S)
 
 
-def lms_to_rgb(L: float, M: float, S: float) -> Tuple[int, int, int]:
+def lms_to_rgb(L: float, M: float, S: float) -> tuple[int, int, int]:
     """将 LMS 转换回 RGB 色彩空间
 
     Args:
@@ -105,7 +107,7 @@ def lms_to_rgb(L: float, M: float, S: float) -> Tuple[int, int, int]:
     return (R, G, B)
 
 
-def simulate_protanopia(L: float, M: float, S: float) -> Tuple[float, float, float]:
+def simulate_protanopia(L: float, M: float, S: float) -> tuple[float, float, float]:
     """模拟红色盲 (Protanopia)
 
     红色视锥细胞缺失，L 通道信息丢失。
@@ -118,7 +120,7 @@ def simulate_protanopia(L: float, M: float, S: float) -> Tuple[float, float, flo
     return (L_blind, M_blind, S_blind)
 
 
-def simulate_deuteranopia(L: float, M: float, S: float) -> Tuple[float, float, float]:
+def simulate_deuteranopia(L: float, M: float, S: float) -> tuple[float, float, float]:
     """模拟绿色盲 (Deuteranopia)
 
     绿色视锥细胞缺失，M 通道信息丢失。
@@ -131,7 +133,7 @@ def simulate_deuteranopia(L: float, M: float, S: float) -> Tuple[float, float, f
     return (L_blind, M_blind, S_blind)
 
 
-def simulate_tritanopia(L: float, M: float, S: float) -> Tuple[float, float, float]:
+def simulate_tritanopia(L: float, M: float, S: float) -> tuple[float, float, float]:
     """模拟蓝色盲 (Tritanopia)
 
     蓝色视锥细胞缺失，S 通道信息丢失。
@@ -144,7 +146,7 @@ def simulate_tritanopia(L: float, M: float, S: float) -> Tuple[float, float, flo
     return (L_blind, M_blind, S_blind)
 
 
-def simulate_achromatopsia(L: float, M: float, S: float) -> Tuple[float, float, float]:
+def simulate_achromatopsia(L: float, M: float, S: float) -> tuple[float, float, float]:
     """模拟全色盲 (Achromatopsia)
 
     完全无法感知颜色，转换为灰度。
@@ -156,9 +158,9 @@ def simulate_achromatopsia(L: float, M: float, S: float) -> Tuple[float, float, 
 
 
 def simulate_colorblind(
-    rgb: Tuple[int, int, int],
+    rgb: tuple[int, int, int],
     colorblind_type: str = 'normal'
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """模拟指定类型的色盲效果
     
     Args:
@@ -197,7 +199,7 @@ def simulate_colorblind(
     return lms_to_rgb(L, M, S)
 
 
-def get_colorblind_info(colorblind_type: str) -> Dict[str, str]:
+def get_colorblind_info(colorblind_type: str) -> dict[str, str]:
     """获取色盲类型的信息
     
     Args:
@@ -212,7 +214,7 @@ def get_colorblind_info(colorblind_type: str) -> Dict[str, str]:
     })
 
 
-def get_all_colorblind_types() -> Dict[str, Dict[str, str]]:
+def get_all_colorblind_types() -> dict[str, dict[str, str]]:
     """获取所有支持的色盲类型
     
     Returns:

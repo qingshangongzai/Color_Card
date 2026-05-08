@@ -4,8 +4,10 @@
 UI层通过ColorService调用业务功能，实现UI与业务逻辑分离。
 """
 
+from __future__ import annotations
+
 # 标准库导入
-from typing import List, Optional, Tuple
+
 
 # 第三方库导入
 import numpy as np
@@ -26,7 +28,7 @@ class DominantColorExtractor(QThread):
     extraction_error = Signal(str)
     extraction_progress = Signal(int)
 
-    def __init__(self, image, count: int = 5, original_pixels: Optional[np.ndarray] = None,
+    def __init__(self, image, count: int = 5, original_pixels: np.ndarray | None = None,
                  algorithm: str = 'mmcq', parent=None):
         """
         Args:
@@ -101,7 +103,7 @@ class ColorService(QObject):
             self._extractor.wait(1000)
 
     def extract_dominant_colors(self, image, count: int = 5,
-                                original_pixels: Optional[np.ndarray] = None,
+                                original_pixels: np.ndarray | None = None,
                                 algorithm: str = 'mmcq'):
         """开始提取主色调
 
@@ -140,8 +142,8 @@ class ColorService(QObject):
             self._extractor.cancel()
             logger.debug("提取任务已取消")
 
-    def _on_extraction_finished(self, dominant_colors: List[Tuple[int, int, int]],
-                                positions: List[Tuple[float, float]]):
+    def _on_extraction_finished(self, dominant_colors: list[tuple[int, int, int]],
+                                positions: list[tuple[float, float]]):
         """提取完成处理"""
         logger.info(f"主色调提取完成: 颜色数量={len(dominant_colors)}")
         self.extraction_finished.emit(dominant_colors, positions)

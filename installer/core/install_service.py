@@ -1,3 +1,4 @@
+from __future__ import annotations
 # 标准库导入
 from pathlib import Path
 from typing import Any
@@ -6,7 +7,7 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal, QThread
 
 # 项目模块导入
-from core import get_logger
+from core.logger import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.registry_installer import RegistryInstaller
 from installer.core.permission_checker import is_frozen, get_exe_path, close_app_processes
@@ -115,6 +116,8 @@ class InstallWorker(QThread):
             bool: 是否成功
         """
         try:
+            self._registry_installer.remove_inno_entry()
+
             install_size_kb = FileInstaller.calculate_size(install_path)
             config = {
                 'install_path': str(install_path),

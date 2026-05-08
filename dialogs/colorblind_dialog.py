@@ -3,8 +3,10 @@
 提供配色方案的色盲模拟预览功能，支持多种色盲类型切换。
 """
 
+from __future__ import annotations
+
 # 标准库导入
-from typing import List, Dict, Tuple
+
 
 # 第三方库导入
 from PySide6.QtCore import Qt
@@ -36,7 +38,7 @@ class ColorBlock(QWidget):
         self.setFixedSize(width, height)
         self._color = QColor(200, 200, 200)
 
-    def set_color(self, rgb: Tuple[int, int, int]):
+    def set_color(self, rgb: tuple[int, int, int]):
         """设置颜色"""
         self._color = QColor(rgb[0], rgb[1], rgb[2])
         self.update()
@@ -114,7 +116,7 @@ class ColorComparisonRow(QWidget):
         self.original_hex.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
         self.simulated_hex.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
     
-    def set_colors(self, original_rgb: Tuple[int, int, int], simulated_rgb: Tuple[int, int, int]):
+    def set_colors(self, original_rgb: tuple[int, int, int], simulated_rgb: tuple[int, int, int]):
         """设置颜色对比
         
         Args:
@@ -138,7 +140,7 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
     显示配色方案在不同色盲类型下的视觉效果。
     """
 
-    def __init__(self, scheme_name: str, colors: List[Dict], parent=None):
+    def __init__(self, scheme_name: str, colors: list[Dict], parent=None):
         """初始化色盲预览对话框
 
         Args:

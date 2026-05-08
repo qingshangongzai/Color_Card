@@ -1,8 +1,9 @@
+from __future__ import annotations
 # 标准库导入
 import base64
 import json
 import re
-from typing import Dict, List, Tuple
+
 
 # 第三方库导入
 import requests
@@ -105,7 +106,7 @@ class UpdateCheckThread(QThread):
         # 默认返回第一个
         return assets[0].get("browser_download_url", "") if assets else ""
 
-    def _fetch_changelog(self, current_version: str, latest_version: str) -> List[Dict]:
+    def _fetch_changelog(self, current_version: str, latest_version: str) -> list[Dict]:
         """从 Gitee 获取 changelog.json 并提取更新日志
 
         Args:
@@ -113,7 +114,7 @@ class UpdateCheckThread(QThread):
             latest_version: 最新版本号
 
         Returns:
-            List[Dict]: 版本信息列表
+            list[Dict]: 版本信息列表
         """
         try:
             # 获取 changelog.json 文件内容
@@ -135,7 +136,7 @@ class UpdateCheckThread(QThread):
         except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
             return []
 
-    def _format_changelog(self, changelog_data: Dict, current_version: str) -> List[Dict]:
+    def _format_changelog(self, changelog_data: Dict, current_version: str) -> list[Dict]:
         """格式化更新日志
 
         Args:
@@ -143,7 +144,7 @@ class UpdateCheckThread(QThread):
             current_version: 当前版本号
 
         Returns:
-            List[Dict]: 版本信息列表，每个版本包含 version、date、changes
+            list[Dict]: 版本信息列表，每个版本包含 version、date、changes
         """
         versions = changelog_data.get("versions", [])
 
@@ -160,14 +161,14 @@ class UpdateCheckThread(QThread):
 _PRE_RELEASE_ORDER = {"alpha": -3, "beta": -2, "rc": -1}
 
 
-def _parse_version(version_str: str) -> Tuple[List[int], int, int]:
+def _parse_version(version_str: str) -> tuple[list[int], int, int]:
     """解析版本号为数字列表、预发布标识和预发布版本号
 
     Args:
         version_str: 版本号字符串
 
     Returns:
-        Tuple[List[int], int, int]: (版本号数字列表, 预发布标识, 预发布版本号)
+        tuple[list[int], int, int]: (版本号数字列表, 预发布标识, 预发布版本号)
         预发布标识: 0=正式版, -1=RC, -2=Beta, -3=Alpha
         预发布版本号: Beta1/Beta2等后面的数字，默认0
     """
@@ -280,7 +281,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         # 样式准备好后允许显示
         self._enable_show()
 
-    def _changelog_to_html(self, versions: List[Dict]) -> str:
+    def _changelog_to_html(self, versions: list[Dict]) -> str:
         """将版本信息列表转换为 HTML
 
         Args:

@@ -1,3 +1,4 @@
+from __future__ import annotations
 # 标准库导入
 from typing import Any
 
@@ -7,10 +8,11 @@ from PySide6.QtCore import Qt, QTimer
 from qfluentwidgets import setThemeColor
 
 # 项目模块导入
-from dialogs import BaseFramelessDialog
+from dialogs.base_frameless_dialog import BaseFramelessDialog
 from installer.wizard.base_page import BasePage
 from installer.core.permission_checker import run_as_admin
-from utils import load_icon_universal, fix_windows_taskbar_icon_for_window
+from utils.icon import load_icon_universal
+from utils.platform import fix_windows_taskbar_icon_for_window
 
 
 class InstallWizard(BaseFramelessDialog):

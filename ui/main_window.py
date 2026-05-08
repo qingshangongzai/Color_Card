@@ -1,6 +1,7 @@
+from __future__ import annotations
 # 标准库导入
 import sys
-from typing import List, Dict, Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -224,7 +225,7 @@ class MainWindow(FluentWindow):
         }
 
         # 界面实例缓存
-        self._interfaces: Dict[str, 'QWidget'] = {}
+        self._interfaces: dict[str, 'QWidget'] = {}
 
         # 设置导航（按需创建界面）
         self.setup_navigation()
@@ -727,7 +728,7 @@ class MainWindow(FluentWindow):
         if 'colorPreview' in self._interfaces:
             self._get_interface('colorPreview').refresh_favorites()
 
-    def show_color_preview(self, colors: List[str]):
+    def show_color_preview(self, colors: list[str]):
         """跳转到配色预览页面并显示指定配色
 
         Args:
@@ -769,7 +770,7 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
-    def _on_preset_color_preview(self, preview_data: Dict[str, Any]):
+    def _on_preset_color_preview(self, preview_data: dict[str, Any]):
         """处理内置色彩界面的预览请求
 
         Args:
