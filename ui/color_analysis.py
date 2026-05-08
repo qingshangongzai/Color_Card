@@ -21,7 +21,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import get_color_info, get_config_manager, get_color_service, log_user_action
+from core import get_color_info, convert_rgb_colorspace, get_config_manager, get_color_service, log_user_action
 from utils import tr, get_locale_manager, get_default_image_directory, get_last_directory, set_last_directory
 from dialogs import EditPaletteDialog
 from .canvases import ImageCanvas
@@ -34,7 +34,7 @@ class ColorAnalysisInterface(QWidget):
     """色彩分析界面"""
 
     # 图片同步信号（替代中介者）
-    image_sync_requested = Signal(object, object)  # QPixmap, QImage
+    image_sync_requested = Signal(object)  # ImageData
     clear_sync_requested = Signal()
 
     def __init__(self, parent=None):
@@ -229,25 +229,42 @@ class ColorAnalysisInterface(QWidget):
             set_last_directory("image_import", str(Path(file_path).parent))
             self.image_canvas.set_image(file_path)
 
-    def on_image_loaded(self, file_path):
+    def on_image_loaded(self, image_path):
         """图片加载完成回调"""
         # 图片数据处理已在 _setup_after_load 中完成
-        pixmap = self.image_canvas._original_pixmap
-        image = self.image_canvas._image
-        if pixmap and not pixmap.isNull() and image and not image.isNull():
+        image_data = self.image_canvas._image_data
+        if image_data is not None:
             # 直接发射同步信号
-            self.image_sync_requested.emit(pixmap, image)
+            self.image_sync_requested.emit(image_data)
 
             # 更新RGB直方图和色相直方图
-            self.rgb_histogram_widget.set_image(image)
-            self.hue_histogram_widget.set_image(image)
+            self.rgb_histogram_widget.set_image(image_data.display_image)
+            self.hue_histogram_widget.set_image(image_data.display_image)
 
     def on_color_picked(self, index, rgb):
         """颜色提取回调"""
-        color_info = get_color_info(*rgb)
+        colorspace_info = self.image_canvas.get_colorspace_info()
+        source_colorspace = colorspace_info.name if colorspace_info else 'sRGB'
+
+        picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
+
+        if picker_mode == 'display':
+            display_colorspace = self.image_canvas.get_display_colorspace()
+            if display_colorspace and display_colorspace != source_colorspace:
+                rgb = convert_rgb_colorspace(*rgb, source_colorspace, display_colorspace)
+                target_colorspace = display_colorspace
+            else:
+                target_colorspace = source_colorspace
+        else:
+            target_colorspace = source_colorspace
+
+        color_info = get_color_info(*rgb, colorspace_name=target_colorspace)
         self.color_card_panel.update_color(index, color_info)
-        # 更新HSB色环上的采样点
-        self.hsb_color_wheel.update_sample_point(index, rgb)
+        self.hsb_color_wheel.update_sample_point(index, color_info['rgb'])
+
+    def refresh_color_cards(self):
+        """刷新所有颜色卡片（设置更改后调用）"""
+        self.image_canvas.extract_all()
 
     def clear_all(self, emit_signal: bool = True):
         """清空所有相关内容（图片、色卡、色环、直方图）
@@ -275,17 +292,16 @@ class ColorAnalysisInterface(QWidget):
         # 直接发射同步信号
         self.clear_sync_requested.emit()
 
-    def set_image_data(self, pixmap, image):
+    def set_image_data(self, image_data):
         """设置图片数据（从其他面板同步）
 
         Args:
-            pixmap: QPixmap 对象
-            image: QImage 对象
+            image_data: ImageData 对象
         """
         # emit_sync=False 防止循环同步
-        self.image_canvas.set_image_data(pixmap, image, emit_sync=False)
-        self.rgb_histogram_widget.set_image(image)
-        self.hue_histogram_widget.set_image(image)
+        self.image_canvas.set_image_data(image_data, emit_sync=False)
+        self.rgb_histogram_widget.set_image(image_data.display_image)
+        self.hue_histogram_widget.set_image(image_data.display_image)
 
         # 延迟更新HSB色环采样点，等待颜色提取完成
         # extract_all 使用 100ms 延迟，这里使用 300ms 确保颜色已提取
@@ -410,7 +426,10 @@ class ColorAnalysisInterface(QWidget):
             params={"count": count, "source": "color_analysis"}
         )
 
-        self._get_color_service().extract_dominant_colors(image, count=count)
+        original_pixels = self.image_canvas.get_original_pixels()
+        self._get_color_service().extract_dominant_colors(
+            image, count=count, original_pixels=original_pixels
+        )
 
     def _on_extraction_started(self):
         """提取开始回调"""

@@ -34,6 +34,7 @@ from .color import (
     hsl_to_rgb,
     cmyk_to_rgb,
     get_color_info,
+    convert_rgb_colorspace,
     get_luminance,
     get_zone,
     get_zone_bounds,
@@ -81,6 +82,9 @@ from .gradient import (
 from .async_loader import BaseBatchLoader
 from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
 from .cache_base import BaseCache
+
+# 图片数据容器（从 image_service 导出，避免循环导入）
+from .image_service import ImageData, ColorSpaceInfo
 
 # UI直接使用的服务类（轻量级，立即导入）
 from .histogram_service import HistogramService, HistogramCalculator
@@ -205,6 +209,9 @@ __all__ = [
     'generate_groups',
     'should_use_batch_loading',
     'BaseCache',
+    # 图片数据容器
+    'ImageData',
+    'ColorSpaceInfo',
     # 日志
     'LoggerManager',
     'get_logger_manager',

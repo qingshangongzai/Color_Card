@@ -40,6 +40,7 @@ class SettingsInterface(QWidget):
     gradient_mode_changed = Signal(str)
     luminance_default_grayscale_changed = Signal(bool)
     histogram_sampling_mode_changed = Signal(str)
+    color_picker_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -60,8 +61,9 @@ class SettingsInterface(QWidget):
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
         self._histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
-        self._language = self._config_manager.get('settings.language', 'ZW_JT')
+        self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
         self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
+        self._language = self._config_manager.get('settings.language', 'ZW_JT')
         self.setup_ui()
         self._update_styles()
         self._update_color_space_availability(self._gradient_mode)
@@ -115,6 +117,9 @@ class SettingsInterface(QWidget):
 
         self.color_mode_card = self._create_color_mode_card()
         self.card_display_group.addSettingCard(self.color_mode_card)
+
+        self.color_picker_mode_card = self._create_color_picker_mode_card()
+        self.card_display_group.addSettingCard(self.color_picker_mode_card)
 
         layout.addWidget(self.card_display_group)
 
@@ -361,6 +366,12 @@ class SettingsInterface(QWidget):
         self.color_mode_card.titleLabel.setText(tr('settings.color_mode'))
         self.color_mode_card.contentLabel.setText(tr('settings.color_mode_desc'))
 
+        # 更新取色模式卡片
+        self.color_picker_mode_card.titleLabel.setText(tr('settings.color_picker_mode'))
+        self.color_picker_mode_card.contentLabel.setText(tr('settings.color_picker_mode_desc'))
+        self.color_picker_mode_card.combo_box.setItemText(0, tr('settings.color_picker_mode_original'))
+        self.color_picker_mode_card.combo_box.setItemText(1, tr('settings.color_picker_mode_display'))
+
         # 更新采样卡片
         self.color_sample_count_card.titleLabel.setText(tr('settings.color_sample_count'))
         self.color_sample_count_card.contentLabel.setText(tr('settings.color_sample_count_desc'))
@@ -492,6 +503,48 @@ class SettingsInterface(QWidget):
         card.combo_box = combo_box
 
         return card
+
+    def _create_color_picker_mode_card(self):
+        """创建取色模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.SETTING,
+            tr('settings.color_picker_mode'),
+            tr('settings.color_picker_mode_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.color_picker_mode_original'))
+        combo_box.setItemData(0, 'original')
+        combo_box.addItem(tr('settings.color_picker_mode_display'))
+        combo_box.setItemData(1, 'display')
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._color_picker_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_color_picker_mode_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_color_picker_mode_changed(self, index):
+        """取色模式改变"""
+        combo_box = self.color_picker_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._color_picker_mode = mode
+        self._config_manager.set('settings.color_picker_mode', mode)
+        self._config_manager.save()
+        self.color_picker_mode_changed.emit(mode)
+        log_user_action("change_color_picker_mode", {"mode": mode})
 
     def _create_color_mode_card(self):
         """创建色彩模式选择卡片"""

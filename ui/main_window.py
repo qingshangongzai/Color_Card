@@ -409,6 +409,11 @@ class MainWindow(FluentWindow):
             self._on_brightness_threshold_changed
         )
 
+        # 连接取色模式改变信号到色彩分析界面
+        settings_interface.color_picker_mode_changed.connect(
+            color_analysis_interface.refresh_color_cards
+        )
+
         # 连接色环标签显示开关信号
         settings_interface.color_wheel_labels_visible_changed.connect(
             lambda visible: HSBColorWheel.set_labels_visible(visible)
@@ -694,7 +699,7 @@ class MainWindow(FluentWindow):
 
             # 色彩 → 明度
             color_interface.image_sync_requested.connect(
-                lambda p, i: luminance_interface.set_image_data(p, i, emit_sync=False)
+                lambda d: luminance_interface.set_image_data(d, emit_sync=False)
             )
             color_interface.clear_sync_requested.connect(
                 lambda: luminance_interface.clear_all(emit_signal=False)
@@ -702,7 +707,7 @@ class MainWindow(FluentWindow):
 
             # 明度 → 色彩
             luminance_interface.image_sync_requested.connect(
-                lambda p, i: color_interface.set_image_data(p, i)
+                lambda d: color_interface.set_image_data(d)
             )
             luminance_interface.clear_sync_requested.connect(
                 lambda: color_interface.clear_all(emit_signal=False)

@@ -27,7 +27,7 @@ class LuminanceAnalysisInterface(QWidget):
     image_imported = Signal(str, object, object)  # 图片路径, QPixmap, QImage
 
     # 图片同步信号（替代中介者）
-    image_sync_requested = Signal(object, object)  # QPixmap, QImage
+    image_sync_requested = Signal(object)  # ImageData
     clear_sync_requested = Signal()
 
     def __init__(self, parent=None):
@@ -156,18 +156,17 @@ class LuminanceAnalysisInterface(QWidget):
         """
         self.luminance_canvas.set_image(file_path)
 
-    def _on_image_loaded_sync(self, file_path: str):
+    def _on_image_loaded_sync(self, image_path):
         """图片加载完成后的同步回调"""
         self.histogram_widget.set_image(self.luminance_canvas.get_image())
         self.histogram_widget.clear_highlight()
 
-        # 直接发射同步信号
-        pixmap = self.luminance_canvas._original_pixmap
-        image = self.luminance_canvas._image
-        if pixmap and not pixmap.isNull() and image and not image.isNull():
-            self.image_sync_requested.emit(pixmap, image)
-            # 保持旧信号兼容
-            self.image_imported.emit(file_path, pixmap, image)
+        image_data = self.luminance_canvas._image_data
+        if image_data is not None:
+            self.image_sync_requested.emit(image_data)
+            self.image_imported.emit(
+                image_path, image_data.display_pixmap, image_data.display_image
+            )
 
     def set_image(self, image_path):
         """设置图片（由主窗口调用同步）"""
@@ -176,17 +175,16 @@ class LuminanceAnalysisInterface(QWidget):
         # 导入图片时不显示高亮
         self.histogram_widget.clear_highlight()
 
-    def set_image_data(self, pixmap, image, emit_sync=True):
+    def set_image_data(self, image_data, emit_sync=True):
         """设置图片数据（直接使用已加载的图片，避免重复加载）
 
         Args:
-            pixmap: QPixmap 对象
-            image: QImage 对象
+            image_data: ImageData 对象
             emit_sync: 是否发射同步信号（默认True，从其他面板同步时设为False）
         """
-        self.luminance_canvas.set_image_data(pixmap, image, emit_sync=emit_sync)
+        self.luminance_canvas.set_image_data(image_data, emit_sync=emit_sync)
         # 延迟更新直方图，避免与区域提取同时执行
-        QTimer.singleShot(400, lambda: self._update_histogram_with_image(image))
+        QTimer.singleShot(400, lambda: self._update_histogram_with_image(image_data.display_image))
 
     def _update_histogram_with_image(self, image):
         """更新直方图（延迟执行）"""
