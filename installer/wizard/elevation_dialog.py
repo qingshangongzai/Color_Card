@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt
 from qfluentwidgets import PrimaryPushButton, PushButton, qconfig, setThemeColor
 
 # 项目模块导入
-from dialogs import BaseFramelessDialog
+from dialogs.base_frameless_dialog import BaseFramelessDialog
 from utils.icon import load_icon_universal
 from utils.platform import fix_windows_taskbar_icon_for_window
 

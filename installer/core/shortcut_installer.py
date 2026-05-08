@@ -12,7 +12,7 @@ else:
     HAS_WIN32COM = False
 
 # 项目模块导入
-from core import get_logger
+from core.logger import get_logger
 
 logger = get_logger("installer.shortcut_installer")
 

@@ -7,7 +7,7 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal, QThread
 
 # 项目模块导入
-from core import get_logger
+from core.logger import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.registry_installer import RegistryInstaller
 from installer.core.permission_checker import is_frozen, get_exe_path, close_app_processes

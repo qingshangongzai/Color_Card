@@ -10,7 +10,7 @@ if sys.platform == 'win32':
     import winreg
 
 # 项目模块导入
-from core import get_logger
+from core.logger import get_logger
 from version import version_manager
 
 logger = get_logger("installer.registry_installer")

@@ -13,7 +13,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from dialogs import BaseFramelessDialog
+from dialogs.base_frameless_dialog import BaseFramelessDialog
 from installer.uninstaller.uninstall_service import UninstallService
 from installer.core.permission_checker import is_admin, requires_admin, run_as_admin, close_app_processes
 from utils.icon import load_icon_universal
