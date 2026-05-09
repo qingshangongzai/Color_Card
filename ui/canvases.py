@@ -26,6 +26,9 @@ from utils.theme_colors import (
 )
 
 
+VALID_IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+
+
 def qimage_to_numpy(image: QImage) -> np.ndarray:
     """QImage转NumPy数组（使用bits()直接内存访问，比pixelColor快数百倍）
 
@@ -617,7 +620,6 @@ class BaseCanvas(QWidget):
                 # 子类可以在此绘制额外的内容
                 self._draw_overlay(painter, display_rect)
         elif not self._is_loading:
-            # 没有图片且不在加载状态时显示提示文字
             painter.setPen(get_canvas_empty_text_color())
             font = QFont("Arial", 11)
             painter.setFont(font)
@@ -786,8 +788,7 @@ class BaseCanvas(QWidget):
             urls = event.mimeData().urls()
             if urls and len(urls) > 0:
                 file_path = urls[0].toLocalFile()
-                valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
-                if file_path.lower().endswith(valid_extensions):
+                if file_path.lower().endswith(VALID_IMAGE_EXTENSIONS):
                     event.acceptProposedAction()
                     return
         event.ignore()
@@ -805,8 +806,7 @@ class BaseCanvas(QWidget):
             urls = event.mimeData().urls()
             if urls and len(urls) > 0:
                 file_path = urls[0].toLocalFile()
-                valid_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
-                if file_path.lower().endswith(valid_extensions):
+                if file_path.lower().endswith(VALID_IMAGE_EXTENSIONS):
                     log_user_action(
                         action="open_image",
                         params={"path": file_path, "source": "drag_drop"},
@@ -816,6 +816,47 @@ class BaseCanvas(QWidget):
                     event.acceptProposedAction()
                     return
         event.ignore()
+
+    def paste_from_clipboard(self) -> None:
+        """从剪贴板粘贴图片"""
+        import io
+        from PySide6.QtGui import QImage
+        from PySide6.QtWidgets import QApplication
+        from PIL import Image as PILImage
+
+        clipboard = QApplication.clipboard()
+        mime_data = clipboard.mimeData()
+
+        if mime_data.hasUrls():
+            urls = mime_data.urls()
+            if urls:
+                file_path = urls[0].toLocalFile()
+                if file_path and file_path.lower().endswith(VALID_IMAGE_EXTENSIONS):
+                    log_user_action(
+                        action="open_image",
+                        params={"path": file_path, "source": "clipboard_file"},
+                        result="success"
+                    )
+                    self.set_image(file_path)
+                    return
+
+        if mime_data.hasImage():
+            pixmap = clipboard.pixmap()
+            if pixmap.isNull():
+                return
+
+            qimage = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB888)
+            width, height = qimage.width(), qimage.height()
+            buffer = io.BytesIO(qimage.bits().tobytes())
+            pil_image = PILImage.frombuffer('RGB', (width, height), buffer.getvalue())
+
+            self._pending_image_path = '__clipboard__'
+            log_user_action(
+                action="open_image",
+                params={"path": "__clipboard__", "source": "clipboard_image"},
+                result="success"
+            )
+            self._get_image_service().load_from_pil_image(pil_image)
 
 
 class ImageCanvas(BaseCanvas):

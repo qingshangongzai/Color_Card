@@ -84,6 +84,8 @@ export_title = "Exporter des palettes"
 json_filter = "Fichiers JSON (*.json);;Tous les fichiers (*)"
 export_ase_title = "Exporter la nuance ASE"
 ase_filter = "Fichiers ASE (*.ase);;Tous les fichiers (*)"
+export_image_title = "Exporter l'image de la palette"
+image_filter = "Image PNG (*.png);;Image JPEG (*.jpg *.jpeg)"
 batch_manage = "Gestion par lot"
 select_all = "Tout sélectionner"
 clear_selection = "Désélectionner"
@@ -478,6 +480,18 @@ title = "Échec de l'exportation"
 content = "{error}"
 
 [messages.export_ase_no_colors]
+title = "Échec de l'exportation"
+content = "Aucune donnée de couleur dans la palette"
+
+[messages.export_image_success]
+title = "Exportation réussie"
+content = "Image de la palette exportée vers: {path}"
+
+[messages.export_image_failed]
+title = "Échec de l'exportation"
+content = "{error}"
+
+[messages.export_image_no_colors]
 title = "Échec de l'exportation"
 content = "Aucune donnée de couleur dans la palette"
 

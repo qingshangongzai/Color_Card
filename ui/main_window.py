@@ -245,6 +245,9 @@ class MainWindow(FluentWindow):
         # 设置 F11 快捷键切换全屏
         self._setup_fullscreen_shortcut()
 
+        # 设置 Ctrl+V 粘贴图片快捷键
+        self._setup_paste_shortcut()
+
     def _get_interface(self, interface_id: str) -> 'QWidget':
         """按需获取界面实例
 
@@ -801,6 +804,21 @@ class MainWindow(FluentWindow):
         # 更新标题栏按钮图标
         if hasattr(self, 'titleBar') and hasattr(self.titleBar, '_update_fullscreen_icon'):
             self.titleBar._update_fullscreen_icon()
+
+    def _setup_paste_shortcut(self):
+        """设置 Ctrl+V 粘贴图片快捷键"""
+        self.paste_shortcut = QShortcut(QKeySequence.Paste, self)
+        self.paste_shortcut.activated.connect(self._on_paste_image)
+
+    def _on_paste_image(self):
+        """Ctrl+V 粘贴图片到当前面板"""
+        current = self.stackedWidget.currentWidget()
+        object_name = current.objectName()
+
+        if object_name == 'colorAnalysis':
+            current.image_canvas.paste_from_clipboard()
+        elif object_name == 'luminanceAnalysis':
+            current.luminance_canvas.paste_from_clipboard()
 
     def _on_color_sample_count_changed(self, count):
         """色彩分析采样点数改变"""
