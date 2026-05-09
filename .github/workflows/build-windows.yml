@@ -9,6 +9,8 @@ on:
 env:
   TZ: Asia/Shanghai
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  NUITKA_CACHE_DIR: D:\nuitka_cache
+  NUITKA_CACHE_DIR_CCACHE: D:\nuitka_cache\ccache
 
 jobs:
   build-portable:
@@ -34,13 +36,11 @@ jobs:
     - name: Restore ccache
       uses: actions/cache@v4
       with:
-        path: |
-          ~\AppData\Local\Nuitka\ccache
-          ~\.ccache
-        key: ${{ runner.os }}-ccache-portable-${{ hashFiles('requirements.txt') }}-${{ github.run_id }}
+        path: D:\nuitka_cache
+        key: ${{ runner.os }}-nuitka-portable-${{ hashFiles('requirements.txt') }}-${{ hashFiles('main.py') }}
         restore-keys: |
-          ${{ runner.os }}-ccache-portable-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-ccache-portable-
+          ${{ runner.os }}-nuitka-portable-${{ hashFiles('requirements.txt') }}-
+          ${{ runner.os }}-nuitka-portable-
 
     - name: Install dependencies
       run: |
@@ -121,6 +121,9 @@ jobs:
 
   build-installer:
     runs-on: windows-latest
+    env:
+      NUITKA_CACHE_DIR: D:\nuitka_cache
+      NUITKA_CACHE_DIR_CCACHE: D:\nuitka_cache\ccache
 
     steps:
     - name: Checkout code
@@ -142,13 +145,11 @@ jobs:
     - name: Restore ccache
       uses: actions/cache@v4
       with:
-        path: |
-          ~\AppData\Local\Nuitka\ccache
-          ~\.ccache
-        key: ${{ runner.os }}-ccache-installer-${{ hashFiles('requirements.txt') }}-${{ github.run_id }}
+        path: D:\nuitka_cache
+        key: ${{ runner.os }}-nuitka-installer-${{ hashFiles('requirements.txt') }}-${{ hashFiles('installer/main.py') }}
         restore-keys: |
-          ${{ runner.os }}-ccache-installer-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-ccache-installer-
+          ${{ runner.os }}-nuitka-installer-${{ hashFiles('requirements.txt') }}-
+          ${{ runner.os }}-nuitka-installer-
 
     - name: Install dependencies
       run: |
