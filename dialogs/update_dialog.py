@@ -116,25 +116,30 @@ class UpdateCheckThread(QThread):
         Returns:
             list[Dict]: 版本信息列表
         """
-        try:
-            # 获取 changelog.json 文件内容
-            changelog_url = "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main"
-            response = requests.get(changelog_url, timeout=10)
+        urls = [
+            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
+            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main"
+        ]
 
-            if response.status_code != 200:
-                return []
+        for url in urls:
+            try:
+                response = requests.get(url, timeout=10)
 
-            data = response.json()
-            content = data.get("content", "")
+                if response.status_code != 200:
+                    continue
 
-            # Base64 解码
-            json_content = base64.b64decode(content).decode('utf-8')
-            changelog_data = json.loads(json_content)
+                data = response.json()
+                content = data.get("content", "")
 
-            return self._format_changelog(changelog_data, current_version)
+                json_content = base64.b64decode(content).decode('utf-8')
+                changelog_data = json.loads(json_content)
 
-        except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
-            return []
+                return self._format_changelog(changelog_data, current_version)
+
+            except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
+                continue
+
+        return []
 
     def _format_changelog(self, changelog_data: Dict, current_version: str) -> list[Dict]:
         """格式化更新日志
@@ -300,19 +305,24 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         for i, version_info in enumerate(versions):
             version = version_info.get("version", "")
             date = version_info.get("date", "")
+            notes = version_info.get("notes", [])
             changes = version_info.get("changes", [])
 
-            # 版本之间添加分隔线（第一个版本除外）
             if i > 0:
                 html_lines.append(f'<hr style="border: none; border-top: 1px solid rgba(128, 128, 128, 0.3); margin: 10px 0;">')
 
-            # 版本标题：版本号 + 日期（日期使用小字体和次要颜色）
             html_lines.append(
                 f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">'
                 f'{version}<small style="font-size: 10px; color: {secondary_color};"> ({date})</small></h2>'
             )
 
-            # 处理变更内容
+            if notes:
+                for note in notes:
+                    html_lines.append(
+                        f'<div style="margin: 10px 0; padding: 10px; background: rgba(255, 193, 7, 0.1); '
+                        f'border-left: 3px solid #FFC107; color: {text_color};">{note}</div>'
+                    )
+
             for change in changes:
                 category = change.get("category", "")
                 items = change.get("items", [])
