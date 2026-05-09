@@ -317,10 +317,10 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             )
 
             if notes:
+                html_lines.append(f'<div style="margin: 10px 0 5px 0; color: {text_color};"><b>通知</b></div>')
                 for note in notes:
                     html_lines.append(
-                        f'<div style="margin: 10px 0; padding: 10px; background: rgba(255, 193, 7, 0.1); '
-                        f'border-left: 3px solid #FFC107; color: {text_color};">{note}</div>'
+                        f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• {note}</div>'
                     )
 
             for change in changes:
