@@ -213,6 +213,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             ScrollArea {
                 background-color: transparent;
                 border: none;
+                margin-left: -36px;
             }
             ScrollArea > QWidget > QWidget {
                 background-color: transparent;
@@ -243,6 +244,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             h_label = QLabel(header_text)
             h_label.setFixedWidth(width)
             h_label.setStyleSheet("font-size: 11px; font-weight: bold;")
+            h_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             header_layout.addWidget(h_label)
 
         container_layout.addWidget(header_widget)
@@ -272,6 +274,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
                 val_label = QLabel(val_text)
                 val_label.setFixedWidth(width)
                 val_label.setStyleSheet("font-size: 11px;")
+                val_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 row_layout.addWidget(val_label)
 
             if 0 < i <= len(hue_distances):
@@ -281,6 +284,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             dist_label = QLabel(dist_text)
             dist_label.setFixedWidth(50)
             dist_label.setStyleSheet("font-size: 11px;")
+            dist_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             row_layout.addWidget(dist_label)
 
             container_layout.addWidget(row_widget)
