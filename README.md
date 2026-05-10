@@ -45,22 +45,22 @@
 
 |指标 |数据 |
 |:---|:---|
-|发布版本 |13 个版本（v1.0.0 → v1.9.0） |
-|开发周期 |80 天 |
-|总更新项 |**159 项** |
-|平均每版本 |12.2 项 |
+|发布版本 |14 个版本（v1.0.0 → v1.10.0） |
+|开发周期 |94 天 |
+|总更新项 |**177 项** |
+|平均每版本 |12.6 项 |
 
 **详细分类统计**：
 
 |分类 |数量 |说明 |
 |:---|:---:|:---|
-|✨ 新增功能 |**42** |包含首次发布的 9 项核心功能 |
-|🔧 问题修复 |**37** |持续修复 Bug，提升稳定性 |
-|🎨 界面优化 |**41** |用户体验打磨 |
+|✨ 新增功能 |**47** |包含首次发布的 9 项核心功能 |
+|🔧 问题修复 |**43** |持续修复 Bug，提升稳定性 |
+|🎨 界面优化 |**44** |用户体验打磨 |
 |⚡ 性能提升 |**12** |缓存机制、启动优化等 |
-|📝 内容调整 |**8** |文本、名称等调整 |
-|⚙️ 体验优化 |**6** |交互体验改进 |
-|🏗️ 代码优化 |**4** |代码结构优化 |
+|📝 内容调整 |**10** |文本、名称等调整 |
+|⚙️ 体验优化 |**7** |交互体验改进 |
+|🏗️ 代码优化 |**5** |代码结构优化 |
 |🔮 逻辑优化 |**2** |算法逻辑改进 |
 |🖥️ 平台支持 |**1** |Mac 版本适配 |
 |📜 许可证完善 |**1** |开源合规性 |
@@ -347,22 +347,22 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 
 |Metric |Data |
 |:---|:---|
-|Released Versions |13 versions (v1.0.0 → v1.9.0) |
-|Development Period |80 days |
-|Total Updates |**159 items** |
-|Average per Version |12.2 items |
+|Released Versions |14 versions (v1.0.0 → v1.10.0) |
+|Development Period |94 days |
+|Total Updates |**177 items** |
+|Average per Version |12.6 items |
 
 **Detailed Category Statistics**:
 
 |Category |Count |Description |
 |:---|:---:|:---|
-|✨ New Features |**42** |Including 9 core features from v1.0.0 launch |
-|🔧 Bug Fixes |**37** |Continuous bug fixes for stability |
-|🎨 UI Improvements |**41** |User experience refinements |
+|✨ New Features |**47** |Including 9 core features from v1.0.0 launch |
+|🔧 Bug Fixes |**43** |Continuous bug fixes for stability |
+|🎨 UI Improvements |**44** |User experience refinements |
 |⚡ Performance |**12** |Cache mechanism, startup optimization |
-|📝 Content Adjustments |**8** |Text, naming adjustments |
-|⚙️ Experience |**6** |Interaction improvements |
-|🏗️ Code Optimization |**4** |Code structure optimization |
+|📝 Content Adjustments |**10** |Text, naming adjustments |
+|⚙️ Experience |**7** |Interaction improvements |
+|🏗️ Code Optimization |**5** |Code structure optimization |
 |🔮 Logic Optimization |**2** |Algorithm improvements |
 |🖥️ Platform Support |**1** |Mac version adaptation |
 |📜 License Compliance |**1** |Open source compliance |
