@@ -2,7 +2,6 @@
 from PySide6.QtCore import QPoint, Qt
 from PySide6.QtGui import QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QWidget
-
 # 项目模块导入
 from utils.theme_colors import get_zoom_bg_color, get_zoom_grid_color
 

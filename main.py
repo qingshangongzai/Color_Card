@@ -3,6 +3,7 @@ import ctypes
 import os
 import sys
 import time
+from datetime import datetime, timedelta
 
 # 记录启动开始时间
 _startup_start_time = time.perf_counter()
@@ -49,8 +50,8 @@ def setup_global_exception_handler(logger):
 set_app_user_model_id()
 
 # 只导入启动画面必需的模块
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QColor, QPixmap
+from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtGui import QColor, QIcon, QPixmap
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
 
@@ -76,17 +77,16 @@ def _create_splash_screen():
     base_path = _get_base_path()
     logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
-    splash_pixmap = QPixmap(logo_path)
-    if splash_pixmap.isNull():
+    # 使用 QIcon 加载 ICO 以支持多分辨率，直接请求 192x192
+    icon = QIcon(logo_path)
+    if icon.isNull():
         return None
 
-    splash_pixmap = splash_pixmap.scaled(
-        250, 250,
-        Qt.AspectRatioMode.KeepAspectRatio,
-        Qt.TransformationMode.SmoothTransformation
-    )
+    pixmap = icon.pixmap(QSize(192, 192))
+    if pixmap.isNull():
+        return None
 
-    splash = QSplashScreen(splash_pixmap)
+    splash = QSplashScreen(pixmap)
     splash.setWindowFlags(
         Qt.WindowType.FramelessWindowHint |
         Qt.WindowType.WindowStaysOnTopHint |
@@ -97,8 +97,8 @@ def _create_splash_screen():
     screen = QApplication.primaryScreen()
     if screen:
         screen_geometry = screen.geometry()
-        x = (screen_geometry.width() - splash_pixmap.width()) // 2
-        y = (screen_geometry.height() - splash_pixmap.height()) // 2
+        x = (screen_geometry.width() - pixmap.width()) // 2
+        y = (screen_geometry.height() - pixmap.height()) // 2
         splash.move(x, y)
 
     splash.show()
@@ -189,7 +189,7 @@ def main():
         # 初始化语言管理器并加载用户语言配置
         logger.info("初始化语言管理器...")
         locale_manager = get_locale_manager()
-        language_setting = config_manager.get('settings.language', 'ZW_JT')
+        language_setting = config_manager.get('settings.language', 'auto')
         locale_manager.load_language(language_setting)
         logger.info(f"语言设置: {language_setting}")
 
@@ -224,6 +224,30 @@ def main():
             # 使用 Windows API 强制将窗口带到最前
             # 这是解决启动期间用户操作其他窗口导致主窗口不弹出的关键
             force_window_to_front(window)
+
+            # 延迟3秒检查更新，避免影响启动速度
+            QTimer.singleShot(3000, lambda: _auto_check_update(window, config_manager))
+
+        def _auto_check_update(window, config_manager):
+            """自动检查更新（每周一次）"""
+            if not config_manager.get('settings.auto_check_update', True):
+                return
+
+            last_check = config_manager.get('settings.last_check_time')
+            if last_check:
+                try:
+                    last_time = datetime.fromisoformat(last_check)
+                    if datetime.now() - last_time < timedelta(days=7):
+                        return
+                except (ValueError, TypeError):
+                    pass
+
+            from version import version_manager
+            from dialogs import UpdateAvailableDialog
+            UpdateAvailableDialog.check_update(window, version_manager.get_version())
+
+            config_manager.set('settings.last_check_time', datetime.now().isoformat())
+            config_manager.save()
 
         QTimer.singleShot(100, _on_window_shown)
 

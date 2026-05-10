@@ -1,8 +1,9 @@
+from __future__ import annotations
 # 标准库导入
 import math
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -13,7 +14,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
     InfoBar, InfoBarPosition, qconfig,
-    PushButton, SubtitleLabel
+    PushButton, SubtitleLabel, RoundMenu, Action
 )
 
 # 项目模块导入
@@ -24,7 +25,7 @@ from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
 from utils.theme_colors import get_title_color
-from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, ImportModeDialog
+from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, HarmonyAnalysisDialog, ImportModeDialog
 
 logger = get_logger("palette_management")
 
@@ -41,7 +42,7 @@ class FavoriteGroupLoaderThread(BaseBatchLoader):
     
     data_ready = Signal(int, list)
     
-    def __init__(self, favorites: List[Dict[str, Any]], group_indices: List[int], batch_size: int = 10, parent=None):
+    def __init__(self, favorites: list[dict[str, Any]], group_indices: list[int], batch_size: int = 10, parent=None):
         """初始化加载线程
         
         Args:
@@ -461,14 +462,16 @@ class PaletteManagementCard(CardWidget):
     delete_requested = Signal(str)
     preview_requested = Signal(dict)
     contrast_requested = Signal(dict)
+    harmony_requested = Signal(dict)
     color_changed = Signal(str, int, dict)
     preview_in_panel_requested = Signal(dict)
     edit_requested = Signal(dict)
     export_ase_requested = Signal(dict)
-    card_clicked = Signal(str)  # 信号：卡片被点击，传递favorite_id
+    export_image_requested = Signal(dict)
+    card_clicked = Signal(str)
     MAX_COLORS_PER_ROW = 6
 
-    def __init__(self, favorite_data: Dict[str, Any], card_index: int = 0, parent=None):
+    def __init__(self, favorite_data: dict[str, Any], card_index: int = 0, parent=None):
         self._favorite_data = favorite_data
         self._card_index = card_index
         self._hex_visible = True
@@ -530,6 +533,12 @@ class PaletteManagementCard(CardWidget):
         self.contrast_button.clicked.connect(self._on_contrast_clicked)
         button_layout.addWidget(self.contrast_button)
 
+        # 和谐度分析按钮
+        self.harmony_button = ToolButton(FluentIcon.EMOJI_TAB_SYMBOLS)
+        self.harmony_button.setFixedSize(28, 28)
+        self.harmony_button.clicked.connect(self._on_harmony_clicked)
+        button_layout.addWidget(self.harmony_button)
+
         # 预览按钮（色盲模拟）
         self.preview_button = ToolButton(FluentIcon.ZOOM_IN)
         self.preview_button.setFixedSize(28, 28)
@@ -542,11 +551,17 @@ class PaletteManagementCard(CardWidget):
         self.edit_button.clicked.connect(self._on_edit_clicked)
         button_layout.addWidget(self.edit_button)
 
-        # ASE 导出按钮
-        self.export_ase_button = ToolButton(FluentIcon.SHARE)
-        self.export_ase_button.setFixedSize(28, 28)
-        self.export_ase_button.clicked.connect(self._on_export_ase_clicked)
-        button_layout.addWidget(self.export_ase_button)
+        # 复制配色按钮
+        self.copy_palette_button = ToolButton(FluentIcon.COPY)
+        self.copy_palette_button.setFixedSize(28, 28)
+        self.copy_palette_button.clicked.connect(self._on_copy_palette_clicked)
+        button_layout.addWidget(self.copy_palette_button)
+
+        # 导出按钮（ASE + 图片）
+        self.export_button = ToolButton(FluentIcon.SHARE)
+        self.export_button.setFixedSize(28, 28)
+        self.export_button.clicked.connect(self._on_export_clicked)
+        button_layout.addWidget(self.export_button)
 
         # 删除按钮
         self.delete_button = ToolButton(FluentIcon.DELETE)
@@ -692,13 +707,70 @@ class PaletteManagementCard(CardWidget):
         """对比度检查按钮点击"""
         self.contrast_requested.emit(self._favorite_data)
 
+    def _on_harmony_clicked(self):
+        """和谐度分析按钮点击"""
+        self.harmony_requested.emit(self._favorite_data)
+
     def _on_edit_clicked(self):
         """管理按钮点击（编辑配色）"""
         self.edit_requested.emit(self._favorite_data)
 
-    def _on_export_ase_clicked(self):
-        """ASE 导出按钮点击"""
-        self.export_ase_requested.emit(self._favorite_data)
+    def _on_export_clicked(self):
+        """导出按钮点击，弹出菜单选择导出格式"""
+        menu = RoundMenu("")
+        menu.addAction(Action(FluentIcon.SHARE, "导出 ASE 色板", triggered=lambda: self.export_ase_requested.emit(self._favorite_data)))
+        menu.addAction(Action(FluentIcon.PHOTO, "导出色卡图片", triggered=lambda: self.export_image_requested.emit(self._favorite_data)))
+        menu.exec(self.export_button.mapToGlobal(self.export_button.rect().bottomRight()))
+
+    def _on_copy_palette_clicked(self):
+        """复制配色按钮点击"""
+        colors = self._favorite_data.get('colors', [])
+        if not colors:
+            return
+
+        hex_values = [
+            '#' + c['hex'] if not c['hex'].startswith('#') else c['hex']
+            for c in colors if c.get('hex')
+        ]
+
+        text = ' '.join(hex_values)
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+
+        InfoBar.success(
+            title=tr('messages.copy_success.title'),
+            content=tr('palette_management.palette_copied', count=len(hex_values)),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
+
+    def _on_copy_palette_clicked(self):
+        """复制配色按钮点击"""
+        colors = self._favorite_data.get('colors', [])
+        if not colors:
+            return
+
+        hex_values = [
+            '#' + c['hex'] if not c['hex'].startswith('#') else c['hex']
+            for c in colors if c.get('hex')
+        ]
+
+        text = ' '.join(hex_values)
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+
+        InfoBar.success(
+            title=tr('messages.copy_success.title'),
+            content=tr('palette_management.palette_copied', count=len(hex_values)),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self.window()
+        )
 
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
@@ -732,9 +804,11 @@ class PaletteManagementCard(CardWidget):
         # 批量模式下隐藏操作按钮
         self.preview_panel_button.setVisible(not enabled)
         self.contrast_button.setVisible(not enabled)
+        self.harmony_button.setVisible(not enabled)
         self.preview_button.setVisible(not enabled)
         self.edit_button.setVisible(not enabled)
-        self.export_ase_button.setVisible(not enabled)
+        self.copy_palette_button.setVisible(not enabled)
+        self.export_button.setVisible(not enabled)
         self.delete_button.setVisible(not enabled)
         # 重置选中状态
         if not enabled:
@@ -778,13 +852,15 @@ class PaletteManagementList(QWidget):
     favorite_deleted = Signal(str)
     favorite_preview = Signal(dict)
     favorite_contrast = Signal(dict)
+    favorite_harmony = Signal(dict)
     favorite_color_changed = Signal(str, int, dict)
     favorite_preview_in_panel = Signal(dict)
     favorite_edit = Signal(dict)
     favorite_export_ase = Signal(dict)
+    favorite_export_image = Signal(dict)
     group_changed = Signal(int)
     groups_updated = Signal(list)
-    selection_changed = Signal(set)  # 信号：选中项变化
+    selection_changed = Signal(set)
 
     BATCH_THRESHOLD = 50
     BATCH_SIZE = 10
@@ -927,7 +1003,7 @@ class PaletteManagementList(QWidget):
         else:
             self._load_group_directly(self._current_group_indices)
 
-    def _create_palette_card(self, favorite: Dict[str, Any], card_index: int) -> PaletteManagementCard:
+    def _create_palette_card(self, favorite: dict[str, Any], card_index: int) -> PaletteManagementCard:
         """创建配色卡片并设置连接
 
         Args:
@@ -944,10 +1020,12 @@ class PaletteManagementList(QWidget):
         card.delete_requested.connect(self.favorite_deleted)
         card.preview_requested.connect(self._on_preview_requested)
         card.contrast_requested.connect(self._on_contrast_requested)
+        card.harmony_requested.connect(self._on_harmony_requested)
         card.color_changed.connect(self._on_color_changed)
         card.preview_in_panel_requested.connect(self._on_preview_in_panel_requested)
         card.edit_requested.connect(self._on_edit_requested)
         card.export_ase_requested.connect(self._on_export_ase_requested)
+        card.export_image_requested.connect(self._on_export_image_requested)
         card.card_clicked.connect(self._on_card_clicked)
         return card
 
@@ -973,7 +1051,7 @@ class PaletteManagementList(QWidget):
         finally:
             self.content_widget.setUpdatesEnabled(True)
 
-    def _start_batch_loading(self, group_indices: List[int]):
+    def _start_batch_loading(self, group_indices: list[int]):
         """启动分批加载
         
         Args:
@@ -986,7 +1064,7 @@ class PaletteManagementList(QWidget):
         self._loader.loading_finished.connect(self._on_loading_finished)
         self._loader.start()
 
-    def _on_batch_data_ready(self, batch_idx: int, batch_data: List[Dict[str, Any]]):
+    def _on_batch_data_ready(self, batch_idx: int, batch_data: list[dict[str, Any]]):
         """批次数据就绪回调，跳过已删除的数据"""
         start_index = batch_idx * self.BATCH_SIZE
         for i, favorite in enumerate(batch_data):
@@ -1067,6 +1145,14 @@ class PaletteManagementList(QWidget):
         """
         self.favorite_contrast.emit(favorite_data)
 
+    def _on_harmony_requested(self, favorite_data):
+        """和谐度分析请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_harmony.emit(favorite_data)
+
     def _on_color_changed(self, favorite_id: str, color_index: int, color_info: dict):
         """颜色变化请求处理
 
@@ -1092,6 +1178,14 @@ class PaletteManagementList(QWidget):
             favorite_data: 收藏项数据
         """
         self.favorite_export_ase.emit(favorite_data)
+
+    def _on_export_image_requested(self, favorite_data):
+        """图片导出请求处理
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        self.favorite_export_image.emit(favorite_data)
 
     def set_hex_visible(self, visible):
         """设置是否显示16进制颜色值"""
@@ -1227,7 +1321,7 @@ class PaletteManagementList(QWidget):
             card.set_selected(False)
         self.selection_changed.emit(self._selected_ids.copy())
 
-    def delete_selected(self, deleted_indices: Dict[str, int]) -> int:
+    def delete_selected(self, deleted_indices: dict[str, int]) -> int:
         """批量删除选中的收藏
 
         Args:
@@ -1314,6 +1408,14 @@ class PaletteManagementInterface(QWidget):
             self._on_ase_export_error,
             Qt.ConnectionType.QueuedConnection
         )
+        self._palette_service.image_export_finished.connect(
+            self._on_image_export_finished,
+            Qt.ConnectionType.QueuedConnection
+        )
+        self._palette_service.image_export_error.connect(
+            self._on_image_export_error,
+            Qt.ConnectionType.QueuedConnection
+        )
 
     def closeEvent(self, event):
         """关闭时断开信号连接"""
@@ -1325,6 +1427,8 @@ class PaletteManagementInterface(QWidget):
                 self._palette_service.export_error.disconnect(self._on_export_error)
                 self._palette_service.ase_export_finished.disconnect(self._on_ase_export_finished)
                 self._palette_service.ase_export_error.disconnect(self._on_ase_export_error)
+                self._palette_service.image_export_finished.disconnect(self._on_image_export_finished)
+                self._palette_service.image_export_error.disconnect(self._on_image_export_error)
             except (TypeError, RuntimeError) as e:
                 logger.debug(f"Disconnect signals failed: {e}")
         super().closeEvent(event)
@@ -1418,10 +1522,12 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_deleted.connect(self._on_favorite_deleted)
         self.palette_management_list.favorite_preview.connect(self._on_favorite_preview)
         self.palette_management_list.favorite_contrast.connect(self._on_favorite_contrast)
+        self.palette_management_list.favorite_harmony.connect(self._on_favorite_harmony)
         self.palette_management_list.favorite_color_changed.connect(self._on_favorite_color_changed)
         self.palette_management_list.favorite_preview_in_panel.connect(self._on_favorite_preview_in_panel)
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
         self.palette_management_list.favorite_export_ase.connect(self._on_favorite_export_ase)
+        self.palette_management_list.favorite_export_image.connect(self._on_favorite_export_image)
         self.palette_management_list.groups_updated.connect(self._on_groups_updated)
         self.palette_management_list.selection_changed.connect(self._on_selection_changed)
         layout.addWidget(self.palette_management_list, stretch=1)
@@ -1859,6 +1965,85 @@ class PaletteManagementInterface(QWidget):
             parent=self
         )
 
+    def _on_favorite_export_image(self, favorite_data: dict):
+        """收藏图片导出回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        colors = favorite_data.get('colors', [])
+        if not colors:
+            InfoBar.warning(
+                title=tr('messages.export_image_no_colors.title', default='导出失败'),
+                content=tr('messages.export_image_no_colors.content', default='配色中没有颜色数据'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self
+            )
+            return
+
+        palette_name = favorite_data.get('name', tr('palette_management.unnamed'))
+        last_dir = get_last_directory("palette_export", get_default_data_directory())
+        default_name = str(Path(last_dir) / f"{palette_name}.png")
+
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            tr('palette_management.export_image_title', default='导出色卡图片'),
+            default_name,
+            tr('palette_management.image_filter', default='PNG 图片 (*.png);;JPEG 图片 (*.jpg *.jpeg)')
+        )
+
+        if not file_path:
+            return
+
+        if not (file_path.endswith('.png') or file_path.endswith('.jpg') or file_path.endswith('.jpeg')):
+            file_path += '.png'
+
+        set_last_directory("palette_export", str(Path(file_path).parent))
+        log_user_action("export_image_start", {"file_path": file_path, "palette_name": palette_name})
+
+        with log_performance("export_image", {"file_path": file_path, "color_count": len(colors)}):
+            self._get_palette_service().export_to_image(favorite_data, file_path)
+
+    def _on_image_export_finished(self, file_path: str):
+        """图片导出完成回调
+
+        Args:
+            file_path: 导出文件路径
+        """
+        log_user_action("export_image_finished", {"file_path": file_path}, "success")
+
+        InfoBar.success(
+            title=tr('messages.export_image_success.title', default='导出成功'),
+            content=tr('messages.export_image_success.content', default='色卡图片已导出到：{path}').format(path=file_path),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=3000,
+            parent=self
+        )
+
+    def _on_image_export_error(self, error_msg: str):
+        """图片导出错误回调
+
+        Args:
+            error_msg: 错误信息
+        """
+        logger.error(f"Export image failed: {error_msg}")
+        log_user_action("export_image_error", {"error": error_msg}, "failed")
+
+        InfoBar.error(
+            title=tr('messages.export_image_failed.title', default='导出失败'),
+            content=tr('messages.export_image_failed.content', default=error_msg).format(error=error_msg),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=5000,
+            parent=self
+        )
+
     def _on_favorite_preview(self, favorite_data):
         """收藏预览回调（色盲模拟）
 
@@ -2078,7 +2263,35 @@ class PaletteManagementInterface(QWidget):
         )
         dialog.exec()
 
-    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: Dict[str, Any]):
+    def _on_favorite_harmony(self, favorite_data):
+        """收藏和谐度分析回调
+
+        Args:
+            favorite_data: 收藏项数据
+        """
+        scheme_name = favorite_data.get('name', tr('palette_management.unnamed'))
+        colors = favorite_data.get('colors', [])
+
+        if not colors:
+            InfoBar.warning(
+                title=tr('messages.preview_failed.title'),
+                content=tr('messages.preview_failed.content'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self.window()
+            )
+            return
+
+        dialog = HarmonyAnalysisDialog(
+            scheme_name=scheme_name,
+            colors=colors,
+            parent=None
+        )
+        dialog.exec()
+
+    def _on_favorite_color_changed(self, favorite_id: str, color_index: int, color_info: dict[str, Any]):
         """收藏颜色变化回调
 
         Args:

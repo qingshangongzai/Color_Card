@@ -1,4 +1,5 @@
-from typing import Dict
+from __future__ import annotations
+
 
 
 class VersionManager:
@@ -8,16 +9,16 @@ class VersionManager:
         """初始化版本管理器"""
         # 版本号组件
         self.major: int = 1
-        self.minor: int = 9
+        self.minor: int = 10
         self.patch: int = 0
-        self.build: int = 0
+        self.build: int = 2
         self.prerelease: str = ""
 
         # 核心版本信息
         self.version: str = f"{self.major}.{self.minor}.{self.patch}{self.prerelease}"
 
         # 详细版本信息结构
-        self.version_info: Dict[str, int | str] = {
+        self.version_info: dict[str, int | str] = {
             "major": self.major,
             "minor": self.minor,
             "patch": self.patch,
@@ -28,7 +29,7 @@ class VersionManager:
         }
 
         # 应用程序元数据
-        self.app_info: Dict[str, str] = {
+        self.app_info: dict[str, str] = {
             "name": "取色卡",
             "name_en": "Color Card",
             "company": "浮晓 HXiao Studio",
@@ -48,7 +49,7 @@ class VersionManager:
         """
         return self.version
 
-    def get_version_info(self) -> Dict[str, int | str]:
+    def get_version_info(self) -> dict[str, int | str]:
         """获取版本详细信息
 
         Returns:
@@ -56,7 +57,7 @@ class VersionManager:
         """
         return self.version_info.copy()
 
-    def get_app_info(self) -> Dict[str, str]:
+    def get_app_info(self) -> dict[str, str]:
         """获取应用程序信息
 
         Returns:
@@ -72,7 +73,7 @@ class VersionManager:
         """
         return f"{self.app_info['name']} v{self.version}"
 
-    def get_file_version_info(self) -> Dict[str, int]:
+    def get_file_version_info(self) -> dict[str, int]:
         """获取文件版本信息（用于Windows EXE元数据）
 
         Returns:

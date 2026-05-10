@@ -1,5 +1,6 @@
+from __future__ import annotations
 # 标准库导入
-from typing import List, Optional
+
 
 # 第三方库导入
 from PySide6.QtCore import Qt
@@ -23,7 +24,7 @@ class ExportSettingsDialog(BaseFramelessDialog):
     用于配置配色预览导出选项，包括选择图片、设置文件名前缀、选择导出格式等。
     """
 
-    def __init__(self, svg_widgets: List[QWidget], parent=None):
+    def __init__(self, svg_widgets: list[QWidget], parent=None):
         """初始化导出设置对话框
 
         Args:
@@ -32,10 +33,10 @@ class ExportSettingsDialog(BaseFramelessDialog):
         """
         super().__init__(parent)
         self._svg_widgets = svg_widgets
-        self._check_boxes: List[CheckBox] = []
-        self._filename_input: Optional[LineEdit] = None
-        self._svg_radio: Optional[RadioButton] = None
-        self._png_radio: Optional[RadioButton] = None
+        self._check_boxes: list[CheckBox] = []
+        self._filename_input: LineEdit | None = None
+        self._svg_radio: RadioButton | None = None
+        self._png_radio: RadioButton | None = None
 
         self.setWindowTitle(tr('dialogs.export_settings.title'))
         self.setFixedSize(400, 450)
@@ -51,6 +52,9 @@ class ExportSettingsDialog(BaseFramelessDialog):
         self._theme_connection = qconfig.themeChangedFinished.connect(
             self._update_styles
         )
+
+        # 样式准备好后允许显示
+        self._enable_show()
 
     def setup_ui(self):
         """设置界面"""
@@ -190,11 +194,11 @@ class ExportSettingsDialog(BaseFramelessDialog):
 
         self.accept()
 
-    def get_selected_indices(self) -> List[int]:
+    def get_selected_indices(self) -> list[int]:
         """获取用户选择的图片索引列表
 
         Returns:
-            List[int]: 选中的图片索引列表
+            list[int]: 选中的图片索引列表
         """
         return [i for i, check_box in enumerate(self._check_boxes) if check_box.isChecked()]
 

@@ -1,6 +1,7 @@
+from __future__ import annotations
 # 标准库导入
 import sys
-from typing import List, Dict, Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -224,7 +225,7 @@ class MainWindow(FluentWindow):
         }
 
         # 界面实例缓存
-        self._interfaces: Dict[str, 'QWidget'] = {}
+        self._interfaces: dict[str, 'QWidget'] = {}
 
         # 设置导航（按需创建界面）
         self.setup_navigation()
@@ -243,6 +244,9 @@ class MainWindow(FluentWindow):
 
         # 设置 F11 快捷键切换全屏
         self._setup_fullscreen_shortcut()
+
+        # 设置 Ctrl+V 粘贴图片快捷键
+        self._setup_paste_shortcut()
 
     def _get_interface(self, interface_id: str) -> 'QWidget':
         """按需获取界面实例
@@ -407,6 +411,11 @@ class MainWindow(FluentWindow):
         # 连接明度阈值改变信号到色彩分析界面
         settings_interface.brightness_threshold_changed.connect(
             self._on_brightness_threshold_changed
+        )
+
+        # 连接取色模式改变信号到色彩分析界面
+        settings_interface.color_picker_mode_changed.connect(
+            color_analysis_interface.refresh_color_cards
         )
 
         # 连接色环标签显示开关信号
@@ -694,7 +703,7 @@ class MainWindow(FluentWindow):
 
             # 色彩 → 明度
             color_interface.image_sync_requested.connect(
-                lambda p, i: luminance_interface.set_image_data(p, i, emit_sync=False)
+                lambda d: luminance_interface.set_image_data(d, emit_sync=False)
             )
             color_interface.clear_sync_requested.connect(
                 lambda: luminance_interface.clear_all(emit_signal=False)
@@ -702,7 +711,7 @@ class MainWindow(FluentWindow):
 
             # 明度 → 色彩
             luminance_interface.image_sync_requested.connect(
-                lambda p, i: color_interface.set_image_data(p, i)
+                lambda d: color_interface.set_image_data(d)
             )
             luminance_interface.clear_sync_requested.connect(
                 lambda: color_interface.clear_all(emit_signal=False)
@@ -722,7 +731,7 @@ class MainWindow(FluentWindow):
         if 'colorPreview' in self._interfaces:
             self._get_interface('colorPreview').refresh_favorites()
 
-    def show_color_preview(self, colors: List[str]):
+    def show_color_preview(self, colors: list[str]):
         """跳转到配色预览页面并显示指定配色
 
         Args:
@@ -764,7 +773,7 @@ class MainWindow(FluentWindow):
         self.refresh_palette_management()
         self.refresh_color_preview()
 
-    def _on_preset_color_preview(self, preview_data: Dict[str, Any]):
+    def _on_preset_color_preview(self, preview_data: dict[str, Any]):
         """处理内置色彩界面的预览请求
 
         Args:
@@ -795,6 +804,21 @@ class MainWindow(FluentWindow):
         # 更新标题栏按钮图标
         if hasattr(self, 'titleBar') and hasattr(self.titleBar, '_update_fullscreen_icon'):
             self.titleBar._update_fullscreen_icon()
+
+    def _setup_paste_shortcut(self):
+        """设置 Ctrl+V 粘贴图片快捷键"""
+        self.paste_shortcut = QShortcut(QKeySequence.Paste, self)
+        self.paste_shortcut.activated.connect(self._on_paste_image)
+
+    def _on_paste_image(self):
+        """Ctrl+V 粘贴图片到当前面板"""
+        current = self.stackedWidget.currentWidget()
+        object_name = current.objectName()
+
+        if object_name == 'colorAnalysis':
+            current.image_canvas.paste_from_clipboard()
+        elif object_name == 'luminanceAnalysis':
+            current.luminance_canvas.paste_from_clipboard()
 
     def _on_color_sample_count_changed(self, count):
         """色彩分析采样点数改变"""

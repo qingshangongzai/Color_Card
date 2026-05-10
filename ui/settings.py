@@ -6,7 +6,6 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     ComboBox, FluentIcon, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
 )
-
 # 项目模块导入
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
@@ -40,6 +39,7 @@ class SettingsInterface(QWidget):
     gradient_mode_changed = Signal(str)
     luminance_default_grayscale_changed = Signal(bool)
     histogram_sampling_mode_changed = Signal(str)
+    color_picker_mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -60,7 +60,10 @@ class SettingsInterface(QWidget):
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._luminance_default_grayscale = self._config_manager.get('settings.luminance_default_grayscale', False)
         self._histogram_sampling_mode = self._config_manager.get('settings.histogram_sampling_mode', 'fast')
-        self._language = self._config_manager.get('settings.language', 'ZW_JT')
+        self._dominant_color_algorithm = self._config_manager.get('settings.dominant_color_algorithm', 'mmcq')
+        self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
+        self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
+        self._language = self._config_manager.get('settings.language', 'HY_JT')
         self.setup_ui()
         self._update_styles()
         self._update_color_space_availability(self._gradient_mode)
@@ -107,10 +110,16 @@ class SettingsInterface(QWidget):
             tr('settings.hex_display_desc'),
             self._hex_visible
         )
+        self.hex_display_card.switch_button.checkedChanged.connect(
+            self._on_hex_display_changed
+        )
         self.card_display_group.addSettingCard(self.hex_display_card)
 
         self.color_mode_card = self._create_color_mode_card()
         self.card_display_group.addSettingCard(self.color_mode_card)
+
+        self.color_picker_mode_card = self._create_color_picker_mode_card()
+        self.card_display_group.addSettingCard(self.color_picker_mode_card)
 
         layout.addWidget(self.card_display_group)
 
@@ -137,6 +146,9 @@ class SettingsInterface(QWidget):
             self._on_luminance_sample_count_changed
         )
         self.sampling_group.addSettingCard(self.luminance_sample_count_card)
+
+        self.dominant_algorithm_card = self._create_dominant_algorithm_card()
+        self.sampling_group.addSettingCard(self.dominant_algorithm_card)
 
         layout.addWidget(self.sampling_group)
 
@@ -226,6 +238,17 @@ class SettingsInterface(QWidget):
         layout.addWidget(self.luminance_group)
 
         self.help_group = SettingCardGroup(tr('settings.help'), self.content_widget)
+
+        self.auto_check_update_card = self._create_switch_card(
+            FluentIcon.SYNC,
+            tr('settings.auto_check_update'),
+            tr('settings.auto_check_update_desc'),
+            self._auto_check_update
+        )
+        self.auto_check_update_card.switch_button.checkedChanged.connect(
+            self._on_auto_check_update_changed
+        )
+        self.help_group.addSettingCard(self.auto_check_update_card)
 
         self.update_card = PushSettingCard(
             tr('settings.check_update'),
@@ -346,11 +369,21 @@ class SettingsInterface(QWidget):
         self.color_mode_card.titleLabel.setText(tr('settings.color_mode'))
         self.color_mode_card.contentLabel.setText(tr('settings.color_mode_desc'))
 
+        # 更新取色模式卡片
+        self.color_picker_mode_card.titleLabel.setText(tr('settings.color_picker_mode'))
+        self.color_picker_mode_card.contentLabel.setText(tr('settings.color_picker_mode_desc'))
+        self.color_picker_mode_card.combo_box.setItemText(0, tr('settings.color_picker_mode_original'))
+        self.color_picker_mode_card.combo_box.setItemText(1, tr('settings.color_picker_mode_display'))
+
         # 更新采样卡片
         self.color_sample_count_card.titleLabel.setText(tr('settings.color_sample_count'))
         self.color_sample_count_card.contentLabel.setText(tr('settings.color_sample_count_desc'))
         self.luminance_sample_count_card.titleLabel.setText(tr('settings.luminance_sample_count'))
         self.luminance_sample_count_card.contentLabel.setText(tr('settings.luminance_sample_count_desc'))
+        self.dominant_algorithm_card.titleLabel.setText(tr('settings.dominant_algorithm'))
+        self.dominant_algorithm_card.contentLabel.setText(tr('settings.dominant_algorithm_desc'))
+        self.dominant_algorithm_card.combo_box.setItemText(0, tr('settings.algorithm_mmcq'))
+        self.dominant_algorithm_card.combo_box.setItemText(1, tr('settings.algorithm_kmeans'))
 
         # 更新直方图卡片
         self.histogram_scaling_card.titleLabel.setText(tr('settings.histogram_scaling'))
@@ -402,6 +435,12 @@ class SettingsInterface(QWidget):
         # 重建颜色空间下拉框（单色模式下无RGB选项）
         self._update_color_space_availability(self._gradient_mode)
 
+        # 更新自动检查更新卡片
+        self.auto_check_update_card.titleLabel.setText(tr('settings.auto_check_update'))
+        self.auto_check_update_card.contentLabel.setText(tr('settings.auto_check_update_desc'))
+        self.auto_check_update_card.switch_button.setOnText(tr('settings.switch_on'))
+        self.auto_check_update_card.switch_button.setOffText(tr('settings.switch_off'))
+
         # 更新帮助卡片
         self.update_card.titleLabel.setText(tr('settings.version_update'))
         self.update_card.contentLabel.setText(tr('settings.version_update_desc'))
@@ -420,7 +459,6 @@ class SettingsInterface(QWidget):
         switch.setChecked(initial_checked)
         switch.setOnText(tr('settings.switch_on'))
         switch.setOffText(tr('settings.switch_off'))
-        switch.checkedChanged.connect(self._on_hex_display_changed)
 
         card.hBoxLayout.addWidget(switch, 0, Qt.AlignmentFlag.AlignRight)
         card.hBoxLayout.addSpacing(16)
@@ -472,6 +510,48 @@ class SettingsInterface(QWidget):
         card.combo_box = combo_box
 
         return card
+
+    def _create_color_picker_mode_card(self):
+        """创建取色模式选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.SETTING,
+            tr('settings.color_picker_mode'),
+            tr('settings.color_picker_mode_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.color_picker_mode_original'))
+        combo_box.setItemData(0, 'original')
+        combo_box.addItem(tr('settings.color_picker_mode_display'))
+        combo_box.setItemData(1, 'display')
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._color_picker_mode:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_color_picker_mode_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_color_picker_mode_changed(self, index):
+        """取色模式改变"""
+        combo_box = self.color_picker_mode_card.combo_box
+        mode = combo_box.itemData(index)
+        self._color_picker_mode = mode
+        self._config_manager.set('settings.color_picker_mode', mode)
+        self._config_manager.save()
+        self.color_picker_mode_changed.emit(mode)
+        log_user_action("change_color_picker_mode", {"mode": mode})
 
     def _create_color_mode_card(self):
         """创建色彩模式选择卡片"""
@@ -685,7 +765,7 @@ class SettingsInterface(QWidget):
         """创建直方图采样模式选择卡片"""
         card = PushSettingCard(
             "",
-            FluentIcon.SPEED_HIGH,
+            FluentIcon.BACKGROUND_FILL,
             tr('settings.histogram_sampling'),
             tr('settings.histogram_sampling_desc'),
             self.content_widget
@@ -958,6 +1038,13 @@ class SettingsInterface(QWidget):
                     combo_box.setCurrentIndex(i)
                     break
 
+    def _on_auto_check_update_changed(self, checked):
+        """自动检查更新开关状态改变"""
+        self._auto_check_update = checked
+        self._config_manager.set('settings.auto_check_update', checked)
+        self._config_manager.save()
+        log_user_action("toggle_auto_check_update", {"enabled": checked})
+
     def on_check_update(self):
         """检查更新按钮点击"""
         log_user_action("check_update")
@@ -1001,6 +1088,47 @@ class SettingsInterface(QWidget):
         self._config_manager.save()
         log_user_action("change_luminance_default_grayscale", {"enabled": checked})
         self.luminance_default_grayscale_changed.emit(checked)
+
+    def _create_dominant_algorithm_card(self):
+        """创建主色调提取算法选择卡片"""
+        card = PushSettingCard(
+            "",
+            FluentIcon.BACKGROUND_FILL,
+            tr('settings.dominant_algorithm'),
+            tr('settings.dominant_algorithm_desc'),
+            self.content_widget
+        )
+        card.button.setVisible(False)
+
+        combo_box = ComboBox(self.content_widget)
+        combo_box.addItem(tr('settings.algorithm_mmcq'))
+        combo_box.setItemData(0, "mmcq")
+        combo_box.addItem(tr('settings.algorithm_kmeans'))
+        combo_box.setItemData(1, "kmeans")
+
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == self._dominant_color_algorithm:
+                combo_box.setCurrentIndex(i)
+                break
+
+        combo_box.setFixedWidth(120)
+        combo_box.currentIndexChanged.connect(self._on_dominant_algorithm_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    def _on_dominant_algorithm_changed(self, index):
+        """提取算法切换"""
+        combo_box = self.dominant_algorithm_card.combo_box
+        algorithm = combo_box.itemData(index)
+        self._dominant_color_algorithm = algorithm
+        self._config_manager.set('settings.dominant_color_algorithm', algorithm)
+        self._config_manager.save()
+        log_user_action("change_dominant_color_algorithm", {"algorithm": algorithm})
 
     def _update_styles(self):
         """更新样式以适配主题"""

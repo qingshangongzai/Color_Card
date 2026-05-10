@@ -22,7 +22,7 @@ class TestGetSystemLanguage:
 
         with patch.object(manager, '_get_system_locale_name', return_value='zh_CN'):
             result = manager.get_system_language()
-            assert result == 'ZW_JT'
+            assert result == 'HY_JT'
 
     def test_exact_match_zh_tw(self, qtbot):
         """测试精确匹配繁体中文"""
@@ -30,7 +30,7 @@ class TestGetSystemLanguage:
 
         with patch.object(manager, '_get_system_locale_name', return_value='zh_TW'):
             result = manager.get_system_language()
-            assert result == 'ZW_FT'
+            assert result == 'HY_FT'
 
     def test_exact_match_en_us(self, qtbot):
         """测试精确匹配英语"""
@@ -41,13 +41,13 @@ class TestGetSystemLanguage:
             assert result == 'EN_US'
 
     def test_base_locale_match(self, qtbot):
-        """测试基础语言代码匹配（如 zh_SG -> zh -> ZW_JT）"""
+        """测试基础语言代码匹配（如 zh_SG -> zh -> HY_JT）"""
         manager = LocaleManager()
 
         with patch.object(manager, '_get_system_locale_name', return_value='zh_SG'):
             result = manager.get_system_language()
             # zh_SG 不在映射表中，但 zh 在
-            assert result == 'ZW_JT'
+            assert result == 'HY_JT'
 
     def test_base_locale_en_gb(self, qtbot):
         """测试英语基础代码匹配（en_GB -> en -> EN_US）"""
@@ -91,7 +91,7 @@ class TestLocaleManager:
         languages = manager.get_supported_languages()
 
         assert 'auto' in languages
-        assert 'ZW_JT' in languages
+        assert 'HY_JT' in languages
         assert 'EN_US' in languages
 
     def test_load_language(self, qtbot):
@@ -99,9 +99,9 @@ class TestLocaleManager:
         manager = LocaleManager()
 
         # 加载简体中文
-        result = manager.load_language('ZW_JT')
+        result = manager.load_language('HY_JT')
         assert result is True
-        assert manager.get_current_language() == 'ZW_JT'
+        assert manager.get_current_language() == 'HY_JT'
 
     def test_load_invalid_language(self, qtbot):
         """测试加载无效语言"""
@@ -122,7 +122,7 @@ class TestLocaleManager:
     def test_tr_existing_key(self, qtbot):
         """测试翻译存在的键"""
         manager = LocaleManager()
-        manager.load_language('ZW_JT')
+        manager.load_language('HY_JT')
 
         # 测试已知的翻译键
         text = manager.tr('app.title')
@@ -132,7 +132,7 @@ class TestLocaleManager:
     def test_tr_missing_key_returns_key(self, qtbot):
         """测试翻译不存在的键返回键名"""
         manager = LocaleManager()
-        manager.load_language('ZW_JT')
+        manager.load_language('HY_JT')
 
         text = manager.tr('nonexistent.key')
         assert text == 'nonexistent.key'
@@ -140,7 +140,7 @@ class TestLocaleManager:
     def test_tr_with_default(self, qtbot):
         """测试带默认值的翻译"""
         manager = LocaleManager()
-        manager.load_language('ZW_JT')
+        manager.load_language('HY_JT')
 
         text = manager.tr('nonexistent.key', default='Default Text')
         assert text == 'Default Text'
@@ -148,7 +148,7 @@ class TestLocaleManager:
     def test_tr_with_format(self, qtbot):
         """测试带格式参数的翻译"""
         manager = LocaleManager()
-        manager.load_language('ZW_JT')
+        manager.load_language('HY_JT')
 
         # 假设有一个带占位符的翻译
         text = manager.tr('test.format', default='Hello {name}', name='World')
@@ -164,9 +164,9 @@ class TestSystemLanguageMapping:
 
     def test_chinese_mappings(self):
         """测试中文语言映射"""
-        assert SYSTEM_LANGUAGE_MAPPING['zh_CN'] == 'ZW_JT'
-        assert SYSTEM_LANGUAGE_MAPPING['zh_TW'] == 'ZW_FT'
-        assert SYSTEM_LANGUAGE_MAPPING['zh'] == 'ZW_JT'
+        assert SYSTEM_LANGUAGE_MAPPING['zh_CN'] == 'HY_JT'
+        assert SYSTEM_LANGUAGE_MAPPING['zh_TW'] == 'HY_FT'
+        assert SYSTEM_LANGUAGE_MAPPING['zh'] == 'HY_JT'
 
     def test_english_mappings(self):
         """测试英语语言映射"""

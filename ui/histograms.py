@@ -1,6 +1,7 @@
+from __future__ import annotations
 # 第三方库导入
 import math
-from typing import List
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen, QMouseEvent
 from PySide6.QtWidgets import QWidget
@@ -35,7 +36,7 @@ class BaseHistogram(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._histogram: List[int] = []
+        self._histogram: list[int] = []
         self._max_count = 0
         self._scaling_mode = "linear"  # "linear" 或 "adaptive"
         self._is_loading = False  # 加载状态标志
@@ -43,7 +44,7 @@ class BaseHistogram(QWidget):
         # 绘图边距
         self._margin_left = 35
         self._margin_right = 15
-        self._margin_top = 15
+        self._margin_top = 5
         self._margin_bottom = 30
 
         # 背景色
@@ -89,7 +90,7 @@ class BaseHistogram(QWidget):
         painter.setPen(text_color)
         painter.drawText(text_x, text_y, text)
 
-    def set_data(self, data: List[int]):
+    def set_data(self, data: list[int]):
         """设置直方图数据
         
         Args:
@@ -115,7 +116,7 @@ class BaseHistogram(QWidget):
             self._scaling_mode = mode
             self.update()
 
-    def _calculate_cv(self, histogram: List[int]) -> float:
+    def _calculate_cv(self, histogram: list[int]) -> float:
         """计算直方图的变异系数（CV）
 
         CV = 标准差 / 平均值
@@ -156,8 +157,8 @@ class BaseHistogram(QWidget):
             return 0
 
         if self._scaling_mode == "linear":
-            # 线性缩放，保留5%头部空间
-            return (count / max_count) * height * 0.95
+            # 线性缩放
+            return (count / max_count) * height
         else:  # adaptive: 自适应缩放
             # 计算CV值
             cv = self._calculate_cv(self._histogram)
@@ -167,7 +168,7 @@ class BaseHistogram(QWidget):
                 # 分布非常平坦：使用线性缩放
                 normalized = count / max_count
             elif cv > 2.0:
-                # 分布集中：使用平方根缩放
+                # 分布集中：平方根缩放
                 sqrt_max = math.sqrt(max_count)
                 sqrt_count = math.sqrt(count)
                 normalized = sqrt_count / sqrt_max
@@ -178,8 +179,7 @@ class BaseHistogram(QWidget):
                 exponent = 0.75 - t * 0.2
                 normalized = (count / max_count) ** exponent
 
-            # 保留5%头部空间
-            return min(0.95, normalized) * height
+            return normalized * height
 
     def paintEvent(self, event):
         """绘制直方图"""

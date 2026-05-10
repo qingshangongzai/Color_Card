@@ -2,9 +2,9 @@ name: Build Mac App with Nuitka
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   build-macos:
@@ -49,12 +49,6 @@ jobs:
         COMPANY_NAME=$(sed -n '4p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         COPYRIGHT=$(sed -n '5p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         APP_NAME=$(sed -n '6p' version.txt | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        echo "Debug: version content is: '$VERSION'"
-        echo "Debug: file version is: '$FILE_VERSION'"
-        echo "Debug: product version is: '$PRODUCT_VERSION'"
-        echo "Debug: company name is: '$COMPANY_NAME'"
-        echo "Debug: copyright is: '$COPYRIGHT'"
-        echo "Debug: app name is: '$APP_NAME'"
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
         echo "file_version=$FILE_VERSION" >> "$GITHUB_OUTPUT"
         echo "product_version=$PRODUCT_VERSION" >> "$GITHUB_OUTPUT"
@@ -82,90 +76,42 @@ jobs:
           --include-data-dir=ui=ui \
           --include-data-dir=utils=utils \
           --enable-plugin=pyside6 \
-          --lto=yes \
           --jobs=4 \
           --output-dir=dist \
           main.py
 
-    - name: Check build output
+    - name: Fix app bundle name and localization
       run: |
-        echo "=== Checking dist directory ==="
-        ls -la dist/
-        echo ""
-        echo "=== Checking for .app bundle ==="
-        find dist -name "*.app" -type d
-        echo ""
         APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
-        if [ -n "$APP_BUNDLE" ]; then
-          echo "=== App bundle structure ==="
-          ls -la "$APP_BUNDLE/Contents/"
-          echo ""
-          echo "=== MacOS directory contents ==="
-          ls -la "$APP_BUNDLE/Contents/MacOS/"
-          echo ""
-          echo "=== Checking data directories ==="
-          echo "scenes_data exists: $(test -d "$APP_BUNDLE/Contents/MacOS/scenes_data" && echo 'YES' || echo 'NO')"
-          echo "color_data exists: $(test -d "$APP_BUNDLE/Contents/MacOS/color_data" && echo 'YES' || echo 'NO')"
-          echo "locales exists: $(test -d "$APP_BUNDLE/Contents/MacOS/locales" && echo 'YES' || echo 'NO')"
-          echo ""
-          if [ -d "$APP_BUNDLE/Contents/MacOS/scenes_data" ]; then
-            echo "=== scenes_data contents ==="
-            ls -la "$APP_BUNDLE/Contents/MacOS/scenes_data/"
-            echo ""
-            echo "=== scenes_data/web contents ==="
-            ls -la "$APP_BUNDLE/Contents/MacOS/scenes_data/web/" 2>/dev/null || echo "web directory not found"
-          fi
-          echo ""
-          echo "=== Info.plist CFBundleName ==="
-          cat "$APP_BUNDLE/Contents/Info.plist" | grep -A1 "CFBundleName" || true
-          echo ""
-          echo "=== File encoding check ==="
-          file "$APP_BUNDLE/Contents/MacOS/scenes_data/scene_types.json"
-          echo ""
-          echo "=== scene_types.json first 5 lines ==="
-          head -5 "$APP_BUNDLE/Contents/MacOS/scenes_data/scene_types.json"
-        else
-          echo "App bundle not found"
-        fi
 
-    - name: Fix app bundle name
-      run: |
-        # 查找生成的app bundle
-        APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
-        echo "Found app bundle: $APP_BUNDLE"
-
-        # 重命名app bundle从main.app到ColorCard.app（无空格，避免签名问题）
         if [ "$APP_BUNDLE" != "dist/ColorCard.app" ]; then
           mv "$APP_BUNDLE" "dist/ColorCard.app"
           APP_BUNDLE="dist/ColorCard.app"
-          echo "Renamed app bundle to: ColorCard.app"
         fi
 
-        # 修改Info.plist中的显示名称为Color Card
         INFO_PLIST="$APP_BUNDLE/Contents/Info.plist"
-        if [ -f "$INFO_PLIST" ]; then
-          echo "Before modification:"
-          cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
+        plutil -replace CFBundleName -string "ColorCard" "$INFO_PLIST"
+        plutil -replace CFBundleDisplayName -string "ColorCard" "$INFO_PLIST"
+        plutil -replace CFBundleIdentifier -string "Color Card" "$INFO_PLIST"
 
-          # 使用plutil修改plist（macOS原生工具）
-          # 注意：CFBundleExecutable保持Color Card（与Nuitka生成的可执行文件名一致）
-          plutil -replace CFBundleName -string "Color Card" "$INFO_PLIST"
-          plutil -replace CFBundleDisplayName -string "Color Card" "$INFO_PLIST"
-
-          echo "After modification:"
-          cat "$INFO_PLIST" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
-        fi
+        LOCALES_DIR="$APP_BUNDLE/Contents/Resources"
+        mkdir -p "$LOCALES_DIR/zh-Hans.lproj"
+        printf '%s\n' '"CFBundleName" = "取色卡";' '"CFBundleDisplayName" = "取色卡";' > "$LOCALES_DIR/zh-Hans.lproj/InfoPlist.strings.utf8"
+        iconv -f UTF-8 -t UTF-16 "$LOCALES_DIR/zh-Hans.lproj/InfoPlist.strings.utf8" > "$LOCALES_DIR/zh-Hans.lproj/InfoPlist.strings"
+        rm "$LOCALES_DIR/zh-Hans.lproj/InfoPlist.strings.utf8"
+        mkdir -p "$LOCALES_DIR/zh-Hant.lproj"
+        printf '%s\n' '"CFBundleName" = "取色卡";' '"CFBundleDisplayName" = "取色卡";' > "$LOCALES_DIR/zh-Hant.lproj/InfoPlist.strings.utf8"
+        iconv -f UTF-8 -t UTF-16 "$LOCALES_DIR/zh-Hant.lproj/InfoPlist.strings.utf8" > "$LOCALES_DIR/zh-Hant.lproj/InfoPlist.strings"
+        rm "$LOCALES_DIR/zh-Hant.lproj/InfoPlist.strings.utf8"
+        mkdir -p "$LOCALES_DIR/en.lproj"
+        printf '%s\n' '"CFBundleName" = "Color Card";' '"CFBundleDisplayName" = "Color Card";' > "$LOCALES_DIR/en.lproj/InfoPlist.strings.utf8"
+        iconv -f UTF-8 -t UTF-16 "$LOCALES_DIR/en.lproj/InfoPlist.strings.utf8" > "$LOCALES_DIR/en.lproj/InfoPlist.strings"
+        rm "$LOCALES_DIR/en.lproj/InfoPlist.strings.utf8"
 
     - name: Sign App (Ad-hoc)
       run: |
-        # 使用 ad-hoc 签名（不需要 Apple Developer 证书）
-        # 这可以解决 "已损坏" 的问题，但用户仍需在系统偏好设置中允许
         APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
-        echo "Found app bundle: $APP_BUNDLE"
         codesign --force --deep --sign - --timestamp=none "$APP_BUNDLE"
-
-        # 验证签名
-        codesign -dv --verbose=4 "$APP_BUNDLE"
 
     - name: Install create-dmg
       run: |
@@ -173,64 +119,45 @@ jobs:
 
     - name: Create DMG with custom background
       run: |
-        # 查找生成的app bundle
         APP_BUNDLE=$(find dist -name "*.app" -type d | head -1)
-        APP_NAME=$(basename "$APP_BUNDLE")
-        echo "Using app bundle: $APP_BUNDLE (name: $APP_NAME)"
 
-        # 检查app bundle的Info.plist
-        echo "=== App Bundle Info.plist ==="
-        cat "$APP_BUNDLE/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
-
-        # 创建临时目录用于 DMG
         mkdir -p dist/dmg
-
-        # 复制签名后的 .app 到临时目录
         cp -R "$APP_BUNDLE" dist/dmg/
 
-        # 检查复制后的app bundle
-        echo "=== Copied App Bundle Info.plist ==="
         COPIED_APP=$(find dist/dmg -name "*.app" -type d | head -1)
-        cat "$COPIED_APP/Contents/Info.plist" | grep -E "(CFBundleExecutable|CFBundleName|CFBundleDisplayName)" || true
-
-        # 复制后需要重新签名（复制会破坏签名）
-        echo "Re-signing copied app bundle..."
         codesign --force --deep --sign - --timestamp=none "$COPIED_APP"
 
-        # 如果有背景图片，复制到临时目录
         if [ -f "logo/dmg_background.png" ]; then
           cp logo/dmg_background.png dist/dmg/.background.png
         fi
 
-        # 使用 create-dmg 创建带自定义背景的 DMG
         if [ -f "logo/dmg_background.png" ]; then
           create-dmg \
-            --volname "ColorCard" \
+            --volname "取色卡" \
             --volicon "logo/ColorCard.icns" \
             --window-pos 200 120 \
             --window-size 800 500 \
             --icon-size 100 \
-            --icon "$APP_NAME" 200 250 \
+            --icon "ColorCard.app" 200 250 \
             --icon "Applications" 600 250 \
             --background "logo/dmg_background.png" \
             --app-drop-link 600 250 \
             --no-internet-enable \
             "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
-            "dist/dmg/$APP_NAME"
+            "dist/dmg/ColorCard.app"
         else
-          # 如果没有背景图片，使用简洁布局
           create-dmg \
-            --volname "ColorCard" \
+            --volname "取色卡" \
             --volicon "logo/ColorCard.icns" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
-            --icon "$APP_NAME" 150 200 \
+            --icon "ColorCard.app" 150 200 \
             --icon "Applications" 450 200 \
             --app-drop-link 450 200 \
             --no-internet-enable \
             "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
-            "dist/dmg/$APP_NAME"
+            "dist/dmg/ColorCard.app"
         fi
 
     - name: Upload artifact
@@ -238,11 +165,3 @@ jobs:
       with:
         name: ColorCard-macOS
         path: dist/Color_Card_*_mac.dmg
-
-    - name: Upload Debug Info
-      uses: actions/upload-artifact@v4
-      with:
-        name: Debug-Info
-        path: |
-          dist/**/*.app/Contents/Info.plist
-          dist/dmg/**/*.app/Contents/Info.plist

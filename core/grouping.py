@@ -3,7 +3,9 @@
 提供配色数据分组的通用逻辑，用于配色管理和内置色彩面板等场景。
 """
 
-from typing import List, Dict, Any
+from __future__ import annotations
+
+from typing import Any
 
 
 def _get_group_name(start: int, end: int) -> str:
@@ -47,7 +49,7 @@ GROUPING_THRESHOLDS = {
 }
 
 
-def generate_groups(total: int) -> List[Dict[str, Any]]:
+def generate_groups(total: int) -> list[dict[str, Any]]:
     """生成分组配置（始终返回至少一个分组）
     
     Args:

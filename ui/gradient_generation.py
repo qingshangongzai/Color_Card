@@ -1,7 +1,8 @@
+from __future__ import annotations
 # 标准库导入
 import uuid
 from datetime import datetime
-from typing import List, Tuple
+
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal
@@ -85,11 +86,11 @@ class GradientPreviewWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._colors: List[Tuple[int, int, int]] = []
+        self._colors: list[tuple[int, int, int]] = []
         self.setMinimumHeight(150)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-    def set_colors(self, colors: List[Tuple[int, int, int]]):
+    def set_colors(self, colors: list[tuple[int, int, int]]):
         """设置渐变色
 
         Args:
@@ -131,7 +132,7 @@ class GradientCardPanel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._cards: List[ColorCard] = []
+        self._cards: list[ColorCard] = []
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
         self.setup_ui()
@@ -162,7 +163,7 @@ class GradientCardPanel(QWidget):
         self.scroll_area.setWidget(self.cards_container)
         self.main_layout.addWidget(self.scroll_area)
 
-    def set_colors(self, colors: List[Tuple[int, int, int]]):
+    def set_colors(self, colors: list[tuple[int, int, int]]):
         """设置颜色列表并更新显示
 
         Args:
@@ -229,7 +230,7 @@ class GradientCardPanel(QWidget):
         for card in self._cards:
             card.set_hex_visible(visible)
 
-    def set_color_modes(self, modes: List[str]):
+    def set_color_modes(self, modes: list[str]):
         """设置色彩模式"""
         if len(modes) < 2:
             return
@@ -237,7 +238,7 @@ class GradientCardPanel(QWidget):
         for card in self._cards:
             card.set_color_modes(self._color_modes)
 
-    def get_colors(self) -> List[dict]:
+    def get_colors(self) -> list[dict]:
         """获取所有颜色的信息字典列表"""
         colors = []
         for card in self._cards:
@@ -788,6 +789,6 @@ class GradientGenerationInterface(QWidget):
         """设置16进制显示"""
         self.card_panel.set_hex_visible(visible)
 
-    def set_color_modes(self, modes: List[str]):
+    def set_color_modes(self, modes: list[str]):
         """设置色彩模式"""
         self.card_panel.set_color_modes(modes)

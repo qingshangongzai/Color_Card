@@ -1,6 +1,5 @@
 # 标准库导入
 from pathlib import Path
-
 # 第三方库导入
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
@@ -41,6 +40,9 @@ class AboutDialog(BaseFramelessDialog):
         self._theme_connection = qconfig.themeChangedFinished.connect(
             self._update_styles
         )
+
+        # 样式准备好后允许显示
+        self._enable_show()
 
     def setup_ui(self):
         """设置界面布局"""
