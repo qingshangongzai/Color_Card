@@ -335,7 +335,12 @@ class UpdateAvailableDialog(BaseFramelessDialog):
                     elif isinstance(item, dict):
                         title = item.get("title", "")
                         desc = item.get("desc", "")
-                        html_lines.append(f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• <b>{title}</b>: {desc}</div>')
+                        # 子标题单独一行显示，不加冒号
+                        html_lines.append(f'<div style="margin: 5px 0 0 10px; color: {text_color};">• <b>{title}</b></div>')
+                        # 按 <br> 分割描述，每行单独渲染
+                        desc_lines = desc.split("<br>")
+                        for line in desc_lines:
+                            html_lines.append(f'<div style="margin: 2px 0 0 30px; color: {text_color};">{line}</div>')
 
         return ''.join(html_lines)
 
