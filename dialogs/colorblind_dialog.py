@@ -1,137 +1,53 @@
 """色盲模拟预览对话框
 
-提供配色方案的色盲模拟预览功能，支持多种色盲类型切换。
+提供配色方案的色盲模拟预览功能，支持多种色盲类型切换和严重程度调节。
 """
 
 from __future__ import annotations
 
-# 标准库导入
-
-
-# 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QPainter
 from qfluentwidgets import (
-    ComboBox, qconfig, ScrollArea
+    ComboBox, Slider, qconfig
 )
 
-# 项目模块导入
 from utils import tr, load_icon_universal
 from dialogs import BaseFramelessDialog
 from core.colorblind import (
     simulate_colorblind, get_colorblind_info, get_all_colorblind_types
 )
 from utils.theme_colors import (
-    get_text_color, get_border_color,
-    get_secondary_text_color, get_title_color
+    get_text_color, get_secondary_text_color,
+    get_title_color
 )
 
 
-class ColorBlock(QWidget):
-    """颜色块组件"""
-
-    def __init__(self, width: int = 60, height: int = 40, parent=None):
-        super().__init__(parent)
-        self.setFixedSize(width, height)
-        self._color = QColor(200, 200, 200)
-
-    def set_color(self, rgb: tuple[int, int, int]):
-        """设置颜色"""
-        self._color = QColor(rgb[0], rgb[1], rgb[2])
-        self.update()
-
-    def paintEvent(self, event):
-        """绘制颜色块"""
-        from PySide6.QtGui import QPainter, QBrush, QPen
-
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # 绘制背景
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(self._color))
-        painter.drawRoundedRect(0, 0, self.width(), self.height(), 6, 6)
-
-
-class ColorComparisonRow(QWidget):
-    """颜色对比行组件 - 显示原颜色和模拟颜色"""
+class PalettePreviewStrip(QWidget):
+    """配色色块条，横排显示一组色块"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setup_ui()
-        self._update_styles()
-    
-    def setup_ui(self):
-        """设置界面"""
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(10, 8, 10, 8)
-        layout.setSpacing(10)
-        
-        # 左侧固定宽度区域（颜色块 + 箭头）
-        color_area = QWidget()
-        color_area_layout = QHBoxLayout(color_area)
-        color_area_layout.setContentsMargins(0, 0, 0, 0)
-        color_area_layout.setSpacing(5)
-        color_area.setFixedWidth(155)
-        
-        # 原颜色块
-        self.original_block = ColorBlock(50, 32)
-        color_area_layout.addWidget(self.original_block)
-        
-        # 箭头标签
-        self.arrow_label = QLabel("→")
-        self.arrow_label.setStyleSheet("font-size: 16px;")
-        self.arrow_label.setFixedWidth(16)
-        self.arrow_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        color_area_layout.addWidget(self.arrow_label)
-        
-        # 模拟颜色块
-        self.simulated_block = ColorBlock(50, 32)
-        color_area_layout.addWidget(self.simulated_block)
-        
-        layout.addWidget(color_area)
-        
-        # 颜色值信息
-        info_layout = QVBoxLayout()
-        info_layout.setSpacing(4)
-        
-        self.original_hex = QLabel(tr('dialogs.colorblind.original') + ": #------")
-        self.original_hex.setStyleSheet("font-size: 12px;")
-        info_layout.addWidget(self.original_hex)
-        
-        self.simulated_hex = QLabel(tr('dialogs.colorblind.simulated') + ": #------")
-        self.simulated_hex.setStyleSheet("font-size: 12px;")
-        info_layout.addWidget(self.simulated_hex)
-        
-        layout.addLayout(info_layout)
-        layout.addStretch()
-    
-    def _update_styles(self):
-        """更新样式以适配主题"""
-        secondary_color = get_secondary_text_color()
-        self.arrow_label.setStyleSheet(f"font-size: 18px; color: {secondary_color.name()};")
-        self.original_hex.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
-        self.simulated_hex.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
-    
-    def set_colors(self, original_rgb: tuple[int, int, int], simulated_rgb: tuple[int, int, int]):
-        """设置颜色对比
-        
-        Args:
-            original_rgb: 原始 RGB 颜色
-            simulated_rgb: 模拟后的 RGB 颜色
-        """
-        self.original_block.set_color(original_rgb)
-        self.simulated_block.set_color(simulated_rgb)
-        
-        # 更新 HEX 显示
-        original_hex = f"#{original_rgb[0]:02X}{original_rgb[1]:02X}{original_rgb[2]:02X}"
-        simulated_hex = f"#{simulated_rgb[0]:02X}{simulated_rgb[1]:02X}{simulated_rgb[2]:02X}"
-        
-        self.original_hex.setText(f"{tr('dialogs.colorblind.original')}: {original_hex}")
-        self.simulated_hex.setText(f"{tr('dialogs.colorblind.simulated')}: {simulated_hex}")
+        self._colors: list[tuple[int, int, int]] = []
+        self.setFixedHeight(40)
+
+    def set_colors(self, colors: list[tuple[int, int, int]]):
+        self._colors = colors
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        if not self._colors:
+            return
+        n = len(self._colors)
+        w = self.width() // n
+        for i, rgb in enumerate(self._colors):
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(rgb[0], rgb[1], rgb[2]))
+            painter.drawRoundedRect(i * w + 2, 2, w - 4, self.height() - 4, 4, 4)
 
 
 class ColorblindPreviewDialog(BaseFramelessDialog):
@@ -140,179 +56,146 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
     显示配色方案在不同色盲类型下的视觉效果。
     """
 
-    def __init__(self, scheme_name: str, colors: list[Dict], parent=None):
-        """初始化色盲预览对话框
-
-        Args:
-            scheme_name: 配色方案名称
-            colors: 颜色列表，每个颜色是一个字典，包含 'rgb' 键
-            parent: 父窗口
-        """
+    def __init__(self, scheme_name: str, colors: list[dict], parent=None):
         super().__init__(parent)
         self._scheme_name = scheme_name
         self._colors = colors
         self._current_type = 'normal'
+        self._severity = 0.5
 
         self.setWindowTitle(tr('dialogs.colorblind.window_title', name=scheme_name))
-        self.setFixedSize(320, 420)
+        self.setFixedSize(600, 420)
 
-        # 设置窗口图标
         self.setWindowIcon(load_icon_universal())
 
-        # 设置界面
         self.setup_ui()
-
-        # 设置标题栏和样式
         self._setup_title_bar()
         self._update_styles()
 
-        # 更新预览
         self.update_preview()
 
-        # 监听主题变化
         self._theme_connection = qconfig.themeChangedFinished.connect(
             self._update_styles
         )
 
-        # 样式准备好后允许显示
         self._enable_show()
 
     def setup_ui(self):
         """设置界面布局"""
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(20, 40, 20, 20)
-        main_layout.setSpacing(15)
-        
-        # 获取主题颜色
-        title_color = get_title_color()
+        main_layout.setSpacing(12)
+
         text_color = get_text_color()
         secondary_color = get_secondary_text_color()
-        border_color = get_border_color()
-        
-        # 标题
+        title_color = get_title_color()
+
         title_label = QLabel(tr('dialogs.colorblind.title'))
-        title_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {title_color.name()};")
+        title_label.setStyleSheet(
+            f"font-size: 18px; font-weight: bold; color: {title_color.name()};"
+        )
         main_layout.addWidget(title_label)
-        
+
         name_label = QLabel(tr('dialogs.colorblind.scheme_name', name=self._scheme_name))
         name_label.setStyleSheet(f"font-size: 13px; color: {secondary_color.name()};")
         main_layout.addWidget(name_label)
-        
-        # 色盲类型选择
-        type_layout = QHBoxLayout()
-        type_layout.setSpacing(10)
-        
+
+        strip_label = QLabel(tr('dialogs.colorblind.original'))
+        strip_label.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
+        main_layout.addWidget(strip_label)
+
+        self.original_strip = PalettePreviewStrip()
+        main_layout.addWidget(self.original_strip)
+
+        simulated_label = QLabel(tr('dialogs.colorblind.simulated'))
+        simulated_label.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
+        main_layout.addWidget(simulated_label)
+
+        self.simulated_strip = PalettePreviewStrip()
+        main_layout.addWidget(self.simulated_strip)
+
+        control_layout = QHBoxLayout()
+        control_layout.setSpacing(10)
+
         type_label = QLabel(tr('dialogs.colorblind.colorblind_type'))
         type_label.setStyleSheet(f"font-size: 13px; color: {text_color.name()};")
-        type_layout.addWidget(type_label)
-        
+        control_layout.addWidget(type_label)
+
         self.type_combo = ComboBox()
-        self.type_combo.setMinimumWidth(150)
-        
-        # 添加色盲类型选项
+        self.type_combo.setMinimumWidth(130)
         self._type_keys = []
         colorblind_types = get_all_colorblind_types()
         for key, info in colorblind_types.items():
             self.type_combo.addItem(info['name'])
             self._type_keys.append(key)
-        
+
         self.type_combo.currentIndexChanged.connect(self._on_type_changed)
-        type_layout.addWidget(self.type_combo)
-        type_layout.addStretch()
+        control_layout.addWidget(self.type_combo)
 
-        main_layout.addLayout(type_layout)
+        self.severity_container = QWidget()
+        severity_layout = QHBoxLayout(self.severity_container)
+        severity_layout.setContentsMargins(0, 0, 0, 0)
+        severity_layout.setSpacing(6)
 
-        # 列标题
-        header_layout = QHBoxLayout()
-        header_layout.setSpacing(10)
-        
-        # 左侧固定宽度区域标题
-        color_area_title = QWidget()
-        color_area_title_layout = QHBoxLayout(color_area_title)
-        color_area_title_layout.setContentsMargins(5, 0, 0, 0)
-        color_area_title_layout.setSpacing(5)
-        color_area_title.setFixedWidth(155)
-        
-        original_title = QLabel(tr('dialogs.colorblind.original_color'))
-        original_title.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {text_color.name()};")
-        original_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        original_title.setFixedWidth(60)
-        color_area_title_layout.addWidget(original_title)
-        
-        arrow_spacer = QLabel("")
-        arrow_spacer.setFixedWidth(15)
-        color_area_title_layout.addWidget(arrow_spacer)
-        
-        simulated_title = QLabel(tr('dialogs.colorblind.simulated_color'))
-        simulated_title.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {text_color.name()};")
-        simulated_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        simulated_title.setFixedWidth(70)
-        color_area_title_layout.addWidget(simulated_title)
-        
-        header_layout.addWidget(color_area_title)
-        header_layout.addStretch()
-        main_layout.addLayout(header_layout)
-        
-        # 颜色对比列表（带滚动条）
-        scroll_area = ScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet("""
-            ScrollArea {
-                background-color: transparent;
-                border: none;
-            }
-            ScrollArea > QWidget > QWidget {
-                background-color: transparent;
-            }
-        """)
-        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.severity_label = QLabel(tr('dialogs.colorblind.severity', value=50))
+        self.severity_label.setStyleSheet(f"font-size: 13px; color: {text_color.name()};")
+        severity_layout.addWidget(self.severity_label)
 
-        self.comparison_container = QWidget()
-        self.comparison_layout = QVBoxLayout(self.comparison_container)
-        self.comparison_layout.setContentsMargins(0, 0, 0, 0)
-        self.comparison_layout.setSpacing(5)
-        self.comparison_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        
-        # 创建颜色对比行
-        self.comparison_rows = []
-        for color_data in self._colors:
-            row = ColorComparisonRow()
-            self.comparison_rows.append(row)
-            self.comparison_layout.addWidget(row)
-        
-        self.comparison_layout.addStretch()
-        scroll_area.setWidget(self.comparison_container)
-        main_layout.addWidget(scroll_area, stretch=1)
-        
-        # 说明文字
+        self.severity_slider = Slider(Qt.Orientation.Horizontal)
+        self.severity_slider.setRange(0, 100)
+        self.severity_slider.setValue(50)
+        self.severity_slider.setMinimumWidth(120)
+        self.severity_slider.valueChanged.connect(self._on_severity_changed)
+        severity_layout.addWidget(self.severity_slider, stretch=1)
+
+        control_layout.addWidget(self.severity_container)
+        control_layout.addStretch()
+        main_layout.addLayout(control_layout)
+
         self.description_label = QLabel("")
-        self.description_label.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()}; padding: 5px;")
+        self.description_label.setStyleSheet(
+            f"font-size: 12px; color: {secondary_color.name()}; padding: 5px;"
+        )
         self.description_label.setWordWrap(True)
         main_layout.addWidget(self.description_label)
-    
+
+        self._update_severity_visibility()
+
     def _on_type_changed(self, index: int):
         """色盲类型改变"""
         if 0 <= index < len(self._type_keys):
             self._current_type = self._type_keys[index]
+            self._update_severity_visibility()
             self.update_preview()
-    
-    def update_preview(self):
-        """更新预览显示"""
-        # 更新每个颜色行的显示
-        for i, row in enumerate(self.comparison_rows):
-            if i < len(self._colors):
-                color_data = self._colors[i]
-                original_rgb = tuple(color_data.get('rgb', [128, 128, 128]))
-                
-                # 计算模拟颜色
-                simulated_rgb = simulate_colorblind(original_rgb, self._current_type)
-                
-                row.set_colors(original_rgb, simulated_rgb)
-        
-        # 更新说明文字
-        info = get_colorblind_info(self._current_type)
-        self.description_label.setText(tr('dialogs.colorblind.description', desc=info['description']))
 
-    def closeEvent(self, event):
-        """关闭事件"""
-        super().closeEvent(event)  # 基类处理信号断开
+    def _on_severity_changed(self, value: int):
+        """严重程度滑块回调"""
+        self._severity = value / 100.0
+        self.severity_label.setText(tr('dialogs.colorblind.severity', value=value))
+        self.update_preview()
+
+    def _update_severity_visibility(self):
+        """根据当前色盲类型控制滑块可见性"""
+        is_anomal = self._current_type in ('protanomaly', 'deuteranomaly', 'tritanomaly')
+        self.severity_container.setVisible(is_anomal)
+
+    def update_preview(self):
+        """更新所有预览组件的显示"""
+        original_rgbs = [
+            tuple(color_data.get('rgb', [128, 128, 128]))
+            for color_data in self._colors
+        ]
+
+        severity = self._severity
+        simulated_rgbs = [
+            simulate_colorblind(rgb, self._current_type, severity)
+            for rgb in original_rgbs
+        ]
+
+        self.original_strip.set_colors(original_rgbs)
+        self.simulated_strip.set_colors(simulated_rgbs)
+
+        info = get_colorblind_info(self._current_type)
+        self.description_label.setText(
+            tr('dialogs.colorblind.description', desc=info['description'])
+        )

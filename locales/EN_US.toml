@@ -353,6 +353,7 @@ simulated_color = "Simulated"
 original = "Original"
 simulated = "Simulated"
 description = "Note: {desc}"
+severity = "Severity: {value}%"
 
 [dialogs.contrast]
 title = "Contrast Check"

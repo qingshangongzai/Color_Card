@@ -353,6 +353,7 @@ simulated_color = "シミュレートカラー"
 original = "元"
 simulated = "シミュレート"
 description = "注: {desc}"
+severity = "重症度：{value}%"
 
 [dialogs.contrast]
 title = "コントラストチェック"

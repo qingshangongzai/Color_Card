@@ -353,6 +353,7 @@ simulated_color = "模擬顏色"
 original = "原始"
 simulated = "模擬"
 description = "說明: {desc}"
+severity = "嚴重程度：{value}%"
 
 [dialogs.contrast]
 title = "對比度檢查"
