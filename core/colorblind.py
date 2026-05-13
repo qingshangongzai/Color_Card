@@ -1,11 +1,8 @@
 """色盲模拟模块
 
 提供各种色盲类型的颜色转换功能。
-使用 LMS 色彩空间转换矩阵实现准确的色盲模拟。
+使用 Machado 2009 LMS 色彩空间矩阵实现准确的色盲模拟。
 """
-
-
-
 
 from __future__ import annotations
 
@@ -30,181 +27,195 @@ COLORBLIND_TYPES = {
     'achromatopsia': {
         'name': '全色盲',
         'description': '完全无法感知颜色，只能看到灰度，极为罕见。'
-    }
+    },
+    'protanomaly': {
+        'name': '红色弱',
+        'description': '红色视锥细胞功能减弱，对红色敏感度降低。'
+    },
+    'deuteranomaly': {
+        'name': '绿色弱',
+        'description': '绿色视锥细胞功能减弱，对绿色敏感度降低，最常见的色觉异常。'
+    },
+    'tritanomaly': {
+        'name': '蓝色弱',
+        'description': '蓝色视锥细胞功能减弱，对蓝色敏感度降低，极罕见。'
+    },
+}
+
+# ========== Machado 2009 矩阵常量 ==========
+# 来源: "A Physiologically-based Model for Simulation of Color Vision Deficiency"
+# doi: 10.1109/TVCG.2009.113
+
+# RGB → LMS 转换矩阵（Machado 2009, Table I）
+MACHADO_LMS_FROM_RGB = [
+    [0.3904725,  0.6882901,  -0.0786870],
+    [-0.2296649,  1.1833588,  0.0463308],
+    [0.0000000,   0.0000000,  1.0000000],
+]
+
+# LMS → RGB 转换矩阵（Machado 2009 逆矩阵）
+MACHADO_RGB_FROM_LMS = [
+    [2.4399508,  -1.4196877,  0.2194128],
+    [0.4734952,   0.8066012,  0.0734703],
+    [0.0000000,   0.0000000,  1.0000000],
+]
+
+# 完全缺失型色盲矩阵（severity=1.0, Machado 2009 Table I）
+MACHADO_MATRICES = {
+    'protan': [
+        [0.152286,   1.052583,  -0.204868],
+        [0.114503,   0.786281,   0.099216],
+        [-0.003882, -0.048116,   1.051998],
+    ],
+    'deutan': [
+        [0.367322,   0.860646,  -0.227968],
+        [0.280085,   0.672501,   0.047413],
+        [-0.011820,  0.042940,   0.968881],
+    ],
+    'tritan': [
+        [1.255528,  -0.076749,  -0.178779],
+        [-0.078411,  0.930809,   0.147602],
+        [0.004733,   0.691367,   0.303900],
+    ],
 }
 
 
-def rgb_to_lms(r: int, g: int, b: int) -> tuple[float, float, float]:
-    """将 RGB 转换为 LMS 色彩空间
-    
-    LMS 代表长波(L)、中波(M)、短波(S)视锥细胞的响应值。
-    使用 Bradford 变换矩阵。
-    
-    Args:
-        r: 红色分量 (0-255)
-        g: 绿色分量 (0-255)
-        b: 蓝色分量 (0-255)
-        
-    Returns:
-        (L, M, S) 元组
-    """
-    # 归一化到 0-1
-    r_norm = r / 255.0
-    g_norm = g / 255.0
-    b_norm = b / 255.0
-    
-    # sRGB 到线性 RGB 的伽马校正
-    def gamma_correction(c):
-        if c <= 0.04045:
-            return c / 12.92
-        else:
-            return ((c + 0.055) / 1.055) ** 2.4
-    
-    r_linear = gamma_correction(r_norm)
-    g_linear = gamma_correction(g_norm)
-    b_linear = gamma_correction(b_norm)
-    
-    # RGB 到 LMS 转换矩阵 (Bradford)
-    L = 0.8951 * r_linear + 0.2664 * g_linear - 0.1614 * b_linear
-    M = -0.7502 * r_linear + 1.7135 * g_linear + 0.0367 * b_linear
-    S = 0.0389 * r_linear - 0.0685 * g_linear + 1.0296 * b_linear
-
-    return (L, M, S)
+def _apply_matrix(v: tuple[float, float, float], m: list[list[float]]) -> tuple[float, float, float]:
+    """3x3 矩阵乘以 3 维向量 v"""
+    return (
+        m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+        m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+        m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2],
+    )
 
 
-def lms_to_rgb(L: float, M: float, S: float) -> tuple[int, int, int]:
-    """将 LMS 转换回 RGB 色彩空间
+def _gamma_linearize(c: float) -> float:
+    """sRGB 非线性通道 → 线性通道"""
+    if c <= 0.04045:
+        return c / 12.92
+    return ((c + 0.055) / 1.055) ** 2.4
+
+
+def _gamma_delinearize(c: float) -> float:
+    """线性通道 → sRGB 非线性通道"""
+    if c <= 0.0031308:
+        return c * 12.92
+    return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+
+
+def _interpolate_matrix(full_matrix: list[list[float]], severity: float) -> list[list[float]]:
+    """在单位矩阵和完全缺失矩阵之间做线性插值
 
     Args:
-        L: 长波视锥响应
-        M: 中波视锥响应
-        S: 短波视锥响应
+        full_matrix: severity=1.0 时的完全缺失矩阵
+        severity: 严重程度 (0.0-1.0)
 
     Returns:
-        (R, G, B) 元组，范围 0-255
+        插值后的 3x3 矩阵
     """
-    # LMS 到 RGB 转换矩阵 (Bradford 逆矩阵)
-    r_linear = 0.986993 * L - 0.147054 * M + 0.159963 * S
-    g_linear = 0.432305 * L + 0.51836 * M + 0.049291 * S
-    b_linear = -0.008529 * L + 0.040043 * M + 0.968487 * S
-
-    # 线性 RGB 到 sRGB 的伽马校正
-    def gamma_correction_inv(c):
-        if c <= 0.0031308:
-            return c * 12.92
-        else:
-            return 1.055 * (c ** (1.0 / 2.4)) - 0.055
-
-    r_norm = gamma_correction_inv(r_linear)
-    g_norm = gamma_correction_inv(g_linear)
-    b_norm = gamma_correction_inv(b_linear)
-
-    # 裁剪到 0-1 范围并转换为 0-255
-    R = int(max(0, min(1, r_norm)) * 255)
-    G = int(max(0, min(1, g_norm)) * 255)
-    B = int(max(0, min(1, b_norm)) * 255)
-
-    return (R, G, B)
+    result = [[0.0] * 3 for _ in range(3)]
+    for i in range(3):
+        for j in range(3):
+            identity = 1.0 if i == j else 0.0
+            result[i][j] = identity * (1.0 - severity) + full_matrix[i][j] * severity
+    return result
 
 
-def simulate_protanopia(L: float, M: float, S: float) -> tuple[float, float, float]:
-    """模拟红色盲 (Protanopia)
+def _get_blind_matrix(cvd_type: str, severity: float) -> list[list[float]] | None:
+    """根据色盲类型和严重程度获取最终变换矩阵
 
-    红色视锥细胞缺失，L 通道信息丢失。
-    使用红色盲模拟矩阵。
+    Args:
+        cvd_type: 色盲类型标识
+        severity: 严重程度 (0.0-1.0)，仅对 anomal 类型生效
+
+    Returns:
+        3x3 变换矩阵，normal/achromatopsia 返回 None
     """
-    # 红色盲转换：L 通道由 M 和 S 估算
-    L_blind = 0.0 * L + 2.02344 * M - 2.52581 * S
-    M_blind = M
-    S_blind = S
-    return (L_blind, M_blind, S_blind)
+    if cvd_type in ('protanopia', 'protanomaly'):
+        matrix_key = 'protan'
+    elif cvd_type in ('deuteranopia', 'deuteranomaly'):
+        matrix_key = 'deutan'
+    elif cvd_type in ('tritanopia', 'tritanomaly'):
+        matrix_key = 'tritan'
+    else:
+        return None
 
-
-def simulate_deuteranopia(L: float, M: float, S: float) -> tuple[float, float, float]:
-    """模拟绿色盲 (Deuteranopia)
-
-    绿色视锥细胞缺失，M 通道信息丢失。
-    使用绿色盲模拟矩阵。
-    """
-    # 绿色盲转换：M 通道由 L 和 S 估算
-    L_blind = L
-    M_blind = 0.49421 * L + 0.0 * M + 1.24827 * S
-    S_blind = S
-    return (L_blind, M_blind, S_blind)
-
-
-def simulate_tritanopia(L: float, M: float, S: float) -> tuple[float, float, float]:
-    """模拟蓝色盲 (Tritanopia)
-
-    蓝色视锥细胞缺失，S 通道信息丢失。
-    使用蓝色盲模拟矩阵。
-    """
-    # 蓝色盲转换：S 通道由 L 和 M 估算
-    L_blind = L
-    M_blind = M
-    S_blind = -0.395913 * L + 0.801109 * M + 0.0 * S
-    return (L_blind, M_blind, S_blind)
-
-
-def simulate_achromatopsia(L: float, M: float, S: float) -> tuple[float, float, float]:
-    """模拟全色盲 (Achromatopsia)
-
-    完全无法感知颜色，转换为灰度。
-    使用 LMS 到灰度的转换。
-    """
-    # 转换为灰度值 (使用亮度权重)
-    gray = 0.299 * L + 0.587 * M + 0.114 * S
-    return (gray, gray, gray)
+    actual_severity = 1.0 if cvd_type.endswith('opia') else severity
+    return _interpolate_matrix(MACHADO_MATRICES[matrix_key], actual_severity)
 
 
 def simulate_colorblind(
     rgb: tuple[int, int, int],
-    colorblind_type: str = 'normal'
+    cvd_type: str = 'normal',
+    severity: float = 0.5
 ) -> tuple[int, int, int]:
     """模拟指定类型的色盲效果
-    
+
     Args:
         rgb: 原始 RGB 颜色元组 (r, g, b)，范围 0-255
-        colorblind_type: 色盲类型，可选值：
+        cvd_type: 色盲类型，可选值：
             - 'normal': 正常视觉
             - 'protanopia': 红色盲
             - 'deuteranopia': 绿色盲
             - 'tritanopia': 蓝色盲
             - 'achromatopsia': 全色盲
-            
+            - 'protanomaly': 红色弱（severity 生效）
+            - 'deuteranomaly': 绿色弱（severity 生效）
+            - 'tritanomaly': 蓝色弱（severity 生效）
+        severity: 严重程度 0.0-1.0，仅对 anomal 类型生效，
+                  0.0=正常视觉，1.0=完全缺失
+
     Returns:
         模拟后的 RGB 颜色元组 (r, g, b)，范围 0-255
     """
-    if colorblind_type == 'normal':
+    if cvd_type == 'normal':
         return rgb
-    
+
     R, G, B = rgb
 
-    # 转换为 LMS 空间
-    L, M, S = rgb_to_lms(R, G, B)
+    if cvd_type == 'achromatopsia':
+        gray = int(0.299 * R + 0.587 * G + 0.114 * B)
+        return (gray, gray, gray)
 
-    # 应用色盲模拟
-    if colorblind_type == 'protanopia':
-        L, M, S = simulate_protanopia(L, M, S)
-    elif colorblind_type == 'deuteranopia':
-        L, M, S = simulate_deuteranopia(L, M, S)
-    elif colorblind_type == 'tritanopia':
-        L, M, S = simulate_tritanopia(L, M, S)
-    elif colorblind_type == 'achromatopsia':
-        L, M, S = simulate_achromatopsia(L, M, S)
-    else:
+    # severity 接近 0 时直接返回原值，避免矩阵往返精度损失
+    if severity < 0.001:
         return rgb
 
-    # 转换回 RGB
-    return lms_to_rgb(L, M, S)
+    matrix = _get_blind_matrix(cvd_type, severity)
+    if matrix is None:
+        return rgb
+
+    r_norm = R / 255.0
+    g_norm = G / 255.0
+    b_norm = B / 255.0
+
+    r_lin = _gamma_linearize(r_norm)
+    g_lin = _gamma_linearize(g_norm)
+    b_lin = _gamma_linearize(b_norm)
+
+    lms = _apply_matrix((r_lin, g_lin, b_lin), MACHADO_LMS_FROM_RGB)
+
+    lms_blind = _apply_matrix(lms, matrix)
+
+    rgb_lin = _apply_matrix(lms_blind, MACHADO_RGB_FROM_LMS)
+
+    r_out = _gamma_delinearize(rgb_lin[0])
+    g_out = _gamma_delinearize(rgb_lin[1])
+    b_out = _gamma_delinearize(rgb_lin[2])
+
+    return (
+        int(max(0, min(255, r_out * 255))),
+        int(max(0, min(255, g_out * 255))),
+        int(max(0, min(255, b_out * 255))),
+    )
 
 
 def get_colorblind_info(colorblind_type: str) -> dict[str, str]:
     """获取色盲类型的信息
-    
+
     Args:
         colorblind_type: 色盲类型
-        
+
     Returns:
         包含名称和描述的字典
     """
@@ -216,7 +227,7 @@ def get_colorblind_info(colorblind_type: str) -> dict[str, str]:
 
 def get_all_colorblind_types() -> dict[str, dict[str, str]]:
     """获取所有支持的色盲类型
-    
+
     Returns:
         色盲类型字典，键为类型标识，值为信息字典
     """
