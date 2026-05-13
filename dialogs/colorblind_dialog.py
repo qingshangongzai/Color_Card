@@ -64,7 +64,7 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
         self._severity = 0.5
 
         self.setWindowTitle(tr('dialogs.colorblind.window_title', name=scheme_name))
-        self.setFixedSize(600, 420)
+        self.setFixedSize(600, 380)
 
         self.setWindowIcon(load_icon_universal())
 
