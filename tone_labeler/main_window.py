@@ -15,10 +15,10 @@ from PySide6.QtWidgets import (
     QSplitter
 )
 
-from tools.tone_labeler.feature_extractor import FeatureExtractor, ToneFeatures
-from tools.tone_labeler.data_manager import DataManager
-from tools.tone_labeler.histogram_widget import HistogramWidget
-from tools.tone_labeler.label_panel import LabelPanel
+from tone_labeler.feature_extractor import FeatureExtractor, ToneFeatures
+from tone_labeler.data_manager import DataManager
+from tone_labeler.histogram_widget import HistogramWidget
+from tone_labeler.label_panel import LabelPanel
 
 
 class MainWindow(QMainWindow):

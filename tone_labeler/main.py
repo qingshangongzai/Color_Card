@@ -3,23 +3,23 @@
 用于标注图片影调类型，收集数据用于算法优化。
 
 使用方法:
-    python -m tools.tone_labeler.main
+    python -m tone_labeler.main
 
 或者:
-    cd tools/tone_labeler
+    cd tone_labeler
     python main.py
 """
 
 import sys
 from pathlib import Path
 
-project_root = Path(__file__).parent.parent.parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import Qt
 
-from tools.tone_labeler.main_window import MainWindow
+from tone_labeler.main_window import MainWindow
 
 
 def main():
