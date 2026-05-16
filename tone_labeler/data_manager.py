@@ -21,7 +21,9 @@ class LabelRecord:
     features: Dict[str, Any]
     algorithm_result: Dict[str, Any]
     human_label: str
-    is_correct: bool
+    human_label_secondary: str = ""
+    is_correct: bool = False
+    is_secondary_correct: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
@@ -82,7 +84,8 @@ class DataManager:
         image_path: str,
         features: Dict[str, Any],
         algorithm_result: Dict[str, Any],
-        human_label: str
+        human_label: str,
+        human_label_secondary: str = ""
     ) -> LabelRecord:
         """添加标注记录
 
@@ -90,7 +93,8 @@ class DataManager:
             image_path: 图片路径
             features: 特征数据
             algorithm_result: 算法结果
-            human_label: 人工标注
+            human_label: 首选标注
+            human_label_secondary: 次选标注
 
         Returns:
             LabelRecord: 创建的记录
@@ -98,7 +102,11 @@ class DataManager:
         image_hash = self._compute_image_hash(image_path)
         timestamp = datetime.now().isoformat()
 
-        is_correct = algorithm_result.get("tone_name", "") == human_label
+        algo_tone = algorithm_result.get("tone_name", "")
+        is_correct = algo_tone == human_label
+        is_secondary_correct = (
+            human_label_secondary != "" and algo_tone == human_label_secondary
+        )
 
         record = LabelRecord(
             image_path=image_path,
@@ -107,7 +115,9 @@ class DataManager:
             features=features,
             algorithm_result=algorithm_result,
             human_label=human_label,
-            is_correct=is_correct
+            human_label_secondary=human_label_secondary,
+            is_correct=is_correct,
+            is_secondary_correct=is_secondary_correct
         )
 
         self._records[image_path] = record
@@ -137,12 +147,18 @@ class DataManager:
         """
         return image_path in self._records
 
-    def update_record(self, image_path: str, human_label: str) -> Optional[LabelRecord]:
+    def update_record(
+        self,
+        image_path: str,
+        human_label: str,
+        human_label_secondary: str = ""
+    ) -> Optional[LabelRecord]:
         """更新标注记录
 
         Args:
             image_path: 图片路径
-            human_label: 新的人工标注
+            human_label: 新的首选标注
+            human_label_secondary: 新的次选标注
 
         Returns:
             Optional[LabelRecord]: 更新后的记录，不存在返回 None
@@ -151,9 +167,14 @@ class DataManager:
         if record is None:
             return None
 
+        algo_tone = record.algorithm_result.get("tone_name", "")
         record.human_label = human_label
+        record.human_label_secondary = human_label_secondary
         record.timestamp = datetime.now().isoformat()
-        record.is_correct = record.algorithm_result.get("tone_name", "") == human_label
+        record.is_correct = algo_tone == human_label
+        record.is_secondary_correct = (
+            human_label_secondary != "" and algo_tone == human_label_secondary
+        )
 
         self._save_records()
 
@@ -214,7 +235,9 @@ class DataManager:
                 features=record_data["features"],
                 algorithm_result=record_data["algorithm_result"],
                 human_label=record_data["human_label"],
-                is_correct=record_data["is_correct"]
+                human_label_secondary=record_data.get("human_label_secondary", ""),
+                is_correct=record_data["is_correct"],
+                is_secondary_correct=record_data.get("is_secondary_correct", False)
             )
             self._records[record.image_path] = record
 
@@ -242,7 +265,8 @@ class DataManager:
             "low_ratio", "mid_ratio", "high_ratio",
             "algo_tone_key", "algo_tone_range", "algo_tone_name",
             "key_confidence", "range_confidence",
-            "human_label", "is_correct"
+            "human_label", "human_label_secondary",
+            "is_correct", "is_secondary_correct", "is_any_correct"
         ]
 
         with open(output_path, "w", newline="", encoding="utf-8") as f:
@@ -272,7 +296,10 @@ class DataManager:
                     "key_confidence": record.algorithm_result.get("key_confidence", ""),
                     "range_confidence": record.algorithm_result.get("range_confidence", ""),
                     "human_label": record.human_label,
-                    "is_correct": record.is_correct
+                    "human_label_secondary": record.human_label_secondary,
+                    "is_correct": record.is_correct,
+                    "is_secondary_correct": record.is_secondary_correct,
+                    "is_any_correct": record.is_correct or record.is_secondary_correct
                 }
                 writer.writerow(row)
 
@@ -316,10 +343,26 @@ class DataManager:
                 "total": 0,
                 "correct": 0,
                 "accuracy": 0.0,
+                "secondary_filled": 0,
+                "secondary_fill_rate": 0.0,
+                "secondary_correct": 0,
+                "secondary_accuracy": 0.0,
+                "any_correct": 0,
+                "combined_accuracy": 0.0,
                 "by_type": {}
             }
 
         correct = sum(1 for r in self._records.values() if r.is_correct)
+        secondary_filled = sum(
+            1 for r in self._records.values() if r.human_label_secondary != ""
+        )
+        secondary_correct = sum(
+            1 for r in self._records.values() if r.is_secondary_correct
+        )
+        any_correct = sum(
+            1 for r in self._records.values()
+            if r.is_correct or r.is_secondary_correct
+        )
 
         by_type: Dict[str, Dict[str, int]] = {}
         for tone_type in self.TONE_TYPES:
@@ -336,6 +379,14 @@ class DataManager:
             "total": total,
             "correct": correct,
             "accuracy": correct / total if total > 0 else 0.0,
+            "secondary_filled": secondary_filled,
+            "secondary_fill_rate": secondary_filled / total if total > 0 else 0.0,
+            "secondary_correct": secondary_correct,
+            "secondary_accuracy": (
+                secondary_correct / secondary_filled if secondary_filled > 0 else 0.0
+            ),
+            "any_correct": any_correct,
+            "combined_accuracy": any_correct / total if total > 0 else 0.0,
             "by_type": by_type
         }
 

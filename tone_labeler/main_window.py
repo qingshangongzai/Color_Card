@@ -139,18 +139,19 @@ class MainWindow(QMainWindow):
         result_layout.addWidget(self._confidence_label)
         right_layout.addWidget(self._result_group)
 
-        self._label_panel = LabelPanel()
-        self._label_panel.label_selected.connect(self._on_label_selected)
-        right_layout.addWidget(self._label_panel)
+        self._primary_panel = LabelPanel(panel_type="primary")
+        self._primary_panel.label_selected.connect(self._on_primary_label_selected)
+        right_layout.addWidget(self._primary_panel)
+
+        self._secondary_panel = LabelPanel(panel_type="secondary")
+        self._secondary_panel.label_selected.connect(self._on_secondary_label_selected)
+        self._secondary_panel.clear_requested.connect(self._on_secondary_cleared)
+        right_layout.addWidget(self._secondary_panel)
 
         right_layout.addStretch()
 
         splitter.addWidget(right_widget)
         splitter.setSizes([700, 500])
-
-        self._label_panel = LabelPanel()
-        self._label_panel.label_selected.connect(self._on_label_selected)
-        right_layout.addWidget(self._label_panel)
 
     def _setup_actions(self) -> None:
         """设置动作"""
@@ -217,7 +218,17 @@ class MainWindow(QMainWindow):
         for tone_type, shortcut in LabelPanel.TONE_TYPES:
             action = QAction(self)
             action.setShortcut(QKeySequence(shortcut))
-            action.triggered.connect(lambda checked, t=tone_type: self._on_label_selected(t))
+            action.triggered.connect(
+                lambda checked, t=tone_type: self._on_primary_label_selected(t)
+            )
+            self.addAction(action)
+
+        for tone_type, shortcut in LabelPanel.TONE_TYPES:
+            action = QAction(self)
+            action.setShortcut(QKeySequence(f"Ctrl+{shortcut}"))
+            action.triggered.connect(
+                lambda checked, t=tone_type: self._on_secondary_label_selected(t)
+            )
             self.addAction(action)
 
     def _open_image(self) -> None:
@@ -269,11 +280,14 @@ class MainWindow(QMainWindow):
         self._extract_features()
         self._update_statusbar()
 
-        self._label_panel.clear()
+        self._primary_panel.clear()
+        self._secondary_panel.clear()
 
         record = self._data_manager.get_record(str(image_path))
         if record:
-            self._label_panel.set_current_label(record.human_label)
+            self._primary_panel.set_current_label(record.human_label)
+            if record.human_label_secondary:
+                self._secondary_panel.set_current_label(record.human_label_secondary)
 
     def _display_image(self) -> None:
         """显示图片"""
@@ -379,31 +393,70 @@ class MainWindow(QMainWindow):
             self._current_index += 1
             self._load_current_image()
 
-    def _on_label_selected(self, tone_type: str) -> None:
-        """标注选择处理"""
+    def _on_primary_label_selected(self, tone_type: str) -> None:
+        """首选标注选择处理"""
+        if self._current_features is None or self._current_index < 0:
+            return
+
+        secondary = self._secondary_panel.get_current_label()
+        if secondary == tone_type:
+            self._secondary_panel.clear()
+            secondary = ""
+
+        self._save_labels(tone_type, secondary)
+        self._primary_panel.set_current_label(tone_type)
+        self._update_statusbar()
+
+        if self._current_index < len(self._image_files) - 1:
+            self._next_image()
+
+    def _on_secondary_label_selected(self, tone_type: str) -> None:
+        """次选标注选择处理"""
+        if self._current_features is None or self._current_index < 0:
+            return
+
+        primary = self._primary_panel.get_current_label()
+        if tone_type == primary:
+            return
+
+        self._save_labels(primary or "", tone_type)
+        self._secondary_panel.set_current_label(tone_type)
+        self._update_statusbar()
+
+    def _on_secondary_cleared(self) -> None:
+        """次选标注清除处理"""
+        if self._current_features is None or self._current_index < 0:
+            return
+
+        primary = self._primary_panel.get_current_label()
+        if primary:
+            self._save_labels(primary, "")
+        self._update_statusbar()
+
+    def _save_labels(self, primary: str, secondary: str) -> None:
+        """保存标注数据
+
+        Args:
+            primary: 首选标注
+            secondary: 次选标注
+        """
         if self._current_features is None or self._current_index < 0:
             return
 
         image_path = str(self._image_files[self._current_index])
-
         features_dict = self._extractor.features_to_dict(self._current_features)
         algo_result = self._extractor.algorithm_result_to_dict(self._current_features)
 
         if self._data_manager.has_record(image_path):
-            self._data_manager.update_record(image_path, tone_type)
+            self._data_manager.update_record(image_path, primary, secondary)
         else:
             self._data_manager.add_record(
                 image_path=image_path,
                 features=features_dict,
                 algorithm_result=algo_result,
-                human_label=tone_type
+                human_label=primary,
+                human_label_secondary=secondary
             )
-
-        self._label_panel.set_current_label(tone_type)
-        self._update_statusbar()
-
-        if self._current_index < len(self._image_files) - 1:
-            self._next_image()
 
     def _export_csv(self) -> None:
         """导出 CSV"""
