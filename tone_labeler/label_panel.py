@@ -85,23 +85,23 @@ class LabelPanel(QWidget):
 
         group_layout.addLayout(grid)
 
-        if self._panel_type == "secondary":
-            clear_btn = QPushButton("清除次选")
-            clear_btn.setMinimumHeight(28)
-            clear_btn.setCursor(Qt.PointingHandCursor)
-            clear_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #95a5a6;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                }
-                QPushButton:hover {
-                    background-color: #7f8c8d;
-                }
-            """)
-            clear_btn.clicked.connect(self._on_clear_clicked)
-            group_layout.addWidget(clear_btn)
+        clear_text = "清除首选" if self._panel_type == "primary" else "清除次选"
+        clear_btn = QPushButton(clear_text)
+        clear_btn.setMinimumHeight(28)
+        clear_btn.setCursor(Qt.PointingHandCursor)
+        clear_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #95a5a6;
+                color: white;
+                border: none;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #7f8c8d;
+            }
+        """)
+        clear_btn.clicked.connect(self._on_clear_clicked)
+        group_layout.addWidget(clear_btn)
 
         layout.addWidget(group)
 

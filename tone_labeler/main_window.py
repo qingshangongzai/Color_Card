@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QGroupBox, QGridLayout, QScrollArea,
     QStatusBar, QToolBar, QFileDialog, QMessageBox,
-    QSplitter
+    QSplitter, QPushButton
 )
 
 from tone_labeler.feature_extractor import FeatureExtractor, ToneFeatures
@@ -141,12 +141,32 @@ class MainWindow(QMainWindow):
 
         self._primary_panel = LabelPanel(panel_type="primary")
         self._primary_panel.label_selected.connect(self._on_primary_label_selected)
+        self._primary_panel.clear_requested.connect(self._on_primary_cleared)
         right_layout.addWidget(self._primary_panel)
 
         self._secondary_panel = LabelPanel(panel_type="secondary")
         self._secondary_panel.label_selected.connect(self._on_secondary_label_selected)
         self._secondary_panel.clear_requested.connect(self._on_secondary_cleared)
         right_layout.addWidget(self._secondary_panel)
+
+        self._confirm_btn = QPushButton("确认标注")
+        self._confirm_btn.setMinimumHeight(40)
+        self._confirm_btn.setCursor(Qt.PointingHandCursor)
+        self._confirm_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #27ae60;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2ecc71;
+            }
+        """)
+        self._confirm_btn.clicked.connect(self._on_confirm_clicked)
+        right_layout.addWidget(self._confirm_btn)
 
         right_layout.addStretch()
 
@@ -401,14 +421,8 @@ class MainWindow(QMainWindow):
         secondary = self._secondary_panel.get_current_label()
         if secondary == tone_type:
             self._secondary_panel.clear()
-            secondary = ""
 
-        self._save_labels(tone_type, secondary)
         self._primary_panel.set_current_label(tone_type)
-        self._update_statusbar()
-
-        if self._current_index < len(self._image_files) - 1:
-            self._next_image()
 
     def _on_secondary_label_selected(self, tone_type: str) -> None:
         """次选标注选择处理"""
@@ -419,19 +433,57 @@ class MainWindow(QMainWindow):
         if tone_type == primary:
             return
 
-        self._save_labels(primary or "", tone_type)
         self._secondary_panel.set_current_label(tone_type)
-        self._update_statusbar()
+
+    def _on_primary_cleared(self) -> None:
+        """首选标注清除处理"""
+        if self._current_features is None or self._current_index < 0:
+            return
+
+        self._primary_panel.clear()
+        self._secondary_panel.clear()
 
     def _on_secondary_cleared(self) -> None:
         """次选标注清除处理"""
         if self._current_features is None or self._current_index < 0:
             return
 
+        self._secondary_panel.clear()
+
+    def _on_confirm_clicked(self) -> None:
+        """确认按钮点击处理"""
+        if self._current_features is None or self._current_index < 0:
+            return
+
         primary = self._primary_panel.get_current_label()
-        if primary:
-            self._save_labels(primary, "")
+        if not primary:
+            QMessageBox.warning(self, "提示", "请先选择首选标注")
+            return
+
+        secondary = self._secondary_panel.get_current_label() or ""
+        self._save_labels(primary, secondary)
         self._update_statusbar()
+
+        algo_tone = self._current_features.tone_name
+        is_correct = algo_tone == primary
+        is_secondary_correct = secondary and algo_tone == secondary
+
+        msg = f"首选: {primary}"
+        if secondary:
+            msg += f"\n次选: {secondary}"
+        msg += f"\n算法分类: {algo_tone}"
+
+        if is_correct:
+            msg += "\n\n✓ 首选与算法一致"
+        elif is_secondary_correct:
+            msg += "\n\n✓ 次选与算法一致"
+        else:
+            msg += "\n\n✗ 与算法不一致"
+
+        QMessageBox.information(self, "标注完成", msg)
+
+        if self._current_index < len(self._image_files) - 1:
+            self._next_image()
 
     def _save_labels(self, primary: str, secondary: str) -> None:
         """保存标注数据
