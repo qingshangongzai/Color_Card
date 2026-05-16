@@ -363,7 +363,7 @@ class MainWindow(QMainWindow):
             return
 
         self._histogram_widget.set_histogram(
-            self._current_features.histogram,
+            self._current_features.histogram_raw,
             peak=self._current_features.peak,
             P10=self._current_features.P10,
             P90=self._current_features.P90
