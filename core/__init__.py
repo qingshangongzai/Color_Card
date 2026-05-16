@@ -34,6 +34,7 @@ from .color import (
     hsl_to_rgb,
     cmyk_to_rgb,
     get_color_info,
+    convert_rgb_colorspace,
     get_luminance,
     get_zone,
     get_zone_bounds,
@@ -55,6 +56,7 @@ from .color import (
     generate_ryb_double_complementary,
     get_scheme_preview_colors_ryb,
     extract_dominant_colors,
+    extract_dominant_colors_kmeans,
     find_dominant_color_positions,
     ZONE_WIDTH,
 )
@@ -81,6 +83,10 @@ from .gradient import (
 from .async_loader import BaseBatchLoader
 from .grouping import GROUPING_THRESHOLDS, generate_groups, should_use_batch_loading
 from .cache_base import BaseCache
+from .harmony import analyze_harmony
+
+# 图片数据容器（从 image_service 导出，避免循环导入）
+from .image_service import ImageData, ColorSpaceInfo
 
 # UI直接使用的服务类（轻量级，立即导入）
 from .histogram_service import HistogramService, HistogramCalculator
@@ -174,6 +180,7 @@ __all__ = [
     'generate_ryb_double_complementary',
     'get_scheme_preview_colors_ryb',
     'extract_dominant_colors',
+    'extract_dominant_colors_kmeans',
     'find_dominant_color_positions',
     'ZONE_WIDTH',
     # 配置管理
@@ -205,6 +212,11 @@ __all__ = [
     'generate_groups',
     'should_use_batch_loading',
     'BaseCache',
+    # 和谐度分析
+    'analyze_harmony',
+    # 图片数据容器
+    'ImageData',
+    'ColorSpaceInfo',
     # 日志
     'LoggerManager',
     'get_logger_manager',

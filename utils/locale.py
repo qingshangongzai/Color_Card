@@ -3,22 +3,28 @@
 提供应用程序的多语言支持，包括语言包加载、切换和翻译文本获取。
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import tomllib
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from PySide6.QtCore import QLocale, QObject, Signal
 
 
-SYSTEM_LANGUAGE_MAPPING: Dict[str, str] = {
-    'zh_CN': 'ZW_JT',
-    'zh_Hans': 'ZW_JT',
-    'zh': 'ZW_JT',
-    'zh_TW': 'ZW_FT',
-    'zh_HK': 'ZW_FT',
-    'zh_Hant': 'ZW_FT',
+SYSTEM_LANGUAGE_MAPPING: dict[str, str] = {
+    'zh_CN': 'HY_JT',
+    'zh_Hans': 'HY_JT',
+    'zh_Hans_CN': 'HY_JT',
+    'zh': 'HY_JT',
+    'zh_TW': 'HY_FT',
+    'zh_HK': 'HY_FT',
+    'zh_Hant': 'HY_FT',
+    'zh_Hant_CN': 'HY_FT',
+    'zh_Hant_TW': 'HY_FT',
+    'zh_Hant_HK': 'HY_FT',
     'en': 'EN_US',
     'en_US': 'EN_US',
     'en_GB': 'EN_US',
@@ -50,55 +56,55 @@ def _get_base_path() -> str:
 
 class LocaleManager(QObject):
     """多语言管理器
-    
+
     负责语言包的加载、切换和翻译文本获取。
     """
-    
+
     language_changed = Signal(str)
-    
+
     SUPPORTED_LANGUAGES = {
         'auto': '跟随系统',
-        'ZW_JT': '简体中文',
-        'ZW_FT': '繁體中文',
+        'HY_JT': '简体中文',
+        'HY_FT': '繁體中文',
         'EN_US': 'English',
         'JA_JP': '日本語',
         'FR_FR': 'Français',
         'RU_RU': 'Русский'
     }
-    
+
     DEFAULT_LANGUAGE = 'auto'
-    FALLBACK_LANGUAGE = 'ZW_JT'
-    
+    FALLBACK_LANGUAGE = 'HY_JT'
+
     def __init__(self):
         """初始化多语言管理器"""
         super().__init__()
         self._current_language: str = self.DEFAULT_LANGUAGE
-        self._translations: Dict[str, str] = {}
+        self._translations: dict[str, str] = {}
         self._locales_dir: Path = self._get_locales_dir()
-        
+
     def _get_locales_dir(self) -> Path:
         """获取语言包目录路径
-        
+
         Returns:
             Path: 语言包目录路径
         """
         base_path = _get_base_path()
         return Path(base_path) / 'locales'
-    
+
     def load_language(self, language_code: str) -> bool:
         """加载指定语言的翻译数据
-        
+
         Args:
-            language_code: 语言代码（如 'ZW_JT', 'EN_US', 'auto'）
-            
+            language_code: 语言代码（如 'HY_JT', 'EN_US', 'auto'）
+
         Returns:
             bool: 是否加载成功
         """
         resolved_code = self.resolve_language(language_code)
-        
+
         if resolved_code not in self.SUPPORTED_LANGUAGES:
             resolved_code = self.FALLBACK_LANGUAGE
-            
+
         locale_file = self._locales_dir / f'{resolved_code}.toml'
 
         if not locale_file.exists():
@@ -109,30 +115,52 @@ class LocaleManager(QObject):
         try:
             with open(locale_file, 'rb') as f:
                 self._translations = tomllib.load(f)
-            self._current_language = language_code
+            self._current_language = resolved_code
             return True
         except (tomllib.TOMLDecodeError, IOError, OSError):
             return False
-    
+
     def resolve_language(self, language_code: str) -> str:
         """解析语言代码，如果是 'auto' 则返回系统语言
-        
+
         Args:
-            language_code: 语言代码（如 'auto', 'ZW_JT', 'EN_US'）
-            
+            language_code: 语言代码（如 'auto', 'HY_JT', 'EN_US'）
+
         Returns:
             str: 实际的语言代码
         """
         if language_code == 'auto':
             return self.get_system_language()
         return language_code
-    
+
     def _get_system_locale_name(self) -> str:
         """获取系统语言代码（封装以便测试时模拟）
 
         Returns:
             str: 系统语言代码（如 'zh_CN', 'en_US'）
         """
+        # macOS: 使用 defaults 命令获取准确的首选语言
+        if sys.platform == 'darwin':
+            try:
+                import subprocess
+                result = subprocess.run(
+                    ['defaults', 'read', '-g', 'AppleLanguages'],
+                    capture_output=True,
+                    text=True,
+                    timeout=2
+                )
+                if result.returncode == 0:
+                    # 解析输出: ("zh-Hant-CN", "zh-Hans-CN", "en-CN")
+                    output = result.stdout.strip()
+                    # 提取第一个语言代码，将 zh-Hant-CN 转换为 zh_Hant_CN
+                    start = output.find('"')
+                    end = output.find('"', start + 1)
+                    if start != -1 and end != -1:
+                        return output[start + 1:end].replace('-', '_')
+            except (OSError, subprocess.SubprocessError):
+                pass
+
+        # 回退到 Qt 的方法
         return QLocale.system().name()
 
     def get_system_language(self) -> str:
@@ -142,45 +170,69 @@ class LocaleManager(QObject):
             str: 映射后的语言代码，未匹配则返回默认语言
         """
         system_locale = self._get_system_locale_name()
-        return SYSTEM_LANGUAGE_MAPPING.get(
-            system_locale,
-            SYSTEM_LANGUAGE_MAPPING.get(system_locale.split('_')[0], self.FALLBACK_LANGUAGE)
-        )
-    
+
+        # 调试日志
+        from core import get_logger
+        logger = get_logger("locale")
+        logger.info(f"系统语言检测: raw_locale={system_locale}")
+
+        # 直接匹配
+        if system_locale in SYSTEM_LANGUAGE_MAPPING:
+            mapped = SYSTEM_LANGUAGE_MAPPING[system_locale]
+            logger.info(f"语言映射结果: {system_locale} -> {mapped}")
+            return mapped
+
+        # 尝试前两段匹配（如 zh_Hant_CN -> zh_Hant）
+        parts = system_locale.split('_')
+        if len(parts) >= 2:
+            two_part = f"{parts[0]}_{parts[1]}"
+            if two_part in SYSTEM_LANGUAGE_MAPPING:
+                mapped = SYSTEM_LANGUAGE_MAPPING[two_part]
+                logger.info(f"语言映射结果: {system_locale} -> {mapped}")
+                return mapped
+
+        # 提取基础语言代码（如 zh_Hant_CN -> zh）
+        base_locale = parts[0]
+        mapped = SYSTEM_LANGUAGE_MAPPING.get(base_locale, self.FALLBACK_LANGUAGE)
+        logger.info(f"语言映射结果: {system_locale} -> {mapped}")
+        return mapped
+
     def set_language(self, language_code: str) -> bool:
         """设置当前语言
-        
+
         Args:
             language_code: 语言代码
-            
+
         Returns:
             bool: 是否设置成功
         """
-        if language_code == self._current_language:
+        resolved_code = self.resolve_language(language_code)
+
+        if resolved_code == self._current_language:
             return True
-            
+
         if self.load_language(language_code):
             self.language_changed.emit(language_code)
             return True
         return False
-    
+
     def get_current_language(self) -> str:
         """获取当前语言代码
-        
+
         Returns:
             str: 当前语言代码
         """
         return self._current_language
-    
-    def get_supported_languages(self) -> Dict[str, str]:
+
+    def get_supported_languages(self) -> dict[str, str]:
         """获取支持的语言列表
-        
+
         Returns:
-            Dict[str, str]: 语言代码到语言名称的映射
+            dict[str, str]: 语言代码到语言名称的映射
         """
         return self.SUPPORTED_LANGUAGES.copy()
-    
-    def tr(self, key: str, default: Optional[str] = None, **kwargs) -> str:
+
+    def tr(self, key: str, default: str | None = None, **kwargs) -> str:
         """获取翻译文本
 
         Args:
@@ -219,13 +271,13 @@ class LocaleManager(QObject):
             return text.format(**kwargs)
         except (KeyError, ValueError):
             return text
-    
-_locale_manager: Optional[LocaleManager] = None
+
+_locale_manager: LocaleManager | None = None
 
 
 def get_locale_manager() -> LocaleManager:
     """获取全局多语言管理器实例
-    
+
     Returns:
         LocaleManager: 多语言管理器实例
     """
@@ -235,14 +287,14 @@ def get_locale_manager() -> LocaleManager:
     return _locale_manager
 
 
-def tr(key: str, default: Optional[str] = None, **kwargs) -> str:
+def tr(key: str, default: str | None = None, **kwargs) -> str:
     """获取翻译文本的便捷函数
-    
+
     Args:
         key: 翻译键
         default: 默认文本
         **kwargs: 用于格式化翻译文本的参数
-        
+
     Returns:
         str: 翻译后的文本
     """
@@ -251,10 +303,10 @@ def tr(key: str, default: Optional[str] = None, **kwargs) -> str:
 
 def set_language(language_code: str) -> bool:
     """设置当前语言的便捷函数
-    
+
     Args:
         language_code: 语言代码
-        
+
     Returns:
         bool: 是否设置成功
     """
@@ -263,17 +315,17 @@ def set_language(language_code: str) -> bool:
 
 def get_current_language() -> str:
     """获取当前语言代码的便捷函数
-    
+
     Returns:
         str: 当前语言代码
     """
     return get_locale_manager().get_current_language()
 
 
-def get_supported_languages() -> Dict[str, str]:
+def get_supported_languages() -> dict[str, str]:
     """获取支持的语言列表的便捷函数
-    
+
     Returns:
-        Dict[str, str]: 语言代码到语言名称的映射
+        dict[str, str]: 语言代码到语言名称的映射
     """
     return get_locale_manager().get_supported_languages()

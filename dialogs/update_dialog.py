@@ -1,8 +1,9 @@
+from __future__ import annotations
 # 标准库导入
 import base64
 import json
 import re
-from typing import Dict, List, Tuple
+
 
 # 第三方库导入
 import requests
@@ -105,7 +106,7 @@ class UpdateCheckThread(QThread):
         # 默认返回第一个
         return assets[0].get("browser_download_url", "") if assets else ""
 
-    def _fetch_changelog(self, current_version: str, latest_version: str) -> List[Dict]:
+    def _fetch_changelog(self, current_version: str, latest_version: str) -> list[Dict]:
         """从 Gitee 获取 changelog.json 并提取更新日志
 
         Args:
@@ -113,29 +114,34 @@ class UpdateCheckThread(QThread):
             latest_version: 最新版本号
 
         Returns:
-            List[Dict]: 版本信息列表
+            list[Dict]: 版本信息列表
         """
-        try:
-            # 获取 changelog.json 文件内容
-            changelog_url = "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main"
-            response = requests.get(changelog_url, timeout=10)
+        urls = [
+            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
+            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main"
+        ]
 
-            if response.status_code != 200:
-                return []
+        for url in urls:
+            try:
+                response = requests.get(url, timeout=10)
 
-            data = response.json()
-            content = data.get("content", "")
+                if response.status_code != 200:
+                    continue
 
-            # Base64 解码
-            json_content = base64.b64decode(content).decode('utf-8')
-            changelog_data = json.loads(json_content)
+                data = response.json()
+                content = data.get("content", "")
 
-            return self._format_changelog(changelog_data, current_version)
+                json_content = base64.b64decode(content).decode('utf-8')
+                changelog_data = json.loads(json_content)
 
-        except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
-            return []
+                return self._format_changelog(changelog_data, current_version)
 
-    def _format_changelog(self, changelog_data: Dict, current_version: str) -> List[Dict]:
+            except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
+                continue
+
+        return []
+
+    def _format_changelog(self, changelog_data: Dict, current_version: str) -> list[Dict]:
         """格式化更新日志
 
         Args:
@@ -143,7 +149,7 @@ class UpdateCheckThread(QThread):
             current_version: 当前版本号
 
         Returns:
-            List[Dict]: 版本信息列表，每个版本包含 version、date、changes
+            list[Dict]: 版本信息列表，每个版本包含 version、date、changes
         """
         versions = changelog_data.get("versions", [])
 
@@ -160,14 +166,14 @@ class UpdateCheckThread(QThread):
 _PRE_RELEASE_ORDER = {"alpha": -3, "beta": -2, "rc": -1}
 
 
-def _parse_version(version_str: str) -> Tuple[List[int], int, int]:
+def _parse_version(version_str: str) -> tuple[list[int], int, int]:
     """解析版本号为数字列表、预发布标识和预发布版本号
 
     Args:
         version_str: 版本号字符串
 
     Returns:
-        Tuple[List[int], int, int]: (版本号数字列表, 预发布标识, 预发布版本号)
+        tuple[list[int], int, int]: (版本号数字列表, 预发布标识, 预发布版本号)
         预发布标识: 0=正式版, -1=RC, -2=Beta, -3=Alpha
         预发布版本号: Beta1/Beta2等后面的数字，默认0
     """
@@ -280,7 +286,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         # 样式准备好后允许显示
         self._enable_show()
 
-    def _changelog_to_html(self, versions: List[Dict]) -> str:
+    def _changelog_to_html(self, versions: list[Dict]) -> str:
         """将版本信息列表转换为 HTML
 
         Args:
@@ -299,19 +305,24 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         for i, version_info in enumerate(versions):
             version = version_info.get("version", "")
             date = version_info.get("date", "")
+            notes = version_info.get("notes", [])
             changes = version_info.get("changes", [])
 
-            # 版本之间添加分隔线（第一个版本除外）
             if i > 0:
                 html_lines.append(f'<hr style="border: none; border-top: 1px solid rgba(128, 128, 128, 0.3); margin: 10px 0;">')
 
-            # 版本标题：版本号 + 日期（日期使用小字体和次要颜色）
             html_lines.append(
                 f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">'
                 f'{version}<small style="font-size: 10px; color: {secondary_color};"> ({date})</small></h2>'
             )
 
-            # 处理变更内容
+            if notes:
+                html_lines.append(f'<div style="margin: 10px 0 5px 0; color: {text_color};"><b>通知</b></div>')
+                for note in notes:
+                    html_lines.append(
+                        f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• {note}</div>'
+                    )
+
             for change in changes:
                 category = change.get("category", "")
                 items = change.get("items", [])
@@ -324,7 +335,12 @@ class UpdateAvailableDialog(BaseFramelessDialog):
                     elif isinstance(item, dict):
                         title = item.get("title", "")
                         desc = item.get("desc", "")
-                        html_lines.append(f'<div style="margin: 5px 0 5px 20px; color: {text_color};">• <b>{title}</b>: {desc}</div>')
+                        # 子标题单独一行显示，不加冒号
+                        html_lines.append(f'<div style="margin: 5px 0 0 10px; color: {text_color};">• <b>{title}</b></div>')
+                        # 按 <br> 分割描述，每行单独渲染
+                        desc_lines = desc.split("<br>")
+                        for line in desc_lines:
+                            html_lines.append(f'<div style="margin: 2px 0 0 30px; color: {text_color};">{line}</div>')
 
         return ''.join(html_lines)
 

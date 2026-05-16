@@ -1,5 +1,7 @@
 """SVG 配色映射模块 - 智能识别 SVG 中的配色区域并应用配色方案"""
 
+from __future__ import annotations
+
 # 标准库导入
 import logging
 import re
@@ -7,7 +9,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 logger = logging.getLogger("color_card.svg_color_mapper")
 
@@ -32,32 +34,32 @@ class SVGElementInfo:
     """SVG 元素信息"""
     element_id: str                          # 元素 ID
     tag: str                                 # 元素标签名
-    element_class: Optional[str] = None      # 元素 class
+    element_class: str | None = None      # 元素 class
     element_type: ElementType = ElementType.UNKNOWN  # 元素类型
-    fill_color: Optional[str] = None         # 原始 fill 颜色
-    stroke_color: Optional[str] = None       # 原始 stroke 颜色
+    fill_color: str | None = None         # 原始 fill 颜色
+    stroke_color: str | None = None       # 原始 stroke 颜色
     area: float = 0.0                        # 元素面积（用于排序）
     is_visible: bool = True                  # 是否可见
-    fixed_color: Optional[str] = None        # 固定颜色设置（black/original），仅语义化映射使用
+    fixed_color: str | None = None        # 固定颜色设置（black/original），仅语义化映射使用
     is_semantic: bool = False                # 是否通过语义化标识（class/id关键词）分类
     is_transparent: bool = False             # 是否是透明元素（无 fill 但有 stroke）
     z_index: int = 0                         # 绘制顺序（文档顺序，越大越在上层）
-    bounding_box: Optional[Tuple[float, float, float, float]] = None  # 边界框 (x, y, width, height)
+    bounding_box: tuple[float, float, float, float] | None = None  # 边界框 (x, y, width, height)
     is_covered: bool = False                 # 是否被完全覆盖
-    attributes: Dict[str, str] = field(default_factory=dict)  # 其他属性
+    attributes: dict[str, str] = field(default_factory=dict)  # 其他属性
 
 
 @dataclass
 class ColorMappingConfig:
     """颜色映射配置"""
-    background_color: Optional[str] = None   # 背景色
-    primary_color: Optional[str] = None      # 主色
-    secondary_color: Optional[str] = None    # 次要色
-    accent_color: Optional[str] = None       # 强调色
-    text_color: Optional[str] = None         # 文字色
-    stroke_color: Optional[str] = None       # 描边统一色
+    background_color: str | None = None   # 背景色
+    primary_color: str | None = None      # 主色
+    secondary_color: str | None = None    # 次要色
+    accent_color: str | None = None       # 强调色
+    text_color: str | None = None         # 文字色
+    stroke_color: str | None = None       # 描边统一色
 
-    def get_color_for_type(self, element_type: ElementType) -> Optional[str]:
+    def get_color_for_type(self, element_type: ElementType) -> str | None:
         """根据元素类型获取对应颜色"""
         mapping = {
             ElementType.BACKGROUND: self.background_color,
@@ -124,11 +126,11 @@ class SVGColorMapper:
 
     def __init__(self):
         self._classifier = SVGElementClassifier()
-        self._elements: List[SVGElementInfo] = []
+        self._elements: list[SVGElementInfo] = []
         self._original_content: str = ""
         self._modified_content: str = ""
         self._element_counter: int = 0
-        self._css_styles: Dict[str, Dict[str, str]] = {}  # 存储解析的 CSS 样式
+        self._css_styles: dict[str, dict[str, str]] = {}  # 存储解析的 CSS 样式
 
     def load_svg(self, file_path: str) -> bool:
         """加载 SVG 文件
@@ -222,7 +224,7 @@ class SVGColorMapper:
                 
         print(f"解析到 {len(self._css_styles)} 个 CSS 类样式")
 
-    def _get_element_styles(self, elem: ET.Element) -> Dict[str, str]:
+    def _get_element_styles(self, elem: ET.Element) -> dict[str, str]:
         """获取元素的所有样式（包括 CSS 类和内联样式）"""
         styles = {}
         
@@ -355,7 +357,7 @@ class SVGColorMapper:
 
         return 0.0
 
-    def _calculate_bounding_box(self, elem: ET.Element) -> Optional[Tuple[float, float, float, float]]:
+    def _calculate_bounding_box(self, elem: ET.Element) -> tuple[float, float, float, float] | None:
         """计算元素的边界框
         
         Args:
@@ -413,11 +415,11 @@ class SVGColorMapper:
 
         return None
 
-    def get_elements(self) -> List[SVGElementInfo]:
+    def get_elements(self) -> list[SVGElementInfo]:
         """获取所有可着色元素"""
         return self._elements.copy()
 
-    def get_elements_by_type(self, element_type: ElementType) -> List[SVGElementInfo]:
+    def get_elements_by_type(self, element_type: ElementType) -> list[SVGElementInfo]:
         """按类型获取元素"""
         return [e for e in self._elements if e.element_type == element_type]
 
@@ -449,7 +451,7 @@ class SVGColorMapper:
         if not self._elements:
             return
         
-        covered_areas: List[Tuple[float, float, float, float]] = []
+        covered_areas: list[tuple[float, float, float, float]] = []
         
         sorted_elements = sorted(self._elements, key=lambda e: e.z_index, reverse=True)
         
@@ -470,8 +472,8 @@ class SVGColorMapper:
             else:
                 covered_areas.append(elem.bounding_box)
     
-    def _is_rect_covered(self, rect: Tuple[float, float, float, float],
-                          covered_areas: List[Tuple[float, float, float, float]]) -> bool:
+    def _is_rect_covered(self, rect: tuple[float, float, float, float],
+                          covered_areas: list[tuple[float, float, float, float]]) -> bool:
         """检测矩形是否被已覆盖区域完全包含
         
         Args:
@@ -503,7 +505,7 @@ class SVGColorMapper:
         if largest.area > 5000 and largest.tag in ['rect', 'svg']:
             largest.element_type = ElementType.BACKGROUND
 
-    def _create_mapping_config_from_colors(self, colors: List[str]) -> ColorMappingConfig:
+    def _create_mapping_config_from_colors(self, colors: list[str]) -> ColorMappingConfig:
         """从颜色列表创建映射配置
 
         Args:
@@ -575,7 +577,7 @@ class SVGColorMapper:
         self._modified_content = self._element_tree_to_string(root)
         return self._modified_content
 
-    def _get_svg_canvas_size(self) -> Tuple[float, float]:
+    def _get_svg_canvas_size(self) -> tuple[float, float]:
         """获取 SVG 画布大小
 
         Returns:
@@ -645,7 +647,7 @@ class SVGColorMapper:
 
         return False
 
-    def apply_intelligent_mapping(self, colors: List[str]) -> str:
+    def apply_intelligent_mapping(self, colors: list[str]) -> str:
         """智能映射配色 - 自动选择语义化映射或智能映射
 
         策略：
@@ -673,7 +675,7 @@ class SVGColorMapper:
             # 使用智能映射（无语义化类型）
             return self._apply_smart_mapping(colors)
 
-    def _apply_smart_mapping(self, colors: List[str]) -> str:
+    def _apply_smart_mapping(self, colors: list[str]) -> str:
         """智能映射（简化版）
 
         策略：
@@ -694,7 +696,7 @@ class SVGColorMapper:
         # 智能映射模式下执行覆盖检测
         self._detect_covered_elements()
 
-        color_map: Dict[str, str] = {}
+        color_map: dict[str, str] = {}
 
         # 收集所有可见元素（跳过被完全覆盖的）
         visible_elements = [e for e in self._elements
@@ -745,7 +747,7 @@ class SVGColorMapper:
 
         return self._apply_color_map_extended(color_map, need_bg_rect)
 
-    def _normalize_color(self, color: str) -> Optional[str]:
+    def _normalize_color(self, color: str) -> str | None:
         """标准化颜色值
 
         Args:
@@ -775,7 +777,7 @@ class SVGColorMapper:
         # 处理颜色名称（如 "black", "white" 等）
         return color
 
-    def _apply_color_map(self, color_map: Dict[str, str]) -> str:
+    def _apply_color_map(self, color_map: dict[str, str]) -> str:
         """应用颜色映射表
 
         Args:
@@ -826,7 +828,7 @@ class SVGColorMapper:
         print(f"成功映射 {mapped_count} 个元素的颜色")
         return self._modified_content
 
-    def _apply_color_map_extended(self, color_map: Dict[str, str], need_background_rect: bool = True) -> str:
+    def _apply_color_map_extended(self, color_map: dict[str, str], need_background_rect: bool = True) -> str:
         """应用颜色映射（扩展版，支持透明元素）
 
         Args:
@@ -993,7 +995,7 @@ class SVGColorMapper:
         # 插入到最前面
         root.insert(0, bg_rect)
 
-    def _update_css_styles(self, root: ET.Element, color_map: Dict[str, str]):
+    def _update_css_styles(self, root: ET.Element, color_map: dict[str, str]):
         """更新 CSS 样式定义中的颜色
 
         Args:
@@ -1060,7 +1062,7 @@ class SVGColorMapper:
                 return True
         return False
 
-    def _find_element_by_id(self, root: ET.Element, element_id: str) -> Optional[ET.Element]:
+    def _find_element_by_id(self, root: ET.Element, element_id: str) -> ET.Element | None:
         """根据 ID 查找元素"""
         for elem in root.iter():
             if elem.get('id') == element_id:
@@ -1090,7 +1092,7 @@ class SVGColorMapper:
         """获取原始 SVG 内容"""
         return self._original_content
 
-    def get_statistics(self) -> Dict[str, int]:
+    def get_statistics(self) -> dict[str, int]:
         """获取元素统计信息"""
         stats = {t.name: 0 for t in ElementType}
         for elem in self._elements:
@@ -1103,7 +1105,7 @@ class SVGColorMapper:
         self._parse_svg()
 
 
-def create_mapping_from_palette(colors: List[str]) -> ColorMappingConfig:
+def create_mapping_from_palette(colors: list[str]) -> ColorMappingConfig:
     """从配色方案创建映射配置
 
     Args:
@@ -1133,7 +1135,7 @@ def create_mapping_from_palette(colors: List[str]) -> ColorMappingConfig:
     return config
 
 
-def suggest_mapping_strategy(elements: List[SVGElementInfo]) -> Dict[str, Any]:
+def suggest_mapping_strategy(elements: list[SVGElementInfo]) -> dict[str, Any]:
     """根据 SVG 元素组成建议映射策略
 
     Args:

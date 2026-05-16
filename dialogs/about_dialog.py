@@ -1,6 +1,5 @@
 # 标准库导入
 from pathlib import Path
-
 # 第三方库导入
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
@@ -322,12 +321,7 @@ class AboutDialog(BaseFramelessDialog):
     项目地址：https://github.com/Nuitka/Nuitka
     官网：https://nuitka.net/
 
-  • 本程序 Windows 版本使用 Inno Setup 工具将独立的可执行文件打包为安装程序
-    版权所有：Jordan Russell
-    许可证：Modified BSD
-    官网：https://jrsoftware.org/isinfo.php
-
-【字体使用说明】
+  【字体使用说明】
   • 本程序 LOGO 的标题使用了「得意黑」字体
     版权所有：© atelier-anchor
     设计师：oooooohmygosh

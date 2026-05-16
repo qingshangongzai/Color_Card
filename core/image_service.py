@@ -8,9 +8,10 @@ UI层通过ImageService调用业务功能，实现UI与业务逻辑分离。
 import io
 import struct
 from dataclasses import dataclass
-from typing import Optional
+
 
 # 第三方库导入
+import numpy as np
 from PIL import Image
 from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtGui import QImage, QPixmap
@@ -36,7 +37,7 @@ class ColorSpaceInfo:
     name: str
     has_icc_profile: bool
     icc_profile_size: int
-    gamma: Optional[float]
+    gamma: float | None
     source: str
 
 
@@ -151,14 +152,14 @@ class ColorSpaceDetector:
             return 'Unknown ICC'
     
     @classmethod
-    def _detect_from_exif(cls, image: Image.Image) -> Optional[ColorSpaceInfo]:
+    def _detect_from_exif(cls, image: Image.Image) -> ColorSpaceInfo | None:
         """从 EXIF 信息检测色彩空间
         
         Args:
             image: PIL Image 对象
             
         Returns:
-            Optional[ColorSpaceInfo]: 色彩空间信息，如果无法检测则返回 None
+            ColorSpaceInfo | None: 色彩空间信息，如果无法检测则返回 None
         """
         try:
             exif = image._getexif()
@@ -185,6 +186,91 @@ class ColorSpaceDetector:
         except (AttributeError, KeyError, TypeError):
             pass
         return None
+
+
+# ==================== 图片数据容器 ====================
+
+@dataclass
+class ImageData:
+    """图片数据容器
+
+    分离显示数据(sRGB)和原始取色数据，显示与取色互不干扰：
+    - 显示使用 display_pixmap/display_image（sRGB，已做色域映射）
+    - 取色使用 original_pixels（保留原始色彩空间的 RGB 数值）
+
+    Attributes:
+        display_image: sRGB QImage，用于像素级操作
+        display_pixmap: sRGB QPixmap，用于高效绘制
+        original_pixels: 原始 RGB 数组 (H, W, 3) dtype=uint8，用于取色
+        colorspace_info: 色彩空间信息
+        display_colorspace: 显示色彩空间名称，始终为 'sRGB'
+    """
+    display_image: QImage
+    display_pixmap: QPixmap
+    original_pixels: np.ndarray
+    colorspace_info: ColorSpaceInfo
+    display_colorspace: str | None = None
+
+
+# ==================== ICC 色彩空间转换 ====================
+
+def _detect_colorspace_from_text(text: str) -> str | None:
+    """从文本中检测色彩空间名称
+
+    Args:
+        text: 要检测的文本（已转为小写）
+
+    Returns:
+        str: 色彩空间名称，未检测到返回 None
+    """
+    if 'adobe' in text and 'rgb' in text:
+        return 'Adobe RGB'
+    if 'display p3' in text or 'displayp3' in text:
+        return 'Display P3'
+    if 'dci-p3' in text or 'dcip3' in text:
+        return 'DCI-P3'
+    if 'prophoto' in text:
+        return 'ProPhoto RGB'
+    return None
+
+
+def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
+    """将图片转换为 sRGB 用于显示
+
+    Args:
+        pil_image: PIL Image 对象
+        colorspace_info: 色彩空间信息
+
+    Returns:
+        Image.Image: sRGB 色彩空间的 PIL Image
+    """
+    if colorspace_info.name == 'sRGB':
+        return pil_image.convert('RGB')
+
+    if not colorspace_info.has_icc_profile:
+        return pil_image.convert('RGB')
+
+    try:
+        from PIL import ImageCms
+
+        srgb_profile = ImageCms.createProfile('sRGB')
+        icc_data = pil_image.info.get('icc_profile')
+        if not icc_data:
+            return pil_image.convert('RGB')
+
+        source_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc_data))
+        rendering_intent = getattr(ImageCms, 'INTENT_PERCEPTUAL', 0)
+
+        return ImageCms.profileToProfile(
+            pil_image,
+            inputProfile=source_profile,
+            outputProfile=srgb_profile,
+            renderingIntent=rendering_intent,
+            outputMode='RGB'
+        )
+    except (ImportError, OSError, ValueError) as e:
+        logger.warning(f"ICC 转换失败，回退到标准转换: {e}")
+        return pil_image.convert('RGB')
 
 
 # ==================== 图片加载线程 ====================
@@ -230,19 +316,23 @@ class ProgressiveImageLoader(QThread):
     progress = Signal(int)
     error = Signal(str)
 
-    def __init__(self, image_path: str, display_size: int = 1920, parent=None) -> None:
+    def __init__(self, image_path: str | None = None, pil_image: Image.Image | None = None, display_size: int = 1920, parent=None) -> None:
         """初始化加载器
 
         Args:
-            image_path: 图片文件路径
+            image_path: 图片文件路径（文件加载时使用）
+            pil_image: PIL Image 对象（内存加载时使用，优先于 image_path）
             display_size: 显示尺寸上限（默认1920px）
             parent: 父对象
         """
         super().__init__(parent)
-        self._image_path: str = image_path
+        self._image_path: str | None = image_path
+        self._pil_image = pil_image
         self._display_size: int = display_size
         self._is_cancelled: bool = False
-        self._colorspace_info: Optional[ColorSpaceInfo] = None
+        self._colorspace_info: ColorSpaceInfo | None = None
+        self._original_pixels: np.ndarray | None = None
+        self._display_colorspace: str | None = None
 
     def cancel(self) -> None:
         """取消任务（异步，不阻塞调用线程）
@@ -260,11 +350,11 @@ class ProgressiveImageLoader(QThread):
         """
         return self._is_cancelled
     
-    def get_colorspace_info(self) -> Optional[ColorSpaceInfo]:
+    def get_colorspace_info(self) -> ColorSpaceInfo | None:
         """获取检测到的色彩空间信息
         
         Returns:
-            Optional[ColorSpaceInfo]: 色彩空间信息
+            ColorSpaceInfo | None: 色彩空间信息
         """
         return self._colorspace_info
 
@@ -273,69 +363,80 @@ class ProgressiveImageLoader(QThread):
         try:
             self.progress.emit(5)
 
-            with log_performance("load_image", {"path": self._image_path}):
-                with Image.open(self._image_path) as pil_image:
-                    if self._check_cancelled():
-                        return
-                    
-                    self._colorspace_info = ColorSpaceDetector.detect(pil_image)
-                    self.colorspace_ready.emit(self._colorspace_info)
+            log_data = {"path": self._image_path} if self._image_path else {"source": "clipboard"}
+            with log_performance("load_image", log_data):
+                if self._pil_image is not None:
+                    pil_image = self._pil_image
+                else:
+                    pil_image = Image.open(self._image_path)
 
-                    if pil_image.mode != 'RGB':
-                        pil_image = pil_image.convert('RGB')
+                if self._check_cancelled():
+                    return
 
-                    width, height = pil_image.size
-                    max_dim = max(width, height)
+                self._colorspace_info = ColorSpaceDetector.detect(pil_image)
+                self.colorspace_ready.emit(self._colorspace_info)
 
-                    if self._check_cancelled():
-                        return
+                original_pil = pil_image
+                if original_pil.mode != 'RGB':
+                    original_pil = original_pil.convert('RGB')
+                self._original_pixels = np.array(original_pil, dtype=np.uint8)
 
-                    if max_dim > self._display_size:
-                        display_img = pil_image.copy()
-                        display_img.thumbnail(
-                            (self._display_size, self._display_size),
-                            Image.Resampling.LANCZOS
-                        )
+                display_pil = _convert_to_srgb(pil_image, self._colorspace_info)
+                self._display_colorspace = 'sRGB'
 
-                        if self._check_cancelled():
-                            return
+                width, height = display_pil.size
+                max_dim = max(width, height)
 
-                        buffer = io.BytesIO()
-                        display_img.save(buffer, format='BMP')
-                        display_data = buffer.getvalue()
+                if self._check_cancelled():
+                    return
 
-                        self.display_ready.emit(display_data, width, height)
-                        self.progress.emit(50)
-
-                        del display_img
-                    else:
-                        buffer = io.BytesIO()
-                        pil_image.save(buffer, format='BMP')
-                        display_data = buffer.getvalue()
-
-                        self.display_ready.emit(display_data, width, height)
-                        self.progress.emit(50)
+                if max_dim > self._display_size:
+                    display_img = display_pil.copy()
+                    display_img.thumbnail(
+                        (self._display_size, self._display_size),
+                        Image.Resampling.LANCZOS
+                    )
 
                     if self._check_cancelled():
                         return
 
-                    self.progress.emit(60)
+                    buffer = io.BytesIO()
+                    display_img.save(buffer, format='BMP')
+                    display_data = buffer.getvalue()
 
-                    full_buffer = io.BytesIO()
-                    pil_image.save(full_buffer, format='BMP')
-                    full_data = full_buffer.getvalue()
+                    self.display_ready.emit(display_data, width, height)
+                    self.progress.emit(50)
 
-                    if self._check_cancelled():
-                        return
+                    del display_img
+                else:
+                    buffer = io.BytesIO()
+                    display_pil.save(buffer, format='BMP')
+                    display_data = buffer.getvalue()
 
-                    self.progress.emit(90)
+                    self.display_ready.emit(display_data, width, height)
+                    self.progress.emit(50)
 
-                    self.full_ready.emit(full_data, width, height, 'BMP')
-                    self.progress.emit(100)
+                if self._check_cancelled():
+                    return
+
+                self.progress.emit(60)
+
+                full_buffer = io.BytesIO()
+                display_pil.save(full_buffer, format='BMP')
+                full_data = full_buffer.getvalue()
+
+                if self._check_cancelled():
+                    return
+
+                self.progress.emit(90)
+
+                self.full_ready.emit(full_data, width, height, 'BMP')
+                self.progress.emit(100)
 
         except (IOError, OSError, ValueError) as e:
             if not self._check_cancelled():
-                logger.error(f"图片加载异常: path={self._image_path}, error={str(e)}")
+                path_info = self._image_path or 'clipboard'
+                logger.error(f"图片加载异常: path={path_info}, error={str(e)}")
                 self.error.emit(str(e))
 
 
@@ -375,7 +476,7 @@ class ImageService(QObject):
         loading_progress: 加载进度 (0-100)
         display_ready: 显示尺寸图片就绪 (image_data, width, height)
         full_ready: 完整图片就绪 (image_data, width, height, format)
-        image_loaded: 图片加载完成 (QPixmap, QImage)
+        image_loaded: 图片加载完成 (ImageData)
         colorspace_detected: 色彩空间检测完成 (ColorSpaceInfo)
         error: 加载错误 (error_message)
     """
@@ -384,7 +485,7 @@ class ImageService(QObject):
     loading_progress = Signal(int)
     display_ready = Signal(bytes, int, int)
     full_ready = Signal(bytes, int, int, str)
-    image_loaded = Signal(object, object)
+    image_loaded = Signal(object)
     colorspace_detected = Signal(object)
     error = Signal(str)
 
@@ -395,9 +496,9 @@ class ImageService(QObject):
             parent: 父对象
         """
         super().__init__(parent)
-        self._loader: Optional[ProgressiveImageLoader] = None
-        self._current_path: Optional[str] = None
-        self._colorspace_info: Optional[ColorSpaceInfo] = None
+        self._loader: ProgressiveImageLoader | None = None
+        self._current_path: str | None = None
+        self._colorspace_info: ColorSpaceInfo | None = None
         self._memory_manager = None
 
     def __del__(self):
@@ -435,9 +536,9 @@ class ImageService(QObject):
 
         cached = self._get_memory_manager().get_image(path)
         if cached:
-            pixmap, image = cached
+            image_data = cached
             logger.debug(f"从缓存加载图片: path={path}")
-            self.image_loaded.emit(pixmap, image)
+            self.image_loaded.emit(image_data)
             return
 
         if self._loader is not None:
@@ -449,7 +550,18 @@ class ImageService(QObject):
         logger.info(f"开始加载图片: path={path}")
         self.loading_started.emit()
 
-        self._loader = ProgressiveImageLoader(path, display_size, self)
+        self._loader = ProgressiveImageLoader(image_path=path, display_size=display_size, parent=self)
+        self._connect_loader_signals()
+        self._loader.start()
+
+    def cancel_loading(self) -> None:
+        """取消当前加载任务"""
+        if self._loader is not None:
+            self._loader.cancel()
+            logger.debug("加载任务已取消")
+
+    def _connect_loader_signals(self) -> None:
+        """连接加载器信号（内部方法）"""
         self._loader.display_ready.connect(
             self._on_display_ready, Qt.ConnectionType.QueuedConnection
         )
@@ -468,19 +580,37 @@ class ImageService(QObject):
         self._loader.finished.connect(
             self._cleanup_loader, Qt.ConnectionType.QueuedConnection
         )
-        self._loader.start()
 
-    def cancel_loading(self) -> None:
-        """取消当前加载任务"""
+    def load_from_pil_image(self, pil_image: Image.Image, display_size: int = 1920) -> None:
+        """从 PIL Image 对象异步加载图片
+
+        用于剪贴板等无文件路径的场景，跳过文件打开步骤。
+        信号发射顺序与 load_image_async 完全一致。
+
+        Args:
+            pil_image: PIL Image 对象
+            display_size: 显示尺寸上限（默认1920px）
+        """
+        self._current_path = None
+        self._colorspace_info = None
+
         if self._loader is not None:
             self._loader.cancel()
-            logger.debug("加载任务已取消")
+            if self._loader.isRunning():
+                self._loader.wait(500)
+            self._loader = None
 
-    def get_colorspace_info(self) -> Optional[ColorSpaceInfo]:
+        self.loading_started.emit()
+
+        self._loader = ProgressiveImageLoader(pil_image=pil_image, display_size=display_size, parent=self)
+        self._connect_loader_signals()
+        self._loader.start()
+
+    def get_colorspace_info(self) -> ColorSpaceInfo | None:
         """获取当前图片的色彩空间信息
         
         Returns:
-            Optional[ColorSpaceInfo]: 色彩空间信息，如果未加载图片则返回 None
+            ColorSpaceInfo | None: 色彩空间信息，如果未加载图片则返回 None
         """
         return self._colorspace_info
 
@@ -522,22 +652,38 @@ class ImageService(QObject):
         """完整图片就绪的回调
 
         Args:
-            image_data: 图片字节数据
+            image_data: 图片字节数据（sRGB BMP）
             width: 图片宽度
             height: 图片高度
             fmt: 图片格式
         """
         self.full_ready.emit(image_data, width, height, fmt)
 
-        image = QImage.fromData(image_data, fmt)
-        pixmap = QPixmap.fromImage(image)
+        display_image = QImage.fromData(image_data, fmt)
+        display_pixmap = QPixmap.fromImage(display_image)
+
+        original_pixels = self._loader._original_pixels if self._loader else None
+        colorspace_info = self._colorspace_info or ColorSpaceInfo(
+            name='sRGB', has_icc_profile=False, icc_profile_size=0,
+            gamma=2.2, source='default'
+        )
+
+        display_colorspace = getattr(self._loader, '_display_colorspace', None) if self._loader else None
+
+        img_data = ImageData(
+            display_image=display_image,
+            display_pixmap=display_pixmap,
+            original_pixels=original_pixels,
+            colorspace_info=colorspace_info,
+            display_colorspace=display_colorspace
+        )
 
         if self._current_path:
-            self._memory_manager.add_image(self._current_path, pixmap, image)
+            self._memory_manager.add_image(self._current_path, img_data)
 
-        colorspace_name = self._colorspace_info.name if self._colorspace_info else "unknown"
+        colorspace_name = colorspace_info.name
         logger.info(f"图片加载完成: size={width}x{height}, colorspace={colorspace_name}")
-        self.image_loaded.emit(pixmap, image)
+        self.image_loaded.emit(img_data)
 
     def _on_colorspace_ready(self, colorspace_info: ColorSpaceInfo) -> None:
         """色彩空间检测完成的回调

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """批量将JSON色卡文件中的Hex颜色值转换为大写
-
 使用方法:
     python scripts/uppercase_hex_colors.py
 

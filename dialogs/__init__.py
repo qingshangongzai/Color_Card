@@ -7,6 +7,7 @@ from .confirm_dialogs import DeleteConfirmDialog, ImportModeDialog
 from .contrast_dialog import ContrastCheckDialog
 from .edit_palette import EditPaletteDialog, ColorPickerDialog
 from .export_settings_dialog import ExportSettingsDialog
+from .harmony_dialog import HarmonyAnalysisDialog
 from .tone_analysis_dialog import ToneAnalysisDialog
 from .update_dialog import UpdateAvailableDialog
 
@@ -19,6 +20,7 @@ __all__ = [
     'DeleteConfirmDialog',
     'EditPaletteDialog',
     'ExportSettingsDialog',
+    'HarmonyAnalysisDialog',
     'ImportModeDialog',
     'ToneAnalysisDialog',
     'UpdateAvailableDialog',

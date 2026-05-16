@@ -1,8 +1,9 @@
+from __future__ import annotations
 # 标准库导入
 import ctypes
 import os
 import sys
-from typing import Dict, Optional
+
 
 # 第三方库导入
 from PySide6.QtCore import QObject, QTimer, Signal
@@ -37,7 +38,7 @@ def set_app_user_model_id() -> bool:
 
 
 # 全局变量：跟踪每个窗口的图标修复状态
-_TASKBAR_ICON_FIXED_WINDOWS: Dict[int, bool] = {}
+_TASKBAR_ICON_FIXED_WINDOWS: dict[int, bool] = {}
 
 
 def fix_windows_taskbar_icon_for_window(window) -> bool:
@@ -166,7 +167,7 @@ class WindowIconMixin(QObject):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self._icon_fixed: bool = False
-        self._fix_timer: Optional[QTimer] = None
+        self._fix_timer: QTimer | None = None
 
     def setup_icon_fixing(self, delay_ms: int = 100) -> None:
         """设置图标修复，在窗口显示后调用

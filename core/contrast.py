@@ -3,10 +3,10 @@
 提供 WCAG 2.1 标准的颜色对比度计算和等级判断功能。
 """
 
-from typing import Tuple, Dict
+from __future__ import annotations
 
 
-def calculate_relative_luminance(rgb: Tuple[int, int, int]) -> float:
+def calculate_relative_luminance(rgb: tuple[int, int, int]) -> float:
     """计算颜色的相对亮度
     
     使用 WCAG 2.1 标准计算相对亮度，包含 sRGB Gamma 校正。
@@ -42,8 +42,8 @@ def calculate_relative_luminance(rgb: Tuple[int, int, int]) -> float:
 
 
 def calculate_contrast_ratio(
-    rgb1: Tuple[int, int, int],
-    rgb2: Tuple[int, int, int]
+    rgb1: tuple[int, int, int],
+    rgb2: tuple[int, int, int]
 ) -> float:
     """计算两个颜色的对比度比率
     
@@ -103,8 +103,8 @@ def get_wcag_level(ratio: float, is_large_text: bool = False) -> str:
 
 
 def get_contrast_info(
-    rgb1: Tuple[int, int, int],
-    rgb2: Tuple[int, int, int]
+    rgb1: tuple[int, int, int],
+    rgb2: tuple[int, int, int]
 ) -> Dict:
     """获取完整的对比度信息
     
@@ -139,7 +139,7 @@ def get_contrast_info(
     }
 
 
-def rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
+def rgb_to_hex(rgb: tuple[int, int, int]) -> str:
     """将 RGB 转换为 HEX 字符串
     
     Args:
@@ -151,7 +151,7 @@ def rgb_to_hex(rgb: Tuple[int, int, int]) -> str:
     return f"#{rgb[0]:02X}{rgb[1]:02X}{rgb[2]:02X}"
 
 
-def hex_to_rgb(hex_color: str) -> Tuple[int, int, int]:
+def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     """将 HEX 字符串转换为 RGB
     
     Args:
@@ -177,7 +177,7 @@ def hex_to_rgb(hex_color: str) -> Tuple[int, int, int]:
         raise ValueError(f"无效的 HEX 颜色格式: {hex_color}") from e
 
 
-def get_contrast_status_color(ratio: float, is_dark_theme: bool = False) -> Tuple[int, int, int]:
+def get_contrast_status_color(ratio: float, is_dark_theme: bool = False) -> tuple[int, int, int]:
     """获取对比度状态对应的颜色
     
     Args:
