@@ -6,7 +6,7 @@
 from pathlib import Path
 from typing import Optional, List
 
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap, QAction, QKeySequence
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QSplitter, QPushButton
 )
 
+from core import get_image_service
 from tone_labeler.feature_extractor import FeatureExtractor, ToneFeatures
 from tone_labeler.data_manager import DataManager
 from tone_labeler.histogram_widget import HistogramWidget
@@ -25,6 +26,24 @@ class MainWindow(QMainWindow):
     """主窗口"""
 
     IMAGE_FILTERS = "图片文件 (*.jpg *.jpeg *.png *.bmp *.tif *.tiff);;所有文件 (*)"
+
+    class _FeatureExtractThread(QThread):
+        """特征提取线程"""
+
+        finished = Signal(object)
+        error = Signal(str)
+
+        def __init__(self, extractor, rgb_array, parent=None):
+            super().__init__(parent)
+            self._extractor = extractor
+            self._rgb_array = rgb_array
+
+        def run(self):
+            try:
+                features = self._extractor.extract_from_array(self._rgb_array)
+                self.finished.emit(features)
+            except (ValueError, TypeError, RuntimeError) as e:
+                self.error.emit(str(e))
 
     def __init__(self):
         super().__init__()
@@ -37,12 +56,35 @@ class MainWindow(QMainWindow):
         self._current_image: Optional[QImage] = None
         self._current_features: Optional[ToneFeatures] = None
 
+        self._image_service = None
+        self._extract_thread: Optional[MainWindow._FeatureExtractThread] = None
+        self._is_loading = False
+
         self._setup_ui()
         self._setup_actions()
         self._setup_toolbar()
         self._setup_menu()
         self._setup_statusbar()
         self._setup_shortcuts()
+
+    def _get_image_service(self):
+        """延迟获取图片服务"""
+        if self._image_service is None:
+            self._image_service = get_image_service()
+            self._setup_image_service_connections()
+        return self._image_service
+
+    def _setup_image_service_connections(self):
+        """连接图片服务信号"""
+        self._image_service.loading_started.connect(
+            self._on_loading_started, Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.image_loaded.connect(
+            self._on_image_loaded, Qt.ConnectionType.QueuedConnection
+        )
+        self._image_service.error.connect(
+            self._on_image_load_error, Qt.ConnectionType.QueuedConnection
+        )
 
     def _setup_ui(self) -> None:
         """设置 UI"""
@@ -79,6 +121,19 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         scroll.setAlignment(Qt.AlignCenter)
         left_layout.addWidget(scroll)
+
+        # 加载遮罩
+        self._loading_widget = QWidget(left_widget)
+        self._loading_widget.setStyleSheet("background-color: rgba(42, 42, 42, 180); border-radius: 4px;")
+        self._loading_widget.hide()
+
+        loading_layout = QVBoxLayout(self._loading_widget)
+        loading_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._loading_label = QLabel("正在加载图片...", self._loading_widget)
+        self._loading_label.setStyleSheet("color: white; font-size: 14px; background: transparent;")
+        self._loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        loading_layout.addWidget(self._loading_label)
 
         splitter.addWidget(left_widget)
 
@@ -285,29 +340,100 @@ class MainWindow(QMainWindow):
         self._load_current_image()
 
     def _load_current_image(self) -> None:
-        """加载当前图片"""
+        """加载当前图片（异步）"""
         if not self._image_files or self._current_index < 0:
             return
 
-        image_path = self._image_files[self._current_index]
-        self._current_image = QImage(str(image_path))
+        image_path = str(self._image_files[self._current_index])
+        self._cancel_pending_tasks()
+        self._reset_display()
+        self._get_image_service().load_image_async(image_path, display_size=4096)
 
-        if self._current_image.isNull():
-            QMessageBox.warning(self, "错误", f"无法加载图片: {image_path}")
-            return
+    def _cancel_pending_tasks(self):
+        """取消正在进行的加载任务"""
+        if self._image_service is not None:
+            self._image_service.cancel_loading()
 
-        self._display_image()
-        self._extract_features()
-        self._update_statusbar()
+    def _reset_display(self):
+        """清空显示，为加载新图片做准备"""
+        self._current_image = None
+        self._current_features = None
+        self._image_label.setPixmap(QPixmap())
+
+        self._histogram_widget.clear()
+
+        for label in self._stats_labels.values():
+            label.setText("-")
+        self._low_ratio_label.setText("暗部: -")
+        self._mid_ratio_label.setText("中间调: -")
+        self._high_ratio_label.setText("亮部: -")
+        self._p10_label.setText("P10: -")
+        self._p90_label.setText("P90: -")
+        self._peak_label.setText("波峰: -")
+        self._span_label.setText("跨度: -")
+        self._result_label.setText("-")
+        self._confidence_label.setText("-")
 
         self._primary_panel.clear()
         self._secondary_panel.clear()
 
-        record = self._data_manager.get_record(str(image_path))
+    def _on_loading_started(self):
+        """加载开始回调"""
+        self._is_loading = True
+        self._loading_label.setText("正在加载图片...")
+        self._update_loading_widget_geometry()
+        self._loading_widget.show()
+        self._loading_widget.raise_()
+
+    def _on_image_loaded(self, image_data):
+        """图片完全加载回调"""
+        self._current_image = image_data.display_image
+        self._display_image()
+        self._is_loading = False
+        self._loading_widget.hide()
+        self._update_statusbar()
+
+        # 恢复上次标注
+        image_path = str(self._image_files[self._current_index])
+        record = self._data_manager.get_record(image_path)
         if record:
             self._primary_panel.set_current_label(record.human_label)
             if record.human_label_secondary:
                 self._secondary_panel.set_current_label(record.human_label_secondary)
+
+        # 异步提取特征
+        if image_data.original_pixels is not None:
+            self._start_feature_extraction(image_data.original_pixels)
+
+    def _on_image_load_error(self, error_msg: str):
+        """图片加载错误回调"""
+        self._is_loading = False
+        self._loading_widget.hide()
+        QMessageBox.warning(self, "错误", f"无法加载图片: {error_msg}")
+
+    def _start_feature_extraction(self, rgb_array):
+        """启动特征提取线程"""
+        self._extract_thread = MainWindow._FeatureExtractThread(self._extractor, rgb_array, self)
+        self._extract_thread.finished.connect(
+            self._on_features_extracted, Qt.ConnectionType.QueuedConnection
+        )
+        self._extract_thread.error.connect(
+            self._on_extract_error, Qt.ConnectionType.QueuedConnection
+        )
+        self._extract_thread.start()
+
+    def _on_features_extracted(self, features: ToneFeatures):
+        """特征提取完成回调"""
+        self._current_features = features
+        self._update_stats_display()
+        self._update_histogram()
+        self._update_result_display()
+        self._extract_thread = None
+
+    def _on_extract_error(self, error_msg: str):
+        """特征提取错误回调"""
+        self._statusbar.showMessage(f"分析失败: {error_msg}")
+        self._extract_thread = None
 
     def _display_image(self) -> None:
         """显示图片"""
@@ -320,20 +446,6 @@ class MainWindow(QMainWindow):
             Qt.SmoothTransformation
         )
         self._image_label.setPixmap(QPixmap.fromImage(scaled))
-
-    def _extract_features(self) -> None:
-        """提取特征"""
-        if self._current_image is None:
-            return
-
-        self._current_features = self._extractor.extract_from_image(self._current_image)
-
-        if self._current_features is None:
-            return
-
-        self._update_stats_display()
-        self._update_histogram()
-        self._update_result_display()
 
     def _update_stats_display(self) -> None:
         """更新统计信息显示"""
@@ -538,8 +650,21 @@ class MainWindow(QMainWindow):
             output_path = self._data_manager.export_to_json(Path(file_path))
             QMessageBox.information(self, "成功", f"数据已导出到: {output_path}")
 
+    def _update_loading_widget_geometry(self):
+        """更新加载遮罩位置"""
+        self._loading_widget.setGeometry(self._image_label.parentWidget().rect())
+
     def resizeEvent(self, event) -> None:
         """窗口大小改变事件"""
         super().resizeEvent(event)
-        if self._current_image:
+
+        if self._is_loading:
+            self._update_loading_widget_geometry()
+
+        if self._current_image and not self._is_loading:
             self._display_image()
+
+    def closeEvent(self, event):
+        """关闭事件，清理资源"""
+        self._cancel_pending_tasks()
+        super().closeEvent(event)
