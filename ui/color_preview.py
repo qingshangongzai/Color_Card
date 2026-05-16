@@ -29,7 +29,7 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import (
     ComboBox, PushButton, SubtitleLabel, FluentIcon, isDarkTheme, qconfig,
-    RoundMenu, Action, InfoBar, InfoBarPosition, ScrollArea
+    RoundMenu, Action, InfoBar, InfoBarPosition, ScrollArea, ScrollBarHandleDisplayMode
 )
 
 # 项目模块导入
@@ -1110,6 +1110,7 @@ class ScrollVLayout(BaseLayout):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         self._scroll_area = ScrollArea()
+        self._scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setStyleSheet("""
             QScrollArea {
@@ -1183,6 +1184,7 @@ class ScrollHLayout(BaseLayout):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         self._scroll_area = ScrollArea()
+        self._scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setStyleSheet("""
             QScrollArea {
@@ -1240,6 +1242,7 @@ class GridLayout(BaseLayout):
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         self._scroll_area = ScrollArea()
+        self._scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setStyleSheet("""
             QScrollArea {

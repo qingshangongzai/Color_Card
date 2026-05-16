@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QDialog, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QSplitter, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, qconfig, ScrollArea
+    FluentIcon, InfoBar, InfoBarPosition, PushButton, Slider, qconfig, ScrollArea, ScrollBarHandleDisplayMode
 )
 
 # 项目模块导入
@@ -145,6 +145,7 @@ class GradientCardPanel(QWidget):
 
         # 创建滚动区域
         self.scroll_area = ScrollArea()
+        self.scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
 

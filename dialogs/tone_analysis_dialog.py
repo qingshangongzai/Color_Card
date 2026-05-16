@@ -14,7 +14,7 @@ from PySide6.QtCharts import (
 from PySide6.QtCore import QMargins, QRectF, QThread, Signal, Qt
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
+from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea, ScrollBarHandleDisplayMode
 
 from core import (
     ToneAnalysisService, ToneAnalysisResult, get_tone_analysis_cache, get_config_manager,
@@ -771,6 +771,7 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
         # 创建滚动区域
         self._scroll_area = ScrollArea(self)
+        self._scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setFrameShape(ScrollArea.Shape.NoFrame)
 

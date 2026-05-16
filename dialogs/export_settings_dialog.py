@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import (
     PushButton, LineEdit, RadioButton, qconfig,
-    PrimaryPushButton, CheckBox, ScrollArea
+    PrimaryPushButton, CheckBox, ScrollArea, ScrollBarHandleDisplayMode
 )
 
 # 项目模块导入
@@ -69,6 +69,7 @@ class ExportSettingsDialog(BaseFramelessDialog):
 
         # 图片选择列表（滚动区域）
         scroll_area = ScrollArea()
+        scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         scroll_area.setWidgetResizable(True)
         scroll_area.setStyleSheet("""
             ScrollArea {
