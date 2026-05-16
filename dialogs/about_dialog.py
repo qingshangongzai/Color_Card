@@ -86,7 +86,7 @@ class AboutDialog(BaseFramelessDialog):
         content_label.setWordWrap(True)
         content_label.setTextFormat(Qt.TextFormat.PlainText)
         content_label.setText(self._get_about_text())
-        content_label.setStyleSheet(f"color: {text_color}; background: transparent; font-size: 14px;")
+        content_label.setStyleSheet(f"color: {text_color}; background: transparent; font-size: 14px; padding: 10px 20px;")
         content_label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
 
         scroll_area.setWidget(content_label)
