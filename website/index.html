@@ -364,6 +364,37 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
+        /* 导航栏活动指示器 */
+        .nav-links-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .nav-link {
+            position: relative;
+            white-space: nowrap;
+        }
+        .nav-indicator {
+            position: absolute;
+            bottom: -12px;
+            height: 3px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #C4BAD2, #AEDBFC, #FFEBEA, #AEDBFC);
+            background-size: 200% 100%;
+            animation: indicatorShimmer 2s ease-in-out infinite;
+            transition: left 0.4s var(--ease-spring), width 0.4s var(--ease-spring), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .nav-indicator.visible {
+            opacity: 1;
+        }
+        @keyframes indicatorShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
         /* 滚动进度指示器 */
         .scroll-progress {
             position: fixed;
@@ -478,16 +509,17 @@
                     <img src="logo.png" alt="取色卡" class="w-8 h-8 rounded-lg">
                     <span class="font-bold text-lg hidden sm:block">取色卡</span>
                 </a>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
-                    <a href="#screenshots" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
-                    <a href="#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
-                    <a href="#story" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
-                    <a href="#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
+                <div class="hidden md:flex items-center gap-8 nav-links-container" id="nav-links-container">
+                    <a href="#features" data-section="features" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
+                    <a href="#screenshots" data-section="screenshots" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
+                    <a href="#palettes" data-section="palettes" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
+                    <a href="#story" data-section="story" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
+                    <a href="#download" data-section="download" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
                     <a href="changelog.html" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">更新日志</a>
                     <a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">使用说明</a>
-                    <a href="#feedback" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
-                    <a href="#about" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                    <a href="#feedback" data-section="feedback" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
+                    <a href="#about" data-section="about" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                    <div class="nav-indicator" id="nav-indicator"></div>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -1577,6 +1609,72 @@
         }
 
         initScrollProgress();
+
+        // 导航栏活动指示器
+        function initNavIndicator() {
+            if (prefersReducedMotion) return;
+            const indicator = document.getElementById('nav-indicator');
+            const container = document.getElementById('nav-links-container');
+            if (!indicator || !container) return;
+
+            const navLinks = container.querySelectorAll('.nav-link[data-section]');
+            if (navLinks.length === 0) return;
+
+            function updateIndicator() {
+                const scrollPos = window.scrollY + window.innerHeight / 3;
+                let activeLink = navLinks[0];
+
+                navLinks.forEach(link => {
+                    const sectionId = link.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const top = section.offsetTop;
+                        const bottom = top + section.offsetHeight;
+                        if (scrollPos >= top && scrollPos < bottom) {
+                            activeLink = link;
+                        }
+                    }
+                });
+
+                const linkLeft = activeLink.offsetLeft;
+                const linkWidth = activeLink.offsetWidth;
+
+                indicator.style.left = linkLeft + 'px';
+                indicator.style.width = linkWidth + 'px';
+                indicator.classList.add('visible');
+            }
+
+            // 高亮当前导航链接文字
+            function highlightActiveLink() {
+                const scrollPos = window.scrollY + window.innerHeight / 3;
+                navLinks.forEach(link => {
+                    const sectionId = link.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const top = section.offsetTop;
+                        const bottom = top + section.offsetHeight;
+                        if (scrollPos >= top && scrollPos < bottom) {
+                            link.classList.add('!text-brand-primary', 'dark:!text-brand-primary');
+                        } else {
+                            link.classList.remove('!text-brand-primary', 'dark:!text-brand-primary');
+                        }
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', () => {
+                updateIndicator();
+                highlightActiveLink();
+            }, { passive: true });
+
+            // 响应窗口大小变化，重新计算位置
+            window.addEventListener('resize', updateIndicator, { passive: true });
+
+            updateIndicator();
+            highlightActiveLink();
+        }
+
+        initNavIndicator();
 
         // 文字逐字出现动画
         function initTextReveal() {
