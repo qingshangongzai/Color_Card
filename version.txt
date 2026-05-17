@@ -3,4 +3,4 @@
 1.10.0.2
 浮晓 HXiao Studio
 © 2026 浮晓 HXiao Studio
-取色卡 - Color Card
+取色卡(Color Card) - 一站式色彩工具

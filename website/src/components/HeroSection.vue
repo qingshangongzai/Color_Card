@@ -16,7 +16,7 @@
       <!-- Badge -->
       <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 mb-8 animate-fade-in">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('hero.badge') }}</span>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">开源免费 · 跨平台</span>
       </div>
 
       <!-- Logo -->
@@ -30,17 +30,17 @@
 
       <!-- Title -->
       <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 animate-fade-in animation-delay-200">
-        <span class="gradient-text">{{ t('hero.title') }}</span>
+        <span class="gradient-text">Color Card</span>
       </h1>
 
       <!-- Subtitle -->
       <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 animate-fade-in animation-delay-300">
-        {{ t('hero.subtitle') }}
+        专业配色工具 · 开发者的色彩伴侣
       </p>
 
       <!-- Description -->
       <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in animation-delay-400">
-        {{ t('hero.description') }}
+        强大的颜色分析与配色管理工具，支持颜色提取、渐变生成、色卡管理等多种功能
       </p>
 
       <!-- CTA Buttons -->
@@ -49,13 +49,13 @@
           href="#download" 
           class="btn-primary text-lg px-8 py-4"
         >
-          {{ t('hero.download') }}
+          立即下载
         </a>
         <a 
           href="#features" 
           class="btn-secondary text-lg px-8 py-4"
         >
-          {{ t('hero.learnMore') }}
+          了解更多
         </a>
       </div>
 
@@ -87,9 +87,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-
-const { t } = useI18n()
 
 const mouseX = ref(0)
 const mouseY = ref(0)
