@@ -13,13 +13,13 @@
           <!-- Nav Links -->
           <div class="hidden md:flex items-center gap-8">
             <a href="#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-              {{ t('nav.features') }}
+              功能特性
             </a>
             <a href="#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-              {{ t('nav.palettes') }}
+              配色方案
             </a>
             <a href="#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-              {{ t('nav.download') }}
+              下载
             </a>
           </div>
 
@@ -36,7 +36,7 @@
               href="#download"
               class="btn-primary py-2 px-4 text-sm hidden sm:inline-flex"
             >
-              {{ t('hero.download') }}
+              下载
             </a>
           </div>
         </div>
@@ -58,7 +58,6 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { Sun, Moon } from 'lucide-vue-next'
 import { useTheme } from '@/composables/useTheme'
 import HeroSection from '@/components/HeroSection.vue'
@@ -67,7 +66,6 @@ import PaletteBrowser from '@/components/PaletteBrowser.vue'
 import DownloadSection from '@/components/DownloadSection.vue'
 import FooterSection from '@/components/FooterSection.vue'
 
-const { t } = useI18n()
 const { theme, initTheme, toggleTheme } = useTheme()
 
 onMounted(() => {

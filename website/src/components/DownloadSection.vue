@@ -3,8 +3,8 @@
     <div class="section-container">
       <!-- Header -->
       <div class="text-center mb-16">
-        <h2 class="section-title">{{ t('download.title') }}</h2>
-        <p class="section-subtitle">{{ t('download.subtitle') }}</p>
+        <h2 class="section-title">下载</h2>
+        <p class="section-subtitle">选择适合你的平台，立即开始使用 Color Card</p>
       </div>
 
       <!-- Download Cards -->
@@ -15,18 +15,18 @@
             <Monitor class="w-8 h-8 text-blue-500" />
           </div>
           <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {{ t('download.windows.title') }}
+            Windows 版
           </h3>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {{ t('download.windows.description') }}
+            支持 Windows 10/11 64 位及以上系统，安装包约 60MB
           </p>
           <a 
-            href="https://gitee.com/qingshangongzai/color_card/releases"
+            href="https://gitee.com/qingshangongzai/Color_Card/releases"
             target="_blank"
             class="btn-primary inline-flex items-center gap-2"
           >
             <Download class="w-5 h-5" />
-            {{ t('download.windows.button') }}
+            下载安装包
           </a>
         </div>
 
@@ -36,10 +36,10 @@
             <Code2 class="w-8 h-8 text-purple-500" />
           </div>
           <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {{ t('download.source.title') }}
+            源码
           </h3>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
-            {{ t('download.source.description') }}
+            从 GitHub 或 Gitee 获取源码，支持自行编译打包
           </p>
           <a 
             href="https://gitee.com/qingshangongzai/color_card"
@@ -47,7 +47,7 @@
             class="btn-secondary inline-flex items-center gap-2"
           >
             <GitBranch class="w-5 h-5" />
-            {{ t('download.source.gitee') }}
+            Gitee 仓库
           </a>
         </div>
       </div>
@@ -56,33 +56,31 @@
       <div class="glass-card rounded-2xl p-8 max-w-2xl mx-auto">
         <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
           <Cpu class="w-5 h-5 text-brand-primary" />
-          {{ t('download.requirements.title') }}
+          系统要求
         </h3>
         <ul class="space-y-3 text-gray-600 dark:text-gray-400">
           <li class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-brand-primary" />
-            {{ t('download.requirements.os') }}
+            操作系统：Windows 10/11 64位
           </li>
           <li class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-brand-secondary" />
-            {{ t('download.requirements.python') }}
+            Python 3.11 及以上
           </li>
           <li class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-brand-accent" />
-            {{ t('download.requirements.memory') }}
+            内存：建议 4GB 及以上
           </li>
           <li class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-green-500" />
-            {{ t('download.requirements.disk') }}
+            磁盘：建议 500MB 可用空间
           </li>
-        </ul>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import {
   Monitor,
   Download,
@@ -90,6 +88,4 @@ import {
   GitBranch,
   Cpu,
 } from 'lucide-vue-next'
-
-const { t } = useI18n()
 </script>

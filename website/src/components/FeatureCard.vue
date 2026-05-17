@@ -3,8 +3,8 @@
     <div class="section-container">
       <!-- Header -->
       <div class="text-center mb-16">
-        <h2 class="section-title">{{ t('features.title') }}</h2>
-        <p class="section-subtitle">{{ t('features.subtitle') }}</p>
+        <h2 class="section-title">功能特性</h2>
+        <p class="section-subtitle">一站式配色解决方案，从提取到管理，满足你的所有色彩需求</p>
       </div>
 
       <!-- Features Grid -->
@@ -25,12 +25,12 @@
 
           <!-- Title -->
           <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3">
-            {{ t(`features.${feature.key}.title`) }}
+            {{ feature.title }}
           </h3>
 
           <!-- Description -->
           <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-            {{ t(`features.${feature.key}.description`) }}
+            {{ feature.description }}
           </p>
         </div>
       </div>
@@ -39,7 +39,6 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import {
   Pipette,
   Palette,
@@ -49,14 +48,12 @@ import {
   BarChart3,
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
-
 const features = [
-  { key: 'colorAnalysis', icon: Pipette },
-  { key: 'colorGeneration', icon: Palette },
-  { key: 'paletteManagement', icon: Bookmark },
-  { key: 'builtInPalettes', icon: Library },
-  { key: 'colorPreview', icon: Eye },
-  { key: 'luminanceAnalysis', icon: BarChart3 },
+  { key: 'colorAnalysis', icon: Pipette, title: '颜色分析', description: '从图片中精准提取颜色，支持多种颜色空间，快速获取任意位置的色彩信息' },
+  { key: 'colorGeneration', icon: Palette, title: '颜色生成', description: '基于色彩理论智能生成配色方案，轻松获得和谐美观的颜色组合' },
+  { key: 'paletteManagement', icon: Bookmark, title: '色卡管理', description: '创建和管理自定义色卡，支持分类整理、导入导出，让配色井井有条' },
+  { key: 'builtInPalettes', icon: Library, title: '内置色板', description: '内置多套知名设计系统与终端配色方案，开箱即用，灵感随手可得' },
+  { key: 'colorPreview', icon: Eye, title: '颜色预览', description: '在多种场景下预览颜色效果，确保配色在实际应用中表现完美' },
+  { key: 'luminanceAnalysis', icon: BarChart3, title: '亮度分析', description: '分析颜色明度与对比度，确保文本可读性和视觉层次感' },
 ]
 </script>
