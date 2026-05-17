@@ -40,10 +40,10 @@ export function usePalettes() {
   const selectedCategory = ref<string>('all')
 
   const categories = [
-    { id: 'all', name: '全部', nameEn: 'All' },
-    { id: 'design_system', name: '设计系统', nameEn: 'Design System' },
-    { id: 'terminal', name: '终端主题', nameEn: 'Terminal' },
-    { id: 'artistic', name: '艺术配色', nameEn: 'Artistic' },
+    { id: 'all', name: '全部' },
+    { id: 'design_system', name: '设计系统' },
+    { id: 'terminal', name: '终端主题' },
+    { id: 'artistic', name: '艺术配色' },
   ]
 
   const filteredPalettes = computed(() => {

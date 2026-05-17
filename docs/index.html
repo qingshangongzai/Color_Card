@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Color Card - 一站式配色工具，为摄影师和设计师打造的专业色彩分析工具">
-    <meta name="keywords" content="配色工具,色彩分析,色卡,颜色提取,配色方案,Color Card">
-    <title>Color Card - 一站式配色工具</title>
+    <meta name="description" content="取色卡 - 一站式配色工具和图片色彩分析工具">
+    <meta name="keywords" content="配色工具,色彩分析,色卡,颜色提取,配色方案,取色卡">
+    <title>取色卡 - 一站式色彩工具</title>
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -57,24 +57,35 @@
         
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
         
-        /* Linear 风格动态渐变网格背景 */
-        .gradient-mesh {
-            position: absolute;
+        /* 全局渐变网格背景 */
+        .global-gradient-mesh {
+            position: fixed;
             inset: 0;
+            z-index: 0;
+            pointer-events: none;
             overflow: hidden;
         }
-        .gradient-mesh::before {
+        .global-gradient-mesh::before {
             content: '';
             position: absolute;
             inset: -50%;
             background:
-                radial-gradient(at 40% 20%, rgba(255, 235, 234, 0.6) 0px, transparent 50%),
-                radial-gradient(at 80% 0%, rgba(254, 255, 255, 0.5) 0px, transparent 50%),
-                radial-gradient(at 0% 50%, rgba(255, 235, 234, 0.55) 0px, transparent 50%),
-                radial-gradient(at 80% 50%, rgba(174, 219, 252, 0.3) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(254, 255, 255, 0.5) 0px, transparent 50%);
+                radial-gradient(at 20% 10%, rgba(255, 200, 200, 0.55) 0px, transparent 45%),
+                radial-gradient(at 80% 20%, rgba(174, 219, 252, 0.5) 0px, transparent 45%),
+                radial-gradient(at 40% 80%, rgba(196, 186, 210, 0.45) 0px, transparent 45%),
+                radial-gradient(at 90% 70%, rgba(255, 235, 234, 0.5) 0px, transparent 45%),
+                radial-gradient(at 10% 60%, rgba(174, 219, 252, 0.35) 0px, transparent 45%);
             animation: meshMove 20s ease infinite;
             filter: blur(60px);
+            will-change: transform;
+        }
+        .dark .global-gradient-mesh::before {
+            background:
+                radial-gradient(at 20% 10%, rgba(255, 150, 150, 0.25) 0px, transparent 45%),
+                radial-gradient(at 80% 20%, rgba(100, 180, 240, 0.3) 0px, transparent 45%),
+                radial-gradient(at 40% 80%, rgba(180, 160, 200, 0.25) 0px, transparent 45%),
+                radial-gradient(at 90% 70%, rgba(240, 200, 200, 0.2) 0px, transparent 45%),
+                radial-gradient(at 10% 60%, rgba(100, 180, 240, 0.2) 0px, transparent 45%);
         }
         @keyframes meshMove {
             0%, 100% {
@@ -87,20 +98,99 @@
                 transform: translate(-1%, 1%) rotate(-3deg) scale(0.95);
             }
         }
-        
-        /* 网格线效果 */
-        .grid-lines {
+
+        /* 全局网格线效果 - 更淡更细 */
+        .global-grid-lines {
             position: absolute;
             inset: 0;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: gridFloat 15s linear infinite;
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.008) 1px, transparent 1px);
+            background-size: 80px 80px;
+            animation: gridFloat 20s linear infinite;
+        }
+        .dark .global-grid-lines {
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.006) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.006) 1px, transparent 1px);
         }
         @keyframes gridFloat {
             0% { transform: translate(0, 0); }
-            100% { transform: translate(60px, 60px); }
+            100% { transform: translate(80px, 80px); }
+        }
+
+        /* 移动端隐藏网格线，减少视觉干扰 */
+        @media (max-width: 768px) {
+            .global-grid-lines {
+                display: none;
+            }
+        }
+
+        /* 导航栏活动指示器 */
+        .nav-links-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .nav-link {
+            position: relative;
+            white-space: nowrap;
+        }
+        .nav-indicator {
+            position: absolute;
+            bottom: -12px;
+            height: 3px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #C4BAD2, #AEDBFC, #FFEBEA, #AEDBFC);
+            background-size: 200% 100%;
+            animation: indicatorShimmer 2s ease-in-out infinite;
+            transition: left 0.4s var(--ease-spring), width 0.4s var(--ease-spring), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .nav-indicator.visible {
+            opacity: 1;
+        }
+        @keyframes indicatorShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 内容区域层级 */
+        .content-layer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 半透明 section 背景 - 更通透减少分隔感 */
+        .section-bg-light {
+            background: rgba(249, 250, 251, 0.55);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+        }
+        .dark .section-bg-light {
+            background: rgba(3, 7, 18, 0.6);
+        }
+        .section-bg-white {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+        }
+        .dark .section-bg-white {
+            background: rgba(17, 24, 39, 0.55);
+        }
+
+        /* Footer 渐变毛玻璃 */
+        .footer-glass {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(30, 41, 59, 0.75) 100%);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dark .footer-glass {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(2, 6, 23, 0.85) 50%, rgba(15, 23, 42, 0.7) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .gradient-text {
@@ -458,6 +548,11 @@
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- 全局渐变网格背景 -->
+    <div class="global-gradient-mesh" aria-hidden="true">
+        <div class="global-grid-lines"></div>
+    </div>
+
     <!-- Scroll Progress Indicator -->
     <div class="scroll-progress hidden lg:flex" id="scroll-progress">
         <div class="scroll-progress-dot active" data-section="hero" title="首页"></div>
@@ -471,23 +566,24 @@
     </div>
 
     <!-- Navigation -->
-    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300">
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300 content-layer">
         <div class="section-container">
             <div class="flex items-center justify-between h-16">
                 <a href="#" class="flex items-center gap-2">
-                    <img src="logo.png" alt="Color Card" class="w-8 h-8 rounded-lg">
-                    <span class="font-bold text-lg hidden sm:block">Color Card</span>
+                    <img src="logo.png" alt="取色卡" class="w-8 h-8 rounded-lg">
+                    <span class="font-bold text-lg hidden sm:block">取色卡</span>
                 </a>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
-                    <a href="#screenshots" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
-                    <a href="#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
-                    <a href="#story" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
-                    <a href="#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
+                <div class="hidden md:flex items-center gap-8 nav-links-container" id="nav-links-container">
+                    <a href="#features" data-section="features" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
+                    <a href="#screenshots" data-section="screenshots" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
+                    <a href="#palettes" data-section="palettes" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
+                    <a href="#story" data-section="story" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
+                    <a href="#download" data-section="download" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
                     <a href="changelog.html" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">更新日志</a>
                     <a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">使用说明</a>
-                    <a href="#feedback" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
-                    <a href="#about" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                    <a href="#feedback" data-section="feedback" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
+                    <a href="#about" data-section="about" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                    <div class="nav-indicator" id="nav-indicator"></div>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -501,11 +597,7 @@
     </nav>
 
     <!-- Hero Section -->
-    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        <!-- Linear 风格动态渐变网格背景 -->
-        <div class="gradient-mesh">
-            <div class="grid-lines"></div>
-        </div>
+    <section id="hero" class="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 content-layer">
         <!-- 浮动彩色圆形（原有效果）- 文字动画结束后开始 -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none" id="floating-circles">
             <div class="floating-circle absolute top-20 left-10 w-72 h-72 bg-brand-primary/30 rounded-full blur-3xl" style="animation-delay: 0s;"></div>
@@ -523,9 +615,9 @@
                 <img src="logo.png" alt="Color Card" class="w-32 h-32 mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
             </div>
             <h1 class="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 text-reveal-container" id="hero-title">
-                <span class="gradient-text-flow">一站式配色工具</span>
+                <span class="gradient-text-flow">一站式色彩工具</span>
             </h1>
-            <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 animate-fade-in" style="animation-delay: 300ms;">为摄影师和设计师打造的专业色彩分析工具</p>
+            <p class="text-xl sm:text-2xl text-gray-700 dark:text-gray-300 mb-4 animate-fade-in" style="animation-delay: 300ms;">专为摄影师和设计师打造的一站式配色和色彩分析工具</p>
             <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-10 animate-fade-in" style="animation-delay: 400ms;">从图片中提取颜色、智能识别渐变、分析明度分布、生成和谐配色、管理配色方案、预览配色效果，支持多语言和明暗主题切换，满足从色彩分析到配色应用的全流程需求</p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in" style="animation-delay: 500ms;">
                 <a href="#download" class="magnetic-btn btn-primary btn-shine text-lg px-8 py-4 rounded-xl font-medium">
@@ -545,7 +637,7 @@
                     <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">色卡组</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl sm:text-4xl font-bold text-brand-accent counter" data-target="8">0</div>
+                    <div class="text-3xl sm:text-4xl font-bold text-brand-accent counter" data-target="9">0</div>
                     <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">预览场景</div>
                 </div>
             </div>
@@ -553,7 +645,7 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-24 bg-gray-50 dark:bg-gray-950">
+    <section id="features" class="py-24 section-bg-light content-layer">
         <div class="section-container">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">强大功能，一站解决</h2>
@@ -566,7 +658,7 @@
     </section>
 
     <!-- Screenshots Section -->
-    <section id="screenshots" class="py-24 bg-white dark:bg-gray-950">
+    <section id="screenshots" class="py-24 section-bg-white content-layer">
         <div class="section-container">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">软件界面</h2>
@@ -591,7 +683,7 @@
                     <img src="screenshots/color-preview.png" alt="配色预览" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
                     <div class="p-4">
                         <h3 class="font-bold text-gray-900 dark:text-white">配色预览</h3>
-                        <p class="text-sm text-gray-500 mt-1">8种场景实时预览</p>
+                        <p class="text-sm text-gray-500 mt-1">9种场景实时预览</p>
                     </div>
                 </div>
                 <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/luminance-extract.png')">
@@ -649,7 +741,7 @@
     </div>
 
     <!-- Palettes Section -->
-    <section id="palettes" class="py-24">
+    <section id="palettes" class="py-24 content-layer">
         <div class="section-container">
             <div class="text-center mb-12">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">13套专业配色方案</h2>
@@ -671,7 +763,7 @@
     </section>
 
     <!-- Download Section -->
-    <section id="download" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+    <section id="download" class="py-24 section-bg-light content-layer">
         <div class="section-container">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">立即开始使用</h2>
@@ -684,7 +776,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-2">PC 版</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">支持 Mac M系列和 Win 10/11 X64</p>
-                    <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
+                    <a href="https://gitee.com/qingshangongzai/Color_Card/releases" target="_blank" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         下载安装包
                     </a>
@@ -720,7 +812,7 @@
     </section>
 
     <!-- Story Section -->
-    <section id="story" class="py-24 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 overflow-hidden">
+    <section id="story" class="py-24 section-bg-white overflow-hidden content-layer">
         <div class="section-container">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 <!-- Left: Story Content -->
@@ -838,7 +930,7 @@
     </section>
 
     <!-- Feedback Section -->
-    <section id="feedback" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+    <section id="feedback" class="py-24 section-bg-light content-layer">
         <div class="section-container">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">问题反馈</h2>
@@ -870,7 +962,7 @@
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-24 bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 overflow-hidden">
+    <section id="about" class="py-24 section-bg-white overflow-hidden content-layer">
         <div class="section-container">
             <!-- Section Header -->
             <div class="text-center mb-16">
@@ -917,7 +1009,7 @@
                             开源精神
                         </h3>
                         <p class="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
-                            Color Card 采用 GPL-3.0 开源协议，完全免费，无需联网，无需注册，隐私安全。
+                            取色卡采用 GPL-3.0 开源协议，完全免费，无需联网，无需注册，隐私安全。
                         </p>
                         <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
                             我们相信，优秀的工具应该人人可用。从色彩分析到配色应用，我们致力于打造专业级的本地配色解决方案。
@@ -1018,15 +1110,15 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 dark:bg-black text-white py-16">
+    <footer class="footer-glass text-white py-16 content-layer">
         <div class="section-container">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
                 <div class="md:col-span-2">
                     <div class="flex items-center gap-3 mb-4">
-                        <img src="logo.png" alt="Color Card" class="w-10 h-10 rounded-lg">
-                        <span class="text-xl font-bold">Color Card</span>
+                        <img src="logo.png" alt="取色卡" class="w-10 h-10 rounded-lg">
+                        <span class="text-xl font-bold">取色卡</span>
                     </div>
-                    <p class="text-gray-400 max-w-sm">Color Card 是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
+                    <p class="text-gray-400 max-w-sm">取色卡(Color Card)是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
                 </div>
                 <div>
                     <h4 class="font-semibold mb-4">产品</h4>
@@ -1041,7 +1133,7 @@
                     <h4 class="font-semibold mb-4">资源</h4>
                     <ul class="space-y-2 text-gray-400">
                         <li><a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>GitHub</a></li>
-                        <li><a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/><path d="M18.5 10.5h-8c-.3 0-.5.2-.5.5v1.5c0 .3.2.5.5.5h5c.3 0 .5.2.5.5v.5c0 1-.8 1.8-1.8 1.8H8c-.3 0-.5-.2-.5-.5V9.5c0-1 .8-1.8 1.8-1.8h8.2c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5H8c-2.2 0-4 1.8-4 4v8c0 .3.2.5.5.5h8.5c2.5 0 4.5-2 4.5-4.5V11c0-.3-.2-.5-.5-.5z" fill="#1a1a2e"/></svg>Gitee</a></li>
+                        <li><a href="https://gitee.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/><path d="M18.5 10.5h-8c-.3 0-.5.2-.5.5v1.5c0 .3.2.5.5.5h5c.3 0 .5.2.5.5v.5c0 1-.8 1.8-1.8 1.8H8c-.3 0-.5-.2-.5-.5V9.5c0-1 .8-1.8 1.8-1.8h8.2c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5H8c-2.2 0-4 1.8-4 4v8c0 .3.2.5.5.5h8.5c2.5 0 4.5-2 4.5-4.5V11c0-.3-.2-.5-.5-.5z" fill="#1a1a2e"/></svg>Gitee</a></li>
                         <li><a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>使用说明</a></li>
                     </ul>
                 </div>
@@ -1256,11 +1348,11 @@
 
         // Features Data
         const features = [
-            { icon: 'pipette', title: '可视化色彩分析', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）' },
+            { icon: 'pipette', title: '可视化色彩分析', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间信息展示（HSB、LAB、HSL、CMYK、RGB），支持正确显示广色域图片' },
             { icon: 'palette', title: '智能配色生成', desc: '提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择' },
-            { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持导出为 Adobe ASE 格式，建立个人色彩库' },
+            { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持导出为 Adobe ASE 格式和图片色卡，建立个人色彩库' },
             { icon: 'library', title: '内置色彩库', desc: '集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡' },
-            { icon: 'eye', title: '配色预览', desc: '支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG' },
+            { icon: 'eye', title: '配色预览', desc: '支持混合、手机UI、网页、插画、排版、品牌、海报、图案、杂志等9种场景预览，支持导入自定义SVG' },
             { icon: 'barchart', title: '明度分析', desc: '将图片按明度分为9个区域，提供直方图可视化，辅助调色决策' },
             { icon: 'gradient', title: '渐变生成', desc: '支持双色渐变和单色明度梯度两种模式，RGB/HSB/HSL/LAB四种颜色空间插值，可调节中间色数量' },
             { icon: 'globe', title: '多语言支持', desc: '支持简体中文、繁体中文、英语、日语、法语、俄语六种语言界面切换，支持跟随系统语言自动切换' },
@@ -1506,7 +1598,7 @@
                 container.innerHTML = `
                     <div class="text-center py-12">
                         <p class="text-gray-500 mb-4">无法加载更新日志: ${error.message}</p>
-                        <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
+                        <a href="https://gitee.com/qingshangongzai/Color_Card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
                             前往 Gitee 查看
                         </a>
                     </div>
@@ -1518,6 +1610,69 @@
         document.addEventListener('DOMContentLoaded', () => {
             initScrollReveal();
         });
+
+        // 导航栏活动指示器
+        function initNavIndicator() {
+            const indicator = document.getElementById('nav-indicator');
+            const container = document.getElementById('nav-links-container');
+            if (!indicator || !container) return;
+
+            const navLinks = container.querySelectorAll('.nav-link[data-section]');
+            if (navLinks.length === 0) return;
+
+            function updateIndicator() {
+                const scrollPos = window.scrollY + window.innerHeight / 3;
+                let activeLink = navLinks[0];
+
+                navLinks.forEach(link => {
+                    const sectionId = link.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const top = section.offsetTop;
+                        const bottom = top + section.offsetHeight;
+                        if (scrollPos >= top && scrollPos < bottom) {
+                            activeLink = link;
+                        }
+                    }
+                });
+
+                const linkLeft = activeLink.offsetLeft;
+                const linkWidth = activeLink.offsetWidth;
+
+                indicator.style.left = linkLeft + 'px';
+                indicator.style.width = linkWidth + 'px';
+                indicator.classList.add('visible');
+            }
+
+            function highlightActiveLink() {
+                const scrollPos = window.scrollY + window.innerHeight / 3;
+                navLinks.forEach(link => {
+                    const sectionId = link.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const top = section.offsetTop;
+                        const bottom = top + section.offsetHeight;
+                        if (scrollPos >= top && scrollPos < bottom) {
+                            link.classList.add('!text-brand-primary', 'dark:!text-brand-primary');
+                        } else {
+                            link.classList.remove('!text-brand-primary', 'dark:!text-brand-primary');
+                        }
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', () => {
+                updateIndicator();
+                highlightActiveLink();
+            }, { passive: true });
+
+            window.addEventListener('resize', updateIndicator, { passive: true });
+
+            updateIndicator();
+            highlightActiveLink();
+        }
+
+        initNavIndicator();
 
         // Scroll Progress Indicator
         function initScrollProgress() {

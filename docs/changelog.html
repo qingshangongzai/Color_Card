@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Color Card 更新日志 - 查看软件版本更新记录">
-    <meta name="keywords" content="Color Card,更新日志,版本记录,配色工具">
-    <title>更新日志 - Color Card</title>
+    <meta name="description" content="取色卡 更新日志 - 查看软件版本更新记录">
+    <meta name="keywords" content="取色卡,更新日志,版本记录,配色工具">
+    <title>更新日志 - 取色卡</title>
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,7 +48,112 @@
         }
         
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
-        
+
+        /* 全局渐变网格背景 */
+        .global-gradient-mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .global-gradient-mesh::before {
+            content: '';
+            position: absolute;
+            inset: -50%;
+            background:
+                radial-gradient(at 20% 10%, rgba(255, 200, 200, 0.55) 0px, transparent 45%),
+                radial-gradient(at 80% 20%, rgba(174, 219, 252, 0.5) 0px, transparent 45%),
+                radial-gradient(at 40% 80%, rgba(196, 186, 210, 0.45) 0px, transparent 45%),
+                radial-gradient(at 90% 70%, rgba(255, 235, 234, 0.5) 0px, transparent 45%),
+                radial-gradient(at 10% 60%, rgba(174, 219, 252, 0.35) 0px, transparent 45%);
+            animation: meshMove 20s ease infinite;
+            filter: blur(60px);
+            will-change: transform;
+        }
+        .dark .global-gradient-mesh::before {
+            background:
+                radial-gradient(at 20% 10%, rgba(255, 150, 150, 0.25) 0px, transparent 45%),
+                radial-gradient(at 80% 20%, rgba(100, 180, 240, 0.3) 0px, transparent 45%),
+                radial-gradient(at 40% 80%, rgba(180, 160, 200, 0.25) 0px, transparent 45%),
+                radial-gradient(at 90% 70%, rgba(240, 200, 200, 0.2) 0px, transparent 45%),
+                radial-gradient(at 10% 60%, rgba(100, 180, 240, 0.2) 0px, transparent 45%);
+        }
+        @keyframes meshMove {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg) scale(1);
+            }
+            33% {
+                transform: translate(2%, 2%) rotate(5deg) scale(1.05);
+            }
+            66% {
+                transform: translate(-1%, 1%) rotate(-3deg) scale(0.95);
+            }
+        }
+
+        /* 全局网格线效果 - 更淡更细 */
+        .global-grid-lines {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.008) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.008) 1px, transparent 1px);
+            background-size: 80px 80px;
+            animation: gridFloat 20s linear infinite;
+        }
+        .dark .global-grid-lines {
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.006) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.006) 1px, transparent 1px);
+        }
+        @keyframes gridFloat {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(80px, 80px); }
+        }
+
+        /* 移动端隐藏网格线，减少视觉干扰 */
+        @media (max-width: 768px) {
+            .global-grid-lines {
+                display: none;
+            }
+        }
+
+        /* 内容区域层级 */
+        .content-layer {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 半透明 section 背景 - 更通透减少分隔感 */
+        .section-bg-light {
+            background: rgba(249, 250, 251, 0.55);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+        }
+        .dark .section-bg-light {
+            background: rgba(3, 7, 18, 0.6);
+        }
+        .section-bg-white {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px) saturate(120%);
+            -webkit-backdrop-filter: blur(20px) saturate(120%);
+        }
+        .dark .section-bg-white {
+            background: rgba(17, 24, 39, 0.55);
+        }
+
+        /* Footer 渐变毛玻璃 */
+        .footer-glass {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(30, 41, 59, 0.75) 100%);
+            backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .dark .footer-glass {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.7) 0%, rgba(2, 6, 23, 0.85) 50%, rgba(15, 23, 42, 0.7) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
         .gradient-text {
             background: linear-gradient(135deg, #C4BAD2 0%, #AEDBFC 100%);
             -webkit-background-clip: text;
@@ -130,6 +235,37 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
+        /* 导航栏活动指示器 */
+        .nav-links-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .nav-link {
+            position: relative;
+            white-space: nowrap;
+        }
+        .nav-indicator {
+            position: absolute;
+            bottom: -12px;
+            height: 3px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #C4BAD2, #AEDBFC, #FFEBEA, #AEDBFC);
+            background-size: 200% 100%;
+            animation: indicatorShimmer 2s ease-in-out infinite;
+            transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .nav-indicator.visible {
+            opacity: 1;
+        }
+        @keyframes indicatorShimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
         /* Scroll Reveal Animation - 逐个出现效果 */
         .scroll-reveal {
             opacity: 0;
@@ -157,24 +293,30 @@
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <!-- 全局渐变网格背景 -->
+    <div class="global-gradient-mesh" aria-hidden="true">
+        <div class="global-grid-lines"></div>
+    </div>
+
     <!-- Navigation -->
-    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300">
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300 content-layer">
         <div class="section-container">
             <div class="flex items-center justify-between h-16">
                 <a href="index.html" class="flex items-center gap-2">
-                    <img src="logo.png" alt="Color Card" class="w-8 h-8 rounded-lg">
-                    <span class="font-bold text-lg hidden sm:block">Color Card</span>
+                    <img src="logo.png" alt="取色卡" class="w-8 h-8 rounded-lg">
+                    <span class="font-bold text-lg hidden sm:block">取色卡</span>
                 </a>
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="index.html#features" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
-                    <a href="index.html#screenshots" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
-                    <a href="index.html#palettes" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
-                    <a href="index.html#story" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
-                    <a href="index.html#download" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
-                    <a href="changelog.html" class="text-brand-primary font-medium">更新日志</a>
+                <div class="hidden md:flex items-center gap-8 nav-links-container" id="nav-links-container">
+                    <a href="index.html#features" data-section="features" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">功能特性</a>
+                    <a href="index.html#screenshots" data-section="screenshots" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">界面预览</a>
+                    <a href="index.html#palettes" data-section="palettes" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">配色方案</a>
+                    <a href="index.html#story" data-section="story" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">项目起源</a>
+                    <a href="index.html#download" data-section="download" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">下载</a>
+                    <a href="changelog.html" data-section="changelog" class="nav-link text-brand-primary font-medium">更新日志</a>
                     <a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">使用说明</a>
-                    <a href="index.html#feedback" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
-                    <a href="index.html#about" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                    <a href="index.html#feedback" data-section="feedback" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">反馈</a>
+                    <a href="index.html#about" data-section="about" class="nav-link text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">关于我们</a>
+                    <div class="nav-indicator" id="nav-indicator"></div>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -188,7 +330,7 @@
     </nav>
 
     <!-- Changelog Section -->
-    <section id="changelog" class="py-24 pt-32 min-h-screen">
+    <section id="changelog" class="py-24 pt-32 min-h-screen section-bg-white content-layer">
         <div class="section-container">
             <div class="text-center mb-12">
                 <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
@@ -218,15 +360,15 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 dark:bg-black text-white py-16">
+    <footer class="footer-glass text-white py-16 content-layer">
         <div class="section-container">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-12 mb-12">
                 <div class="md:col-span-2">
                     <div class="flex items-center gap-3 mb-4">
-                        <img src="logo.png" alt="Color Card" class="w-10 h-10 rounded-lg">
-                        <span class="text-xl font-bold">Color Card</span>
+                        <img src="logo.png" alt="取色卡" class="w-10 h-10 rounded-lg">
+                        <span class="text-xl font-bold">取色卡</span>
                     </div>
-                    <p class="text-gray-400 max-w-sm">Color Card 是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
+                    <p class="text-gray-400 max-w-sm">取色卡(Color Card)是一款专为摄影师和设计师打造的一站式配色工具和图片色彩分析工具</p>
                 </div>
                 <div>
                     <h4 class="font-semibold mb-4">产品</h4>
@@ -290,6 +432,71 @@
                 navbar.classList.remove('nav-scrolled');
             }
         });
+
+        // 导航栏活动指示器
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function initNavIndicator() {
+            const indicator = document.getElementById('nav-indicator');
+            const container = document.getElementById('nav-links-container');
+            if (!indicator || !container) return;
+
+            const navLinks = container.querySelectorAll('.nav-link[data-section]');
+            if (navLinks.length === 0) return;
+
+            function updateIndicator() {
+                const scrollPos = window.scrollY + window.innerHeight / 3;
+                let activeLink = navLinks[0];
+
+                navLinks.forEach(link => {
+                    const sectionId = link.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const top = section.offsetTop;
+                        const bottom = top + section.offsetHeight;
+                        if (scrollPos >= top && scrollPos < bottom) {
+                            activeLink = link;
+                        }
+                    }
+                });
+
+                const linkLeft = activeLink.offsetLeft;
+                const linkWidth = activeLink.offsetWidth;
+
+                indicator.style.left = linkLeft + 'px';
+                indicator.style.width = linkWidth + 'px';
+                indicator.classList.add('visible');
+            }
+
+            function highlightActiveLink() {
+                const scrollPos = window.scrollY + window.innerHeight / 3;
+                navLinks.forEach(link => {
+                    const sectionId = link.dataset.section;
+                    const section = document.getElementById(sectionId);
+                    if (section) {
+                        const top = section.offsetTop;
+                        const bottom = top + section.offsetHeight;
+                        if (scrollPos >= top && scrollPos < bottom) {
+                            link.classList.add('!text-brand-primary', 'dark:!text-brand-primary');
+                        } else {
+                            link.classList.remove('!text-brand-primary', 'dark:!text-brand-primary');
+                        }
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', () => {
+                updateIndicator();
+                highlightActiveLink();
+            }, { passive: true });
+
+            window.addEventListener('resize', updateIndicator, { passive: true });
+
+            updateIndicator();
+            highlightActiveLink();
+        }
+
+        initNavIndicator();
 
         // Load Changelog from local JSON
         let allVersions = [];
