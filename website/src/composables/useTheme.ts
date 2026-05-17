@@ -31,18 +31,11 @@ export function useTheme() {
     applyTheme()
   }
 
-  const setTheme = (newTheme: Theme) => {
-    theme.value = newTheme
-    localStorage.setItem(STORAGE_KEY, newTheme)
-    applyTheme()
-  }
-
   watch(theme, applyTheme)
 
   return {
     theme,
     initTheme,
     toggleTheme,
-    setTheme,
   }
 }

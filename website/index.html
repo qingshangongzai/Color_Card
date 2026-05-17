@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Color Card - 一站式配色工具，为摄影师和设计师打造的专业色彩分析工具">
-    <meta name="keywords" content="配色工具,色彩分析,色卡,颜色提取,配色方案,Color Card">
-    <title>Color Card - 一站式配色工具</title>
+    <meta name="description" content="取色卡 - 一站式配色工具和图片色彩分析工具">
+    <meta name="keywords" content="配色工具,色彩分析,色卡,颜色提取,配色方案,取色卡">
+    <title>取色卡 - 一站式色彩工具</title>
     <link rel="icon" type="image/png" href="logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -591,7 +591,7 @@
                     <img src="screenshots/color-preview.png" alt="配色预览" class="w-full h-auto hover:scale-105 transition-transform duration-300" loading="lazy">
                     <div class="p-4">
                         <h3 class="font-bold text-gray-900 dark:text-white">配色预览</h3>
-                        <p class="text-sm text-gray-500 mt-1">8种场景实时预览</p>
+                        <p class="text-sm text-gray-500 mt-1">9种场景实时预览</p>
                     </div>
                 </div>
                 <div class="screenshot-card glass-card rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300" onclick="openLightbox('screenshots/luminance-extract.png')">
@@ -1256,11 +1256,11 @@
 
         // Features Data
         const features = [
-            { icon: 'pipette', title: '可视化色彩分析', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）' },
+            { icon: 'pipette', title: '可视化色彩分析', desc: '通过可拖动取色点实时提取图片颜色，支持多色彩空间信息展示（HSB、LAB、HSL、CMYK、RGB），支持正确显示广色域图片' },
             { icon: 'palette', title: '智能配色生成', desc: '提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择' },
-            { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持导出为 Adobe ASE 格式，建立个人色彩库' },
+            { icon: 'bookmark', title: '配色方案收藏', desc: '支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持导出为 Adobe ASE 格式和图片色卡，建立个人色彩库' },
             { icon: 'library', title: '内置色彩库', desc: '集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡' },
-            { icon: 'eye', title: '配色预览', desc: '支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，支持自定义SVG' },
+            { icon: 'eye', title: '配色预览', desc: '支持混合、手机UI、网页、插画、排版、品牌、海报、图案、杂志等9种场景预览，支持导入自定义SVG' },
             { icon: 'barchart', title: '明度分析', desc: '将图片按明度分为9个区域，提供直方图可视化，辅助调色决策' },
             { icon: 'gradient', title: '渐变生成', desc: '支持双色渐变和单色明度梯度两种模式，RGB/HSB/HSL/LAB四种颜色空间插值，可调节中间色数量' },
             { icon: 'globe', title: '多语言支持', desc: '支持简体中文、繁体中文、英语、日语、法语、俄语六种语言界面切换，支持跟随系统语言自动切换' },

@@ -3,11 +3,11 @@
     <div class="section-container">
       <!-- Header -->
       <div class="text-center mb-12">
-        <h2 class="section-title">{{ t('palettes.title') }}</h2>
+        <h2 class="section-title">配色方案</h2>
         <p class="section-subtitle">
-          {{ t('palettes.subtitle') }}
+          浏览内置配色方案
           <span v-if="totalPalettes > 0" class="text-brand-primary font-semibold">
-            ({{ totalPalettes }} {{ locale === 'zh-CN' ? '组' : 'sets' }})
+            ({{ totalPalettes }} 组)
           </span>
         </p>
       </div>
@@ -23,7 +23,7 @@
             ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/30' 
             : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
         >
-          {{ locale === 'zh-CN' ? cat.name : cat.nameEn }}
+          {{ cat.name }}
         </button>
       </div>
 
@@ -49,14 +49,14 @@
           <div class="flex items-center justify-between mb-6">
             <div>
               <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                {{ locale === 'zh-CN' ? paletteSet.name_zh : paletteSet.name }}
+                {{ paletteSet.name_zh }}
               </h3>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {{ paletteSet.description }}
               </p>
             </div>
             <span class="text-sm text-gray-400">
-              {{ paletteSet.palettes.length }} {{ locale === 'zh-CN' ? '组' : 'sets' }}
+              {{ paletteSet.palettes.length }} 组
             </span>
           </div>
 
@@ -81,7 +81,7 @@
                 <!-- Info -->
                 <div class="p-3">
                   <p class="font-medium text-gray-900 dark:text-white text-sm truncate">
-                    {{ locale === 'zh-CN' ? palette.name : palette.name_en }}
+                    {{ palette.name }}
                   </p>
                   <p class="text-xs text-gray-500 mt-1 font-mono">
                     {{ palette.colors[Math.floor(palette.colors.length / 2)] }}
@@ -94,7 +94,7 @@
           <!-- Show More if needed -->
           <div v-if="paletteSet.palettes.length > 8" class="text-center mt-4">
             <span class="text-sm text-gray-500">
-              +{{ paletteSet.palettes.length - 8 }} {{ locale === 'zh-CN' ? '更多' : 'more' }}
+              +{{ paletteSet.palettes.length - 8 }} 更多
             </span>
           </div>
         </div>
@@ -122,12 +122,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { usePalettes } from '@/composables/usePalettes'
 
-const { t, locale } = useI18n()
 const { 
-  palettes, 
   loading, 
   error, 
   categories, 
@@ -143,7 +140,7 @@ const toastMessage = ref('')
 
 const copyColor = async (color: string) => {
   const success = await copyColorToClipboard(color)
-  toastMessage.value = success ? t('palettes.copySuccess') : t('palettes.copyFailed')
+  toastMessage.value = success ? '已复制到剪贴板' : '复制失败'
   showToast.value = true
   setTimeout(() => {
     showToast.value = false

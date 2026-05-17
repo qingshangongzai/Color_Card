@@ -9,22 +9,22 @@
             <span class="text-xl font-bold">Color Card</span>
           </div>
           <p class="text-gray-400 max-w-sm">
-            {{ t('footer.description') }}
+            强大的桌面端配色工具，助你轻松完成色彩提取、管理与分析
           </p>
         </div>
 
         <!-- Links -->
         <div>
-          <h4 class="font-semibold mb-4">{{ t('footer.links.product') }}</h4>
+          <h4 class="font-semibold mb-4">产品</h4>
           <ul class="space-y-2 text-gray-400">
-            <li><a href="#features" class="hover:text-white transition-colors">{{ t('nav.features') }}</a></li>
-            <li><a href="#palettes" class="hover:text-white transition-colors">{{ t('nav.palettes') }}</a></li>
-            <li><a href="#download" class="hover:text-white transition-colors">{{ t('nav.download') }}</a></li>
+            <li><a href="#features" class="hover:text-white transition-colors">功能特性</a></li>
+            <li><a href="#palettes" class="hover:text-white transition-colors">配色方案</a></li>
+            <li><a href="#download" class="hover:text-white transition-colors">下载</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="font-semibold mb-4">{{ t('footer.links.resources') }}</h4>
+          <h4 class="font-semibold mb-4">资源</h4>
           <ul class="space-y-2 text-gray-400">
             <li>
               <a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2">
@@ -43,7 +43,7 @@
 
         <!-- Social -->
         <div>
-          <h4 class="font-semibold mb-4">{{ t('footer.links.social') }}</h4>
+          <h4 class="font-semibold mb-4">社交</h4>
           <ul class="space-y-2 text-gray-400">
             <li>
               <a href="https://space.bilibili.com/1232406878" target="_blank" class="hover:text-white transition-colors flex items-center gap-2">
@@ -60,24 +60,9 @@
       <!-- Bottom -->
       <div class="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p class="text-gray-500 text-sm">
-          {{ t('footer.copyright') }}
+          © 2026 浮晓 HXiao Studio. All rights reserved.
         </p>
         <div class="flex items-center gap-4">
-          <!-- Language Switcher -->
-          <div class="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
-            <button
-              v-for="lang in languages"
-              :key="lang.code"
-              @click="changeLanguage(lang.code)"
-              class="px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200"
-              :class="locale === lang.code 
-                ? 'bg-brand-primary text-white' 
-                : 'text-gray-400 hover:text-white'"
-            >
-              {{ lang.name }}
-            </button>
-          </div>
-          
           <!-- Theme Toggle -->
           <button
             @click="toggleTheme"
@@ -97,7 +82,7 @@
           class="inline-flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm transition-colors"
         >
           <Scale class="w-4 h-4" />
-          {{ t('footer.license') }}
+          GNU General Public License v3.0
         </a>
       </div>
     </div>
@@ -105,19 +90,8 @@
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { Github, GitBranch, Sun, Moon, Scale } from 'lucide-vue-next'
 import { useTheme } from '@/composables/useTheme'
 
-const { t, locale } = useI18n()
 const { theme, toggleTheme } = useTheme()
-
-const languages = [
-  { code: 'zh-CN', name: '中文' },
-  { code: 'en-US', name: 'EN' },
-]
-
-const changeLanguage = (code: string) => {
-  locale.value = code
-}
 </script>
