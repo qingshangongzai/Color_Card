@@ -143,3 +143,4 @@ test_lazy_loading.py
 /dist
 /121231221
 文档/色盲模拟功能优化计划.md
+tone_labeler/基于直方图的影调自动分类算法.md
