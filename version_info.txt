@@ -16,7 +16,7 @@ VSVersionInfo(
           u'080404B0',
           [
             StringStruct(u'CompanyName', u'浮晓 HXiao Studio'),
-            StringStruct(u'FileDescription', u'取色卡 - Color Card'),
+            StringStruct(u'FileDescription', u'取色卡(Color Card) - 一站式色彩工具'),
             StringStruct(u'FileVersion', u'1.10.0'),
             StringStruct(u'InternalName', u'Color_Card'),
             StringStruct(u'LegalCopyright', u'© 2026 浮晓 HXiao Studio'),
