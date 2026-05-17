@@ -47,7 +47,7 @@
 |:---|:---|
 |发布版本 |14 个版本（v1.0.0 → v1.10.0） |
 |开发周期 |94 天 |
-|总更新项 |**179 项** |
+|总更新项 |**180 项** |
 |平均每版本 |12.6 项 |
 
 **详细分类统计**：
@@ -56,7 +56,7 @@
 |:---|:---:|:---|
 |✨ 新增功能 |**48** |包含首次发布的 9 项核心功能 |
 |🔧 问题修复 |**43** |持续修复 Bug，提升稳定性 |
-|🎨 界面优化 |**44** |用户体验打磨 |
+|🎨 界面优化 |**45** |用户体验打磨 |
 |⚡ 性能提升 |**12** |缓存机制、启动优化等 |
 |📝 内容调整 |**11** |文本、名称等调整 |
 |⚙️ 体验优化 |**7** |交互体验改进 |
@@ -349,7 +349,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 |:---|:---|
 |Released Versions |14 versions (v1.0.0 → v1.10.0) |
 |Development Period |94 days |
-|Total Updates |**179 items** |
+|Total Updates |**180 items** |
 |Average per Version |12.6 items |
 
 **Detailed Category Statistics**:
@@ -358,7 +358,7 @@ Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and
 |:---|:---:|:---|
 |✨ New Features |**48** |Including 9 core features from v1.0.0 launch |
 |🔧 Bug Fixes |**43** |Continuous bug fixes for stability |
-|🎨 UI Improvements |**44** |User experience refinements |
+|🎨 UI Improvements |**45** |User experience refinements |
 |⚡ Performance |**12** |Cache mechanism, startup optimization |
 |📝 Content Adjustments |**11** |Text, naming adjustments |
 |⚙️ Experience |**7** |Interaction improvements |
