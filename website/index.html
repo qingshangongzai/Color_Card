@@ -163,22 +163,22 @@
             z-index: 1;
         }
 
-        /* 半透明 section 背景 - 更通透减少分隔感 */
-        .section-bg-light {
-            background: rgba(249, 250, 251, 0.55);
+        /* 统一 section 渐变背景 */
+        .section-bg-unified {
+            background: linear-gradient(180deg, 
+                rgba(254, 255, 255, 0.6) 0%, 
+                rgba(249, 250, 251, 0.7) 50%, 
+                rgba(254, 255, 255, 0.6) 100%
+            );
             backdrop-filter: blur(20px) saturate(120%);
             -webkit-backdrop-filter: blur(20px) saturate(120%);
         }
-        .dark .section-bg-light {
-            background: rgba(3, 7, 18, 0.6);
-        }
-        .section-bg-white {
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(20px) saturate(120%);
-            -webkit-backdrop-filter: blur(20px) saturate(120%);
-        }
-        .dark .section-bg-white {
-            background: rgba(17, 24, 39, 0.55);
+        .dark .section-bg-unified {
+            background: linear-gradient(180deg, 
+                rgba(17, 24, 39, 0.55) 0%, 
+                rgba(3, 7, 18, 0.65) 50%, 
+                rgba(17, 24, 39, 0.55) 100%
+            );
         }
 
         /* Footer 渐变毛玻璃 */
@@ -811,7 +811,7 @@
     </section>
 
     <!-- Story Section -->
-    <section id="story" class="py-24 section-bg-white overflow-hidden content-layer">
+    <section id="story" class="py-24 section-bg-unified overflow-hidden content-layer">
         <div class="section-container">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
                 <!-- Left: Story Content -->
@@ -929,7 +929,7 @@
     </section>
 
     <!-- Feedback Section -->
-    <section id="feedback" class="py-24 section-bg-light content-layer">
+    <section id="feedback" class="py-24 section-bg-unified content-layer">
         <div class="section-container">
             <div class="text-center mb-16">
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">问题反馈</h2>
@@ -961,7 +961,7 @@
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-24 section-bg-white overflow-hidden content-layer">
+    <section id="about" class="py-24 section-bg-unified overflow-hidden content-layer">
         <div class="section-container">
             <!-- Section Header -->
             <div class="text-center mb-16">
