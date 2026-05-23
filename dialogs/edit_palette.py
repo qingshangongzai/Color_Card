@@ -5,9 +5,9 @@ from datetime import datetime
 from typing import Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect, QMimeData
+from PySide6.QtCore import Qt, QTimer, Signal, QPoint, QRect, QRectF, QMimeData
 from PySide6.QtWidgets import (
-    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QGridLayout, QApplication, QDialog
+    QHBoxLayout, QLabel, QVBoxLayout, QWidget, QApplication, QDialog
 )
 from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent, QDrag, QPixmap
 from qfluentwidgets import (
@@ -22,7 +22,7 @@ from core import (
 )
 from core.config import get_config_manager
 from utils import tr, load_icon_universal
-from utils.theme_colors import get_text_color, get_border_color
+from utils.theme_colors import get_text_color, get_border_color, get_placeholder_color, get_picker_fill_color
 
 # 对话框模块导入
 from .base_frameless_dialog import BaseFramelessDialog
@@ -56,55 +56,44 @@ class PresetGrid(QWidget):
 
     color_selected = Signal(int, int, int)  # 信号：RGB颜色被选中
 
+    ROWS = 8
+    COLS = 6
+    CELL_MARGIN = 3
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._selected_color = None
-        self._color_buttons = []
-        self.setup_ui()
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setMinimumSize(120, 120)
 
-    def setup_ui(self):
-        """设置界面"""
-        layout = QGridLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(6)
+    def paintEvent(self, event):
+        """自绘8×6预设颜色网格"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # 设置行列拉伸因子，使颜色块均匀分布
-        for row in range(8):
-            layout.setRowStretch(row, 1)
-        for col in range(6):
-            layout.setColumnStretch(col, 1)
+        cell_w = self.width() / self.COLS
+        cell_h = self.height() / self.ROWS
+        m = self.CELL_MARGIN
 
-        # 创建48个颜色块
-        for row in range(8):
-            for col in range(6):
-                color_hex = PRESET_COLORS[row][col]
-                btn = self._create_color_button(color_hex)
-                layout.addWidget(btn, row, col)
-                self._color_buttons.append((btn, color_hex))
+        for row in range(self.ROWS):
+            for col in range(self.COLS):
+                x = col * cell_w + m
+                y = row * cell_h + m
+                w = cell_w - m * 2
+                h = cell_h - m * 2
+                rect = QRectF(x, y, w, h)
+                r, g, b = hex_to_rgb(PRESET_COLORS[row][col])
+                painter.setBrush(QColor(r, g, b))
+                painter.setPen(QPen(get_border_color(), 1))
+                painter.drawRoundedRect(rect, 2, 2)
 
-    def _create_color_button(self, color_hex: str) -> QLabel:
-        """创建颜色按钮"""
-        btn = QLabel(self)
-        btn.setMinimumSize(24, 24)
-        btn.setStyleSheet(f"""
-            QLabel {{
-                background-color: {color_hex};
-                border: 1px solid {get_border_color().name()};
-                border-radius: 2px;
-            }}
-            QLabel:hover {{
-                border: 2px solid {get_text_color().name()};
-            }}
-        """)
-        btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.mousePressEvent = lambda e, c=color_hex: self._on_color_clicked(c)
-        return btn
-
-    def _on_color_clicked(self, color_hex: str):
-        """颜色被点击"""
-        r, g, b = hex_to_rgb(color_hex)
-        self._selected_color = (r, g, b)
-        self.color_selected.emit(r, g, b)
+    def mousePressEvent(self, event):
+        """点击定位颜色格"""
+        if event.button() == Qt.MouseButton.LeftButton:
+            col = int(event.position().x() / self.width() * self.COLS)
+            row = int(event.position().y() / self.height() * self.ROWS)
+            if 0 <= row < self.ROWS and 0 <= col < self.COLS:
+                r, g, b = hex_to_rgb(PRESET_COLORS[row][col])
+                self.color_selected.emit(r, g, b)
 
 
 class ColorPreview(QWidget):
@@ -112,7 +101,7 @@ class ColorPreview(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._color = QColor(128, 128, 128)  # 默认灰色
+        self._color = get_placeholder_color()
         self.setFixedSize(100, 60)
 
     def set_color(self, r: int, g: int, b: int):
@@ -175,15 +164,15 @@ class GradientSlider(QWidget):
         if self._gradient:
             painter.fillRect(track_rect, QBrush(self._gradient))
         else:
-            painter.fillRect(track_rect, QBrush(QColor(200, 200, 200)))
+            painter.fillRect(track_rect, QBrush(get_placeholder_color()))
 
         # 计算滑块位置
         ratio = (self._value - self._min_val) / (self._max_val - self._min_val)
         x_pos = int(ratio * (self.width() - 16)) + 8
 
         # 绘制滑块指示器（圆形）
-        painter.setPen(QPen(QColor(255, 255, 255), 2))
-        painter.setBrush(QColor(255, 255, 255))
+        painter.setPen(QPen(get_picker_fill_color(), 2))
+        painter.setBrush(get_picker_fill_color())
         painter.drawEllipse(QPoint(x_pos, 10), 8, 8)
 
         # 绘制边框
@@ -244,9 +233,9 @@ class ColorModeSliders(QWidget):
         layout.setSpacing(8)
 
         # 模式标题
-        title = QLabel(f"{self._mode}:")
-        title.setStyleSheet(f"color: {get_text_color().name()}; font-size: 12px; background: transparent;")
-        layout.addWidget(title)
+        self._title_label = QLabel(f"{self._mode}:")
+        self._title_label.setStyleSheet(f"color: {get_text_color().name()}; font-size: 12px; background: transparent;")
+        layout.addWidget(self._title_label)
 
         # 创建3个滑块
         for i, (name, min_val, max_val, unit) in enumerate(self._params):
@@ -274,6 +263,17 @@ class ColorModeSliders(QWidget):
         label, unit = self._labels[index]
         label.setText(f"{value}{unit}")
         self.value_changed.emit()
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        text_color = get_text_color()
+        self._title_label.setStyleSheet(
+            f"color: {text_color.name()}; font-size: 12px; background: transparent;"
+        )
+        for label, _unit in self._labels:
+            label.setStyleSheet(
+                f"color: {text_color.name()}; font-size: 11px; background: transparent;"
+            )
 
     def set_values(self, values: tuple[float, ...]):
         """设置滑块值"""
@@ -450,11 +450,16 @@ class ColorPickerDialog(BaseFramelessDialog):
 
     def closeEvent(self, event):
         """关闭事件"""
-        try:
-            qconfig.themeChangedFinished.disconnect(self._theme_connection)
-        except (TypeError, RuntimeError):
-            pass
         super().closeEvent(event)
+
+    def _update_styles(self):
+        """更新样式以适配主题"""
+        super()._update_styles()
+        self._update_hex_input_style()
+        if hasattr(self, 'mode1_sliders'):
+            self.mode1_sliders._update_styles()
+        if hasattr(self, 'mode2_sliders'):
+            self.mode2_sliders._update_styles()
 
     def setup_ui(self):
         """设置界面布局"""
@@ -687,7 +692,7 @@ class ColorPickerDialog(BaseFramelessDialog):
 
     def _update_hex_input_style(self):
         """更新HEX输入框样式"""
-        if not self.hex_input:
+        if not hasattr(self, 'hex_input') or not self.hex_input:
             return
 
         primary_color = get_text_color(secondary=False)
