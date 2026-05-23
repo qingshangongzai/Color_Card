@@ -13,8 +13,10 @@ from PySide6.QtCharts import (
 )
 from PySide6.QtCore import QMargins, QRectF, QThread, Signal, Qt
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen, QPixmap
-from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea, ScrollBarHandleDisplayMode
+from PySide6.QtWidgets import (
+    QGridLayout, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
+)
+from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
 
 from core import (
     ToneAnalysisService, ToneAnalysisResult, get_tone_analysis_cache, get_config_manager,
@@ -52,6 +54,11 @@ class ImageDisplayWidget(QWidget):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+
         layout = QHBoxLayout(self)
         layout.setSpacing(10)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -60,13 +67,13 @@ class ImageDisplayWidget(QWidget):
         self._original_label = QLabel()
         self._original_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._original_label.setStyleSheet("background: transparent;")
-        self._original_label.setMinimumSize(200, 200)
+        self._original_label.setMinimumSize(100, 100)
 
         # 灰度图标签
         self._grayscale_label = QLabel()
         self._grayscale_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._grayscale_label.setStyleSheet("background: transparent;")
-        self._grayscale_label.setMinimumSize(200, 200)
+        self._grayscale_label.setMinimumSize(100, 100)
 
         layout.addWidget(self._original_label)
         layout.addWidget(self._grayscale_label)
@@ -91,8 +98,8 @@ class ImageDisplayWidget(QWidget):
         # 计算可用显示空间（减去间距和边距）
         available_width = (self.width() - 30) // 2
         available_height = self.height() - 20
-        display_size = min(available_width, available_height, 280)
-        display_size = max(display_size, 100)  # 最小显示尺寸
+        display_size = min(available_width, available_height)
+        display_size = max(display_size, 100)
 
         # 原图
         q_image = QImage(self._img_rgb.data, w, h, 3 * w, QImage.Format.Format_RGB888)
@@ -123,13 +130,18 @@ class PieChartWidget(QWidget):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         # 创建图表
         self._chart = QChart()
         self._chart.setAnimationOptions(QChart.AnimationOption.SeriesAnimations)
-        self._chart.legend().setVisible(False)  # 隐藏默认图例
+        self._chart.legend().setVisible(False)
         self._chart.setMargins(QMargins(0, 0, 0, 0))
         self._chart.setBackgroundRoundness(0)
         self._chart.setBackgroundVisible(False)
@@ -137,7 +149,11 @@ class PieChartWidget(QWidget):
         # 创建图表视图
         self._chart_view = QChartView(self._chart)
         self._chart_view.setRenderHint(QPainter.RenderHint.Antialiasing)
-        self._chart_view.setMinimumSize(200, 200)
+        self._chart_view.setMinimumSize(120, 120)
+        self._chart_view.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
         self._chart_view.setStyleSheet("background: transparent; border: none;")
 
         layout.addWidget(self._chart_view, stretch=1)
@@ -607,11 +623,10 @@ class HistogramWidget(QWidget):
 
 
 class ChartsWidget(QWidget):
-    """Qt 图表组件（替代 MatplotlibWidget）"""
+    """Qt 图表组件"""
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.setMinimumHeight(400)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -619,7 +634,6 @@ class ChartsWidget(QWidget):
 
         # 顶部区域：原图 + 灰度图 + 饼图
         top_widget = QWidget()
-        top_widget.setMinimumHeight(200)
         top_layout = QHBoxLayout(top_widget)
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(10)
@@ -630,12 +644,11 @@ class ChartsWidget(QWidget):
         top_layout.addWidget(self._image_display, stretch=1)
         top_layout.addWidget(self._pie_chart, stretch=1)
 
-        layout.addWidget(top_widget)
+        layout.addWidget(top_widget, stretch=4)
 
         # 底部：直方图
         self._histogram = HistogramWidget()
-        self._histogram.setMinimumHeight(250)
-        layout.addWidget(self._histogram, stretch=1)
+        layout.addWidget(self._histogram, stretch=5)
 
     def set_histogram_style(self, style: str) -> None:
         """设置直方图显示样式
@@ -771,7 +784,6 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
         # 创建滚动区域
         self._scroll_area = ScrollArea(self)
-        self._scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setFrameShape(ScrollArea.Shape.NoFrame)
 
