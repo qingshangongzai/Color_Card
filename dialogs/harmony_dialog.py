@@ -13,7 +13,7 @@ from PySide6.QtGui import QColor, QPainter, QPen
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
-from qfluentwidgets import qconfig, ScrollArea
+from qfluentwidgets import qconfig, ScrollArea, ScrollBarHandleDisplayMode
 
 # 项目模块导入
 from utils import tr, load_icon_universal
@@ -208,6 +208,7 @@ class HarmonyAnalysisDialog(BaseFramelessDialog):
             layout: 父布局
         """
         scroll_area = ScrollArea()
+        scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         scroll_area.setWidgetResizable(True)
         scroll_area.setStyleSheet("""
             ScrollArea {

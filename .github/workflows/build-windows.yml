@@ -9,8 +9,6 @@ on:
 env:
   TZ: Asia/Shanghai
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  NUITKA_CACHE_DIR: D:\nuitka_cache
-  NUITKA_CACHE_DIR_CCACHE: D:\nuitka_cache\ccache
 
 jobs:
   build-portable:
@@ -33,14 +31,37 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Restore ccache
+    - name: Restore Nuitka ccache
+      id: cache-nuitka-portable
       uses: actions/cache@v4
       with:
-        path: D:\nuitka_cache
-        key: ${{ runner.os }}-nuitka-portable-${{ hashFiles('requirements.txt') }}-${{ hashFiles('main.py') }}
+        path: ${{ github.workspace }}/_nuitka_cache
+        key: ${{ runner.os }}-nuitka-ccache-v1-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-nuitka-portable-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-nuitka-portable-
+          ${{ runner.os }}-nuitka-ccache-v1-
+
+    - name: Install ccache
+      shell: pwsh
+      run: |
+        choco install ccache --no-progress -y
+        $ccachePath = (Get-Command ccache -ErrorAction SilentlyContinue).Source
+        if ($ccachePath) {
+          Write-Host "ccache 已安装: $ccachePath"
+          "NUITKA_CCACHE_BINARY=$ccachePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        } else {
+          Write-Host "::warning::ccache 安装失败，编译将不回退到无缓存模式"
+        }
+
+    - name: Configure Nuitka cache directories
+      shell: pwsh
+      run: |
+        $cacheBase = "${{ github.workspace }}/_nuitka_cache"
+        "NUITKA_CACHE_DIR=$cacheBase" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "NUITKA_CACHE_DIR_CCACHE=$cacheBase/ccache" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "CCACHE_DIR=$cacheBase/ccache" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        New-Item -ItemType Directory -Force -Path "$cacheBase/ccache" | Out-Null
+        Write-Host "缓存基础目录: $cacheBase"
+        Write-Host "缓存命中状态: ${{ steps.cache-nuitka-portable.outputs.cache-hit }}"
 
     - name: Install dependencies
       run: |
@@ -121,9 +142,6 @@ jobs:
 
   build-installer:
     runs-on: windows-latest
-    env:
-      NUITKA_CACHE_DIR: D:\nuitka_cache
-      NUITKA_CACHE_DIR_CCACHE: D:\nuitka_cache\ccache
 
     steps:
     - name: Checkout code
@@ -142,14 +160,37 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Restore ccache
+    - name: Restore Nuitka ccache
+      id: cache-nuitka-installer
       uses: actions/cache@v4
       with:
-        path: D:\nuitka_cache
-        key: ${{ runner.os }}-nuitka-installer-${{ hashFiles('requirements.txt') }}-${{ hashFiles('installer/main.py') }}
+        path: ${{ github.workspace }}/_nuitka_cache
+        key: ${{ runner.os }}-nuitka-ccache-v1-${{ hashFiles('requirements.txt') }}
         restore-keys: |
-          ${{ runner.os }}-nuitka-installer-${{ hashFiles('requirements.txt') }}-
-          ${{ runner.os }}-nuitka-installer-
+          ${{ runner.os }}-nuitka-ccache-v1-
+
+    - name: Install ccache
+      shell: pwsh
+      run: |
+        choco install ccache --no-progress -y
+        $ccachePath = (Get-Command ccache -ErrorAction SilentlyContinue).Source
+        if ($ccachePath) {
+          Write-Host "ccache 已安装: $ccachePath"
+          "NUITKA_CCACHE_BINARY=$ccachePath" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        } else {
+          Write-Host "::warning::ccache 安装失败，编译将回退到无缓存模式"
+        }
+
+    - name: Configure Nuitka cache directories
+      shell: pwsh
+      run: |
+        $cacheBase = "${{ github.workspace }}/_nuitka_cache"
+        "NUITKA_CACHE_DIR=$cacheBase" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "NUITKA_CACHE_DIR_CCACHE=$cacheBase/ccache" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "CCACHE_DIR=$cacheBase/ccache" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        New-Item -ItemType Directory -Force -Path "$cacheBase/ccache" | Out-Null
+        Write-Host "缓存基础目录: $cacheBase"
+        Write-Host "缓存命中状态: ${{ steps.cache-nuitka-installer.outputs.cache-hit }}"
 
     - name: Install dependencies
       run: |

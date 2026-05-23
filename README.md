@@ -41,24 +41,24 @@
 
 ### 🚀 开发历程
 
-自 2026-02-05 发布 v1.0.0 以来，项目保持快速稳定的迭代节奏：
+自 2026-02-05 发布首个版本以来，项目保持快速稳定的迭代节奏：
 
 |指标 |数据 |
 |:---|:---|
-|发布版本 |14 个版本（v1.0.0 → v1.10.0） |
-|开发周期 |94 天 |
-|总更新项 |**180 项** |
-|平均每版本 |12.6 项 |
+|发布版本 |15 个版本（v1.0.0 → v1.10.1） |
+|开发周期 |108 天 |
+|总更新项 |**185 项** |
+|平均每版本 |12.3 项 |
 
 **详细分类统计**：
 
 |分类 |数量 |说明 |
 |:---|:---:|:---|
 |✨ 新增功能 |**48** |包含首次发布的 9 项核心功能 |
-|🔧 问题修复 |**43** |持续修复 Bug，提升稳定性 |
-|🎨 界面优化 |**45** |用户体验打磨 |
+|🔧 问题修复 |**44** |持续修复 Bug，提升稳定性 |
+|🎨 界面优化 |**47** |用户体验打磨 |
 |⚡ 性能提升 |**12** |缓存机制、启动优化等 |
-|📝 内容调整 |**11** |文本、名称等调整 |
+|📝 内容调整 |**13** |文本、名称等调整 |
 |⚙️ 体验优化 |**7** |交互体验改进 |
 |🏗️ 代码优化 |**5** |代码结构优化 |
 |🔮 逻辑优化 |**2** |算法逻辑改进 |
@@ -343,24 +343,24 @@ Unlike common color tools or websites that only provide a single function, Color
 
 ### 🚀 Development Journey
 
-Since the release of v1.0.0 on 2026-02-05, the project has maintained a fast and stable iteration pace:
+Since the release of the first version on 2026-02-05, the project has maintained a fast and stable iteration pace:
 
 |Metric |Data |
 |:---|:---|
-|Released Versions |14 versions (v1.0.0 → v1.10.0) |
-|Development Period |94 days |
-|Total Updates |**180 items** |
-|Average per Version |12.6 items |
+|Released Versions |15 versions (v1.0.0 → v1.10.1) |
+|Development Period |108 days |
+|Total Updates |**185 items** |
+|Average per Version |12.3 items |
 
 **Detailed Category Statistics**:
 
 |Category |Count |Description |
 |:---|:---:|:---|
 |✨ New Features |**48** |Including 9 core features from v1.0.0 launch |
-|🔧 Bug Fixes |**43** |Continuous bug fixes for stability |
-|🎨 UI Improvements |**45** |User experience refinements |
+|🔧 Bug Fixes |**44** |Continuous bug fixes for stability |
+|🎨 UI Improvements |**47** |User experience refinements |
 |⚡ Performance |**12** |Cache mechanism, startup optimization |
-|📝 Content Adjustments |**11** |Text, naming adjustments |
+|📝 Content Adjustments |**13** |Text, naming adjustments |
 |⚙️ Experience |**7** |Interaction improvements |
 |🏗️ Code Optimization |**5** |Code structure optimization |
 |🔮 Logic Optimization |**2** |Algorithm improvements |
