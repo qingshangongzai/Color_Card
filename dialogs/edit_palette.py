@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor, QPainter, QLinearGradient, QBrush, QPen, QMouseEvent, QDrag, QPixmap
 from qfluentwidgets import (
     LineEdit, PrimaryPushButton, PushButton, ToolButton, FluentIcon,
-    ScrollArea, qconfig, isDarkTheme
+    ScrollArea, ScrollBarHandleDisplayMode, qconfig, isDarkTheme
 )
 # 项目模块导入
 from core import (
@@ -1251,6 +1251,7 @@ class EditPaletteDialog(BaseFramelessDialog):
 
         # 颜色输入区域（可滚动）
         self.scroll_area = ScrollArea()
+        self.scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
         self.scroll_area.setMaximumHeight(200)

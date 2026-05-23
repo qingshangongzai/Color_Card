@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QApplication, QLineEdit, QFileDialog
 )
 from qfluentwidgets import (
-    CardWidget, ScrollArea, ToolButton, FluentIcon, ComboBox,
+    CardWidget, ScrollArea, ScrollBarHandleDisplayMode, ToolButton, FluentIcon, ComboBox,
     InfoBar, InfoBarPosition, qconfig,
     PushButton, SubtitleLabel, RoundMenu, Action
 )
@@ -888,6 +888,7 @@ class PaletteManagementList(QWidget):
         layout.setSpacing(10)
 
         self.scroll_area = ScrollArea()
+        self.scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("""
             ScrollArea {
