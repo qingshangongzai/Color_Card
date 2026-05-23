@@ -16,7 +16,7 @@ from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QGridLayout, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
 )
-from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel, ScrollArea
+from qfluentwidgets import CardWidget, qconfig, StrongBodyLabel, BodyLabel
 
 from core import (
     ToneAnalysisService, ToneAnalysisResult, get_tone_analysis_cache, get_config_manager,
@@ -782,11 +782,6 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         main_layout.setContentsMargins(20, 40, 20, 10)
         main_layout.setSpacing(8)
 
-        # 创建滚动区域
-        self._scroll_area = ScrollArea(self)
-        self._scroll_area.setWidgetResizable(True)
-        self._scroll_area.setFrameShape(ScrollArea.Shape.NoFrame)
-
         # 创建内容容器
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
@@ -812,8 +807,7 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         self._stat_cards = []
         content_layout.addWidget(self._stats_widget)
 
-        self._scroll_area.setWidget(content_widget)
-        main_layout.addWidget(self._scroll_area)
+        main_layout.addWidget(content_widget)
 
     def start_analysis(self) -> None:
         """开始分析"""
@@ -1049,7 +1043,6 @@ class ToneAnalysisDialog(BaseFramelessDialog):
     def _update_styles(self) -> None:
         """更新样式"""
         super()._update_styles()
-        self._scroll_area.setStyleSheet("background: transparent; border: none;")
 
     def closeEvent(self, event) -> None:
         """关闭事件"""
