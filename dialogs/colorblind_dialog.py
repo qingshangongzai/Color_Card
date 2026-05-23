@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtGui import QColor
 from qfluentwidgets import (
-    ComboBox, qconfig, ScrollArea
+    ComboBox, qconfig, ScrollArea, ScrollBarHandleDisplayMode
 )
 
 # 项目模块导入
@@ -255,6 +255,7 @@ class ColorblindPreviewDialog(BaseFramelessDialog):
         
         # 颜色对比列表（带滚动条）
         scroll_area = ScrollArea()
+        scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         scroll_area.setWidgetResizable(True)
         scroll_area.setStyleSheet("""
             ScrollArea {

@@ -11,8 +11,8 @@ class VersionManager:
         self.major: int = 1
         self.minor: int = 10
         self.patch: int = 0
-        self.build: int = 1
-        self.prerelease: str = " · Beta 2"
+        self.build: int = 2
+        self.prerelease: str = ""
 
         # 核心版本信息
         self.version: str = f"{self.major}.{self.minor}.{self.patch}{self.prerelease}"
@@ -34,7 +34,7 @@ class VersionManager:
             "name_en": "Color Card",
             "company": "浮晓 HXiao Studio",
             "copyright": "© 2026 浮晓 HXiao Studio",
-            "description": "取色卡 - Color Card",
+            "description": "取色卡(Color Card) - 一站式色彩工具",
             "internal_name": "Color_Card",
             "original_filename": "Color_Card.exe",
             "developer": "青山公仔",

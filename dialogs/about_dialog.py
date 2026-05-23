@@ -3,8 +3,8 @@ from pathlib import Path
 # 第三方库导入
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
-from qfluentwidgets import CaptionLabel, PlainTextEdit, PushButton, isDarkTheme, qconfig
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import CaptionLabel, PushButton, ScrollArea, ScrollBarHandleDisplayMode, isDarkTheme, qconfig
 
 # 项目模块导入
 from utils import tr, load_icon_universal, get_base_path
@@ -65,29 +65,32 @@ class AboutDialog(BaseFramelessDialog):
         Args:
             parent_layout: 父布局对象
         """
-        self.text_edit = PlainTextEdit(self)
-        self.text_edit.setReadOnly(True)
-        self.text_edit.setPlainText(self._get_about_text())
-        self.text_edit.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
-        self.text_edit.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
-
-        # 设置背景和边框透明，文字颜色根据主题变化
+        # 设置文字颜色根据主题变化
         text_color = "#ffffff" if isDarkTheme() else "#333333"
-        self.text_edit.setStyleSheet(f"""
-            PlainTextEdit {{
+
+        # 创建 ScrollArea 包装 QLabel
+        scroll_area = ScrollArea()
+        scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet(f"""
+            ScrollArea {{
                 background-color: transparent;
                 border: none;
-                color: {text_color};
             }}
-            QPlainTextEdit {{
+            ScrollArea > QWidget > QWidget {{
                 background-color: transparent;
-                border: none;
-                color: {text_color};
             }}
         """)
 
-        parent_layout.addWidget(self.text_edit, stretch=1)
+        content_label = QLabel()
+        content_label.setWordWrap(True)
+        content_label.setTextFormat(Qt.TextFormat.PlainText)
+        content_label.setText(self._get_about_text())
+        content_label.setStyleSheet(f"color: {text_color}; background: transparent; font-size: 14px; padding: 10px 20px;")
+        content_label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
+
+        scroll_area.setWidget(content_label)
+        parent_layout.addWidget(scroll_area, stretch=1)
 
     def _create_buttons_area(self, parent_layout):
         """创建按钮区域
@@ -321,12 +324,7 @@ class AboutDialog(BaseFramelessDialog):
     项目地址：https://github.com/Nuitka/Nuitka
     官网：https://nuitka.net/
 
-  • 本程序 Windows 版本使用 Inno Setup 工具将独立的可执行文件打包为安装程序
-    版权所有：Jordan Russell
-    许可证：Modified BSD
-    官网：https://jrsoftware.org/isinfo.php
-
-【字体使用说明】
+  【字体使用说明】
   • 本程序 LOGO 的标题使用了「得意黑」字体
     版权所有：© atelier-anchor
     设计师：oooooohmygosh

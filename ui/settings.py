@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    ComboBox, FluentIcon, PushSettingCard, ScrollArea, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
+    ComboBox, FluentIcon, PushSettingCard, ScrollArea, ScrollBarHandleDisplayMode, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
 )
 # 项目模块导入
 from core import get_config_manager
@@ -73,6 +73,7 @@ class SettingsInterface(QWidget):
     def setup_ui(self):
         """设置界面布局"""
         self.scroll_area = ScrollArea(self)
+        self.scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("""
             ScrollArea {

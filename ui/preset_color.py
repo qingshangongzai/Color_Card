@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 )
 from qfluentwidgets import (
     CardWidget, ToolButton, FluentIcon, PushButton,
-    InfoBar, InfoBarPosition, qconfig, ScrollArea, ComboBox, SubtitleLabel
+    InfoBar, InfoBarPosition, qconfig, ScrollArea, ScrollBarHandleDisplayMode, ComboBox, SubtitleLabel
 )
 
 # 项目模块导入
@@ -479,6 +479,7 @@ class PresetColorList(QWidget):
         layout.addWidget(self._loading_label)
 
         self.scroll_area = ScrollArea()
+        self.scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("ScrollArea { border: none; background: transparent; }")
 
