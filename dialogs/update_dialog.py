@@ -10,7 +10,7 @@ import requests
 from PySide6.QtCore import Qt, QThread, Signal, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
-from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, ScrollArea, qconfig
+from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton, ScrollArea, ScrollBarHandleDisplayMode, qconfig
 
 # 项目模块导入
 from utils import tr, load_icon_universal
@@ -380,6 +380,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         if self.changelog:
             # 创建 ScrollArea 包装 QLabel
             scroll_area = ScrollArea()
+            scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
             scroll_area.setWidgetResizable(True)
             scroll_area.setMinimumHeight(300)
             scroll_area.setStyleSheet("""
