@@ -134,31 +134,44 @@ class UpdateCheckThread(QThread):
                 json_content = base64.b64decode(content).decode('utf-8')
                 changelog_data = json.loads(json_content)
 
-                return self._format_changelog(changelog_data, current_version)
+                return self._format_changelog(changelog_data, current_version, latest_version)
 
             except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
                 continue
 
         return []
 
-    def _format_changelog(self, changelog_data: Dict, current_version: str) -> list[Dict]:
+    def _format_changelog(self, changelog_data: dict, current_version: str, latest_version: str) -> list[dict]:
         """格式化更新日志
 
         Args:
             changelog_data: changelog.json 解析后的数据
             current_version: 当前版本号
+            latest_version: 最新版本号
 
         Returns:
-            list[Dict]: 版本信息列表，每个版本包含 version、date、changes
+            list[dict]: 版本信息列表，每个版本包含 version、date、changes
         """
         versions = changelog_data.get("versions", [])
+
+        # 判断最新版本是否为正式版
+        _, latest_pre, _ = _parse_version(latest_version)
+        latest_is_release = (latest_pre == 0)
 
         # 收集需要显示的版本（从当前版本之后到最新版本）
         versions_to_show = []
         for version_info in versions:
             version_str = version_info.get("version", "").lstrip("v")
-            if compare_versions(current_version, version_str) < 0:
-                versions_to_show.append(version_info)
+            if compare_versions(current_version, version_str) >= 0:
+                continue
+
+            # 若最新版本是正式版，跳过预发布版本
+            if latest_is_release:
+                _, pre_release, _ = _parse_version(version_str)
+                if pre_release != 0:
+                    continue
+
+            versions_to_show.append(version_info)
 
         return versions_to_show
 
@@ -179,13 +192,21 @@ def _parse_version(version_str: str) -> tuple[list[int], int, int]:
     """
     version_str = version_str.lstrip("v").lower()
 
-    # 分离主版本号和预发布部分（处理 · 符号）
-    # "1.7.0 · beta 1" -> main_part="1.7.0", pre_part="beta 1"
+    # 分离主版本号和预发布部分（处理 · 符号和空格）
     if " · " in version_str:
         main_part, pre_part = version_str.split(" · ", 1)
+    elif " " in version_str:
+        main_part, pre_part = version_str.split(" ", 1)
     else:
+        # 检查是否包含预发布关键字（无空格连接的情况如 1.11beta2）
         main_part = version_str
         pre_part = ""
+        for keyword in _PRE_RELEASE_ORDER:
+            if keyword in version_str:
+                idx = version_str.find(keyword)
+                main_part = version_str[:idx]
+                pre_part = version_str[idx:]
+                break
 
     # 提取主版本号的数字
     parts = re.findall(r"\d+", main_part)
