@@ -11,7 +11,7 @@ class VersionManager:
         self.major: int = 1
         self.minor: int = 10
         self.patch: int = 1
-        self.build: int = 0
+        self.build: int = 1
         self.prerelease: str = ""
 
         # 核心版本信息
