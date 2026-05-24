@@ -142,6 +142,12 @@ def get_svg_color_mapper():
     return SVGColorMapper()
 
 
+def get_update_service():
+    """获取更新服务（延迟导入）"""
+    from .update_service import UpdateService
+    return UpdateService()
+
+
 __all__ = [
     # 颜色工具函数
     'generate_gradient',
@@ -246,4 +252,5 @@ __all__ = [
     'get_histogram_service',
     'get_luminance_service',
     'get_svg_color_mapper',
+    'get_update_service',
 ]

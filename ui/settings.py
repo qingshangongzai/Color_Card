@@ -11,7 +11,8 @@ from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
 from utils.theme_colors import get_title_color
-from dialogs import AboutDialog, UpdateAvailableDialog
+from dialogs import AboutDialog
+from core.update_service import UpdateService
 from version import version_manager
 
 logger = get_logger("settings")
@@ -64,6 +65,7 @@ class SettingsInterface(QWidget):
         self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
         self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
         self._language = self._config_manager.get('settings.language', 'HY_JT')
+        self._update_service = UpdateService()
         self.setup_ui()
         self._update_styles()
         self._update_color_space_availability(self._gradient_mode)
@@ -1050,7 +1052,7 @@ class SettingsInterface(QWidget):
         """检查更新按钮点击"""
         log_user_action("check_update")
         current_version = version_manager.get_version()
-        UpdateAvailableDialog.check_update(self, current_version)
+        self._update_service.check_update(self, current_version)
 
     def on_show_about(self):
         """显示关于对话框"""

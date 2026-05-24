@@ -357,8 +357,9 @@ def run_main_app():
                 except (ValueError, TypeError):
                     pass
             from version import version_manager
-            from dialogs import UpdateAvailableDialog
-            UpdateAvailableDialog.check_update(window, version_manager.get_version())
+            from core.update_service import UpdateService
+            update_service = UpdateService()
+            update_service.check_update(window, version_manager.get_version())
             config_manager.set('settings.last_check_time', datetime.now().isoformat())
             config_manager.save()
 
