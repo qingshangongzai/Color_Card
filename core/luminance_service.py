@@ -15,7 +15,7 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
-from .color import get_luminance, get_zone, get_zone_bounds, _rgb_to_hsv_vectorized
+from .color import get_luminance, get_zone, get_zone_bounds, calculate_luminance_from_array, _rgb_to_hsv_vectorized
 from .logger import get_logger, log_performance
 
 logger = get_logger("luminance_service")
@@ -118,11 +118,7 @@ class LuminanceCalculator(QThread):
             img_array = qimage_to_numpy(self._image)
             sampled = img_array[::4, ::4]
 
-            # 向量化明度计算 (Rec. 709)
-            r = sampled[:, :, 0].astype(np.float32)
-            g = sampled[:, :, 1].astype(np.float32)
-            b = sampled[:, :, 2].astype(np.float32)
-            luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+            luminance = calculate_luminance_from_array(sampled)
 
             # 向量化Zone统计
             zone_indices = luminance // 32
@@ -315,11 +311,7 @@ class LuminanceService(QObject):
                 img_array = qimage_to_numpy(image)
                 sampled = img_array[::sample_step, ::sample_step]
 
-                # 向量化明度计算 (Rec. 709)
-                r = sampled[:, :, 0].astype(np.float32)
-                g = sampled[:, :, 1].astype(np.float32)
-                b = sampled[:, :, 2].astype(np.float32)
-                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+                luminance = calculate_luminance_from_array(sampled)
 
                 # 向量化Zone统计
                 zone_indices = luminance // 32
@@ -486,11 +478,7 @@ class LuminanceService(QObject):
                 # 转为NumPy数组（像素级）
                 img_array = qimage_to_numpy(scaled_image)
 
-                # 向量化明度计算 (Rec. 709标准)
-                r = img_array[:, :, 0].astype(np.float32)
-                g = img_array[:, :, 1].astype(np.float32)
-                b = img_array[:, :, 2].astype(np.float32)
-                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+                luminance = calculate_luminance_from_array(img_array)
 
                 # 获取Zone边界并生成mask
                 min_lum, max_lum = get_zone_bounds(f"{zone}-{zone+1}")
