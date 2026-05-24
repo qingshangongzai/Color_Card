@@ -114,16 +114,51 @@ def _compare_versions(current: str, latest: str) -> int:
     return 0
 
 
-class _ChangelogFetcher:
-    """更新日志获取器"""
+def _format_changelog(changelog_data: dict, current_version: str, latest_version: str) -> list[dict]:
+    """格式化更新日志
 
-    _URLS = [
-        "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
-        "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main"
-    ]
+    Args:
+        changelog_data: changelog.json 解析后的数据
+        current_version: 当前版本号
+        latest_version: 最新版本号
 
-    def fetch(self, current_version: str, latest_version: str) -> list[dict]:
-        """从 Gitee 获取 changelog.json 并提取更新日志
+    Returns:
+        list[dict]: 版本信息列表
+    """
+    versions = changelog_data.get("versions", [])
+
+    _, latest_pre, _ = _parse_version(latest_version)
+    latest_is_release = (latest_pre == 0)
+
+    versions_to_show = []
+    for version_info in versions:
+        version_str = version_info.get("version", "").lstrip("v")
+        if _compare_versions(current_version, version_str) >= 0:
+            continue
+
+        if latest_is_release:
+            _, pre_release, _ = _parse_version(version_str)
+            if pre_release != 0:
+                continue
+
+        versions_to_show.append(version_info)
+
+    return versions_to_show
+
+
+class _ReleaseSource:
+    """Release 源抽象基类"""
+
+    def fetch_release(self) -> dict:
+        """获取最新 Release 数据
+
+        Returns:
+            dict: 统一格式的 Release 数据 {"version": str, "assets": list[dict]}
+        """
+        raise NotImplementedError
+
+    def fetch_changelog(self, current_version: str, latest_version: str) -> list[dict]:
+        """获取更新日志
 
         Args:
             current_version: 当前版本号
@@ -132,54 +167,100 @@ class _ChangelogFetcher:
         Returns:
             list[dict]: 版本信息列表
         """
-        for url in self._URLS:
+        raise NotImplementedError
+
+
+class _GiteaSource(_ReleaseSource):
+    """Gitea 类平台源（Gitee / GitCode）"""
+
+    def __init__(self, release_url: str, changelog_urls: list[str]):
+        self._release_url = release_url
+        self._changelog_urls = changelog_urls
+
+    def fetch_release(self) -> dict:
+        response = requests.get(self._release_url, timeout=8)
+        if response.status_code != 200:
+            raise requests.exceptions.HTTPError(f"HTTP {response.status_code}")
+
+        data = response.json()
+        return {
+            "version": data.get("tag_name", "").lstrip("v"),
+            "assets": data.get("assets", []),
+        }
+
+    def fetch_changelog(self, current_version: str, latest_version: str) -> list[dict]:
+        for url in self._changelog_urls:
             try:
-                response = requests.get(url, timeout=10)
+                response = requests.get(url, timeout=8)
                 if response.status_code != 200:
                     continue
 
                 data = response.json()
                 content = data.get("content", "")
-                json_content = base64.b64decode(content).decode('utf-8')
+                json_content = base64.b64decode(content).decode("utf-8")
                 changelog_data = json.loads(json_content)
 
-                return self._format(changelog_data, current_version, latest_version)
+                return _format_changelog(changelog_data, current_version, latest_version)
+
+            except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError, base64.binascii.Error):
+                continue
+
+        return []
+
+
+class _GitHubSource(_ReleaseSource):
+    """GitHub 平台源"""
+
+    _RELEASE_URL = "https://api.github.com/repos/qingshangongzai/Color_Card/releases/latest"
+    _CHANGELOG_URLS = [
+        "https://raw.githubusercontent.com/qingshangongzai/Color_Card/main/app_log/changelog.json",
+        "https://raw.githubusercontent.com/qingshangongzai/Color_Card/main/docs/changelog.json",
+    ]
+
+    def fetch_release(self) -> dict:
+        response = requests.get(self._RELEASE_URL, timeout=8)
+        if response.status_code != 200:
+            raise requests.exceptions.HTTPError(f"HTTP {response.status_code}")
+
+        data = response.json()
+        return {
+            "version": data.get("tag_name", "").lstrip("v"),
+            "assets": data.get("assets", []),
+        }
+
+    def fetch_changelog(self, current_version: str, latest_version: str) -> list[dict]:
+        for url in self._CHANGELOG_URLS:
+            try:
+                response = requests.get(url, timeout=8)
+                if response.status_code != 200:
+                    continue
+
+                changelog_data = response.json()
+                return _format_changelog(changelog_data, current_version, latest_version)
 
             except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError):
                 continue
 
         return []
 
-    def _format(self, changelog_data: dict, current_version: str, latest_version: str) -> list[dict]:
-        """格式化更新日志
 
-        Args:
-            changelog_data: changelog.json 解析后的数据
-            current_version: 当前版本号
-            latest_version: 最新版本号
-
-        Returns:
-            list[dict]: 版本信息列表
-        """
-        versions = changelog_data.get("versions", [])
-
-        _, latest_pre, _ = _parse_version(latest_version)
-        latest_is_release = (latest_pre == 0)
-
-        versions_to_show = []
-        for version_info in versions:
-            version_str = version_info.get("version", "").lstrip("v")
-            if _compare_versions(current_version, version_str) >= 0:
-                continue
-
-            if latest_is_release:
-                _, pre_release, _ = _parse_version(version_str)
-                if pre_release != 0:
-                    continue
-
-            versions_to_show.append(version_info)
-
-        return versions_to_show
+_SOURCES: list[_ReleaseSource] = [
+    _GiteaSource(
+        "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/releases/latest",
+        [
+            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
+            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main",
+        ],
+    ),
+    _GiteaSource(
+        "https://gitcode.com/api/v5/repos/qingshangongzai/Color_Card/releases/latest",
+        [
+            "https://gitcode.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
+            "https://gitcode.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main",
+        ],
+    ),
+    _GitHubSource(),
+]
 
 
 class _AssetSelector:
@@ -230,40 +311,38 @@ class UpdateChecker(QThread):
 
     def run(self):
         """在后台线程中检查更新"""
-        try:
-            api_url = "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/releases/latest"
-            response = requests.get(api_url, timeout=10)
+        last_error = ""
 
-            if response.status_code != 200:
-                error_msg = tr('dialogs.update.error_http', status_code=response.status_code)
-                self.check_finished.emit(CheckResult(False, False, error_message=error_msg))
+        for source in _SOURCES:
+            try:
+                release = source.fetch_release()
+                latest_version = release.get("version", "")
+
+                if not latest_version:
+                    last_error = tr("dialogs.update.error_parse_version")
+                    continue
+
+                download_url = _AssetSelector().select(release.get("assets", []))
+                changelog = source.fetch_changelog(self._current_version, latest_version)
+
+                has_update = _compare_versions(self._current_version, latest_version) < 0
+                info = UpdateInfo(latest_version, download_url, changelog)
+
+                self.check_finished.emit(
+                    CheckResult(True, has_update, info=info, current_version=self._current_version)
+                )
                 return
 
-            data = response.json()
-            latest_version = data.get("tag_name", "").lstrip("v")
+            except requests.exceptions.Timeout:
+                last_error = tr("dialogs.update.error_timeout")
+            except requests.exceptions.ConnectionError:
+                last_error = tr("dialogs.update.error_connection")
+            except requests.exceptions.HTTPError:
+                last_error = tr("dialogs.update.error_http", status_code="")
+            except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError) as e:
+                last_error = tr("dialogs.update.error_general", error=str(e))
 
-            if not latest_version:
-                error_msg = tr('dialogs.update.error_parse_version')
-                self.check_finished.emit(CheckResult(False, False, error_message=error_msg))
-                return
-
-            download_url = _AssetSelector().select(data.get("assets", []))
-            changelog = _ChangelogFetcher().fetch(self._current_version, latest_version)
-
-            has_update = _compare_versions(self._current_version, latest_version) < 0
-            info = UpdateInfo(latest_version, download_url, changelog)
-
-            self.check_finished.emit(CheckResult(True, has_update, info=info, current_version=self._current_version))
-
-        except requests.exceptions.Timeout:
-            error_msg = tr('dialogs.update.error_timeout')
-            self.check_finished.emit(CheckResult(False, False, error_message=error_msg))
-        except requests.exceptions.ConnectionError:
-            error_msg = tr('dialogs.update.error_connection')
-            self.check_finished.emit(CheckResult(False, False, error_message=error_msg))
-        except (requests.exceptions.RequestException, json.JSONDecodeError, KeyError) as e:
-            error_msg = tr('dialogs.update.error_general', error=str(e))
-            self.check_finished.emit(CheckResult(False, False, error_message=error_msg))
+        self.check_finished.emit(CheckResult(False, False, error_message=last_error))
 
 
 class UpdateService:
@@ -297,7 +376,7 @@ class UpdateService:
 
         if not result.success:
             InfoBar.warning(
-                title=tr('dialogs.update.check_failed'),
+                title=tr("dialogs.update.check_failed"),
                 content=result.error_message,
                 parent=parent,
                 duration=5000,
@@ -307,8 +386,8 @@ class UpdateService:
 
         if not result.has_update:
             InfoBar.success(
-                title=tr('dialogs.update.info'),
-                content=tr('dialogs.update.latest_version'),
+                title=tr("dialogs.update.info"),
+                content=tr("dialogs.update.latest_version"),
                 parent=parent,
                 duration=3000,
                 position=InfoBarPosition.TOP,
@@ -322,6 +401,6 @@ class UpdateService:
             current_version=result.current_version,
             latest_version=info.latest_version,
             download_url=info.download_url,
-            changelog=info.changelog
+            changelog=info.changelog,
         )
         dialog.exec()
