@@ -1355,9 +1355,9 @@ class LuminanceCanvas(BaseCanvas):
             emit_sync: 是否发射同步信号（从其他面板同步时设为False，防止循环）
         """
         if self._original_pixmap and not self._original_pixmap.isNull():
-            # 确保取色点可见
+            # 根据用户设置控制取色点可见性
             for picker in self._pickers:
-                picker.show()
+                picker.setVisible(self._pickers_visible)
 
             # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)
