@@ -32,7 +32,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
         """
         super().__init__(parent)
         self.setWindowTitle(tr('dialogs.update.title'))
-        self.setFixedSize(700, 550)
+        self.setFixedSize(450, 500)
         self.current_version = current_version
         self.latest_version = latest_version
         self.download_url = download_url
