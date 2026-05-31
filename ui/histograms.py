@@ -319,6 +319,9 @@ class LuminanceHistogramWidget(BaseHistogram):
             return
         self._current_image = image
         self.set_loading(True)
+        self._histogram = []
+        self._max_count = 0
+        self.update()
         self._histogram_service.calculate_luminance_async(image)
 
     def set_sampling_mode(self, mode: str):
@@ -693,6 +696,11 @@ class RGBHistogramWidget(BaseHistogram):
             return
         self._current_image = image
         self.set_loading(True)
+        self._histogram_r = [0] * 256
+        self._histogram_g = [0] * 256
+        self._histogram_b = [0] * 256
+        self._max_count = 0
+        self.update()
         self._histogram_service.calculate_rgb_async(image)
 
     def set_sampling_mode(self, mode: str):
@@ -1002,6 +1010,9 @@ class HueHistogramWidget(BaseHistogram):
             return
         self._current_image = image
         self.set_loading(True)
+        self._histogram = [0] * 360
+        self._max_count = 0
+        self.update()
         self._histogram_service.calculate_hue_async(image)
 
     def set_sampling_mode(self, mode: str):
