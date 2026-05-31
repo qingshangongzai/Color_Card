@@ -45,10 +45,10 @@
 
 |指标 |数据 |
 |:---|:---|
-|发布版本 |15 个版本（v1.0.0 → v1.10.1） |
-|开发周期 |108 天 |
-|总更新项 |**185 项** |
-|平均每版本 |12.3 项 |
+|发布版本 |16 个版本（v1.0.0 → v1.10.2） |
+|开发周期 |115 天 |
+|总更新项 |**191 项** |
+|平均每版本 |11.9 项 |
 
 **详细分类统计**：
 
@@ -60,7 +60,7 @@
 |⚡ 性能提升 |**12** |缓存机制、启动优化等 |
 |📝 内容调整 |**13** |文本、名称等调整 |
 |⚙️ 体验优化 |**7** |交互体验改进 |
-|🏗️ 代码优化 |**5** |代码结构优化 |
+|🏗️ 代码优化 |**6** |代码结构优化 |
 |🔮 逻辑优化 |**2** |算法逻辑改进 |
 |🖥️ 平台支持 |**1** |Mac 版本适配 |
 |📜 许可证完善 |**1** |开源合规性 |
@@ -347,10 +347,10 @@ Since the release of the first version on 2026-02-05, the project has maintained
 
 |Metric |Data |
 |:---|:---|
-|Released Versions |15 versions (v1.0.0 → v1.10.1) |
-|Development Period |108 days |
-|Total Updates |**185 items** |
-|Average per Version |12.3 items |
+|Released Versions |16 versions (v1.0.0 → v1.10.2) |
+|Development Period |115 days |
+|Total Updates |**191 items** |
+|Average per Version |11.9 items |
 
 **Detailed Category Statistics**:
 
@@ -362,7 +362,7 @@ Since the release of the first version on 2026-02-05, the project has maintained
 |⚡ Performance |**12** |Cache mechanism, startup optimization |
 |📝 Content Adjustments |**13** |Text, naming adjustments |
 |⚙️ Experience |**7** |Interaction improvements |
-|🏗️ Code Optimization |**5** |Code structure optimization |
+|🏗️ Code Optimization |**6** |Code structure optimization |
 |🔮 Logic Optimization |**2** |Algorithm improvements |
 |🖥️ Platform Support |**1** |Mac version adaptation |
 |📜 License Compliance |**1** |Open source compliance |
