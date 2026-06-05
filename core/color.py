@@ -97,6 +97,49 @@ def _get_colorspace_matrices(colorspace_name: str) -> dict:
     return _COLORSPACE_MATRICES.get(colorspace_name, _COLORSPACE_MATRICES['sRGB'])
 
 
+# ==================== Gamma 转换辅助函数 ====================
+
+def _srgb_to_linear(c: float) -> float:
+    """sRGB 非线性值转线性值"""
+    if c <= 0.04045:
+        return c / 12.92
+    return ((c + 0.055) / 1.055) ** 2.4
+
+
+def _linear_to_srgb(c: float) -> float:
+    """线性值转 sRGB 非线性值"""
+    if c <= 0.0031308:
+        return c * 12.92
+    return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+
+
+def _lab_f(t: float) -> float:
+    """LAB 色彩空间 f 函数"""
+    if t > 0.008856:
+        return t ** (1/3)
+    return 7.787 * t + 16/116
+
+
+def _lab_f_inv(t: float) -> float:
+    """LAB 色彩空间 f 函数的逆函数"""
+    delta = 6 / 29
+    if t > delta:
+        return t ** 3
+    return 3 * (delta ** 2) * (t - 4 / 29)
+
+
+def _linear_to_gamma_srgb(c: float) -> float:
+    """线性值转 sRGB Gamma"""
+    if c <= 0.0031308:
+        return c * 12.92
+    return 1.055 * (c ** (1 / 2.4)) - 0.055
+
+
+def _linear_to_gamma_generic(c: float, gamma: float) -> float:
+    """线性值转通用 Gamma"""
+    return c ** (1.0 / gamma)
+
+
 def calculate_luminance_from_array(rgb_array: np.ndarray, gamma: float = 2.2) -> np.ndarray:
     """从RGB数组计算明度（向量化计算）
 
@@ -268,12 +311,9 @@ def rgb_to_lab(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> tuple[f
 
     x, y, z = x / wp[0], y / wp[1], z / wp[2]
 
-    def f(t: float) -> float:
-        return t ** (1/3) if t > 0.008856 else 7.787 * t + 16/116
-
-    L = 116 * f(y) - 16
-    A = 500 * (f(x) - f(y))
-    B = 200 * (f(y) - f(z))
+    L = 116 * _lab_f(y) - 16
+    A = 500 * (_lab_f(x) - _lab_f(y))
+    B = 200 * (_lab_f(y) - _lab_f(z))
 
     return L, A, B
 
@@ -440,15 +480,9 @@ def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     b_norm = b / 255.0
 
     if gamma == 2.2:
-        def srgb_to_linear(c: float) -> float:
-            if c <= 0.04045:
-                return c / 12.92
-            else:
-                return ((c + 0.055) / 1.055) ** 2.4
-
-        r_linear = srgb_to_linear(r_norm)
-        g_linear = srgb_to_linear(g_norm)
-        b_linear = srgb_to_linear(b_norm)
+        r_linear = _srgb_to_linear(r_norm)
+        g_linear = _srgb_to_linear(g_norm)
+        b_linear = _srgb_to_linear(b_norm)
     else:
         r_linear = r_norm ** gamma
         g_linear = g_norm ** gamma
@@ -457,13 +491,7 @@ def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     luminance_linear = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
 
     if gamma == 2.2:
-        def linear_to_srgb(c: float) -> float:
-            if c <= 0.0031308:
-                return c * 12.92
-            else:
-                return 1.055 * (c ** (1.0 / 2.4)) - 0.055
-
-        luminance_output = linear_to_srgb(luminance_linear)
+        luminance_output = _linear_to_srgb(luminance_linear)
     else:
         luminance_output = luminance_linear ** (1.0 / gamma)
 
@@ -662,20 +690,13 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
     gamma = cs['gamma']
     use_srgb_curve = cs.get('use_srgb_curve', False)
 
-    def f_inv(t: float) -> float:
-        delta = 6 / 29
-        if t > delta:
-            return t ** 3
-        else:
-            return 3 * (delta ** 2) * (t - 4 / 29)
-
     y = (L + 16) / 116
     x = y + A / 500
     z = y - B / 200
 
-    x = wp[0] * f_inv(x)
-    y = wp[1] * f_inv(y)
-    z = wp[2] * f_inv(z)
+    x = wp[0] * _lab_f_inv(x)
+    y = wp[1] * _lab_f_inv(y)
+    z = wp[2] * _lab_f_inv(z)
 
     r_linear = x * m[0][0] + y * m[0][1] + z * m[0][2]
     g_linear = x * m[1][0] + y * m[1][1] + z * m[1][2]
@@ -686,18 +707,13 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
     b_linear = max(0, b_linear)
 
     if use_srgb_curve:
-        def linear_to_gamma(c: float) -> float:
-            if c <= 0.0031308:
-                return c * 12.92
-            else:
-                return 1.055 * (c ** (1 / 2.4)) - 0.055
+        r = _linear_to_gamma_srgb(r_linear)
+        g = _linear_to_gamma_srgb(g_linear)
+        b_out = _linear_to_gamma_srgb(b_linear)
     else:
-        def linear_to_gamma(c: float) -> float:
-            return c ** (1.0 / gamma)
-
-    r = linear_to_gamma(r_linear)
-    g = linear_to_gamma(g_linear)
-    b_out = linear_to_gamma(b_linear)
+        r = _linear_to_gamma_generic(r_linear, gamma)
+        g = _linear_to_gamma_generic(g_linear, gamma)
+        b_out = _linear_to_gamma_generic(b_linear, gamma)
 
     r = min(1, r)
     g = min(1, g)
