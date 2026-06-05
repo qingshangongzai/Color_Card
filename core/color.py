@@ -403,6 +403,106 @@ def rgb_to_cmyk(r: int, g: int, b: int) -> tuple[float, float, float, float]:
     return c * 100, m * 100, y * 100, k * 100
 
 
+# ==================== 内部辅助函数 (用于批量处理) ====================
+
+def _rgb_to_hsb_normalized(r_norm: float, g_norm: float, b_norm: float) -> tuple[float, float, float]:
+    """将归一化的RGB转换为HSB (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+
+    Returns:
+        tuple: (色相 0-360, 饱和度 0-100, 亮度 0-100)
+    """
+    h, s, v = colorsys.rgb_to_hsv(r_norm, g_norm, b_norm)
+    return h * 360, s * 100, v * 100
+
+
+def _rgb_to_lab_normalized(
+    r_norm: float, g_norm: float, b_norm: float,
+    colorspace_name: str = 'sRGB'
+) -> tuple[float, float, float]:
+    """将归一化的RGB转换为LAB (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+        colorspace_name: 色彩空间名称,默认 sRGB
+
+    Returns:
+        tuple: (L 0-100, A -128-127, B -128-127)
+    """
+    cs = _get_colorspace_matrices(colorspace_name)
+    m = cs['rgb_to_xyz']
+    wp = cs['white_point']
+    gamma = cs['gamma']
+    use_srgb_curve = cs.get('use_srgb_curve', False)
+
+    # Gamma 校正
+    if use_srgb_curve:
+        r_norm = ((r_norm + 0.055) / 1.055) ** 2.4 if r_norm > 0.04045 else r_norm / 12.92
+        g_norm = ((g_norm + 0.055) / 1.055) ** 2.4 if g_norm > 0.04045 else g_norm / 12.92
+        b_norm = ((b_norm + 0.055) / 1.055) ** 2.4 if b_norm > 0.04045 else b_norm / 12.92
+    else:
+        r_norm = r_norm ** gamma
+        g_norm = g_norm ** gamma
+        b_norm = b_norm ** gamma
+
+    # 转换到XYZ
+    x = r_norm * m[0][0] + g_norm * m[0][1] + b_norm * m[0][2]
+    y = r_norm * m[1][0] + g_norm * m[1][1] + b_norm * m[1][2]
+    z = r_norm * m[2][0] + g_norm * m[2][1] + b_norm * m[2][2]
+
+    x, y, z = x / wp[0], y / wp[1], z / wp[2]
+
+    # 转换到LAB
+    L = 116 * _lab_f(y) - 16
+    A = 500 * (_lab_f(x) - _lab_f(y))
+    B = 200 * (_lab_f(y) - _lab_f(z))
+
+    return L, A, B
+
+
+def _rgb_to_hsl_normalized(r_norm: float, g_norm: float, b_norm: float) -> tuple[float, float, float]:
+    """将归一化的RGB转换为HSL (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+
+    Returns:
+        tuple: (色相 0-360, 饱和度 0-100, 亮度 0-100)
+    """
+    H, L, S = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+    return H * 360, S * 100, L * 100
+
+
+def _rgb_to_cmyk_normalized(r_norm: float, g_norm: float, b_norm: float) -> tuple[float, float, float, float]:
+    """将归一化的RGB转换为CMYK (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+
+    Returns:
+        tuple: (C 0-100, M 0-100, Y 0-100, K 0-100)
+    """
+    k = 1 - max(r_norm, g_norm, b_norm)
+    if k == 1:
+        return 0, 0, 0, 100
+
+    c = (1 - r_norm - k) / (1 - k)
+    m = (1 - g_norm - k) / (1 - k)
+    y = (1 - b_norm - k) / (1 - k)
+
+    return c * 100, m * 100, y * 100, k * 100
+
+
 def convert_rgb_colorspace(
     r: int, g: int, b: int,
     source_colorspace: str,
@@ -458,6 +558,42 @@ def get_color_info(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> dic
         'rgb_display': (r, g, b),
         'hex': rgb_to_hex(r, g, b)
     }
+
+
+def get_color_info_batch(rgb_list: list[tuple[int, int, int]], colorspace_name: str = 'sRGB') -> list[dict[str, Any]]:
+    """批量获取颜色信息 (性能优化版本)
+
+    预先归一化所有颜色,避免重复计算,适用于批量处理场景
+
+    Args:
+        rgb_list: RGB颜色列表,每个元素为 (R, G, B) 元组
+        colorspace_name: 色彩空间名称,默认 sRGB
+
+    Returns:
+        list: 颜色信息字典列表,每个字典包含 RGB、HSB、LAB、HSL、CMYK、HEX 信息
+    """
+    results = []
+    for r, g, b in rgb_list:
+        # 统一归一化一次
+        r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+
+        # 使用内部函数处理
+        H, S, B = _rgb_to_hsb_normalized(r_norm, g_norm, b_norm)
+        L, A, B_lab = _rgb_to_lab_normalized(r_norm, g_norm, b_norm, colorspace_name)
+        H2, S2, L2 = _rgb_to_hsl_normalized(r_norm, g_norm, b_norm)
+        C, M, Y, K = _rgb_to_cmyk_normalized(r_norm, g_norm, b_norm)
+
+        results.append({
+            'rgb': (r, g, b),
+            'hsb': (round(H), round(S), round(B)),
+            'lab': (round(L), round(A), round(B_lab)),
+            'hsl': (round(H2), round(S2), round(L2)),
+            'cmyk': (round(C), round(M), round(Y), round(K)),
+            'rgb_display': (r, g, b),
+            'hex': rgb_to_hex(r, g, b)
+        })
+
+    return results
 
 
 def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
