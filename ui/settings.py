@@ -432,7 +432,8 @@ class SettingsInterface(QWidget):
         self.gradient_mode_card.titleLabel.setText(tr('settings.gradient_mode'))
         self.gradient_mode_card.contentLabel.setText(tr('settings.gradient_mode_desc'))
         self.gradient_mode_card.combo_box.setItemText(0, tr('settings.gradient_mode_gradient'))
-        self.gradient_mode_card.combo_box.setItemText(1, tr('settings.gradient_mode_shade'))
+        self.gradient_mode_card.combo_box.setItemText(1, tr('settings.gradient_mode_three_color'))
+        self.gradient_mode_card.combo_box.setItemText(2, tr('settings.gradient_mode_shade'))
         self.gradient_color_space_card.titleLabel.setText(tr('settings.gradient_color_space'))
         self.gradient_color_space_card.contentLabel.setText(tr('settings.gradient_color_space_desc'))
         # 重建颜色空间下拉框（单色模式下无RGB选项）
@@ -862,8 +863,10 @@ class SettingsInterface(QWidget):
         combo_box = ComboBox(self.content_widget)
         combo_box.addItem(tr('settings.gradient_mode_gradient'))
         combo_box.setItemData(0, "gradient")
+        combo_box.addItem(tr('settings.gradient_mode_three_color'))
+        combo_box.setItemData(1, "three_color")
         combo_box.addItem(tr('settings.gradient_mode_shade'))
-        combo_box.setItemData(1, "shade")
+        combo_box.setItemData(2, "shade")
 
         for i in range(combo_box.count()):
             if combo_box.itemData(i) == self._gradient_mode:

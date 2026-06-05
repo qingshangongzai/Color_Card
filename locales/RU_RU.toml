@@ -35,6 +35,8 @@ image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gi
 
 [gradient_generation]
 start_color = "Начальный цвет"
+mid_color = "Средний цвет"
+mid_position = "Позиция среднего"
 end_color = "Конечный цвет"
 base_color = "Базовый цвет"
 steps = "Промежуточные цвета"
@@ -267,6 +269,7 @@ gradient_lab = "LAB пространство"
 gradient_mode = "Режим градиента"
 gradient_mode_desc = "Выберите режим извлечения градиента"
 gradient_mode_gradient = "Двухцветный градиент"
+gradient_mode_three_color = "Трёхцветный градиент"
 gradient_mode_shade = "Монохромный градиент"
 luminance = "Извлечение яркости"
 luminance_default_grayscale = "Оттенки серого по умолчанию"

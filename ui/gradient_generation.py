@@ -15,7 +15,7 @@ from qfluentwidgets import (
 )
 
 # 项目模块导入
-from core import generate_gradient, generate_random_gradient, generate_lightness_shades, generate_random_lightness_shade, get_color_info
+from core import generate_gradient, generate_random_gradient, generate_lightness_shades, generate_random_lightness_shade, generate_three_color_gradient, generate_random_three_color_gradient, get_color_info
 from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from ui.cards import ColorCard
@@ -82,21 +82,34 @@ class ColorDot(QWidget):
 
 
 class GradientPreviewWidget(QWidget):
-    """渐变预览控件，显示渐变色竖条"""
+    """渐变预览控件，显示渐变色竖条，支持拖拽中间色位置"""
+
+    mid_position_changed = Signal(float)  # 中间色位置改变信号
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._colors: list[tuple[int, int, int]] = []
+        self._mid_position: float | None = None
+        self._dragging = False
         self.setMinimumHeight(150)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        qconfig.themeChangedFinished.connect(self.update)
 
-    def set_colors(self, colors: list[tuple[int, int, int]]):
+    def set_colors(self, colors: list[tuple[int, int, int]], mid_position: float | None = None):
         """设置渐变色
 
         Args:
             colors: RGB颜色列表 [(r, g, b), ...]
+            mid_position: 中间色位置 (0.0~1.0)，三色模式下使用
         """
         self._colors = colors
+        self._mid_position = mid_position
+        # 三色渐变时增加30px高度
+        if mid_position is not None:
+            self.setMinimumHeight(180)
+        else:
+            self.setMinimumHeight(150)
         self.update()
 
     def paintEvent(self, event):
@@ -114,17 +127,108 @@ class GradientPreviewWidget(QWidget):
         if color_count == 0:
             return
 
-        # 计算每个颜色条的宽度
         bar_width = width / color_count
 
-        # 绘制每个颜色条
         for i, (r, g, b) in enumerate(self._colors):
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QColor(r, g, b))
             x = i * bar_width
-            # 最后一个条可能稍微宽一点以填满空间
             w = bar_width if i < color_count - 1 else width - x
             painter.drawRect(int(x), 0, int(w) + 1, height)
+
+        if self._mid_position is not None:
+            self._draw_mid_indicator(painter, width, height)
+
+    def _get_mid_block_index(self) -> int:
+        """获取中间控制色在色卡序列中的索引
+
+        从 mid_position 反推 block_index: mid_position = block_index / (color_count - 1)
+        限制范围：第2个色块(索引1)到倒数第2个色块(索引color_count-2)
+        """
+        color_count = len(self._colors)
+        block_index = round(self._mid_position * (color_count - 1))
+        return max(1, min(color_count - 2, block_index))
+
+    def _draw_mid_indicator(self, painter: QPainter, width: int, height: int):
+        """绘制中间色位置指示器"""
+        from PySide6.QtGui import QPolygonF
+        from PySide6.QtCore import QPointF
+
+        indicator_color = get_text_color()
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(indicator_color)
+
+        color_count = len(self._colors)
+        if color_count < 2:
+            return
+
+        block_index = self._get_mid_block_index()
+        bar_width = width / color_count
+        x = int(bar_width * block_index + bar_width / 2)
+        triangle_size = 8
+
+        triangle = QPolygonF([
+            QPointF(x, 0),
+            QPointF(x - triangle_size, triangle_size + 2),
+            QPointF(x + triangle_size, triangle_size + 2)
+        ])
+        painter.drawPolygon(triangle)
+
+    def _get_block_index_from_x(self, x: int) -> int:
+        """根据鼠标X坐标计算色块索引（限制在起始和结束颜色之间）"""
+        color_count = len(self._colors)
+        bar_width = self.width() / color_count
+        block_index = int(x / bar_width)
+        return max(1, min(color_count - 2, block_index))
+
+    def _get_position_from_block_index(self, block_index: int) -> float:
+        """根据色块索引计算中间色位置比例"""
+        return block_index / (len(self._colors) - 1)
+
+    def _is_on_indicator(self, pos) -> bool:
+        """检查鼠标是否在指示器上"""
+        if self._mid_position is None:
+            return False
+
+        color_count = len(self._colors)
+        if color_count < 2:
+            return False
+
+        block_index = self._get_mid_block_index()
+        bar_width = self.width() / color_count
+        indicator_x = int(bar_width * block_index + bar_width / 2)
+
+        return abs(pos.x() - indicator_x) <= 15
+
+    def mousePressEvent(self, event):
+        """鼠标按下事件"""
+        if event.button() == Qt.MouseButton.LeftButton and self._is_on_indicator(event.pos()):
+            self._dragging = True
+            self.setCursor(Qt.CursorShape.SizeHorCursor)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """鼠标移动事件"""
+        if self._dragging and self._mid_position is not None:
+            block_index = self._get_block_index_from_x(event.pos().x())
+            new_position = self._get_position_from_block_index(block_index)
+            if abs(new_position - self._mid_position) > 0.001:
+                self._mid_position = new_position
+                self.mid_position_changed.emit(new_position)
+                self.update()
+        elif self._mid_position is not None:
+            if self._is_on_indicator(event.pos()):
+                self.setCursor(Qt.CursorShape.SizeHorCursor)
+            else:
+                self.setCursor(Qt.CursorShape.ArrowCursor)
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
+        if event.button() == Qt.MouseButton.LeftButton and self._dragging:
+            self._dragging = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+        super().mouseReleaseEvent(event)
 
 
 class GradientCardPanel(QWidget):
@@ -260,8 +364,10 @@ class GradientGenerationInterface(QWidget):
         self._color_space = self._config_manager.get('settings.gradient_color_space', 'lab')
         self._gradient_mode = self._config_manager.get('settings.gradient_mode', 'gradient')
         self._start_color = "#FF5733"
+        self._mid_color = "#C8B943"
+        self._mid_position = 0.5
         self._end_color = "#33FF57"
-        self._steps = 2  # 默认2个中间色，共4个颜色
+        self._steps = 2
 
         self.setup_ui()
         self._update_styles()
@@ -269,7 +375,6 @@ class GradientGenerationInterface(QWidget):
         qconfig.themeChangedFinished.connect(self._update_styles)
         get_locale_manager().language_changed.connect(self._on_language_changed)
 
-        # 初始生成渐变
         self._generate_gradient()
 
     def setup_ui(self):
@@ -322,6 +427,31 @@ class GradientGenerationInterface(QWidget):
         start_color_layout.addWidget(self.start_color_input)
         start_color_layout.addStretch()
         control_layout.addLayout(start_color_layout)
+
+        # 中间控制色选择（三色模式）
+        self.mid_color_widget = QWidget()
+        mid_color_inner_layout = QHBoxLayout(self.mid_color_widget)
+        mid_color_inner_layout.setContentsMargins(0, 0, 0, 0)
+        mid_color_inner_layout.setSpacing(8)
+        self.mid_color_dot = ColorDot(self._mid_color)
+        self.mid_color_label = QLabel(tr('gradient_generation.mid_color'))
+        self.mid_color_label.setFixedWidth(56)
+        self.mid_color_input = QLineEdit(self._mid_color)
+        self.mid_color_input.setFixedWidth(105)
+        self.mid_color_input.setFixedHeight(28)
+        self.mid_color_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.mid_color_input.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+        self.mid_color_input.setMaxLength(7)
+        self.mid_color_input.setPlaceholderText("#RRGGBB")
+        self.mid_color_input.textChanged.connect(self._on_mid_color_text_changed)
+        self.mid_color_input.editingFinished.connect(self._on_mid_color_editing_finished)
+        self.mid_color_dot.clicked.connect(self._open_mid_color_picker)
+        mid_color_inner_layout.addStretch()
+        mid_color_inner_layout.addWidget(self.mid_color_dot)
+        mid_color_inner_layout.addWidget(self.mid_color_label)
+        mid_color_inner_layout.addWidget(self.mid_color_input)
+        mid_color_inner_layout.addStretch()
+        control_layout.addWidget(self.mid_color_widget)
 
         # 结束颜色选择
         self.end_color_widget = QWidget()
@@ -379,6 +509,7 @@ class GradientGenerationInterface(QWidget):
         preview_layout.setSpacing(0)
 
         self.gradient_preview = GradientPreviewWidget()
+        self.gradient_preview.mid_position_changed.connect(self._on_preview_mid_position_changed)
         preview_layout.addWidget(self.gradient_preview)
 
         top_layout.addWidget(preview_widget, stretch=1, alignment=Qt.AlignmentFlag.AlignBottom)
@@ -420,6 +551,7 @@ class GradientGenerationInterface(QWidget):
         secondary_text = get_text_color(secondary=True)
 
         self.start_color_label.setStyleSheet(f"color: {text_color.name()}; font-size: 13px;")
+        self.mid_color_label.setStyleSheet(f"color: {text_color.name()}; font-size: 13px;")
         self.end_color_label.setStyleSheet(f"color: {text_color.name()}; font-size: 13px;")
         self.steps_label.setStyleSheet(f"color: {text_color.name()}; font-size: 13px;")
         self.steps_value_label.setStyleSheet(f"color: {secondary_text.name()}; font-size: 13px;")
@@ -446,6 +578,7 @@ class GradientGenerationInterface(QWidget):
             }}
         """
         self.start_color_input.setStyleSheet(input_style)
+        self.mid_color_input.setStyleSheet(input_style)
         self.end_color_input.setStyleSheet(input_style)
 
     def _on_language_changed(self, language_code):
@@ -456,165 +589,139 @@ class GradientGenerationInterface(QWidget):
         else:
             self.start_color_label.setText(tr('gradient_generation.start_color'))
             self.steps_label.setText(tr('gradient_generation.steps'))
+        self.mid_color_label.setText(tr('gradient_generation.mid_color'))
         self.end_color_label.setText(tr('gradient_generation.end_color'))
         self.random_button.setText(tr('gradient_generation.random'))
         self.favorite_button.setText(tr('gradient_generation.favorite'))
 
-    def _on_start_color_text_changed(self, text: str):
-        """起始颜色文本变化处理（自动格式化为大写并确保#前缀）"""
+    def _format_hex_input(self, text: str, input_widget: QLineEdit):
+        """格式化HEX颜色输入（自动转大写、确保#前缀、限制长度）"""
         if not text:
             return
 
-        # 自动转大写
         upper_text = text.upper()
-
-        # 只允许有效的十六进制字符和#
         valid_chars = '#0123456789ABCDEF'
         filtered_text = ''.join(c for c in upper_text if c in valid_chars)
 
-        # 确保以#开头
         if not filtered_text.startswith('#'):
             filtered_text = '#' + filtered_text
 
-        # 限制长度（# + 6位十六进制）
         if len(filtered_text) > 7:
             filtered_text = filtered_text[:7]
 
-        # 更新文本（如果发生变化）
         if text != filtered_text:
-            cursor_pos = self.start_color_input.cursorPosition()
-            self.start_color_input.setText(filtered_text)
-            # 保持光标位置
+            cursor_pos = input_widget.cursorPosition()
+            input_widget.setText(filtered_text)
             new_pos = min(len(filtered_text), cursor_pos + (1 if not text.startswith('#') else 0))
-            self.start_color_input.setCursorPosition(new_pos)
+            input_widget.setCursorPosition(new_pos)
 
-    def _on_start_color_editing_finished(self):
-        """起始颜色编辑完成处理（验证并更新颜色）"""
-        text = self.start_color_input.text().strip().upper()
+    def _on_start_color_text_changed(self, text: str):
+        """起始颜色文本变化处理"""
+        self._format_hex_input(text, self.start_color_input)
 
-        if not text:
-            return
-
-        # 添加 # 前缀
-        if not text.startswith('#'):
-            text = '#' + text
-
-        # 验证HEX格式
-        if not self._is_valid_hex(text):
-            # 无效则恢复原值
-            self.start_color_input.setText(self._start_color)
-            return
-
-        # 如果颜色没有变化，不进行处理
-        if text == self._start_color:
-            return
-
-        # 更新颜色
-        self._start_color = text
-        self.start_color_dot.set_color(self._start_color)
-        log_user_action("change_start_color", {"color": self._start_color})
-        self._generate_gradient()
+    def _on_mid_color_text_changed(self, text: str):
+        """中间色文本变化处理"""
+        self._format_hex_input(text, self.mid_color_input)
 
     def _on_end_color_text_changed(self, text: str):
-        """结束颜色文本变化处理（自动格式化为大写并确保#前缀）"""
-        if not text:
-            return
+        """结束颜色文本变化处理"""
+        self._format_hex_input(text, self.end_color_input)
 
-        # 自动转大写
-        upper_text = text.upper()
+    def _handle_color_editing_finished(self, input_widget: QLineEdit, dot_widget: ColorDot,
+                                        current_color: str, color_attr: str, action_name: str) -> str | None:
+        """处理颜色编辑完成
 
-        # 只允许有效的十六进制字符和#
-        valid_chars = '#0123456789ABCDEF'
-        filtered_text = ''.join(c for c in upper_text if c in valid_chars)
+        Args:
+            input_widget: 输入框控件
+            dot_widget: 颜色圆点控件
+            current_color: 当前颜色值
+            color_attr: 颜色属性名（'_start_color', '_mid_color', '_end_color'）
+            action_name: 日志动作名称
 
-        # 确保以#开头
-        if not filtered_text.startswith('#'):
-            filtered_text = '#' + filtered_text
-
-        # 限制长度（# + 6位十六进制）
-        if len(filtered_text) > 7:
-            filtered_text = filtered_text[:7]
-
-        # 更新文本（如果发生变化）
-        if text != filtered_text:
-            cursor_pos = self.end_color_input.cursorPosition()
-            self.end_color_input.setText(filtered_text)
-            # 保持光标位置
-            new_pos = min(len(filtered_text), cursor_pos + (1 if not text.startswith('#') else 0))
-            self.end_color_input.setCursorPosition(new_pos)
-
-    def _on_end_color_editing_finished(self):
-        """结束颜色编辑完成处理（验证并更新颜色）"""
-        text = self.end_color_input.text().strip().upper()
+        Returns:
+            新颜色值（如果有效且发生变化），否则返回None
+        """
+        text = input_widget.text().strip().upper()
 
         if not text:
-            return
+            return None
 
-        # 添加 # 前缀
         if not text.startswith('#'):
             text = '#' + text
 
-        # 验证HEX格式
         if not self._is_valid_hex(text):
-            # 无效则恢复原值
-            self.end_color_input.setText(self._end_color)
-            return
+            input_widget.setText(current_color)
+            return None
 
-        # 如果颜色没有变化，不进行处理
-        if text == self._end_color:
-            return
+        if text == current_color:
+            return None
 
-        # 更新颜色
-        self._end_color = text
-        self.end_color_dot.set_color(self._end_color)
-        log_user_action("change_end_color", {"color": self._end_color})
+        setattr(self, color_attr, text)
+        dot_widget.set_color(text)
+        log_user_action(action_name, {"color": text})
         self._generate_gradient()
+        return text
 
-    def _open_start_color_picker(self):
-        """打开起始颜色选择器"""
-        self._open_color_picker(self._start_color, self._on_start_color_selected)
+    def _on_start_color_editing_finished(self):
+        """起始颜色编辑完成处理"""
+        self._handle_color_editing_finished(
+            self.start_color_input, self.start_color_dot,
+            self._start_color, '_start_color', 'change_start_color'
+        )
 
-    def _open_end_color_picker(self):
-        """打开结束颜色选择器"""
-        self._open_color_picker(self._end_color, self._on_end_color_selected)
+    def _on_mid_color_editing_finished(self):
+        """中间色编辑完成处理"""
+        self._handle_color_editing_finished(
+            self.mid_color_input, self.mid_color_dot,
+            self._mid_color, '_mid_color', 'change_mid_color'
+        )
 
-    def _open_color_picker(self, current_color: str, callback):
-        """打开颜色选择器对话框
+    def _on_end_color_editing_finished(self):
+        """结束颜色编辑完成处理"""
+        self._handle_color_editing_finished(
+            self.end_color_input, self.end_color_dot,
+            self._end_color, '_end_color', 'change_end_color'
+        )
 
-        Args:
-            current_color: 当前HEX颜色值
-            callback: 选择完成后的回调函数
-        """
+    def _open_color_picker_for(self, current_color: str, color_attr: str, action_name: str):
+        """打开颜色选择器并处理选择结果"""
         from dialogs import ColorPickerDialog
         from PySide6.QtWidgets import QDialog
 
-        # 将HEX转换为RGB
         r, g, b = self._hex_to_rgb(current_color)
-
-        # 使用顶层窗口作为父窗口，避免背景色异常和两套窗口控制器
         dialog = ColorPickerDialog((r, g, b), self.window())
+
         if dialog.exec() == QDialog.DialogCode.Accepted:
             color_info = dialog.get_color_info()
             if color_info:
-                callback(color_info)
+                hex_color = color_info.get('hex', '')
+                setattr(self, color_attr, hex_color)
 
-    def _on_start_color_selected(self, color_info: dict):
-        """起始颜色选择完成回调"""
-        hex_color = color_info.get('hex', '')
-        self._start_color = hex_color
-        self.start_color_dot.set_color(hex_color)
-        self.start_color_input.setText(hex_color)
-        self._generate_gradient()
-        log_user_action("change_start_color", {"color": hex_color, "source": "color_picker"})
+                # 更新对应的UI控件
+                if color_attr == '_start_color':
+                    self.start_color_dot.set_color(hex_color)
+                    self.start_color_input.setText(hex_color)
+                elif color_attr == '_mid_color':
+                    self.mid_color_dot.set_color(hex_color)
+                    self.mid_color_input.setText(hex_color)
+                elif color_attr == '_end_color':
+                    self.end_color_dot.set_color(hex_color)
+                    self.end_color_input.setText(hex_color)
 
-    def _on_end_color_selected(self, color_info: dict):
-        """结束颜色选择完成回调"""
-        hex_color = color_info.get('hex', '')
-        self._end_color = hex_color
-        self.end_color_dot.set_color(hex_color)
-        self.end_color_input.setText(hex_color)
-        self._generate_gradient()
-        log_user_action("change_end_color", {"color": hex_color, "source": "color_picker"})
+                self._generate_gradient()
+                log_user_action(action_name, {"color": hex_color, "source": "color_picker"})
+
+    def _open_start_color_picker(self):
+        """打开起始颜色选择器"""
+        self._open_color_picker_for(self._start_color, '_start_color', 'change_start_color')
+
+    def _open_mid_color_picker(self):
+        """打开中间色选择器"""
+        self._open_color_picker_for(self._mid_color, '_mid_color', 'change_mid_color')
+
+    def _open_end_color_picker(self):
+        """打开结束颜色选择器"""
+        self._open_color_picker_for(self._end_color, '_end_color', 'change_end_color')
 
     def _hex_to_rgb(self, hex_color: str) -> tuple:
         """HEX颜色转换为RGB
@@ -644,11 +751,30 @@ class GradientGenerationInterface(QWidget):
         log_user_action("change_steps", {"steps": value})
         self._generate_gradient()
 
+    def _on_preview_mid_position_changed(self, position: float):
+        """渐变预览条拖拽中间色位置改变"""
+        self._mid_position = position
+        log_user_action("change_mid_position", {"position": round(position * 100)})
+        self._generate_gradient()
+
     def _generate_gradient(self):
         """生成渐变色"""
         try:
             if self._gradient_mode == 'shade':
                 colors = generate_lightness_shades(self._start_color, self._steps, self._color_space)
+                self._current_colors = colors
+                self.gradient_preview.set_colors(colors)
+            elif self._gradient_mode == 'three_color':
+                colors = generate_three_color_gradient(
+                    self._start_color,
+                    self._mid_color,
+                    self._end_color,
+                    self._mid_position,
+                    self._steps,
+                    self._color_space
+                )
+                self._current_colors = colors
+                self.gradient_preview.set_colors(colors, mid_position=self._mid_position)
             else:
                 colors = generate_gradient(
                     self._start_color,
@@ -656,8 +782,8 @@ class GradientGenerationInterface(QWidget):
                     self._steps,
                     self._color_space
                 )
-            self._current_colors = colors
-            self.gradient_preview.set_colors(colors)
+                self._current_colors = colors
+                self.gradient_preview.set_colors(colors)
             self.card_panel.set_colors(colors)
             logger.debug(f"生成渐变成功: mode={self._gradient_mode}, start={self._start_color}, steps={self._steps}")
         except (ValueError, TypeError) as e:
@@ -670,7 +796,29 @@ class GradientGenerationInterface(QWidget):
             self._start_color = base_hex
             self.start_color_dot.set_color(base_hex)
             self.start_color_input.setText(base_hex)
+            self._current_colors = colors
+            self.gradient_preview.set_colors(colors)
             log_user_action("random_lightness_shade", {"base": base_hex, "count": self._steps})
+        elif self._gradient_mode == 'three_color':
+            start_hex, mid_hex, end_hex, mid_position, colors = generate_random_three_color_gradient(
+                self._steps, self._color_space
+            )
+            self._start_color = start_hex
+            self._mid_color = mid_hex
+            self._end_color = end_hex
+            self._mid_position = mid_position
+            self.start_color_dot.set_color(start_hex)
+            self.mid_color_dot.set_color(mid_hex)
+            self.end_color_dot.set_color(end_hex)
+            self.start_color_input.setText(start_hex)
+            self.mid_color_input.setText(mid_hex)
+            self.end_color_input.setText(end_hex)
+            self._current_colors = colors
+            self.gradient_preview.set_colors(colors, mid_position=mid_position)
+            log_user_action("random_three_color_gradient", {
+                "start": start_hex, "mid": mid_hex, "end": end_hex,
+                "position": mid_position, "steps": self._steps
+            })
         else:
             start_hex, end_hex, colors = generate_random_gradient(self._steps, self._color_space)
             self._start_color = start_hex
@@ -679,10 +827,10 @@ class GradientGenerationInterface(QWidget):
             self.end_color_dot.set_color(end_hex)
             self.start_color_input.setText(start_hex)
             self.end_color_input.setText(end_hex)
+            self._current_colors = colors
+            self.gradient_preview.set_colors(colors)
             log_user_action("random_gradient", {"start": start_hex, "end": end_hex, "steps": self._steps})
 
-        self._current_colors = colors
-        self.gradient_preview.set_colors(colors)
         self.card_panel.set_colors(colors)
 
     def _on_favorite_clicked(self):
@@ -758,7 +906,7 @@ class GradientGenerationInterface(QWidget):
         """设置渐变模式
 
         Args:
-            mode: 'gradient' 或 'shade'
+            mode: 'gradient', 'three_color' 或 'shade'
         """
         self._gradient_mode = mode
         self._apply_gradient_mode_ui()
@@ -768,8 +916,10 @@ class GradientGenerationInterface(QWidget):
     def _apply_gradient_mode_ui(self):
         """根据当前渐变模式更新UI"""
         is_shade = self._gradient_mode == 'shade'
+        is_three_color = self._gradient_mode == 'three_color'
 
         self.end_color_widget.setVisible(not is_shade)
+        self.mid_color_widget.setVisible(is_three_color)
 
         if is_shade:
             self.start_color_label.setText(tr('gradient_generation.base_color'))
