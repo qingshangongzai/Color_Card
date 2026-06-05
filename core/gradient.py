@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 # 项目模块导入
-from .color import hex_to_rgb, rgb_to_hsb, rgb_to_lab, hsb_to_rgb, rgb_to_hsl, hsl_to_rgb
+from .color import hex_to_rgb, rgb_to_hsb, rgb_to_lab, hsb_to_rgb, rgb_to_hsl, hsl_to_rgb, lab_to_rgb
 
 
 def _normalize_hue_for_interpolation(h1: float, h2: float) -> tuple[float, float]:
@@ -146,63 +146,10 @@ def _interpolate_lab(start_rgb: tuple[int, int, int], end_rgb: tuple[int, int, i
         A = A1 + (A2 - A1) * t
         B = B1 + (B2 - B1) * t
         # 转换回RGB
-        colors.append(_lab_to_rgb(L, A, B))
+        colors.append(lab_to_rgb(L, A, B))
 
     colors.append(end_rgb)
     return colors
-
-
-def _lab_to_rgb(L: float, A: float, B: float) -> tuple[int, int, int]:
-    """将LAB颜色空间转换为RGB
-
-    这是rgb_to_lab的逆运算
-
-    Args:
-        L: 亮度分量 (0-100)
-        A: 红绿对立分量 (-128-127)
-        B: 黄蓝对立分量 (-128-127)
-
-    Returns:
-        tuple[int, int, int]: RGB颜色值 (R, G, B)，每个值范围0-255
-    """
-    # 步骤1: 从LAB转换到XYZ
-    def f_inv(t: float) -> float:
-        """f函数的逆函数"""
-        if t > 0.20689655172413793:  # (6/29)^3 的立方根
-            return t ** 3
-        else:
-            return 3 * 0.12841854934601665 * 0.12841854934601665 * (t - 16 / 116)
-
-    # 参考白点 (D65)
-    x_ref, y_ref, z_ref = 0.95047, 1.00000, 1.08883
-
-    # 计算f(Y), f(X), f(Z)
-    fy = (L + 16) / 116
-    fx = fy + A / 500
-    fz = fy - B / 200
-
-    # 计算XYZ
-    x = x_ref * f_inv(fx)
-    y = y_ref * f_inv(fy)
-    z = z_ref * f_inv(fz)
-
-    # 步骤2: 从XYZ转换到线性RGB
-    r_linear = x * 3.2404542 + y * -1.5371385 + z * -0.4985314
-    g_linear = x * -0.9692660 + y * 1.8760108 + z * 0.0415560
-    b_linear = x * 0.0556434 + y * -0.2040259 + z * 1.0572252
-
-    # 步骤3: 应用gamma校正（从线性空间转换到sRGB）
-    def linear_to_srgb(c: float) -> float:
-        if c <= 0.0031308:
-            return c * 12.92
-        else:
-            return 1.055 * (c ** (1 / 2.4)) - 0.055
-
-    r = max(0, min(255, round(linear_to_srgb(r_linear) * 255)))
-    g = max(0, min(255, round(linear_to_srgb(g_linear) * 255)))
-    b_out = max(0, min(255, round(linear_to_srgb(b_linear) * 255)))
-
-    return r, g, b_out
 
 
 def generate_gradient(
@@ -307,7 +254,7 @@ def generate_lightness_shades(
         L, A, B = rgb_to_lab(*base_rgb)
         for i in range(count):
             lightness = max_lightness - i * step
-            colors.append(_lab_to_rgb(lightness, A, B))
+            colors.append(lab_to_rgb(lightness, A, B))
     elif color_space == 'hsl':
         # HSL空间：固定H/S，L从95%到10%均匀分布
         H, S, _ = rgb_to_hsl(*base_rgb)

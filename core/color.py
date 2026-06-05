@@ -511,29 +511,6 @@ def get_zone_bounds(zone_str: str) -> tuple[int, int]:
     return (min_lum, max_lum)
 
 
-def _qimage_to_numpy(image) -> np.ndarray:
-    """QImage转NumPy数组（使用bits()直接内存访问）"""
-    width = image.width()
-    height = image.height()
-
-    if image.format() != image.Format.Format_RGB888:
-        image = image.convertToFormat(image.Format.Format_RGB888)
-
-    ptr = image.bits()
-    bytes_per_line = image.bytesPerLine()
-
-    if bytes_per_line == width * 3:
-        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
-    else:
-        arr = np.zeros((height, width, 3), dtype=np.uint8)
-        for y in range(height):
-            offset = y * bytes_per_line
-            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
-            arr[y] = row.reshape((width, 3))
-
-    return arr
-
-
 def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> list[int]:
     """计算图片的明度直方图（使用NumPy向量化优化）
 
