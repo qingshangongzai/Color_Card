@@ -1269,27 +1269,22 @@ def get_scheme_preview_colors(
 class _ColorCube:
     """MMCQ 颜色立方体，用于表示颜色空间中的一个区域"""
 
-    def __init__(self, pixels: list[tuple[int, int, int]]):
+    def __init__(self, pixels: np.ndarray):
         """
         Args:
-            pixels: RGB 像素列表 [(r, g, b), ...]
+            pixels: RGB 像素数组 (N×3)，dtype=np.int32
         """
-        self.pixels = pixels
+        self._np_pixels = pixels
         self._cache_volume = None
         self._cache_avg_color = None
         self._cache_ranges = None
-        self._np_pixels = None
-
-        # 预先转换为 numpy 数组
-        if pixels:
-            self._np_pixels = np.array(pixels, dtype=np.int32)
 
     def _get_ranges(self) -> tuple[int, int, int, int, int, int]:
         """获取各颜色通道的范围（使用缓存）"""
         if self._cache_ranges is not None:
             return self._cache_ranges
 
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             self._cache_ranges = (0, 0, 0, 0, 0, 0)
             return self._cache_ranges
 
@@ -1306,7 +1301,7 @@ class _ColorCube:
         if self._cache_volume is not None:
             return self._cache_volume
 
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             self._cache_volume = 0
             return 0
 
@@ -1316,14 +1311,14 @@ class _ColorCube:
 
     def get_count(self) -> int:
         """获取像素数量"""
-        return len(self.pixels)
+        return len(self._np_pixels)
 
     def get_average_color(self) -> tuple[int, int, int]:
         """计算立方体内像素的平均颜色"""
         if self._cache_avg_color is not None:
             return self._cache_avg_color
 
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             self._cache_avg_color = (0, 0, 0)
             return self._cache_avg_color
 
@@ -1335,7 +1330,7 @@ class _ColorCube:
 
     def get_longest_axis(self) -> str:
         """获取最长的颜色轴 ('r', 'g', 或 'b')"""
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             return 'r'
 
         r_min, r_max, g_min, g_max, b_min, b_max = self._get_ranges()
@@ -1354,37 +1349,35 @@ class _ColorCube:
 
     def split(self) -> tuple['_ColorCube', '_ColorCube']:
         """沿最长轴的中位数切分立方体"""
-        if not self.pixels:
-            return _ColorCube([]), _ColorCube([])
+        if len(self._np_pixels) == 0:
+            empty = np.array([], dtype=np.int32).reshape(0, 3)
+            return _ColorCube(empty), _ColorCube(empty)
 
         axis = self.get_longest_axis()
         axis_index = {'r': 0, 'g': 1, 'b': 2}[axis]
 
-        # 使用 numpy 快速排序
+        # 使用 numpy 排序和切片
         sorted_indices = np.argsort(self._np_pixels[:, axis_index])
         mid = len(sorted_indices) // 2
 
-        pixels1 = [self.pixels[i] for i in sorted_indices[:mid]]
-        pixels2 = [self.pixels[i] for i in sorted_indices[mid:]]
+        # 直接使用 numpy 数组切片
+        pixels1 = self._np_pixels[sorted_indices[:mid]]
+        pixels2 = self._np_pixels[sorted_indices[mid:]]
 
-        # 切分为两个立方体
-        cube1 = _ColorCube(pixels1)
-        cube2 = _ColorCube(pixels2)
-
-        return cube1, cube2
+        return _ColorCube(pixels1), _ColorCube(pixels2)
 
 
-def _mmcq_quantize(pixels: list[tuple[int, int, int]], count: int) -> list[_ColorCube]:
+def _mmcq_quantize(pixels: np.ndarray, count: int) -> list[_ColorCube]:
     """MMCQ 算法核心实现
 
     Args:
-        pixels: RGB 像素列表
+        pixels: RGB 像素数组 (N×3)
         count: 目标颜色数量
 
     Returns:
         list: 颜色立方体列表
     """
-    if not pixels or count <= 0:
+    if len(pixels) == 0 or count <= 0:
         return []
 
     # 初始立方体包含所有像素
@@ -1418,64 +1411,56 @@ def _mmcq_quantize(pixels: list[tuple[int, int, int]], count: int) -> list[_Colo
     return cubes
 
 
-def _extract_pixels_fast(image, sample_step: int = 4) -> list[tuple[int, int, int]]:
+def _extract_pixels_fast(image, sample_step: int = 4) -> np.ndarray:
     """快速提取图片像素数据
-
-    使用 numpy 优化像素提取性能。
 
     Args:
         image: QImage 或 PIL Image 对象
         sample_step: 采样步长
 
     Returns:
-        list: RGB 像素列表
+        np.ndarray: RGB 像素数组 (N×3)，dtype=np.uint8
     """
-    pixels = []
-
     # 处理 QImage
     if hasattr(image, 'width') and hasattr(image, 'height'):
         width = image.width()
         height = image.height()
 
         if hasattr(image, 'bits'):
-            # 使用 numpy 批量读取像素（QImage 格式）
             arr = _qimage_to_numpy(image)
 
             # 采样像素
-            arr_sampled = arr[::sample_step, ::sample_step]
-            pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+            sampled = arr[::sample_step, ::sample_step].reshape(-1, 3)
 
-            # 额外采样边缘像素
+            # 合并边缘像素
             if width > 0 and height > 0:
                 right_edge = arr[::sample_step, -1]
                 bottom_edge = arr[-1, ::sample_step]
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+                edges = np.vstack([right_edge, bottom_edge])
+                return np.vstack([sampled, edges])
 
-            return pixels
+            return sampled
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
         width, height = image.size
 
         if hasattr(image, 'convert'):
-            # 使用 numpy 批量读取像素（PIL Image 格式）
             arr = np.array(image.convert('RGB'))
 
             # 采样像素
-            arr_sampled = arr[::sample_step, ::sample_step]
-            pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+            sampled = arr[::sample_step, ::sample_step].reshape(-1, 3)
 
-            # 额外采样边缘像素
+            # 合并边缘像素
             if width > 0 and height > 0:
                 right_edge = arr[::sample_step, -1]
                 bottom_edge = arr[-1, ::sample_step]
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+                edges = np.vstack([right_edge, bottom_edge])
+                return np.vstack([sampled, edges])
 
-            return pixels
+            return sampled
 
-    return pixels
+    return np.array([], dtype=np.uint8).reshape(0, 3)
 
 
 def _kmeans_plus_plus_init(pixels: np.ndarray, k: int) -> np.ndarray:
@@ -1503,15 +1488,22 @@ def extract_dominant_colors_kmeans(
     count = max(3, min(8, count))
 
     if original_pixels is not None:
-        arr_sampled = original_pixels[::sample_step, ::sample_step]
-        pixels_list = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+        arr_sampled = original_pixels[::sample_step, ::sample_step].reshape(-1, 3)
+        # 合并边缘像素
+        if original_pixels.size > 0:
+            right_edge = original_pixels[::sample_step, -1]
+            bottom_edge = original_pixels[-1, ::sample_step]
+            edges = np.vstack([right_edge, bottom_edge])
+            pixels_np = np.vstack([arr_sampled, edges]).astype(np.float32)
+        else:
+            pixels_np = arr_sampled.astype(np.float32)
     else:
-        pixels_list = _extract_pixels_fast(image, sample_step)
+        pixels_arr = _extract_pixels_fast(image, sample_step)
+        pixels_np = pixels_arr.astype(np.float32)
 
-    if not pixels_list:
+    if len(pixels_np) == 0:
         return []
 
-    pixels_np = np.array(pixels_list, dtype=np.float32)
     centroids = _kmeans_plus_plus_init(pixels_np, count)
 
     for _ in range(max_iterations):
@@ -1560,20 +1552,24 @@ def extract_dominant_colors(
     count = max(3, min(8, count))
 
     if original_pixels is not None:
-        arr_sampled = original_pixels[::sample_step, ::sample_step]
-        pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+        arr_sampled = original_pixels[::sample_step, ::sample_step].reshape(-1, 3)
+        # 合并边缘像素
         if original_pixels.size > 0:
             right_edge = original_pixels[::sample_step, -1]
             bottom_edge = original_pixels[-1, ::sample_step]
-            pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-            pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+            edges = np.vstack([right_edge, bottom_edge])
+            pixels = np.vstack([arr_sampled, edges])
+        else:
+            pixels = arr_sampled
     else:
         pixels = _extract_pixels_fast(image, sample_step)
 
-    if not pixels:
+    if len(pixels) == 0:
         return []
 
-    cubes = _mmcq_quantize(pixels, count)
+    # 转换为 int32 用于 MMCQ
+    pixels_int32 = pixels.astype(np.int32)
+    cubes = _mmcq_quantize(pixels_int32, count)
     cubes.sort(key=lambda c: c.get_count(), reverse=True)
     dominant_colors = [cube.get_average_color() for cube in cubes]
 
@@ -1583,7 +1579,7 @@ def extract_dominant_colors(
 def _extract_pixels_with_positions_fast(
     image,
     sample_step: int = 4
-) -> tuple[int, int, list[tuple[int, int, int, int, int]]]:
+) -> tuple[int, int, np.ndarray]:
     """快速提取图片像素数据及其位置
 
     Args:
@@ -1591,9 +1587,9 @@ def _extract_pixels_with_positions_fast(
         sample_step: 采样步长
 
     Returns:
-        tuple: (width, height, pixel_data) 其中 pixel_data 是 [(x, y, r, g, b), ...]
+        tuple: (width, height, pixel_data) 其中 pixel_data 是 (N×5) 数组
+               列顺序: x, y, r, g, b
     """
-    pixel_data = []
     width, height = 0, 0
 
     # 处理 QImage
@@ -1602,44 +1598,50 @@ def _extract_pixels_with_positions_fast(
         height = image.height()
 
         if hasattr(image, 'bits'):
-            # 使用 numpy 批量读取像素
             arr = _qimage_to_numpy(image)
 
-            # 采样像素位置
-            y_coords, x_coords = np.meshgrid(
-                np.arange(0, height, sample_step),
-                np.arange(0, width, sample_step),
-                indexing='ij'
-            )
+            # 使用 numpy 生成坐标网格
+            ys = np.arange(0, height, sample_step)
+            xs = np.arange(0, width, sample_step)
+            y_grid, x_grid = np.meshgrid(ys, xs, indexing='ij')
 
-            for y, x in zip(y_coords.flat, x_coords.flat):
-                r, g, b = arr[y, x]
-                pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+            # 扁平化坐标
+            x_flat = x_grid.ravel()
+            y_flat = y_grid.ravel()
 
-            return width, height, pixel_data
+            # 获取对应像素
+            pixels_flat = arr[::sample_step, ::sample_step].reshape(-1, 3)
+
+            # 合并为 (x, y, r, g, b) 数组
+            pixel_data = np.column_stack([x_flat, y_flat, pixels_flat])
+
+            return width, height, pixel_data.astype(np.int32)
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
         width, height = image.size
 
         if hasattr(image, 'convert'):
-            # 使用 numpy 批量读取像素
             arr = np.array(image.convert('RGB'))
 
-            # 采样像素位置
-            y_coords, x_coords = np.meshgrid(
-                np.arange(0, height, sample_step),
-                np.arange(0, width, sample_step),
-                indexing='ij'
-            )
+            # 使用 numpy 生成坐标网格
+            ys = np.arange(0, height, sample_step)
+            xs = np.arange(0, width, sample_step)
+            y_grid, x_grid = np.meshgrid(ys, xs, indexing='ij')
 
-            for y, x in zip(y_coords.flat, x_coords.flat):
-                r, g, b = arr[y, x]
-                pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+            # 扁平化坐标
+            x_flat = x_grid.ravel()
+            y_flat = y_grid.ravel()
 
-            return width, height, pixel_data
+            # 获取对应像素
+            pixels_flat = arr[::sample_step, ::sample_step].reshape(-1, 3)
 
-    return width, height, pixel_data
+            # 合并为 (x, y, r, g, b) 数组
+            pixel_data = np.column_stack([x_flat, y_flat, pixels_flat])
+
+            return width, height, pixel_data.astype(np.int32)
+
+    return width, height, np.array([], dtype=np.int32).reshape(0, 5)
 
 
 def find_dominant_color_positions(
@@ -1666,20 +1668,22 @@ def find_dominant_color_positions(
         height, width = original_pixels.shape[:2]
         arr = original_pixels[::sample_step, ::sample_step]
         ys, xs = np.mgrid[0:height:sample_step, 0:width:sample_step]
-        pixel_data = [
-            (int(x), int(y), int(r), int(g), int(b))
-            for y, x, r, g, b in zip(ys.flat, xs.flat, arr[:, :, 0].flat, arr[:, :, 1].flat, arr[:, :, 2].flat)
-        ]
+
+        # 使用 numpy 列向量合并
+        x_flat = xs.ravel()
+        y_flat = ys.ravel()
+        pixels_flat = arr.reshape(-1, 3)
+        pixel_data = np.column_stack([x_flat, y_flat, pixels_flat]).astype(np.float32)
     else:
         width, height, pixel_data = _extract_pixels_with_positions_fast(image, sample_step)
+        pixel_data = pixel_data.astype(np.float32)
 
-    if not pixel_data or width == 0 or height == 0:
+    if len(pixel_data) == 0 or width == 0 or height == 0:
         return [(0.5, 0.5)] * len(dominant_colors)
 
-    pixel_array = np.array(pixel_data, dtype=np.float32)
     dominant_array = np.array(dominant_colors, dtype=np.float32)
 
-    pixel_colors = pixel_array[:, 2:5]
+    pixel_colors = pixel_data[:, 2:5]
 
     diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
     distances = np.sum(diff ** 2, axis=2)
@@ -1689,7 +1693,7 @@ def find_dominant_color_positions(
     positions = []
     for i in range(len(dominant_colors)):
         mask = closest_indices == i
-        cluster = pixel_array[mask]
+        cluster = pixel_data[mask]
 
         if len(cluster) > 0:
             avg_x = cluster[:, 0].mean()
