@@ -1,32 +1,78 @@
 取色卡（Color Card） - 许可证信息
 
+目录
+
+1. 项目信息
+2. 作者声明
+3. 重要提示
+4. 主项目许可证
+   4.1 GNU General Public License v3.0
+5. 第三方依赖许可证（运行时）
+   5.1 PySide6 - LGPLv3
+   5.2 PySide6-Fluent-Widgets - GPLv3
+   5.3 Pillow - MIT-CMU
+   5.4 requests - Apache 2.0
+   5.5 numpy - BSD-3-Clause
+   5.6 PySideSix-Frameless-Window - LGPLv3
+6. 内置色彩方案
+   6.1 Open Color - MIT
+   6.2 Nice Color Palettes - MIT
+   6.3 Tailwind CSS Colors - MIT
+   6.4 Material Design Colors - Apache 2.0
+   6.5 ColorBrewer - Apache 2.0
+   6.6 Radix UI Colors - MIT
+   6.7 Nord - MIT
+   6.8 Dracula - MIT
+   6.9 Rosé Pine - MIT
+   6.10 Solarized - MIT
+   6.11 Catppuccin - MIT
+   6.12 Gruvbox - MIT/X11
+   6.13 Tokyo Night - MIT
+7. 网站使用资源
+   7.1 Tailwind CSS (CSS 框架) - MIT
+   7.2 Inter 字体 - SIL OFL 1.1
+   7.3 Vue.js - MIT
+   7.4 TypeScript - Apache 2.0
+   7.5 Vite - MIT
+   7.6 内置色彩方案展示
+8. 开发工具链许可证
+   8.1 Nuitka - AGPLv3 + Runtime Library Exception
+9. 使用说明
+
 ================================================================================
-项目信息
---------------------------------------------------------------------------------
+1. 项目信息
+================================================================================
 项目名称：取色卡（Color Card）
 版权所有：© 2026 浮晓 HXiao Studio
 开发者：青山公仔
 联系方式：hxiao_studio@163.com
 
 ================================================================================
-作者声明
---------------------------------------------------------------------------------
-虽然GPL v3允许商业使用，但作为作者，我恳请使用者遵守以下原则：
+2. 作者声明
+================================================================================
+虽然 GPLv3 允许商业使用，但作为作者，我恳请使用者遵守以下原则：
 
 - 非商业使用：请勿将此工具用于商业盈利目的
 - 共享改进：欢迎提交改进，但请保持开源精神
 
-请注意，这只是作者的道德请求，法律上仍遵循GPL v3条款。
+请注意，这只是作者的道德请求，法律上仍遵循 GPLv3 条款。
 
 ================================================================================
-⚠️ 重要提示
---------------------------------------------------------------------------------
+3. 重要提示
+================================================================================
 本项目主要包含以下许可证：
-1. 主项目许可证：GNU General Public License v3.0 (GPLv3)
-2. 第三方库许可证：包含LGPL-3.0、GPL-3.0、MIT等多种开源许可证，详细的第三方库许可证信息请查看后续章节或应用程序的"关于"窗口
+1. 主项目许可证：GNU General Public License v3.0 (GPLv3) — 见第4节
+2. 第三方运行时库许可证：包含 LGPLv3、MIT、Apache 2.0、BSD-3-Clause 等 — 见第5节
+3. 内置色彩方案许可证：主要为 MIT，部分为 Apache 2.0 — 见第6节
+4. 网站使用资源许可证：MIT、Apache 2.0、SIL OFL 1.1 等 — 见第7节
+5. 开发工具许可证：Nuitka (AGPLv3 + Runtime Library Exception) — 见第8节
+
+详细的许可证信息请查阅对应章节或应用程序的“关于”窗口。
 
 ================================================================================
-GNU GENERAL PUBLIC LICENSE
+4. 主项目许可证
+================================================================================
+4.1 GNU GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
 
 Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
@@ -34,7 +80,7 @@ Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
 
 Preamble
---------------------------------------------------------------------------------
+
 The GNU General Public License is a free, copyleft license for software and
 other kinds of works.
 
@@ -395,8 +441,7 @@ consequence of using peer-to-peer transmission to receive a copy likewise does
 not require acceptance. However, nothing other than this License grants you
 permission to propagate or modify any covered work. These actions infringe
 copyright if you do not accept this License. Therefore, by modifying or
-propagating a covered work, you indicate your acceptance of this License to do
-so.
+propagating a covered work, you indicate your acceptance of this License to do so.
 
 10. Automatic Licensing of Downstream Recipients.
 Each time you convey a covered work, the recipient automatically receives a
@@ -554,7 +599,7 @@ liability accompanies a copy of the Program in return for a fee.
 END OF TERMS AND CONDITIONS
 
 How to Apply These Terms to Your New Programs
---------------------------------------------------------------------------------
+
 If you develop a new program, and you want it to be of the greatest possible
 use to the public, the best way to achieve this is to make it free software
 which everyone can redistribute and change under these terms.
@@ -606,18 +651,15 @@ this is what you want to do, use the GNU Lesser General Public License instead
 of this License. But first, please read <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 ================================================================================
-第三方库许可证
---------------------------------------------------------------------------------
-本项目使用了以下第三方库，每个库都有其自己的开源许可证：
+5. 第三方依赖许可证（运行时）
+================================================================================
 
---------------------------------------------------------------------------------
-1. PySide6
+5.1 PySide6
 --------------------------------------------------------------------------------
 版权所有：The Qt Company
 Qt官网：https://www.qt.io/
 许可证：GNU Lesser General Public License v3.0
 
---------------------------------------------------------------------------------
 GNU LESSER GENERAL PUBLIC LICENSE
 Version 3, 29 June 2007
 
@@ -755,28 +797,24 @@ future versions of the GNU Lesser General Public License shall apply, that
 proxy's public statement of acceptance of any version is permanent authorization
 for you to choose that version for the Library.
 
-================================================================================
-2. PySide6-Fluent-Widgets
+5.2 PySide6-Fluent-Widgets
 --------------------------------------------------------------------------------
 版权所有：zhiyiYo
 项目地址：https://github.com/zhiyiYo/PyQt-Fluent-Widgets
 许可证：GNU General Public License v3.0
 
 说明：
-PySide6-Fluent-Widgets 使用 GPLv3 许可证。由于本项目主许可证也为 GPLv3，
-完整的 GPLv3 许可证文本请参考本文档前面的 "GNU GENERAL PUBLIC LICENSE
-Version 3" 章节。
+PySide6-Fluent-Widgets 使用 GPLv3 许可证。完整的 GPLv3 许可证文本请参阅第4节
+“主项目许可证”中的 GNU General Public License Version 3。
 
-================================================================================
-3. Pillow
+5.3 Pillow
 --------------------------------------------------------------------------------
 版权所有：Python Imaging Library Team
 项目地址：https://github.com/python-pillow/Pillow
 官网：python-pillow.github.io
 许可证：MIT-CMU License
 
---------------------------------------------------------------------------------
-MIT License
+MIT License (MIT-CMU)
 
 The Python Imaging Library (PIL) is
 
@@ -809,20 +847,16 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
 OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
-================================================================================
-4. requests
+5.4 requests
 --------------------------------------------------------------------------------
 版权所有：Kenneth Reitz
 项目地址：https://github.com/psf/requests
 许可证：Apache License 2.0
 
---------------------------------------------------------------------------------
 NOTICE
---------------------------------------------------------------------------------
 Requests
 Copyright 2019 Kenneth Reitz
 
---------------------------------------------------------------------------------
 Apache License
 Version 2.0, January 2004
 
@@ -985,15 +1019,13 @@ of your accepting any such warranty or additional liability.
 
 END OF TERMS AND CONDITIONS
 
-================================================================================
-5. numpy (BSD-3-Clause)
+5.5 numpy
 --------------------------------------------------------------------------------
 版权所有：NumPy Developers
 项目地址：https://github.com/numpy/numpy
 官网：https://numpy.org/
 许可证：BSD 3-Clause License
 
---------------------------------------------------------------------------------
 BSD 3-Clause License
 
 Copyright (c) 2005-2025, NumPy Developers.
@@ -1027,21 +1059,21 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-================================================================================
-6. PySideSix-Frameless-Window
+5.6 PySideSix-Frameless-Window
 --------------------------------------------------------------------------------
 版权所有：zhiyiYo
 项目地址：https://github.com/zhiyiYo/PyQt-Frameless-Window
 许可证：GNU Lesser General Public License v3.0
 
 说明：
-PySideSix-Frameless-Window 使用 LGPLv3 许可证。由于本项目主许可证为 GPLv3，
-而 LGPLv3 是 GPLv3 的补充版本，完整的 LGPLv3 许可证文本请参考本文档
-"PySide6" 章节中的 "GNU LESSER GENERAL PUBLIC LICENSE Version 3" 部分。
-
+PySideSix-Frameless-Window 使用 LGPLv3 许可证。完整的 LGPLv3 许可证文本请参阅
+第5.1节 “PySide6”中的 GNU Lesser General Public License Version 3。
 
 ================================================================================
-7. Open Color
+6. 内置色彩方案
+================================================================================
+
+6.1 Open Color
 --------------------------------------------------------------------------------
 版权所有：heeyeun (Yeun)
 项目地址：https://github.com/yeun/open-color
@@ -1049,7 +1081,6 @@ PySideSix-Frameless-Window 使用 LGPLv3 许可证。由于本项目主许可证
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) 2016 heeyeun
@@ -1072,15 +1103,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-8. Nice Color Palettes
+6.2 Nice Color Palettes
 --------------------------------------------------------------------------------
 版权所有：Jam3
 项目地址：https://github.com/Experience-Monks/nice-color-palettes
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 The MIT License (MIT)
 Copyright (c) 2016 Jam3
 
@@ -1102,8 +1131,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 
-================================================================================
-9. Tailwind CSS Colors
+6.3 Tailwind CSS Colors
 --------------------------------------------------------------------------------
 版权所有：Tailwind Labs, Inc.
 项目地址：https://github.com/tailwindlabs/tailwindcss
@@ -1111,7 +1139,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) Tailwind Labs, Inc.
@@ -1134,8 +1161,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-10. Material Design Colors (Apache License 2.0)
+6.4 Material Design Colors
 --------------------------------------------------------------------------------
 版权所有：Google LLC
 项目地址：https://m3.material.io/styles/color/system/overview
@@ -1143,11 +1169,10 @@ SOFTWARE.
 用途：内置色彩配色方案
 
 说明：
-Material Design Colors 使用 Apache License 2.0 许可证。完整的许可证文本请参考
-requests 章节中的 "Apache License Version 2.0" 部分。
+Material Design Colors 使用 Apache License 2.0 许可证。完整的许可证文本请参阅
+第5.4节 “requests”中的 Apache License Version 2.0。
 
-================================================================================
-11. ColorBrewer (Apache License 2.0)
+6.5 ColorBrewer
 --------------------------------------------------------------------------------
 版权所有：Cynthia Brewer
 官网：https://colorbrewer2.org/
@@ -1155,11 +1180,10 @@ requests 章节中的 "Apache License Version 2.0" 部分。
 用途：内置色彩配色方案
 
 说明：
-ColorBrewer 使用 Apache License 2.0 许可证。完整的许可证文本请参考
-requests 章节中的 "Apache License Version 2.0" 部分。
+ColorBrewer 使用 Apache License 2.0 许可证。完整的许可证文本请参阅第5.4节
+“requests”中的 Apache License Version 2.0。
 
-================================================================================
-12. Radix UI Colors
+6.6 Radix UI Colors
 --------------------------------------------------------------------------------
 版权所有：WorkOS
 项目地址：https://github.com/radix-ui/colors
@@ -1167,7 +1191,6 @@ requests 章节中的 "Apache License Version 2.0" 部分。
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) 2021-2022 Modulz
@@ -1191,8 +1214,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-13. Nord
+6.7 Nord
 --------------------------------------------------------------------------------
 版权所有：Sven Greb
 项目地址：https://github.com/arcticicestudio/nord
@@ -1200,7 +1222,6 @@ SOFTWARE.
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 MIT License (MIT)
 
 Copyright (c) 2016-present Sven Greb <development@svengreb.de> (https://www.svengreb.de)
@@ -1223,15 +1244,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-14. Dracula
----------------------------------------------------------------------------------
+6.8 Dracula
+--------------------------------------------------------------------------------
 版权所有：Dracula Theme contributors
 官网：https://draculatheme.com/
 许可证：MIT License
 用途：内置色彩配色方案
 
----------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) Dracula Theme contributors
@@ -1254,16 +1273,14 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 
-================================================================================
-15. Rosé Pine
----------------------------------------------------------------------------------
+6.9 Rosé Pine
+--------------------------------------------------------------------------------
 版权所有：Rosé Pine 团队
 项目地址：https://github.com/rose-pine/rose-pine-theme
 官网：https://www.rosepine.com/
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) 2023 Rosé Pine
@@ -1286,8 +1303,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-16. Solarized
+6.10 Solarized
 --------------------------------------------------------------------------------
 版权所有：Ethan Schoonover
 项目地址：https://github.com/altercation/solarized
@@ -1295,7 +1311,6 @@ SOFTWARE.
 许可证：MIT License
 用途：内置色彩配色方案
 
---------------------------------------------------------------------------------
 Copyright (c) 2011 Ethan Schoonover
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1316,16 +1331,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-================================================================================
-17. Catppuccin
+6.11 Catppuccin
 --------------------------------------------------------------------------------
 版权所有：Catppuccin 团队
 项目地址：https://github.com/catppuccin/catppuccin
 官网：https://catppuccin.com/
 许可证：MIT License
 用途：内置色彩配色方案
-
---------------------------------------------------------------------------------
 
 MIT License
 
@@ -1349,15 +1361,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-18. Gruvbox
+6.12 Gruvbox
 --------------------------------------------------------------------------------
 版权所有：Pavel Pertsev
 项目地址：https://github.com/morhetz/gruvbox
 许可证：MIT/X11 License
 用途：内置色彩配色方案
-
---------------------------------------------------------------------------------
 
 Copyright (c) 2012 Pavel Pertsev
 
@@ -1379,15 +1388,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-19. Tokyo Night
+6.13 Tokyo Night
 --------------------------------------------------------------------------------
 版权所有：enkia
 项目地址：https://github.com/enkia/tokyo-night-vscode-theme
 许可证：MIT License
 用途：内置色彩配色方案
-
---------------------------------------------------------------------------------
 
 The MIT License (MIT)
 
@@ -1413,40 +1419,56 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ================================================================================
-20. 网站使用资源
---------------------------------------------------------------------------------
+7. 网站使用资源
+================================================================================
 项目官网 (https://qingshangongzai.github.io/Color_Card/) 使用了以下资源：
 
-1. Tailwind CSS (MIT License)
----------------------------------------------------------------------------------
+7.1 Tailwind CSS (CSS 框架)
+--------------------------------------------------------------------------------
 版权所有：Tailwind Labs, Inc.
 项目地址：https://github.com/tailwindlabs/tailwindcss
 官网：https://tailwindcss.com
 来源：https://cdn.tailwindcss.com
 许可证：MIT License
-用途：CSS 样式框架
+用途：CSS 样式框架（仅用于网站展示，不包含在最终分发的桌面应用程序中）
 
-   说明：Tailwind CSS 使用 MIT License 许可证。完整的许可证文本请参考本文档第8节
-   "Tailwind CSS Colors" 中的 MIT License 部分。
+MIT License
 
-================================================================================
+Copyright (c) Tailwind Labs, Inc.
 
-2. Inter 字体
-   来源：Google Fonts (https://fonts.google.com/specimen/Inter)
-   版权所有：© Rasmus Andersson
-   许可证：SIL Open Font License 1.1
-   用途：网站正文字体
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-================================================================================
-3. Vue.js (MIT License)
----------------------------------------------------------------------------------
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+7.2 Inter 字体
+--------------------------------------------------------------------------------
+来源：Google Fonts (https://fonts.google.com/specimen/Inter)
+版权所有：© Rasmus Andersson
+许可证：SIL Open Font License 1.1
+用途：网站正文字体（未随本软件分发，仅通过网站引用）
+
+7.3 Vue.js
+--------------------------------------------------------------------------------
 版权所有：Yuxi (Evan) You and Vue contributors
 项目地址：https://github.com/vuejs/core
 官网：https://vuejs.org/
 许可证：MIT License
 用途：网站前端框架（仅用于开发，不包含在最终产品中）
 
----------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) 2018-present, Yuxi (Evan) You and Vue contributors
@@ -1468,9 +1490,8 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-================================================================================
-4. TypeScript (Apache License 2.0)
----------------------------------------------------------------------------------
+7.4 TypeScript
+--------------------------------------------------------------------------------
 版权所有：Microsoft Corporation
 项目地址：https://github.com/microsoft/TypeScript
 官网：https://www.typescriptlang.org/
@@ -1478,19 +1499,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 用途：网站开发类型系统（仅用于开发，不包含在最终产品中）
 
 说明：
-TypeScript 使用 Apache License 2.0 许可证。完整的许可证文本请参考本文档第4节
-"requests" 中的 "Apache License Version 2.0" 部分。
+TypeScript 使用 Apache License 2.0 许可证。完整的许可证文本请参阅第5.4节
+“requests”中的 Apache License Version 2.0。
 
-================================================================================
-5. Vite (MIT License)
----------------------------------------------------------------------------------
+7.5 Vite
+--------------------------------------------------------------------------------
 版权所有：Yuxi (Evan) You and Vite contributors
 项目地址：https://github.com/vitejs/vite
 官网：https://vitejs.dev/
 许可证：MIT License
 用途：网站开发构建工具（仅用于开发，不包含在最终产品中）
 
----------------------------------------------------------------------------------
 MIT License
 
 Copyright (c) 2019-present, VoidZero Inc. and Vite contributors
@@ -1513,64 +1532,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-================================================================================
-6. 开源配色方案展示
----------------------------------------------------------------------------------
-官网展示了13套开源配色方案（详见上文第6-18节）
-所有配色方案均遵循各自的开源许可证
-
-================================================================================
-开发工具链许可证
+7.6 内置色彩方案展示
 --------------------------------------------------------------------------------
-本项目在开发过程中使用了以下工具：
+官网展示的13套开源配色方案（Open Color、Nice Color Palettes、Tailwind CSS Colors、
+Material Design Colors、ColorBrewer、Radix UI Colors、Nord、Dracula、Rosé Pine、
+Solarized、Catppuccin、Gruvbox、Tokyo Night）均遵循各自的开源许可证，具体信息请
+参见第6节“内置色彩方案”。
 
 ================================================================================
-1. Nuitka
+8. 开发工具链许可证
+================================================================================
+
+8.1 Nuitka
 --------------------------------------------------------------------------------
 版权所有：Kay Hayen
 项目地址：https://github.com/Nuitka/Nuitka
 官网：https://nuitka.net/
-许可证：GNU Affero General Public License v3.0
-用途：编译打包
+许可证：GNU Affero General Public License v3.0 (AGPLv3)，附带 Runtime Library Exception
+用途：编译打包（仅作为开发工具使用，其 Runtime Library Exception 明确允许生成
+产物不受 AGPLv3 传染性限制）
 
 说明：
-Nuitka 是一款 Python 编译器，将 Python 代码编译为独立的可执行文件。
-本项目使用 Nuitka 编译 Windows 和 Mac 版本。
+Nuitka 编译器本身使用 AGPLv3 许可证。但根据其提供的 Runtime Library Exception，
+通过 Nuitka 编译生成的目标代码（本项目的可执行文件）可以选择不同于 AGPLv3 的
+条款进行许可，不受 AGPLv3 传染性约束。以下为该豁免条款的全文：
 
-Nuitka 采用双重许可：
-1. GNU Affero General Public License v3.0 - 编译器本身
-2. LICENSE-RUNTIME - 运行时组件，允许商业使用
-
-本项目仅使用 Nuitka 作为编译工具，生成的可执行文件适用 LICENSE-RUNTIME 条款。
-
-Nuitka 编译器本身使用 AGPL-3.0 许可证。完整的 GPL-3.0 许可证文本请参考本文档前面的
-"GNU GENERAL PUBLIC LICENSE Version 3" 章节，以下是 AGPL-3.0 相较 GPL-3.0 补充的部分：
-
---------------------------------------------------------------------------------
-
-13. Remote Network Interaction; Use with the GNU General Public License.
-
-Notwithstanding any other provision of this License, if you modify the
-Program, your modified version must prominently offer all users
-interacting with it remotely through a computer network (if your version
-supports such interaction) an opportunity to receive the Corresponding
-Source of your version by providing access to the Corresponding Source
-from a network server at no charge, through some standard or customary
-means of facilitating copying of software.  This Corresponding Source
-shall include the Corresponding Source for any work covered by version 3
-of the GNU General Public License that is incorporated pursuant to the
-following paragraph.
-
-Notwithstanding any other provision of this License, you have
-permission to link or combine any covered work with a work licensed
-under version 3 of the GNU General Public License into a single
-combined work, and to convey the resulting work.  The terms of this
-License will continue to apply to the part which is the covered work,
-but the work with which it is combined will remain governed by version
-3 of the GNU General Public License.
-
---------------------------------------------------------------------------------
-LICENSE-RUNTIME
 --------------------------------------------------------------------------------
 Nuitka Runtime Library Exception
 
@@ -1630,10 +1616,9 @@ This exception is intended to allow the creation of closed-source Python
 applications that use Nuitka, but it does prevent the creation of closed-source
 Nuitka itself except by the source code owner.
 
-
 ================================================================================
-使用说明
---------------------------------------------------------------------------------
+9. 使用说明
+================================================================================
 许可证约束：
 - 本项目整体受 GNU General Public License v3.0 约束
 - 使用本软件即表示您同意遵守所有相关许可证条款
