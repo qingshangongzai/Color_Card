@@ -356,6 +356,7 @@ simulated_color = "模拟颜色"
 original = "原始"
 simulated = "模拟"
 description = "说明: {desc}"
+severity = "严重程度：{value}%"
 
 [dialogs.contrast]
 title = "对比度检查"
