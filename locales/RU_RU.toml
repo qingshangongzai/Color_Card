@@ -54,6 +54,10 @@ title = "Цветовая схема:"
 random = "Случай"
 favorite = "Сохр."
 brightness = "Яркость:"
+copied = "Скопировано"
+copied_content = "Значение цвета {hex} скопировано в буфер обмена"
+favorite_failed = "Невозможно сохранить"
+no_colors_to_favorite = "Нет цветов для сохранения"
 
 [color_generation.schemes]
 monochromatic = "Монохроматическая"
@@ -65,10 +69,6 @@ double_complementary = "Двойная"
 [color_generation.favorite_success]
 title = "Сохранено"
 content = """Цветовая схема "{name}" добавлена в управление палитрами"""
-copied = "Скопировано"
-copied_content = "Значение цвета {hex} скопировано в буфер обмена"
-favorite_failed = "Невозможно сохранить"
-no_colors_to_favorite = "Нет цветов для сохранения"
 
 [palette_management]
 title = "Палитры"
