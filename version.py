@@ -9,9 +9,9 @@ class VersionManager:
         """初始化版本管理器"""
         # 版本号组件
         self.major: int = 1
-        self.minor: int = 10
-        self.patch: int = 2
-        self.build: int = 2
+        self.minor: int = 11
+        self.patch: int = 0
+        self.build: int = 0
         self.prerelease: str = ""
 
         # 核心版本信息
