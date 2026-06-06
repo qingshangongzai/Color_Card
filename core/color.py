@@ -1466,14 +1466,24 @@ def _extract_pixels_fast(image, sample_step: int = 4) -> np.ndarray:
 def _kmeans_plus_plus_init(pixels: np.ndarray, k: int) -> np.ndarray:
     """K-Means++ 初始化聚类中心"""
     rng = np.random.default_rng()
-    centroids = [pixels[rng.integers(len(pixels))]]
+    n = len(pixels)
+
+    # 随机选择第一个中心
+    centroids = [pixels[rng.integers(n)]]
+    # 计算所有像素到第一个中心的距离
+    diff = pixels - centroids[0]
+    min_dist_sq = np.sum(diff * diff, axis=1)
+
     for _ in range(1, k):
-        dist_sq = np.min(
-            np.sum((pixels[:, np.newaxis] - np.array(centroids)[np.newaxis]) ** 2, axis=2),
-            axis=1
-        )
-        probs = dist_sq / dist_sq.sum()
-        centroids.append(pixels[rng.choice(len(pixels), p=probs)])
+        probs = min_dist_sq / min_dist_sq.sum()
+        new_centroid = pixels[rng.choice(n, p=probs)]
+        centroids.append(new_centroid)
+
+        # 只计算新中心的距离，增量更新最小值
+        diff = pixels - new_centroid
+        new_dist_sq = np.sum(diff * diff, axis=1)
+        np.minimum(min_dist_sq, new_dist_sq, out=min_dist_sq)
+
     return np.array(centroids, dtype=np.float32)
 
 
@@ -1505,21 +1515,24 @@ def extract_dominant_colors_kmeans(
         return []
 
     centroids = _kmeans_plus_plus_init(pixels_np, count)
+    # 预计算像素范数平方，避免每轮重复计算
+    pixel_norms = np.sum(pixels_np * pixels_np, axis=1)
 
     for _ in range(max_iterations):
-        distances = np.sum(
-            (pixels_np[:, np.newaxis] - centroids[np.newaxis]) ** 2, axis=2
-        )
+        # 展开式: ||p-c||^2 = ||p||^2 - 2*p.c + ||c||^2，矩阵乘法避免 (N,k,3) 中间数组
+        centroid_norms = np.sum(centroids * centroids, axis=1)
+        distances = pixel_norms[:, np.newaxis] - 2 * (pixels_np @ centroids.T) + centroid_norms
         labels = np.argmin(distances, axis=1)
+
         new_centroids = np.array([
-            pixels_np[labels == k].mean(axis=0) if (labels == k).any() else centroids[k]
-            for k in range(count)
+            pixels_np[labels == i].mean(axis=0) if (labels == i).any() else centroids[i]
+            for i in range(count)
         ], dtype=np.float32)
         if np.allclose(centroids, new_centroids):
             break
         centroids = new_centroids
 
-    cluster_sizes = [(labels == k).sum() for k in range(count)]
+    cluster_sizes = [(labels == i).sum() for i in range(count)]
     sorted_indices = np.argsort(cluster_sizes)[::-1]
 
     return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]
