@@ -210,7 +210,7 @@ def _qimage_to_numpy(image: QImage) -> np.ndarray:
             row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
             arr[y] = row.reshape((width, 3))
 
-    return arr.copy()  # 复制一份避免内存问题
+    return arr
 
 
 # ==================== 配色常量定义 ====================
