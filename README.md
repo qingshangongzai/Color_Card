@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white" alt="PySide6">
-  <img src="https://img.shields.io/badge/License-GPL%203.0-FF6B6B?style=for-the-badge" alt="License">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://doc.qt.io/qtforpython/"><img src="https://img.shields.io/badge/PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white" alt="PySide6"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPL%203.0-FF6B6B?style=for-the-badge" alt="License"></a>
 </p>
 
 ***
