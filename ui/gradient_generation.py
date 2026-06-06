@@ -926,15 +926,20 @@ class GradientGenerationInterface(QWidget):
             self.steps_label.setText(tr('gradient_generation.shade_count'))
             self.steps_slider.setMinimum(3)
             self.steps_slider.setMaximum(12)
-            if self._steps < 3:
-                self.steps_slider.setValue(3)
+            default_steps = 5
         else:
             self.start_color_label.setText(tr('gradient_generation.start_color'))
             self.steps_label.setText(tr('gradient_generation.steps'))
             self.steps_slider.setMinimum(1)
             self.steps_slider.setMaximum(10)
-            if self._steps > 10:
-                self.steps_slider.setValue(10)
+            default_steps = 2
+
+        # 屏蔽信号，避免触发冗余日志和重复生成
+        self.steps_slider.blockSignals(True)
+        self.steps_slider.setValue(default_steps)
+        self.steps_slider.blockSignals(False)
+        self._steps = default_steps
+        self.steps_value_label.setText(str(default_steps))
 
     def set_hex_visible(self, visible: bool):
         """设置16进制显示"""
