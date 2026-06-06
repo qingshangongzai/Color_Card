@@ -1698,8 +1698,10 @@ def find_dominant_color_positions(
 
     pixel_colors = pixel_data[:, 2:5]
 
-    diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
-    distances = np.sum(diff ** 2, axis=2)
+    # 展开式: ||p-c||^2 = ||p||^2 - 2*p.c + ||c||^2，矩阵乘法避免 (N,k,3) 中间数组
+    color_norms = np.sum(pixel_colors * pixel_colors, axis=1)
+    dominant_norms = np.sum(dominant_array * dominant_array, axis=1)
+    distances = color_norms[:, np.newaxis] - 2 * (pixel_colors @ dominant_array.T) + dominant_norms
 
     closest_indices = np.argmin(distances, axis=1)
 
