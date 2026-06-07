@@ -34,6 +34,7 @@ from .color import (
     hsl_to_rgb,
     cmyk_to_rgb,
     get_color_info,
+    get_color_info_batch,
     convert_rgb_colorspace,
     get_luminance,
     get_zone,
@@ -78,6 +79,8 @@ from .gradient import (
     generate_random_gradient,
     generate_lightness_shades,
     generate_random_lightness_shade,
+    generate_three_color_gradient,
+    generate_random_three_color_gradient,
 )
 
 from .async_loader import BaseBatchLoader
@@ -154,6 +157,8 @@ __all__ = [
     'generate_random_gradient',
     'generate_lightness_shades',
     'generate_random_lightness_shade',
+    'generate_three_color_gradient',
+    'generate_random_three_color_gradient',
     'rgb_to_hsb',
     'rgb_to_lab',
     'rgb_to_hex',
@@ -165,6 +170,7 @@ __all__ = [
     'hsl_to_rgb',
     'cmyk_to_rgb',
     'get_color_info',
+    'get_color_info_batch',
     'get_luminance',
     'get_zone',
     'get_zone_bounds',

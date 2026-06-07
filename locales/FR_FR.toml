@@ -35,6 +35,8 @@ image_filter = "Fichiers image (*.png *.jpg *.jpeg *.bmp *.gif)"
 
 [gradient_generation]
 start_color = "Couleur de départ"
+mid_color = "Couleur médiane"
+mid_position = "Position médiane"
 end_color = "Couleur de fin"
 base_color = "Couleur de base"
 steps = "Couleurs intermédiaires"
@@ -52,6 +54,10 @@ title = "Schéma de couleurs:"
 random = "Hasard"
 favorite = "Sauver"
 brightness = "Luminosité:"
+copied = "Copié"
+copied_content = "Valeur de couleur {hex} copiée dans le presse-papiers"
+favorite_failed = "Impossible de sauver"
+no_colors_to_favorite = "Aucune couleur à sauver"
 
 [color_generation.schemes]
 monochromatic = "Monochromatique"
@@ -63,10 +69,6 @@ double_complementary = "Double"
 [color_generation.favorite_success]
 title = "Enregistré"
 content = """Le schéma de couleurs "{name}" a été ajouté à la gestion des palettes"""
-copied = "Copié"
-copied_content = "Valeur de couleur {hex} copiée dans le presse-papiers"
-favorite_failed = "Impossible de sauver"
-no_colors_to_favorite = "Aucune couleur à sauver"
 
 [palette_management]
 title = "Gestion des palettes"
@@ -266,6 +268,7 @@ gradient_lab = "Espace LAB"
 gradient_mode = "Mode de dégradé"
 gradient_mode_desc = "Sélectionner le mode d'extraction du dégradé"
 gradient_mode_gradient = "Dégradé bicolore"
+gradient_mode_three_color = "Dégradé tricolore"
 gradient_mode_shade = "Dégradé monochrome"
 luminance = "Extraction de Luminance"
 luminance_default_grayscale = "Mode Niveaux de Gris par Défaut"
@@ -353,6 +356,7 @@ simulated_color = "Couleur simulée"
 original = "Original"
 simulated = "Simulé"
 description = "Note: {desc}"
+severity = "Sévérité: {value}%"
 
 [dialogs.contrast]
 title = "Vérification du contraste"

@@ -12,9 +12,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white" alt="PySide6">
-  <img src="https://img.shields.io/badge/License-GPL%203.0-FF6B6B?style=for-the-badge" alt="License">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://doc.qt.io/qtforpython/"><img src="https://img.shields.io/badge/PySide6-41CD52?style=for-the-badge&logo=qt&logoColor=white" alt="PySide6"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPL%203.0-FF6B6B?style=for-the-badge" alt="License"></a>
 </p>
 
 ***
@@ -43,29 +43,29 @@
 
 自 2026-02-05 发布首个版本以来，项目保持快速稳定的迭代节奏：
 
-|指标 |数据 |
-|:---|:---|
-|发布版本 |16 个版本（v1.0.0 → v1.10.2） |
-|开发周期 |115 天 |
-|总更新项 |**191 项** |
-|平均每版本 |11.9 项 |
+| 指标    | 数据                       |
+| :---- | :----------------------- |
+| 发布版本  | 17 个版本（v1.0.0 → v1.11.0） |
+| 开发周期  | 122 天                    |
+| 总更新项  | **204 项**                |
+| 平均每版本 | 12.0 项                   |
 
 **详细分类统计**：
 
-|分类 |数量 |说明 |
-|:---|:---:|:---|
-|✨ 新增功能 |**48** |包含首次发布的 9 项核心功能 |
-|🔧 问题修复 |**44** |持续修复 Bug，提升稳定性 |
-|🎨 界面优化 |**47** |用户体验打磨 |
-|⚡ 性能提升 |**12** |缓存机制、启动优化等 |
-|📝 内容调整 |**13** |文本、名称等调整 |
-|⚙️ 体验优化 |**7** |交互体验改进 |
-|🏗️ 代码优化 |**6** |代码结构优化 |
-|🔮 逻辑优化 |**2** |算法逻辑改进 |
-|🖥️ 平台支持 |**1** |Mac 版本适配 |
-|📜 许可证完善 |**1** |开源合规性 |
-|🚀 功能优化 |**1** |功能增强 |
-|📛 命名调整 |**1** |面板名称统一 |
+| 分类       |   数量   | 说明              |
+| :------- | :----: | :-------------- |
+| ✨ 新增功能   | **50** | 包含首次发布的 9 项核心功能 |
+| 🔧 问题修复  | **46** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **48** | 用户体验打磨          |
+| ⚡ 性能提升   | **19** | 缓存机制、启动优化等      |
+| 📝 内容调整  | **13** | 文本、名称等调整        |
+| ⚙️ 体验优化  |  **7** | 交互体验改进          |
+| 🏗️ 代码优化 |  **7** | 代码结构优化          |
+| 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
+| 🖥️ 平台支持 |  **1** | Mac 版本适配        |
+| 📜 许可证完善 |  **1** | 开源合规性           |
+| 🚀 功能优化  |  **1** | 功能增强            |
+| 📛 命名调整  |  **1** | 面板名称统一          |
 
 ### ✨ 核心功能特色
 
@@ -73,30 +73,22 @@
 <tr>
 <td align="center" width="25%">
 
-🎨<br>
-<strong>色彩分析</strong><br>
-<small>多色彩空间支持</small>
+🎨 <strong>色彩分析</strong> <small>多色彩空间支持</small>
 
 </td>
 <td align="center" width="25%">
 
-📊<br>
-<strong>明度分析</strong><br>
-<small>9级分区可视化</small>
+📊 <strong>明度分析</strong> <small>9级分区可视化</small>
 
 </td>
 <td align="center" width="25%">
 
-🌈<br>
-<strong>配色生成</strong><br>
-<small>5种专业方案</small>
+🌈 <strong>配色生成</strong> <small>5种专业方案</small>
 
 </td>
 <td align="center" width="25%">
 
-👁️<br>
-<strong>配色预览</strong><br>
-<small>8种场景预览</small>
+👁️ <strong>配色预览</strong> <small>8种场景预览</small>
 
 </td>
 </tr>
@@ -104,17 +96,17 @@
 
 > 🎯 **一站式色彩解决方案**：从图片分析到配色应用，提供完整的色彩工作流
 
-|功能 |截图预览 |
-|---|---|
-|**色彩信息分析**<br>通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB） |![色彩分析](docs/screenshots/color-extract.png) |
-|**明度分析**<br>将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调 |![明度分析](docs/screenshots/luminance-extract.png) |
-|**渐变色提取**<br>支持双色渐变和单色明度梯度两种模式，双色渐变通过起始色和结束色生成渐变色序列，单色明度梯度固定色相饱和度按明度分级生成色阶（类似 Tailwind 50-900），支持 RGB/HSB/HSL/LAB 四种颜色空间插值 |![渐变色提取](docs/screenshots/Gradient%20Extract.png) |
-|**配色生成**<br>提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择 |![配色生成](docs/screenshots/color-generation.png) |
-|**配色收藏**<br>支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式 |![配色管理](docs/screenshots/palette-management.png) |
-|**内置色彩库**<br>集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡 |![内置色彩库](docs/screenshots/preset-colors.png) |
-|**配色预览**<br>支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等8种场景预览，并支持导入自定义SVG |![配色预览](docs/screenshots/color-preview.png) |
-|**多语言支持**<br>支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言 |![多语言支持](docs/screenshots/locales.png) |
-| **现代化界面**<br>基于 Fluent Design 设计语言，支持深色/浅色主题切换 | ![深色/浅色模式](./docs/screenshots/Dark%20mode%26light%20mode.png) |
+| 功能                                                                                                                     | 截图预览                                                          |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **色彩信息分析**通过可拖动取色点实时提取图片颜色，支持多色彩空间显示（HSB、LAB、HSL、CMYK、RGB）                                                             | ![色彩分析](docs/screenshots/color-extract.png)                   |
+| **明度分析**将图片按明度分为9个区域（基于Adobe标准），提供直方图可视化，可快速分析图片影调                                                                     | ![明度分析](docs/screenshots/luminance-extract.png)               |
+| **渐变色提取**支持双色渐变和单色明度梯度两种模式，双色渐变通过起始色和结束色生成渐变色序列，单色明度梯度固定色相饱和度按明度分级生成色阶（类似 Tailwind 50-900），支持 RGB/HSB/HSL/LAB 四种颜色空间插值 | ![渐变色提取](docs/screenshots/Gradient%20Extract.png)             |
+| **配色生成**提供5种专业配色方案（同色系、邻近色、互补色、分离补色、双补色），支持可交互色环选择                                                                     | ![配色生成](docs/screenshots/color-generation.png)                |
+| **配色收藏**支持收藏、管理配色方案，支持批量导入导出为JSON文件，支持单组色卡导出为 Adobe ASE 格式                                                             | ![配色管理](docs/screenshots/palette-management.png)              |
+| **内置色彩库**集成 Open Color、Tailwind CSS、Material Design 等13大开源配色方案，总计661组色卡                                                | ![内置色彩库](docs/screenshots/preset-colors.png)                  |
+| **配色预览**支持手机UI、网页、插画、排版、品牌、海报、图案、杂志等9种场景预览，并支持导入自定义SVG                                                                 | ![配色预览](docs/screenshots/color-preview.png)                   |
+| **多语言支持**支持简体中文、繁体中文、英语、日语、法语、俄语等6种语言                                                                                  | ![多语言支持](docs/screenshots/locales.png)                        |
+| **现代化界面**基于 Fluent Design 设计语言，支持深色/浅色主题切换                                                                             | ![深色/浅色模式](./docs/screenshots/Dark%20mode%26light%20mode.png) |
 
 ### 🎯 适用场景
 
@@ -125,7 +117,7 @@
 **📷 摄影师工作流**
 
 - ✨ **摄影后期**：分析照片的色调分布，辅助调色决策
-- 🎨 **色彩参考**：从优秀作品中提取配色，获取创作灵感  
+- 🎨 **色彩参考**：从优秀作品中提取配色，获取创作灵感
 - 📊 **明度分析**：评估照片的明度分布，优化曝光和对比度
 
 </td>
@@ -168,33 +160,26 @@
 #### ⚙️ 依赖安装与运行
 
 1. **克隆仓库**：
-
    ```bash
    # 从 Gitee 克隆（国内推荐）
    git clone https://gitee.com/qingshangongzai/Color_Card.git
-   
+
    # 或从 GitHub 克隆
    git clone https://github.com/qingshangongzai/Color_Card.git
-   
+
    cd color_card
    ```
-
 2. **创建虚拟环境（推荐）**：
-
    ```bash
    python -m venv .venv
    # 激活虚拟环境
    .\.venv\Scripts\activate  # Windows
    ```
-
 3. **安装项目依赖**：
-
    ```bash
    pip install -r requirements.txt
    ```
-
 4. **启动应用程序**：
-
    ```bash
    python main.py
    ```
@@ -221,15 +206,15 @@
 
 ### 🧩 功能模块
 
-|模块 |功能 |
-|:---|:---|
-|色彩分析 |可拖动取色点、多色彩空间显示、一键复制颜色值 |
-|明度分析 |9级明度分区（Zone 0-8）、直方图可视化、区域高亮 |
-|渐变色提取 |双色渐变/单色明度梯度两种模式、RGB/HSB/HSL/LAB插值、中间色数量调节 |
-|配色生成 |5种配色方案、可交互色环、明度调整 |
-|配色管理 |收藏配色、自定义名称、批量导入导出为JSON文件、支持单组配色ASE格式导出（支持Adobe软件） |
-|配色预览 |8种内置场景、自定义SVG、智能配色映射 |
-|内置色彩库 |13大开源配色方案、661组色卡 |
+| 模块    | 功能                                                |
+| :---- | :------------------------------------------------ |
+| 色彩分析  | 可拖动取色点、多色彩空间显示、一键复制颜色值                            |
+| 明度分析  | 9级明度分区（Zone 0-8）、直方图可视化、区域高亮                      |
+| 渐变色提取 | 双色渐变/单色明度梯度两种模式、RGB/HSB/HSL/LAB插值、中间色数量调节         |
+| 配色生成  | 5种配色方案、可交互色环、明度调整                                 |
+| 配色管理  | 收藏配色、自定义名称、批量导入导出为JSON文件、支持单组配色ASE格式导出（支持Adobe软件） |
+| 配色预览  | 8种内置场景、自定义SVG、智能配色映射                              |
+| 内置色彩库 | 13大开源配色方案、661组色卡                                  |
 
 ***
 
@@ -286,26 +271,26 @@
 
 本项目使用了以下第三方库（部分）：
 
-|库 |许可证 |
-|:---|:---:|
-|PySide6 |LGPL-3.0 |
-|PySide6-Fluent-Widgets |GPL-3.0 |
-|Pillow |MIT License |
-|requests |Apache-2.0 |
-|numpy |BSD-3-Clause |
-|Open Color |MIT License |
-|Tailwind CSS Colors |MIT License |
-|Material Design Colors |Apache-2.0 |
-|ColorBrewer |Apache-2.0 |
-|Radix Colors |MIT License |
-|Nord |MIT License |
-|Dracula |MIT License |
-|Solarized |MIT License |
-|Gruvbox |MIT License |
-|Catppuccin |MIT License |
-|Rose Pine |MIT License |
-|Tokyo Night |MIT License |
-|Nice Color Palettes |MIT License |
+| 库                      |      许可证     |
+| :--------------------- | :----------: |
+| PySide6                |   LGPL-3.0   |
+| PySide6-Fluent-Widgets |    GPL-3.0   |
+| Pillow                 |  MIT License |
+| requests               |  Apache-2.0  |
+| numpy                  | BSD-3-Clause |
+| Open Color             |  MIT License |
+| Tailwind CSS Colors    |  MIT License |
+| Material Design Colors |  Apache-2.0  |
+| ColorBrewer            |  Apache-2.0  |
+| Radix Colors           |  MIT License |
+| Nord                   |  MIT License |
+| Dracula                |  MIT License |
+| Solarized              |  MIT License |
+| Gruvbox                |  MIT License |
+| Catppuccin             |  MIT License |
+| Rose Pine              |  MIT License |
+| Tokyo Night            |  MIT License |
+| Nice Color Palettes    |  MIT License |
 
 ***
 
@@ -313,7 +298,7 @@
 
 - **主仓库（Gitee）**：<https://gitee.com/qingshangongzai/color_card>
 - **镜像仓库（GitHub）**：<https://github.com/qingshangongzai/Color_Card>
-- **联系邮箱**：[hxiao_studio@163.com](mailto:hxiao_studio@163.com)、[qingshangongzai@163.com](mailto:qingshangongzai@163.com)
+- **联系邮箱**：<hxiao_studio@163.com>、<qingshangongzai@163.com>
 
 ***
 
@@ -345,29 +330,29 @@ Unlike common color tools or websites that only provide a single function, Color
 
 Since the release of the first version on 2026-02-05, the project has maintained a fast and stable iteration pace:
 
-|Metric |Data |
-|:---|:---|
-|Released Versions |16 versions (v1.0.0 → v1.10.2) |
-|Development Period |115 days |
-|Total Updates |**191 items** |
-|Average per Version |11.9 items |
+| Metric              | Data                           |
+| :------------------ | :----------------------------- |
+| Released Versions   | 16 versions (v1.0.0 → v1.10.2) |
+| Development Period  | 115 days                       |
+| Total Updates       | **191 items**                  |
+| Average per Version | 11.9 items                     |
 
 **Detailed Category Statistics**:
 
-|Category |Count |Description |
-|:---|:---:|:---|
-|✨ New Features |**48** |Including 9 core features from v1.0.0 launch |
-|🔧 Bug Fixes |**44** |Continuous bug fixes for stability |
-|🎨 UI Improvements |**47** |User experience refinements |
-|⚡ Performance |**12** |Cache mechanism, startup optimization |
-|📝 Content Adjustments |**13** |Text, naming adjustments |
-|⚙️ Experience |**7** |Interaction improvements |
-|🏗️ Code Optimization |**6** |Code structure optimization |
-|🔮 Logic Optimization |**2** |Algorithm improvements |
-|🖥️ Platform Support |**1** |Mac version adaptation |
-|📜 License Compliance |**1** |Open source compliance |
-|🚀 Feature Enhancement |**1** |Feature enhancements |
-|📛 Naming Adjustment |**1** |Panel name unification |
+| Category               |  Count | Description                                  |
+| :--------------------- | :----: | :------------------------------------------- |
+| ✨ New Features         | **48** | Including 9 core features from v1.0.0 launch |
+| 🔧 Bug Fixes           | **44** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **47** | User experience refinements                  |
+| ⚡ Performance          | **12** | Cache mechanism, startup optimization        |
+| 📝 Content Adjustments | **13** | Text, naming adjustments                     |
+| ⚙️ Experience          |  **7** | Interaction improvements                     |
+| 🏗️ Code Optimization  |  **6** | Code structure optimization                  |
+| 🔮 Logic Optimization  |  **2** | Algorithm improvements                       |
+| 🖥️ Platform Support   |  **1** | Mac version adaptation                       |
+| 📜 License Compliance  |  **1** | Open source compliance                       |
+| 🚀 Feature Enhancement |  **1** | Feature enhancements                         |
+| 📛 Naming Adjustment   |  **1** | Panel name unification                       |
 
 ### ✨ Key Features
 
@@ -375,30 +360,22 @@ Since the release of the first version on 2026-02-05, the project has maintained
 <tr>
 <td align="center" width="25%">
 
-🎨<br>
-<strong>Color Extraction</strong><br>
-<small>Multiple color spaces</small>
+🎨 <strong>Color Extraction</strong> <small>Multiple color spaces</small>
 
 </td>
 <td align="center" width="25%">
 
-📊<br>
-<strong>Luminance Analysis</strong><br>
-<small>9-zone visualization</small>
+📊 <strong>Luminance Analysis</strong> <small>9-zone visualization</small>
 
 </td>
 <td align="center" width="25%">
 
-🌈<br>
-<strong>Color Schemes</strong><br>
-<small>5 professional modes</small>
+🌈 <strong>Color Schemes</strong> <small>5 professional modes</small>
 
 </td>
 <td align="center" width="25%">
 
-👁️<br>
-<strong>Color Preview</strong><br>
-<small>8 scene previews</small>
+👁️ <strong>Color Preview</strong> <small>8 scene previews</small>
 
 </td>
 </tr>
@@ -406,17 +383,17 @@ Since the release of the first version on 2026-02-05, the project has maintained
 
 > 🎯 **One-stop Color Solution**: Complete color workflow from image analysis to color application
 
-|Feature |Screenshot |
-|---|---|
-|**Visual Color Extraction**<br>Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB) |![Color Extraction](docs/screenshots/color-extract.png) |
-|**Luminance Analysis**<br>9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization |![Luminance Analysis](docs/screenshots/luminance-extract.png) |
-|**Gradient Extraction**<br>Two modes: two-color gradient generates sequences from start/end colors, lightness shades generates scales by brightness with fixed hue/saturation (like Tailwind 50-900), supporting RGB/HSB/HSL/LAB color space interpolation |![Gradient Extraction](docs/screenshots/Gradient%20Extract.png) |
-|**Color Scheme Generation**<br>5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel |![Color Generation](docs/screenshots/color-generation.png) |
-|**Palette Collection**<br>Save and manage color schemes, support batch import/export in JSON format, support single palette export to Adobe ASE format |![Palette Management](docs/screenshots/palette-management.png) |
-|**Built-in Color Library**<br>13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes |![Preset Colors](docs/screenshots/preset-colors.png) |
-|**Color Preview**<br>8 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support |![Color Preview](docs/screenshots/color-preview.png) |
-|**Multi-language Support**<br>6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian |![Multi-language](docs/screenshots/locales.png) |
-|**Modern Interface**<br>Based on Fluent Design, supports dark/light theme switching |![Dark/Light Mode](./docs/screenshots/Dark%20mode%26light%20mode.png) |
+| Feature                                                                                                                                                                                                                                                | Screenshot                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| **Visual Color Extraction**Real-time color extraction via draggable color pickers, supporting multiple color spaces (HSB, LAB, HSL, CMYK, RGB)                                                                                                         | ![Color Extraction](docs/screenshots/color-extract.png)               |
+| **Luminance Analysis**9-zone luminance segmentation (Zone 0-8 based on Adobe standard) with histogram visualization                                                                                                                                    | ![Luminance Analysis](docs/screenshots/luminance-extract.png)         |
+| **Gradient Extraction**Two modes: two-color gradient generates sequences from start/end colors, lightness shades generates scales by brightness with fixed hue/saturation (like Tailwind 50-900), supporting RGB/HSB/HSL/LAB color space interpolation | ![Gradient Extraction](docs/screenshots/Gradient%20Extract.png)       |
+| **Color Scheme Generation**5 professional color schemes (Monochromatic, Analogous, Complementary, Split-Complementary, Double Complementary) with interactive color wheel                                                                              | ![Color Generation](docs/screenshots/color-generation.png)            |
+| **Palette Collection**Save and manage color schemes, support batch import/export in JSON format, support single palette export to Adobe ASE format                                                                                                     | ![Palette Management](docs/screenshots/palette-management.png)        |
+| **Built-in Color Library**13 major open-source color schemes including Open Color, Tailwind CSS, Material Design, totaling 661 color palettes                                                                                                          | ![Preset Colors](docs/screenshots/preset-colors.png)                  |
+| **Color Preview**9 built-in scene previews (Mobile UI, Web, Illustration, Typography, Brand, Poster, Pattern, Magazine) with custom SVG support                                                                                                        | ![Color Preview](docs/screenshots/color-preview.png)                  |
+| **Multi-language Support**6 languages including Simplified Chinese, Traditional Chinese, English, Japanese, French, and Russian                                                                                                                        | ![Multi-language](docs/screenshots/locales.png)                       |
+| **Modern Interface**Based on Fluent Design, supports dark/light theme switching                                                                                                                                                                        | ![Dark/Light Mode](./docs/screenshots/Dark%20mode%26light%20mode.png) |
 
 ### 🎯 Use Cases
 
@@ -470,33 +447,26 @@ Since the release of the first version on 2026-02-05, the project has maintained
 #### ⚙️ Installation Steps
 
 1. **Clone the repository**:
-
    ```bash
    # Clone from Gitee (recommended for China)
    git clone https://gitee.com/qingshangongzai/color_card.git
-   
+
    # Or clone from GitHub
    git clone https://github.com/qingshangongzai/Color_Card.git
-   
+
    cd color_card
    ```
-
 2. **Create virtual environment (recommended)**:
-
    ```bash
    python -m venv .venv
    # Activate virtual environment
    .\.venv\Scripts\activate  # Windows
    ```
-
 3. **Install dependencies**:
-
    ```bash
    pip install -r requirements.txt
    ```
-
 4. **Launch the application**:
-
    ```bash
    python main.py
    ```
@@ -523,15 +493,15 @@ Since the release of the first version on 2026-02-05, the project has maintained
 
 ### 🧩 Feature Modules
 
-|Module |Features |
-|:---|:---|
-|Color Extraction |Draggable pickers, multiple color spaces, one-click copy |
-|Gradient Extraction |Two-color gradient / lightness shades modes, RGB/HSB/HSL/LAB interpolation, adjustable middle colors |
-|Luminance Analysis |9-zone segmentation (Zone 0-8), histogram visualization, zone highlighting |
-|Color Generation |5 color schemes, interactive color wheel, luminance adjustment |
-|Palette Management |Save palettes, custom names, batch import/export in JSON format, support single palette ASE format export (Adobe software compatible) |
-|Color Preview |8 built-in scenes, custom SVG, intelligent color mapping |
-|Built-in Library |13 open-source color schemes, 661 color palettes |
+| Module              | Features                                                                                                                              |
+| :------------------ | :------------------------------------------------------------------------------------------------------------------------------------ |
+| Color Extraction    | Draggable pickers, multiple color spaces, one-click copy                                                                              |
+| Gradient Extraction | Two-color gradient / lightness shades modes, RGB/HSB/HSL/LAB interpolation, adjustable middle colors                                  |
+| Luminance Analysis  | 9-zone segmentation (Zone 0-8), histogram visualization, zone highlighting                                                            |
+| Color Generation    | 5 color schemes, interactive color wheel, luminance adjustment                                                                        |
+| Palette Management  | Save palettes, custom names, batch import/export in JSON format, support single palette ASE format export (Adobe software compatible) |
+| Color Preview       | 8 built-in scenes, custom SVG, intelligent color mapping                                                                              |
+| Built-in Library    | 13 open-source color schemes, 661 color palettes                                                                                      |
 
 ***
 
@@ -588,26 +558,26 @@ Color Card is released under the **GNU General Public License v3.0 (GPL 3.0)** l
 
 This project uses the following third-party libraries (portion):
 
-|Library |License |
-|:---|:---:|
-|PySide6 |LGPL-3.0 |
-|PySide6-Fluent-Widgets |GPL-3.0 |
-|Pillow |MIT License |
-|requests |Apache-2.0 |
-|numpy |BSD-3-Clause |
-|Open Color |MIT License |
-|Tailwind CSS Colors |MIT License |
-|Material Design Colors |Apache-2.0 |
-|ColorBrewer |Apache-2.0 |
-|Radix Colors |MIT License |
-|Nord |MIT License |
-|Dracula |MIT License |
-|Solarized |MIT License |
-|Gruvbox |MIT License |
-|Catppuccin |MIT License |
-|Rose Pine |MIT License |
-|Tokyo Night |MIT License |
-|Nice Color Palettes |MIT License |
+| Library                |    License   |
+| :--------------------- | :----------: |
+| PySide6                |   LGPL-3.0   |
+| PySide6-Fluent-Widgets |    GPL-3.0   |
+| Pillow                 |  MIT License |
+| requests               |  Apache-2.0  |
+| numpy                  | BSD-3-Clause |
+| Open Color             |  MIT License |
+| Tailwind CSS Colors    |  MIT License |
+| Material Design Colors |  Apache-2.0  |
+| ColorBrewer            |  Apache-2.0  |
+| Radix Colors           |  MIT License |
+| Nord                   |  MIT License |
+| Dracula                |  MIT License |
+| Solarized              |  MIT License |
+| Gruvbox                |  MIT License |
+| Catppuccin             |  MIT License |
+| Rose Pine              |  MIT License |
+| Tokyo Night            |  MIT License |
+| Nice Color Palettes    |  MIT License |
 
 ***
 
@@ -615,7 +585,7 @@ This project uses the following third-party libraries (portion):
 
 - **Primary Repository (Gitee)**: <https://gitee.com/qingshangongzai/color_card>
 - **Mirror Repository (GitHub)**: <https://github.com/qingshangongzai/Color_Card>
-- **Email**: [hxiao_studio@163.com](mailto:hxiao_studio@163.com)、[qingshangongzai@163.com](mailto:qingshangongzai@163.com)
+- **Email**: <hxiao_studio@163.com>、<qingshangongzai@163.com>
 
 ***
 

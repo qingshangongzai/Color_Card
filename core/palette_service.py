@@ -21,7 +21,7 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtGui import QImage, QPainter, QColor, QFont, QFontMetrics, QPixmap
 
 # 项目模块导入
-from .color import hex_to_rgb, get_color_info
+from .color import hex_to_rgb, get_color_info, get_color_info_batch
 from .grouping import generate_groups
 from .logger import get_logger, log_performance
 
@@ -125,14 +125,21 @@ class PaletteImporter(QThread):
                         continue
 
                     colors = []
+                    rgb_list = []
+
+                    # 收集有效的颜色数据
                     for hex_color in colors_data:
                         if isinstance(hex_color, str) and hex_color.startswith('#'):
                             try:
                                 r, g, b = hex_to_rgb(hex_color)
-                                color_info = get_color_info(r, g, b)
-                                colors.append(color_info)
-                            except Exception:
+                                rgb_list.append((r, g, b))
+                            except (ValueError, AttributeError):
                                 colors.append({"hex": hex_color, "rgb": (0, 0, 0)})
+
+                    # 批量处理颜色信息
+                    if rgb_list:
+                        color_infos = get_color_info_batch(rgb_list)
+                        colors.extend(color_infos)
 
                     if colors:
                         favorite_data = {

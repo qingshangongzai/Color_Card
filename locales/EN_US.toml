@@ -35,6 +35,8 @@ image_filter = "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
 
 [gradient_generation]
 start_color = "Start Color"
+mid_color = "Mid Color"
+mid_position = "Mid Position"
 end_color = "End Color"
 base_color = "Base Color"
 steps = "Middle Colors"
@@ -52,6 +54,10 @@ title = "Color Scheme:"
 random = "Random"
 favorite = "Save"
 brightness = "Brightness:"
+copied = "Copied"
+copied_content = "Color value {hex} copied to clipboard"
+favorite_failed = "Cannot Save"
+no_colors_to_favorite = "No colors available to save"
 
 [color_generation.schemes]
 monochromatic = "Monochromatic"
@@ -63,10 +69,6 @@ double_complementary = "Double Complementary"
 [color_generation.favorite_success]
 title = "Saved"
 content = """Color scheme "{name}" has been added to palette management"""
-copied = "Copied"
-copied_content = "Color value {hex} copied to clipboard"
-favorite_failed = "Cannot Save"
-no_colors_to_favorite = "No colors available to save"
 
 [palette_management]
 title = "Palette Management"
@@ -266,6 +268,7 @@ gradient_lab = "LAB Space"
 gradient_mode = "Gradient Mode"
 gradient_mode_desc = "Select the gradient extraction mode"
 gradient_mode_gradient = "Two-color Gradient"
+gradient_mode_three_color = "Three-color Gradient"
 gradient_mode_shade = "Monochrome Gradient"
 luminance = "Luminance Extract"
 luminance_default_grayscale = "Default Grayscale Mode"
@@ -353,6 +356,7 @@ simulated_color = "Simulated"
 original = "Original"
 simulated = "Simulated"
 description = "Note: {desc}"
+severity = "Severity: {value}%"
 
 [dialogs.contrast]
 title = "Contrast Check"

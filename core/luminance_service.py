@@ -412,7 +412,7 @@ class LuminanceService(QObject):
 
                 # 转为QImage
                 mask_image = QImage(
-                    rgba.tobytes(),
+                    rgba.data,
                     disp_w, disp_h,
                     disp_w * 4,
                     QImage.Format.Format_RGBA8888
@@ -495,7 +495,7 @@ class LuminanceService(QObject):
 
                 # 转为QImage
                 mask_image = QImage(
-                    rgba.tobytes(),
+                    rgba.data,
                     disp_w, disp_h,
                     disp_w * 4,
                     QImage.Format.Format_RGBA8888
