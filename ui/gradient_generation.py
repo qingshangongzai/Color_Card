@@ -934,10 +934,10 @@ class GradientGenerationInterface(QWidget):
             self.steps_slider.setMaximum(10)
             default_steps = 2
 
-        # 屏蔽信号，避免触发冗余日志和重复生成
-        self.steps_slider.blockSignals(True)
+        # 断开槽函数，避免触发冗余日志和重复生成
+        self.steps_slider.valueChanged.disconnect(self._on_steps_changed)
         self.steps_slider.setValue(default_steps)
-        self.steps_slider.blockSignals(False)
+        self.steps_slider.valueChanged.connect(self._on_steps_changed)
         self._steps = default_steps
         self.steps_value_label.setText(str(default_steps))
 
