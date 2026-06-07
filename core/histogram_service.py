@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 # 第三方库导入
+import numpy as np
 from PySide6.QtCore import QObject, QThread, Signal, QTimer, Qt
 from PySide6.QtGui import QImage
 
@@ -336,8 +337,6 @@ class HistogramService(QObject):
         Returns:
             dict[str, Any]: 统计信息字典，包含 mean, median, std, min_val, max_val
         """
-        import numpy as np
-
         total_pixels = sum(histogram)
         if total_pixels == 0:
             return {
