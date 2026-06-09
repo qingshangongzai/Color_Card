@@ -679,7 +679,7 @@ class ImageService(QObject):
         )
 
         if self._current_path:
-            self._memory_manager.add_image(self._current_path, img_data)
+            self._get_memory_manager().add_image(self._current_path, img_data)
 
         colorspace_name = colorspace_info.name
         logger.info(f"图片加载完成: size={width}x{height}, colorspace={colorspace_name}")
@@ -747,7 +747,7 @@ class ImageService(QObject):
             self._loader = None
 
         if self._current_path:
-            self._memory_manager.remove_image(self._current_path)
+            self._get_memory_manager().remove_image(self._current_path)
             self._current_path = None
 
     def get_memory_stats(self) -> dict:
