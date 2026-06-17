@@ -33,7 +33,7 @@
               </a>
             </li>
             <li>
-              <a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2">
+              <a href="https://gitee.com/HxiaoStudio/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2">
                 <GitBranch class="w-4 h-4" />
                 Gitee
               </a>

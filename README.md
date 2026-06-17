@@ -35,7 +35,7 @@
 
 **开源地址**：
 
-- **主仓库（Gitee）**：<https://gitee.com/qingshangongzai/Color_Card>
+- **主仓库（Gitee）**：<https://gitee.com/HxiaoStudio/Color_Card>
 - **镜像仓库（GitHub）**：<https://github.com/qingshangongzai/Color_Card>
 - **官方网站**：<https://color-card.hxiaostudio.cn>
 
@@ -162,7 +162,7 @@
 1. **克隆仓库**：
    ```bash
    # 从 Gitee 克隆（国内推荐）
-   git clone https://gitee.com/qingshangongzai/Color_Card.git
+   git clone https://gitee.com/HxiaoStudio/Color_Card.git
 
    # 或从 GitHub 克隆
    git clone https://github.com/qingshangongzai/Color_Card.git
@@ -296,7 +296,7 @@
 
 ## 📮 联系方式
 
-- **主仓库（Gitee）**：<https://gitee.com/qingshangongzai/color_card>
+- **主仓库（Gitee）**：<https://gitee.com/HxiaoStudio/Color_Card>
 - **镜像仓库（GitHub）**：<https://github.com/qingshangongzai/Color_Card>
 - **联系邮箱**：<hxiao_studio@163.com>、<qingshangongzai@163.com>
 
@@ -322,7 +322,7 @@ Unlike common color tools or websites that only provide a single function, Color
 
 **Repository URLs**:
 
-- **Primary Repository (Gitee)**: <https://gitee.com/qingshangongzai/Color_Card>
+- **Primary Repository (Gitee)**: <https://gitee.com/HxiaoStudio/Color_Card>
 - **Mirror Repository (GitHub)**: <https://github.com/qingshangongzai/Color_Card>
 - **Official Website**: <https://color-card.hxiaostudio.cn>
 
@@ -449,7 +449,7 @@ Since the release of the first version on 2026-02-05, the project has maintained
 1. **Clone the repository**:
    ```bash
    # Clone from Gitee (recommended for China)
-   git clone https://gitee.com/qingshangongzai/color_card.git
+   git clone https://gitee.com/HxiaoStudio/Color_Card.git
 
    # Or clone from GitHub
    git clone https://github.com/qingshangongzai/Color_Card.git
@@ -583,7 +583,7 @@ This project uses the following third-party libraries (portion):
 
 ## 📮 Contact
 
-- **Primary Repository (Gitee)**: <https://gitee.com/qingshangongzai/color_card>
+- **Primary Repository (Gitee)**: <https://gitee.com/HxiaoStudio/Color_Card>
 - **Mirror Repository (GitHub)**: <https://github.com/qingshangongzai/Color_Card>
 - **Email**: <hxiao_studio@163.com>、<qingshangongzai@163.com>
 
