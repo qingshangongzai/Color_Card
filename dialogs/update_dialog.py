@@ -218,9 +218,9 @@ class UpdateAvailableDialog(BaseFramelessDialog):
     def open_release_page(self):
         """打开 Gitee 发行版页面"""
         if self.latest_version:
-            url = f"https://gitee.com/qingshangongzai/Color_Card/releases/tag/{self.latest_version}"
+            url = f"https://gitee.com/HxiaoStudio/Color_Card/releases/tag/{self.latest_version}"
         else:
-            url = "https://gitee.com/qingshangongzai/Color_Card/releases"
+            url = "https://gitee.com/HxiaoStudio/Color_Card/releases"
         QDesktopServices.openUrl(QUrl(url))
         self.accept()
 
