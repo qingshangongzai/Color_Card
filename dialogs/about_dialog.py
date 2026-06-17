@@ -109,7 +109,7 @@ class AboutDialog(BaseFramelessDialog):
         self.website_button = PushButton(tr('dialogs.about.website'))
         self.website_button.setMinimumWidth(90)
         self.website_button.clicked.connect(
-            lambda: self._open_url("https://qingshangongzai.github.io/Color_Card/")
+            lambda: self._open_url("https://color-card.hxiaostudio.cn")
         )
         buttons_layout.addWidget(self.website_button)
 
