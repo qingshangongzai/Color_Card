@@ -24,6 +24,8 @@
                         'float': 'float 3s ease-in-out infinite',
                         'fade-in': 'fadeIn 0.6s ease-out forwards',
                         'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                        'slide-in-right': 'slideInRight 0.3s ease-out forwards',
+                        'slide-out-right': 'slideOutRight 0.3s ease-in forwards',
                     },
                     keyframes: {
                         float: {
@@ -37,6 +39,14 @@
                         fadeInUp: {
                             '0%': { opacity: '0', transform: 'translateY(20px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' },
+                        },
+                        slideOutRight: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(100%)' },
                         },
                     },
                 },
@@ -155,6 +165,98 @@
         @keyframes indicatorShimmer {
             0%, 100% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
+        }
+
+        /* 移动端导航菜单 */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 80vw;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.3s var(--ease-out-expo);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .dark .mobile-menu {
+            background: rgba(17, 24, 39, 0.98);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+        }
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+        .mobile-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-menu-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .mobile-menu-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+        .dark .mobile-menu-link {
+            color: #d1d5db;
+        }
+        .mobile-menu-link:hover {
+            background: rgba(174, 219, 252, 0.15);
+            color: #AEDBFC;
+        }
+        .dark .mobile-menu-link:hover {
+            background: rgba(174, 219, 252, 0.1);
+        }
+        .mobile-menu-link.external-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .mobile-menu-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.08);
+            margin: 0.75rem 0;
+        }
+        .dark .mobile-menu-divider {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .mobile-menu-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            z-index: 101;
+        }
+        .mobile-menu-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .mobile-menu-close:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         /* 内容区域层级 */
@@ -545,12 +647,121 @@
             0%, 100% { transform: translateY(0) scale(1); }
             50% { transform: translateY(-20px) scale(1.02); }
         }
+
+        /* 移动端 hamburger 按钮样式 */
+        .hamburger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .hamburger-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .hamburger-line {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+        }
+        .hamburger-line::before,
+        .hamburger-line::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s var(--ease-out-expo);
+            left: 0;
+        }
+        .hamburger-line::before {
+            top: -6px;
+        }
+        .hamburger-line::after {
+            top: 6px;
+        }
+        .hamburger-btn.open .hamburger-line {
+            background: transparent;
+        }
+        .hamburger-btn.open .hamburger-line::before {
+            top: 0;
+            transform: rotate(45deg);
+        }
+        .hamburger-btn.open .hamburger-line::after {
+            top: 0;
+            transform: rotate(-45deg);
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
     <!-- 全局渐变网格背景 -->
     <div class="global-gradient-mesh" aria-hidden="true">
         <div class="global-grid-lines"></div>
+    </div>
+
+    <!-- 移动端导航遮罩 -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+
+    <!-- 移动端导航菜单 -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="mobile-menu-close" id="mobile-menu-close" aria-label="关闭菜单">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        
+        <div class="pt-12">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">页面导航</p>
+            <a href="#features" class="mobile-menu-link" data-mobile-nav>功能特性</a>
+            <a href="#screenshots" class="mobile-menu-link" data-mobile-nav>界面预览</a>
+            <a href="#palettes" class="mobile-menu-link" data-mobile-nav>配色方案</a>
+            <a href="#download" class="mobile-menu-link" data-mobile-nav>下载</a>
+            <a href="#story" class="mobile-menu-link" data-mobile-nav>项目起源</a>
+            <a href="#feedback" class="mobile-menu-link" data-mobile-nav>反馈</a>
+            <a href="#about" class="mobile-menu-link" data-mobile-nav>关于我们</a>
+            
+            <div class="mobile-menu-divider"></div>
+            
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">外部链接</p>
+            <a href="changelog.html" class="mobile-menu-link external-link" data-mobile-nav>
+                更新日志
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="mobile-menu-link external-link" data-mobile-nav>
+                使用说明
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            
+            <div class="mobile-menu-divider"></div>
+            
+            <a href="https://gitee.com/qingshangongzai/Color_Card" target="_blank" class="mobile-menu-link external-link" data-mobile-nav>
+                源代码
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="mailto:hxiao_studio@163.com" class="mobile-menu-link external-link" data-mobile-nav>
+                发送邮件
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </a>
+        </div>
     </div>
 
     <!-- Scroll Progress Indicator -->
@@ -586,6 +797,10 @@
                     <div class="nav-indicator" id="nav-indicator"></div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- 移动端汉堡菜单按钮 -->
+                    <button id="hamburger-btn" class="hamburger-btn md:hidden" aria-label="菜单">
+                        <span class="hamburger-line"></span>
+                    </button>
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                         <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -1162,6 +1377,71 @@
     </div>
 
     <script>
+        // ========== 移动端导航菜单控制 ==========
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileNavLinks = document.querySelectorAll('[data-mobile-nav]');
+        let isMenuOpen = false;
+
+        function openMobileMenu() {
+            isMenuOpen = true;
+            mobileMenu.classList.add('open');
+            mobileMenuOverlay.classList.add('open');
+            hamburgerBtn.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            isMenuOpen = false;
+            mobileMenu.classList.remove('open');
+            mobileMenuOverlay.classList.remove('open');
+            hamburgerBtn.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        hamburgerBtn.addEventListener('click', () => {
+            if (isMenuOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+
+        // 点击移动端导航链接后关闭菜单
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // 对于页面内锚点链接，需要滚动到目标位置后再关闭菜单
+                const href = link.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    const target = document.getElementById(href.substring(1));
+                    if (target) {
+                        // 先关闭菜单
+                        closeMobileMenu();
+                        // 延迟滚动，让菜单关闭动画先执行
+                        setTimeout(() => {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                        return;
+                    }
+                }
+                // 外部链接或普通链接直接关闭
+                closeMobileMenu();
+            });
+        });
+
+        // ESC 键关闭菜单
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isMenuOpen) {
+                closeMobileMenu();
+            }
+        });
+
+        // ========== 原有脚本（保持不变） ==========
         // Check for reduced motion preference
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
