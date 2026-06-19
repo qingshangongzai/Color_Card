@@ -30,7 +30,7 @@
    6.13 Tokyo Night - MIT
 7. 网站使用资源
    7.1 Tailwind CSS (CSS 框架) - MIT
-   7.2 Inter 字体 - SIL OFL 1.1
+   7.2 Noto Serif SC / 思源宋体 - SIL OFL 1.1
    7.3 Vue.js - MIT
    7.4 TypeScript - Apache 2.0
    7.5 Vite - MIT
@@ -1402,10 +1402,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-7.2 Inter 字体
+7.2 Noto Serif SC / 思源宋体
 --------------------------------------------------------------------------------
-来源：Google Fonts (https://fonts.google.com/specimen/Inter)
-版权所有：© Rasmus Andersson
+来源：Google Fonts (https://fonts.google.com/noto/specimen/Noto+Serif+SC)
+版权所有：© Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'
 许可证：SIL Open Font License 1.1
 用途：网站正文字体（未随本软件分发，仅通过网站引用）
 
