@@ -294,7 +294,7 @@ class ToneAnalysisService:
 
         # 计算置信度
         # 1. 两端占比因子：两端占比越高，置信度越高
-        edge_factor = min(edge_ratio := (shadows + highlights) / 100.0, 0.5) / 0.5
+        edge_factor = min((shadows + highlights) / 100.0, 0.5) / 0.5
 
         # 2. U型明显程度因子：中间相对两端越少，置信度越高
         u_factor = max(0.0, 1.0 - mid_avg / (edge_avg * self.U_SHAPE_RATIO))

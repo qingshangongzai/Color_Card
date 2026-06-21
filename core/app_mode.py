@@ -107,7 +107,7 @@ def detect_mode() -> AppMode:
         if reg_install_path:
             # 检查当前 exe 是否在注册表记录的安装目录下
             try:
-                exe_relative = exe_path.relative_to(reg_install_path)
+                _ = exe_path.relative_to(reg_install_path)
                 # 成功相对化，说明在安装目录内
                 _mode_cache = AppMode.INSTALLED
                 _logger.info("运行模式判定: 安装版（注册表匹配）")

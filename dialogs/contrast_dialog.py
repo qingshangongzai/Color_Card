@@ -28,7 +28,7 @@ from core.contrast import (
     rgb_to_hex, get_contrast_status_color
 )
 from utils.theme_colors import (
-    get_text_color, get_border_color,
+    get_text_color,
     get_secondary_text_color, get_title_color
 )
 
@@ -387,8 +387,7 @@ class ContrastCheckDialog(BaseFramelessDialog):
         title_color = get_title_color()
         text_color = get_text_color()
         secondary_color = get_secondary_text_color()
-        border_color = get_border_color()
-        
+
         # 标题
         title_label = QLabel(tr('dialogs.contrast.title'))
         title_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {title_color.name()};")

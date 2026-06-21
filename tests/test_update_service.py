@@ -298,15 +298,13 @@ class TestAssetSelector(unittest.TestCase):
             {"name": "unknown_file.zip", "browser_download_url": "url_first"},
         ]
 
-        with patch('core.update_service.get_app_mode') as mock_mode:
-            with patch('core.update_service.get_platform') as mock_platform:
-                with patch('core.update_service.AppMode'):
-                    with patch('core.update_service.Platform') as mock_p:
-                        mock_p.WINDOWS = False
-                        mock_p.MACOS = False
+        with patch('core.update_service.AppMode'):
+            with patch('core.update_service.Platform') as mock_p:
+                mock_p.WINDOWS = False
+                mock_p.MACOS = False
 
-                        selector = _AssetSelector()
-                        result = selector.select(assets)
+                selector = _AssetSelector()
+                result = selector.select(assets)
 
         self.assertEqual(result, "url_first")
 
@@ -364,7 +362,7 @@ class TestUpdateChecker(unittest.TestCase):
         from PySide6.QtCore import QCoreApplication
         from core.update_service import UpdateChecker, CheckResult
 
-        app = QCoreApplication.instance() or QCoreApplication([])
+        _ = QCoreApplication.instance() or QCoreApplication([])
 
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -397,7 +395,7 @@ class TestUpdateChecker(unittest.TestCase):
         from PySide6.QtCore import QCoreApplication
         from core.update_service import UpdateChecker, CheckResult
 
-        app = QCoreApplication.instance() or QCoreApplication([])
+        _ = QCoreApplication.instance() or QCoreApplication([])
 
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -426,7 +424,7 @@ class TestUpdateChecker(unittest.TestCase):
         from PySide6.QtCore import QCoreApplication
         from core.update_service import UpdateChecker, CheckResult
 
-        app = QCoreApplication.instance() or QCoreApplication([])
+        _ = QCoreApplication.instance() or QCoreApplication([])
 
         mock_response = MagicMock()
         mock_response.status_code = 404
@@ -452,7 +450,7 @@ class TestUpdateChecker(unittest.TestCase):
         from core.update_service import UpdateChecker, CheckResult
         import requests
 
-        app = QCoreApplication.instance() or QCoreApplication([])
+        _ = QCoreApplication.instance() or QCoreApplication([])
 
         results = []
 
@@ -474,7 +472,7 @@ class TestUpdateChecker(unittest.TestCase):
         from core.update_service import UpdateChecker, CheckResult
         import requests
 
-        app = QCoreApplication.instance() or QCoreApplication([])
+        _ = QCoreApplication.instance() or QCoreApplication([])
 
         results = []
 
@@ -505,7 +503,7 @@ class TestUpdateService(unittest.TestCase):
         from PySide6.QtCore import QCoreApplication
         from core.update_service import UpdateService
 
-        app = QCoreApplication.instance() or QCoreApplication([])
+        _ = QCoreApplication.instance() or QCoreApplication([])
 
         mock_parent = MagicMock()
 

@@ -141,10 +141,9 @@ def test_startup_performance():
     
     # 4. 日志系统
     with profiler.measure("日志系统初始化"):
-        from core import get_logger_manager, get_logger
+        from core import get_logger_manager
         logger_manager = get_logger_manager()
         logger_manager.initialize()
-        logger = get_logger("startup_test")
     
     # 5. PySide6 扩展模块
     with profiler.measure("PySide6 扩展模块导入"):

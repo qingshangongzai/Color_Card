@@ -433,7 +433,7 @@ def main():
         else:
             sys.exit(0)
     else:
-        window = run_main_app()
+        run_main_app()
         sys.exit(app.exec())
 
 
