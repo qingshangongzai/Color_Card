@@ -1142,7 +1142,7 @@ def suggest_mapping_strategy(elements: list[SVGElementInfo]) -> dict[str, Any]:
         elements: SVG 元素列表
 
     Returns:
-        Dict: 建议策略信息
+        dict: 建议策略信息
     """
     stats = {}
     for elem in elements:

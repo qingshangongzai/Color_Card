@@ -29,21 +29,21 @@ class BaseCache:
         self._hits = 0
         self._misses = 0
 
-    def _get_key(self, *args) -> Tuple:
+    def _get_key(self, *args) -> tuple:
         """生成缓存键，子类必须重写
 
         Args:
             *args: 缓存参数
 
         Returns:
-            Tuple: 缓存键元组
+            tuple: 缓存键元组
 
         Raises:
             NotImplementedError: 子类未实现此方法
         """
         raise NotImplementedError("子类必须实现 _get_key 方法")
 
-    def _get_from_cache(self, key: Tuple) -> Any | None:
+    def _get_from_cache(self, key: tuple) -> Any | None:
         """从缓存获取数据，内部方法
 
         Args:

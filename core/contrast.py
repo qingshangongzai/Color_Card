@@ -105,7 +105,7 @@ def get_wcag_level(ratio: float, is_large_text: bool = False) -> str:
 def get_contrast_info(
     rgb1: tuple[int, int, int],
     rgb2: tuple[int, int, int]
-) -> Dict:
+) -> dict:
     """获取完整的对比度信息
     
     Args:
