@@ -1075,7 +1075,7 @@ class ColorInputRow(QWidget):
             )
         else:
             self.preview_block.setStyleSheet(
-                f"background-color: transparent; border-radius: 4px;"
+                "background-color: transparent; border-radius: 4px;"
             )
 
     def _on_hex_changed(self, text: str):

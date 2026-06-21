@@ -85,7 +85,7 @@ def detect_mode() -> AppMode:
     # 非打包环境 = 开发模式（Nuitka 使用 __compiled__ 标记）
     if not getattr(sys, 'frozen', False) and "__compiled__" not in globals():
         _mode_cache = AppMode.DEVELOPMENT
-        _logger.info(f"运行模式判定: 开发模式")
+        _logger.info("运行模式判定: 开发模式")
         return _mode_cache
 
     exe_path = Path(sys.argv[0]).resolve()
@@ -97,7 +97,7 @@ def detect_mode() -> AppMode:
     # 在临时目录运行 = 安装程序运行中
     if temp and str(exe_path).lower().startswith(temp):
         _mode_cache = AppMode.INSTALLER
-        _logger.info(f"运行模式判定: 安装程序模式")
+        _logger.info("运行模式判定: 安装程序模式")
         return _mode_cache
 
     # 检查注册表（Windows 安装版）
@@ -110,11 +110,11 @@ def detect_mode() -> AppMode:
                 exe_relative = exe_path.relative_to(reg_install_path)
                 # 成功相对化，说明在安装目录内
                 _mode_cache = AppMode.INSTALLED
-                _logger.info(f"运行模式判定: 安装版（注册表匹配）")
+                _logger.info("运行模式判定: 安装版（注册表匹配）")
                 return _mode_cache
             except ValueError:
                 # 不在注册表记录的安装目录中
-                _logger.debug(f"不在注册表记录的安装目录中")
+                _logger.debug("不在注册表记录的安装目录中")
                 pass
 
     # 在系统目录运行 = 安装版（备用检测）
@@ -126,12 +126,12 @@ def detect_mode() -> AppMode:
     for path in system_paths:
         if path and path in str(exe_path).lower():
             _mode_cache = AppMode.INSTALLED
-            _logger.info(f"运行模式判定: 安装版（系统目录匹配）")
+            _logger.info("运行模式判定: 安装版（系统目录匹配）")
             return _mode_cache
 
     # 其他情况 = 便携版
     _mode_cache = AppMode.PORTABLE
-    _logger.info(f"运行模式判定: 便携版")
+    _logger.info("运行模式判定: 便携版")
     return _mode_cache
 
 

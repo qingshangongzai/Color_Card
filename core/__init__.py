@@ -171,6 +171,7 @@ __all__ = [
     'cmyk_to_rgb',
     'get_color_info',
     'get_color_info_batch',
+    'convert_rgb_colorspace',
     'get_luminance',
     'get_zone',
     'get_zone_bounds',

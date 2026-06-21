@@ -79,7 +79,7 @@ class UpdateAvailableDialog(BaseFramelessDialog):
             changes = version_info.get("changes", [])
 
             if i > 0:
-                html_lines.append(f'<hr style="border: none; border-top: 1px solid rgba(128, 128, 128, 0.3); margin: 10px 0;">')
+                html_lines.append('<hr style="border: none; border-top: 1px solid rgba(128, 128, 128, 0.3); margin: 10px 0;">')
 
             html_lines.append(
                 f'<h2 style="margin: 15px 0 10px 0; font-size: 18px; font-weight: bold; color: {text_color};">'

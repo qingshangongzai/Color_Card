@@ -2,7 +2,6 @@ from __future__ import annotations
 import sys
 import unittest
 from unittest.mock import patch, MagicMock
-from dataclasses import dataclass
 
 sys.path.insert(0, '.')
 
@@ -362,7 +361,7 @@ class TestUpdateChecker(unittest.TestCase):
 
     def test_check_success(self):
         """测试成功检查更新"""
-        from PySide6.QtCore import QCoreApplication, QEventLoop
+        from PySide6.QtCore import QCoreApplication
         from core.update_service import UpdateChecker, CheckResult
 
         app = QCoreApplication.instance() or QCoreApplication([])

@@ -72,14 +72,14 @@ class AboutDialog(BaseFramelessDialog):
         scroll_area = ScrollArea()
         scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(f"""
-            ScrollArea {{
+        scroll_area.setStyleSheet("""
+            ScrollArea {
                 background-color: transparent;
                 border: none;
-            }}
-            ScrollArea > QWidget > QWidget {{
+            }
+            ScrollArea > QWidget > QWidget {
                 background-color: transparent;
-            }}
+            }
         """)
 
         content_label = QLabel()

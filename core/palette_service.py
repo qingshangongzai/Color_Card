@@ -21,7 +21,7 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt
 from PySide6.QtGui import QImage, QPainter, QColor, QFont, QFontMetrics, QPixmap
 
 # 项目模块导入
-from .color import hex_to_rgb, get_color_info, get_color_info_batch
+from .color import hex_to_rgb, get_color_info_batch
 from .grouping import generate_groups
 from .logger import get_logger, log_performance
 

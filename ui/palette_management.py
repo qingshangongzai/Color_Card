@@ -827,7 +827,7 @@ class PaletteManagementCard(CardWidget):
         """更新选中样式"""
         if self._selected:
             # 选中状态：蓝色边框
-            self.setStyleSheet(f"CardWidget {{ border: 2px solid #0078d4; border-radius: 8px; }}")
+            self.setStyleSheet("CardWidget { border: 2px solid #0078d4; border-radius: 8px; }")
         else:
             # 非选中状态：清除自定义样式，使用默认
             self.setStyleSheet("")

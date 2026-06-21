@@ -51,7 +51,7 @@ set_app_user_model_id()
 
 # 只导入启动画面必需的模块
 from PySide6.QtCore import Qt, QTimer, QSize
-from PySide6.QtGui import QColor, QIcon, QPixmap
+from PySide6.QtGui import QColor, QIcon
 from PySide6.QtWidgets import QApplication, QSplashScreen
 
 

@@ -26,7 +26,7 @@ def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tu
         return False
     
     if colorspace_name == 'Adobe RGB' and cs['use_srgb_curve']:
-        print(f"  [X] Adobe RGB 不应使用 sRGB 曲线")
+        print("  [X] Adobe RGB 不应使用 sRGB 曲线")
         return False
     
     test_cases = [
@@ -38,7 +38,7 @@ def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tu
         ((128, 128, 128), "中灰", None, None, None),
     ]
     
-    print(f"\n测试结果:")
+    print("\n测试结果:")
     all_ok = True
     for (r, g, b), name, exp_L, exp_A, exp_B in test_cases:
         L, A, B = rgb_to_lab(r, g, b, colorspace_name)
@@ -75,7 +75,7 @@ def test_roundtrip():
                 all_ok = False
     
     if all_ok:
-        print(f"\n  [OK] 所有往返转换误差 <= 1")
+        print("\n  [OK] 所有往返转换误差 <= 1")
     
     return all_ok
 

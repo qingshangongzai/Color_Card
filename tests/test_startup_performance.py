@@ -125,11 +125,11 @@ def test_startup_performance():
     # 2. PySide6 基础模块
     with profiler.measure("PySide6 基础模块导入"):
         with profiler.measure("PySide6.QtCore"):
-            from PySide6.QtCore import Qt, QTimer, QSize
+            from PySide6.QtCore import Qt
         with profiler.measure("PySide6.QtGui"):
-            from PySide6.QtGui import QColor, QIcon, QPixmap
+            pass
         with profiler.measure("PySide6.QtWidgets"):
-            from PySide6.QtWidgets import QApplication, QSplashScreen
+            from PySide6.QtWidgets import QApplication
     
     # 3. 创建 QApplication
     with profiler.measure("创建 QApplication"):
@@ -149,7 +149,7 @@ def test_startup_performance():
     # 5. PySide6 扩展模块
     with profiler.measure("PySide6 扩展模块导入"):
         with profiler.measure("qInstallMessageHandler"):
-            from PySide6.QtCore import qInstallMessageHandler
+            pass
         with profiler.measure("qfluentwidgets"):
             from qfluentwidgets import setTheme, setThemeColor, Theme
     
@@ -158,7 +158,7 @@ def test_startup_performance():
         with profiler.measure("get_config_manager"):
             from core import get_config_manager
         with profiler.measure("utils 模块"):
-            from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager, force_window_to_front
+            from utils import get_locale_manager
         with profiler.measure("ui 模块"):
             from ui import MainWindow
     
@@ -242,7 +242,7 @@ def test_startup_performance():
             end = time.perf_counter()
             duration = (end - start) * 1000
             module_times.append((module_name, duration))
-        except Exception as e:
+        except Exception:
             module_times.append((module_name, -1))
     
     # 按耗时排序

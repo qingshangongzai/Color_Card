@@ -14,10 +14,10 @@ from PySide6.QtCore import Qt, Signal, QPointF
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
-from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QPolygonF
+from PySide6.QtGui import QColor, QPainter, QBrush, QPolygonF
 from qfluentwidgets import (
     ComboBox, PushButton, ToolButton, FluentIcon,
-    isDarkTheme, qconfig, CardWidget
+    isDarkTheme, qconfig
 )
 
 # 项目模块导入
