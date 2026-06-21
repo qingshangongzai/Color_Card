@@ -100,21 +100,21 @@ def _interpolate_hsl(start_rgb: tuple[int, int, int], end_rgb: tuple[int, int, i
     Returns:
         list[tuple[int, int, int]]: RGB颜色列表，包含起始色、中间色、结束色
     """
-    h1, s1, l1 = rgb_to_hsl(*start_rgb)
-    h2, s2, l2 = rgb_to_hsl(*end_rgb)
+    H1, S1, L1 = rgb_to_hsl(*start_rgb)
+    H2, S2, L2 = rgb_to_hsl(*end_rgb)
 
-    h1, h2 = _normalize_hue_for_interpolation(h1, h2)
+    H1, H2 = _normalize_hue_for_interpolation(H1, H2)
 
     colors = [start_rgb]
     total_segments = steps + 1
 
     for i in range(1, steps + 1):
         t = i / total_segments
-        h = h1 + (h2 - h1) * t
-        s = s1 + (s2 - s1) * t
-        l = l1 + (l2 - l1) * t
-        h = h % 360
-        colors.append(hsl_to_rgb(h, s, l))
+        H = H1 + (H2 - H1) * t
+        S = S1 + (S2 - S1) * t
+        L = L1 + (L2 - L1) * t
+        H = H % 360
+        colors.append(hsl_to_rgb(H, S, L))
 
     colors.append(end_rgb)
     return colors
