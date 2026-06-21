@@ -1,7 +1,7 @@
 # 定期代码检查
 
 # 安装依赖
-pip install ruff mypy radon bandit vulture
+pip install ruff mypy radon vulture
 
 # 日常检查
 ruff check . --fix
