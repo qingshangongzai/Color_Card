@@ -49,10 +49,10 @@ def setup_global_exception_handler(logger):
 # 立即调用（在导入 PySide6 之前）
 set_app_user_model_id()
 
-# 只导入启动画面必需的模块
-from PySide6.QtCore import Qt, QTimer, QSize
-from PySide6.QtGui import QColor, QIcon
-from PySide6.QtWidgets import QApplication, QSplashScreen
+# 只导入启动画面必需的模块（必须在 set_app_user_model_id 之后导入）
+from PySide6.QtCore import Qt, QTimer, QSize  # noqa: E402
+from PySide6.QtGui import QColor, QIcon  # noqa: E402
+from PySide6.QtWidgets import QApplication, QSplashScreen  # noqa: E402
 
 
 def _get_base_path() -> str:

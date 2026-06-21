@@ -101,13 +101,13 @@ def _create_splash_screen(project_root: str):
 if sys.platform == 'win32':
     import winreg
 
-# 第三方库导入
-from PySide6.QtWidgets import QApplication
-from qfluentwidgets import setTheme, Theme
+# 第三方库导入（必须在 set_app_user_model_id 之后导入）
+from PySide6.QtWidgets import QApplication  # noqa: E402
+from qfluentwidgets import setTheme, Theme  # noqa: E402
 
-# 项目模块导入
-from installer.core.registry_installer import REGISTRY_KEY
-from installer.core.permission_checker import is_frozen, get_exe_path
+# 项目模块导入（必须在 set_app_user_model_id 之后导入）
+from installer.core.registry_installer import REGISTRY_KEY  # noqa: E402
+from installer.core.permission_checker import is_frozen, get_exe_path  # noqa: E402
 
 
 def _get_install_path() -> str:

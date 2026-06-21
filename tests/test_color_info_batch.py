@@ -12,9 +12,9 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-import pytest
-import time
-from core.color import get_color_info, get_color_info_batch
+import pytest  # noqa: E402
+import time  # noqa: E402
+from core.color import get_color_info, get_color_info_batch  # noqa: E402
 
 
 class TestGetColorInfoBatch:

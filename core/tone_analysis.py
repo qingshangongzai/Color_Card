@@ -10,6 +10,7 @@ import numpy as np
 
 # 项目模块导入
 from .color import calculate_luminance_from_array
+from .cache_base import BaseCache
 
 
 class ToneKey(str, Enum):
@@ -453,10 +454,6 @@ class ToneAnalysisService:
         return (0.299 * img_array[:, :, 0] +
                 0.587 * img_array[:, :, 1] +
                 0.114 * img_array[:, :, 2]).astype(np.uint8)
-
-
-# 项目模块导入
-from .cache_base import BaseCache
 
 
 class ToneAnalysisCache(BaseCache):

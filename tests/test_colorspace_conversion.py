@@ -6,7 +6,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # 项目模块导入
-from core.color import rgb_to_lab, lab_to_rgb, _COLORSPACE_MATRICES
+from core.color import rgb_to_lab, lab_to_rgb, _COLORSPACE_MATRICES  # noqa: E402
 
 
 def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tuple):
