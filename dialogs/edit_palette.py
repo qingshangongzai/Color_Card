@@ -221,8 +221,8 @@ class ColorModeSliders(QWidget):
         super().__init__(parent)
         self._mode = mode
         self._params = self.MODE_PARAMS.get(mode, [])
-        self._sliders = []
-        self._labels = []
+        self._sliders: list[GradientSlider] = []
+        self._labels: list[tuple[QLabel, str]] = []
         self._current_rgb = (128, 128, 128)
         self.setup_ui()
 

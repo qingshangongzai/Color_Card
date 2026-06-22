@@ -147,7 +147,7 @@ class ColorSourceRegistry:
     """配色源注册表（单例模式）"""
     
     _instance = None
-    _sources = {}
+    _sources: dict[str, ColorSource] = {}
     _loaded = False
     
     @classmethod
@@ -185,14 +185,14 @@ class ColorSourceRegistry:
                 except (OSError, json.JSONDecodeError) as e:
                     print(f"加载配色源失败 {filename}: {e}")
     
-    def get(self, source_id: str) -> ColorSource:
+    def get(self, source_id: str) -> ColorSource | None:
         """获取指定配色源
 
         Args:
             source_id: 配色源ID
 
         Returns:
-            ColorSource: 配色源对象，不存在则返回 None
+            ColorSource | None: 配色源对象，不存在则返回 None
         """
         self._ensure_loaded()  # 首次访问时才加载
         return ColorSourceRegistry._sources.get(source_id)

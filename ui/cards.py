@@ -1,3 +1,6 @@
+# 标准库导入
+from typing import Generic, TypeVar
+
 # 第三方库导入
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QPainter
@@ -32,7 +35,10 @@ class BaseCard(QWidget):
         raise NotImplementedError("子类必须实现 clear 方法")
 
 
-class BaseCardPanel(QWidget):
+T = TypeVar('T', bound='BaseCard')
+
+
+class BaseCardPanel(QWidget, Generic[T]):
     """卡片面板基类，提供统一的卡片管理功能
     
     功能：
@@ -44,7 +50,7 @@ class BaseCardPanel(QWidget):
     def __init__(self, parent=None, card_count: int = 5):
         super().__init__(parent)
         self._card_count = card_count
-        self.cards = []
+        self.cards: list[T] = []
         self.setup_ui()
         self._create_initial_cards()
     
@@ -472,7 +478,7 @@ class ColorCard(BaseCard):
         self.hex_container.setVisible(visible)
 
 
-class ColorCardPanel(BaseCardPanel):
+class ColorCardPanel(BaseCardPanel[ColorCard]):
     """色卡面板（包含多个色卡）"""
     def __init__(self, parent=None, card_count=5):
         self._hex_visible = True
@@ -593,7 +599,7 @@ class LuminanceCard(BaseCard):
         self.zone_label.clear()
 
 
-class LuminanceCardPanel(BaseCardPanel):
+class LuminanceCardPanel(BaseCardPanel[LuminanceCard]):
     """明度信息卡面板（包含多个Zone卡）"""
     def __init__(self, parent=None, card_count=5):
         super().__init__(parent, card_count)

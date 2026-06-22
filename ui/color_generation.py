@@ -247,7 +247,7 @@ class GenerationColorInfoCard(BaseCard):
         super().mousePressEvent(event)
 
 
-class GenerationColorPanel(BaseCardPanel):
+class GenerationColorPanel(BaseCardPanel[GenerationColorInfoCard]):
     """配色生成色块面板（支持动态卡片数量）"""
 
     color_clicked = Signal(int)

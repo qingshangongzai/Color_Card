@@ -1144,7 +1144,7 @@ def suggest_mapping_strategy(elements: list[SVGElementInfo]) -> dict[str, Any]:
     Returns:
         dict: 建议策略信息
     """
-    stats = {}
+    stats: dict[str, int] = {}
     for elem in elements:
         elem_type = elem.element_type.name
         stats[elem_type] = stats.get(elem_type, 0) + 1
