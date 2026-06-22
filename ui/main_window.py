@@ -225,7 +225,7 @@ class MainWindow(FluentWindow):
         }
 
         # 界面实例缓存
-        self._interfaces: dict[str, 'QWidget'] = {}
+        self._interfaces: dict[str, Any] = {}
 
         # 设置导航（按需创建界面）
         self.setup_navigation()
@@ -248,14 +248,14 @@ class MainWindow(FluentWindow):
         # 设置 Ctrl+V 粘贴图片快捷键
         self._setup_paste_shortcut()
 
-    def _get_interface(self, interface_id: str) -> 'QWidget':
+    def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
 
         Args:
             interface_id: 界面标识符
 
         Returns:
-            QWidget: 界面实例
+            界面实例
         """
         if interface_id not in self._interfaces:
             # 动态导入并创建
@@ -279,7 +279,7 @@ class MainWindow(FluentWindow):
 
         return self._interfaces[interface_id]
 
-    def _on_interface_created(self, interface_id: str, interface: 'QWidget'):
+    def _on_interface_created(self, interface_id: str, interface: Any):
         """界面首次创建时的初始化
 
         Args:
@@ -303,7 +303,7 @@ class MainWindow(FluentWindow):
         if interface_id == 'gradientGeneration':
             interface.favorite_requested.connect(self._on_gradient_generation_favorite)
 
-    def _connect_settings_signals(self, settings_interface: 'QWidget'):
+    def _connect_settings_signals(self, settings_interface: Any):
         """连接设置界面的信号
 
         Args:

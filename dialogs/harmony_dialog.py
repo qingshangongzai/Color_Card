@@ -35,7 +35,7 @@ class HarmonyWheel(QWidget):
 
     def __init__(self, colors: list[dict], parent=None):
         self._colors = colors
-        self._hue_values = []
+        self._hue_values: list[float] = []
         super().__init__(parent)
         self.setFixedSize(200, 200)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)

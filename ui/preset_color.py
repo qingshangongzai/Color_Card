@@ -262,7 +262,7 @@ class PaletteCard(CardWidget):
         self._name = palette_data.get("name", f"配色 #{palette_index + 1}")
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
-        self._color_cards = []
+        self._color_cards: list[PresetColorCard] = []
         super().__init__(parent)
         self.setup_ui()
         self._load_color_data()
@@ -364,6 +364,7 @@ class PaletteCard(CardWidget):
                 card.clear()
 
             self._color_cards.append(card)
+            assert current_row_layout is not None
             current_row_layout.addWidget(card, stretch=1)
 
     def _on_preview_in_panel_clicked(self):

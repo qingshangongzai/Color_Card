@@ -607,7 +607,7 @@ class SVGPreviewWidget(BasePreviewScene):
 
         self.setStyleSheet("border: none;")
 
-    def set_template_info(self, is_builtin: bool, path: str = None):
+    def set_template_info(self, is_builtin: bool, path: str | None = None):
         """设置模板信息
 
         Args:
@@ -904,7 +904,7 @@ class BaseLayout(QWidget):
     def load_templates(self):
         raise NotImplementedError("子类必须重写 load_templates 方法")
 
-    def _create_svg_widget(self, template_path: str = None, is_builtin: bool = False) -> Any:
+    def _create_svg_widget(self, template_path: str | None = None, is_builtin: bool = False) -> Any:
         """创建SVG预览组件
 
         Args:

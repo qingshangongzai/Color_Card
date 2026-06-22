@@ -9,6 +9,7 @@ from __future__ import annotations
 # 标准库导入
 import uuid
 from datetime import datetime
+from typing import Any
 
 
 # 第三方库导入
@@ -46,7 +47,7 @@ class GenerationColorInfoCard(BaseCard):
     def __init__(self, index: int, parent=None):
         self._hex_value = "--"
         self._color_modes = ['HSB', 'LAB']
-        self._current_color_info = None
+        self._current_color_info: dict[str, Any] | None = None
         self._hex_visible = True
         super().__init__(index, parent)
         # 监听主题变化
@@ -191,10 +192,11 @@ class GenerationColorInfoCard(BaseCard):
         Args:
             rgb: RGB颜色元组 (r, g, b)
         """
-        self._current_color_info = get_color_info(rgb[0], rgb[1], rgb[2])
+        color_info = get_color_info(rgb[0], rgb[1], rgb[2])
+        self._current_color_info = color_info
 
         # 更新颜色块
-        r, g, b = self._current_color_info['rgb']
+        r, g, b = color_info['rgb']
         color_str = f"rgb({r}, {g}, {b})"
         self.color_block.setStyleSheet(
             f"background-color: {color_str}; border-radius: 4px;"
@@ -204,7 +206,7 @@ class GenerationColorInfoCard(BaseCard):
         self.update_color_display()
 
         # 更新16进制值
-        self._hex_value = self._current_color_info['hex']
+        self._hex_value = color_info['hex']
         self.hex_button.setText(self._hex_value)
         self.hex_button.setEnabled(True)
         self.copy_button.setEnabled(True)

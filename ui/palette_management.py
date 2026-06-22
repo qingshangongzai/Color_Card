@@ -76,7 +76,7 @@ class FavoriteGroupLoaderThread(BaseBatchLoader):
         start = batch_idx * self._batch_size
         end = min(start + self._batch_size, self._total_items)
         
-        batch_data = []
+        batch_data: list[dict] = []
         for i in range(start, end):
             if self._check_cancelled():
                 return batch_data
@@ -476,7 +476,7 @@ class PaletteManagementCard(CardWidget):
         self._card_index = card_index
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
-        self._color_cards = []
+        self._color_cards: list[PaletteManagementColorCard] = []
         self._batch_mode = False
         self._selected = False
         super().__init__(parent)
@@ -721,31 +721,6 @@ class PaletteManagementCard(CardWidget):
         menu.addAction(Action(FluentIcon.SHARE, "导出 ASE 色板", triggered=lambda: self.export_ase_requested.emit(self._favorite_data)))
         menu.addAction(Action(FluentIcon.PHOTO, "导出色卡图片", triggered=lambda: self.export_image_requested.emit(self._favorite_data)))
         menu.exec(self.export_button.mapToGlobal(self.export_button.rect().bottomRight()))
-
-    def _on_copy_palette_clicked(self):
-        """复制配色按钮点击"""
-        colors = self._favorite_data.get('colors', [])
-        if not colors:
-            return
-
-        hex_values = [
-            '#' + c['hex'] if not c['hex'].startswith('#') else c['hex']
-            for c in colors if c.get('hex')
-        ]
-
-        text = ' '.join(hex_values)
-        clipboard = QApplication.clipboard()
-        clipboard.setText(text)
-
-        InfoBar.success(
-            title=tr('messages.copy_success.title'),
-            content=tr('palette_management.palette_copied', count=len(hex_values)),
-            orient=Qt.Orientation.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=2000,
-            parent=self.window()
-        )
 
     def _on_copy_palette_clicked(self):
         """复制配色按钮点击"""
