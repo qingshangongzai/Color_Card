@@ -236,6 +236,7 @@ class BaseCanvas(QWidget):
             width: 原始图片宽度
             height: 原始图片高度
         """
+        assert isinstance(image_data, bytes)
         display_image = QImage.fromData(image_data, 'BMP')
         self._original_pixmap = QPixmap.fromImage(display_image)
 

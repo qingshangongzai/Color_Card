@@ -8,6 +8,7 @@ UI层通过ImageService调用业务功能，实现UI与业务逻辑分离。
 import io
 import struct
 from dataclasses import dataclass
+from typing import cast
 
 
 # 第三方库导入
@@ -162,7 +163,7 @@ class ColorSpaceDetector:
             ColorSpaceInfo | None: 色彩空间信息，如果无法检测则返回 None
         """
         try:
-            exif = image._getexif()
+            exif = image.getexif()
             if not exif:
                 return None
             
@@ -259,7 +260,7 @@ def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) ->
             return pil_image.convert('RGB')
 
         source_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc_data))
-        rendering_intent = getattr(ImageCms, 'INTENT_PERCEPTUAL', 0)
+        rendering_intent = cast(ImageCms.Intent, getattr(ImageCms, 'INTENT_PERCEPTUAL', 0))
 
         return ImageCms.profileToProfile(
             pil_image,
@@ -633,8 +634,8 @@ class ImageService(QObject):
         # 使用QImage进行缩放，内存效率更高
         thumbnail_image = image.scaled(
             size, size,
-            aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
-            transformMode=Qt.TransformationMode.SmoothTransformation
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
         )
 
         return QPixmap.fromImage(thumbnail_image)
@@ -660,6 +661,7 @@ class ImageService(QObject):
         """
         self.full_ready.emit(image_data, width, height, fmt)
 
+        assert isinstance(image_data, bytes)
         display_image = QImage.fromData(image_data, fmt)
         display_pixmap = QPixmap.fromImage(display_image)
 

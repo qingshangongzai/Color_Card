@@ -388,7 +388,7 @@ class PreviewService(QObject):
         return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
 
     def save_svg_as_png(self, svg_content: str, file_path: str,
-                        width: int = None, height: int = None) -> tuple[bool, str]:
+                        width: int | None = None, height: int | None = None) -> tuple[bool, str]:
         """将 SVG 内容保存为 PNG 文件
 
         使用 QSvgRenderer 将 SVG 渲染为 QImage，然后保存为 PNG 格式。
@@ -450,6 +450,7 @@ class PreviewService(QObject):
             path = Path(file_path)
             path.parent.mkdir(parents=True, exist_ok=True)
 
+            assert isinstance(file_path, str)
             if image.save(file_path, "PNG"):
                 logger.info(f"保存 PNG 文件成功: path={file_path}, size={width}x{height}")
                 return True, f"已保存到: {file_path} ({width}x{height})"
