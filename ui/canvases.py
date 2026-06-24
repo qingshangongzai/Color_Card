@@ -848,7 +848,7 @@ class BaseCanvas(QWidget):
 
             qimage = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB888)
             width, height = qimage.width(), qimage.height()
-            buffer = io.BytesIO(qimage.bits().tobytes())
+            buffer = io.BytesIO(qimage.bits())
             pil_image = PILImage.frombuffer('RGB', (width, height), buffer.getvalue())
 
             self._pending_image_path = '__clipboard__'
@@ -913,8 +913,6 @@ class ImageCanvas(BaseCanvas):
 
     def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
         """图片加载完成的回调"""
-        super()._on_image_loaded(image_data, width, height, fmt)
-
         # 改变光标为默认
         self.setCursor(Qt.CursorShape.ArrowCursor)
 

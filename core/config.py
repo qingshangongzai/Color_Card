@@ -317,7 +317,7 @@ class ConfigManager:
         self._config['favorites'] = [f for f in favorites if not f.get('_deleted')]
         return original_count - len(self._config['favorites'])
 
-    def get_valid_indices(self) -> set[int]:
+    def get_valid_indices(self) -> set[int]:  # type: ignore[name-defined]  # set 为内置类型，与 ConfigManager.set 方法名冲突导致类型检查器误报
         """获取有效（未删除）数据的索引集合
 
         Returns:
@@ -546,6 +546,18 @@ class SceneConfigManager:
         # 从项目根目录查找
         base_path = get_base_path()
         return Path(base_path) / self.SCENES_DIR_NAME
+
+    def _validate_scene_config(self, scene_config: dict[str, Any]) -> bool:
+        """验证场景配置格式
+
+        Args:
+            scene_config: 场景配置字典
+
+        Returns:
+            bool: 是否有效
+        """
+        required_fields = ['id', 'name', 'type']
+        return all(field in scene_config for field in required_fields)
 
     def _ensure_user_scenes_dir(self) -> None:
         """确保用户场景目录存在"""

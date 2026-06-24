@@ -133,7 +133,7 @@ class GradientSlider(QWidget):
         self._min_val = min_val
         self._max_val = max_val
         self._value = min_val
-        self._gradient = None
+        self._gradient: QLinearGradient | None = None
         self._dragging = False
 
         self.setFixedSize(200, 20)
@@ -648,7 +648,7 @@ class ColorPickerDialog(BaseFramelessDialog):
 
         self._updating = False
 
-    def _update_sliders(self, exclude_mode: str = None):
+    def _update_sliders(self, exclude_mode: str | None = None):
         """更新滑块值和渐变"""
         r, g, b = self._current_rgb
 

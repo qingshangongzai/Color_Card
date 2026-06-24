@@ -809,7 +809,7 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         # 统计卡片区域（初始隐藏）
         self._stats_widget = QWidget(self)
         self._stats_widget.hide()
-        stats_layout = QGridLayout(self._stats_widget)
+        stats_layout: QGridLayout = QGridLayout(self._stats_widget)
         stats_layout.setSpacing(12)
 
         self._stat_cards: list[StatCard] = []

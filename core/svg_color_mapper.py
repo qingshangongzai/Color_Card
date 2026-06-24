@@ -280,8 +280,8 @@ class SVGColorMapper:
             fill = styles.get('fill') or elem.get('fill')
             stroke = styles.get('stroke') or elem.get('stroke')
 
-            has_explicit_fill = fill and fill.lower() not in ('none', 'transparent')
-            has_explicit_stroke = stroke and stroke.lower() not in ('none', 'transparent')
+            has_explicit_fill = bool(fill and fill.lower() not in ('none', 'transparent'))
+            has_explicit_stroke = bool(stroke and stroke.lower() not in ('none', 'transparent'))
 
             is_transparent = not has_explicit_fill and has_explicit_stroke
 
@@ -747,7 +747,7 @@ class SVGColorMapper:
 
         return self._apply_color_map_extended(color_map, need_bg_rect)
 
-    def _normalize_color(self, color: str) -> str | None:
+    def _normalize_color(self, color: str | None) -> str | None:
         """标准化颜色值
 
         Args:

@@ -232,7 +232,7 @@ class LocaleManager(QObject):
         """
         return self.SUPPORTED_LANGUAGES.copy()
 
-    def tr(self, key: str, default: str | None = None, **kwargs) -> str:
+    def translate(self, key: str, default: str | None = None, **kwargs) -> str:
         """获取翻译文本
 
         Args:
@@ -298,7 +298,7 @@ def tr(key: str, default: str | None = None, **kwargs) -> str:
     Returns:
         str: 翻译后的文本
     """
-    return get_locale_manager().tr(key, default, **kwargs)
+    return get_locale_manager().translate(key, default, **kwargs)
 
 
 def set_language(language_code: str) -> bool:

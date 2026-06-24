@@ -208,7 +208,7 @@ class ImageData:
     """
     display_image: QImage
     display_pixmap: QPixmap
-    original_pixels: np.ndarray
+    original_pixels: np.ndarray | None
     colorspace_info: ColorSpaceInfo
     display_colorspace: str | None = None
 
@@ -369,6 +369,7 @@ class ProgressiveImageLoader(QThread):
                 if self._pil_image is not None:
                     pil_image = self._pil_image
                 else:
+                    assert self._image_path is not None
                     pil_image = Image.open(self._image_path)
 
                 if self._check_cancelled():
