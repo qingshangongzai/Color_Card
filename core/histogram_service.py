@@ -81,34 +81,35 @@ class HistogramCalculator(QThread):
     def run(self) -> None:
         """在子线程中执行计算"""
         try:
-            if self._check_cancelled() or self._image is None or self._image.isNull():
+            image = self._image
+            if self._check_cancelled() or image is None or image.isNull():
                 return
 
             if self._calc_type == "luminance":
                 with log_performance("calculate_luminance_histogram", {
-                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "size": f"{image.width()}x{image.height()}",
                     "sample_step": self._sample_step,
                     "gamma": self._gamma
                 }):
-                    result = calculate_histogram(self._image, self._sample_step, self._gamma)
+                    result = calculate_histogram(image, self._sample_step, self._gamma)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
             elif self._calc_type == "rgb":
                 with log_performance("calculate_rgb_histogram", {
-                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "size": f"{image.width()}x{image.height()}",
                     "sample_step": self._sample_step
                 }):
-                    result = calculate_rgb_histogram(self._image, self._sample_step)
+                    result = calculate_rgb_histogram(image, self._sample_step)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
             elif self._calc_type == "hue":
                 with log_performance("calculate_hue_histogram", {
-                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "size": f"{image.width()}x{image.height()}",
                     "sample_step": self._sample_step
                 }):
-                    result = self._calculate_hue_histogram()
+                    result = self._calculate_hue_histogram(image)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
@@ -117,7 +118,7 @@ class HistogramCalculator(QThread):
                 logger.error(f"直方图计算失败: {self._calc_type}, 错误: {e}", exc_info=True)
                 self.error.emit(str(e))
 
-    def _calculate_hue_histogram(self) -> list[int]:
+    def _calculate_hue_histogram(self, image: QImage) -> list[int]:
         """计算色相直方图
 
         使用NumPy向量化计算，性能比纯Python实现提升100+倍。
@@ -125,7 +126,7 @@ class HistogramCalculator(QThread):
         Returns:
             list: 长度为360的色相分布列表
         """
-        return calculate_hue_histogram(self._image, self._sample_step)
+        return calculate_hue_histogram(image, self._sample_step)
 
 
 class HistogramService(QObject):

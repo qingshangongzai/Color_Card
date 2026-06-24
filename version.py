@@ -79,11 +79,15 @@ class VersionManager:
         Returns:
             dict: 包含文件版本和产品版本的高16位和低16位值的字典
         """
+        major = self.major
+        minor = self.minor
+        patch = self.patch
+        build = self.build
         return {
-            "file_version_ms": (self.version_info["major"] << 16) | self.version_info["minor"],
-            "file_version_ls": (self.version_info["patch"] << 16) | self.version_info["build"],
-            "product_version_ms": (self.version_info["major"] << 16) | self.version_info["minor"],
-            "product_version_ls": (self.version_info["patch"] << 16) | self.version_info["build"]
+            "file_version_ms": (major << 16) | minor,
+            "file_version_ls": (patch << 16) | build,
+            "product_version_ms": (major << 16) | minor,
+            "product_version_ls": (patch << 16) | build
         }
 
 

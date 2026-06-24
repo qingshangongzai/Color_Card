@@ -64,7 +64,7 @@ class HistogramCache(BaseCache):
         self,
         image_key: str,
         histogram_type: str,
-        histogram_data: list[int],
+        histogram_data: list[int] | list[list[int]],
         metadata: dict[str, Any]
     ) -> None:
         """存储直方图数据到缓存
