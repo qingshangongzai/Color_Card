@@ -218,8 +218,6 @@ def _qimage_to_numpy(image: QImage) -> np.ndarray:
 SATURATION_STEPS = [1.0, 0.75, 0.5, 0.25]
 MIN_SATURATION = 20
 DEFAULT_BRIGHTNESS_STEPS = [100.0, 90.0, 80.0, 70.0]
-DEFAULT_ANALOGOUS_ANGLE = 30
-DEFAULT_SPLIT_ANGLE = 30
 
 # Zone分区宽度常量 (255/9 = 28.333...)
 ZONE_WIDTH = 255 / 9

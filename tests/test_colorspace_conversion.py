@@ -40,7 +40,7 @@ def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tu
     
     print("\n测试结果:")
     all_ok = True
-    for (r, g, b), name, exp_L, exp_A, exp_B in test_cases:
+    for (r, g, b), name, exp_L, _, _ in test_cases:
         L, A, B = rgb_to_lab(r, g, b, colorspace_name)
         print(f"  {name:8s} RGB({r:3d}, {g:3d}, {b:3d}) -> LAB({L:7.2f}, {A:7.2f}, {B:7.2f})")
         

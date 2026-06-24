@@ -52,8 +52,6 @@ class ToneAnalysisService:
 
     # 基调判断阈值（与分区一致：暗部0-85，中间调86-170，亮部171-255）
     KEY_HIGH_MIN = 171  # 亮部起始
-    KEY_MID_MIN = 86    # 中间调起始
-    KEY_MID_MAX = 170   # 中间调结束
     KEY_LOW_MAX = 85    # 暗部结束
 
     # 全长调判断阈值

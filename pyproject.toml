@@ -1,0 +1,7 @@
+[tool.vulture]
+ignore_names = [
+    "icc_profile_size",
+    "tone_key_confidence",
+    "tone_range_confidence",
+    "_img_array",
+]

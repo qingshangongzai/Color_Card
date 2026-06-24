@@ -39,7 +39,6 @@ class SVGElementInfo:
     fill_color: str | None = None         # 原始 fill 颜色
     stroke_color: str | None = None       # 原始 stroke 颜色
     area: float = 0.0                        # 元素面积（用于排序）
-    is_visible: bool = True                  # 是否可见
     fixed_color: str | None = None        # 固定颜色设置（black/original），仅语义化映射使用
     is_semantic: bool = False                # 是否通过语义化标识（class/id关键词）分类
     is_transparent: bool = False             # 是否是透明元素（无 fill 但有 stroke）

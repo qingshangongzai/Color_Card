@@ -31,13 +31,11 @@ class PreviewService(QObject):
 
     信号：
         scenes_loaded: 场景列表加载完成 (scene_types)
-        scene_applied: 配色应用到场景完成 (result_data)
         error: 错误发生 (error_message)
     """
 
     # 信号
     scenes_loaded = Signal(list)           # 场景类型列表
-    scene_applied = Signal(dict)           # 配色应用结果
     error = Signal(str)                    # 错误信息
 
     def __init__(self, parent=None):

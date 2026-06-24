@@ -864,7 +864,6 @@ class ImageCanvas(BaseCanvas):
     """图片显示画布，支持取色点拖动"""
 
     color_picked = Signal(int, tuple)  # 信号：索引, RGB颜色
-    picker_moved = Signal(int, tuple)  # 信号：索引, (rel_x, rel_y)
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
     def __init__(self, parent: QWidget | None = None, picker_count: int = 5) -> None:
