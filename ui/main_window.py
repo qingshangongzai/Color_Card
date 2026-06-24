@@ -1,7 +1,7 @@
 from __future__ import annotations
 # 标准库导入
 import sys
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -16,9 +16,6 @@ from core import get_config_manager, get_logger
 from utils import tr, get_locale_manager
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
-
-if TYPE_CHECKING:
-    from PySide6.QtWidgets import QWidget
 
 # 工具按钮统一样式
 _TOOLBUTTON_STYLE = """
