@@ -93,16 +93,20 @@ class BaseCardPanel(QWidget, Generic[T]):
     
     def _add_cards(self, old_count: int, new_count: int):
         """增加卡片（子类重写）"""
+        layout = self.layout()
+        assert layout is not None
         for i in range(old_count, new_count):
             card = self._create_card(i)
             self.cards.append(card)
-            self.layout().addWidget(card)
+            layout.addWidget(card)
     
     def _remove_cards(self, old_count: int, new_count: int):
         """减少卡片"""
+        layout = self.layout()
+        assert layout is not None
         for i in range(old_count - 1, new_count - 1, -1):
             card = self.cards.pop()
-            self.layout().removeWidget(card)
+            layout.removeWidget(card)
             card.deleteLater()
     
     def _create_card(self, index: int):

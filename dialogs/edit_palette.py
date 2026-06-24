@@ -761,7 +761,7 @@ class ColorPickerDialog(BaseFramelessDialog):
         self._color_info = get_color_info(r, g, b)
         self.accept()
 
-    def get_color_info(self) -> dict[str, Any]:
+    def get_color_info(self) -> dict[str, Any] | None:
         """获取选择的颜色信息"""
         return self._color_info
 
@@ -983,7 +983,7 @@ class ColorInputRow(QWidget):
 
     def __init__(self, index: int, parent=None):
         self._index = index
-        self._color_info = None
+        self._color_info: dict[str, Any] | None = None
         self._pending_text = ""
         self._is_error = False  # 输入错误状态标记
         super().__init__(parent)

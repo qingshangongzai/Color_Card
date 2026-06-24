@@ -528,6 +528,7 @@ class BaseCanvas(QWidget):
 
         # 检查坐标是否在图片显示范围内
         if 0 <= img_x < disp_w and 0 <= img_y < disp_h:
+            assert self._image is not None
             # 计算在原始图片中的坐标
             # 缩放比例 = 原始图片尺寸 / 显示区域尺寸
             scale_x = self._image.width() / disp_w

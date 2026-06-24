@@ -562,6 +562,7 @@ class ImageService(QObject):
 
     def _connect_loader_signals(self) -> None:
         """连接加载器信号（内部方法）"""
+        assert self._loader is not None
         self._loader.display_ready.connect(
             self._on_display_ready, Qt.ConnectionType.QueuedConnection
         )

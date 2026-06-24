@@ -263,6 +263,7 @@ class LuminanceService(QObject):
         self._pending_cleanup = still_running
         
         if not self._pending_cleanup:
+            assert self._cleanup_timer is not None
             self._cleanup_timer.stop()
 
     def get_zone_at_position(self, image: QImage, x: int, y: int) -> str:

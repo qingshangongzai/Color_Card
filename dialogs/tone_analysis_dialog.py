@@ -200,9 +200,11 @@ class PieChartWidget(QWidget):
         self._chart.setTitle(title)
 
         # 添加自定义图例
+        legend_layout = self._legend_widget.layout()
+        assert legend_layout is not None
         for i, (label, value, color) in enumerate(zip(labels, values, colors)):
             legend_item = self._create_legend_item(label, value, color)
-            self._legend_widget.layout().addWidget(legend_item)
+            legend_layout.addWidget(legend_item)
 
         # 更新主题颜色
         self._update_theme_colors()

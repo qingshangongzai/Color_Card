@@ -394,8 +394,11 @@ class UpdateService:
             )
             return
 
-        top_parent = parent.window() if parent else None
         info = result.info
+        if info is None:
+            return
+
+        top_parent = parent.window() if parent else None
         dialog = UpdateAvailableDialog(
             top_parent,
             current_version=result.current_version,
