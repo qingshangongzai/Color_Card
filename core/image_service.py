@@ -556,12 +556,6 @@ class ImageService(QObject):
         self._connect_loader_signals()
         self._loader.start()
 
-    def cancel_loading(self) -> None:
-        """取消当前加载任务"""
-        if self._loader is not None:
-            self._loader.cancel()
-            logger.debug("加载任务已取消")
-
     def _connect_loader_signals(self) -> None:
         """连接加载器信号（内部方法）"""
         assert self._loader is not None
@@ -616,30 +610,6 @@ class ImageService(QObject):
             ColorSpaceInfo | None: 色彩空间信息，如果未加载图片则返回 None
         """
         return self._colorspace_info
-
-    def generate_thumbnail(self, image: QImage, size: int = 100) -> QPixmap:
-        """生成缩略图
-
-        使用QImage进行缩放，然后转换为QPixmap，减少内存占用。
-
-        Args:
-            image: 原始图片
-            size: 缩略图尺寸（默认100px）
-
-        Returns:
-            QPixmap: 缩略图
-        """
-        if image is None or image.isNull():
-            return QPixmap()
-
-        # 使用QImage进行缩放，内存效率更高
-        thumbnail_image = image.scaled(
-            size, size,
-            Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation
-        )
-
-        return QPixmap.fromImage(thumbnail_image)
 
     def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
         """显示图片就绪的回调

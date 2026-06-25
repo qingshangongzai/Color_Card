@@ -804,11 +804,6 @@ class PaletteService(QObject):
         )
         self._importer.start()
 
-    def cancel_import(self) -> None:
-        """取消当前导入任务"""
-        if self._importer is not None and self._importer.isRunning():
-            self._importer.cancel()
-
     def _on_import_finished(self, palettes: list[dict[str, Any]]):
         """导入完成处理
 
@@ -908,11 +903,6 @@ class PaletteService(QObject):
         )
         self._ase_exporter.start()
 
-    def cancel_ase_export(self) -> None:
-        """取消当前 ASE 导出任务"""
-        if self._ase_exporter is not None and self._ase_exporter.isRunning():
-            self._ase_exporter.cancel()
-
     def _on_ase_export_finished(self, file_path: str):
         """ASE 导出完成处理
 
@@ -955,11 +945,6 @@ class PaletteService(QObject):
         )
         self._image_exporter.start()
 
-    def cancel_image_export(self) -> None:
-        """取消当前图片导出任务"""
-        if self._image_exporter is not None and self._image_exporter.isRunning():
-            self._image_exporter.cancel()
-
     def _on_image_export_finished(self, file_path: str):
         """图片导出完成处理"""
         self.image_export_finished.emit(file_path)
@@ -969,87 +954,3 @@ class PaletteService(QObject):
         if self._image_exporter is not None:
             self._image_exporter.deleteLater()
             self._image_exporter = None
-
-    @staticmethod
-    def validate_palette(palette: dict[str, Any]) -> tuple[bool, str]:
-        """验证配色数据格式
-
-        Args:
-            palette: 配色数据字典
-
-        Returns:
-            tuple[bool, str]: (是否有效, 错误信息)
-        """
-        if not isinstance(palette, dict):
-            return False, "配色数据必须是字典"
-
-        # 检查必需字段
-        if "name" not in palette:
-            return False, "配色缺少名称字段"
-
-        colors = palette.get("colors", [])
-        if not isinstance(colors, list):
-            return False, "colors 必须是列表"
-
-        if not colors:
-            return False, "配色中没有颜色数据"
-
-        # 验证颜色格式
-        for i, color in enumerate(colors):
-            if isinstance(color, dict):
-                hex_color = color.get("hex", "")
-                if not hex_color:
-                    return False, f"第 {i+1} 个颜色缺少 hex 值"
-                if not isinstance(hex_color, str) or not hex_color.startswith('#'):
-                    return False, f"第 {i+1} 个颜色格式无效"
-            elif isinstance(color, str):
-                if not color.startswith('#'):
-                    return False, f"第 {i+1} 个颜色格式无效"
-            else:
-                return False, f"第 {i+1} 个颜色格式无效"
-
-        return True, ""
-
-    @staticmethod
-    def validate_import_file(file_path: str) -> tuple[bool, str]:
-        """验证导入文件
-
-        Args:
-            file_path: 文件路径
-
-        Returns:
-            tuple: (是否有效, 错误信息)
-        """
-        path = Path(file_path)
-
-        if not path.exists():
-            return False, f"文件不存在: {file_path}"
-
-        if not path.is_file():
-            return False, f"路径不是文件: {file_path}"
-
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                import_data = json.load(f)
-
-            if not isinstance(import_data, dict):
-                return False, "文件格式错误：根对象必须是字典"
-
-            palettes = import_data.get("palettes", [])
-            if not isinstance(palettes, list):
-                return False, "文件格式错误：palettes 必须是列表"
-
-            if not palettes:
-                return False, "文件中没有配色数据"
-
-            return True, ""
-
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON解析错误: {e}", exc_info=True)
-            return False, f"JSON 解析错误: {e}"
-        except (IOError, OSError) as e:
-            logger.error(f"文件读取错误: {e}", exc_info=True)
-            return False, f"文件读取错误: {e}"
-        except Exception as e:
-            logger.error(f"验证失败: {e}", exc_info=True)
-            return False, f"验证失败: {e}"

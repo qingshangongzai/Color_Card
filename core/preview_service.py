@@ -16,7 +16,7 @@ from PySide6.QtCore import QObject, Signal
 
 # 项目模块导入
 from .config import get_scene_type_manager, get_config_manager
-from .logger import get_logger, log_performance
+from .logger import get_logger
 
 logger = get_logger("preview_service")
 
@@ -30,12 +30,10 @@ class PreviewService(QObject):
     - SVG配色映射调用
 
     信号：
-        scenes_loaded: 场景列表加载完成 (scene_types)
         error: 错误发生 (error_message)
     """
 
     # 信号
-    scenes_loaded = Signal(list)           # 场景类型列表
     error = Signal(str)                    # 错误信息
 
     def __init__(self, parent=None):
@@ -57,59 +55,6 @@ class PreviewService(QObject):
         if self._scene_type_manager is None:
             self._scene_type_manager = get_scene_type_manager()
         return self._scene_type_manager
-
-    def load_scene_types(self) -> list[dict[str, Any]]:
-        """加载所有场景类型
-
-        Returns:
-            list[dict[str, Any]]: 场景类型配置列表
-        """
-        try:
-            with log_performance("load_scene_types"):
-                scene_types = self._get_scene_type_manager().get_all_scene_types()
-                self.scenes_loaded.emit(scene_types)
-                logger.debug(f"加载场景类型成功，共 {len(scene_types)} 个")
-                return scene_types
-        except Exception as e:
-            logger.error(f"加载场景类型失败: {e}", exc_info=True)
-            self.error.emit(f"加载场景类型失败: {e}")
-            return []
-
-    def get_scene_config(self, scene_id: str) -> dict[str, Any] | None:
-        """获取场景类型配置
-
-        Args:
-            scene_id: 场景类型ID
-
-        Returns:
-            dict[str, Any] | None: 场景配置，如果不存在则返回None
-        """
-        try:
-            config = self._get_scene_type_manager().get_scene_type_by_id(scene_id)
-            logger.debug(f"获取场景配置: scene_id={scene_id}")
-            return config
-        except Exception as e:
-            logger.error(f"获取场景配置失败: scene_id={scene_id}, error={e}", exc_info=True)
-            self.error.emit(f"获取场景配置失败: {e}")
-            return None
-
-    def get_scene_templates(self, scene_id: str) -> list[dict[str, Any]]:
-        """获取场景的所有模板（内置 + 用户）
-
-        Args:
-            scene_id: 场景类型ID
-
-        Returns:
-            list[dict[str, Any]]: 模板列表
-        """
-        try:
-            templates = self._get_scene_type_manager().get_all_templates(scene_id)
-            logger.debug(f"获取场景模板: scene_id={scene_id}, count={len(templates)}")
-            return templates
-        except Exception as e:
-            logger.error(f"获取场景模板失败: scene_id={scene_id}, error={e}", exc_info=True)
-            self.error.emit(f"获取场景模板失败: {e}")
-            return []
 
     def get_layout_config(self, scene_id: str) -> dict[str, Any]:
         """获取场景的布局配置
@@ -203,33 +148,6 @@ class PreviewService(QObject):
             self.error.emit(f"获取内置SVG路径失败: {e}")
             return None
 
-    def apply_colors_to_svg(self, svg_content: str, colors: list[str]) -> tuple[bool, str]:
-        """将配色应用到SVG内容
-
-        Args:
-            svg_content: 原始SVG内容
-            colors: 颜色值列表（HEX格式）
-
-        Returns:
-            tuple[bool, str]: (是否成功, 处理后的SVG内容或错误信息)
-        """
-        try:
-            with log_performance("apply_colors_to_svg", {"color_count": len(colors)}):
-                from .svg_color_mapper import SVGColorMapper
-
-                mapper = SVGColorMapper()
-                if not mapper.load_svg_from_string(svg_content):
-                    logger.warning("无法加载SVG内容")
-                    return False, "无法加载SVG内容"
-
-                result = mapper.apply_intelligent_mapping(colors)
-                logger.debug(f"应用配色成功: color_count={len(colors)}")
-                return True, result
-
-        except Exception as e:
-            logger.error(f"应用配色失败: color_count={len(colors)}, error={e}", exc_info=True)
-            return False, f"应用配色失败: {e}"
-
     def validate_svg_file(self, file_path: str) -> tuple[bool, str]:
         """验证SVG文件是否有效
 
@@ -272,60 +190,6 @@ class PreviewService(QObject):
         except Exception as e:
             logger.error(f"验证SVG文件失败: {file_path}, error={e}", exc_info=True)
             return False, f"验证失败: {e}"
-
-    def add_background_to_svg(self, svg_content: str, bg_color: str) -> str:
-        """为 SVG 添加背景矩形
-
-        Args:
-            svg_content: 原始 SVG 内容
-            bg_color: 背景颜色
-
-        Returns:
-            str: 添加背景后的 SVG 内容
-        """
-        try:
-            import xml.etree.ElementTree as ET
-            import re
-
-            root = ET.fromstring(svg_content)
-            svg_ns = 'http://www.w3.org/2000/svg'
-            has_namespace = root.tag.startswith('{')
-
-            viewbox = root.get('viewBox', '')
-            width = root.get('width', '0')
-            height = root.get('height', '0')
-
-            if viewbox:
-                parts = viewbox.split()
-                if len(parts) >= 4:
-                    x, y, w, h = parts[0], parts[1], parts[2], parts[3]
-                else:
-                    return svg_content
-            elif width and height:
-                w = re.sub(r'[^\d.]', '', width)
-                h = re.sub(r'[^\d.]', '', height)
-                x, y = '0', '0'
-            else:
-                return svg_content
-
-            if has_namespace:
-                bg_rect = ET.Element(f'{{{svg_ns}}}rect')
-            else:
-                bg_rect = ET.Element('rect')
-
-            bg_rect.set('x', x)
-            bg_rect.set('y', y)
-            bg_rect.set('width', w)
-            bg_rect.set('height', h)
-            bg_rect.set('fill', bg_color)
-
-            root.insert(0, bg_rect)
-            logger.debug(f"添加SVG背景成功: bg_color={bg_color}")
-            return ET.tostring(root, encoding='unicode')
-
-        except Exception as e:
-            logger.error(f"添加SVG背景失败: bg_color={bg_color}, error={e}", exc_info=True)
-            return svg_content
 
     def extract_hex_colors_from_favorite(self, favorite: dict[str, Any]) -> list[str]:
         """从收藏数据中提取 HEX 颜色列表
@@ -373,17 +237,6 @@ class PreviewService(QObject):
         except Exception as e:
             logger.error(f"保存SVG文件失败: path={file_path}, error={e}", exc_info=True)
             return False, f"保存失败: {e}"
-
-    def generate_export_filename(self, prefix: str = "color_card") -> str:
-        """生成导出文件名
-
-        Args:
-            prefix: 文件名前缀
-
-        Returns:
-            str: 生成的文件名
-        """
-        return f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.svg"
 
     def save_svg_as_png(self, svg_content: str, file_path: str,
                         width: int | None = None, height: int | None = None) -> tuple[bool, str]:
