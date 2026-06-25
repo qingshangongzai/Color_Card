@@ -19,4 +19,14 @@ ignore_names = [
     "analyze_from_array",
     "analyze_from_histogram",
     "get_gray_image",
+    # ui/color_preview.py - Qt 事件重写方法，由 Qt 事件分发机制自动调用，Vulture 无法识别
+    "mouseDoubleClickEvent",
+    "contextMenuEvent",
+    "dragEnterEvent",
+    "dragMoveEvent",
+    "dragLeaveEvent",
+    "dropEvent",
+    "mousePressEvent",
+    "mouseMoveEvent",
+    "mouseReleaseEvent",
 ]
