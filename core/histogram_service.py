@@ -203,18 +203,6 @@ class HistogramService(QObject):
             if calculator is not None and calculator.isRunning():
                 calculator.wait()
 
-    def set_colorspace_info(self, colorspace_info: ColorSpaceInfo | None) -> None:
-        """设置色彩空间信息
-
-        Args:
-            colorspace_info: 色彩空间信息
-        """
-        self._colorspace_info = colorspace_info
-        if colorspace_info and colorspace_info.gamma:
-            self._gamma = colorspace_info.gamma
-        else:
-            self._gamma = 2.2
-
     def set_sampling_mode(self, mode: str) -> None:
         """设置采样模式
 

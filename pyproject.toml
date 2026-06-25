@@ -13,4 +13,6 @@ ignore_names = [
     # installer/main.py - subprocess.STARTUPINFO Windows 结构体字段
     "dwFlags",
     "wShowWindow",
+    # core/histogram_cache.py - 在 dialogs/tone_analysis_dialog.py 被调用，Vulture 未识别
+    "get_with_metadata",
 ]

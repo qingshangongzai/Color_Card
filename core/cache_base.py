@@ -85,20 +85,3 @@ class BaseCache:
         self._cache.clear()
         self._hits = 0
         self._misses = 0
-
-    def get_stats(self) -> dict[str, Any]:
-        """获取缓存统计信息
-
-        Returns:
-            dict[str, Any]: 包含命中率、命中次数、未命中次数、缓存大小的字典
-        """
-        total = self._hits + self._misses
-        hit_rate = self._hits / total if total > 0 else 0.0
-
-        return {
-            'hit_rate': hit_rate,
-            'hits': self._hits,
-            'misses': self._misses,
-            'size': len(self._cache),
-            'max_size': self._max_size
-        }

@@ -3,7 +3,6 @@ from __future__ import annotations
 # 标准库导入
 import json
 import os
-import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -206,38 +205,6 @@ class ConfigManager:
 
         config[keys[-1]] = value
 
-    def get_settings(self) -> dict[str, Any]:
-        """获取设置配置
-
-        Returns:
-            dict[str, Any]: 设置配置字典
-        """
-        return self._config.get("settings", {})
-
-    def set_settings(self, settings: dict[str, Any]) -> None:
-        """设置设置配置
-
-        Args:
-            settings: 设置配置字典
-        """
-        self._config["settings"] = settings
-
-    def get_window_config(self) -> dict[str, Any]:
-        """获取窗口配置
-
-        Returns:
-            dict[str, Any]: 窗口配置字典
-        """
-        return self._config.get("window", {})
-
-    def set_window_config(self, window_config: dict[str, Any]) -> None:
-        """设置窗口配置
-
-        Args:
-            window_config: 窗口配置字典
-        """
-        self._config["window"] = window_config
-
     def get_favorites(self, include_deleted: bool = False) -> list[dict[str, Any]]:
         """获取收藏列表
 
@@ -341,27 +308,6 @@ class ConfigManager:
                 return i
         return -1
 
-    def rename_favorite(self, favorite_id: str, new_name: str) -> bool:
-        """重命名收藏
-
-        Args:
-            favorite_id: 收藏ID
-            new_name: 新名称
-
-        Returns:
-            bool: 是否重命名成功
-        """
-        if "favorites" not in self._config:
-            return False
-
-        favorites = self._config["favorites"]
-        for fav in favorites:
-            if fav.get("id") == favorite_id:
-                fav["name"] = new_name
-                return True
-
-        return False
-
     def clear_favorites(self) -> None:
         """清空所有收藏"""
         self._config["favorites"] = []
@@ -419,48 +365,6 @@ class ConfigManager:
                 return True
 
         return False
-
-    def reorder_favorites(self, new_order_ids: list[str]) -> bool:
-        """根据ID列表重新排序收藏
-
-        Args:
-            new_order_ids: 新的排序ID列表
-
-        Returns:
-            bool: 是否排序成功
-        """
-        if "favorites" not in self._config:
-            return False
-
-        favorites = self._config["favorites"]
-        if not favorites:
-            return True
-
-        # 创建ID到收藏的映射
-        id_to_fav = {f.get('id'): f for f in favorites if f.get('id')}
-
-        # 按新顺序重建列表
-        new_favorites = []
-        for fid in new_order_ids:
-            if fid in id_to_fav:
-                new_favorites.append(id_to_fav[fid])
-
-        # 添加可能遗漏的收藏（防万一）
-        existing_ids = set(new_order_ids)
-        for fav in favorites:
-            if fav.get('id') not in existing_ids:
-                new_favorites.append(fav)
-
-        self._config["favorites"] = new_favorites
-        return True
-
-    def get_scene_templates(self) -> dict[str, list[dict[str, Any]]]:
-        """获取用户场景模板索引
-
-        Returns:
-            dict[str, list[dict[str, Any]]]: 场景模板索引字典
-        """
-        return self._config.get("scene_templates", {})
 
     def add_scene_template(self, scene_type: str, template_data: dict[str, Any]) -> bool:
         """添加场景模板
@@ -603,15 +507,6 @@ class SceneConfigManager:
         self._ensure_loaded()
         return self._user_scenes.copy()
 
-    def get_user_scenes(self) -> list[dict[str, Any]]:
-        """获取用户自定义场景配置
-
-        Returns:
-            list[dict[str, Any]]: 用户场景配置列表
-        """
-        self._ensure_loaded()
-        return self._user_scenes.copy()
-
     def get_scene_by_id(self, scene_id: str) -> dict[str, Any] | None:
         """根据ID获取场景配置
 
@@ -627,131 +522,6 @@ class SceneConfigManager:
                 return scene.copy()
 
         return None
-
-    def import_scene(self, file_path: str) -> tuple[bool, str]:
-        """导入场景配置文件
-
-        Args:
-            file_path: 配置文件路径
-
-        Returns:
-            tuple[bool, str]: (是否成功, 错误信息或成功消息)
-        """
-        self._ensure_loaded()
-        try:
-            source_path = Path(file_path)
-            if not source_path.exists():
-                return False, f"文件不存在: {file_path}"
-
-            with open(source_path, 'r', encoding='utf-8') as f:
-                scene_config = json.load(f)
-
-            # 验证配置格式
-            if not self._validate_scene_config(scene_config):
-                return False, "场景配置格式无效，必须包含 id, name, type 字段"
-
-            # 检查ID是否冲突
-            scene_id = scene_config["id"]
-            existing_scene = self.get_scene_by_id(scene_id)
-            if existing_scene:
-                # 覆盖现有用户场景
-                self.delete_user_scene(scene_id)
-
-            # 确保用户场景目录存在
-            self._ensure_user_scenes_dir()
-
-            # 生成文件名
-            file_name = f"{scene_id}.json"
-            target_path = self._user_scenes_dir / file_name
-
-            # 复制文件
-            shutil.copy2(source_path, target_path)
-
-            # 重新加载用户场景
-            self._load_user_scenes()
-
-            return True, f"场景 '{scene_config.get('name', scene_id)}' 导入成功"
-
-        except json.JSONDecodeError as e:
-            return False, f"JSON 解析错误: {e}"
-        except (IOError, OSError) as e:
-            return False, f"文件操作错误: {e}"
-        except Exception as e:
-            return False, f"导入失败: {e}"
-
-    def export_scene(self, scene_id: str, file_path: str) -> tuple[bool, str]:
-        """导出场景配置到文件
-
-        Args:
-            scene_id: 场景ID
-            file_path: 导出文件路径
-
-        Returns:
-            tuple[bool, str]: (是否成功, 错误信息或成功消息)
-        """
-        scene_config = self.get_scene_by_id(scene_id)
-        if not scene_config:
-            return False, f"场景 '{scene_id}' 不存在"
-
-        try:
-            target_path = Path(file_path)
-
-            # 确保目录存在
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-
-            # 添加导出元数据
-            export_data = scene_config.copy()
-            export_data["_export_info"] = {
-                "exported_at": datetime.now().isoformat(),
-                "version": "1.0"
-            }
-
-            with open(target_path, 'w', encoding='utf-8') as f:
-                json.dump(export_data, f, ensure_ascii=False, indent=4)
-
-            return True, f"场景 '{scene_config.get('name', scene_id)}' 导出成功"
-
-        except (IOError, OSError) as e:
-            return False, f"文件写入错误: {e}"
-        except Exception as e:
-            return False, f"导出失败: {e}"
-
-    def save_user_scene(self, scene_config: dict[str, Any]) -> tuple[bool, str]:
-        """保存用户自定义场景
-
-        Args:
-            scene_config: 场景配置字典
-
-        Returns:
-            tuple[bool, str]: (是否成功, 错误信息或成功消息)
-        """
-        self._ensure_loaded()
-        # 验证配置格式
-        if not self._validate_scene_config(scene_config):
-            return False, "场景配置格式无效，必须包含 id, name, type 字段"
-
-        scene_id = scene_config["id"]
-
-        try:
-            # 确保用户场景目录存在
-            self._ensure_user_scenes_dir()
-
-            # 生成文件名
-            file_name = f"{scene_id}.json"
-            file_path = self._user_scenes_dir / file_name
-
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(scene_config, f, ensure_ascii=False, indent=4)
-
-            # 重新加载用户场景
-            self._load_user_scenes()
-
-            return True, f"场景 '{scene_config.get('name', scene_id)}' 保存成功"
-
-        except (IOError, OSError) as e:
-            return False, f"文件写入错误: {e}"
-        except Exception as e:
-            return False, f"保存失败: {e}"
 
     def delete_user_scene(self, scene_id: str) -> bool:
         """删除用户自定义场景
@@ -777,12 +547,6 @@ class SceneConfigManager:
                 return True
 
         return False
-
-    def reload_scenes(self) -> None:
-        """重新加载所有场景配置"""
-        self._loaded = True  # 强制设置为已加载状态
-        self._load_all_scenes()
-        print(f"场景配置已重新加载，共 {len(self.get_all_scenes())} 个场景")
 
 
 # 全局配置管理器实例
