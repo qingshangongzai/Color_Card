@@ -762,13 +762,6 @@ class PaletteManagementCard(CardWidget):
         for card in self._color_cards:
             card.set_color_modes(modes)
 
-    def update_display(self, hex_visible=None, color_modes=None):
-        """更新显示设置"""
-        if hex_visible is not None:
-            self.set_hex_visible(hex_visible)
-        if color_modes is not None:
-            self.set_color_modes(color_modes)
-
     def set_batch_mode(self, enabled: bool):
         """设置批量模式
 

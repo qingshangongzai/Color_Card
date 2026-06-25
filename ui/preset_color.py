@@ -432,12 +432,6 @@ class PaletteCard(CardWidget):
         for card in self._color_cards:
             card.set_color_modes(modes)
 
-    def update_display(self, hex_visible=None, color_modes=None):
-        if hex_visible is not None:
-            self.set_hex_visible(hex_visible)
-        if color_modes is not None:
-            self.set_color_modes(color_modes)
-
 
 # =============================================================================
 # 预设色彩列表容器

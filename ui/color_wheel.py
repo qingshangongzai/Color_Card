@@ -391,14 +391,6 @@ class InteractiveColorWheel(QWidget):
         self._base_brightness = max(0, min(100, b))
         self.update()
 
-    def get_base_color(self) -> tuple:
-        """获取基准颜色
-
-        Returns:
-            tuple: (色相, 饱和度, 亮度)
-        """
-        return self._base_hue, self._base_saturation, self._base_brightness
-
     def set_scheme_colors(self, colors: list[tuple[float, float, float]]):
         """设置配色颜色点
 
@@ -406,11 +398,6 @@ class InteractiveColorWheel(QWidget):
             colors: HSB颜色列表 [(h, s, b), ...]
         """
         self._scheme_colors = colors if colors else []
-        self.update()
-
-    def clear_scheme_colors(self):
-        """清除配色颜色点"""
-        self._scheme_colors = []
         self.update()
 
     def set_global_brightness(self, brightness: int):

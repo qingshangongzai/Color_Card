@@ -70,10 +70,6 @@ class ColorDot(QWidget):
         self._update_styles()
         self.update()
 
-    def get_color(self) -> str:
-        """获取当前颜色"""
-        return self._color
-
     def mousePressEvent(self, event):
         """鼠标按下事件"""
         if event.button() == Qt.MouseButton.LeftButton:
