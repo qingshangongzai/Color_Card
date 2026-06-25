@@ -15,4 +15,8 @@ ignore_names = [
     "wShowWindow",
     # core/histogram_cache.py - 在 dialogs/tone_analysis_dialog.py 被调用，Vulture 未识别
     "get_with_metadata",
+    # core/tone_analysis.py - 在 dialogs/tone_analysis_dialog.py 经 self._service 调用，Vulture 未识别跨模块动态属性
+    "analyze_from_array",
+    "analyze_from_histogram",
+    "get_gray_image",
 ]
