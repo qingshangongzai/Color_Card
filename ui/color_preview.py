@@ -1610,7 +1610,6 @@ class MixedPreviewPanel(QWidget):
         """
         if self._current_scene == "custom":
             self._custom_svg_path = None
-            self._current_svg_path = None
             self.set_scene(self._current_scene)
             return
 
@@ -1876,7 +1875,6 @@ class ColorPreviewInterface(QWidget):
         self._current_index = 0
         self._current_colors: list[str] = []
         self._current_scene = "showcase"
-        self._current_svg_path = ""
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self._scene_types_loaded = False
         self.setup_ui()
@@ -2016,7 +2014,6 @@ class ColorPreviewInterface(QWidget):
             return
 
         if svg_preview.load_svg(file_path):
-            self._current_svg_path = file_path
             self.preview_panel.set_custom_svg_path(file_path)
             svg_preview.set_template_info(False, file_path)
             svg_preview.set_colors(self._current_colors)

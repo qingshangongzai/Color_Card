@@ -1738,8 +1738,6 @@ class PaletteManagementInterface(QWidget):
         set_last_directory("palette_import", str(Path(file_path).parent))
         log_user_action("import_palette_start", {"file_path": file_path})
 
-        self._pending_import_path = file_path
-
         # 如果没有配色数据，直接导入（替换模式）
         if not self._config_manager.get_favorites():
             self._pending_import_mode = 'replace'

@@ -240,9 +240,6 @@ class BaseCanvas(QWidget):
         display_image = QImage.fromData(image_data, 'BMP')
         self._original_pixmap = QPixmap.fromImage(display_image)
 
-        self._pending_image_width = width
-        self._pending_image_height = height
-
         self._setup_display_preview()
         self.update()
 

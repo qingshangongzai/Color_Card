@@ -256,8 +256,6 @@ class PaletteCard(CardWidget):
     preview_in_panel_requested = Signal(dict)
 
     def __init__(self, palette_index: int, palette_data: dict[str, Any], parent=None):
-        self._palette_index = palette_index
-        self._palette_data = palette_data
         self._colors = palette_data.get("colors", [])
         self._name = palette_data.get("name", f"配色 #{palette_index + 1}")
         self._hex_visible = True
@@ -459,7 +457,6 @@ class PresetColorList(QWidget):
         self._color_modes = ['HSB', 'LAB']
         self._scheme_cards = {}
         self._current_source = None
-        self._current_color_source = None
         self._loader = None
         self._palette_counter = 0
         super().__init__(parent)
@@ -529,7 +526,6 @@ class PresetColorList(QWidget):
         self._cancel_loader()
         self._clear_content()
         self._current_source = source_id
-        self._current_color_source = color_source
 
         group_info = color_source.get_group_info(group_index)
         total_items = group_info.get("total_items", 0)
@@ -592,7 +588,6 @@ class PresetColorList(QWidget):
         self._cancel_loader()
         self._clear_content()
         self._current_source = 'random'
-        self._current_color_source = None
 
         random_palettes = get_random_palettes(count)
 

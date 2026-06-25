@@ -264,9 +264,6 @@ class MainWindow(FluentWindow):
             interface = interface_class(self)
             interface.setObjectName(interface_id)
 
-            # 设置导航图标
-            interface._nav_icon = self._NAV_ICON_MAP.get(interface_id)
-
             # 缓存并添加到堆叠窗口
             self._interfaces[interface_id] = interface
             self.stackedWidget.addWidget(interface)

@@ -530,18 +530,15 @@ class ZoneValueLabel(QWidget):
         super().__init__(parent)
         self.setFixedSize(50, 30)
         self._zone = -1
-        self._luminance = 0
 
     def set_zone(self, zone: int, luminance: int = 0):
         """设置Zone值"""
         self._zone = zone
-        self._luminance = luminance
         self.update()
 
     def clear(self):
         """清空显示"""
         self._zone = -1
-        self._luminance = 0
         self.update()
 
     def get_zone_label(self) -> str:
