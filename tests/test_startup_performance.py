@@ -42,7 +42,6 @@ class StartupProfiler:
     
     def __init__(self):
         self.results: list[TimingResult] = []
-        self._current_result: TimingResult | None = None
         self._result_stack: list[TimingResult] = []
     
     @contextmanager

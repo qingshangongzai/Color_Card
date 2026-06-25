@@ -5,4 +5,12 @@ ignore_names = [
     "tone_range_confidence",
     "_img_array",
     "MAX_IMAGE_PIXELS",
+    # installer/core/shortcut_installer.py - WScript.Shell COM 属性写入（Vulture 无法识别外部 API）
+    "Targetpath",
+    "Arguments",
+    "Description",
+    "WorkingDirectory",
+    # installer/main.py - subprocess.STARTUPINFO Windows 结构体字段
+    "dwFlags",
+    "wShowWindow",
 ]
