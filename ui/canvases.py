@@ -907,11 +907,6 @@ class ImageCanvas(BaseCanvas):
             self.setCursor(Qt.CursorShape.ArrowCursor)
             self._loading_label.setText(tr('canvases.loading_full_image'))
 
-    def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
-        """图片加载完成的回调"""
-        # 改变光标为默认
-        self.setCursor(Qt.CursorShape.ArrowCursor)
-
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
         # 恢复光标

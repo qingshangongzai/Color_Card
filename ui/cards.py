@@ -516,10 +516,6 @@ class ColorCardPanel(BaseCardPanel[ColorCard]):
         for card in self.cards:
             card.set_hex_visible(visible)
 
-    def is_hex_visible(self):
-        """获取16进制颜色值显示状态"""
-        return self._hex_visible
-
 
 
 
@@ -608,8 +604,3 @@ class LuminanceCardPanel(BaseCardPanel[LuminanceCard]):
     def _create_card(self, index):
         """创建明度卡实例"""
         return LuminanceCard(index)
-
-    def update_zone(self, index: int, zone: int, luminance: int = 0):
-        """更新指定索引的Zone"""
-        if 0 <= index < len(self.cards):
-            self.cards[index].set_zone(zone, luminance)
