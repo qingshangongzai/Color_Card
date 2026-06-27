@@ -37,6 +37,7 @@
 
 - **主仓库（Gitee）**：<https://gitee.com/HxiaoStudio/Color_Card>
 - **镜像仓库（GitHub）**：<https://github.com/qingshangongzai/Color_Card>
+- **镜像仓库（GitCode）**：<https://gitcode.com/HxiaoStudio/Color_Card>
 - **官方网站**：<https://color-card.hxiaostudio.cn>
 
 ### 🚀 开发历程
@@ -324,6 +325,7 @@ Unlike common color tools or websites that only provide a single function, Color
 
 - **Primary Repository (Gitee)**: <https://gitee.com/HxiaoStudio/Color_Card>
 - **Mirror Repository (GitHub)**: <https://github.com/qingshangongzai/Color_Card>
+- **Mirror Repository (GitCode)**: <https://gitcode.com/HxiaoStudio/Color_Card>
 - **Official Website**: <https://color-card.hxiaostudio.cn>
 
 ### 🚀 Development Journey
