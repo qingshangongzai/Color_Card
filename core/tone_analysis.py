@@ -10,6 +10,7 @@ import numpy as np
 
 # 项目模块导入
 from .color import calculate_luminance_from_array
+from .cache_base import BaseCache
 
 
 class ToneKey(str, Enum):
@@ -51,8 +52,6 @@ class ToneAnalysisService:
 
     # 基调判断阈值（与分区一致：暗部0-85，中间调86-170，亮部171-255）
     KEY_HIGH_MIN = 171  # 亮部起始
-    KEY_MID_MIN = 86    # 中间调起始
-    KEY_MID_MAX = 170   # 中间调结束
     KEY_LOW_MAX = 85    # 暗部结束
 
     # 全长调判断阈值
@@ -294,7 +293,7 @@ class ToneAnalysisService:
 
         # 计算置信度
         # 1. 两端占比因子：两端占比越高，置信度越高
-        edge_factor = min(edge_ratio := (shadows + highlights) / 100.0, 0.5) / 0.5
+        edge_factor = min((shadows + highlights) / 100.0, 0.5) / 0.5
 
         # 2. U型明显程度因子：中间相对两端越少，置信度越高
         u_factor = max(0.0, 1.0 - mid_avg / (edge_avg * self.U_SHAPE_RATIO))
@@ -453,10 +452,6 @@ class ToneAnalysisService:
         return (0.299 * img_array[:, :, 0] +
                 0.587 * img_array[:, :, 1] +
                 0.114 * img_array[:, :, 2]).astype(np.uint8)
-
-
-# 项目模块导入
-from .cache_base import BaseCache
 
 
 class ToneAnalysisCache(BaseCache):

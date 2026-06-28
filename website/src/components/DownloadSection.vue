@@ -21,7 +21,7 @@
             支持 Windows 10/11 64 位及以上系统，安装包约 60MB
           </p>
           <a 
-            href="https://gitee.com/qingshangongzai/Color_Card/releases"
+            href="https://gitee.com/HxiaoStudio/Color_Card/releases"
             target="_blank"
             class="btn-primary inline-flex items-center gap-2"
           >
@@ -42,7 +42,7 @@
             从 GitHub 或 Gitee 获取源码，支持自行编译打包
           </p>
           <a 
-            href="https://gitee.com/qingshangongzai/color_card"
+            href="https://gitee.com/HxiaoStudio/Color_Card"
             target="_blank"
             class="btn-secondary inline-flex items-center gap-2"
           >

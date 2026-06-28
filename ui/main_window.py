@@ -1,7 +1,7 @@
 from __future__ import annotations
 # 标准库导入
 import sys
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -9,16 +9,13 @@ from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication, QLabel
 )
-from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
+from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme
 
 # 项目模块导入
 from core import get_config_manager, get_logger
 from utils import tr, get_locale_manager
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
-
-if TYPE_CHECKING:
-    from PySide6.QtWidgets import QWidget
 
 # 工具按钮统一样式
 _TOOLBUTTON_STYLE = """
@@ -225,7 +222,7 @@ class MainWindow(FluentWindow):
         }
 
         # 界面实例缓存
-        self._interfaces: dict[str, 'QWidget'] = {}
+        self._interfaces: dict[str, Any] = {}
 
         # 设置导航（按需创建界面）
         self.setup_navigation()
@@ -248,14 +245,14 @@ class MainWindow(FluentWindow):
         # 设置 Ctrl+V 粘贴图片快捷键
         self._setup_paste_shortcut()
 
-    def _get_interface(self, interface_id: str) -> 'QWidget':
+    def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
 
         Args:
             interface_id: 界面标识符
 
         Returns:
-            QWidget: 界面实例
+            界面实例
         """
         if interface_id not in self._interfaces:
             # 动态导入并创建
@@ -267,9 +264,6 @@ class MainWindow(FluentWindow):
             interface = interface_class(self)
             interface.setObjectName(interface_id)
 
-            # 设置导航图标
-            interface._nav_icon = self._NAV_ICON_MAP.get(interface_id)
-
             # 缓存并添加到堆叠窗口
             self._interfaces[interface_id] = interface
             self.stackedWidget.addWidget(interface)
@@ -279,7 +273,7 @@ class MainWindow(FluentWindow):
 
         return self._interfaces[interface_id]
 
-    def _on_interface_created(self, interface_id: str, interface: 'QWidget'):
+    def _on_interface_created(self, interface_id: str, interface: Any):
         """界面首次创建时的初始化
 
         Args:
@@ -303,7 +297,7 @@ class MainWindow(FluentWindow):
         if interface_id == 'gradientGeneration':
             interface.favorite_requested.connect(self._on_gradient_generation_favorite)
 
-    def _connect_settings_signals(self, settings_interface: 'QWidget'):
+    def _connect_settings_signals(self, settings_interface: Any):
         """连接设置界面的信号
 
         Args:

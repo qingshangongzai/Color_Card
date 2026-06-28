@@ -15,7 +15,7 @@ from PySide6.QtCore import QObject, QThread, Signal, Qt, QTimer
 from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
 
 # 项目模块导入
-from .color import get_luminance, get_zone, get_zone_bounds, _rgb_to_hsv_vectorized
+from .color import get_zone_bounds, calculate_luminance_from_array, _rgb_to_hsv_vectorized
 from .logger import get_logger, log_performance
 
 logger = get_logger("luminance_service")
@@ -118,11 +118,7 @@ class LuminanceCalculator(QThread):
             img_array = qimage_to_numpy(self._image)
             sampled = img_array[::4, ::4]
 
-            # 向量化明度计算 (Rec. 709)
-            r = sampled[:, :, 0].astype(np.float32)
-            g = sampled[:, :, 1].astype(np.float32)
-            b = sampled[:, :, 2].astype(np.float32)
-            luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+            luminance = calculate_luminance_from_array(sampled)
 
             # 向量化Zone统计
             zone_indices = luminance // 32
@@ -267,74 +263,8 @@ class LuminanceService(QObject):
         self._pending_cleanup = still_running
         
         if not self._pending_cleanup:
+            assert self._cleanup_timer is not None
             self._cleanup_timer.stop()
-
-    def get_zone_at_position(self, image: QImage, x: int, y: int) -> str:
-        """获取指定位置的Zone编号
-
-        Args:
-            image: QImage 对象
-            x: 像素X坐标
-            y: 像素Y坐标
-
-        Returns:
-            str: Zone编号 (如 "0-1", "1-2" 等)
-        """
-        if image is None or image.isNull():
-            return "0-1"
-
-        # 边界检查
-        x = max(0, min(x, image.width() - 1))
-        y = max(0, min(y, image.height() - 1))
-
-        color = image.pixelColor(x, y)
-        luminance = get_luminance(color.red(), color.green(), color.blue())
-        return get_zone(luminance)
-
-    def get_zone_distribution(self, image: QImage, sample_step: int = 4) -> list[int]:
-        """获取明度分布统计
-
-        Args:
-            image: QImage 对象
-            sample_step: 采样步长
-
-        Returns:
-            list: 每个Zone的像素数量 (Zone 0-7)
-        """
-        if image is None or image.isNull():
-            return [0] * 8
-
-        # 延迟导入避免循环依赖
-        from ui.canvases import qimage_to_numpy
-
-        try:
-            with log_performance("get_zone_distribution", {
-                "width": image.width(),
-                "height": image.height()
-            }):
-                img_array = qimage_to_numpy(image)
-                sampled = img_array[::sample_step, ::sample_step]
-
-                # 向量化明度计算 (Rec. 709)
-                r = sampled[:, :, 0].astype(np.float32)
-                g = sampled[:, :, 1].astype(np.float32)
-                b = sampled[:, :, 2].astype(np.float32)
-                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
-
-                # 向量化Zone统计
-                zone_indices = luminance // 32
-                zone_indices = np.clip(zone_indices, 0, 7)
-                unique, counts = np.unique(zone_indices, return_counts=True)
-
-                distribution = [0] * 8
-                for zone, count in zip(unique, counts):
-                    distribution[int(zone)] = int(count)
-
-                return distribution
-
-        except ValueError as e:
-            logger.error(f"Zone分布计算失败: {e}")
-            return [0] * 8
 
     def _on_calculation_finished(self, result: dict[str, Any]):
         """计算完成处理
@@ -420,7 +350,7 @@ class LuminanceService(QObject):
 
                 # 转为QImage
                 mask_image = QImage(
-                    rgba.tobytes(),
+                    rgba.data,
                     disp_w, disp_h,
                     disp_w * 4,
                     QImage.Format.Format_RGBA8888
@@ -486,11 +416,7 @@ class LuminanceService(QObject):
                 # 转为NumPy数组（像素级）
                 img_array = qimage_to_numpy(scaled_image)
 
-                # 向量化明度计算 (Rec. 709标准)
-                r = img_array[:, :, 0].astype(np.float32)
-                g = img_array[:, :, 1].astype(np.float32)
-                b = img_array[:, :, 2].astype(np.float32)
-                luminance = (0.299 * r + 0.587 * g + 0.114 * b).astype(np.uint8)
+                luminance = calculate_luminance_from_array(img_array)
 
                 # 获取Zone边界并生成mask
                 min_lum, max_lum = get_zone_bounds(f"{zone}-{zone+1}")
@@ -507,7 +433,7 @@ class LuminanceService(QObject):
 
                 # 转为QImage
                 mask_image = QImage(
-                    rgba.tobytes(),
+                    rgba.data,
                     disp_w, disp_h,
                     disp_w * 4,
                     QImage.Format.Format_RGBA8888

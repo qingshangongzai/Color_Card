@@ -35,6 +35,8 @@ image_filter = "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif)"
 
 [gradient_generation]
 start_color = "起始颜色"
+mid_color = "中间色"
+mid_position = "中间色位置"
 end_color = "结束颜色"
 base_color = "基准颜色"
 steps = "中间色数量"
@@ -52,6 +54,10 @@ title = "配色生成:"
 random = "随机"
 favorite = "收藏"
 brightness = "明度调整:"
+copied = "已复制"
+copied_content = "颜色值 {hex} 已复制到剪贴板"
+favorite_failed = "无法收藏"
+no_colors_to_favorite = "没有可收藏的颜色"
 
 [color_generation.schemes]
 monochromatic = "同色系"
@@ -63,10 +69,6 @@ double_complementary = "双补色"
 [color_generation.favorite_success]
 title = "已收藏"
 content = "配色「{name}」已添加到配色管理"
-copied = "已复制"
-copied_content = "颜色值 {hex} 已复制到剪贴板"
-favorite_failed = "无法收藏"
-no_colors_to_favorite = "没有可收藏的颜色"
 
 [palette_management]
 title = "配色管理"
@@ -266,6 +268,7 @@ gradient_lab = "LAB 空间"
 gradient_mode = "渐变模式"
 gradient_mode_desc = "选择渐变生成的模式"
 gradient_mode_gradient = "双色渐变"
+gradient_mode_three_color = "三色渐变"
 gradient_mode_shade = "单色渐变"
 luminance = "明度分析"
 luminance_default_grayscale = "默认黑白模式"
@@ -353,6 +356,7 @@ simulated_color = "模拟颜色"
 original = "原始"
 simulated = "模拟"
 description = "说明: {desc}"
+severity = "严重程度：{value}%"
 
 [dialogs.contrast]
 title = "对比度检查"

@@ -133,7 +133,7 @@ class GradientSlider(QWidget):
         self._min_val = min_val
         self._max_val = max_val
         self._value = min_val
-        self._gradient = None
+        self._gradient: QLinearGradient | None = None
         self._dragging = False
 
         self.setFixedSize(200, 20)
@@ -221,8 +221,8 @@ class ColorModeSliders(QWidget):
         super().__init__(parent)
         self._mode = mode
         self._params = self.MODE_PARAMS.get(mode, [])
-        self._sliders = []
-        self._labels = []
+        self._sliders: list[GradientSlider] = []
+        self._labels: list[tuple[QLabel, str]] = []
         self._current_rgb = (128, 128, 128)
         self.setup_ui()
 
@@ -648,7 +648,7 @@ class ColorPickerDialog(BaseFramelessDialog):
 
         self._updating = False
 
-    def _update_sliders(self, exclude_mode: str = None):
+    def _update_sliders(self, exclude_mode: str | None = None):
         """更新滑块值和渐变"""
         r, g, b = self._current_rgb
 
@@ -761,7 +761,7 @@ class ColorPickerDialog(BaseFramelessDialog):
         self._color_info = get_color_info(r, g, b)
         self.accept()
 
-    def get_color_info(self) -> dict[str, Any]:
+    def get_color_info(self) -> dict[str, Any] | None:
         """获取选择的颜色信息"""
         return self._color_info
 
@@ -983,7 +983,7 @@ class ColorInputRow(QWidget):
 
     def __init__(self, index: int, parent=None):
         self._index = index
-        self._color_info = None
+        self._color_info: dict[str, Any] | None = None
         self._pending_text = ""
         self._is_error = False  # 输入错误状态标记
         super().__init__(parent)
@@ -1075,7 +1075,7 @@ class ColorInputRow(QWidget):
             )
         else:
             self.preview_block.setStyleSheet(
-                f"background-color: transparent; border-radius: 4px;"
+                "background-color: transparent; border-radius: 4px;"
             )
 
     def _on_hex_changed(self, text: str):

@@ -1,7 +1,7 @@
 # 第三方库导入
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QLabel, QHBoxLayout
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QPixmap, QColor
+from PySide6.QtGui import QIcon, QColor
 from qfluentwidgets import PrimaryPushButton, PushButton
 # 项目模块导入
 from installer.wizard.base_page import BasePage

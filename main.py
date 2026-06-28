@@ -49,10 +49,10 @@ def setup_global_exception_handler(logger):
 # 立即调用（在导入 PySide6 之前）
 set_app_user_model_id()
 
-# 只导入启动画面必需的模块
-from PySide6.QtCore import Qt, QTimer, QSize
-from PySide6.QtGui import QColor, QIcon, QPixmap
-from PySide6.QtWidgets import QApplication, QSplashScreen
+# 只导入启动画面必需的模块（必须在 set_app_user_model_id 之后导入）
+from PySide6.QtCore import Qt, QTimer, QSize  # noqa: E402
+from PySide6.QtGui import QColor, QIcon  # noqa: E402
+from PySide6.QtWidgets import QApplication, QSplashScreen  # noqa: E402
 
 
 def _get_base_path() -> str:
@@ -243,8 +243,9 @@ def main():
                     pass
 
             from version import version_manager
-            from dialogs import UpdateAvailableDialog
-            UpdateAvailableDialog.check_update(window, version_manager.get_version())
+            from core.update_service import UpdateService
+            update_service = UpdateService()
+            update_service.check_update(window, version_manager.get_version())
 
             config_manager.set('settings.last_check_time', datetime.now().isoformat())
             config_manager.save()

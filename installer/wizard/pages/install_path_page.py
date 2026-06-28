@@ -1,10 +1,9 @@
 # 标准库导入
 import os
 import shutil
-from pathlib import Path
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFileDialog
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor
 from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton, CheckBox
 

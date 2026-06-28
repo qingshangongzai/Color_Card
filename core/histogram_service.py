@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any
 
 # 第三方库导入
+import numpy as np
 from PySide6.QtCore import QObject, QThread, Signal, QTimer, Qt
 from PySide6.QtGui import QImage
 
@@ -80,34 +81,35 @@ class HistogramCalculator(QThread):
     def run(self) -> None:
         """在子线程中执行计算"""
         try:
-            if self._check_cancelled() or self._image is None or self._image.isNull():
+            image = self._image
+            if self._check_cancelled() or image is None or image.isNull():
                 return
 
             if self._calc_type == "luminance":
                 with log_performance("calculate_luminance_histogram", {
-                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "size": f"{image.width()}x{image.height()}",
                     "sample_step": self._sample_step,
                     "gamma": self._gamma
                 }):
-                    result = calculate_histogram(self._image, self._sample_step, self._gamma)
+                    result = calculate_histogram(image, self._sample_step, self._gamma)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
             elif self._calc_type == "rgb":
                 with log_performance("calculate_rgb_histogram", {
-                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "size": f"{image.width()}x{image.height()}",
                     "sample_step": self._sample_step
                 }):
-                    result = calculate_rgb_histogram(self._image, self._sample_step)
+                    result = calculate_rgb_histogram(image, self._sample_step)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
             elif self._calc_type == "hue":
                 with log_performance("calculate_hue_histogram", {
-                    "size": f"{self._image.width()}x{self._image.height()}",
+                    "size": f"{image.width()}x{image.height()}",
                     "sample_step": self._sample_step
                 }):
-                    result = self._calculate_hue_histogram()
+                    result = self._calculate_hue_histogram(image)
                 if not self._check_cancelled():
                     self.finished.emit(result)
 
@@ -116,7 +118,7 @@ class HistogramCalculator(QThread):
                 logger.error(f"直方图计算失败: {self._calc_type}, 错误: {e}", exc_info=True)
                 self.error.emit(str(e))
 
-    def _calculate_hue_histogram(self) -> list[int]:
+    def _calculate_hue_histogram(self, image: QImage) -> list[int]:
         """计算色相直方图
 
         使用NumPy向量化计算，性能比纯Python实现提升100+倍。
@@ -124,7 +126,7 @@ class HistogramCalculator(QThread):
         Returns:
             list: 长度为360的色相分布列表
         """
-        return calculate_hue_histogram(self._image, self._sample_step)
+        return calculate_hue_histogram(image, self._sample_step)
 
 
 class HistogramService(QObject):
@@ -200,18 +202,6 @@ class HistogramService(QObject):
         for calculator in [self._luminance_calculator, self._rgb_calculator, self._hue_calculator]:
             if calculator is not None and calculator.isRunning():
                 calculator.wait()
-
-    def set_colorspace_info(self, colorspace_info: ColorSpaceInfo | None) -> None:
-        """设置色彩空间信息
-
-        Args:
-            colorspace_info: 色彩空间信息
-        """
-        self._colorspace_info = colorspace_info
-        if colorspace_info and colorspace_info.gamma:
-            self._gamma = colorspace_info.gamma
-        else:
-            self._gamma = 2.2
 
     def set_sampling_mode(self, mode: str) -> None:
         """设置采样模式
@@ -336,8 +326,6 @@ class HistogramService(QObject):
         Returns:
             dict[str, Any]: 统计信息字典，包含 mean, median, std, min_val, max_val
         """
-        import numpy as np
-
         total_pixels = sum(histogram)
         if total_pixels == 0:
             return {
@@ -546,6 +534,7 @@ class HistogramService(QObject):
         self._pending_cleanup = still_running
         
         if not self._pending_cleanup:
+            assert self._cleanup_timer is not None
             self._cleanup_timer.stop()
 
     def _cancel_luminance_calculator(self) -> None:

@@ -11,7 +11,8 @@ from core import get_config_manager
 from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
 from utils.theme_colors import get_title_color
-from dialogs import AboutDialog, UpdateAvailableDialog
+from dialogs import AboutDialog
+from core.update_service import UpdateService
 from version import version_manager
 
 logger = get_logger("settings")
@@ -64,6 +65,7 @@ class SettingsInterface(QWidget):
         self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
         self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
         self._language = self._config_manager.get('settings.language', 'HY_JT')
+        self._update_service = UpdateService()
         self.setup_ui()
         self._update_styles()
         self._update_color_space_availability(self._gradient_mode)
@@ -430,7 +432,8 @@ class SettingsInterface(QWidget):
         self.gradient_mode_card.titleLabel.setText(tr('settings.gradient_mode'))
         self.gradient_mode_card.contentLabel.setText(tr('settings.gradient_mode_desc'))
         self.gradient_mode_card.combo_box.setItemText(0, tr('settings.gradient_mode_gradient'))
-        self.gradient_mode_card.combo_box.setItemText(1, tr('settings.gradient_mode_shade'))
+        self.gradient_mode_card.combo_box.setItemText(1, tr('settings.gradient_mode_three_color'))
+        self.gradient_mode_card.combo_box.setItemText(2, tr('settings.gradient_mode_shade'))
         self.gradient_color_space_card.titleLabel.setText(tr('settings.gradient_color_space'))
         self.gradient_color_space_card.contentLabel.setText(tr('settings.gradient_color_space_desc'))
         # 重建颜色空间下拉框（单色模式下无RGB选项）
@@ -860,8 +863,10 @@ class SettingsInterface(QWidget):
         combo_box = ComboBox(self.content_widget)
         combo_box.addItem(tr('settings.gradient_mode_gradient'))
         combo_box.setItemData(0, "gradient")
+        combo_box.addItem(tr('settings.gradient_mode_three_color'))
+        combo_box.setItemData(1, "three_color")
         combo_box.addItem(tr('settings.gradient_mode_shade'))
-        combo_box.setItemData(1, "shade")
+        combo_box.setItemData(2, "shade")
 
         for i in range(combo_box.count()):
             if combo_box.itemData(i) == self._gradient_mode:
@@ -982,33 +987,11 @@ class SettingsInterface(QWidget):
                     combo_box.setCurrentIndex(i)
                     break
 
-    def get_gradient_color_space(self):
-        """获取当前渐变颜色空间"""
-        return self._gradient_color_space
-
-    def set_gradient_color_space(self, mode):
-        """设置渐变颜色空间
-
-        Args:
-            mode: 'rgb', 'hsb', 或 'lab'
-        """
-        self._gradient_color_space = mode
-        if hasattr(self.gradient_color_space_card, 'combo_box'):
-            combo_box = self.gradient_color_space_card.combo_box
-            for i in range(combo_box.count()):
-                if combo_box.itemData(i) == mode:
-                    combo_box.setCurrentIndex(i)
-                    break
-
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
         self._hex_visible = visible
         if hasattr(self.hex_display_card, 'switch_button'):
             self.hex_display_card.switch_button.setChecked(visible)
-
-    def is_hex_visible(self):
-        """获取16进制显示开关状态"""
-        return self._hex_visible
 
     def set_color_modes(self, modes):
         """设置色彩模式选择"""
@@ -1016,14 +999,6 @@ class SettingsInterface(QWidget):
             self._color_modes = [modes[0], modes[1]]
             self.mode_combo_1.setCurrentText(modes[0])
             self.mode_combo_2.setCurrentText(modes[1])
-
-    def get_color_modes(self):
-        """获取当前色彩模式"""
-        return self._color_modes
-
-    def get_color_wheel_mode(self):
-        """获取当前色轮模式"""
-        return self._color_wheel_mode
 
     def set_color_wheel_mode(self, mode):
         """设置色轮模式
@@ -1050,7 +1025,7 @@ class SettingsInterface(QWidget):
         """检查更新按钮点击"""
         log_user_action("check_update")
         current_version = version_manager.get_version()
-        UpdateAvailableDialog.check_update(self, current_version)
+        self._update_service.check_update(self, current_version)
 
     def on_show_about(self):
         """显示关于对话框"""

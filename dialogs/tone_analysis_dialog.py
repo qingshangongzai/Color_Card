@@ -11,7 +11,7 @@ from PySide6.QtCharts import (
     QBarSeries, QBarSet, QChart, QChartView, QLineSeries,
     QPieSeries, QValueAxis
 )
-from PySide6.QtCore import QMargins, QRectF, QThread, Signal, Qt
+from PySide6.QtCore import QMargins, QRect, QRectF, QThread, Signal, Qt
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QGridLayout, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
@@ -177,10 +177,13 @@ class PieChartWidget(QWidget):
         self._chart.removeAllSeries()
 
         # 清除旧图例
-        while self._legend_widget.layout().count():
-            item = self._legend_widget.layout().takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+        legend_layout = self._legend_widget.layout()
+        assert legend_layout is not None
+        while legend_layout.count():
+            item = legend_layout.takeAt(0)
+            widget = item.widget() if item else None
+            if widget:
+                widget.deleteLater()
 
         # 创建饼图系列
         series = QPieSeries()
@@ -197,9 +200,11 @@ class PieChartWidget(QWidget):
         self._chart.setTitle(title)
 
         # 添加自定义图例
+        legend_layout = self._legend_widget.layout()
+        assert legend_layout is not None
         for i, (label, value, color) in enumerate(zip(labels, values, colors)):
             legend_item = self._create_legend_item(label, value, color)
-            self._legend_widget.layout().addWidget(legend_item)
+            legend_layout.addWidget(legend_item)
 
         # 更新主题颜色
         self._update_theme_colors()
@@ -233,10 +238,13 @@ class PieChartWidget(QWidget):
 
         # 更新图例文字颜色
         text_hex = text_color.name()
-        for i in range(self._legend_widget.layout().count()):
-            item = self._legend_widget.layout().itemAt(i)
-            if item and item.widget():
-                labels = item.widget().findChildren(QLabel)
+        legend_layout = self._legend_widget.layout()
+        assert legend_layout is not None
+        for i in range(legend_layout.count()):
+            item = legend_layout.itemAt(i)
+            widget = item.widget() if item else None
+            if widget:
+                labels = widget.findChildren(QLabel)
                 for lbl in labels:
                     if lbl.text():  # 文字标签有内容
                         lbl.setStyleSheet(f"color: {text_hex}; font-size: 12px;")
@@ -277,7 +285,7 @@ class HistogramChartView(QChartView):
             exponent = 0.75 - t * 0.2
             return (normalized ** (1.0 / exponent)) * self._max_value
 
-    def drawForeground(self, painter: QPainter, rect: QRectF) -> None:
+    def drawForeground(self, painter: QPainter, rect: QRectF | QRect) -> None:
         """绘制前景（自定义Y轴刻度标签）"""
         super().drawForeground(painter, rect)
 
@@ -801,16 +809,19 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         # 统计卡片区域（初始隐藏）
         self._stats_widget = QWidget(self)
         self._stats_widget.hide()
-        stats_layout = QGridLayout(self._stats_widget)
+        stats_layout: QGridLayout = QGridLayout(self._stats_widget)
         stats_layout.setSpacing(12)
 
-        self._stat_cards = []
+        self._stat_cards: list[StatCard] = []
         content_layout.addWidget(self._stats_widget)
 
         main_layout.addWidget(content_widget)
 
     def start_analysis(self) -> None:
         """开始分析"""
+        if self._img_array is None:
+            return
+
         # 获取采样模式设置
         config_manager = get_config_manager()
         sampling_mode = config_manager.get('settings.histogram_sampling_mode', 'fast')
@@ -850,6 +861,11 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         Args:
             cached_data: 缓存数据，包含 histogram 和 metadata
         """
+        image_key = self._image_key
+        img_array = self._img_array
+        if image_key is None or img_array is None:
+            return
+
         histogram = np.array(cached_data['histogram'])
         metadata = cached_data['metadata']
 
@@ -871,14 +887,14 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         )
 
         # 计算灰度图用于显示
-        gray = self._service.get_gray_image(self._img_array)
+        gray = self._service.get_gray_image(img_array)
 
         # 存入 ToneAnalysisCache 供下次使用
         cache = get_tone_analysis_cache()
-        cache.set(self._image_key, result)
+        cache.set(image_key, result)
 
         # 显示结果
-        self._display_result(result, gray, self._img_array)
+        self._display_result(result, gray, img_array)
 
     def _on_analysis_complete(self, result: ToneAnalysisResult, gray: np.ndarray, img_array: np.ndarray) -> None:
         """分析完成回调
@@ -937,6 +953,7 @@ class ToneAnalysisDialog(BaseFramelessDialog):
         self._stat_cards.clear()
 
         stats_layout = self._stats_widget.layout()
+        assert stats_layout is not None
 
         # 获取影调类型的本地化名称（带置信度描述）
         tone_type_display = self._get_tone_type_display(result)
@@ -978,60 +995,6 @@ class ToneAnalysisDialog(BaseFramelessDialog):
 
         # 始终显示置信度百分比
         return f'{base_name} ({int(avg_confidence * 100)}%)'
-
-    def _get_transition_description(self, result: ToneAnalysisResult, confidence: float) -> str:
-        """获取过渡区域描述
-
-        Args:
-            result: 分析结果
-            confidence: 综合置信度
-
-        Returns:
-            str: 过渡描述文本
-        """
-        # 获取相邻的基调/跨度描述
-        key_alternatives = []
-        range_alternatives = []
-
-        # 基调过渡描述
-        if result.tone_key_confidence < 0.6:
-            if result.tone_key.value == 'high':
-                key_alternatives.append(tr('tone_analysis.tone_key.mid'))
-            elif result.tone_key.value == 'low':
-                key_alternatives.append(tr('tone_analysis.tone_key.mid'))
-            else:  # mid
-                if result.peak_position < 128:
-                    key_alternatives.append(tr('tone_analysis.tone_key.low'))
-                else:
-                    key_alternatives.append(tr('tone_analysis.tone_key.high'))
-
-        # 跨度过渡描述
-        if result.tone_range_confidence < 0.6:
-            if result.tone_range.value == 'long':
-                range_alternatives.append(tr('tone_analysis.tone_range.medium'))
-            elif result.tone_range.value == 'short':
-                range_alternatives.append(tr('tone_analysis.tone_range.medium'))
-            else:  # medium
-                # 根据实际spread判断倾向
-                spread = result.max_val - result.min_val
-                mid_point = (180 + 100) / 2
-                if spread < mid_point:
-                    range_alternatives.append(tr('tone_analysis.tone_range.short'))
-                else:
-                    range_alternatives.append(tr('tone_analysis.tone_range.long'))
-
-        # 构建过渡描述
-        parts = []
-        base_key = tr(f'tone_analysis.tone_key.{result.tone_key.value}')
-        base_range = tr(f'tone_analysis.tone_range.{result.tone_range.value}')
-        parts.append(f'{base_key}{base_range}')
-
-        if key_alternatives:
-            parts.append(f'/{key_alternatives[0]}')
-        if range_alternatives:
-            parts.append(f'·{range_alternatives[0]}')
-
-        return ''.join(parts)
 
     def _on_theme_changed(self) -> None:
         """主题变化回调"""

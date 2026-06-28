@@ -24,6 +24,8 @@
                         'float': 'float 3s ease-in-out infinite',
                         'fade-in': 'fadeIn 0.6s ease-out forwards',
                         'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+                        'slide-in-right': 'slideInRight 0.3s ease-out forwards',
+                        'slide-out-right': 'slideOutRight 0.3s ease-in forwards',
                     },
                     keyframes: {
                         float: {
@@ -38,6 +40,14 @@
                             '0%': { opacity: '0', transform: 'translateY(20px)' },
                             '100%': { opacity: '1', transform: 'translateY(0)' },
                         },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' },
+                        },
+                        slideOutRight: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(100%)' },
+                        },
                     },
                 },
             },
@@ -45,7 +55,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Linear 风格缓动曲线 */
@@ -55,7 +65,7 @@
             --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        body { font-family: 'Noto Serif SC', 'Source Han Serif SC', 'PingFang SC', 'Microsoft YaHei', serif; }
         
         /* 全局渐变网格背景 */
         .global-gradient-mesh {
@@ -157,6 +167,98 @@
             50% { background-position: 100% 50%; }
         }
 
+        /* 移动端导航菜单 */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 80vw;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.3s var(--ease-out-expo);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .dark .mobile-menu {
+            background: rgba(17, 24, 39, 0.98);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+        }
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+        .mobile-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-menu-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .mobile-menu-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+        .dark .mobile-menu-link {
+            color: #d1d5db;
+        }
+        .mobile-menu-link:hover {
+            background: rgba(174, 219, 252, 0.15);
+            color: #AEDBFC;
+        }
+        .dark .mobile-menu-link:hover {
+            background: rgba(174, 219, 252, 0.1);
+        }
+        .mobile-menu-link.external-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .mobile-menu-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.08);
+            margin: 0.75rem 0;
+        }
+        .dark .mobile-menu-divider {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .mobile-menu-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            z-index: 101;
+        }
+        .mobile-menu-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .mobile-menu-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         /* 内容区域层级 */
         .content-layer {
             position: relative;
@@ -233,6 +335,22 @@
         }
         .dark .btn-secondary:hover {
             background: #374151;
+        }
+        .btn-website {
+            background: #C4BAD2;
+            color: #4A5568;
+            transition: all 0.2s;
+        }
+        .dark .btn-website {
+            background: #C4BAD2;
+            color: #4A5568;
+        }
+        .btn-website:hover {
+            transform: translateY(-2px);
+            background: #B8ABC6;
+        }
+        .dark .btn-website:hover {
+            background: #B8ABC6;
         }
         .section-container {
             max-width: 80rem;
@@ -545,12 +663,121 @@
             0%, 100% { transform: translateY(0) scale(1); }
             50% { transform: translateY(-20px) scale(1.02); }
         }
+
+        /* 移动端 hamburger 按钮样式 */
+        .hamburger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .hamburger-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .hamburger-line {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+        }
+        .hamburger-line::before,
+        .hamburger-line::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s var(--ease-out-expo);
+            left: 0;
+        }
+        .hamburger-line::before {
+            top: -6px;
+        }
+        .hamburger-line::after {
+            top: 6px;
+        }
+        .hamburger-btn.open .hamburger-line {
+            background: transparent;
+        }
+        .hamburger-btn.open .hamburger-line::before {
+            top: 0;
+            transform: rotate(45deg);
+        }
+        .hamburger-btn.open .hamburger-line::after {
+            top: 0;
+            transform: rotate(-45deg);
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
     <!-- 全局渐变网格背景 -->
     <div class="global-gradient-mesh" aria-hidden="true">
         <div class="global-grid-lines"></div>
+    </div>
+
+    <!-- 移动端导航遮罩 -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+
+    <!-- 移动端导航菜单 -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="mobile-menu-close" id="mobile-menu-close" aria-label="关闭菜单">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        
+        <div class="pt-12">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">页面导航</p>
+            <a href="#features" class="mobile-menu-link" data-mobile-nav>功能特性</a>
+            <a href="#screenshots" class="mobile-menu-link" data-mobile-nav>界面预览</a>
+            <a href="#palettes" class="mobile-menu-link" data-mobile-nav>配色方案</a>
+            <a href="#download" class="mobile-menu-link" data-mobile-nav>下载</a>
+            <a href="#story" class="mobile-menu-link" data-mobile-nav>项目起源</a>
+            <a href="#feedback" class="mobile-menu-link" data-mobile-nav>反馈</a>
+            <a href="#about" class="mobile-menu-link" data-mobile-nav>关于我们</a>
+            
+            <div class="mobile-menu-divider"></div>
+            
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">外部链接</p>
+            <a href="changelog.html" class="mobile-menu-link external-link" data-mobile-nav>
+                更新日志
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="mobile-menu-link external-link" data-mobile-nav>
+                使用说明
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            
+            <div class="mobile-menu-divider"></div>
+            
+            <a href="https://gitee.com/HxiaoStudio/Color_Card" target="_blank" class="mobile-menu-link external-link" data-mobile-nav>
+                源代码
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="mailto:hxiao_studio@163.com" class="mobile-menu-link external-link" data-mobile-nav>
+                发送邮件
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </a>
+        </div>
     </div>
 
     <!-- Scroll Progress Indicator -->
@@ -586,6 +813,10 @@
                     <div class="nav-indicator" id="nav-indicator"></div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- 移动端汉堡菜单按钮 -->
+                    <button id="hamburger-btn" class="hamburger-btn md:hidden" aria-label="菜单">
+                        <span class="hamburger-line"></span>
+                    </button>
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                         <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -775,7 +1006,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-2">PC 版</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">支持 Mac M系列和 Win 10/11 X64</p>
-                    <a href="https://gitee.com/qingshangongzai/Color_Card/releases" target="_blank" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
+                    <a href="https://gitee.com/HxiaoStudio/Color_Card/releases" target="_blank" class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         下载安装包
                     </a>
@@ -786,7 +1017,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-2">源码</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">开源免费，欢迎贡献</p>
-                    <a href="https://gitee.com/qingshangongzai/Color_Card" target="_blank" class="btn-secondary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
+                    <a href="https://gitee.com/HxiaoStudio/Color_Card" target="_blank" class="btn-secondary inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium">
                         <svg class="w-5 h-5" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="45" cy="45" r="45" fill="#FF6B6B"/>
                             <path d="M67.558546,39.8714292 L42.0857966,39.8714292 C40.8627004,39.8720094 39.8710953,40.8633548 39.8701949,42.0864508 L39.8687448,47.623783 C39.867826,48.8471055 40.8592652,49.8390642 42.0825879,49.8393845 C42.0827874,49.8393846 42.0829869,49.8393846 42.0831864,49.8387862 L57.5909484,49.838657 C58.8142711,49.8386283 59.8059783,50.830319 59.8059885,52.0536417 C59.8059885,52.0536479 59.8059885,52.053654 59.8059701,52.0536602 L59.8059701,52.6073539 L59.8059701,52.6073539 L59.8059701,53.161115 C59.8059701,56.8310831 56.8308731,59.80618 53.160905,59.80618 L32.1165505,59.80618 C30.8934034,59.806119 29.9018373,58.8145802 29.9017425,57.5914331 L29.9011625,36.5491188 C29.9008781,32.8791508 32.8758931,29.9039718 36.5458611,29.9038706 C36.5459222,29.9038706 36.5459833,29.9038706 36.5460443,29.9040538 L67.5523638,29.9040538 C68.77515,29.9026795 69.7666266,28.9118177 69.7687593,27.6890325 L69.7721938,22.1516997 C69.774326,20.928378 68.7832423,19.9360642 67.5599198,19.9353054 C67.5594619,19.9353051 67.5590039,19.935305 67.558546,19.9366784 L36.5479677,19.9366784 C27.3730474,19.9366784 19.935305,27.3744208 19.935305,36.549341 L19.935305,67.558546 C19.935305,68.7818687 20.927004,69.7735676 22.1503267,69.7735676 L54.8224984,69.7735676 C63.079746,69.7735676 69.7735676,63.079746 69.7735676,54.8224984 L69.7735676,42.0864509 C69.7735676,40.8631282 68.7818687,39.8714292 67.558546,39.8714292 Z" fill="#FFFFFF"/>
@@ -946,7 +1177,7 @@
                     <p class="text-gray-600 dark:text-gray-400 mb-4">hxiao_studio@163.com</p>
                     <span class="text-brand-primary font-medium">联系我们 →</span>
                 </a>
-                <a href="https://gitee.com/qingshangongzai/Color_Card/issues" target="_blank" class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 group">
+                <a href="https://gitee.com/HxiaoStudio/Color_Card/issues" target="_blank" class="glass-card rounded-2xl p-8 text-center hover:shadow-xl transition-all duration-300 group">
                     <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -995,6 +1226,9 @@
                             </p>
                             <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
                                 我是<span class="text-brand-primary font-medium">浮晓 HXiao</span>：取蜉蝣之浮，记录微小日常的脉搏；取知晓之晓，探寻广阔世界的模样。在这里，我们虽然渺小，但绝不停止思考与远望。
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400 leading-relaxed mt-4">
+                                欢迎访问我们的团队官网 <a href="https://hxiaostudio.cn/" target="_blank" class="text-brand-primary hover:underline">hxiaostudio.cn</a>，了解更多团队动态。
                             </p>
                         </div>
                     </div>
@@ -1099,6 +1333,12 @@
                                     </svg>
                                     Bilibili
                                 </a>
+                                <a href="https://hxiaostudio.cn/" target="_blank" class="btn-website flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                    </svg>
+                                    团队官网
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -1132,13 +1372,14 @@
                     <h4 class="font-semibold mb-4">资源</h4>
                     <ul class="space-y-2 text-gray-400">
                         <li><a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>GitHub</a></li>
-                        <li><a href="https://gitee.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/><path d="M18.5 10.5h-8c-.3 0-.5.2-.5.5v1.5c0 .3.2.5.5.5h5c.3 0 .5.2.5.5v.5c0 1-.8 1.8-1.8 1.8H8c-.3 0-.5-.2-.5-.5V9.5c0-1 .8-1.8 1.8-1.8h8.2c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5H8c-2.2 0-4 1.8-4 4v8c0 .3.2.5.5.5h8.5c2.5 0 4.5-2 4.5-4.5V11c0-.3-.2-.5-.5-.5z" fill="#1a1a2e"/></svg>Gitee</a></li>
+                        <li><a href="https://gitee.com/HxiaoStudio/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.982 0 1.778-.796 1.778-1.778v-.296a.593.593 0 0 0-.592-.593h-4.15a.592.592 0 0 1-.592-.592v-1.482a.593.593 0 0 1 .593-.592h6.815c.327 0 .593.265.593.592v3.408a4 4 0 0 1-4 4H5.926a.593.593 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h8.296Z"/></svg>Gitee</a></li>
                         <li><a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>使用说明</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-semibold mb-4">关注我们</h4>
                     <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://hxiaostudio.cn/" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>团队官网</a></li>
                         <li><a href="https://space.bilibili.com/1232406878" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>Bilibili</a></li>
                     </ul>
                 </div>
@@ -1149,8 +1390,8 @@
             <div class="mt-4 text-center">
                 <p class="text-gray-600 text-xs">
                     本站使用 <a href="https://tailwindcss.com" target="_blank" class="hover:text-gray-400 transition-colors">Tailwind CSS</a> (MIT) 和 
-                    <a href="https://fonts.google.com/specimen/Inter" target="_blank" class="hover:text-gray-400 transition-colors">Inter</a> (SIL OFL 1.1) 字体 |
-                    配色方案来自开源社区，详见<a href="https://gitee.com/qingshangongzai/Color_Card/blob/master/LICENSE" target="_blank" class="hover:text-gray-400 transition-colors">项目许可证</a>
+                    <a href="https://fonts.google.com/noto/specimen/Noto+Serif+SC" target="_blank" class="hover:text-gray-400 transition-colors">Noto Serif SC / 思源宋体</a> (SIL OFL 1.1) 字体 |
+                    配色方案来自开源社区，详见<a href="https://gitee.com/HxiaoStudio/Color_Card/blob/main/LICENSE" target="_blank" class="hover:text-gray-400 transition-colors">项目许可证</a>
                 </p>
             </div>
         </div>
@@ -1162,6 +1403,71 @@
     </div>
 
     <script>
+        // ========== 移动端导航菜单控制 ==========
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileNavLinks = document.querySelectorAll('[data-mobile-nav]');
+        let isMenuOpen = false;
+
+        function openMobileMenu() {
+            isMenuOpen = true;
+            mobileMenu.classList.add('open');
+            mobileMenuOverlay.classList.add('open');
+            hamburgerBtn.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            isMenuOpen = false;
+            mobileMenu.classList.remove('open');
+            mobileMenuOverlay.classList.remove('open');
+            hamburgerBtn.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        hamburgerBtn.addEventListener('click', () => {
+            if (isMenuOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+
+        // 点击移动端导航链接后关闭菜单
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // 对于页面内锚点链接，需要滚动到目标位置后再关闭菜单
+                const href = link.getAttribute('href');
+                if (href && href.startsWith('#')) {
+                    const target = document.getElementById(href.substring(1));
+                    if (target) {
+                        // 先关闭菜单
+                        closeMobileMenu();
+                        // 延迟滚动，让菜单关闭动画先执行
+                        setTimeout(() => {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }, 300);
+                        return;
+                    }
+                }
+                // 外部链接或普通链接直接关闭
+                closeMobileMenu();
+            });
+        });
+
+        // ESC 键关闭菜单
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isMenuOpen) {
+                closeMobileMenu();
+            }
+        });
+
+        // ========== 原有脚本（保持不变） ==========
         // Check for reduced motion preference
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1597,7 +1903,7 @@
                 container.innerHTML = `
                     <div class="text-center py-12">
                         <p class="text-gray-500 mb-4">无法加载更新日志: ${error.message}</p>
-                        <a href="https://gitee.com/qingshangongzai/Color_Card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
+                        <a href="https://gitee.com/HxiaoStudio/Color_Card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
                             前往 Gitee 查看
                         </a>
                     </div>

@@ -1,6 +1,5 @@
 from __future__ import annotations
 # 标准库导入
-import colorsys
 import gc
 
 
@@ -237,11 +236,9 @@ class BaseCanvas(QWidget):
             width: 原始图片宽度
             height: 原始图片高度
         """
+        assert isinstance(image_data, bytes)
         display_image = QImage.fromData(image_data, 'BMP')
         self._original_pixmap = QPixmap.fromImage(display_image)
-
-        self._pending_image_width = width
-        self._pending_image_height = height
 
         self._setup_display_preview()
         self.update()
@@ -529,6 +526,7 @@ class BaseCanvas(QWidget):
 
         # 检查坐标是否在图片显示范围内
         if 0 <= img_x < disp_w and 0 <= img_y < disp_h:
+            assert self._image is not None
             # 计算在原始图片中的坐标
             # 缩放比例 = 原始图片尺寸 / 显示区域尺寸
             scale_x = self._image.width() / disp_w
@@ -847,7 +845,7 @@ class BaseCanvas(QWidget):
 
             qimage = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB888)
             width, height = qimage.width(), qimage.height()
-            buffer = io.BytesIO(qimage.bits().tobytes())
+            buffer = io.BytesIO(qimage.bits())
             pil_image = PILImage.frombuffer('RGB', (width, height), buffer.getvalue())
 
             self._pending_image_path = '__clipboard__'
@@ -863,7 +861,6 @@ class ImageCanvas(BaseCanvas):
     """图片显示画布，支持取色点拖动"""
 
     color_picked = Signal(int, tuple)  # 信号：索引, RGB颜色
-    picker_moved = Signal(int, tuple)  # 信号：索引, (rel_x, rel_y)
     picker_dragging = Signal(int, bool)  # 信号：索引, 是否正在拖动
 
     def __init__(self, parent: QWidget | None = None, picker_count: int = 5) -> None:
@@ -909,13 +906,6 @@ class ImageCanvas(BaseCanvas):
         if self._original_pixmap and not self._original_pixmap.isNull():
             self.setCursor(Qt.CursorShape.ArrowCursor)
             self._loading_label.setText(tr('canvases.loading_full_image'))
-
-    def _on_image_loaded(self, image_data: bytes, width: int, height: int, fmt: str) -> None:
-        """图片加载完成的回调"""
-        super()._on_image_loaded(image_data, width, height, fmt)
-
-        # 改变光标为默认
-        self.setCursor(Qt.CursorShape.ArrowCursor)
 
     def _on_image_load_error(self, error_msg: str) -> None:
         """图片加载失败的回调"""
@@ -1355,9 +1345,9 @@ class LuminanceCanvas(BaseCanvas):
             emit_sync: 是否发射同步信号（从其他面板同步时设为False，防止循环）
         """
         if self._original_pixmap and not self._original_pixmap.isNull():
-            # 确保取色点可见
+            # 根据用户设置控制取色点可见性
             for picker in self._pickers:
-                picker.show()
+                picker.setVisible(self._pickers_visible)
 
             # 改变光标为默认
             self.setCursor(Qt.CursorShape.ArrowCursor)

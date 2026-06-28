@@ -107,7 +107,7 @@ class TestLocaleManager:
         """测试加载无效语言"""
         manager = LocaleManager()
 
-        result = manager.load_language('INVALID_LANG')
+        manager.load_language('INVALID_LANG')
         # 应该回退到默认语言
         assert manager.get_current_language() == 'INVALID_LANG'
 

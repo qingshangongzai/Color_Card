@@ -40,14 +40,14 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
             --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        body { font-family: 'Noto Serif SC', 'Source Han Serif SC', 'PingFang SC', 'Microsoft YaHei', serif; }
 
         /* 全局渐变网格背景 */
         .global-gradient-mesh {
@@ -266,6 +266,161 @@
             50% { background-position: 100% 50%; }
         }
 
+        /* 移动端导航菜单 */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 280px;
+            max-width: 80vw;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.3s var(--ease-out-expo);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        .dark .mobile-menu {
+            background: rgba(17, 24, 39, 0.98);
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
+        }
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+        .mobile-menu-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .mobile-menu-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .mobile-menu-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+        .dark .mobile-menu-link {
+            color: #d1d5db;
+        }
+        .mobile-menu-link:hover {
+            background: rgba(174, 219, 252, 0.15);
+            color: #AEDBFC;
+        }
+        .dark .mobile-menu-link:hover {
+            background: rgba(174, 219, 252, 0.1);
+        }
+        .mobile-menu-link.external-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .mobile-menu-link.active-page {
+            background: rgba(174, 219, 252, 0.15);
+            color: #AEDBFC;
+            font-weight: 600;
+        }
+        .dark .mobile-menu-link.active-page {
+            background: rgba(174, 219, 252, 0.1);
+        }
+        .mobile-menu-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.08);
+            margin: 0.75rem 0;
+        }
+        .dark .mobile-menu-divider {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .mobile-menu-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            z-index: 101;
+        }
+        .mobile-menu-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .mobile-menu-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 移动端 hamburger 按钮样式 */
+        .hamburger-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .hamburger-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .hamburger-line {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s var(--ease-out-expo);
+            position: relative;
+        }
+        .hamburger-line::before,
+        .hamburger-line::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 2px;
+            transition: all 0.3s var(--ease-out-expo);
+            left: 0;
+        }
+        .hamburger-line::before {
+            top: -6px;
+        }
+        .hamburger-line::after {
+            top: 6px;
+        }
+        .hamburger-btn.open .hamburger-line {
+            background: transparent;
+        }
+        .hamburger-btn.open .hamburger-line::before {
+            top: 0;
+            transform: rotate(45deg);
+        }
+        .hamburger-btn.open .hamburger-line::after {
+            top: 0;
+            transform: rotate(-45deg);
+        }
+
         /* Scroll Reveal Animation - 逐个出现效果 */
         .scroll-reveal {
             opacity: 0;
@@ -298,6 +453,52 @@
         <div class="global-grid-lines"></div>
     </div>
 
+    <!-- 移动端导航遮罩 -->
+    <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+
+    <!-- 移动端导航菜单 -->
+    <div class="mobile-menu" id="mobile-menu">
+        <button class="mobile-menu-close" id="mobile-menu-close" aria-label="关闭菜单">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+        
+        <div class="pt-12">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">页面导航</p>
+            <a href="index.html#features" class="mobile-menu-link" data-mobile-nav>功能特性</a>
+            <a href="index.html#screenshots" class="mobile-menu-link" data-mobile-nav>界面预览</a>
+            <a href="index.html#palettes" class="mobile-menu-link" data-mobile-nav>配色方案</a>
+            <a href="index.html#download" class="mobile-menu-link" data-mobile-nav>下载</a>
+            <a href="index.html#story" class="mobile-menu-link" data-mobile-nav>项目起源</a>
+            <span class="mobile-menu-link active-page">更新日志</span>
+            <a href="index.html#feedback" class="mobile-menu-link" data-mobile-nav>反馈</a>
+            <a href="index.html#about" class="mobile-menu-link" data-mobile-nav>关于我们</a>
+            
+            <div class="mobile-menu-divider"></div>
+            
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">外部链接</p>
+            <a href="https://www.bilibili.com/video/BV1vpckzhEH8/" target="_blank" class="mobile-menu-link external-link" data-mobile-nav>
+                使用说明
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="https://gitee.com/HxiaoStudio/Color_Card" target="_blank" class="mobile-menu-link external-link" data-mobile-nav>
+                源代码
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="mailto:hxiao_studio@163.com" class="mobile-menu-link external-link" data-mobile-nav>
+                发送邮件
+                <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 nav-enhanced border-b-0 transition-all duration-300 content-layer">
         <div class="section-container">
@@ -319,6 +520,10 @@
                     <div class="nav-indicator" id="nav-indicator"></div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <!-- 移动端汉堡菜单按钮 -->
+                    <button id="hamburger-btn" class="hamburger-btn md:hidden" aria-label="菜单">
+                        <span class="hamburger-line"></span>
+                    </button>
                     <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                         <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -382,12 +587,13 @@
                     <h4 class="font-semibold mb-4">资源</h4>
                     <ul class="space-y-2 text-gray-400">
                         <li><a href="https://github.com/qingshangongzai/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>GitHub</a></li>
-                        <li><a href="https://gitee.com/qingshangongzai/color_card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/><path d="M18.5 10.5h-8c-.3 0-.5.2-.5.5v1.5c0 .3.2.5.5.5h5c.3 0 .5.2.5.5v.5c0 1-.8 1.8-1.8 1.8H8c-.3 0-.5-.2-.5-.5V9.5c0-1 .8-1.8 1.8-1.8h8.2c.3 0 .5-.2.5-.5V5.5c0-.3-.2-.5-.5-.5H8c-2.2 0-4 1.8-4 4v8c0 .3.2.5.5.5h8.5c2.5 0 4.5-2 4.5-4.5V11c0-.3-.2-.5-.5-.5z" fill="#1a1a2e"/></svg>Gitee</a></li>
+                        <li><a href="https://gitee.com/HxiaoStudio/Color_Card" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .327.266.592.593.592h5.63c.982 0 1.778-.796 1.778-1.778v-.296a.593.593 0 0 0-.592-.593h-4.15a.592.592 0 0 1-.592-.592v-1.482a.593.593 0 0 1 .593-.592h6.815c.327 0 .593.265.593.592v3.408a4 4 0 0 1-4 4H5.926a.593.593 0 0 1-.593-.593V9.778a4.444 4.444 0 0 1 4.445-4.444h8.296Z"/></svg>Gitee</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-semibold mb-4">关注我们</h4>
                     <ul class="space-y-2 text-gray-400">
+                        <li><a href="https://hxiaostudio.cn/" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>团队官网</a></li>
                         <li><a href="https://space.bilibili.com/1232406878" target="_blank" class="hover:text-white transition-colors flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/></svg>Bilibili</a></li>
                     </ul>
                 </div>
@@ -398,14 +604,65 @@
             <div class="mt-4 text-center">
                 <p class="text-gray-600 text-xs">
                     本站使用 <a href="https://tailwindcss.com" target="_blank" class="hover:text-gray-400 transition-colors">Tailwind CSS</a> (MIT) 和 
-                    <a href="https://fonts.google.com/specimen/Inter" target="_blank" class="hover:text-gray-400 transition-colors">Inter</a> (SIL OFL 1.1) 字体 |
-                    配色方案来自开源社区，详见<a href="https://gitee.com/qingshangongzai/color_card/blob/master/LICENSE" target="_blank" class="hover:text-gray-400 transition-colors">项目许可证</a>
+                    <a href="https://fonts.google.com/noto/specimen/Noto+Serif+SC" target="_blank" class="hover:text-gray-400 transition-colors">Noto Serif SC / 思源宋体</a> (SIL OFL 1.1) 字体 |
+                    配色方案来自开源社区，详见<a href="https://gitee.com/HxiaoStudio/Color_Card/blob/main/LICENSE" target="_blank" class="hover:text-gray-400 transition-colors">项目许可证</a>
                 </p>
             </div>
         </div>
     </footer>
 
     <script>
+        // ========== 移动端导航菜单控制 ==========
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileNavLinks = document.querySelectorAll('[data-mobile-nav]');
+        let isMenuOpen = false;
+
+        function openMobileMenu() {
+            isMenuOpen = true;
+            mobileMenu.classList.add('open');
+            mobileMenuOverlay.classList.add('open');
+            hamburgerBtn.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            isMenuOpen = false;
+            mobileMenu.classList.remove('open');
+            mobileMenuOverlay.classList.remove('open');
+            hamburgerBtn.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        hamburgerBtn.addEventListener('click', () => {
+            if (isMenuOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        mobileMenuOverlay.addEventListener('click', closeMobileMenu);
+        mobileMenuClose.addEventListener('click', closeMobileMenu);
+
+        // 点击移动端导航链接后关闭菜单
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                // 关闭菜单，让链接正常跳转
+                closeMobileMenu();
+            });
+        });
+
+        // ESC 键关闭菜单
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && isMenuOpen) {
+                closeMobileMenu();
+            }
+        });
+
+        // ========== 原有脚本 ==========
         // Theme Toggle
         const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
@@ -631,7 +888,7 @@
                 container.innerHTML = `
                     <div class="text-center py-12">
                         <p class="text-gray-500 mb-4">无法加载更新日志: ${error.message}</p>
-                        <a href="https://gitee.com/qingshangongzai/color_card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
+                        <a href="https://gitee.com/HxiaoStudio/Color_Card/releases" target="_blank" class="btn-primary px-6 py-2 rounded-xl text-sm">
                             前往 Gitee 查看
                         </a>
                     </div>

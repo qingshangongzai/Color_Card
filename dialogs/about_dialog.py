@@ -72,14 +72,14 @@ class AboutDialog(BaseFramelessDialog):
         scroll_area = ScrollArea()
         scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(f"""
-            ScrollArea {{
+        scroll_area.setStyleSheet("""
+            ScrollArea {
                 background-color: transparent;
                 border: none;
-            }}
-            ScrollArea > QWidget > QWidget {{
+            }
+            ScrollArea > QWidget > QWidget {
                 background-color: transparent;
-            }}
+            }
         """)
 
         content_label = QLabel()
@@ -109,7 +109,7 @@ class AboutDialog(BaseFramelessDialog):
         self.website_button = PushButton(tr('dialogs.about.website'))
         self.website_button.setMinimumWidth(90)
         self.website_button.clicked.connect(
-            lambda: self._open_url("https://qingshangongzai.github.io/Color_Card/")
+            lambda: self._open_url("https://color-card.hxiaostudio.cn")
         )
         buttons_layout.addWidget(self.website_button)
 
@@ -125,7 +125,7 @@ class AboutDialog(BaseFramelessDialog):
         self.project_button = PushButton(tr('dialogs.about.project'))
         self.project_button.setMinimumWidth(90)
         self.project_button.clicked.connect(
-            lambda: self._open_url("https://gitee.com/qingshangongzai/Color_Card")
+            lambda: self._open_url("https://gitee.com/HxiaoStudio/Color_Card")
         )
         buttons_layout.addWidget(self.project_button)
 
@@ -191,11 +191,11 @@ class AboutDialog(BaseFramelessDialog):
 
     def _open_license_file(self) -> None:
         """打开开源许可文件"""
-        self._open_file_or_url("LICENSE.html", "https://gitee.com/qingshangongzai/Color_Card")
+        self._open_file_or_url("LICENSE.html", "https://gitee.com/HxiaoStudio/Color_Card")
 
     def _open_agreement_file(self) -> None:
         """打开用户协议文件"""
-        self._open_file_or_url("UserAgreement.html", "https://gitee.com/qingshangongzai/Color_Card")
+        self._open_file_or_url("UserAgreement.html", "https://gitee.com/HxiaoStudio/Color_Card")
 
     def _get_about_text(self):
         """获取关于页面的文本内容"""

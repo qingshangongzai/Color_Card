@@ -8,6 +8,7 @@ UI层通过ImageService调用业务功能，实现UI与业务逻辑分离。
 import io
 import struct
 from dataclasses import dataclass
+from typing import cast
 
 
 # 第三方库导入
@@ -162,7 +163,7 @@ class ColorSpaceDetector:
             ColorSpaceInfo | None: 色彩空间信息，如果无法检测则返回 None
         """
         try:
-            exif = image._getexif()
+            exif = image.getexif()
             if not exif:
                 return None
             
@@ -207,31 +208,9 @@ class ImageData:
     """
     display_image: QImage
     display_pixmap: QPixmap
-    original_pixels: np.ndarray
+    original_pixels: np.ndarray | None
     colorspace_info: ColorSpaceInfo
     display_colorspace: str | None = None
-
-
-# ==================== ICC 色彩空间转换 ====================
-
-def _detect_colorspace_from_text(text: str) -> str | None:
-    """从文本中检测色彩空间名称
-
-    Args:
-        text: 要检测的文本（已转为小写）
-
-    Returns:
-        str: 色彩空间名称，未检测到返回 None
-    """
-    if 'adobe' in text and 'rgb' in text:
-        return 'Adobe RGB'
-    if 'display p3' in text or 'displayp3' in text:
-        return 'Display P3'
-    if 'dci-p3' in text or 'dcip3' in text:
-        return 'DCI-P3'
-    if 'prophoto' in text:
-        return 'ProPhoto RGB'
-    return None
 
 
 def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
@@ -259,7 +238,7 @@ def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) ->
             return pil_image.convert('RGB')
 
         source_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc_data))
-        rendering_intent = getattr(ImageCms, 'INTENT_PERCEPTUAL', 0)
+        rendering_intent = cast(ImageCms.Intent, getattr(ImageCms, 'INTENT_PERCEPTUAL', 0))
 
         return ImageCms.profileToProfile(
             pil_image,
@@ -368,6 +347,7 @@ class ProgressiveImageLoader(QThread):
                 if self._pil_image is not None:
                     pil_image = self._pil_image
                 else:
+                    assert self._image_path is not None
                     pil_image = Image.open(self._image_path)
 
                 if self._check_cancelled():
@@ -554,14 +534,9 @@ class ImageService(QObject):
         self._connect_loader_signals()
         self._loader.start()
 
-    def cancel_loading(self) -> None:
-        """取消当前加载任务"""
-        if self._loader is not None:
-            self._loader.cancel()
-            logger.debug("加载任务已取消")
-
     def _connect_loader_signals(self) -> None:
         """连接加载器信号（内部方法）"""
+        assert self._loader is not None
         self._loader.display_ready.connect(
             self._on_display_ready, Qt.ConnectionType.QueuedConnection
         )
@@ -614,30 +589,6 @@ class ImageService(QObject):
         """
         return self._colorspace_info
 
-    def generate_thumbnail(self, image: QImage, size: int = 100) -> QPixmap:
-        """生成缩略图
-
-        使用QImage进行缩放，然后转换为QPixmap，减少内存占用。
-
-        Args:
-            image: 原始图片
-            size: 缩略图尺寸（默认100px）
-
-        Returns:
-            QPixmap: 缩略图
-        """
-        if image is None or image.isNull():
-            return QPixmap()
-
-        # 使用QImage进行缩放，内存效率更高
-        thumbnail_image = image.scaled(
-            size, size,
-            aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
-            transformMode=Qt.TransformationMode.SmoothTransformation
-        )
-
-        return QPixmap.fromImage(thumbnail_image)
-
     def _on_display_ready(self, image_data: bytes, width: int, height: int) -> None:
         """显示图片就绪的回调
         
@@ -659,6 +610,7 @@ class ImageService(QObject):
         """
         self.full_ready.emit(image_data, width, height, fmt)
 
+        assert isinstance(image_data, bytes)
         display_image = QImage.fromData(image_data, fmt)
         display_pixmap = QPixmap.fromImage(display_image)
 
@@ -679,7 +631,7 @@ class ImageService(QObject):
         )
 
         if self._current_path:
-            self._memory_manager.add_image(self._current_path, img_data)
+            self._get_memory_manager().add_image(self._current_path, img_data)
 
         colorspace_name = colorspace_info.name
         logger.info(f"图片加载完成: size={width}x{height}, colorspace={colorspace_name}")
@@ -747,7 +699,7 @@ class ImageService(QObject):
             self._loader = None
 
         if self._current_path:
-            self._memory_manager.remove_image(self._current_path)
+            self._get_memory_manager().remove_image(self._current_path)
             self._current_path = None
 
     def get_memory_stats(self) -> dict:

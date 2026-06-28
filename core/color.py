@@ -97,6 +97,49 @@ def _get_colorspace_matrices(colorspace_name: str) -> dict:
     return _COLORSPACE_MATRICES.get(colorspace_name, _COLORSPACE_MATRICES['sRGB'])
 
 
+# ==================== Gamma 转换辅助函数 ====================
+
+def _srgb_to_linear(c: float) -> float:
+    """sRGB 非线性值转线性值"""
+    if c <= 0.04045:
+        return c / 12.92
+    return ((c + 0.055) / 1.055) ** 2.4
+
+
+def _linear_to_srgb(c: float) -> float:
+    """线性值转 sRGB 非线性值"""
+    if c <= 0.0031308:
+        return c * 12.92
+    return 1.055 * (c ** (1.0 / 2.4)) - 0.055
+
+
+def _lab_f(t: float) -> float:
+    """LAB 色彩空间 f 函数"""
+    if t > 0.008856:
+        return t ** (1/3)
+    return 7.787 * t + 16/116
+
+
+def _lab_f_inv(t: float) -> float:
+    """LAB 色彩空间 f 函数的逆函数"""
+    delta = 6 / 29
+    if t > delta:
+        return t ** 3
+    return 3 * (delta ** 2) * (t - 4 / 29)
+
+
+def _linear_to_gamma_srgb(c: float) -> float:
+    """线性值转 sRGB Gamma"""
+    if c <= 0.0031308:
+        return c * 12.92
+    return 1.055 * (c ** (1 / 2.4)) - 0.055
+
+
+def _linear_to_gamma_generic(c: float, gamma: float) -> float:
+    """线性值转通用 Gamma"""
+    return c ** (1.0 / gamma)
+
+
 def calculate_luminance_from_array(rgb_array: np.ndarray, gamma: float = 2.2) -> np.ndarray:
     """从RGB数组计算明度（向量化计算）
 
@@ -167,16 +210,14 @@ def _qimage_to_numpy(image: QImage) -> np.ndarray:
             row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
             arr[y] = row.reshape((width, 3))
 
-    return arr.copy()  # 复制一份避免内存问题
+    return arr
 
 
 # ==================== 配色常量定义 ====================
 
 SATURATION_STEPS = [1.0, 0.75, 0.5, 0.25]
 MIN_SATURATION = 20
-DEFAULT_BRIGHTNESS_STEPS = [100, 90, 80, 70]
-DEFAULT_ANALOGOUS_ANGLE = 30
-DEFAULT_SPLIT_ANGLE = 30
+DEFAULT_BRIGHTNESS_STEPS = [100.0, 90.0, 80.0, 70.0]
 
 # Zone分区宽度常量 (255/9 = 28.333...)
 ZONE_WIDTH = 255 / 9
@@ -268,12 +309,9 @@ def rgb_to_lab(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> tuple[f
 
     x, y, z = x / wp[0], y / wp[1], z / wp[2]
 
-    def f(t: float) -> float:
-        return t ** (1/3) if t > 0.008856 else 7.787 * t + 16/116
-
-    L = 116 * f(y) - 16
-    A = 500 * (f(x) - f(y))
-    B = 200 * (f(y) - f(z))
+    L = 116 * _lab_f(y) - 16
+    A = 500 * (_lab_f(x) - _lab_f(y))
+    B = 200 * (_lab_f(y) - _lab_f(z))
 
     return L, A, B
 
@@ -363,6 +401,106 @@ def rgb_to_cmyk(r: int, g: int, b: int) -> tuple[float, float, float, float]:
     return c * 100, m * 100, y * 100, k * 100
 
 
+# ==================== 内部辅助函数 (用于批量处理) ====================
+
+def _rgb_to_hsb_normalized(r_norm: float, g_norm: float, b_norm: float) -> tuple[float, float, float]:
+    """将归一化的RGB转换为HSB (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+
+    Returns:
+        tuple: (色相 0-360, 饱和度 0-100, 亮度 0-100)
+    """
+    h, s, v = colorsys.rgb_to_hsv(r_norm, g_norm, b_norm)
+    return h * 360, s * 100, v * 100
+
+
+def _rgb_to_lab_normalized(
+    r_norm: float, g_norm: float, b_norm: float,
+    colorspace_name: str = 'sRGB'
+) -> tuple[float, float, float]:
+    """将归一化的RGB转换为LAB (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+        colorspace_name: 色彩空间名称,默认 sRGB
+
+    Returns:
+        tuple: (L 0-100, A -128-127, B -128-127)
+    """
+    cs = _get_colorspace_matrices(colorspace_name)
+    m = cs['rgb_to_xyz']
+    wp = cs['white_point']
+    gamma = cs['gamma']
+    use_srgb_curve = cs.get('use_srgb_curve', False)
+
+    # Gamma 校正
+    if use_srgb_curve:
+        r_norm = ((r_norm + 0.055) / 1.055) ** 2.4 if r_norm > 0.04045 else r_norm / 12.92
+        g_norm = ((g_norm + 0.055) / 1.055) ** 2.4 if g_norm > 0.04045 else g_norm / 12.92
+        b_norm = ((b_norm + 0.055) / 1.055) ** 2.4 if b_norm > 0.04045 else b_norm / 12.92
+    else:
+        r_norm = r_norm ** gamma
+        g_norm = g_norm ** gamma
+        b_norm = b_norm ** gamma
+
+    # 转换到XYZ
+    x = r_norm * m[0][0] + g_norm * m[0][1] + b_norm * m[0][2]
+    y = r_norm * m[1][0] + g_norm * m[1][1] + b_norm * m[1][2]
+    z = r_norm * m[2][0] + g_norm * m[2][1] + b_norm * m[2][2]
+
+    x, y, z = x / wp[0], y / wp[1], z / wp[2]
+
+    # 转换到LAB
+    L = 116 * _lab_f(y) - 16
+    A = 500 * (_lab_f(x) - _lab_f(y))
+    B = 200 * (_lab_f(y) - _lab_f(z))
+
+    return L, A, B
+
+
+def _rgb_to_hsl_normalized(r_norm: float, g_norm: float, b_norm: float) -> tuple[float, float, float]:
+    """将归一化的RGB转换为HSL (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+
+    Returns:
+        tuple: (色相 0-360, 饱和度 0-100, 亮度 0-100)
+    """
+    H, L, S = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+    return H * 360, S * 100, L * 100
+
+
+def _rgb_to_cmyk_normalized(r_norm: float, g_norm: float, b_norm: float) -> tuple[float, float, float, float]:
+    """将归一化的RGB转换为CMYK (内部函数)
+
+    Args:
+        r_norm: 红色通道归一化值 (0.0-1.0)
+        g_norm: 绿色通道归一化值 (0.0-1.0)
+        b_norm: 蓝色通道归一化值 (0.0-1.0)
+
+    Returns:
+        tuple: (C 0-100, M 0-100, Y 0-100, K 0-100)
+    """
+    k = 1 - max(r_norm, g_norm, b_norm)
+    if k == 1:
+        return 0, 0, 0, 100
+
+    c = (1 - r_norm - k) / (1 - k)
+    m = (1 - g_norm - k) / (1 - k)
+    y = (1 - b_norm - k) / (1 - k)
+
+    return c * 100, m * 100, y * 100, k * 100
+
+
 def convert_rgb_colorspace(
     r: int, g: int, b: int,
     source_colorspace: str,
@@ -420,6 +558,42 @@ def get_color_info(r: int, g: int, b: int, colorspace_name: str = 'sRGB') -> dic
     }
 
 
+def get_color_info_batch(rgb_list: list[tuple[int, int, int]], colorspace_name: str = 'sRGB') -> list[dict[str, Any]]:
+    """批量获取颜色信息 (性能优化版本)
+
+    预先归一化所有颜色,避免重复计算,适用于批量处理场景
+
+    Args:
+        rgb_list: RGB颜色列表,每个元素为 (R, G, B) 元组
+        colorspace_name: 色彩空间名称,默认 sRGB
+
+    Returns:
+        list: 颜色信息字典列表,每个字典包含 RGB、HSB、LAB、HSL、CMYK、HEX 信息
+    """
+    results = []
+    for r, g, b in rgb_list:
+        # 统一归一化一次
+        r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+
+        # 使用内部函数处理
+        H, S, B = _rgb_to_hsb_normalized(r_norm, g_norm, b_norm)
+        L, A, B_lab = _rgb_to_lab_normalized(r_norm, g_norm, b_norm, colorspace_name)
+        H2, S2, L2 = _rgb_to_hsl_normalized(r_norm, g_norm, b_norm)
+        C, M, Y, K = _rgb_to_cmyk_normalized(r_norm, g_norm, b_norm)
+
+        results.append({
+            'rgb': (r, g, b),
+            'hsb': (round(H), round(S), round(B)),
+            'lab': (round(L), round(A), round(B_lab)),
+            'hsl': (round(H2), round(S2), round(L2)),
+            'cmyk': (round(C), round(M), round(Y), round(K)),
+            'rgb_display': (r, g, b),
+            'hex': rgb_to_hex(r, g, b)
+        })
+
+    return results
+
+
 def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     """计算像素的明度值 (0-255)
 
@@ -440,15 +614,9 @@ def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     b_norm = b / 255.0
 
     if gamma == 2.2:
-        def srgb_to_linear(c: float) -> float:
-            if c <= 0.04045:
-                return c / 12.92
-            else:
-                return ((c + 0.055) / 1.055) ** 2.4
-
-        r_linear = srgb_to_linear(r_norm)
-        g_linear = srgb_to_linear(g_norm)
-        b_linear = srgb_to_linear(b_norm)
+        r_linear = _srgb_to_linear(r_norm)
+        g_linear = _srgb_to_linear(g_norm)
+        b_linear = _srgb_to_linear(b_norm)
     else:
         r_linear = r_norm ** gamma
         g_linear = g_norm ** gamma
@@ -457,13 +625,7 @@ def get_luminance(r: int, g: int, b: int, gamma: float = 2.2) -> int:
     luminance_linear = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear
 
     if gamma == 2.2:
-        def linear_to_srgb(c: float) -> float:
-            if c <= 0.0031308:
-                return c * 12.92
-            else:
-                return 1.055 * (c ** (1.0 / 2.4)) - 0.055
-
-        luminance_output = linear_to_srgb(luminance_linear)
+        luminance_output = _linear_to_srgb(luminance_linear)
     else:
         luminance_output = luminance_linear ** (1.0 / gamma)
 
@@ -509,29 +671,6 @@ def get_zone_bounds(zone_str: str) -> tuple[int, int]:
     if max_lum < 255:
         max_lum -= 1
     return (min_lum, max_lum)
-
-
-def _qimage_to_numpy(image) -> np.ndarray:
-    """QImage转NumPy数组（使用bits()直接内存访问）"""
-    width = image.width()
-    height = image.height()
-
-    if image.format() != image.Format.Format_RGB888:
-        image = image.convertToFormat(image.Format.Format_RGB888)
-
-    ptr = image.bits()
-    bytes_per_line = image.bytesPerLine()
-
-    if bytes_per_line == width * 3:
-        arr = np.array(ptr, dtype=np.uint8).reshape((height, width, 3))
-    else:
-        arr = np.zeros((height, width, 3), dtype=np.uint8)
-        for y in range(height):
-            offset = y * bytes_per_line
-            row = np.array(ptr[offset:offset + width * 3], dtype=np.uint8)
-            arr[y] = row.reshape((width, 3))
-
-    return arr
 
 
 def calculate_histogram(image, sample_step: int = 4, gamma: float = 2.2) -> list[int]:
@@ -685,20 +824,13 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
     gamma = cs['gamma']
     use_srgb_curve = cs.get('use_srgb_curve', False)
 
-    def f_inv(t: float) -> float:
-        delta = 6 / 29
-        if t > delta:
-            return t ** 3
-        else:
-            return 3 * (delta ** 2) * (t - 4 / 29)
-
     y = (L + 16) / 116
     x = y + A / 500
     z = y - B / 200
 
-    x = wp[0] * f_inv(x)
-    y = wp[1] * f_inv(y)
-    z = wp[2] * f_inv(z)
+    x = wp[0] * _lab_f_inv(x)
+    y = wp[1] * _lab_f_inv(y)
+    z = wp[2] * _lab_f_inv(z)
 
     r_linear = x * m[0][0] + y * m[0][1] + z * m[0][2]
     g_linear = x * m[1][0] + y * m[1][1] + z * m[1][2]
@@ -709,18 +841,13 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
     b_linear = max(0, b_linear)
 
     if use_srgb_curve:
-        def linear_to_gamma(c: float) -> float:
-            if c <= 0.0031308:
-                return c * 12.92
-            else:
-                return 1.055 * (c ** (1 / 2.4)) - 0.055
+        r = _linear_to_gamma_srgb(r_linear)
+        g = _linear_to_gamma_srgb(g_linear)
+        b_out = _linear_to_gamma_srgb(b_linear)
     else:
-        def linear_to_gamma(c: float) -> float:
-            return c ** (1.0 / gamma)
-
-    r = linear_to_gamma(r_linear)
-    g = linear_to_gamma(g_linear)
-    b_out = linear_to_gamma(b_linear)
+        r = _linear_to_gamma_generic(r_linear, gamma)
+        g = _linear_to_gamma_generic(g_linear, gamma)
+        b_out = _linear_to_gamma_generic(b_linear, gamma)
 
     r = min(1, r)
     g = min(1, g)
@@ -838,7 +965,7 @@ def _build_analogous_colors(
         distance_from_center = abs(i - len(rgb_hues) / 2) / (len(rgb_hues) / 2)
         saturation_variation = 1 - distance_from_center * 0.3
         s = max(60, min(100, base_saturation * saturation_variation))
-        colors.append((h % 360, s, 90))
+        colors.append((h % 360, s, 90.0))
     return colors
 
 
@@ -928,7 +1055,7 @@ def _build_split_complementary_colors(
         for i in range(remaining):
             blend_hue = (base_hue + (i + 1) * 60) % 360
             s = max(50, base_saturation * (0.7 - i * 0.1))
-            colors.append((blend_hue, s, 85))
+            colors.append((blend_hue, s, 85.0))
 
     return colors
 
@@ -963,7 +1090,7 @@ def _build_double_complementary_colors(
         for i in range(4, count):
             blend_hue = (hues[0] + i * 45) % 360
             s = max(50, saturations[0] * (0.7 - (i - 4) * 0.1))
-            colors.append((blend_hue, s, 85))
+            colors.append((blend_hue, s, 85.0))
 
     return colors
 
@@ -1140,27 +1267,22 @@ def get_scheme_preview_colors(
 class _ColorCube:
     """MMCQ 颜色立方体，用于表示颜色空间中的一个区域"""
 
-    def __init__(self, pixels: list[tuple[int, int, int]]):
+    def __init__(self, pixels: np.ndarray):
         """
         Args:
-            pixels: RGB 像素列表 [(r, g, b), ...]
+            pixels: RGB 像素数组 (N×3)，dtype=np.int32
         """
-        self.pixels = pixels
+        self._np_pixels = pixels
         self._cache_volume = None
         self._cache_avg_color = None
         self._cache_ranges = None
-        self._np_pixels = None
-
-        # 预先转换为 numpy 数组
-        if pixels:
-            self._np_pixels = np.array(pixels, dtype=np.int32)
 
     def _get_ranges(self) -> tuple[int, int, int, int, int, int]:
         """获取各颜色通道的范围（使用缓存）"""
         if self._cache_ranges is not None:
             return self._cache_ranges
 
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             self._cache_ranges = (0, 0, 0, 0, 0, 0)
             return self._cache_ranges
 
@@ -1177,7 +1299,7 @@ class _ColorCube:
         if self._cache_volume is not None:
             return self._cache_volume
 
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             self._cache_volume = 0
             return 0
 
@@ -1187,14 +1309,14 @@ class _ColorCube:
 
     def get_count(self) -> int:
         """获取像素数量"""
-        return len(self.pixels)
+        return len(self._np_pixels)
 
     def get_average_color(self) -> tuple[int, int, int]:
         """计算立方体内像素的平均颜色"""
         if self._cache_avg_color is not None:
             return self._cache_avg_color
 
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             self._cache_avg_color = (0, 0, 0)
             return self._cache_avg_color
 
@@ -1206,7 +1328,7 @@ class _ColorCube:
 
     def get_longest_axis(self) -> str:
         """获取最长的颜色轴 ('r', 'g', 或 'b')"""
-        if not self.pixels:
+        if len(self._np_pixels) == 0:
             return 'r'
 
         r_min, r_max, g_min, g_max, b_min, b_max = self._get_ranges()
@@ -1225,37 +1347,35 @@ class _ColorCube:
 
     def split(self) -> tuple['_ColorCube', '_ColorCube']:
         """沿最长轴的中位数切分立方体"""
-        if not self.pixels:
-            return _ColorCube([]), _ColorCube([])
+        if len(self._np_pixels) == 0:
+            empty = np.array([], dtype=np.int32).reshape(0, 3)
+            return _ColorCube(empty), _ColorCube(empty)
 
         axis = self.get_longest_axis()
         axis_index = {'r': 0, 'g': 1, 'b': 2}[axis]
 
-        # 使用 numpy 快速排序
+        # 使用 numpy 排序和切片
         sorted_indices = np.argsort(self._np_pixels[:, axis_index])
         mid = len(sorted_indices) // 2
 
-        pixels1 = [self.pixels[i] for i in sorted_indices[:mid]]
-        pixels2 = [self.pixels[i] for i in sorted_indices[mid:]]
+        # 直接使用 numpy 数组切片
+        pixels1 = self._np_pixels[sorted_indices[:mid]]
+        pixels2 = self._np_pixels[sorted_indices[mid:]]
 
-        # 切分为两个立方体
-        cube1 = _ColorCube(pixels1)
-        cube2 = _ColorCube(pixels2)
-
-        return cube1, cube2
+        return _ColorCube(pixels1), _ColorCube(pixels2)
 
 
-def _mmcq_quantize(pixels: list[tuple[int, int, int]], count: int) -> list[_ColorCube]:
+def _mmcq_quantize(pixels: np.ndarray, count: int) -> list[_ColorCube]:
     """MMCQ 算法核心实现
 
     Args:
-        pixels: RGB 像素列表
+        pixels: RGB 像素数组 (N×3)
         count: 目标颜色数量
 
     Returns:
         list: 颜色立方体列表
     """
-    if not pixels or count <= 0:
+    if len(pixels) == 0 or count <= 0:
         return []
 
     # 初始立方体包含所有像素
@@ -1289,77 +1409,79 @@ def _mmcq_quantize(pixels: list[tuple[int, int, int]], count: int) -> list[_Colo
     return cubes
 
 
-def _extract_pixels_fast(image, sample_step: int = 4) -> list[tuple[int, int, int]]:
+def _extract_pixels_fast(image, sample_step: int = 4) -> np.ndarray:
     """快速提取图片像素数据
-
-    使用 numpy 优化像素提取性能。
 
     Args:
         image: QImage 或 PIL Image 对象
         sample_step: 采样步长
 
     Returns:
-        list: RGB 像素列表
+        np.ndarray: RGB 像素数组 (N×3)，dtype=np.uint8
     """
-    pixels = []
-
     # 处理 QImage
     if hasattr(image, 'width') and hasattr(image, 'height'):
         width = image.width()
         height = image.height()
 
         if hasattr(image, 'bits'):
-            # 使用 numpy 批量读取像素（QImage 格式）
             arr = _qimage_to_numpy(image)
 
             # 采样像素
-            arr_sampled = arr[::sample_step, ::sample_step]
-            pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+            sampled = arr[::sample_step, ::sample_step].reshape(-1, 3)
 
-            # 额外采样边缘像素
+            # 合并边缘像素
             if width > 0 and height > 0:
                 right_edge = arr[::sample_step, -1]
                 bottom_edge = arr[-1, ::sample_step]
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+                edges = np.vstack([right_edge, bottom_edge])
+                return np.vstack([sampled, edges])
 
-            return pixels
+            return sampled
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
         width, height = image.size
 
         if hasattr(image, 'convert'):
-            # 使用 numpy 批量读取像素（PIL Image 格式）
             arr = np.array(image.convert('RGB'))
 
             # 采样像素
-            arr_sampled = arr[::sample_step, ::sample_step]
-            pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+            sampled = arr[::sample_step, ::sample_step].reshape(-1, 3)
 
-            # 额外采样边缘像素
+            # 合并边缘像素
             if width > 0 and height > 0:
                 right_edge = arr[::sample_step, -1]
                 bottom_edge = arr[-1, ::sample_step]
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-                pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+                edges = np.vstack([right_edge, bottom_edge])
+                return np.vstack([sampled, edges])
 
-            return pixels
+            return sampled
 
-    return pixels
+    return np.array([], dtype=np.uint8).reshape(0, 3)
 
 
 def _kmeans_plus_plus_init(pixels: np.ndarray, k: int) -> np.ndarray:
     """K-Means++ 初始化聚类中心"""
     rng = np.random.default_rng()
-    centroids = [pixels[rng.integers(len(pixels))]]
+    n = len(pixels)
+
+    # 随机选择第一个中心
+    centroids = [pixels[rng.integers(n)]]
+    # 计算所有像素到第一个中心的距离
+    diff = pixels - centroids[0]
+    min_dist_sq = np.sum(diff * diff, axis=1)
+
     for _ in range(1, k):
-        dist_sq = np.min(
-            np.sum((pixels[:, np.newaxis] - np.array(centroids)[np.newaxis]) ** 2, axis=2),
-            axis=1
-        )
-        probs = dist_sq / dist_sq.sum()
-        centroids.append(pixels[rng.choice(len(pixels), p=probs)])
+        probs = min_dist_sq / min_dist_sq.sum()
+        new_centroid = pixels[rng.choice(n, p=probs)]
+        centroids.append(new_centroid)
+
+        # 只计算新中心的距离，增量更新最小值
+        diff = pixels - new_centroid
+        new_dist_sq = np.sum(diff * diff, axis=1)
+        np.minimum(min_dist_sq, new_dist_sq, out=min_dist_sq)
+
     return np.array(centroids, dtype=np.float32)
 
 
@@ -1374,34 +1496,44 @@ def extract_dominant_colors_kmeans(
     count = max(3, min(8, count))
 
     if original_pixels is not None:
-        arr_sampled = original_pixels[::sample_step, ::sample_step]
-        pixels_list = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+        arr_sampled = original_pixels[::sample_step, ::sample_step].reshape(-1, 3)
+        # 合并边缘像素
+        if original_pixels.size > 0:
+            right_edge = original_pixels[::sample_step, -1]
+            bottom_edge = original_pixels[-1, ::sample_step]
+            edges = np.vstack([right_edge, bottom_edge])
+            pixels_np = np.vstack([arr_sampled, edges]).astype(np.float32)
+        else:
+            pixels_np = arr_sampled.astype(np.float32)
     else:
-        pixels_list = _extract_pixels_fast(image, sample_step)
+        pixels_arr = _extract_pixels_fast(image, sample_step)
+        pixels_np = pixels_arr.astype(np.float32)
 
-    if not pixels_list:
+    if len(pixels_np) == 0:
         return []
 
-    pixels_np = np.array(pixels_list, dtype=np.float32)
     centroids = _kmeans_plus_plus_init(pixels_np, count)
+    # 预计算像素范数平方，避免每轮重复计算
+    pixel_norms = np.sum(pixels_np * pixels_np, axis=1)
 
     for _ in range(max_iterations):
-        distances = np.sum(
-            (pixels_np[:, np.newaxis] - centroids[np.newaxis]) ** 2, axis=2
-        )
+        # 展开式: ||p-c||^2 = ||p||^2 - 2*p.c + ||c||^2，矩阵乘法避免 (N,k,3) 中间数组
+        centroid_norms = np.sum(centroids * centroids, axis=1)
+        distances = pixel_norms[:, np.newaxis] - 2 * (pixels_np @ centroids.T) + centroid_norms
         labels = np.argmin(distances, axis=1)
+
         new_centroids = np.array([
-            pixels_np[labels == k].mean(axis=0) if (labels == k).any() else centroids[k]
-            for k in range(count)
+            pixels_np[labels == i].mean(axis=0) if (labels == i).any() else centroids[i]
+            for i in range(count)
         ], dtype=np.float32)
         if np.allclose(centroids, new_centroids):
             break
         centroids = new_centroids
 
-    cluster_sizes = [(labels == k).sum() for k in range(count)]
+    cluster_sizes = [(labels == i).sum() for i in range(count)]
     sorted_indices = np.argsort(cluster_sizes)[::-1]
 
-    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]
+    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]  # type: ignore[return-value]
 
 
 def extract_dominant_colors(
@@ -1431,20 +1563,24 @@ def extract_dominant_colors(
     count = max(3, min(8, count))
 
     if original_pixels is not None:
-        arr_sampled = original_pixels[::sample_step, ::sample_step]
-        pixels = [(int(r), int(g), int(b)) for r, g, b in arr_sampled.reshape(-1, 3)]
+        arr_sampled = original_pixels[::sample_step, ::sample_step].reshape(-1, 3)
+        # 合并边缘像素
         if original_pixels.size > 0:
             right_edge = original_pixels[::sample_step, -1]
             bottom_edge = original_pixels[-1, ::sample_step]
-            pixels.extend([(int(r), int(g), int(b)) for r, g, b in right_edge])
-            pixels.extend([(int(r), int(g), int(b)) for r, g, b in bottom_edge])
+            edges = np.vstack([right_edge, bottom_edge])
+            pixels = np.vstack([arr_sampled, edges])
+        else:
+            pixels = arr_sampled
     else:
         pixels = _extract_pixels_fast(image, sample_step)
 
-    if not pixels:
+    if len(pixels) == 0:
         return []
 
-    cubes = _mmcq_quantize(pixels, count)
+    # 转换为 int32 用于 MMCQ
+    pixels_int32 = pixels.astype(np.int32)
+    cubes = _mmcq_quantize(pixels_int32, count)
     cubes.sort(key=lambda c: c.get_count(), reverse=True)
     dominant_colors = [cube.get_average_color() for cube in cubes]
 
@@ -1454,7 +1590,7 @@ def extract_dominant_colors(
 def _extract_pixels_with_positions_fast(
     image,
     sample_step: int = 4
-) -> tuple[int, int, list[tuple[int, int, int, int, int]]]:
+) -> tuple[int, int, np.ndarray]:
     """快速提取图片像素数据及其位置
 
     Args:
@@ -1462,9 +1598,9 @@ def _extract_pixels_with_positions_fast(
         sample_step: 采样步长
 
     Returns:
-        tuple: (width, height, pixel_data) 其中 pixel_data 是 [(x, y, r, g, b), ...]
+        tuple: (width, height, pixel_data) 其中 pixel_data 是 (N×5) 数组
+               列顺序: x, y, r, g, b
     """
-    pixel_data = []
     width, height = 0, 0
 
     # 处理 QImage
@@ -1473,44 +1609,50 @@ def _extract_pixels_with_positions_fast(
         height = image.height()
 
         if hasattr(image, 'bits'):
-            # 使用 numpy 批量读取像素
             arr = _qimage_to_numpy(image)
 
-            # 采样像素位置
-            y_coords, x_coords = np.meshgrid(
-                np.arange(0, height, sample_step),
-                np.arange(0, width, sample_step),
-                indexing='ij'
-            )
+            # 使用 numpy 生成坐标网格
+            ys = np.arange(0, height, sample_step)
+            xs = np.arange(0, width, sample_step)
+            y_grid, x_grid = np.meshgrid(ys, xs, indexing='ij')
 
-            for y, x in zip(y_coords.flat, x_coords.flat):
-                r, g, b = arr[y, x]
-                pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+            # 扁平化坐标
+            x_flat = x_grid.ravel()
+            y_flat = y_grid.ravel()
 
-            return width, height, pixel_data
+            # 获取对应像素
+            pixels_flat = arr[::sample_step, ::sample_step].reshape(-1, 3)
+
+            # 合并为 (x, y, r, g, b) 数组
+            pixel_data = np.column_stack([x_flat, y_flat, pixels_flat])
+
+            return width, height, pixel_data.astype(np.int32)
 
     # 处理 PIL Image
     elif hasattr(image, 'size') and hasattr(image, 'getpixel'):
         width, height = image.size
 
         if hasattr(image, 'convert'):
-            # 使用 numpy 批量读取像素
             arr = np.array(image.convert('RGB'))
 
-            # 采样像素位置
-            y_coords, x_coords = np.meshgrid(
-                np.arange(0, height, sample_step),
-                np.arange(0, width, sample_step),
-                indexing='ij'
-            )
+            # 使用 numpy 生成坐标网格
+            ys = np.arange(0, height, sample_step)
+            xs = np.arange(0, width, sample_step)
+            y_grid, x_grid = np.meshgrid(ys, xs, indexing='ij')
 
-            for y, x in zip(y_coords.flat, x_coords.flat):
-                r, g, b = arr[y, x]
-                pixel_data.append((int(x), int(y), int(r), int(g), int(b)))
+            # 扁平化坐标
+            x_flat = x_grid.ravel()
+            y_flat = y_grid.ravel()
 
-            return width, height, pixel_data
+            # 获取对应像素
+            pixels_flat = arr[::sample_step, ::sample_step].reshape(-1, 3)
 
-    return width, height, pixel_data
+            # 合并为 (x, y, r, g, b) 数组
+            pixel_data = np.column_stack([x_flat, y_flat, pixels_flat])
+
+            return width, height, pixel_data.astype(np.int32)
+
+    return width, height, np.array([], dtype=np.int32).reshape(0, 5)
 
 
 def find_dominant_color_positions(
@@ -1537,30 +1679,34 @@ def find_dominant_color_positions(
         height, width = original_pixels.shape[:2]
         arr = original_pixels[::sample_step, ::sample_step]
         ys, xs = np.mgrid[0:height:sample_step, 0:width:sample_step]
-        pixel_data = [
-            (int(x), int(y), int(r), int(g), int(b))
-            for y, x, r, g, b in zip(ys.flat, xs.flat, arr[:, :, 0].flat, arr[:, :, 1].flat, arr[:, :, 2].flat)
-        ]
+
+        # 使用 numpy 列向量合并
+        x_flat = xs.ravel()
+        y_flat = ys.ravel()
+        pixels_flat = arr.reshape(-1, 3)
+        pixel_data = np.column_stack([x_flat, y_flat, pixels_flat]).astype(np.float32)
     else:
         width, height, pixel_data = _extract_pixels_with_positions_fast(image, sample_step)
+        pixel_data = pixel_data.astype(np.float32)
 
-    if not pixel_data or width == 0 or height == 0:
+    if len(pixel_data) == 0 or width == 0 or height == 0:
         return [(0.5, 0.5)] * len(dominant_colors)
 
-    pixel_array = np.array(pixel_data, dtype=np.float32)
     dominant_array = np.array(dominant_colors, dtype=np.float32)
 
-    pixel_colors = pixel_array[:, 2:5]
+    pixel_colors = pixel_data[:, 2:5]
 
-    diff = pixel_colors[:, np.newaxis, :] - dominant_array[np.newaxis, :, :]
-    distances = np.sum(diff ** 2, axis=2)
+    # 展开式: ||p-c||^2 = ||p||^2 - 2*p.c + ||c||^2，矩阵乘法避免 (N,k,3) 中间数组
+    color_norms = np.sum(pixel_colors * pixel_colors, axis=1)
+    dominant_norms = np.sum(dominant_array * dominant_array, axis=1)
+    distances = color_norms[:, np.newaxis] - 2 * (pixel_colors @ dominant_array.T) + dominant_norms
 
     closest_indices = np.argmin(distances, axis=1)
 
     positions = []
     for i in range(len(dominant_colors)):
         mask = closest_indices == i
-        cluster = pixel_array[mask]
+        cluster = pixel_data[mask]
 
         if len(cluster) > 0:
             avg_x = cluster[:, 0].mean()

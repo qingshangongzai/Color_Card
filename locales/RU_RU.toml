@@ -35,6 +35,8 @@ image_filter = "Файлы изображений (*.png *.jpg *.jpeg *.bmp *.gi
 
 [gradient_generation]
 start_color = "Начальный цвет"
+mid_color = "Средний цвет"
+mid_position = "Позиция среднего"
 end_color = "Конечный цвет"
 base_color = "Базовый цвет"
 steps = "Промежуточные цвета"
@@ -52,6 +54,10 @@ title = "Цветовая схема:"
 random = "Случай"
 favorite = "Сохр."
 brightness = "Яркость:"
+copied = "Скопировано"
+copied_content = "Значение цвета {hex} скопировано в буфер обмена"
+favorite_failed = "Невозможно сохранить"
+no_colors_to_favorite = "Нет цветов для сохранения"
 
 [color_generation.schemes]
 monochromatic = "Монохроматическая"
@@ -63,10 +69,6 @@ double_complementary = "Двойная"
 [color_generation.favorite_success]
 title = "Сохранено"
 content = """Цветовая схема "{name}" добавлена в управление палитрами"""
-copied = "Скопировано"
-copied_content = "Значение цвета {hex} скопировано в буфер обмена"
-favorite_failed = "Невозможно сохранить"
-no_colors_to_favorite = "Нет цветов для сохранения"
 
 [palette_management]
 title = "Палитры"
@@ -267,6 +269,7 @@ gradient_lab = "LAB пространство"
 gradient_mode = "Режим градиента"
 gradient_mode_desc = "Выберите режим извлечения градиента"
 gradient_mode_gradient = "Двухцветный градиент"
+gradient_mode_three_color = "Трёхцветный градиент"
 gradient_mode_shade = "Монохромный градиент"
 luminance = "Извлечение яркости"
 luminance_default_grayscale = "Оттенки серого по умолчанию"
@@ -354,6 +357,7 @@ simulated_color = "Симулированный цвет"
 original = "Исходный"
 simulated = "Симулированный"
 description = "Примечание: {desc}"
+severity = "Степень: {value}%"
 
 [dialogs.contrast]
 title = "Проверка контраста"

@@ -455,10 +455,7 @@ class BasePreviewScene(QWidget):
             scene_config: 场景配置字典
             parent: 父控件
         """
-        self._config = scene_config
         self._colors: list[str] = []
-        self._scene_id = scene_config.get("id", "unknown")
-        self._scene_type = scene_config.get("type", "unknown")
         super().__init__(parent)
         self.setMinimumSize(200, 200)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -475,18 +472,6 @@ class BasePreviewScene(QWidget):
                 self._colors.extend(colors)
             self._colors = self._colors[:5]
         self.update()
-
-    def get_scene_id(self) -> str:
-        """获取场景ID"""
-        return self._scene_id
-
-    def get_scene_type(self) -> str:
-        """获取场景类型"""
-        return self._scene_type
-
-    def get_scene_config(self) -> dict[str, Any]:
-        """获取场景配置"""
-        return self._config.copy()
 
     @classmethod
     def from_config(cls, config: dict[str, Any], parent=None):
@@ -546,27 +531,6 @@ class PreviewSceneFactory:
 
         return scene_class.from_config(scene_config, parent)
 
-    @classmethod
-    def is_registered(cls, scene_type: str) -> bool:
-        """检查场景类型是否已注册
-
-        Args:
-            scene_type: 场景类型标识
-
-        Returns:
-            bool: 是否已注册
-        """
-        return scene_type in cls._registry
-
-    @classmethod
-    def get_registered_types(cls) -> list[str]:
-        """获取所有已注册的场景类型
-
-        Returns:
-            list[str]: 场景类型列表
-        """
-        return list(cls._registry.keys())
-
 
 # ============================================================================
 # SVG预览组件
@@ -599,7 +563,6 @@ class SVGPreviewWidget(BasePreviewScene):
         self._svg_content: str = ""
         self._original_svg_content: str = ""
         self._color_mapper: Any | None = None
-        self._template_mode: bool = False
 
         self._is_builtin: bool = False
         self._template_path: str | None = None
@@ -607,7 +570,7 @@ class SVGPreviewWidget(BasePreviewScene):
 
         self.setStyleSheet("border: none;")
 
-    def set_template_info(self, is_builtin: bool, path: str = None):
+    def set_template_info(self, is_builtin: bool, path: str | None = None):
         """设置模板信息
 
         Args:
@@ -698,30 +661,6 @@ class SVGPreviewWidget(BasePreviewScene):
             return True
         except Exception as e:
             logger.error(f"加载 SVG 字符串失败: {e}", exc_info=True)
-            return False
-
-    def load_svg_from_resource(self, scene_type: str) -> bool:
-        """从 scenes_data 加载内置SVG
-
-        Args:
-            scene_type: 场景类型ID（如 'ui', 'web'）
-
-        Returns:
-            bool: 是否加载成功
-        """
-        try:
-            manager = get_scene_type_manager()
-            svg_path = manager.get_builtin_svg_path(scene_type)
-
-            if svg_path is None:
-                logger.warning(f"未找到内置SVG: {scene_type}")
-                return False
-
-            self._template_mode = True
-            return self.load_svg(svg_path)
-
-        except Exception as e:
-            logger.error(f"加载内置SVG失败: {e}", exc_info=True)
             return False
 
     def set_colors(self, colors: list[str]):
@@ -823,10 +762,6 @@ class SVGPreviewWidget(BasePreviewScene):
         """是否已加载 SVG"""
         return self._svg_renderer is not None and self._svg_renderer.isValid()
 
-    def is_template_mode(self) -> bool:
-        """是否处于模板模式"""
-        return self._template_mode
-
     def _get_semantic_background_color(self) -> QColor:
         """获取语义化映射模式的背景颜色
 
@@ -904,7 +839,7 @@ class BaseLayout(QWidget):
     def load_templates(self):
         raise NotImplementedError("子类必须重写 load_templates 方法")
 
-    def _create_svg_widget(self, template_path: str = None, is_builtin: bool = False) -> Any:
+    def _create_svg_widget(self, template_path: str | None = None, is_builtin: bool = False) -> Any:
         """创建SVG预览组件
 
         Args:
@@ -1086,15 +1021,6 @@ class SingleLayout(BaseLayout):
         """
         self._index_label.setStyleSheet(label_style)
 
-    def set_current_index(self, index: int):
-        if 0 <= index < len(self._svg_widgets):
-            self._current_index = index
-            self._show_current_svg()
-            self.update_navigation()
-            self.current_index_changed.emit(self._current_index)
-
-    def get_current_index(self) -> int:
-        return self._current_index
 
 
 class ScrollVLayout(BaseLayout):
@@ -1403,14 +1329,6 @@ class LayoutFactory:
         cls._layout_registry[layout_type] = layout_class
         logger.debug(f"已注册布局类型: {layout_type} -> {layout_class.__name__}")
 
-    @classmethod
-    def get_available_types(cls) -> list[str]:
-        return list(cls._layout_registry.keys())
-
-    @classmethod
-    def is_valid_type(cls, layout_type: str) -> bool:
-        return layout_type in cls._layout_registry
-
 
 # ============================================================================
 # 预览场景选择器
@@ -1485,26 +1403,6 @@ class PreviewSceneSelector(ComboBox):
     def get_current_scene(self) -> str:
         """获取当前场景ID"""
         return self.itemData(self.currentIndex()) or "showcase"
-
-    def reload_scenes(self):
-        """重新加载场景列表"""
-        self._load_scene_types()
-        self._scene_types_loaded = True
-        self._setup_items()
-
-    def get_scene_type_config(self, scene_id: str) -> dict | None:
-        """获取场景类型配置
-
-        Args:
-            scene_id: 场景ID
-
-        Returns:
-            dict | None: 场景配置，如果不存在则返回None
-        """
-        for scene_type in self._scene_types:
-            if scene_type.get("id") == scene_id:
-                return scene_type.copy()
-        return None
 
 
 # ============================================================================
@@ -1610,7 +1508,6 @@ class MixedPreviewPanel(QWidget):
         """
         if self._current_scene == "custom":
             self._custom_svg_path = None
-            self._current_svg_path = None
             self.set_scene(self._current_scene)
             return
 
@@ -1876,7 +1773,6 @@ class ColorPreviewInterface(QWidget):
         self._current_index = 0
         self._current_colors: list[str] = []
         self._current_scene = "showcase"
-        self._current_svg_path = ""
         self._hex_visible = self._config_manager.get('settings.hex_visible', True)
         self._scene_types_loaded = False
         self.setup_ui()
@@ -1935,15 +1831,6 @@ class ColorPreviewInterface(QWidget):
     def _load_favorites(self):
         """加载收藏的配色列表（仅用于显示可用收藏，不自动加载任何配色）"""
         self._favorites = self._config_manager.get_favorites()
-
-    def _load_current_scheme(self):
-        """加载当前配色"""
-        if not self._favorites or self._current_index >= len(self._favorites):
-            return
-
-        favorite = self._favorites[self._current_index]
-        self._current_colors = self._get_preview_service().extract_hex_colors_from_favorite(favorite)
-        self._update_preview()
 
     def _update_preview(self):
         """更新预览显示"""
@@ -2016,7 +1903,6 @@ class ColorPreviewInterface(QWidget):
             return
 
         if svg_preview.load_svg(file_path):
-            self._current_svg_path = file_path
             self.preview_panel.set_custom_svg_path(file_path)
             svg_preview.set_template_info(False, file_path)
             svg_preview.set_colors(self._current_colors)
