@@ -246,17 +246,17 @@ class _GitHubSource(_ReleaseSource):
 
 _SOURCES: list[_ReleaseSource] = [
     _GiteaSource(
-        "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/releases/latest",
+        "https://gitee.com/api/v5/repos/HxiaoStudio/Color_Card/releases/latest",
         [
-            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
-            "https://gitee.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main",
+            "https://gitee.com/api/v5/repos/HxiaoStudio/Color_Card/contents/app_log/changelog.json?ref=main",
+            "https://gitee.com/api/v5/repos/HxiaoStudio/Color_Card/contents/docs/changelog.json?ref=main",
         ],
     ),
     _GiteaSource(
-        "https://gitcode.com/api/v5/repos/qingshangongzai/Color_Card/releases/latest",
+        "https://gitcode.com/api/v5/repos/HxiaoStudio/Color_Card/releases/latest",
         [
-            "https://gitcode.com/api/v5/repos/qingshangongzai/Color_Card/contents/app_log/changelog.json?ref=main",
-            "https://gitcode.com/api/v5/repos/qingshangongzai/Color_Card/contents/docs/changelog.json?ref=main",
+            "https://gitcode.com/api/v5/repos/HxiaoStudio/Color_Card/contents/app_log/changelog.json?ref=main",
+            "https://gitcode.com/api/v5/repos/HxiaoStudio/Color_Card/contents/docs/changelog.json?ref=main",
         ],
     ),
     _GitHubSource(),

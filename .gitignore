@@ -135,7 +135,6 @@ test_results.json
 test_lazy_loading.py
 文档/色彩空间优化方案.md
 文档/core模块启动优化方案.md
-
 文档/延迟加载机制分析.md
 文档/Color Card 启动速度分析报告.md
 文档/软打样模式实现方案.md
@@ -149,10 +148,4 @@ tone_labeler/基于直方图的影调自动分类算法.md
 logo-generator-skill/
 tone_labeler/labels.json
 /tone_labeler/data
-文档/待核实问题清单.txt
-svg/diagram.svg
-svg/diagram (1).svg
-svg/diagram (2).svg
-svg/diagram.svg
-svg/diagram (1).svg
 /svg
