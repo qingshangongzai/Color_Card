@@ -191,27 +191,6 @@ class PreviewService(QObject):
             logger.error(f"验证SVG文件失败: {file_path}, error={e}", exc_info=True)
             return False, f"验证失败: {e}"
 
-    def extract_hex_colors_from_favorite(self, favorite: dict[str, Any]) -> list[str]:
-        """从收藏数据中提取 HEX 颜色列表
-
-        Args:
-            favorite: 收藏数据字典
-
-        Returns:
-            list[str]: HEX 颜色列表
-        """
-        colors_data = favorite.get('colors', [])
-        hex_colors = []
-
-        for color_info in colors_data:
-            hex_value = color_info.get('hex', '') if isinstance(color_info, dict) else color_info
-            if hex_value:
-                if not hex_value.startswith('#'):
-                    hex_value = '#' + hex_value
-                hex_colors.append(hex_value)
-
-        return hex_colors if hex_colors else ["#E8E8E8"]
-
     def save_svg_to_file(self, svg_content: str, file_path: str) -> tuple[bool, str]:
         """保存 SVG 内容到文件
 

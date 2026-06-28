@@ -13,7 +13,6 @@ import struct
 import sys
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 # 第三方库导入
@@ -850,11 +849,6 @@ class PaletteService(QObject):
             self._cleanup_exporter, Qt.ConnectionType.QueuedConnection
         )
         self._exporter.start()
-
-    def cancel_export(self) -> None:
-        """取消当前导出任务"""
-        if self._exporter is not None and self._exporter.isRunning():
-            self._exporter.cancel()
 
     def _on_export_finished(self, file_path: str):
         """导出完成处理

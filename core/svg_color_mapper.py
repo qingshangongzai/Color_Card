@@ -9,7 +9,6 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any
 
 logger = logging.getLogger("color_card.svg_color_mapper")
 

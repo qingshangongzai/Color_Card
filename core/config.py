@@ -451,22 +451,6 @@ class SceneConfigManager:
         base_path = get_base_path()
         return Path(base_path) / self.SCENES_DIR_NAME
 
-    def _validate_scene_config(self, scene_config: dict[str, Any]) -> bool:
-        """验证场景配置格式
-
-        Args:
-            scene_config: 场景配置字典
-
-        Returns:
-            bool: 是否有效
-        """
-        required_fields = ['id', 'name', 'type']
-        return all(field in scene_config for field in required_fields)
-
-    def _ensure_user_scenes_dir(self) -> None:
-        """确保用户场景目录存在"""
-        self._user_scenes_dir.mkdir(parents=True, exist_ok=True)
-
     def _ensure_loaded(self) -> None:
         """确保场景数据已加载（延迟加载）"""
         if not self._loaded:
@@ -497,56 +481,6 @@ class SceneConfigManager:
                 print(f"加载用户场景失败 {scene_file.name}: {e}")
 
         print(f"已加载 {len(self._user_scenes)} 个用户场景")
-
-    def get_all_scenes(self) -> list[dict[str, Any]]:
-        """获取所有场景配置
-
-        Returns:
-            list[dict[str, Any]]: 所有场景配置列表
-        """
-        self._ensure_loaded()
-        return self._user_scenes.copy()
-
-    def get_scene_by_id(self, scene_id: str) -> dict[str, Any] | None:
-        """根据ID获取场景配置
-
-        Args:
-            scene_id: 场景ID
-
-        Returns:
-            dict[str, Any] | None: 场景配置，如果不存在则返回None
-        """
-        self._ensure_loaded()
-        for scene in self._user_scenes:
-            if scene["id"] == scene_id:
-                return scene.copy()
-
-        return None
-
-    def delete_user_scene(self, scene_id: str) -> bool:
-        """删除用户自定义场景
-
-        Args:
-            scene_id: 场景ID
-
-        Returns:
-            bool: 是否删除成功
-        """
-        self._ensure_loaded()
-        # 查找并删除用户场景文件
-        for scene in self._user_scenes:
-            if scene["id"] == scene_id:
-                source_file = scene.get("_source_file")
-                if source_file:
-                    file_path = self._user_scenes_dir / source_file
-                    if file_path.exists():
-                        file_path.unlink()
-
-                # 重新加载用户场景
-                self._load_user_scenes()
-                return True
-
-        return False
 
 
 # 全局配置管理器实例
