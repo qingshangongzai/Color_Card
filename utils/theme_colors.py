@@ -323,19 +323,9 @@ def get_zone_info_text_colors():
 
 
 # ========== 影调分析图表颜色 ==========
-def get_tone_chart_bg_color():
-    """获取影调分析图表背景颜色"""
-    return QColor(30, 30, 30) if isDarkTheme() else QColor(255, 255, 255)
-
-
 def get_tone_chart_text_color():
     """获取影调分析图表文字颜色"""
     return QColor(255, 255, 255) if isDarkTheme() else QColor(51, 51, 51)
-
-
-def get_tone_chart_grid_color():
-    """获取影调分析图表网格颜色"""
-    return QColor(68, 68, 68) if isDarkTheme() else QColor(204, 204, 204)
 
 
 def get_tone_chart_bar_color():
@@ -354,11 +344,6 @@ def get_tone_chart_median_line_color():
 
 
 # ========== 和谐度分析颜色 ==========
-def get_harmony_wheel_bg_color():
-    """获取和谐度色相环背景颜色"""
-    return QColor(42, 42, 42) if isDarkTheme() else QColor(245, 245, 245)
-
-
 def get_harmony_wheel_line_color():
     """获取和谐度色相环连线颜色"""
     return QColor(255, 255, 255, 160) if isDarkTheme() else QColor(0, 0, 0, 120)

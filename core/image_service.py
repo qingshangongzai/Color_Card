@@ -213,28 +213,6 @@ class ImageData:
     display_colorspace: str | None = None
 
 
-# ==================== ICC 色彩空间转换 ====================
-
-def _detect_colorspace_from_text(text: str) -> str | None:
-    """从文本中检测色彩空间名称
-
-    Args:
-        text: 要检测的文本（已转为小写）
-
-    Returns:
-        str: 色彩空间名称，未检测到返回 None
-    """
-    if 'adobe' in text and 'rgb' in text:
-        return 'Adobe RGB'
-    if 'display p3' in text or 'displayp3' in text:
-        return 'Display P3'
-    if 'dci-p3' in text or 'dcip3' in text:
-        return 'DCI-P3'
-    if 'prophoto' in text:
-        return 'ProPhoto RGB'
-    return None
-
-
 def _convert_to_srgb(pil_image: Image.Image, colorspace_info: ColorSpaceInfo) -> Image.Image:
     """将图片转换为 sRGB 用于显示
 
