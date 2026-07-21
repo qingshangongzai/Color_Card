@@ -65,7 +65,7 @@ class FileInstaller:
         """
         total_size = 0
         try:
-            for root, dirs, files in os.walk(path):
+            for root, _, files in os.walk(path):
                 for file in files:
                     file_path = Path(root) / file
                     try:

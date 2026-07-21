@@ -76,7 +76,7 @@ class FavoriteGroupLoaderThread(BaseBatchLoader):
         start = batch_idx * self._batch_size
         end = min(start + self._batch_size, self._total_items)
         
-        batch_data = []
+        batch_data: list[dict] = []
         for i in range(start, end):
             if self._check_cancelled():
                 return batch_data
@@ -476,7 +476,7 @@ class PaletteManagementCard(CardWidget):
         self._card_index = card_index
         self._hex_visible = True
         self._color_modes = ['HSB', 'LAB']
-        self._color_cards = []
+        self._color_cards: list[PaletteManagementColorCard] = []
         self._batch_mode = False
         self._selected = False
         super().__init__(parent)
@@ -747,31 +747,6 @@ class PaletteManagementCard(CardWidget):
             parent=self.window()
         )
 
-    def _on_copy_palette_clicked(self):
-        """复制配色按钮点击"""
-        colors = self._favorite_data.get('colors', [])
-        if not colors:
-            return
-
-        hex_values = [
-            '#' + c['hex'] if not c['hex'].startswith('#') else c['hex']
-            for c in colors if c.get('hex')
-        ]
-
-        text = ' '.join(hex_values)
-        clipboard = QApplication.clipboard()
-        clipboard.setText(text)
-
-        InfoBar.success(
-            title=tr('messages.copy_success.title'),
-            content=tr('palette_management.palette_copied', count=len(hex_values)),
-            orient=Qt.Orientation.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=2000,
-            parent=self.window()
-        )
-
     def set_hex_visible(self, visible):
         """设置16进制显示区域的可见性"""
         self._hex_visible = visible
@@ -786,13 +761,6 @@ class PaletteManagementCard(CardWidget):
         self._color_modes = [modes[0], modes[1]]
         for card in self._color_cards:
             card.set_color_modes(modes)
-
-    def update_display(self, hex_visible=None, color_modes=None):
-        """更新显示设置"""
-        if hex_visible is not None:
-            self.set_hex_visible(hex_visible)
-        if color_modes is not None:
-            self.set_color_modes(color_modes)
 
     def set_batch_mode(self, enabled: bool):
         """设置批量模式
@@ -827,7 +795,7 @@ class PaletteManagementCard(CardWidget):
         """更新选中样式"""
         if self._selected:
             # 选中状态：蓝色边框
-            self.setStyleSheet(f"CardWidget {{ border: 2px solid #0078d4; border-radius: 8px; }}")
+            self.setStyleSheet("CardWidget { border: 2px solid #0078d4; border-radius: 8px; }")
         else:
             # 非选中状态：清除自定义样式，使用默认
             self.setStyleSheet("")
@@ -1762,8 +1730,6 @@ class PaletteManagementInterface(QWidget):
 
         set_last_directory("palette_import", str(Path(file_path).parent))
         log_user_action("import_palette_start", {"file_path": file_path})
-
-        self._pending_import_path = file_path
 
         # 如果没有配色数据，直接导入（替换模式）
         if not self._config_manager.get_favorites():

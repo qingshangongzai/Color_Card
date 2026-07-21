@@ -23,7 +23,6 @@ class ZoomViewer(QWidget):
 
         self._image = None
         self._center_pos = QPoint(0, 0)
-        self._zoom_factor = 4
         self._source_rect_size = 25
 
         self.hide()

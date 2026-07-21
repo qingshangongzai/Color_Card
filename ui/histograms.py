@@ -7,7 +7,7 @@ from PySide6.QtGui import QColor, QFont, QLinearGradient, QPainter, QPainterPath
 from PySide6.QtWidgets import QWidget
 
 # 项目模块导入
-from core import HistogramService, ZONE_WIDTH
+from core import HistogramService
 from utils import tr
 from utils.theme_colors import (
     get_histogram_background_color, get_histogram_grid_color, get_histogram_axis_color,
@@ -289,7 +289,6 @@ class LuminanceHistogramWidget(BaseHistogram):
 
         self._highlight_zones = []  # 高亮显示的区域列表
         self._pressed_zone = -1     # 当前按下的Zone
-        self._current_zone = -1     # 当前选中的Zone
         self._histogram_style = "line"  # 直方图样式: "line" 或 "bar"
 
         # 启用鼠标跟踪
@@ -343,13 +342,6 @@ class LuminanceHistogramWidget(BaseHistogram):
         self._highlight_zones = zones
         self.update()
 
-    def set_current_zone(self, zone: int):
-        """设置当前选中的Zone (0-8)"""
-        if 0 <= zone <= 8 and zone != self._current_zone:
-            self._current_zone = zone
-            self.zone_changed.emit(zone)
-            self.update()
-
     def clear_highlight(self):
         """清除高亮"""
         self._highlight_zones = []
@@ -362,7 +354,6 @@ class LuminanceHistogramWidget(BaseHistogram):
         super().clear()
         self._highlight_zones = []
         self._pressed_zone = -1
-        self._current_zone = -1
         self.update()
 
     def _on_histogram_ready(self, histogram):
@@ -380,10 +371,6 @@ class LuminanceHistogramWidget(BaseHistogram):
         """关闭事件：确保线程正确清理"""
         self._histogram_service.cancel_all()
         super().closeEvent(event)
-
-    def get_zone_from_luminance(self, luminance: int) -> int:
-        """根据明度值获取Zone (0-8)"""
-        return min(8, int(luminance / ZONE_WIDTH))
 
     def get_zone_label(self, zone: int) -> str:
         """获取Zone的显示标签"""
@@ -615,7 +602,6 @@ class LuminanceHistogramWidget(BaseHistogram):
             zone = self._get_zone_from_pos(event.pos())
             if zone >= 0:
                 self._pressed_zone = zone
-                self._current_zone = zone
                 self.zone_pressed.emit(zone)
                 self.zone_changed.emit(zone)
                 self.update()
@@ -627,7 +613,6 @@ class LuminanceHistogramWidget(BaseHistogram):
             zone = self._get_zone_from_pos(event.pos())
             if zone >= 0 and zone != self._pressed_zone:
                 self._pressed_zone = zone
-                self._current_zone = zone
                 self.zone_pressed.emit(zone)
                 self.zone_changed.emit(zone)
                 self.update()

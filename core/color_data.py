@@ -28,11 +28,9 @@ class ColorSource:
     """配色源类（直接读取新格式JSON）"""
     
     def __init__(self, json_data: dict[str, Any]):
-        self._data = json_data
         self._id = json_data.get("id", "")
         self._name = json_data.get("name", "")
         self._description = json_data.get("description", "")
-        self._author = json_data.get("author", "")
         self._category = json_data.get("category", "")
         self._palettes = json_data.get("palettes", [])
         self._groups = json_data.get("groups", [])
@@ -50,24 +48,12 @@ class ColorSource:
         return self._description
     
     @property
-    def author(self) -> str:
-        return self._author
-    
-    @property
     def category(self) -> str:
         return self._category
-    
+
     @property
     def has_groups(self) -> bool:
         return len(self._groups) > 0
-    
-    @property
-    def total_palettes(self) -> int:
-        return len(self._palettes)
-    
-    @property
-    def total_groups(self) -> int:
-        return len(self._groups)
     
     def get_groups(self) -> list[dict[str, str]]:
         """获取分组列表
@@ -147,7 +133,7 @@ class ColorSourceRegistry:
     """配色源注册表（单例模式）"""
     
     _instance = None
-    _sources = {}
+    _sources: dict[str, ColorSource] = {}
     _loaded = False
     
     @classmethod
@@ -185,27 +171,18 @@ class ColorSourceRegistry:
                 except (OSError, json.JSONDecodeError) as e:
                     print(f"加载配色源失败 {filename}: {e}")
     
-    def get(self, source_id: str) -> ColorSource:
+    def get(self, source_id: str) -> ColorSource | None:
         """获取指定配色源
 
         Args:
             source_id: 配色源ID
 
         Returns:
-            ColorSource: 配色源对象，不存在则返回 None
+            ColorSource | None: 配色源对象，不存在则返回 None
         """
         self._ensure_loaded()  # 首次访问时才加载
         return ColorSourceRegistry._sources.get(source_id)
-    
-    def get_all_ids(self) -> list:
-        """获取所有配色源ID
 
-        Returns:
-            list: 配色源ID列表
-        """
-        self._ensure_loaded()  # 首次访问时才加载
-        return list(ColorSourceRegistry._sources.keys())
-    
     def get_all_sources(self) -> list:
         """获取所有配色源
 

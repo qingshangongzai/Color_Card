@@ -64,7 +64,7 @@ class HistogramCache(BaseCache):
         self,
         image_key: str,
         histogram_type: str,
-        histogram_data: list[int],
+        histogram_data: list[int] | list[list[int]],
         metadata: dict[str, Any]
     ) -> None:
         """存储直方图数据到缓存
@@ -80,19 +80,6 @@ class HistogramCache(BaseCache):
             'histogram': histogram_data,
             'metadata': metadata
         })
-
-    def clear_by_image(self, image_key: str) -> None:
-        """清除指定图片的所有直方图缓存
-
-        Args:
-            image_key: 图片指纹键
-        """
-        keys_to_remove = [
-            key for key in self._cache.keys()
-            if key[0] == image_key
-        ]
-        for key in keys_to_remove:
-            del self._cache[key]
 
     def _get_key(self, image_key: str, histogram_type: str) -> tuple:
         """生成缓存键

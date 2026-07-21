@@ -1,6 +1,5 @@
 # 标准库导入
 import shutil
-import sys
 from pathlib import Path
 # 第三方库导入
 from PySide6.QtCore import QObject, Signal, QThread

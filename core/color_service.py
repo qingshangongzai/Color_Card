@@ -26,7 +26,6 @@ class DominantColorExtractor(QThread):
 
     extraction_finished = Signal(list, list)
     extraction_error = Signal(str)
-    extraction_progress = Signal(int)
 
     def __init__(self, image, count: int = 5, original_pixels: np.ndarray | None = None,
                  algorithm: str = 'mmcq', parent=None):
@@ -88,7 +87,6 @@ class ColorService(QObject):
     """颜色服务，管理颜色提取相关业务逻辑"""
 
     extraction_started = Signal()
-    extraction_progress = Signal(int)
     extraction_finished = Signal(list, list)
     extraction_error = Signal(str)
 

@@ -217,9 +217,7 @@ def _qimage_to_numpy(image: QImage) -> np.ndarray:
 
 SATURATION_STEPS = [1.0, 0.75, 0.5, 0.25]
 MIN_SATURATION = 20
-DEFAULT_BRIGHTNESS_STEPS = [100, 90, 80, 70]
-DEFAULT_ANALOGOUS_ANGLE = 30
-DEFAULT_SPLIT_ANGLE = 30
+DEFAULT_BRIGHTNESS_STEPS = [100.0, 90.0, 80.0, 70.0]
 
 # Zone分区宽度常量 (255/9 = 28.333...)
 ZONE_WIDTH = 255 / 9
@@ -967,7 +965,7 @@ def _build_analogous_colors(
         distance_from_center = abs(i - len(rgb_hues) / 2) / (len(rgb_hues) / 2)
         saturation_variation = 1 - distance_from_center * 0.3
         s = max(60, min(100, base_saturation * saturation_variation))
-        colors.append((h % 360, s, 90))
+        colors.append((h % 360, s, 90.0))
     return colors
 
 
@@ -1057,7 +1055,7 @@ def _build_split_complementary_colors(
         for i in range(remaining):
             blend_hue = (base_hue + (i + 1) * 60) % 360
             s = max(50, base_saturation * (0.7 - i * 0.1))
-            colors.append((blend_hue, s, 85))
+            colors.append((blend_hue, s, 85.0))
 
     return colors
 
@@ -1092,7 +1090,7 @@ def _build_double_complementary_colors(
         for i in range(4, count):
             blend_hue = (hues[0] + i * 45) % 360
             s = max(50, saturations[0] * (0.7 - (i - 4) * 0.1))
-            colors.append((blend_hue, s, 85))
+            colors.append((blend_hue, s, 85.0))
 
     return colors
 
@@ -1535,7 +1533,7 @@ def extract_dominant_colors_kmeans(
     cluster_sizes = [(labels == i).sum() for i in range(count)]
     sorted_indices = np.argsort(cluster_sizes)[::-1]
 
-    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]
+    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]  # type: ignore[return-value]
 
 
 def extract_dominant_colors(

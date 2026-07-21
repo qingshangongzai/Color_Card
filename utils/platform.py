@@ -2,11 +2,7 @@ from __future__ import annotations
 # 标准库导入
 import ctypes
 import os
-import sys
 
-
-# 第三方库导入
-from PySide6.QtCore import QObject, QTimer, Signal
 
 # 项目模块导入
 from .icon import get_icon_path
@@ -146,66 +142,3 @@ def force_window_to_front(window) -> bool:
 
     except (AttributeError, OSError, RuntimeError):
         return False
-
-
-class WindowIconMixin(QObject):
-    """窗口图标修复混入类，提供统一的任务栏图标修复功能
-
-    使用示例：
-        class MyWindow(QMainWindow, WindowIconMixin):
-            def __init__(self):
-                super().__init__()
-                # ... 其他初始化代码 ...
-
-            def showEvent(self, event):
-                super().showEvent(event)
-                self.setup_icon_fixing()
-    """
-
-    icon_fixed = Signal(bool)
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._icon_fixed: bool = False
-        self._fix_timer: QTimer | None = None
-
-    def setup_icon_fixing(self, delay_ms: int = 100) -> None:
-        """设置图标修复，在窗口显示后调用
-
-        Args:
-            delay_ms: 延迟时间（毫秒），默认 100ms
-        """
-        if self._icon_fixed:
-            return
-
-        if os.name == 'nt':
-            self._fix_timer = QTimer()
-            self._fix_timer.setSingleShot(True)
-            self._fix_timer.timeout.connect(self._fix_icon_safe)
-            self._fix_timer.start(delay_ms)
-
-    def _fix_icon_safe(self) -> bool:
-        """安全修复任务栏图标
-
-        Returns:
-            bool: 修复成功返回 True，失败返回 False
-        """
-        try:
-            if self._icon_fixed:
-                return True
-
-            success = fix_windows_taskbar_icon_for_window(self)
-            self._icon_fixed = True
-            self.icon_fixed.emit(success)
-            return success
-        except (AttributeError, OSError, RuntimeError):
-            self.icon_fixed.emit(False)
-            return False
-
-    def fix_taskbar_icon(self) -> bool:
-        """修复任务栏图标 - 兼容旧接口
-
-        Returns:
-            bool: 修复成功返回 True，失败返回 False
-        """
-        return self._fix_icon_safe()

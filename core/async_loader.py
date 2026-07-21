@@ -1,6 +1,5 @@
 from __future__ import annotations
 # 标准库导入
-import math
 from abc import abstractmethod
 from typing import Any
 
@@ -92,19 +91,6 @@ class BaseBatchLoader(QThread):
             list: 批次数据列表
         """
         pass
-    
-    def calculate_total_batches(self, total_items: int) -> int:
-        """计算总批次数（辅助方法）
-        
-        Args:
-            total_items: 总数据项数
-            
-        Returns:
-            int: 总批次数
-        """
-        if total_items <= 0:
-            return 0
-        return math.ceil(total_items / self._batch_size)
 
 
 __all__ = ['BaseBatchLoader']

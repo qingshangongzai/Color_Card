@@ -987,33 +987,11 @@ class SettingsInterface(QWidget):
                     combo_box.setCurrentIndex(i)
                     break
 
-    def get_gradient_color_space(self):
-        """获取当前渐变颜色空间"""
-        return self._gradient_color_space
-
-    def set_gradient_color_space(self, mode):
-        """设置渐变颜色空间
-
-        Args:
-            mode: 'rgb', 'hsb', 或 'lab'
-        """
-        self._gradient_color_space = mode
-        if hasattr(self.gradient_color_space_card, 'combo_box'):
-            combo_box = self.gradient_color_space_card.combo_box
-            for i in range(combo_box.count()):
-                if combo_box.itemData(i) == mode:
-                    combo_box.setCurrentIndex(i)
-                    break
-
     def set_hex_visible(self, visible):
         """设置16进制显示开关状态"""
         self._hex_visible = visible
         if hasattr(self.hex_display_card, 'switch_button'):
             self.hex_display_card.switch_button.setChecked(visible)
-
-    def is_hex_visible(self):
-        """获取16进制显示开关状态"""
-        return self._hex_visible
 
     def set_color_modes(self, modes):
         """设置色彩模式选择"""
@@ -1021,14 +999,6 @@ class SettingsInterface(QWidget):
             self._color_modes = [modes[0], modes[1]]
             self.mode_combo_1.setCurrentText(modes[0])
             self.mode_combo_2.setCurrentText(modes[1])
-
-    def get_color_modes(self):
-        """获取当前色彩模式"""
-        return self._color_modes
-
-    def get_color_wheel_mode(self):
-        """获取当前色轮模式"""
-        return self._color_wheel_mode
 
     def set_color_wheel_mode(self, mode):
         """设置色轮模式

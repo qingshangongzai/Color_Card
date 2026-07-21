@@ -7,17 +7,17 @@
 from __future__ import annotations
 
 # 标准库导入
-
+from typing import Dict
 
 # 第三方库导入
 from PySide6.QtCore import Qt, Signal, QPointF
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
-from PySide6.QtGui import QColor, QPainter, QBrush, QPen, QPolygonF
+from PySide6.QtGui import QColor, QPainter, QBrush, QPolygonF
 from qfluentwidgets import (
     ComboBox, PushButton, ToolButton, FluentIcon,
-    isDarkTheme, qconfig, CardWidget
+    isDarkTheme, qconfig
 )
 
 # 项目模块导入
@@ -28,7 +28,7 @@ from core.contrast import (
     rgb_to_hex, get_contrast_status_color
 )
 from utils.theme_colors import (
-    get_text_color, get_border_color,
+    get_text_color,
     get_secondary_text_color, get_title_color
 )
 
@@ -387,8 +387,7 @@ class ContrastCheckDialog(BaseFramelessDialog):
         title_color = get_title_color()
         text_color = get_text_color()
         secondary_color = get_secondary_text_color()
-        border_color = get_border_color()
-        
+
         # 标题
         title_label = QLabel(tr('dialogs.contrast.title'))
         title_label.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {title_color.name()};")

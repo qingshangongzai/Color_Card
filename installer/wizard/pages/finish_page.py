@@ -1,5 +1,5 @@
 # 第三方库导入
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QLabel, QHBoxLayout
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QColor
 from qfluentwidgets import PrimaryPushButton, CheckBox

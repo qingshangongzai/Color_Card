@@ -5,7 +5,6 @@
 
 # 第三方库导入
 import pytest
-from PySide6.QtCore import Qt
 
 # 项目模块导入
 from ui.color_wheel import HSBColorWheel

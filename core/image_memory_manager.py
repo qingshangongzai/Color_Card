@@ -188,17 +188,6 @@ class ImageMemoryManager:
             "evictions": self._evictions,
         }
 
-    def get_cache_hit_rate(self) -> float:
-        """获取缓存命中率
-
-        Returns:
-            缓存命中率（0.0-1.0）
-        """
-        total = self._cache_hits + self._cache_misses
-        if total == 0:
-            return 0.0
-        return self._cache_hits / total
-
 
 # 全局内存管理器实例
 _memory_manager: ImageMemoryManager | None = None

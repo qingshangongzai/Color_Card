@@ -1,0 +1,58 @@
+[tool.vulture]
+ignore_names = [
+    "icc_profile_size",
+    "tone_key_confidence",
+    "tone_range_confidence",
+    "_img_array",
+    "MAX_IMAGE_PIXELS",
+    # installer/core/shortcut_installer.py - WScript.Shell COM 属性写入（Vulture 无法识别外部 API）
+    "Targetpath",
+    "Arguments",
+    "Description",
+    "WorkingDirectory",
+    # installer/main.py - subprocess.STARTUPINFO Windows 结构体字段
+    "dwFlags",
+    "wShowWindow",
+    # core/histogram_cache.py - 在 dialogs/tone_analysis_dialog.py 被调用，Vulture 未识别
+    "get_with_metadata",
+    # core/tone_analysis.py - 在 dialogs/tone_analysis_dialog.py 经 self._service 调用，Vulture 未识别跨模块动态属性
+    "analyze_from_array",
+    "analyze_from_histogram",
+    "get_gray_image",
+    # version.py - 在 dialogs/about_dialog.py:162 调用 version_manager.get_app_info()，Vulture 未识别跨模块导入
+    "get_app_info",
+    # core/colorblind.py - 在 dialogs/colorblind_dialog.py 被调用，Vulture 未识别跨模块导入
+    "simulate_colorblind",
+    "get_colorblind_info",
+    "get_all_colorblind_types",
+    # core/contrast.py - 在 dialogs/contrast_dialog.py 被调用，Vulture 未识别跨模块导入
+    "get_contrast_info",
+    "get_contrast_status_color",
+    # utils/theme_colors.py - 对话框颜色，在 dialogs/base_frameless_dialog.py 被调用，Vulture 未识别跨模块导入
+    "get_dialog_bg_color",
+    "get_close_button_hover_bg_color",
+    "get_close_button_hover_color",
+    "get_close_button_pressed_color",
+    # utils/theme_colors.py - 影调分析图表颜色，在 dialogs/tone_analysis_dialog.py 被调用，Vulture 未识别
+    "get_tone_chart_text_color",
+    "get_tone_chart_bar_color",
+    "get_tone_chart_mean_line_color",
+    "get_tone_chart_median_line_color",
+    # utils/theme_colors.py - 和谐度分析颜色，在 dialogs/harmony_dialog.py 被调用，Vulture 未识别
+    "get_harmony_wheel_line_color",
+    "get_harmony_wheel_dot_border_color",
+    "get_harmony_score_excellent_color",
+    "get_harmony_score_good_color",
+    "get_harmony_score_average_color",
+    "get_harmony_score_poor_color",
+    # ui 模块（color_preview/canvases 等）- Qt 事件重写方法，由 Qt 事件分发机制自动调用，Vulture 无法识别
+    "mouseDoubleClickEvent",
+    "contextMenuEvent",
+    "dragEnterEvent",
+    "dragMoveEvent",
+    "dragLeaveEvent",
+    "dropEvent",
+    "mousePressEvent",
+    "mouseMoveEvent",
+    "mouseReleaseEvent",
+]

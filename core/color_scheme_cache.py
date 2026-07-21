@@ -111,8 +111,4 @@ def get_color_scheme_cache() -> ColorSchemeCache:
     return _color_scheme_cache
 
 
-def clear_color_scheme_cache() -> None:
-    """清空全局配色缓存"""
-    global _color_scheme_cache
-    if _color_scheme_cache is not None:
-        _color_scheme_cache.clear()
+
