@@ -715,7 +715,44 @@ class BaseCanvas(QWidget):
             remove_action.triggered.connect(lambda: self.set_picker_count(self._picker_count - 1))
             menu.addAction(remove_action)
 
+        menu.addSeparator()
+
+        color_distribution_action = Action(FluentIcon.PALETTE, tr('context_menu.color_distribution'))
+        color_distribution_action.triggered.connect(self._on_color_distribution)
+        menu.addAction(color_distribution_action)
+
         menu.exec(event.globalPos())
+
+    def _on_color_distribution(self) -> None:
+        """打开色彩分析对话框"""
+        if self._image is None or self._image.isNull():
+            return
+
+        from dialogs import ColorDistributionDialog
+        from core.histogram_cache import generate_image_fingerprint
+
+        # 生成图片指纹用于缓存
+        image_key = generate_image_fingerprint(self._image)
+
+        # 立即显示对话框（显示加载中）
+        # 父窗口设为None，使其在任务栏显示为独立窗口
+        dialog = ColorDistributionDialog(None, image_key, None)
+        dialog.show()
+
+        # 在后台线程中转换图片并分析
+        def prepare_and_analyze():
+            # 使用快速转换（bits()内存访问，比pixelColor快数百倍）
+            img_array = qimage_to_numpy(self._image)
+
+            # 设置图片数据并开始分析
+            dialog._img_array = img_array
+            dialog.start_analysis()
+
+        # 使用 QTimer 延迟执行，让对话框先显示
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, prepare_and_analyze)
+
+        dialog.exec()
 
     def clear_image(self, emit_signal: bool = True) -> None:
         """清空图片

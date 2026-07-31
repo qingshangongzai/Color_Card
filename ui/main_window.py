@@ -536,13 +536,13 @@ class MainWindow(FluentWindow):
                     pass
 
     def _close_tone_analysis_dialogs(self):
-        """关闭所有明度分析对话框"""
-        from dialogs import ToneAnalysisDialog
+        """关闭所有明度分析 / 色彩分布分析对话框"""
+        from dialogs import ColorDistributionDialog, ToneAnalysisDialog
         from PySide6.QtWidgets import QApplication
 
         app = QApplication.instance()
         for widget in app.topLevelWidgets():
-            if isinstance(widget, ToneAnalysisDialog):
+            if isinstance(widget, (ToneAnalysisDialog, ColorDistributionDialog)):
                 widget.close()
 
     def setup_navigation(self):
