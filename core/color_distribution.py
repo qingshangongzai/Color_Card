@@ -1,7 +1,7 @@
-"""色彩分布分析服务模块（OKLCH 引擎，阶段 3a 自 demo 落位 core）
+"""色彩分布分析服务模块（OKLCH 引擎）
 
-按《色彩分布分析器 重构方案》第二~四节实现，回答摄影师的四个问题：
-色偏、分区调色、配色结构、主色卡，附冷暖倾向与彩度分布。
+回答摄影师的四个问题：色偏、分区调色、配色结构、主色卡，
+附冷暖倾向与彩度分布。
 
 设计原则：
 - 用 OKLab / OKLCH 取代 HSV，暗部噪点的 chroma 天然趋近 0，无需防御代码
@@ -26,7 +26,7 @@ from .cache_base import BaseCache
 
 MAX_DIM = 1024                    # 降采样长边上限（约 1M 像素）
 
-# 色偏检测（3.1 / 8.1 双证据 + 三态语义）
+# 色偏检测（双证据 + 三态语义）
 CAST_CHROMA_CAP = 0.05            # 近中性候选 chroma 上限（与 P30 取小）
 CAST_L_LOW = 0.2                  # 候选像素明度下限（排除死黑）
 CAST_L_HIGH = 0.9                 # 候选像素明度上限（排除死白）
@@ -49,10 +49,10 @@ CAST_WB_RESID_MAX = 0.09          # 参照带救援/否决路径下，去除检�
                                   # 彩度 P50 低于此判白平衡偏差，否则判风格化
                                   # （极高彩场景的参照带多为场景内容而非中性面）
 
-# 分区调色（3.2 / 8.2 平滑隶属度）
+# 分区调色（平滑隶属度）
 ZONE_DARK_MAX = 0.35              # 暗部过渡带中心（OKLab L）
 ZONE_BRIGHT_MIN = 0.7            # 亮部过渡带中心
-ZONE_TRANSITION = 0.08            # smoothstep 过渡带半宽（8.2，验证集标定项）
+ZONE_TRANSITION = 0.08            # smoothstep 过渡带半宽（验证集标定项）
 ZONE_MEMBER_MIN = 0.01            # 隶属度低于此的像素不参与该区统计（省算力）
 ZONE_NEUTRAL_CHROMA = 0.02        # 低于此加权彩度视为无染色
 ZONE_MIN_R = 0.4                  # 环形合矢量长度低于此视为色相分散
@@ -60,7 +60,7 @@ ZONE_MIN_PCT = 2.0                # 分区占比低于此标"内容极少"
 STYLE_ANALOG_MAX = 40.0           # 暗亮同色相判定上限
 STYLE_OPPOSITE_MIN = 120.0        # 暗亮对立色相判定下限
 
-# 色相峰检测（2.4）
+# 色相峰检测
 HUE_BINS = 72                     # 色相直方图 bin 数（每 bin 5°）
 HUE_SMOOTH_SIGMA = 10.0           # 环形高斯平滑标准差（度）
 HUE_PEAK_MIN_RATIO = 0.20         # 主峰高度下限（相对最高峰），参与和谐判定
@@ -69,15 +69,15 @@ HUE_PEAK_MINOR_MIN_PCT = 3.0      # 次峰权重占比下限（%），低于此�
 HUE_PEAK_MERGE_DIST = 30.0        # 相距小于此的峰合并（度）
 HUE_PEAK_MAX = 3                  # 最多输出峰数
 
-# 配色结构（3.3 / 8.3 Matsuda 模板拟合，验证集标定项）
+# 配色结构（Matsuda 模板拟合，验证集标定项）
 HARMONY_FIT_GOOD = 14.5           # 拟合达标基线（度）：各模板达标线按覆盖宽度折减
                                   # line = GOOD * (1 - 扇区总宽/360)，宽模板须拟合得
                                   # 更好才算数；全部不达标判"自由配色 / 复杂"
 HARMONY_FIT_MAX = 15.0            # 置信度尺度：confidence = 1 - E / MAX
 HARMONY_SECTOR_BALANCE = 0.25     # 双扇区模板弱扇区质量须 >= 强扇区的此比例，
-                                  # 防近空扇区白嫖单色分布（度量见 8.3 交接记录）
+                                  # 防近空扇区白嫖单色分布
 
-# 全局灰调判定（2.3 边界分支）
+# 全局灰调判定（边界分支）
 ACHROMATIC_EPS = 0.005            # 平均 chroma 低于此判黑白/灰调
 
 # 色名构成（分区调色条用）
@@ -86,30 +86,30 @@ COMP_MIN_AREA_PCT = 2.0           # 或：可见彩度面积占比下限（%）
 COMP_VISIBLE_CHROMA = 0.02        # 面积口径只计彩度高于此的可见彩色像素
 COMP_MAX = 3                      # 最多输出构成条目数
 
-# 冷暖倾向（3.5）
+# 冷暖倾向
 WARM_HUE = 55.0                   # 暖极色相角（OKLCH 橙）
 WARMTH_STRONG = 0.5              # 明显偏冷暖阈值
 WARMTH_WEAK = 0.15               # 偏冷暖阈值
 
-# 彩度分布（3.6）
+# 彩度分布
 CHROMA_LOW_MAX = 0.05             # 低饱和上限（P50）
 CHROMA_HIGH_MIN = 0.12            # 高饱和下限（P50）
 
-# 主色卡（3.4 / 8.4 bin 初始化去随机）
+# 主色卡（bin 初始化去随机）
 PALETTE_K = 6                     # 聚类数上限（合并后自适应输出 3~6 个）
 PALETTE_L_SCALE = 0.3             # 聚类时明度轴降权，避免纯色渐变图只按明度切分
 PALETTE_BIN_STEP = 0.02           # OKLab 网格 bin 步长（降权特征空间）
 PALETTE_INIT_MIN_DIST = 0.05      # 初始化距离抑制半径（已选中心邻域内不再选）
 PALETTE_MERGE_DE = 0.04           # 聚类后中心合并阈值（未降权 ΔE_OK）
 
-# 彩色度（8.5，Hasler & Süsstrunk 2003 心理物理七档）
+# 彩色度（Hasler & Süsstrunk 2003 心理物理七档）
 COLORFULNESS_BOUNDS = (15.0, 33.0, 45.0, 59.0, 82.0, 109.0)
 COLORFULNESS_KEYS = ('colorfulness_none', 'colorfulness_slight',
                      'colorfulness_moderate', 'colorfulness_medium_high',
                      'colorfulness_strong', 'colorfulness_high',
                      'colorfulness_extreme')
 
-# 感知色名（8.6，van de Weijer 2009：棕/粉/灰需 L/C/h 共同决定，仅用于展示名）
+# 感知色名（van de Weijer 2009：棕/粉/灰需 L/C/h 共同决定，仅用于展示名）
 PERCEPT_GRAY_CHROMA = 0.03       # OKLab C 低于此归灰族（介于 ZONE_NEUTRAL 0.02 与 CHROMA_LOW 0.05 间）
 PERCEPT_BROWN_L_MAX = 0.55       # 暗暖色（红/橙红/黄）明度低于此判"棕"
 PERCEPT_PINK_L_MIN = 0.70        # 亮低饱和红/品红/紫红明度高于此判"粉"
@@ -120,7 +120,7 @@ PERCEPT_BROWN_NAMES = ('red', 'orange_red', 'yellow')                           
 PERCEPT_PINK_NAMES = ('red', 'magenta', 'purple_red')                           # 亮低饱和 → 粉
 PERCEPT_ZONE_MIX_MIN_PCT = 20.0  # 近中性分区冷暖双向提示：暖侧与冷侧 chroma 权重占比均超此
 
-# 色轮密度图可视化（阶段 3a 自 demo GUI 迁入，随结果缓存）
+# 色轮密度图可视化（随结果缓存）
 WHEEL_HUE_BINS = 72        # 色轮角度 bin 数（每 bin 5°，HSB 色相）
 WHEEL_CHROMA_BINS = 24     # 色轮半径 bin 数（OKLCH chroma）
 WHEEL_CHROMA_MAX = 0.35    # 色轮半径上限（chroma 裁剪）
@@ -139,7 +139,7 @@ def hue_name(hue: float) -> str:
 
 
 def perceptual_color_name(lightness: float, chroma: float, hue_hsb: float) -> str:
-    """感知色名 id（8.6）：由 L/C/h 共同决定的展示名，修饰 12 段基名
+    """感知色名 id：由 L/C/h 共同决定的展示名，修饰 12 段基名
 
     van de Weijer 2009：棕/粉/灰无法由纯色相得出。仅用于主色卡与
     构成条目展示，hue_name（12 段）本身不变。
@@ -163,7 +163,7 @@ def perceptual_color_name(lightness: float, chroma: float, hue_hsb: float) -> st
 
 
 def _neutral_zone_mix(comp: list[dict]) -> bool:
-    """近中性分区是否存在可感知的冷暖双向成分（8.6 补充）
+    """近中性分区是否存在可感知的冷暖双向成分
 
     暖侧与冷侧的 chroma 权重占比均超 PERCEPT_ZONE_MIX_MIN_PCT 时，
     说明"整体近中性"掩盖了内部冷暖抵消结构（如蓝灰地面 + 暖棕阴影）。
@@ -175,7 +175,7 @@ def _neutral_zone_mix(comp: list[dict]) -> bool:
     return warm >= PERCEPT_ZONE_MIX_MIN_PCT and cool >= PERCEPT_ZONE_MIX_MIN_PCT
 
 
-# ==================== sRGB → OKLab（2.1） ====================
+# ==================== sRGB → OKLab ====================
 
 # Ottosson OKLab 线性 RGB → LMS 矩阵
 _M1 = np.array([
@@ -286,7 +286,7 @@ def _srgb_hsb_hue(srgb: np.ndarray) -> np.ndarray:
     return hue % 360.0
 
 
-# ==================== 环形统计工具（2.3） ====================
+# ==================== 环形统计工具 ====================
 
 def circular_stats(h_deg: np.ndarray, weights: np.ndarray) -> tuple[float, float]:
     """加权环形平均色相与合矢量长度 R
@@ -311,10 +311,10 @@ def circular_diff(a: float, b: float) -> float:
     return min(d, 360.0 - d)
 
 
-# ==================== 各模块（第三节） ====================
+# ==================== 各模块 ====================
 
 def _cast_evidence(a: np.ndarray, b: np.ndarray, C: np.ndarray, L: np.ndarray) -> dict:
-    """8.1 双证据统计量（供 analyze_cast 判定与标定脚本复用）
+    """双证据统计量（供 analyze_cast 判定与标定脚本复用）
 
     证据一：近中性候选像素 a/b 均值（经典白平衡参照）；
     证据二：亮部参照带（L 秩分位带∩低彩，Cheng JOSA A 2014 亮暗投影
@@ -370,7 +370,7 @@ def _in_sky_hue(v: tuple[float, float]) -> bool:
 
 
 def analyze_cast(a: np.ndarray, b: np.ndarray, C: np.ndarray, L: np.ndarray) -> dict:
-    """色偏检测（3.1 / 8.1）：双证据 + 三态语义
+    """色偏检测：双证据 + 三态语义
 
     三态：中性 / 白平衡偏差 / 风格化倾向。两者按证据结构区分：方向来自
     参照带对证据一的否决/救援（中性参照体系被破坏，白平衡错误的结构性
@@ -475,7 +475,7 @@ def _smoothstep(x: np.ndarray, edge0: float, edge1: float) -> np.ndarray:
 
 def analyze_zones(L: np.ndarray, C: np.ndarray, h_ok: np.ndarray,
                   hsb_h: np.ndarray) -> dict:
-    """分区调色分析（3.2 / 8.2，split toning）
+    """分区调色分析（split toning）
 
     每像素对暗/中/亮的隶属度用 smoothstep 过渡带（中心 L=0.35/0.7，
     半宽 ZONE_TRANSITION，三区隶属度和恒为 1），隶属度×chroma 双重加权；
@@ -594,7 +594,7 @@ def _toning_style(zones: dict) -> dict | None:
 
 
 def analyze_hue_peaks(C: np.ndarray, h: np.ndarray, hsb_h: np.ndarray) -> list[dict]:
-    """色相峰检测（2.4）：加权直方图 + 环形平滑 + 找峰
+    """色相峰检测：加权直方图 + 环形平滑 + 找峰
 
     找峰与和谐判定在 OKLCH 轴（感知均匀）；对外展示的角度/色名取
     归属像素的 HSB 加权环形均值（与主项目色环及拾色器一致）。
@@ -725,9 +725,9 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
     按面积口径也能列入。
 
     Args:
-        area_w: 分区隶属度权重（8.2），None 时按全像素等权；
+        area_w: 分区隶属度权重，None 时按全像素等权；
             权重口径按 area_w*C 加权，面积口径按 area_w 软计数。
-        L: 逐像素 OKLab 明度（8.6 感知色名用），None 时段代表明度回退中值。
+        L: 逐像素 OKLab 明度（感知色名用），None 时段代表明度回退中值。
 
     Returns:
         [{'name', 'pname', 'hue', 'weight_pct', 'area_pct', 'range'}, ...]，
@@ -785,7 +785,7 @@ def _weighted_quantile(values: np.ndarray, weights: np.ndarray,
     return tuple(float(np.interp(q, cum, v)) for q in qs)
 
 
-# ==================== 配色结构：Matsuda 模板拟合（8.3） ====================
+# ==================== 配色结构：Matsuda 模板拟合 ====================
 
 # 模板定义（Cohen-Or et al. 2006 扇区宽度）：((扇区中心, 扇区宽度), ...)，
 # rotation=0 时首扇区中心在 0°，拟合时整体旋转
@@ -860,7 +860,7 @@ _HARMONY_GOOD_LINE = {
 
 def analyze_harmony_fit(C: np.ndarray, h: np.ndarray,
                         mean_chroma: float) -> tuple[str, dict]:
-    """配色结构判定（8.3）：Matsuda 模板旋转拟合，OKLCH 色相轴
+    """配色结构判定：Matsuda 模板旋转拟合，OKLCH 色相轴
 
     对 chroma 加权色相直方图逐模板求最优旋转角与归一化误差 E
     （加权平均弧距，单位度）；双扇区模板只在扇区质量满足均衡约束的
@@ -910,7 +910,7 @@ def analyze_harmony_fit(C: np.ndarray, h: np.ndarray,
 
 
 def analyze_warmth(C: np.ndarray, h: np.ndarray) -> dict:
-    """冷暖倾向（3.5）：色相投影到冷暖轴，chroma 加权"""
+    """冷暖倾向：色相投影到冷暖轴，chroma 加权"""
     total = float(C.sum())
     if total <= 0:
         return {'value': 0.0, 'label_key': 'warmth_neutral'}
@@ -931,7 +931,7 @@ def analyze_warmth(C: np.ndarray, h: np.ndarray) -> dict:
 
 
 def analyze_chroma_dist(C: np.ndarray) -> dict:
-    """彩度分布（3.6）：P25/P50/P75 + 分档"""
+    """彩度分布：P25/P50/P75 + 分档"""
     p25 = float(np.percentile(C, 25))
     p50 = float(np.percentile(C, 50))
     p75 = float(np.percentile(C, 75))
@@ -946,7 +946,7 @@ def analyze_chroma_dist(C: np.ndarray) -> dict:
 
 
 def analyze_colorfulness(srgb255: np.ndarray) -> dict:
-    """彩色度（8.5，Hasler & Süsstrunk 2003）：M = σ_rgyb + 0.3·μ_rgyb
+    """彩色度（Hasler & Süsstrunk 2003）：M = σ_rgyb + 0.3·μ_rgyb
 
     rg = R-G、yb = (R+G)/2 - B（0~255 尺度），七档分类沿用论文
     心理物理实验阈值，与 chroma P50 分档并列互验。
@@ -961,7 +961,7 @@ def analyze_colorfulness(srgb255: np.ndarray) -> dict:
 
 
 def analyze_palette(lab: np.ndarray, k: int = PALETTE_K) -> list:
-    """主色卡提取（3.4 / 8.4）：bin 加速加权 k-means，确定性无随机
+    """主色卡提取：bin 加速加权 k-means，确定性无随机
 
     Chang et al. 2015 思路：L 降权特征空间按固定网格 bin 统计 →
     最密 bin + 距离抑制取初始中心 → 对 bin 质心加权 k-means →
@@ -1065,7 +1065,7 @@ def _merge_centers(centers: np.ndarray, weights: np.ndarray) -> list[tuple[np.nd
 # ==================== 主入口 ====================
 
 def analyze_lab(lab: np.ndarray) -> dict:
-    """分析 OKLab 像素数组，返回方案第四节的结果字典（另附 wheel 可视化字段）
+    """分析 OKLab 像素数组，返回结果字典（另附 wheel 可视化字段）
 
     统计权重用 OKLCH chroma；对外报告的色相角度/色名 id 用 HSB 轴
     （主项目色相标准）；冷暖投影仍用 OKLCH 色相（感知均匀）。
@@ -1078,8 +1078,8 @@ def analyze_lab(lab: np.ndarray) -> dict:
     b = lab[:, 2]
     mean_chroma = float(C.mean())
 
-    # 全局灰调边界分支（2.3）：整图彩度趋近 0 时视为黑白/灰调，
-    # 色相无意义，色相峰与冷暖统一置空/中性，与第六节"所有色相输出为空"一致
+    # 全局灰调边界分支：整图彩度趋近 0 时视为黑白/灰调，
+    # 色相无意义，色相峰与冷暖统一置空/中性，保证所有色相输出为空
     achromatic = mean_chroma < ACHROMATIC_EPS
     if achromatic:
         peaks: list[dict] = []
@@ -1120,7 +1120,7 @@ def analyze_color_distribution(img_array: np.ndarray) -> dict:
         img_array: RGB uint8 数组 (H, W, 3)，已由图片加载层完成 ICC→sRGB 归一
 
     Returns:
-        方案第四节结果字典，另附可视化字段：
+        结果字典，另附可视化字段：
         wheel（72 角度 × 24 半径的 chroma 直方图，色轮密度图用）、
         image_size（原始宽高 (w, h)）。整个 dict 可直接进缓存，命中零计算。
     """

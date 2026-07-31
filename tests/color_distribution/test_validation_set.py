@@ -1,4 +1,4 @@
-"""验证集 golden 用例（方案第六节，阶段 3a 断言已 key 化）
+"""验证集 golden 用例（断言已 key 化）
 
 从 测试图片/、51055510/、121231221/ 挑选 10 张典型图，人工目检标注预期关键结论，
 覆盖：高调、低调/黑白、蓝金(互补/分区染色)、高饱和、单色蓝调、暖调、
@@ -168,7 +168,7 @@ def test_p3_srgb_consistency():
 
 
 def test_output_structure():
-    """输出字典字段完整（方案第四节 + 2.5b harmony_fit + 3a 可视化字段）"""
+    """输出字典字段完整（harmony_fit + 可视化字段）"""
     r = _analyze('121231221/测试-photo RGB.jpg')
     assert set(r) == {'cast', 'zones', 'hue_peaks', 'harmony', 'harmony_fit',
                       'palette', 'warmth', 'chroma_dist', 'wheel', 'image_size'}
