@@ -72,14 +72,12 @@ website/*.sw?
 # OS files
 website/.DS_Store
 website/Thumbs.db
-文档/著作权登记计划.md
 /宣传图
 文档/1.4.0 更新内容.txt
 文档/更新内容.txt
 生成源代码文档.py
 生成源代码文档_v2.py
 /著作权材料
-文档/文档鉴别材料准备计划.md
 md转docx.py
 审核PDF.py
 最终审核报告.md
@@ -93,62 +91,38 @@ md转docx.py
 文档/color_card_20260313_142803.json
 文档/color_card_20260313_161405.json
 /测试
-文档/代码审查报告-26.03.md
 /创作过程
 bandit_report.html
 bandit_project_report.html
 /.idea
-文档/过度防御性设计报告.md
 /logs
-文档/区分安装版与便携版实现计划.md
-文档/启动速度分析报告.md
-文档/收藏数据延迟加载优化方案.md
 文档/改进问题汇总.txt
 文档/待改进问题汇总.txt
 文档/临时.txt
 文档/临时.txt
-文档/启动速度分析报告.md
 文档/临时.txt
-文档/启动速度分析报告.md
-文档/收藏数据延迟加载优化方案.md
-文档/过度防御性设计报告.md
-文档/收藏数据延迟加载优化方案.md
 /配色方案
 明度分析.py
 明度分析_GUI.py
 /demos
 影调分析/
-文档/单色明度梯度方案.md
-文档/单色明度梯度颜色空间方案.md
-文档/安装程序设计方案.md
-文档/线程处理问题优化方案.md
-文档/明度分析性能问题分析.md
-文档/NumPy优化方案.md
-文档/简化ImageMediator方案.md
-文档/服务层优化方案.md
 ui/palette_management_lazy.py
 check_real_config.py
 test_json_bottleneck.py
-文档/JSON综合优化方案.md
 test_separate_storage.py
 test_results.json
 test_lazy_loading.py
-文档/色彩空间优化方案.md
-文档/core模块启动优化方案.md
 
-文档/延迟加载机制分析.md
-文档/Color Card 启动速度分析报告.md
-文档/软打样模式实现方案.md
-文档/基于直方图的影调自动分类算法.md
 /dist
 /121231221
-文档/色盲模拟功能优化计划.md
 tone_labeler/基于直方图的影调自动分类算法.md
 /.qoder
 /51055510
 logo-generator-skill/
 tone_labeler/labels.json
 /tone_labeler/data
+# 过程性文档（方案/计划/分析类，整体不入库）
+/过程性文档
 .git-diff.txt
 svg/diagram (2).svg
 svg/diagram (1).svg
