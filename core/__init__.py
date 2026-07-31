@@ -106,6 +106,12 @@ from .tone_analysis import (
     get_tone_analysis_cache,
     clear_tone_analysis_cache,
 )
+from .color_distribution import (
+    analyze_color_distribution,
+    ColorDistributionCache,
+    get_color_distribution_cache,
+    clear_color_distribution_cache,
+)
 
 
 # 重量级服务类延迟导入（启动时不需要立即加载）
@@ -252,6 +258,10 @@ __all__ = [
     'ToneAnalysisCache',
     'get_tone_analysis_cache',
     'clear_tone_analysis_cache',
+    'analyze_color_distribution',
+    'ColorDistributionCache',
+    'get_color_distribution_cache',
+    'clear_color_distribution_cache',
     # 延迟加载的服务类（通过函数访问）
     'get_color_service',
     'get_palette_service',
