@@ -62,9 +62,15 @@ class HueWheelWidget(_ChartBase):
     四方位色名标注由对话框翻译后注入。
     """
 
+    # 自绘边距：色轮到控件边缘的最小距离。
+    # 约束：_MARGIN >= _LABEL_GAP + _LABEL_H，否则上下方位标注会画出控件边界。
+    _MARGIN = 26
+    _LABEL_GAP = 18
+    _LABEL_W, _LABEL_H = 160, 20
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.setMinimumSize(260, 240)
+        self.setMinimumSize(260, 190)
         self._axis_labels: list[str] = []
 
     def update_data(self, wheel_hist: np.ndarray, axis_labels: list[str]) -> None:
@@ -77,8 +83,7 @@ class HueWheelWidget(_ChartBase):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        margin = 26
-        size = min(self.width(), self.height()) - 2 * margin
+        size = min(self.width(), self.height()) - 2 * self._MARGIN
         if size <= 0:
             return
         radius = size / 2.0
@@ -148,19 +153,34 @@ class HueWheelWidget(_ChartBase):
                         center.y() - radius * math.sin(qt)),
             )
 
-        # 主方位标注（0°/90°/180°/270°，色名文案由对话框注入）
+        # 主方位标注（0°/90°/180°/270°，色名文案由对话框注入）。
+        # 按方位锚定对齐：文字自色轮半径外向远离方向延伸（间距与矩形尺寸
+        # 见类常量 _LABEL_*，配合 _MARGIN 边距），保证文字落在半径外且不出控件。
         if not self._axis_labels:
             return
         painter.setPen(QPen(self._text_color()))
         font = QFont()
         font.setPointSize(8)
         painter.setFont(font)
+        label_gap = self._LABEL_GAP
+        label_w, label_h = self._LABEL_W, self._LABEL_H
         for label, deg in zip(self._axis_labels, (0, 90, 180, 270)):
             qt = math.radians(self._qt_angle(deg))
-            x = center.x() + (radius + 13) * math.cos(qt)
-            y = center.y() - (radius + 13) * math.sin(qt)
-            painter.drawText(QRectF(x - 30, y - 8, 60, 16),
-                             Qt.AlignmentFlag.AlignCenter, f"{label} {deg}°")
+            x = center.x() + (radius + label_gap) * math.cos(qt)
+            y = center.y() - (radius + label_gap) * math.sin(qt)
+            if deg == 0:
+                rect = QRectF(x - label_w / 2, y, label_w, label_h)
+                align = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop
+            elif deg == 90:
+                rect = QRectF(x, y - label_h / 2, label_w, label_h)
+                align = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            elif deg == 180:
+                rect = QRectF(x - label_w / 2, y - label_h, label_w, label_h)
+                align = Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom
+            else:
+                rect = QRectF(x - label_w, y - label_h / 2, label_w, label_h)
+                align = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+            painter.drawText(rect, align, f"{label} {deg}°")
 
 
 class ZoneToningBarWidget(_ChartBase):
@@ -176,7 +196,7 @@ class ZoneToningBarWidget(_ChartBase):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.setMinimumSize(220, 220)
+        self.setMinimumSize(220, 145)
 
     def update_data(self, zones_view: dict) -> None:
         self._data = zones_view
@@ -321,6 +341,10 @@ class DominantColorsBarWidget(_ChartBase):
 
     视图模型（对话框注入）：[{'rgb':(r,g,b),'pct','display_name','index_label'}, ...]
     """
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setMinimumSize(220, 145)
 
     def update_data(self, palette_view: list[dict]) -> None:
         self._data = palette_view

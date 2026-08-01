@@ -122,6 +122,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
             style = win32gui.GetWindowLong(hWnd, win32con.GWL_STYLE)
             win32gui.SetWindowLong(hWnd, win32con.GWL_STYLE, style | win32con.WS_MAXIMIZEBOX)
 
+        self._setup_title_bar()
         self._setup_ui()
         self._update_styles()
 
