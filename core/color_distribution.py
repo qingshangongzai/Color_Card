@@ -84,7 +84,7 @@ ACHROMATIC_EPS = 0.005            # 平均 chroma 低于此判黑白/灰调
 COMP_MIN_PCT = 1.0                # 色名区域 chroma 权重占比下限（%）
 COMP_MIN_AREA_PCT = 2.0           # 或：可见彩度面积占比下限（%）
 COMP_VISIBLE_CHROMA = 0.02        # 面积口径只计彩度高于此的可见彩色像素
-COMP_MAX = 3                      # 最多输出构成条目数
+COMP_MAX = 4                      # 最多输出构成条目数
 
 # 冷暖倾向
 WARM_HUE = 55.0                   # 暖极色相角（OKLCH 橙）
