@@ -122,7 +122,7 @@ logo-generator-skill/
 tone_labeler/labels.json
 /tone_labeler/data
 # 过程性文档（方案/计划/分析类，整体不入库）
-/过程性文档
+/文档/过程性文档
 .git-diff.txt
 svg/diagram (2).svg
 svg/diagram (1).svg
