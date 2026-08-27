@@ -204,7 +204,11 @@ VALIDATION = [
 
     # ---------- 组3 网络风格化（场景缺口补齐） ----------
     ('测试图片/3/1774980698568.jpg', '绿植风光', {
+        # 感知色名阶段一：红裙暗部第 4 条 red 段（C=0.082）不再归棕 → 深红；
+        # 暗橙红段仍为棕（双轴偏移属阶段三范畴）
         'top_peak': ('yellow_green', 90),
+        'dark_comp': [('cyan_green', 'cyan_green'), ('green', 'green'),
+                      ('orange_red', 'brown'), ('red', 'deep_red')],
     }),
     ('测试图片/3/DM_20260518185447_001.jpg', '风光(青绿+黄多色构成)', {
         # 2.5b：宽黄绿家族+对向窄蓝紫，Y 模板拟合达标，旧"自由"系规则盲区
@@ -269,6 +273,11 @@ VALIDATION = [
         'style': {'label_key': 'style_unified', 'label_args': {'hue': 'orange_red'}},
         'top_peak': ('orange_red', 44),
         'warmth_key': 'warmth_strong_warm',
+        # 感知色名阶段一反例锚点：真棕仍为棕（暗黄 brown、中间调双 brown），
+        # 暗部 red 段 C=0.015 属灰族不翻转（仍 warm_gray）
+        'dark_comp': [('orange_red', 'warm_gray'), ('yellow', 'brown'),
+                      ('red', 'warm_gray')],
+        'mid_comp': [('orange_red', 'brown'), ('yellow', 'brown')],
     }),
     ('测试图片/3/imgi_4_500px1073341026.jpg', '暖黄风光', {
         'top_peak': ('yellow', 48),
@@ -335,6 +344,12 @@ def test_validation_image_25a(rel, note, expect):
         assert tp is not None, f'{note} 应有主色相峰'
         assert tp['name'] == name, f'{note} 主峰色名 got {tp["name"]}'
         assert _hue_close(tp['hue'], hue), f'{note} 主峰色相 {tp["hue"]:.0f} vs {hue}'
+    if 'dark_comp' in expect:
+        got = [(c['name'], c['pname']) for c in r['zones']['dark']['composition']]
+        assert got == expect['dark_comp'], f'{note} 暗部构成 {got}'
+    if 'mid_comp' in expect:
+        got = [(c['name'], c['pname']) for c in r['zones']['mid']['composition']]
+        assert got == expect['mid_comp'], f'{note} 中间调构成 {got}'
     if expect.get('bright_dominant'):
         assert r['zones']['bright']['pixel_pct'] > 40.0, f'{note} 应亮部主导'
     if expect.get('dark_dominant'):

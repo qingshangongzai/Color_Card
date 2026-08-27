@@ -19,11 +19,24 @@ def test_pname_gray_family_by_warmth():
 
 
 def test_pname_brown():
-    """暗暖色（红/橙红/黄）+ 足彩 → 棕"""
+    """暗橙红/暗黄 + 足彩 → 棕（红段已退出棕，另见 test_pname_deep_red_and_maroon）"""
     assert e.perceptual_color_name(0.40, 0.08, 30.0) == 'brown'       # 暗橙红
     assert e.perceptual_color_name(0.54, 0.08, 60.0) == 'brown'       # 暗黄，L 边界内
     # 亮橙红不归棕（L >= 阈值）
     assert e.perceptual_color_name(0.55, 0.08, 30.0) == 'orange_red'
+
+
+def test_pname_deep_red_and_maroon():
+    """暗红不再归棕：高彩"深红"、低彩"栗红"（红裙暗部 red 段实测 C=0.082）"""
+    assert e.perceptual_color_name(0.339, 0.082, 6.9) == 'deep_red'   # 红裙暗部锚点
+    assert e.perceptual_color_name(0.40, 0.05, 350.0) == 'maroon'     # 浊暗红
+    # 彩度分界：C >= 0.08 深红，以下（足彩）栗红
+    assert e.perceptual_color_name(0.40, 0.08, 0.0) == 'deep_red'
+    assert e.perceptual_color_name(0.40, 0.079, 0.0) == 'maroon'
+    # 明度边界：L >= 0.55 恢复基名"红"
+    assert e.perceptual_color_name(0.55, 0.10, 0.0) == 'red'
+    # 低彩暗红仍归灰族（暖侧）
+    assert e.perceptual_color_name(0.40, 0.02, 0.0) == 'warm_gray'
 
 
 def test_pname_pink():
@@ -122,6 +135,17 @@ def test_composition_carries_pname():
     comp = e.analyze_hue_composition(C, h, None, L)
     assert comp and comp[0]['name'] == 'orange_red'
     assert comp[0]['pname'] == 'brown'
+
+
+def test_composition_red_segment_deep_red():
+    """暗红段构成 pname 不再是 brown（红裙锚点：hue 6.9、L 0.34、C 0.082）"""
+    n = 3000
+    C = np.full(n, 0.082)
+    h = np.full(n, 6.9)              # 红
+    L = np.full(n, 0.34)            # 暗 → 深红
+    comp = e.analyze_hue_composition(C, h, None, L)
+    assert comp and comp[0]['name'] == 'red'
+    assert comp[0]['pname'] == 'deep_red'
 
 
 # ==================== 8.7 冷暖五档阈值（校准后冻结） ====================

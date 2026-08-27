@@ -28,7 +28,7 @@ from ui.color_distribution_charts import (
 )
 
 # 感知色名 id：属 color_distribution.pname_* 词条，其余色名 id 回落 color_wheel.hue_*
-_PNAME_IDS = ('gray', 'warm_gray', 'blue_gray', 'brown', 'pink')
+_PNAME_IDS = ('gray', 'warm_gray', 'blue_gray', 'brown', 'deep_red', 'maroon', 'pink')
 
 
 class AnalysisWorker(QThread):
@@ -233,7 +233,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
 
     @staticmethod
     def _pname_text(pid: str) -> str:
-        """感知色名 id 译文（5 个专属 pname，其余回落 12 色相名）"""
+        """感知色名 id 译文（7 个专属 pname，其余回落 12 色相名）"""
         if pid in _PNAME_IDS:
             return tr(f'color_distribution.pname_{pid}')
         return tr(f'color_wheel.hue_{pid}')
