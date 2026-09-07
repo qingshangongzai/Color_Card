@@ -209,11 +209,33 @@ VALIDATION = [
         'top_peak': ('yellow_green', 90),
         'dark_comp': [('cyan_green', 'cyan_green'), ('green', 'green'),
                       ('orange_red', 'brown'), ('red', 'deep_red')],
+        # 阶段三验收 1：橙红峰内出现 red 段（峰内 14.95% ≥1%，pname=red）——
+        # HSB 段归属 + chroma 权重可见成员代表值，红裙红色身份端到端呈现；
+        # yellow_green 峰 5 条固化"不截断"裁决
+        'peaks_comp': [
+            ('yellow_green', [('yellow_green', 'yellow_green'),
+                              ('yellow', 'warm_gray'), ('green', 'green'),
+                              ('cyan_green', 'cyan_green'),
+                              ('orange_red', 'orange_red')]),
+            ('orange_red', [('orange_red', 'orange_red'), ('red', 'red')]),
+            ('cyan', [('cyan_blue', 'cyan_blue'), ('cyan', 'cyan'),
+                      ('cyan_green', 'cyan_green')]),
+        ],
     }),
     ('测试图片/3/DM_20260518185447_001.jpg', '风光(青绿+黄多色构成)', {
         # 2.5b：宽黄绿家族+对向窄蓝紫，Y 模板拟合达标，旧"自由"系规则盲区
         'harmony': 'harmony_split_complementary',
         'top_peak_name': 'yellow_green',
+        # 阶段三验收 2：yellow_green 峰内 yellow 段（峰内 16.08% ≥1%）——
+        # 黄色身份在绿峰内呈现；暗黄可见成员忠实判棕
+        'peaks_comp': [
+            ('yellow_green', [('yellow_green', 'yellow_green'),
+                              ('yellow', 'brown'), ('green', 'green')]),
+            ('cyan_blue', [('cyan_blue', 'cyan_blue'), ('blue', 'blue'),
+                           ('cyan', 'cyan')]),
+            ('orange_red', [('orange_red', 'orange_red'),
+                            ('red', 'deep_red')]),
+        ],
     }),
     ('测试图片/3/imgi_20_24a15955fce2433a92d38bcecf8ba8ef.jpg', '绿调风光(整体绿调)', {
         # 2.5b：全部色相落在约 90° 连续扇区内，V 模板即单色大扇区——
@@ -283,6 +305,12 @@ VALIDATION = [
         'top_peak': ('yellow', 48),
         'warmth_key': 'warmth_strong_warm',
         'harmony': 'harmony_monochromatic',
+        # 阶段三辅证锚点：单峰 100% 展开 4 条；red 段可见成员彩度仍低
+        # （面积 0.83%），忠实保持灰族 warm_gray——灰族不误翻红的反向边界
+        'peaks_comp': [
+            ('yellow', [('yellow', 'yellow'), ('orange_red', 'orange_red'),
+                        ('yellow_green', 'yellow_green'), ('red', 'warm_gray')]),
+        ],
     }),
     ('测试图片/3/imgi_57_d4523d4bfdb4473a9f57daa6c506d76f.jpg', '蓝金风光(风格化判别正样本)', {
         # 2.5b 平滑隶属度：亮部纳入过渡带橙调后均值 40° 归橙红（原 47° 黄边界），
@@ -350,6 +378,13 @@ def test_validation_image_25a(rel, note, expect):
     if 'mid_comp' in expect:
         got = [(c['name'], c['pname']) for c in r['zones']['mid']['composition']]
         assert got == expect['mid_comp'], f'{note} 中间调构成 {got}'
+    if 'peaks_comp' in expect:
+        # 阶段三峰内构成：(峰名, [(段名, 感知名), ...]) 有序精确断言；
+        # 列表按峰权重降序、段按峰内权重降序，不截断（yellow_green 峰
+        # 5 条 > COMP_MAX=4 同时固化"不截断"裁决）
+        got = [(p['name'], [(c['name'], c['pname']) for c in p['composition']])
+               for p in r['hue_peaks']]
+        assert got == expect['peaks_comp'], f'{note} 峰内构成 {got}'
     if expect.get('bright_dominant'):
         assert r['zones']['bright']['pixel_pct'] > 40.0, f'{note} 应亮部主导'
     if expect.get('dark_dominant'):

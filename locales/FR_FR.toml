@@ -645,6 +645,8 @@ low_confidence_suffix = " (faible confiance)"
 zone_mix_suffix = " (mélange chaud/froid)"
 dominant = "Couleur {index}"
 area = "surface {pct}%"
+peak_minor = " · secondaire"
+peaks_empty = "Tons gris · aucune dominante nette"
 
 [common]
 delete = "Supprimer"

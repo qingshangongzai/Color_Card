@@ -83,7 +83,8 @@ ACHROMATIC_EPS = 0.005            # 平均 chroma 低于此判黑白/灰调
 # 色名构成（分区调色条用）
 COMP_MIN_PCT = 1.0                # 色名区域 chroma 权重占比下限（%）
 COMP_MIN_AREA_PCT = 2.0           # 或：可见彩度面积占比下限（%）
-COMP_VISIBLE_CHROMA = 0.02        # 面积口径只计彩度高于此的可见彩色像素
+COMP_VISIBLE_CHROMA = 0.02        # 可见彩度下限：面积口径只计高于此的像素
+                                  # chroma 口径的段代表值也只在其上计算
 COMP_MAX = 4                      # 最多输出构成条目数
 
 # 冷暖倾向
@@ -516,10 +517,11 @@ def analyze_zones(L: np.ndarray, C: np.ndarray, h_ok: np.ndarray,
         zones[key] = _zone_result(key, mean_hue_ok, mean_hue_hsb, R, zone_chroma, pixel_pct)
         # 分区内部色彩构成（HSB 轴按色名区域统计，含 8.6 感知色名）
         if zone_chroma >= ZONE_NEUTRAL_CHROMA:
-            zones[key]['composition'] = analyze_hue_composition(zc, hsb_h[sel], wz, L[sel])
+            zones[key]['composition'] = analyze_hue_composition(
+                zc, hsb_h[sel], wz, L[sel], h_ok[sel])
         elif zones[key]['label_key'] == 'zone_neutral':
             # 8.6 补充：近中性分区若内部冷暖双向抵消，标记混合（UI 追加后缀词条）
-            comp = analyze_hue_composition(zc, hsb_h[sel], wz, L[sel])
+            comp = analyze_hue_composition(zc, hsb_h[sel], wz, L[sel], h_ok[sel])
             if _neutral_zone_mix(comp):
                 zones[key]['composition'] = comp
                 zones[key]['mix'] = True
@@ -597,13 +599,17 @@ def _toning_style(zones: dict) -> dict | None:
     return None
 
 
-def analyze_hue_peaks(C: np.ndarray, h: np.ndarray, hsb_h: np.ndarray) -> list[dict]:
+def analyze_hue_peaks(C: np.ndarray, h: np.ndarray, hsb_h: np.ndarray,
+                      L: np.ndarray | None = None) -> list[dict]:
     """色相峰检测：加权直方图 + 环形平滑 + 找峰
 
     找峰与和谐判定在 OKLCH 轴（感知均匀）；对外展示的角度/色名取
     归属像素的 HSB 加权环形均值（与主项目色环及拾色器一致）。
     高度 >= 最高峰 20% 的为主峰（参与和谐判定）；5%~20% 之间且权重占比
     >= 3% 的为次峰（minor=True，仅展示色彩构成）。
+    每峰附带 composition 字段：峰成员按 HSB 12 段展开的色名构成
+    （段归属传 HSB 展示轴，修复双轴偏移；代表 L/C 按 chroma 权重，
+    不按 COMP_MAX 截断）——只为最终保留的峰计算。
     """
     bin_width = 360.0 / HUE_BINS
     idx = np.clip((h / bin_width).astype(int), 0, HUE_BINS - 1)
@@ -631,28 +637,67 @@ def analyze_hue_peaks(C: np.ndarray, h: np.ndarray, hsb_h: np.ndarray) -> list[d
         results = _peak_results(smoothed, [r['_bin'] for r in kept],
                                 bin_width, max_height, total_weight, pixel)
 
+    # 归属区间沿用重归属后的峰集合（与峰权重口径一致），
+    # composition 只给最终保留的峰计算，避免无谓的 12 段统计开销
+    final_bins = [r['_bin'] for r in results]
+    results.sort(key=lambda r: r['weight_pct'], reverse=True)
+    results = results[:HUE_PEAK_MAX]
+    _attach_peak_compositions(results, final_bins, smoothed, bin_width,
+                              (C, h, hsb_h, idx, L))
     for r in results:
         del r['_bin']
-    results.sort(key=lambda r: r['weight_pct'], reverse=True)
-    return results[:HUE_PEAK_MAX]
+    return results
+
+
+def _bin_assignment(smoothed: np.ndarray, bins: list[int], bin_width: float
+                    ) -> tuple[np.ndarray, list[float]]:
+    """各 bin 归属色相最近的峰，返回 (每 bin 的峰下标, 每峰权重和)"""
+    peak_hues = np.array([i * bin_width + bin_width / 2 for i in bins])
+    bin_centers = np.arange(len(smoothed)) * bin_width + bin_width / 2
+    assign = np.array([
+        int(np.argmin([circular_diff(bc, ph) for ph in peak_hues]))
+        for bc in bin_centers
+    ])
+    weights = [float(smoothed[assign == pi].sum()) for pi in range(len(bins))]
+    return assign, weights
+
+
+def _attach_peak_compositions(results: list[dict], bins: list[int],
+                              smoothed: np.ndarray, bin_width: float,
+                              pixel: tuple[np.ndarray, np.ndarray, np.ndarray,
+                                           np.ndarray, np.ndarray | None]
+                              ) -> None:
+    """为最终保留的峰附加 composition 字段（results 与 bins 均非空）
+
+    bins 为重归属后的完整峰 bin 集合，决定各 bin 的归属区间（与峰权
+    重口径一致）；只为 results 中的峰做 12 段统计，被丢弃/截断的峰不
+    承担这部分开销。段归属传 HSB 展示轴、代表 L/C 用 chroma 权重、
+    不按 COMP_MAX 截断。
+    """
+    C, h_ok, hsb_h, idx, L = pixel
+    assign, _ = _bin_assignment(smoothed, bins, bin_width)
+    for r in results:
+        pmask = assign[idx] == bins.index(r['_bin'])
+        r['composition'] = analyze_hue_composition(
+            C[pmask], hsb_h[pmask], None,
+            L[pmask] if L is not None else None, h_ok[pmask],
+            max_results=None, rep_weight='chroma')
 
 
 def _peak_results(smoothed: np.ndarray, peaks: list[int], bin_width: float,
                   max_height: float, total_weight: float,
                   pixel: tuple[np.ndarray, np.ndarray, np.ndarray]) -> list[dict]:
-    """按 bin 归属最近峰计算各峰权重占比，展示角/区间取归属像素的 HSB 统计"""
+    """按 bin 归属最近峰计算各峰权重占比，展示角/区间取归属像素的 HSB 统计
+
+    composition 不在此计算：峰集合可能被重归属/截断，由
+    _attach_peak_compositions 在最终峰集合上附加。
+    """
     C, hsb_h, idx = pixel
-    n = len(smoothed)
-    peak_hues = np.array([i * bin_width + bin_width / 2 for i in peaks])
-    bin_centers = np.arange(n) * bin_width + bin_width / 2
-    assign = np.array([
-        int(np.argmin([circular_diff(bc, ph) for ph in peak_hues]))
-        for bc in bin_centers
-    ])
+    assign, weights = _bin_assignment(smoothed, peaks, bin_width)
 
     results: list[dict] = []
     for pi, bin_i in enumerate(peaks):
-        weight = float(smoothed[assign == pi].sum())
+        weight = weights[pi]
         hue_ok = float(bin_i * bin_width + bin_width / 2)
 
         pmask = assign[idx] == pi
@@ -719,9 +764,62 @@ def _merge_close_peaks(peaks: list[int], arr: np.ndarray, bin_width: float) -> l
     return kept
 
 
+def _rep_rgb(rep_l: float, rep_c: float, rep_h_ok: float) -> tuple[int, int, int]:
+    """段代表 OKLCH → sRGB 0~255 三元组（超界由 _oklab_to_srgb_float 裁剪）"""
+    a = rep_c * math.cos(math.radians(rep_h_ok))
+    b = rep_c * math.sin(math.radians(rep_h_ok))
+    srgb = _oklab_to_srgb_float(np.array([[rep_l, a, b]], dtype=np.float64))
+    r, g, b = (srgb[0] * 255.0).round().astype(int).tolist()
+    return (r, g, b)
+
+
+def _segment_rep(C: np.ndarray, L: np.ndarray | None, h_ok: np.ndarray | None,
+                 rep_sel: np.ndarray, rep_w: np.ndarray
+                 ) -> tuple[float, float, tuple[int, int, int] | None]:
+    """段代表彩度/明度/真实代表色（与感知色名同权重口径、同源合成）
+
+    rep_sel 为参与代表值计算的成员掩码（'chroma' 口径限定可见彩度成员），
+    rep_w 为对应权重。rep_w_sum=0（如峰内整段均为不可见低彩成员）时
+    L/C 走灰族回退 (0.6, 0.0)、rgb 输出对应中性灰——与灰族 pname 同源，
+    保证 UI 端恒有有效色值且名字与色块一致。h_ok=None 时 rgb 为 None
+    （仅供不关心代表色的直调方）。
+    """
+    rep_w_sum = float(rep_w.sum())
+    rep_c = float(np.average(C[rep_sel], weights=rep_w)) if rep_w_sum > 0 else 0.0
+    rep_l = (float(np.average(L[rep_sel], weights=rep_w))
+             if L is not None and rep_w_sum > 0 else 0.6)
+    if h_ok is None:
+        rgb = None
+    elif rep_w_sum > 0:
+        rep_h_ok, _ = circular_stats(h_ok[rep_sel], rep_w)
+        rgb = _rep_rgb(rep_l, rep_c, float(rep_h_ok))
+    else:
+        rgb = _rep_rgb(0.6, 0.0, 0.0)
+    return rep_c, rep_l, rgb
+
+
+def _rep_selection(mask: np.ndarray, visible: np.ndarray, area_w: np.ndarray,
+                   weight: np.ndarray, rep_weight: str
+                   ) -> tuple[np.ndarray, np.ndarray]:
+    """段代表值的成员掩码与权重（口径由 rep_weight 决定）
+
+    'chroma' 只在可见彩度成员上取代表，避免段代表被近白高光（HSB 色相
+    数值落段但无色彩感知）拉偏——红裙实测：red 段成员 82% 为 C≈0.006
+    近白高光，全量加权 rep_l=0.73 误判粉，限定可见成员后 rep=(0.64, 0.10)
+    忠实判红。'area' 与分区构成一致，用全段面积权重。
+    """
+    if rep_weight == 'chroma':
+        sel = mask & visible
+        return sel, weight[sel]
+    return mask, area_w[mask]
+
+
 def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
                             area_w: np.ndarray | None = None,
-                            L: np.ndarray | None = None) -> list[dict]:
+                            L: np.ndarray | None = None,
+                            h_ok: np.ndarray | None = None,
+                            max_results: int | None = COMP_MAX,
+                            rep_weight: str = 'area') -> list[dict]:
     """色名构成：按 HSB 12 色名区域统计，不依赖找峰
 
     双口径：chroma 权重占比回答"什么颜色主导色彩感"，可见彩度面积占比
@@ -729,14 +827,31 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
     按面积口径也能列入。
 
     Args:
+        C: 逐像素 OKLCH chroma。
+        h: 逐像素 HSB 展示轴色相（度），段归属与展示角度用。
         area_w: 分区隶属度权重，None 时按全像素等权；
             权重口径按 area_w*C 加权，面积口径按 area_w 软计数。
         L: 逐像素 OKLab 明度（感知色名用），None 时段代表明度回退中值。
+        h_ok: 逐像素 OKLCH 色相（度），段真实代表色合成用；None 时
+            条目不携带 rgb。
+        max_results: 返回条目上限，None 不截断；默认 COMP_MAX 为分区调色
+            条固定 4 槽 UI 沿革，峰内构成等列表式展示传 None（控噪由
+            COMP_MIN_PCT / COMP_MIN_AREA_PCT 门槛承担）。
+        rep_weight: 段代表 L/C 的权重口径，'area' 按面积权重（与分区构成
+            一致），'chroma' 按 C*area_w 权重（与 chroma 加权归属同源，
+            防止高彩成员被峰内大量低彩像素稀释判成灰族）；两者同口径切换。
+            'chroma' 口径的代表值只在可见彩度成员（C >= COMP_VISIBLE_CHROMA）
+            上计算——不可见像素（近白高光/深黑阴影）的 HSB 色相无感知意义，
+            且面积口径本就不计它们。
 
     Returns:
-        [{'name', 'pname', 'hue', 'weight_pct', 'area_pct', 'range'}, ...]，
+        [{'name', 'pname', 'hue', 'weight_pct', 'area_pct', 'range',
+          'rep_c', 'rgb'}, ...]，
         权重 >= COMP_MIN_PCT 或可见面积 >= COMP_MIN_AREA_PCT 的条目
-        按权重降序，最多 COMP_MAX 个。name 为 12 段色名 id，pname 为感知色名 id。
+        按权重降序，最多 max_results 个。name 为 12 段色名 id，pname 为感知
+        色名 id，rep_c 为段代表彩度（与 pname 同权重口径），rgb 为段真实
+        代表色（rep_l/rep_c + 段内 OKLCH 色相均值合成，与 pname 同源，
+        保证名字与色块恒一致）。
     """
     if area_w is None:
         area_w = np.ones_like(C)
@@ -760,12 +875,9 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
         hues = lo + rel[mask]                # 可能超 360，报告时取模
         mean_hue = float(np.average(hues, weights=w))
         q10, q90 = _weighted_quantile(hues, w, (0.10, 0.90))
-        # 8.6 感知色名：段代表 L/C（面积权重均值）+ 段均色相
-        seg_area = area_w[mask]
-        seg_area_sum = float(seg_area.sum())
-        rep_c = float(np.average(C[mask], weights=seg_area)) if seg_area_sum > 0 else 0.0
-        rep_l = (float(np.average(L[mask], weights=seg_area))
-                 if L is not None and seg_area_sum > 0 else 0.6)
+        # 8.6 感知色名：段代表 L/C + 真实代表色 rgb（口径见 _rep_selection）
+        rep_sel, rep_w = _rep_selection(mask, visible, area_w, weight, rep_weight)
+        rep_c, rep_l, rgb = _segment_rep(C, L, h_ok, rep_sel, rep_w)
         results.append({
             'name': _HUE_NAMES[seg],
             'pname': perceptual_color_name(rep_l, rep_c, mean_hue % 360.0),
@@ -773,10 +885,14 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
             'weight_pct': pct,
             'area_pct': area_pct,
             'range': (q10 % 360.0 if q10 >= 360.0 else q10, q90),
+            'rep_c': rep_c,
+            'rgb': rgb,
         })
 
     results.sort(key=lambda r: r['weight_pct'], reverse=True)
-    return results[:COMP_MAX]
+    if max_results is not None:
+        results = results[:max_results]
+    return results
 
 
 def _weighted_quantile(values: np.ndarray, weights: np.ndarray,
@@ -1089,7 +1205,7 @@ def analyze_lab(lab: np.ndarray) -> dict:
         peaks: list[dict] = []
         warmth = {'value': 0.0, 'label_key': 'warmth_neutral'}
     else:
-        peaks = analyze_hue_peaks(C, h, hsb_h)
+        peaks = analyze_hue_peaks(C, h, hsb_h, L)
         warmth = analyze_warmth(C, h)
 
     harmony_key, harmony_fit = analyze_harmony_fit(C, h, mean_chroma)

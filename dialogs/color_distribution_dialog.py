@@ -24,7 +24,7 @@ from utils import tr
 from .base_frameless_dialog import BaseFramelessDialog
 from .tone_analysis_dialog import StatCard
 from ui.color_distribution_charts import (
-    DominantColorsBarWidget, HueWheelWidget, ZoneToningBarWidget
+    DominantColorsBarWidget, HuePeaksWidget, HueWheelWidget, ZoneToningBarWidget
 )
 
 # 感知色名 id：属 color_distribution.pname_* 词条，其余色名 id 回落 color_wheel.hue_*
@@ -156,15 +156,17 @@ class ColorDistributionDialog(BaseFramelessDialog):
         charts_layout.setContentsMargins(0, 0, 0, 0)
         charts_layout.setSpacing(10)
 
-        # 顶部行：原图预览 + 色轮密度图
+        # 顶部行：原图预览 + 色轮密度图 + 色相峰列表
         top_widget = QWidget()
         top_layout = QHBoxLayout(top_widget)
         top_layout.setContentsMargins(0, 0, 0, 0)
         top_layout.setSpacing(10)
         self._preview = ImagePreviewWidget()
         self._wheel_chart = HueWheelWidget()
+        self._peaks_chart = HuePeaksWidget()
         top_layout.addWidget(self._preview, stretch=1)
         top_layout.addWidget(self._wheel_chart, stretch=1)
+        top_layout.addWidget(self._peaks_chart, stretch=1)
         charts_layout.addWidget(top_widget, stretch=4)
 
         # 中部行：分区调色条 + 主色卡条
@@ -222,6 +224,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
 
         self._preview.set_image(img_array)
         self._wheel_chart.update_data(result['wheel'], self._wheel_axis_labels())
+        self._peaks_chart.update_data(self._peaks_view(result['hue_peaks']))
         self._zone_chart.update_data(self._zones_view(result['zones']))
         self._palette_chart.update_data(self._palette_view(result['palette']))
         self._charts_widget.show()
@@ -303,6 +306,38 @@ class ColorDistributionDialog(BaseFramelessDialog):
         """色轮四方位（0°/90°/180°/270°）翻译后的色名"""
         return [tr(f'color_wheel.hue_{hue_name(deg)}') for deg in (0, 90, 180, 270)]
 
+    @staticmethod
+    def _range_text(rng: tuple[float, float]) -> str:
+        """构成条目角度区间文案（末端跨 0° 时取模）"""
+        lo, hi = rng
+        return f'{lo:.0f}°~{hi % 360:.0f}°'
+
+    @staticmethod
+    def _weight_text(comp: dict) -> str:
+        """构成条目占比文案：权重 <1% 时改报可见面积口径"""
+        if comp['weight_pct'] < 1.0:
+            return tr('color_distribution.area', pct=int(round(comp['area_pct'])))
+        return f'{comp["weight_pct"]:.0f}%'
+
+    def _peaks_view(self, peaks: list) -> dict:
+        """色相峰列表视图模型（文案已翻译；条目不截断，全量注入）"""
+        views = []
+        for p in peaks:
+            title = (f'{self._pname_text(p["name"])} {self._range_text(p["range"])}'
+                     f' {p["weight_pct"]:.1f}%')
+            if p['minor']:
+                title += tr('color_distribution.peak_minor')
+            items = []
+            for c in p['composition']:
+                items.append({
+                    'hue': c['hue'], 'range': c['range'],
+                    'rgb': c['rgb'],
+                    'text': (f'{self._pname_text(c["pname"])} '
+                             f'{self._range_text(c["range"])} {self._weight_text(c)}'),
+                })
+            views.append({'title_text': title, 'hue': p['hue'], 'items': items})
+        return {'peaks': views, 'empty_text': tr('color_distribution.peaks_empty')}
+
     def _zones_view(self, zones: dict) -> dict:
         """分区调色条视图模型（文案已翻译）"""
         zone_views = []
@@ -310,20 +345,16 @@ class ColorDistributionDialog(BaseFramelessDialog):
             zone = zones[key]
             composition = []
             for c in zone['composition']:
-                lo, hi = c['range']
-                line1 = f'{self._pname_text(c["pname"])} {lo:.0f}°~{hi % 360:.0f}°'
-                if c['weight_pct'] < 1.0:
-                    line2 = tr('color_distribution.area', pct=int(round(c['area_pct'])))
-                else:
-                    line2 = f'{c["weight_pct"]:.0f}%'
+                line1 = f'{self._pname_text(c["pname"])} {self._range_text(c["range"])}'
+                line2 = self._weight_text(c)
                 composition.append({
                     'hue': c['hue'], 'range': c['range'],
                     'weight_pct': c['weight_pct'], 'line1': line1, 'line2': line2,
+                    'rgb': c['rgb'],
                 })
             zone_views.append({
                 'key': key,
                 'name_text': tr(f'color_distribution.zone_{key}'),
-                'chroma': zone['chroma'],
                 'is_empty': zone['pixel_pct'] < 0.05,
                 'status_text': self._zone_status_text(zone),
                 'composition': composition,
@@ -380,6 +411,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
         """主题变化回调"""
         self._update_styles()
         self._wheel_chart.update_theme()
+        self._peaks_chart.update_theme()
         self._zone_chart.update_theme()
         self._palette_chart.update_theme()
         for card in self._stat_cards:

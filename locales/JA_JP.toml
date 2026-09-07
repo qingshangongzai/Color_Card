@@ -645,6 +645,8 @@ low_confidence_suffix = "（低信頼度）"
 zone_mix_suffix = "（暖色・寒色混合）"
 dominant = "主色{index}"
 area = "面積 {pct}%"
+peak_minor = " · 副峰"
+peaks_empty = "グレー調 · 明確な色相ピークなし"
 
 [common]
 delete = "削除"

@@ -1,6 +1,6 @@
 """色彩分布分析图表控件
 
-三个纯绘制控件：色轮密度图、分区调色条、主色卡条。
+四个纯绘制控件：色轮密度图、色相峰列表、分区调色条、主色卡条。
 控件只负责渲染，所有成品文案由对话框翻译后经视图模型注入，控件内不调 tr；
 颜色统一取自 utils.theme_colors，随主题自适应，不硬编码。
 """
@@ -183,13 +183,139 @@ class HueWheelWidget(_ChartBase):
             painter.drawText(rect, align, f"{label} {deg}°")
 
 
+class HuePeaksWidget(_ChartBase):
+    """色相峰列表：每峰标题行 + 峰内 12 段构成条目（列表式，条目不截断）
+
+    视图模型（对话框注入，文案已翻译）：
+        {'peaks': [{'title_text', 'hue',
+                    'items': [{'hue', 'range', 'rgb', 'text'}]}, ...],
+         'empty_text': str}
+    items.rgb 为条目真实代表色（与文字里的感知色名同源）。
+    """
+
+    _HEAD_H = 21      # 峰标题行高
+    _ROW_H = 17       # 构成条目行高
+    _GAP = 6          # 峰块间距
+    _SWATCH_W = 24    # 条目渐变条宽
+    _HEAD_SWATCH = 10  # 峰标题色块边长
+    _TEXT_GAP = 6     # 色块与文字的间距
+    _INDENT = _HEAD_SWATCH + _TEXT_GAP   # 文字缩进：让过标题色块右缘
+    _FALLBACK_SAT = 0.65   # 无构成条目时标题色块的饱和度（示意色回退）
+    _FALLBACK_VAL = 0.92   # 无构成条目时标题色块的明度
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setMinimumSize(200, 160)
+
+    def update_data(self, peaks_view: dict) -> None:
+        self._data = peaks_view
+        self.update()
+
+    def _content_height(self, peaks: list[dict]) -> int:
+        """全部峰块的净高度（内容不足时垂直居中用）"""
+        h = sum(self._HEAD_H + len(peak['items']) * self._ROW_H
+                for peak in peaks)
+        return h + self._GAP * (len(peaks) - 1)
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        if not self._data:
+            return
+
+        margin = 12
+        rect = self.rect().adjusted(margin, margin, -margin, -margin)
+        font = QFont()
+
+        peaks = self._data['peaks']
+        if not peaks:
+            painter.setPen(QPen(self._text_color()))
+            font.setPointSize(9)
+            painter.setFont(font)
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter,
+                             self._data['empty_text'])
+            return
+
+        y = rect.top()
+        content_h = self._content_height(peaks)
+        if content_h < rect.height():
+            y += (rect.height() - content_h) // 2
+        # 空间不足时整块跳过（标题与条目成对绘制，避免标题画到控件外）
+        for peak in peaks:
+            if y + self._HEAD_H > rect.bottom():
+                break
+            self._paint_peak_header(painter, font, rect, peak, y)
+            y += self._HEAD_H
+            for item in peak['items']:
+                if y + self._ROW_H > rect.bottom():
+                    break
+                self._paint_peak_item(painter, font, rect, item, y)
+                y += self._ROW_H
+            y += self._GAP
+
+    def _paint_peak_header(self, painter: QPainter, font: QFont,
+                           rect: QRect, peak: dict, y: int) -> None:
+        """峰标题行：色相小方块 + 色名/角度区间/权重（次峰标注已并入标题）"""
+        # 色块取峰内权重最高条目的真实代表色（与条目同源）；
+        # 无构成条目时回退示意色
+        items = peak['items']
+        if items and items[0]['rgb']:
+            head_color = QColor.fromRgb(*items[0]['rgb'])
+        else:
+            head_color = _hsb_qcolor(peak['hue'], self._FALLBACK_SAT,
+                                     self._FALLBACK_VAL)
+        swatch_y = y + (self._HEAD_H - self._HEAD_SWATCH) // 2
+        painter.setPen(QPen(self._grid_color(), 1))
+        painter.setBrush(QBrush(head_color))
+        painter.drawRect(QRect(rect.left(), swatch_y,
+                               self._HEAD_SWATCH, self._HEAD_SWATCH))
+        painter.setPen(QPen(self._text_color()))
+        font.setPointSize(9)
+        font.setBold(True)
+        painter.setFont(font)
+        painter.drawText(
+            QRect(rect.left() + self._INDENT, y,
+                  rect.width() - self._INDENT, self._HEAD_H),
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            peak['title_text'])
+
+    def _paint_peak_item(self, painter: QPainter, font: QFont,
+                         rect: QRect, item: dict, y: int) -> None:
+        """构成条目行：真实代表色渐变条 + 色名/角度区间/占比"""
+        lo, hi = item['range']
+        bar = QRect(rect.left() + self._INDENT, y + 3,
+                    self._SWATCH_W, self._ROW_H - 6)
+        mid_color = QColor.fromRgb(*item['rgb'])
+        _, sat_f, val_f, _ = mid_color.getHsvF()
+        grad = QLinearGradient(bar.topLeft(), bar.topRight())
+        grad.setColorAt(0.0, _hsb_qcolor(lo, sat_f, val_f))
+        grad.setColorAt(0.5, mid_color)
+        grad.setColorAt(1.0, _hsb_qcolor(hi, sat_f, val_f))
+        painter.setPen(QPen(self._grid_color(), 1))
+        painter.setBrush(QBrush(grad))
+        painter.drawRect(bar)
+        painter.setPen(QPen(self._text_color()))
+        font.setPointSize(9)
+        font.setBold(False)
+        painter.setFont(font)
+        painter.drawText(
+            QRect(bar.right() + self._TEXT_GAP, y,
+                  rect.right() - bar.right() - self._TEXT_GAP, self._ROW_H),
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+            item['text'])
+
+
 class ZoneToningBarWidget(_ChartBase):
     """分区调色条：每区按色名构成分段显示染色，下方标注风格名
 
     视图模型（对话框注入，文案已翻译）：
         {'style_text': str,
-         'zones': [{'key','name_text','chroma','is_empty','status_text',
-                    'composition':[{'hue','range','weight_pct','line1','line2'}]}, ...]}
+         'zones': [{'key','name_text','is_empty','status_text',
+                    'composition':[{'hue','range','weight_pct','rgb',
+                                    'line1','line2'}]}, ...]}
+    条目色块直出段真实代表色 rgb（引擎侧与感知色名同源合成），
+    两端按色相区间、代表色的饱和度/明度展开渐变。
     """
 
     _ZONE_V = {'dark': 0.45, 'mid': 0.68, 'bright': 0.9}
@@ -201,11 +327,6 @@ class ZoneToningBarWidget(_ChartBase):
     def update_data(self, zones_view: dict) -> None:
         self._data = zones_view
         self.update()
-
-    def _segment_color(self, key: str, chroma: float, hue: float) -> QColor:
-        # 放大显示彩度，让染色肉眼可辨
-        sat = min(0.55, max(0.18, chroma * 5.0))
-        return _hsb_qcolor(hue, sat, self._ZONE_V[key])
 
     @staticmethod
     def _range_text(item: dict) -> str:
@@ -279,19 +400,18 @@ class ZoneToningBarWidget(_ChartBase):
             if idx == len(comp) - 1:
                 seg_h = block_rect.bottom() - y + 1
             seg_rect = QRect(block_rect.left(), int(y), block_rect.width(), int(seg_h))
-            # 水平渐变展示实测色相区间（HSB），尾部偏色肉眼可见
+            # 真实代表色为主体，两端按色相区间展开（沿用代表色的饱和度/明度）
             lo, hi = item['range']
+            mid_color = QColor.fromRgb(*item['rgb'])
+            _, sat_f, val_f, _ = mid_color.getHsvF()
             grad = QLinearGradient(seg_rect.topLeft(), seg_rect.topRight())
-            grad.setColorAt(0.0, self._segment_color(key, zone['chroma'], lo))
-            grad.setColorAt(0.5, self._segment_color(key, zone['chroma'], item['hue']))
-            grad.setColorAt(1.0, self._segment_color(key, zone['chroma'], hi))
+            grad.setColorAt(0.0, _hsb_qcolor(lo, sat_f, val_f))
+            grad.setColorAt(0.5, mid_color)
+            grad.setColorAt(1.0, _hsb_qcolor(hi, sat_f, val_f))
             painter.setBrush(QBrush(grad))
             painter.drawRect(seg_rect)
-            self._draw_segment_text(
-                painter, font, seg_rect,
-                self._segment_color(key, zone['chroma'], item['hue']),
-                item['line1'], item['line2'],
-            )
+            self._draw_segment_text(painter, font, seg_rect, mid_color,
+                                    item['line1'], item['line2'])
             y += seg_h
 
     @staticmethod
