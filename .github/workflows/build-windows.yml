@@ -17,6 +17,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 完整历史，保证 git rev-list --count 构建号准确
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -90,6 +93,15 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
 
+    - name: Generate build info
+      shell: pwsh
+      run: |
+        $buildNumber = git rev-list --count HEAD
+        $commitSha = git rev-parse --short=8 HEAD
+        Write-Host "Build number: $buildNumber, commit: $commitSha"
+        Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
+        Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
+
     - name: Build Portable EXE with Nuitka
       shell: pwsh
       run: |
@@ -146,6 +158,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 完整历史，保证 git rev-list --count 构建号准确
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -218,6 +233,15 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "company_name=$COMPANY_NAME"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
+
+    - name: Generate build info
+      shell: pwsh
+      run: |
+        $buildNumber = git rev-list --count HEAD
+        $commitSha = git rev-parse --short=8 HEAD
+        Write-Host "Build number: $buildNumber, commit: $commitSha"
+        Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
+        Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
     - name: Build Installer EXE with Nuitka
       shell: pwsh
