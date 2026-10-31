@@ -975,7 +975,10 @@ class PaletteTuningInterface(QWidget):
             self._base_rows_layout.addWidget(row)
 
     def _rebuild_cards(self):
-        """重建卡片网格（数量变化 / 恢复默认时调用）"""
+        """重建卡片网格（数量变化 / 恢复默认时调用）
+
+        末行仅一张卡时让它跨满所有列，拉长居中独占整行（与渐变生成末行效果一致）
+        """
         for card in self._cards:
             card.hide()
             card.deleteLater()
@@ -991,13 +994,21 @@ class PaletteTuningInterface(QWidget):
             self._grid.setColumnStretch(column, 0)
 
         columns = MAX_GRID_COLUMNS
+        count = len(self._engine.items)
+        lone_last_row = count % columns == 1
         for index, item in enumerate(self._engine.items):
             card = TuneCard(item, self._engine, self._mark_dirty, self._grid_container)
             card.update_styles()
             card.update_texts()
             self._cards.append(card)
-            self._grid.addWidget(card, index // columns, index % columns)
-            self._grid.setColumnStretch(index % columns, 1)
+            row, column = index // columns, index % columns
+            if lone_last_row and index == count - 1:
+                self._grid.addWidget(card, row, 0, 1, columns)
+                for spanned_column in range(columns):
+                    self._grid.setColumnStretch(spanned_column, 1)
+            else:
+                self._grid.addWidget(card, row, column)
+                self._grid.setColumnStretch(column, 1)
 
     # ---- 刷新 ----
 
