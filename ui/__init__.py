@@ -37,6 +37,12 @@ def get_gradient_generation_interface():
     return GradientGenerationInterface
 
 
+def get_palette_tuning_interface():
+    """获取色彩微调界面类（延迟导入）"""
+    from .palette_tuning import PaletteTuningInterface
+    return PaletteTuningInterface
+
+
 def get_color_generation_interface():
     """获取配色生成界面类（延迟导入）"""
     from .color_generation import ColorGenerationInterface
@@ -89,6 +95,7 @@ __all__ = [
     'get_color_analysis_interface',
     'get_luminance_analysis_interface',
     'get_gradient_generation_interface',
+    'get_palette_tuning_interface',
     'get_color_generation_interface',
     'get_palette_management_interface',
     'get_preset_color_interface',

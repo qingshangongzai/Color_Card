@@ -62,6 +62,19 @@ from .color import (
     ZONE_WIDTH,
 )
 
+# 动态色彩微调调色板引擎（轻量级，立即导入）
+from .palette_tuning import (
+    MODES,
+    ChannelSpec,
+    ModeSpec,
+    PaletteTuningEngine,
+    TuningItem,
+    from_storage as from_palette_tuning_storage,
+    hex_now,
+    parse_hex_input,
+    to_storage as to_palette_tuning_storage,
+)
+
 # 配色数据（已优化为延迟加载）
 from .color_data import (
     ColorSource,
@@ -196,6 +209,16 @@ __all__ = [
     'extract_dominant_colors_kmeans',
     'find_dominant_color_positions',
     'ZONE_WIDTH',
+    # 动态色彩微调调色板
+    'MODES',
+    'ChannelSpec',
+    'ModeSpec',
+    'PaletteTuningEngine',
+    'TuningItem',
+    'from_palette_tuning_storage',
+    'hex_now',
+    'parse_hex_input',
+    'to_palette_tuning_storage',
     # 配置管理
     'ConfigManager',
     'get_config_manager',

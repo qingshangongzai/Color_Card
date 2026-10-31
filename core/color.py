@@ -787,6 +787,25 @@ def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> tuple
     return h, s, v
 
 
+def _hsb_to_rgb_float(h: float, s: float, b: float) -> tuple[float, float, float]:
+    """将HSB转换为浮点RGB（内部函数，不取整）
+
+    Args:
+        h: 色相 (0-360)
+        s: 饱和度 (0-100)
+        b: 亮度 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
+    """
+    h_norm = h / 360.0
+    s_norm = s / 100.0
+    v_norm = b / 100.0
+
+    r, g, b_out = colorsys.hsv_to_rgb(h_norm, s_norm, v_norm)
+    return r * 255, g * 255, b_out * 255
+
+
 def hsb_to_rgb(h: float, s: float, b: float) -> tuple[int, int, int]:
     """将HSB转换为RGB
 
@@ -798,16 +817,14 @@ def hsb_to_rgb(h: float, s: float, b: float) -> tuple[int, int, int]:
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    h_norm = h / 360.0
-    s_norm = s / 100.0
-    v_norm = b / 100.0
-
-    r, g, b_out = colorsys.hsv_to_rgb(h_norm, s_norm, v_norm)
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    r, g, b_out = _hsb_to_rgb_float(h, s, b)
+    return round(r), round(g), round(b_out)
 
 
-def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> tuple[int, int, int]:
-    """将LAB转换为RGB
+def _lab_to_rgb_float(
+    L: float, A: float, B: float, colorspace_name: str = 'sRGB'
+) -> tuple[float, float, float]:
+    """将LAB转换为浮点RGB（内部函数，不取整；超色域截断）
 
     Args:
         L: 亮度 (0-100)
@@ -816,7 +833,7 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
         colorspace_name: 色彩空间名称，默认 sRGB
 
     Returns:
-        tuple: (R 0-255, G 0-255, B 0-255)
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
     """
     cs = _get_colorspace_matrices(colorspace_name)
     m = cs['xyz_to_rgb']
@@ -853,7 +870,42 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
     g = min(1, g)
     b_out = min(1, b_out)
 
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    return r * 255, g * 255, b_out * 255
+
+
+def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> tuple[int, int, int]:
+    """将LAB转换为RGB
+
+    Args:
+        L: 亮度 (0-100)
+        A: 红绿对立通道 (-128-127)
+        B: 黄蓝对立通道 (-128-127)
+        colorspace_name: 色彩空间名称，默认 sRGB
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+    """
+    r, g, b_out = _lab_to_rgb_float(L, A, B, colorspace_name)
+    return round(r), round(g), round(b_out)
+
+
+def _hsl_to_rgb_float(H: float, S: float, L: float) -> tuple[float, float, float]:
+    """将HSL转换为浮点RGB（内部函数，不取整）
+
+    Args:
+        H: 色相 (0-360)
+        S: 饱和度 (0-100)
+        L: 亮度 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
+    """
+    H_norm = H / 360.0
+    S_norm = S / 100.0
+    L_norm = L / 100.0
+
+    R, G, B_out = colorsys.hls_to_rgb(H_norm, L_norm, S_norm)
+    return R * 255, G * 255, B_out * 255
 
 
 def hsl_to_rgb(H: float, S: float, L: float) -> tuple[int, int, int]:
@@ -867,12 +919,32 @@ def hsl_to_rgb(H: float, S: float, L: float) -> tuple[int, int, int]:
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    H_norm = H / 360.0
-    S_norm = S / 100.0
-    L_norm = L / 100.0
+    R, G, B_out = _hsl_to_rgb_float(H, S, L)
+    return round(R), round(G), round(B_out)
 
-    R, G, B_out = colorsys.hls_to_rgb(H_norm, L_norm, S_norm)
-    return round(R * 255), round(G * 255), round(B_out * 255)
+
+def _cmyk_to_rgb_float(c: float, m: float, y: float, k: float) -> tuple[float, float, float]:
+    """将CMYK转换为浮点RGB（内部函数，不取整）
+
+    Args:
+        c: 青色 (0-100)
+        m: 品红 (0-100)
+        y: 黄色 (0-100)
+        k: 黑色 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
+    """
+    c_norm = c / 100.0
+    m_norm = m / 100.0
+    y_norm = y / 100.0
+    k_norm = k / 100.0
+
+    r = (1 - c_norm) * (1 - k_norm)
+    g = (1 - m_norm) * (1 - k_norm)
+    b_out = (1 - y_norm) * (1 - k_norm)
+
+    return r * 255, g * 255, b_out * 255
 
 
 def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> tuple[int, int, int]:
@@ -887,16 +959,8 @@ def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> tuple[int, int, int]:
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    c_norm = c / 100.0
-    m_norm = m / 100.0
-    y_norm = y / 100.0
-    k_norm = k / 100.0
-
-    r = (1 - c_norm) * (1 - k_norm)
-    g = (1 - m_norm) * (1 - k_norm)
-    b_out = (1 - y_norm) * (1 - k_norm)
-
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    r, g, b_out = _cmyk_to_rgb_float(c, m, y, k)
+    return round(r), round(g), round(b_out)
 
 
 # ========== 配色方案内部实现（私有函数）==========
