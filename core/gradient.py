@@ -225,7 +225,8 @@ def generate_lightness_shades(
 ) -> list[tuple[int, int, int]]:
     """生成单色明度梯度
 
-    固定色相和饱和度，明度从高到低均匀分布
+    以基准色为锚点，明度向亮/暗两侧按剩余空间比例展开，
+    基准色本身包含在结果中，位置由其明度占比决定
     支持HSB、HSL、LAB三种颜色空间
 
     Args:
@@ -234,7 +235,7 @@ def generate_lightness_shades(
         color_space: 颜色空间 ('hsb', 'hsl', 'lab')，默认'hsb'
 
     Returns:
-        list[tuple[int, int, int]]: RGB颜色列表
+        list[tuple[int, int, int]]: RGB颜色列表，明度从高到低，包含基准色
 
     Raises:
         ValueError: 当输入的HEX值格式无效时
@@ -245,29 +246,37 @@ def generate_lightness_shades(
 
     min_lightness = 10
     max_lightness = 95
-    step = (max_lightness - min_lightness) / (count - 1)
-
-    colors = []
 
     if color_space == 'lab':
-        # LAB空间：固定a/b，L从95到10均匀分布
-        L, A, B = rgb_to_lab(*base_rgb)
-        for i in range(count):
-            lightness = max_lightness - i * step
-            colors.append(lab_to_rgb(lightness, A, B))
-    elif color_space == 'hsl':
-        # HSL空间：固定H/S，L从95%到10%均匀分布
-        H, S, _ = rgb_to_hsl(*base_rgb)
-        for i in range(count):
-            lightness = max_lightness - i * step
-            colors.append(hsl_to_rgb(H, S, lightness))
-    else:
-        # HSB空间（默认）：固定H/S，B从95到10均匀分布
-        H, S, _ = rgb_to_hsb(*base_rgb)
-        for i in range(count):
-            B = max_lightness - i * step
-            colors.append(hsb_to_rgb(H, S, B))
+        base_l, A, B = rgb_to_lab(*base_rgb)
 
+        def make(lightness):
+            return lab_to_rgb(lightness, A, B)
+    elif color_space == 'hsl':
+        H, S, base_l = rgb_to_hsl(*base_rgb)
+
+        def make(lightness):
+            return hsl_to_rgb(H, S, lightness)
+    else:
+        H, S, base_l = rgb_to_hsb(*base_rgb)
+
+        def make(lightness):
+            return hsb_to_rgb(H, S, lightness)
+
+    # 亮侧阶数按基准明度到上限的剩余空间比例分配
+    up_ratio = max(0.0, min(1.0, (max_lightness - base_l) / (max_lightness - min_lightness)))
+    lighter_n = round(up_ratio * (count - 1))
+    darker_n = count - 1 - lighter_n
+
+    # 有阶一侧的明度终点即边界值（端点包含），侧内严格等差；
+    # lighter_n / darker_n 为 0 时 range 为空，不会触发除零
+    lighter = [base_l + (max_lightness - base_l) * k / lighter_n for k in range(1, lighter_n + 1)]
+    darker = [base_l - (base_l - min_lightness) * k / darker_n for k in range(1, darker_n + 1)]
+
+    # 基准色以原RGB插入，不经过转换回路，保证与输入框颜色严格相等
+    colors = [make(l) for l in sorted(lighter, reverse=True)]
+    colors.append(base_rgb)
+    colors.extend(make(l) for l in sorted(darker, reverse=True))
     return colors
 
 
