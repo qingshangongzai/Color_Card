@@ -1,6 +1,7 @@
 from __future__ import annotations
 # 标准库导入
 import ctypes
+import ctypes.wintypes
 import os
 
 
@@ -10,6 +11,11 @@ from .icon import get_icon_path
 
 # AllowSetForegroundWindow 常量
 ASFW_ANY = -1  # 允许任何进程设置前台窗口
+
+# LoadImageW 返回 HICON（64 位句柄），提前声明返回类型避免被 ctypes 默认的
+# c_int 截断；仅在 Windows 下设置，保证跨平台 import 不失败
+if os.name == 'nt':
+    ctypes.windll.user32.LoadImageW.restype = ctypes.wintypes.HANDLE
 
 
 def set_app_user_model_id() -> bool:
@@ -79,25 +85,47 @@ def fix_windows_taskbar_icon_for_window(window) -> bool:
 
         # 加载图标
         if icon_path.lower().endswith('.ico'):
-            h_icon = user32.LoadImageW(
+            # 注意：不能使用 cx=0, cy=0（按实际大小加载）！
+            # 对多帧 ICO，LoadImageW 会加载目录中的第一帧（通常是最小的
+            # 16x16 帧），任务栏将其放大显示会模糊。
+            # 这里显式指定系统大图标尺寸（100% DPI 为 32x32，150% 为 48x48），
+            # 让 LoadImageW 选中 ICO 中对应的原生帧。
+            cx_icon = user32.GetSystemMetrics(11)  # SM_CXICON
+            cy_icon = user32.GetSystemMetrics(12)  # SM_CYICON
+
+            # 大图标：任务栏使用（尺寸随系统 DPI 变化）
+            h_icon_big = user32.LoadImageW(
                 None, icon_path,
                 1,  # IMAGE_ICON
-                0, 0,  # 使用实际大小
+                cx_icon, cy_icon,  # 按系统图标尺寸加载，避免选中最小帧
+                0x00000010  # LR_LOADFROMFILE
+            )
+
+            # 小图标：窗口标题栏使用（16x16）
+            h_icon_small = user32.LoadImageW(
+                None, icon_path,
+                1,  # IMAGE_ICON
+                16, 16,
                 0x00000010  # LR_LOADFROMFILE
             )
         else:
-            # 对于 PNG 等格式，需要先加载为位图
+            # PNG 兜底分支（实际不可达：get_icon_path() 只返回 .ico）
+            # 注意：bits() 返回的是像素缓冲区指针而非 HICON，该分支设置的
+            # 图标实际不会生效，保留仅为兼容历史行为。
             from PySide6.QtGui import QPixmap
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
-                h_icon = pixmap.toImage().bits()
+                h_icon_big = pixmap.toImage().bits()
+                h_icon_small = h_icon_big
             else:
                 return False
 
-        if h_icon:
-            # 设置图标（大图标和小图标）
-            user32.SendMessageW(hwnd, 0x0080, 1, h_icon)  # WM_SETICON, ICON_BIG
-            user32.SendMessageW(hwnd, 0x0080, 0, h_icon)  # WM_SETICON, ICON_SMALL
+        if h_icon_big or h_icon_small:
+            # 设置图标（大图标和小图标分别使用合适的尺寸）
+            if h_icon_big:
+                user32.SendMessageW(hwnd, 0x0080, 1, h_icon_big)  # WM_SETICON, ICON_BIG
+            if h_icon_small:
+                user32.SendMessageW(hwnd, 0x0080, 0, h_icon_small)  # WM_SETICON, ICON_SMALL
 
             # 强制刷新任务栏
             user32.UpdateWindow(hwnd)
