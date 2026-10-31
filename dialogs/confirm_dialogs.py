@@ -6,6 +6,64 @@ from dialogs import BaseFramelessDialog
 from utils import tr
 
 
+class ConfirmDialog(BaseFramelessDialog):
+    """通用确认对话框"""
+
+    def __init__(self, title: str, content: str, parent=None):
+        super().__init__(parent)
+        self._title = title
+        self._content = content
+        self.setWindowTitle(title)
+        self.setFixedSize(400, 180)
+
+        self._setup_title_bar()
+        self._update_styles()
+        self._setup_ui()
+
+        self._theme_connection = qconfig.themeChangedFinished.connect(
+            self._update_styles
+        )
+
+        # 样式准备好后允许显示
+        self._enable_show()
+
+    def _setup_ui(self):
+        """设置界面布局"""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 40, 20, 20)
+        layout.setSpacing(15)
+
+        # 标题
+        title_label = QLabel(self._title)
+        title_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        layout.addWidget(title_label)
+
+        # 内容
+        content_label = QLabel(self._content)
+        content_label.setWordWrap(True)
+        layout.addWidget(content_label)
+
+        layout.addStretch()
+
+        # 按钮区域
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+
+        # 取消按钮（次按钮）
+        cancel_button = PushButton(tr('dialogs.confirm.cancel_btn'))
+        cancel_button.setFixedWidth(80)
+        cancel_button.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_button)
+
+        # 确认按钮（主按钮）
+        confirm_button = PrimaryPushButton(tr('dialogs.confirm.confirm_btn'))
+        confirm_button.setFixedWidth(80)
+        confirm_button.clicked.connect(self.accept)
+        button_layout.addWidget(confirm_button)
+
+        layout.addLayout(button_layout)
+
+
 class ImportModeDialog(BaseFramelessDialog):
     """导入模式选择对话框"""
 

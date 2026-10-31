@@ -202,6 +202,22 @@ def get_zoom_bg_color():
     return QColor(200, 200, 200) if isDarkTheme() else QColor(40, 40, 40)
 
 
+# ========== 配色微调调色板颜色 ==========
+def get_locked_card_background_color():
+    """获取锁定态配色卡片背景颜色"""
+    return QColor(0, 120, 212, 45) if isDarkTheme() else QColor(0, 120, 212, 20)
+
+
+def get_locked_tag_color():
+    """获取锁定态标签文字颜色"""
+    return QColor(100, 180, 255) if isDarkTheme() else QColor(0, 120, 212)
+
+
+def get_invalid_input_border_color():
+    """获取非法输入时的输入框边框颜色"""
+    return QColor(232, 17, 35) if isDarkTheme() else QColor(196, 43, 28)
+
+
 # ========== 对话框颜色 ==========
 def get_dialog_bg_color():
     """获取对话框背景颜色"""
