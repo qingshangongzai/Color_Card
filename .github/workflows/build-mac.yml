@@ -17,6 +17,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 完整历史，保证 git rev-list --count 构建号准确
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -55,6 +58,16 @@ jobs:
         echo "company_name=$COMPANY_NAME" >> "$GITHUB_OUTPUT"
         echo "copyright=$COPYRIGHT" >> "$GITHUB_OUTPUT"
         echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
+
+    - name: Generate build info
+      run: |
+        BUILD_NUMBER=$(git rev-list --count HEAD)
+        COMMIT_SHA=$(git rev-parse --short=8 HEAD)
+        echo "Build number: $BUILD_NUMBER, commit: $COMMIT_SHA"
+        {
+          echo "BUILD_NUMBER = \"$BUILD_NUMBER\""
+          echo "COMMIT_SHA = \"$COMMIT_SHA\""
+        } > build_info.py
 
     - name: Build Mac App with Nuitka
       env:

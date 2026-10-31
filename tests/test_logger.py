@@ -5,6 +5,7 @@
 
 # 标准库导入
 import logging
+import re
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -49,7 +50,8 @@ class TestLoggerManager:
 
             log_path = manager.get_log_path()
             assert log_path.exists()
-            assert log_path.name == "color_card.log"
+            # 文件名格式: Color Card_版本号_YYYYMMDD_HHMMSS.log
+            assert re.fullmatch(r"Color Card_.+_\d{8}_\d{6}\.log", log_path.name)
 
     def test_initialize_idempotent(self, tmp_path):
         """测试重复初始化是幂等的"""
@@ -83,10 +85,12 @@ class TestLoggerManager:
         """测试获取日志文件路径"""
         with patch.object(Path, 'home', return_value=tmp_path):
             manager = LoggerManager()
+            manager.initialize()
             log_path = manager.get_log_path()
 
-            expected_path = tmp_path / ".color_card" / "logs" / "color_card.log"
-            assert log_path == expected_path
+            expected_dir = tmp_path / ".color_card" / "logs"
+            assert log_path.parent == expected_dir
+            assert re.fullmatch(r"Color Card_.+_\d{8}_\d{6}\.log", log_path.name)
 
 
 class TestGetLogger:
@@ -325,17 +329,9 @@ class TestLoggerConstants:
         """测试日志目录名称"""
         assert LoggerManager.LOG_DIR_NAME == "logs"
 
-    def test_log_file_name(self):
-        """测试日志文件名称"""
-        assert LoggerManager.LOG_FILE_NAME == "color_card.log"
-
-    def test_max_bytes(self):
-        """测试最大文件大小"""
-        assert LoggerManager.MAX_BYTES == 10 * 1024 * 1024
-
-    def test_backup_count(self):
-        """测试备份数量"""
-        assert LoggerManager.BACKUP_COUNT == 7
+    def test_log_retention_days(self):
+        """测试日志保留天数"""
+        assert LoggerManager.LOG_RETENTION_DAYS == 30
 
 
 if __name__ == "__main__":
