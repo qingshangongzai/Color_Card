@@ -18,28 +18,29 @@ description: "为任务创建新的 Git 分支。当用户需要为新任务创�
 2. **提取任务意图**：从用户请求与对话上下文判断任务的**类型**与**描述**
 
    - 类型：新功能→`feat`、修复→`fix`、优化→`optimize`、重构→`refactor`
-   - 描述：从用户原话中提取 2~4 个英文关键词，kebab-case 连接
-   - 示例："帮我开个分支，我要做影调分析优化" → `optimize/tone-analysis`；"这个任务需要创建新分支"（上下文是修复任务栏图标）→ `fix/taskbar-icon-blur`
+   - 描述：从用户原话中提取 3 个英文关键词，kebab-case 连接
+   - 示例："帮我开个分支，我要做影调分析优化" → `optimize/tone-analysis-speed`；"这个任务需要创建新分支"（上下文是修复任务栏图标）→ `fix/taskbar-icon-blur`
    - **若任务类型或内容不明确（如用户只说"推荐分支名称"且无上下文），先向用户询问任务类型与内容，得到答复后再推荐，不要凭空猜测**
 
 3. **按任务类型推荐分支名**（格式：`类型/英文描述`）
 
-   本项目分支命名约定为**小写 kebab-case**（连字符分隔的英文小写描述），常见前缀：
+   功能分支命名为**小写 kebab-case**（连字符分隔的英文小写描述）；主线 `main`、`Dev` 为例外。常见前缀：
 
    | 任务类型 | 前缀 | 示例 |
    |---------|------|------|
    | 新功能 | `feat/` | `feat/color-distribution-analysis` |
-   | 修复 | `fix/` | `fix/windows-taskbar-icon-blur` |
-   | 优化 | `optimize/` | `optimize/tone-analysis` |
-   | 重构 | `refactor/` | `refactor/code-cleanup` |
+   | 修复 | `fix/` | `fix/taskbar-icon-blur` |
+   | 优化 | `optimize/` | `optimize/tone-analysis-speed` |
+   | 重构 | `refactor/` | `refactor/service-layer-cleanup` |
+   | 样式 | `style/` | `style/tuning-last-row` |
 
    - 描述需**精准反映任务内容**（如"任务栏图标模糊"→ `taskbar-icon-blur`），避免过于笼统
    - 若任务横跨多个方面，选最主要的意图定前缀
    - 在响应中向用户说明推荐理由（与现有约定的对应关系），并给出一个明确的推荐名称
 
-4. **检查分支名是否可用**（防止与已有本地/远端分支重名）
+4. **检查分支名是否可用**（防止与已有本地/远端分支重名，复用第 1 步的分支列表）
    ```bash
-   git branch -a | grep <分支名>
+   git branch -a --list "*<分支名>*"
    ```
    **必须用 `-a` 查全量**：`git branch --list` 只查本地分支，会漏掉远端已有的同名分支（如 `origin/optimize/tone-analysis`），创建后推送到远端才会冲突。若输出非空（含 `remotes/origin/`），建议加序号后缀（如 `-2`）或换描述词后重新推荐。
 
@@ -48,13 +49,7 @@ description: "为任务创建新的 Git 分支。当用户需要为新任务创�
    git checkout -b <分支名>
    ```
 
-6. **验证切换成功**
-   ```bash
-   git branch --show-current
-   ```
-   确认输出为刚创建的分支名。
-
-7. **告知用户**：工作区未提交的改动会随分支切换保留，分支尚未推送，提交前可随时改名或删除。
+6. **验证并告知**：用 `git branch --show-current` 确认输出为刚创建的分支名；告知用户工作区未提交改动会随切换保留。
 
 ## 注意
 
