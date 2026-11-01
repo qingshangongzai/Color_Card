@@ -503,7 +503,7 @@ class TuneCard(BaseCard):
 
         self._reset_button = ToolButton(FluentIcon.SYNC, self)
         self._reset_button.setFixedSize(24, 24)
-        self._reset_button.clicked.connect(self._reset_lock)
+        self._reset_button.clicked.connect(self._reset_item)
 
         self._lock_button = ToolButton(FluentIcon.UNPIN, self)
         self._lock_button.setFixedSize(24, 24)
@@ -593,7 +593,6 @@ class TuneCard(BaseCard):
         locked = self._item.is_locked
         tag_key = 'palette_tuning.locked_tag' if locked else 'palette_tuning.unlocked_tag'
         self._tag_label.setText(tr(tag_key))
-        self._reset_button.setVisible(locked)
         self._lock_button.setIcon(FluentIcon.PIN if locked else FluentIcon.UNPIN)
 
         self._apply_card_style()
@@ -625,11 +624,9 @@ class TuneCard(BaseCard):
         self.refresh()
         self._on_state_changed()
 
-    def _reset_lock(self):
-        """重置：锁定态恢复为联动模式"""
-        if not self._item.is_locked:
-            return
-        self._engine.unlock_item(self._item.id)
+    def _reset_item(self):
+        """重置：回到基色"""
+        self._engine.reset_item(self._item.id)
         log_user_action('palette_tuning_reset_item', {'item': self._item.name})
         self.refresh()
         self._on_state_changed()

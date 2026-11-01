@@ -389,6 +389,37 @@ class TestLockUnlock:
         engine.unlock_item(2)
         assert not engine.items[1].is_locked
 
+    def test_reset_unlocked_zero_offset_back_to_base(self):
+        """联动项重置：偏移归零，颜色回到基色"""
+        engine = PaletteTuningEngine()
+        engine.set_base_hex('#336699')
+        engine.set_param(1, 'h', 25.0)
+        engine.set_param(1, 's', -10.0)
+        engine.reset_item(1)
+        assert not engine.items[0].is_locked
+        assert all(v == 0.0 for v in engine.items[0].offset.values())
+        assert hex_now(engine.items[0].final_rgb) == '#336699'
+
+    def test_reset_locked_keeps_lock_back_to_base(self):
+        """锁定项重置：保持锁定，颜色回到基色，之后仍不跟随基色"""
+        engine = PaletteTuningEngine()
+        engine.set_base_hex('#336699')
+        engine.set_param(1, 'h', 25.0)
+        engine.lock_item(1)
+        engine.reset_item(1)
+        assert engine.items[0].is_locked
+        assert engine.items[0].absolute is not None
+        assert hex_now(engine.items[0].final_rgb) == '#336699'
+        engine.set_base_hex('#FF0000')
+        assert hex_now(engine.items[0].final_rgb) == '#336699'
+
+    def test_reset_unknown_id_noop(self):
+        """未知 id 重置为无操作"""
+        engine = PaletteTuningEngine()
+        before = [hex_now(item.final_rgb) for item in engine.items]
+        engine.reset_item(99)
+        assert [hex_now(item.final_rgb) for item in engine.items] == before
+
 
 # ==================== 步进 ====================
 
