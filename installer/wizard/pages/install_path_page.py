@@ -9,7 +9,7 @@ from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton, CheckBox
 
 # 项目模块导入
 from installer.wizard.base_page import BasePage
-from installer.core.permission_checker import is_admin, requires_admin
+from installer.core.permission_checker import is_admin, requires_admin, validate_install_path
 
 
 class InstallPathPage(BasePage):
@@ -182,7 +182,7 @@ class InstallPathPage(BasePage):
             return
 
         # 验证路径
-        if not self._validate_path(path):
+        if not validate_install_path(path):
             return
 
         # 获取快捷方式选项
@@ -211,31 +211,6 @@ class InstallPathPage(BasePage):
         # 进入下一页
         self.next_requested.emit()
 
-    def _validate_path(self, path: str) -> bool:
-        """验证路径有效性
-
-        Args:
-            path: 安装路径
-
-        Returns:
-            bool: 是否有效
-        """
-        # 检查路径是否为空
-        if not path or not path.strip():
-            return False
-
-        # 检查是否为系统关键目录
-        critical_paths = [
-            os.environ.get('SystemRoot', 'C:\\Windows'),
-            os.environ.get('SystemRoot', 'C:\\Windows') + '\\System32',
-        ]
-
-        for critical in critical_paths:
-            if critical and path.lower().startswith(critical.lower()):
-                return False
-
-        return True
-
     def can_next(self) -> bool:
         """是否可以进入下一页
 
@@ -243,7 +218,7 @@ class InstallPathPage(BasePage):
             bool: 是否可以进入下一页
         """
         path = self._path_edit.text()
-        return self._validate_path(path)
+        return validate_install_path(path)
 
     def on_enter(self):
         """进入页面时的处理"""
