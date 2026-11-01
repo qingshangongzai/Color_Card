@@ -3,8 +3,6 @@
 提供图片明度分析和提取功能，包含明度画布和直方图显示。
 """
 
-from __future__ import annotations
-
 # 标准库导入
 from pathlib import Path
 from typing import Any
@@ -222,13 +220,6 @@ class LuminanceAnalysisInterface(QWidget):
             log_user_action("picker_drag_end", {"picker_index": index})
             self._dragging_index = -1
             self.histogram_widget.clear_highlight()
-
-    def update_histogram_highlight(self):
-        """更新直方图高亮区域（仅在拖动时使用）"""
-        zones = self.luminance_canvas.get_picker_zones()
-        # 去重
-        unique_zones = list(set(zones))
-        self.histogram_widget.set_highlight_zones(unique_zones)
 
     def clear_all(self, emit_signal: bool = True):
         """清空所有相关内容（图片、直方图）

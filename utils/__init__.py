@@ -49,8 +49,8 @@ def get_last_directory(key: str, default_dir: str) -> str:
         str: 上次选择的目录或默认目录
     """
     settings = QSettings("ColorCard", "App")
-    last_dir = settings.value(f"last_directory/{key}", default_dir)
-    if last_dir and Path(last_dir).exists():
+    last_dir: object = settings.value(f"last_directory/{key}", default_dir)
+    if isinstance(last_dir, str) and Path(last_dir).exists():
         return str(last_dir)
     return default_dir
 

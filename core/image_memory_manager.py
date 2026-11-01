@@ -4,8 +4,6 @@
 限制最大内存占用，自动清理旧图片。
 """
 
-from __future__ import annotations
-
 # 标准库导入
 import gc
 import time
@@ -187,17 +185,6 @@ class ImageMemoryManager:
             "cache_misses": self._cache_misses,
             "evictions": self._evictions,
         }
-
-    def get_cache_hit_rate(self) -> float:
-        """获取缓存命中率
-
-        Returns:
-            缓存命中率（0.0-1.0）
-        """
-        total = self._cache_hits + self._cache_misses
-        if total == 0:
-            return 0.0
-        return self._cache_hits / total
 
 
 # 全局内存管理器实例

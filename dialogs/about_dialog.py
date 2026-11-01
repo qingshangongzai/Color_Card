@@ -72,14 +72,14 @@ class AboutDialog(BaseFramelessDialog):
         scroll_area = ScrollArea()
         scroll_area.scrollDelagate.vScrollBar.setHandleDisplayMode(ScrollBarHandleDisplayMode.ON_HOVER)
         scroll_area.setWidgetResizable(True)
-        scroll_area.setStyleSheet(f"""
-            ScrollArea {{
+        scroll_area.setStyleSheet("""
+            ScrollArea {
                 background-color: transparent;
                 border: none;
-            }}
-            ScrollArea > QWidget > QWidget {{
+            }
+            ScrollArea > QWidget > QWidget {
                 background-color: transparent;
-            }}
+            }
         """)
 
         content_label = QLabel()
@@ -207,7 +207,7 @@ class AboutDialog(BaseFramelessDialog):
   • 出品：浮晓 HXiao Studio
   • 开发：青山公仔
   • 代码：Trae、Qoder、Kimi
-  • logo绘制：智谱清言
+  • logo设计：Deepseek、智谱轻言、青山公仔
   • 联系邮箱：hxiao_studio@163.com
 
 【第三方开源库使用说明】

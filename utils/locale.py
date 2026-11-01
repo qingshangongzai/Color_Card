@@ -3,8 +3,6 @@
 提供应用程序的多语言支持，包括语言包加载、切换和翻译文本获取。
 """
 
-from __future__ import annotations
-
 import os
 import sys
 import tomllib
@@ -160,6 +158,15 @@ class LocaleManager(QObject):
             except (OSError, subprocess.SubprocessError):
                 pass
 
+        # Windows: QLocale.system().name() 返回的是"区域格式"而非"显示语言"，
+        # 使用 uiLanguages() 获取首选 UI 语言（即显示语言），再规范化为下划线格式
+        if sys.platform == 'win32':
+            ui_languages = QLocale.system().uiLanguages()
+            if ui_languages:
+                ui_locale = QLocale(ui_languages[0])
+                if ui_locale.language() != QLocale.Language.C:
+                    return ui_locale.name()
+
         # 回退到 Qt 的方法
         return QLocale.system().name()
 
@@ -232,7 +239,7 @@ class LocaleManager(QObject):
         """
         return self.SUPPORTED_LANGUAGES.copy()
 
-    def tr(self, key: str, default: str | None = None, **kwargs) -> str:
+    def translate(self, key: str, default: str | None = None, **kwargs) -> str:
         """获取翻译文本
 
         Args:
@@ -298,7 +305,7 @@ def tr(key: str, default: str | None = None, **kwargs) -> str:
     Returns:
         str: 翻译后的文本
     """
-    return get_locale_manager().tr(key, default, **kwargs)
+    return get_locale_manager().translate(key, default, **kwargs)
 
 
 def set_language(language_code: str) -> bool:

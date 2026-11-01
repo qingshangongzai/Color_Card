@@ -1,7 +1,6 @@
-from __future__ import annotations
 # 标准库导入
 import sys
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 # 第三方库导入
 from PySide6.QtCore import Qt, QTimer
@@ -9,16 +8,13 @@ from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication, QLabel
 )
-from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme, isDarkTheme
+from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme
 
 # 项目模块导入
 from core import get_config_manager, get_logger
 from utils import tr, get_locale_manager
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
-
-if TYPE_CHECKING:
-    from PySide6.QtWidgets import QWidget
 
 # 工具按钮统一样式
 _TOOLBUTTON_STYLE = """
@@ -217,6 +213,7 @@ class MainWindow(FluentWindow):
             'colorAnalysis': ('ui.color_analysis', 'ColorAnalysisInterface'),
             'luminanceAnalysis': ('ui.luminance_analysis', 'LuminanceAnalysisInterface'),
             'gradientGeneration': ('ui.gradient_generation', 'GradientGenerationInterface'),
+            'paletteTuning': ('ui.palette_tuning', 'PaletteTuningInterface'),
             'colorGeneration': ('ui.color_generation', 'ColorGenerationInterface'),
             'paletteManagement': ('ui.palette_management', 'PaletteManagementInterface'),
             'presetColor': ('ui.preset_color', 'PresetColorInterface'),
@@ -225,7 +222,7 @@ class MainWindow(FluentWindow):
         }
 
         # 界面实例缓存
-        self._interfaces: dict[str, 'QWidget'] = {}
+        self._interfaces: dict[str, Any] = {}
 
         # 设置导航（按需创建界面）
         self.setup_navigation()
@@ -248,14 +245,14 @@ class MainWindow(FluentWindow):
         # 设置 Ctrl+V 粘贴图片快捷键
         self._setup_paste_shortcut()
 
-    def _get_interface(self, interface_id: str) -> 'QWidget':
+    def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
 
         Args:
             interface_id: 界面标识符
 
         Returns:
-            QWidget: 界面实例
+            界面实例
         """
         if interface_id not in self._interfaces:
             # 动态导入并创建
@@ -267,9 +264,6 @@ class MainWindow(FluentWindow):
             interface = interface_class(self)
             interface.setObjectName(interface_id)
 
-            # 设置导航图标
-            interface._nav_icon = self._NAV_ICON_MAP.get(interface_id)
-
             # 缓存并添加到堆叠窗口
             self._interfaces[interface_id] = interface
             self.stackedWidget.addWidget(interface)
@@ -279,7 +273,7 @@ class MainWindow(FluentWindow):
 
         return self._interfaces[interface_id]
 
-    def _on_interface_created(self, interface_id: str, interface: 'QWidget'):
+    def _on_interface_created(self, interface_id: str, interface: Any):
         """界面首次创建时的初始化
 
         Args:
@@ -303,7 +297,11 @@ class MainWindow(FluentWindow):
         if interface_id == 'gradientGeneration':
             interface.favorite_requested.connect(self._on_gradient_generation_favorite)
 
-    def _connect_settings_signals(self, settings_interface: 'QWidget'):
+        # 连接色彩微调界面的收藏信号
+        if interface_id == 'paletteTuning':
+            interface.favorite_requested.connect(self._on_palette_tuning_favorite)
+
+    def _connect_settings_signals(self, settings_interface: Any):
         """连接设置界面的信号
 
         Args:
@@ -500,6 +498,11 @@ class MainWindow(FluentWindow):
 
     def closeEvent(self, event):
         """窗口关闭事件，保存配置并清理后台线程"""
+        # 先落盘色彩微调状态（防抖计时器可能尚未触发）
+        palette_tuning_interface = self._interfaces.get('paletteTuning')
+        if palette_tuning_interface is not None:
+            palette_tuning_interface.flush_save()
+
         # 保存窗口状态（全屏和最大化需要区分保存）
         is_fullscreen = self.isFullScreen()
         is_maximized = self.isMaximized()
@@ -586,6 +589,14 @@ class MainWindow(FluentWindow):
             self._get_interface('gradientGeneration'),
             FluentIcon.BRUSH,
             tr('navigation.gradient_generation'),
+            position=NavigationItemPosition.TOP
+        )
+
+        # 色彩微调
+        self.addSubInterface(
+            self._get_interface('paletteTuning'),
+            FluentIcon.ALIGNMENT,
+            tr('navigation.palette_tuning'),
             position=NavigationItemPosition.TOP
         )
 
@@ -751,11 +762,16 @@ class MainWindow(FluentWindow):
         Args:
             favorite_data: 收藏数据字典
         """
-        # 保存到配置
+        self._save_favorite(favorite_data)
+
+    def _save_favorite(self, favorite_data: dict):
+        """保存收藏并刷新配色管理与配色预览
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
-
-        # 刷新配色管理界面和配色预览界面
         self.refresh_palette_management()
         self.refresh_color_preview()
 
@@ -765,13 +781,15 @@ class MainWindow(FluentWindow):
         Args:
             favorite_data: 收藏数据字典
         """
-        # 保存到配置
-        self._config_manager.add_favorite(favorite_data)
-        self._config_manager.save()
+        self._save_favorite(favorite_data)
 
-        # 刷新配色管理界面和配色预览界面
-        self.refresh_palette_management()
-        self.refresh_color_preview()
+    def _on_palette_tuning_favorite(self, favorite_data: dict):
+        """处理色彩微调界面的收藏请求
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
+        self._save_favorite(favorite_data)
 
     def _on_preset_color_preview(self, preview_data: dict[str, Any]):
         """处理内置色彩界面的预览请求
@@ -900,6 +918,7 @@ class MainWindow(FluentWindow):
             ('colorAnalysis', tr('navigation.color_analysis')),
             ('luminanceAnalysis', tr('navigation.luminance_analysis')),
             ('gradientGeneration', tr('navigation.gradient_generation')),
+            ('paletteTuning', tr('navigation.palette_tuning')),
             ('colorGeneration', tr('navigation.color_generation')),
             ('paletteManagement', tr('navigation.palette_management')),
             ('presetColor', tr('navigation.preset_color')),

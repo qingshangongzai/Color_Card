@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 import logging
 import sys
@@ -101,6 +100,11 @@ class LoggerManager:
         self._logger.addHandler(console_handler)
 
         self._initialized = True
+        from version import version_manager
+        version_line = f"应用版本: {version_manager.get_display_version()}"
+        if version_manager.commit_sha:
+            version_line += f", commit={version_manager.commit_sha}"
+        self._logger.info(version_line)
         self._logger.info("日志系统初始化完成")
 
         self._cleanup_old_logs()

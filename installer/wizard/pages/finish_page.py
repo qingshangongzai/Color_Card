@@ -1,5 +1,5 @@
 # 第三方库导入
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QLabel, QHBoxLayout
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QColor
 from qfluentwidgets import PrimaryPushButton, CheckBox
@@ -51,6 +51,9 @@ class FinishPage(BasePage):
 
         button_layout.addStretch(1)
         layout.addLayout(button_layout)
+
+        # 底部留白由弹性空间收住，按钮行按离屏实测对齐 y≈266（其它向导页同高）
+        layout.addStretch(1)
 
     def _finish(self):
         self._config['run_after_install'] = self._run_checkbox.isChecked()

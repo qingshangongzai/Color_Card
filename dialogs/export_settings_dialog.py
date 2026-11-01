@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 
 
@@ -209,6 +208,7 @@ class ExportSettingsDialog(BaseFramelessDialog):
         Returns:
             str: 文件名前缀，如果为空则返回默认值
         """
+        assert self._filename_input is not None
         prefix = self._filename_input.text().strip()
         if not prefix:
             prefix = tr('color_preview.export_default_name')

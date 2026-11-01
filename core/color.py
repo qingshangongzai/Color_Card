@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 import colorsys
 from typing import Any
@@ -217,9 +216,7 @@ def _qimage_to_numpy(image: QImage) -> np.ndarray:
 
 SATURATION_STEPS = [1.0, 0.75, 0.5, 0.25]
 MIN_SATURATION = 20
-DEFAULT_BRIGHTNESS_STEPS = [100, 90, 80, 70]
-DEFAULT_ANALOGOUS_ANGLE = 30
-DEFAULT_SPLIT_ANGLE = 30
+DEFAULT_BRIGHTNESS_STEPS = [100.0, 90.0, 80.0, 70.0]
 
 # Zone分区宽度常量 (255/9 = 28.333...)
 ZONE_WIDTH = 255 / 9
@@ -789,6 +786,25 @@ def _rgb_to_hsv_vectorized(r: np.ndarray, g: np.ndarray, b: np.ndarray) -> tuple
     return h, s, v
 
 
+def _hsb_to_rgb_float(h: float, s: float, b: float) -> tuple[float, float, float]:
+    """将HSB转换为浮点RGB（内部函数，不取整）
+
+    Args:
+        h: 色相 (0-360)
+        s: 饱和度 (0-100)
+        b: 亮度 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
+    """
+    h_norm = h / 360.0
+    s_norm = s / 100.0
+    v_norm = b / 100.0
+
+    r, g, b_out = colorsys.hsv_to_rgb(h_norm, s_norm, v_norm)
+    return r * 255, g * 255, b_out * 255
+
+
 def hsb_to_rgb(h: float, s: float, b: float) -> tuple[int, int, int]:
     """将HSB转换为RGB
 
@@ -800,16 +816,14 @@ def hsb_to_rgb(h: float, s: float, b: float) -> tuple[int, int, int]:
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    h_norm = h / 360.0
-    s_norm = s / 100.0
-    v_norm = b / 100.0
-
-    r, g, b_out = colorsys.hsv_to_rgb(h_norm, s_norm, v_norm)
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    r, g, b_out = _hsb_to_rgb_float(h, s, b)
+    return round(r), round(g), round(b_out)
 
 
-def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> tuple[int, int, int]:
-    """将LAB转换为RGB
+def _lab_to_rgb_float(
+    L: float, A: float, B: float, colorspace_name: str = 'sRGB'
+) -> tuple[float, float, float]:
+    """将LAB转换为浮点RGB（内部函数，不取整；超色域截断）
 
     Args:
         L: 亮度 (0-100)
@@ -818,7 +832,7 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
         colorspace_name: 色彩空间名称，默认 sRGB
 
     Returns:
-        tuple: (R 0-255, G 0-255, B 0-255)
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
     """
     cs = _get_colorspace_matrices(colorspace_name)
     m = cs['xyz_to_rgb']
@@ -855,7 +869,42 @@ def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> t
     g = min(1, g)
     b_out = min(1, b_out)
 
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    return r * 255, g * 255, b_out * 255
+
+
+def lab_to_rgb(L: float, A: float, B: float, colorspace_name: str = 'sRGB') -> tuple[int, int, int]:
+    """将LAB转换为RGB
+
+    Args:
+        L: 亮度 (0-100)
+        A: 红绿对立通道 (-128-127)
+        B: 黄蓝对立通道 (-128-127)
+        colorspace_name: 色彩空间名称，默认 sRGB
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255)
+    """
+    r, g, b_out = _lab_to_rgb_float(L, A, B, colorspace_name)
+    return round(r), round(g), round(b_out)
+
+
+def _hsl_to_rgb_float(H: float, S: float, L: float) -> tuple[float, float, float]:
+    """将HSL转换为浮点RGB（内部函数，不取整）
+
+    Args:
+        H: 色相 (0-360)
+        S: 饱和度 (0-100)
+        L: 亮度 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
+    """
+    H_norm = H / 360.0
+    S_norm = S / 100.0
+    L_norm = L / 100.0
+
+    R, G, B_out = colorsys.hls_to_rgb(H_norm, L_norm, S_norm)
+    return R * 255, G * 255, B_out * 255
 
 
 def hsl_to_rgb(H: float, S: float, L: float) -> tuple[int, int, int]:
@@ -869,12 +918,32 @@ def hsl_to_rgb(H: float, S: float, L: float) -> tuple[int, int, int]:
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    H_norm = H / 360.0
-    S_norm = S / 100.0
-    L_norm = L / 100.0
+    R, G, B_out = _hsl_to_rgb_float(H, S, L)
+    return round(R), round(G), round(B_out)
 
-    R, G, B_out = colorsys.hls_to_rgb(H_norm, L_norm, S_norm)
-    return round(R * 255), round(G * 255), round(B_out * 255)
+
+def _cmyk_to_rgb_float(c: float, m: float, y: float, k: float) -> tuple[float, float, float]:
+    """将CMYK转换为浮点RGB（内部函数，不取整）
+
+    Args:
+        c: 青色 (0-100)
+        m: 品红 (0-100)
+        y: 黄色 (0-100)
+        k: 黑色 (0-100)
+
+    Returns:
+        tuple: (R 0-255, G 0-255, B 0-255) 浮点值
+    """
+    c_norm = c / 100.0
+    m_norm = m / 100.0
+    y_norm = y / 100.0
+    k_norm = k / 100.0
+
+    r = (1 - c_norm) * (1 - k_norm)
+    g = (1 - m_norm) * (1 - k_norm)
+    b_out = (1 - y_norm) * (1 - k_norm)
+
+    return r * 255, g * 255, b_out * 255
 
 
 def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> tuple[int, int, int]:
@@ -889,16 +958,8 @@ def cmyk_to_rgb(c: float, m: float, y: float, k: float) -> tuple[int, int, int]:
     Returns:
         tuple: (R 0-255, G 0-255, B 0-255)
     """
-    c_norm = c / 100.0
-    m_norm = m / 100.0
-    y_norm = y / 100.0
-    k_norm = k / 100.0
-
-    r = (1 - c_norm) * (1 - k_norm)
-    g = (1 - m_norm) * (1 - k_norm)
-    b_out = (1 - y_norm) * (1 - k_norm)
-
-    return round(r * 255), round(g * 255), round(b_out * 255)
+    r, g, b_out = _cmyk_to_rgb_float(c, m, y, k)
+    return round(r), round(g), round(b_out)
 
 
 # ========== 配色方案内部实现（私有函数）==========
@@ -967,7 +1028,7 @@ def _build_analogous_colors(
         distance_from_center = abs(i - len(rgb_hues) / 2) / (len(rgb_hues) / 2)
         saturation_variation = 1 - distance_from_center * 0.3
         s = max(60, min(100, base_saturation * saturation_variation))
-        colors.append((h % 360, s, 90))
+        colors.append((h % 360, s, 90.0))
     return colors
 
 
@@ -1057,7 +1118,7 @@ def _build_split_complementary_colors(
         for i in range(remaining):
             blend_hue = (base_hue + (i + 1) * 60) % 360
             s = max(50, base_saturation * (0.7 - i * 0.1))
-            colors.append((blend_hue, s, 85))
+            colors.append((blend_hue, s, 85.0))
 
     return colors
 
@@ -1092,7 +1153,7 @@ def _build_double_complementary_colors(
         for i in range(4, count):
             blend_hue = (hues[0] + i * 45) % 360
             s = max(50, saturations[0] * (0.7 - (i - 4) * 0.1))
-            colors.append((blend_hue, s, 85))
+            colors.append((blend_hue, s, 85.0))
 
     return colors
 
@@ -1535,7 +1596,7 @@ def extract_dominant_colors_kmeans(
     cluster_sizes = [(labels == i).sum() for i in range(count)]
     sorted_indices = np.argsort(cluster_sizes)[::-1]
 
-    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]
+    return [tuple(int(round(c)) for c in centroids[i]) for i in sorted_indices]  # type: ignore[return-value]
 
 
 def extract_dominant_colors(

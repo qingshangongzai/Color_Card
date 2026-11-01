@@ -3,8 +3,6 @@
 提供 WCAG 2.1 标准的颜色对比度计算和等级判断功能。
 """
 
-from __future__ import annotations
-
 
 def calculate_relative_luminance(rgb: tuple[int, int, int]) -> float:
     """计算颜色的相对亮度
@@ -105,7 +103,7 @@ def get_wcag_level(ratio: float, is_large_text: bool = False) -> str:
 def get_contrast_info(
     rgb1: tuple[int, int, int],
     rgb2: tuple[int, int, int]
-) -> Dict:
+) -> dict:
     """获取完整的对比度信息
     
     Args:

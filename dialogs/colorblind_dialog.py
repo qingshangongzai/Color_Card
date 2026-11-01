@@ -3,8 +3,6 @@
 提供配色方案的色盲模拟预览功能，支持多种色盲类型切换和严重程度调节。
 """
 
-from __future__ import annotations
-
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget

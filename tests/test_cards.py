@@ -5,7 +5,6 @@
 
 # 第三方库导入
 import pytest
-from PySide6.QtCore import Qt
 from qfluentwidgets import qconfig
 
 # 项目模块导入

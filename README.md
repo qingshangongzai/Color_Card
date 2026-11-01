@@ -37,6 +37,7 @@
 
 - **主仓库（Gitee）**：<https://gitee.com/HxiaoStudio/Color_Card>
 - **镜像仓库（GitHub）**：<https://github.com/qingshangongzai/Color_Card>
+- **镜像仓库（GitCode）**：<https://gitcode.com/HxiaoStudio/Color_Card>
 - **官方网站**：<https://color-card.hxiaostudio.cn>
 
 ### 🚀 开发历程
@@ -45,27 +46,27 @@
 
 | 指标    | 数据                       |
 | :---- | :----------------------- |
-| 发布版本  | 17 个版本（v1.0.0 → v1.11.0） |
-| 开发周期  | 122 天                    |
-| 总更新项  | **204 项**                |
-| 平均每版本 | 12.0 项                   |
+| 发布版本  | 18 个版本（v1.0.0 → v1.12.0） |
+| 开发周期  | 269 天                    |
+| 总更新项  | **214 项**                |
+| 平均每版本 | 11.9 项                   |
 
 **详细分类统计**：
 
 | 分类       |   数量   | 说明              |
 | :------- | :----: | :-------------- |
-| ✨ 新增功能   | **50** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **46** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **48** | 用户体验打磨          |
-| ⚡ 性能提升   | **19** | 缓存机制、启动优化等      |
-| 📝 内容调整  | **13** | 文本、名称等调整        |
-| ⚙️ 体验优化  |  **7** | 交互体验改进          |
-| 🏗️ 代码优化 |  **7** | 代码结构优化          |
+| ✨ 新增功能   | **53** | 包含首次发布的 9 项核心功能 |
+| 🔧 问题修复  | **50** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **51** | 用户体验打磨          |
+| ⚡ 性能提升   | **18** | 缓存机制、启动优化等      |
+| 📝 内容调整  | **15** | 文本、名称等调整        |
+| ⚙️ 体验优化  | **10** | 交互体验改进          |
+| 🏗️ 代码优化 |  **9** | 代码结构优化          |
 | 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
+| 📛 命名调整  |  **3** | 面板名称统一          |
 | 🖥️ 平台支持 |  **1** | Mac 版本适配        |
 | 📜 许可证完善 |  **1** | 开源合规性           |
 | 🚀 功能优化  |  **1** | 功能增强            |
-| 📛 命名调整  |  **1** | 面板名称统一          |
 
 ### ✨ 核心功能特色
 
@@ -324,6 +325,7 @@ Unlike common color tools or websites that only provide a single function, Color
 
 - **Primary Repository (Gitee)**: <https://gitee.com/HxiaoStudio/Color_Card>
 - **Mirror Repository (GitHub)**: <https://github.com/qingshangongzai/Color_Card>
+- **Mirror Repository (GitCode)**: <https://gitcode.com/HxiaoStudio/Color_Card>
 - **Official Website**: <https://color-card.hxiaostudio.cn>
 
 ### 🚀 Development Journey
@@ -332,27 +334,27 @@ Since the release of the first version on 2026-02-05, the project has maintained
 
 | Metric              | Data                           |
 | :------------------ | :----------------------------- |
-| Released Versions   | 16 versions (v1.0.0 → v1.10.2) |
-| Development Period  | 115 days                       |
-| Total Updates       | **191 items**                  |
+| Released Versions   | 18 versions (v1.0.0 → v1.12.0) |
+| Development Period  | 269 days                       |
+| Total Updates       | **214 items**                  |
 | Average per Version | 11.9 items                     |
 
 **Detailed Category Statistics**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
-| ✨ New Features         | **48** | Including 9 core features from v1.0.0 launch |
-| 🔧 Bug Fixes           | **44** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **47** | User experience refinements                  |
-| ⚡ Performance          | **12** | Cache mechanism, startup optimization        |
-| 📝 Content Adjustments | **13** | Text, naming adjustments                     |
-| ⚙️ Experience          |  **7** | Interaction improvements                     |
-| 🏗️ Code Optimization  |  **6** | Code structure optimization                  |
+| ✨ New Features         | **53** | Including 9 core features from v1.0.0 launch |
+| 🔧 Bug Fixes           | **50** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **51** | User experience refinements                  |
+| ⚡ Performance          | **18** | Cache mechanism, startup optimization        |
+| 📝 Content Adjustments | **15** | Text, naming adjustments                     |
+| ⚙️ Experience          | **10** | Interaction improvements                     |
+| 🏗️ Code Optimization  |  **9** | Code structure optimization                  |
 | 🔮 Logic Optimization  |  **2** | Algorithm improvements                       |
+| 📛 Naming Adjustment   |  **3** | Panel name unification                       |
 | 🖥️ Platform Support   |  **1** | Mac version adaptation                       |
 | 📜 License Compliance  |  **1** | Open source compliance                       |
 | 🚀 Feature Enhancement |  **1** | Feature enhancements                         |
-| 📛 Naming Adjustment   |  **1** | Panel name unification                       |
 
 ### ✨ Key Features
 

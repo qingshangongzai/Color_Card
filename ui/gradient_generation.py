@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 import uuid
 from datetime import datetime
@@ -69,10 +68,6 @@ class ColorDot(QWidget):
         self._color = hex_color
         self._update_styles()
         self.update()
-
-    def get_color(self) -> str:
-        """获取当前颜色"""
-        return self._color
 
     def mousePressEvent(self, event):
         """鼠标按下事件"""
@@ -146,6 +141,7 @@ class GradientPreviewWidget(QWidget):
         限制范围：第2个色块(索引1)到倒数第2个色块(索引color_count-2)
         """
         color_count = len(self._colors)
+        assert self._mid_position is not None
         block_index = round(self._mid_position * (color_count - 1))
         return max(1, min(color_count - 2, block_index))
 
@@ -305,6 +301,7 @@ class GradientCardPanel(QWidget):
             card.set_color(color_info)
 
             self._cards.append(card)
+            assert current_row_layout is not None
             current_row_layout.addWidget(card, stretch=1)
 
         # 添加拉伸因子使卡片均匀分布

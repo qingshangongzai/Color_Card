@@ -1,10 +1,9 @@
-from __future__ import annotations
 # 标准库导入
 from typing import Any
 
 # 第三方库导入
 from PySide6.QtWidgets import QStackedWidget, QVBoxLayout
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QTimer
 from qfluentwidgets import setThemeColor
 
 # 项目模块导入

@@ -6,8 +6,10 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-# 将项目根目录添加到 sys.path（确保 installer 模块可导入）
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# 源码直接运行时将项目根目录加入 sys.path；打包后 sys.path 已由运行时配置，
+# 再插入会把解压目录里的 .py 副本顶到导入优先级之上，导致模块半初始化
+if '__compiled__' not in globals():
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 def set_app_user_model_id():
@@ -101,13 +103,13 @@ def _create_splash_screen(project_root: str):
 if sys.platform == 'win32':
     import winreg
 
-# 第三方库导入
-from PySide6.QtWidgets import QApplication
-from qfluentwidgets import setTheme, Theme
+# 第三方库导入（必须在 set_app_user_model_id 之后导入）
+from PySide6.QtWidgets import QApplication  # noqa: E402
+from qfluentwidgets import setTheme, Theme  # noqa: E402
 
-# 项目模块导入
-from installer.core.registry_installer import REGISTRY_KEY
-from installer.core.permission_checker import is_frozen, get_exe_path
+# 项目模块导入（必须在 set_app_user_model_id 之后导入）
+from installer.core.registry_installer import REGISTRY_KEY  # noqa: E402
+from installer.core.permission_checker import is_frozen, get_exe_path  # noqa: E402
 
 
 def _get_install_path() -> str:
@@ -188,6 +190,7 @@ def run_installer(
     from installer.wizard.install_wizard import InstallWizard
     from installer.wizard.pages.welcome_page import WelcomePage
     from installer.wizard.pages.install_path_page import InstallPathPage
+    from installer.wizard.pages.update_page import UpdatePage
     from installer.wizard.pages.progress_page import ProgressPage
     from installer.wizard.pages.finish_page import FinishPage
     from installer.core.install_service import InstallService
@@ -196,10 +199,14 @@ def run_installer(
 
     wizard.add_page(WelcomePage())
 
-    path_page = InstallPathPage()
-    if old_install_path:
-        path_page.set_default_path(old_install_path)
-    wizard.add_page(path_page)
+    # 旧安装目录仍在才算更新：注册表有残留但目录被删时回退到新安装
+    if old_install_path and Path(old_install_path).exists():
+        wizard.add_page(UpdatePage(old_install_path))
+    else:
+        path_page = InstallPathPage()
+        if old_install_path:
+            path_page.set_default_path(old_install_path)
+        wizard.add_page(path_page)
 
     progress_page = ProgressPage()
     install_service = InstallService()
@@ -220,7 +227,7 @@ def _get_project_root() -> str:
     """获取项目根目录
 
     PyInstaller：sys._MEIPASS（临时解压目录）
-    Nuitka：__file__ 所在目录（与 logo 在同一临时解压目录）
+    Nuitka：入口脚本 __file__ 所在目录（与 logo 在同一临时解压目录）
     开发环境：installer/main.py 的父目录
 
     Returns:
@@ -230,7 +237,8 @@ def _get_project_root() -> str:
         return sys._MEIPASS
     import __main__
     if getattr(__main__, '__compiled__', False):
-        return str(Path(__file__).resolve().parent)
+        # 以入口脚本所在目录为准，入口迁移时不会因本模块自身路径而取错
+        return str(Path(__main__.__file__).resolve().parent)
     return str(Path(__file__).resolve().parent.parent)
 
 
@@ -433,7 +441,7 @@ def main():
         else:
             sys.exit(0)
     else:
-        window = run_main_app()
+        run_main_app()
         sys.exit(app.exec())
 
 

@@ -1,12 +1,8 @@
-from __future__ import annotations
 # 标准库导入
 import ctypes
+import ctypes.wintypes
 import os
-import sys
 
-
-# 第三方库导入
-from PySide6.QtCore import QObject, QTimer, Signal
 
 # 项目模块导入
 from .icon import get_icon_path
@@ -14,6 +10,11 @@ from .icon import get_icon_path
 
 # AllowSetForegroundWindow 常量
 ASFW_ANY = -1  # 允许任何进程设置前台窗口
+
+# LoadImageW 返回 HICON（64 位句柄），提前声明返回类型避免被 ctypes 默认的
+# c_int 截断；仅在 Windows 下设置，保证跨平台 import 不失败
+if os.name == 'nt':
+    ctypes.windll.user32.LoadImageW.restype = ctypes.wintypes.HANDLE
 
 
 def set_app_user_model_id() -> bool:
@@ -83,25 +84,47 @@ def fix_windows_taskbar_icon_for_window(window) -> bool:
 
         # 加载图标
         if icon_path.lower().endswith('.ico'):
-            h_icon = user32.LoadImageW(
+            # 注意：不能使用 cx=0, cy=0（按实际大小加载）！
+            # 对多帧 ICO，LoadImageW 会加载目录中的第一帧（通常是最小的
+            # 16x16 帧），任务栏将其放大显示会模糊。
+            # 这里显式指定系统大图标尺寸（100% DPI 为 32x32，150% 为 48x48），
+            # 让 LoadImageW 选中 ICO 中对应的原生帧。
+            cx_icon = user32.GetSystemMetrics(11)  # SM_CXICON
+            cy_icon = user32.GetSystemMetrics(12)  # SM_CYICON
+
+            # 大图标：任务栏使用（尺寸随系统 DPI 变化）
+            h_icon_big = user32.LoadImageW(
                 None, icon_path,
                 1,  # IMAGE_ICON
-                0, 0,  # 使用实际大小
+                cx_icon, cy_icon,  # 按系统图标尺寸加载，避免选中最小帧
+                0x00000010  # LR_LOADFROMFILE
+            )
+
+            # 小图标：窗口标题栏使用（16x16）
+            h_icon_small = user32.LoadImageW(
+                None, icon_path,
+                1,  # IMAGE_ICON
+                16, 16,
                 0x00000010  # LR_LOADFROMFILE
             )
         else:
-            # 对于 PNG 等格式，需要先加载为位图
+            # PNG 兜底分支（实际不可达：get_icon_path() 只返回 .ico）
+            # 注意：bits() 返回的是像素缓冲区指针而非 HICON，该分支设置的
+            # 图标实际不会生效，保留仅为兼容历史行为。
             from PySide6.QtGui import QPixmap
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
-                h_icon = pixmap.toImage().bits()
+                h_icon_big = pixmap.toImage().bits()
+                h_icon_small = h_icon_big
             else:
                 return False
 
-        if h_icon:
-            # 设置图标（大图标和小图标）
-            user32.SendMessageW(hwnd, 0x0080, 1, h_icon)  # WM_SETICON, ICON_BIG
-            user32.SendMessageW(hwnd, 0x0080, 0, h_icon)  # WM_SETICON, ICON_SMALL
+        if h_icon_big or h_icon_small:
+            # 设置图标（大图标和小图标分别使用合适的尺寸）
+            if h_icon_big:
+                user32.SendMessageW(hwnd, 0x0080, 1, h_icon_big)  # WM_SETICON, ICON_BIG
+            if h_icon_small:
+                user32.SendMessageW(hwnd, 0x0080, 0, h_icon_small)  # WM_SETICON, ICON_SMALL
 
             # 强制刷新任务栏
             user32.UpdateWindow(hwnd)
@@ -146,66 +169,3 @@ def force_window_to_front(window) -> bool:
 
     except (AttributeError, OSError, RuntimeError):
         return False
-
-
-class WindowIconMixin(QObject):
-    """窗口图标修复混入类，提供统一的任务栏图标修复功能
-
-    使用示例：
-        class MyWindow(QMainWindow, WindowIconMixin):
-            def __init__(self):
-                super().__init__()
-                # ... 其他初始化代码 ...
-
-            def showEvent(self, event):
-                super().showEvent(event)
-                self.setup_icon_fixing()
-    """
-
-    icon_fixed = Signal(bool)
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._icon_fixed: bool = False
-        self._fix_timer: QTimer | None = None
-
-    def setup_icon_fixing(self, delay_ms: int = 100) -> None:
-        """设置图标修复，在窗口显示后调用
-
-        Args:
-            delay_ms: 延迟时间（毫秒），默认 100ms
-        """
-        if self._icon_fixed:
-            return
-
-        if os.name == 'nt':
-            self._fix_timer = QTimer()
-            self._fix_timer.setSingleShot(True)
-            self._fix_timer.timeout.connect(self._fix_icon_safe)
-            self._fix_timer.start(delay_ms)
-
-    def _fix_icon_safe(self) -> bool:
-        """安全修复任务栏图标
-
-        Returns:
-            bool: 修复成功返回 True，失败返回 False
-        """
-        try:
-            if self._icon_fixed:
-                return True
-
-            success = fix_windows_taskbar_icon_for_window(self)
-            self._icon_fixed = True
-            self.icon_fixed.emit(success)
-            return success
-        except (AttributeError, OSError, RuntimeError):
-            self.icon_fixed.emit(False)
-            return False
-
-    def fix_taskbar_icon(self) -> bool:
-        """修复任务栏图标 - 兼容旧接口
-
-        Returns:
-            bool: 修复成功返回 True，失败返回 False
-        """
-        return self._fix_icon_safe()

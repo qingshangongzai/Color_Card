@@ -1,7 +1,7 @@
 # 第三方库导入
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QLabel, QHBoxLayout
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QPixmap, QColor
+from PySide6.QtGui import QIcon, QColor
 from qfluentwidgets import PrimaryPushButton, PushButton
 # 项目模块导入
 from installer.wizard.base_page import BasePage
@@ -70,6 +70,9 @@ class WelcomePage(BasePage):
 
         button_layout.addStretch(1)
         layout.addLayout(button_layout)
+
+        # 底部留白用更大权重，按钮行按离屏实测对齐 y≈265（其它向导页同高）
+        layout.addStretch(3)
 
     def _update_styles(self):
         super()._update_styles()

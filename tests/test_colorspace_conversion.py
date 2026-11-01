@@ -6,7 +6,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # 项目模块导入
-from core.color import rgb_to_lab, lab_to_rgb, _COLORSPACE_MATRICES
+from core.color import rgb_to_lab, lab_to_rgb, _COLORSPACE_MATRICES  # noqa: E402
 
 
 def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tuple):
@@ -26,7 +26,7 @@ def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tu
         return False
     
     if colorspace_name == 'Adobe RGB' and cs['use_srgb_curve']:
-        print(f"  [X] Adobe RGB 不应使用 sRGB 曲线")
+        print("  [X] Adobe RGB 不应使用 sRGB 曲线")
         return False
     
     test_cases = [
@@ -38,9 +38,9 @@ def test_colorspace(colorspace_name: str, expected_gamma: float, expected_wp: tu
         ((128, 128, 128), "中灰", None, None, None),
     ]
     
-    print(f"\n测试结果:")
+    print("\n测试结果:")
     all_ok = True
-    for (r, g, b), name, exp_L, exp_A, exp_B in test_cases:
+    for (r, g, b), name, exp_L, _, _ in test_cases:
         L, A, B = rgb_to_lab(r, g, b, colorspace_name)
         print(f"  {name:8s} RGB({r:3d}, {g:3d}, {b:3d}) -> LAB({L:7.2f}, {A:7.2f}, {B:7.2f})")
         
@@ -75,7 +75,7 @@ def test_roundtrip():
                 all_ok = False
     
     if all_ok:
-        print(f"\n  [OK] 所有往返转换误差 <= 1")
+        print("\n  [OK] 所有往返转换误差 <= 1")
     
     return all_ok
 

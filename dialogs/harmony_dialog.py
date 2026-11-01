@@ -3,8 +3,6 @@
 分析配色方案的和谐类型、评分，并提供色相环可视化和优化建议。
 """
 
-from __future__ import annotations
-
 import math
 
 # 第三方库导入
@@ -35,7 +33,7 @@ class HarmonyWheel(QWidget):
 
     def __init__(self, colors: list[dict], parent=None):
         self._colors = colors
-        self._hue_values = []
+        self._hue_values: list[float] = []
         super().__init__(parent)
         self.setFixedSize(200, 200)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)

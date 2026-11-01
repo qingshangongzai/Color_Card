@@ -131,6 +131,31 @@ def requires_admin(path: str | Path) -> bool:
         return True
 
 
+def validate_install_path(path: str) -> bool:
+    """校验安装路径是否可用
+
+    Args:
+        path: 安装路径
+
+    Returns:
+        bool: 是否可用
+    """
+    if not path or not path.strip():
+        return False
+
+    # 系统关键目录不允许作为安装目录
+    critical_paths = [
+        os.environ.get('SystemRoot', 'C:\\Windows'),
+        os.environ.get('SystemRoot', 'C:\\Windows') + '\\System32',
+    ]
+
+    for critical in critical_paths:
+        if critical and path.lower().startswith(critical.lower()):
+            return False
+
+    return True
+
+
 def run_as_admin(
     install_path: str | None = None,
     create_desktop_shortcut: bool = True,
