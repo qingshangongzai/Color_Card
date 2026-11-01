@@ -71,6 +71,9 @@ class WelcomePage(BasePage):
         button_layout.addStretch(1)
         layout.addLayout(button_layout)
 
+        # 底部留白用更大权重，按钮行按离屏实测对齐 y≈265（其它向导页同高）
+        layout.addStretch(3)
+
     def _update_styles(self):
         super()._update_styles()
 

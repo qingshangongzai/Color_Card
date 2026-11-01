@@ -65,7 +65,8 @@ class InstallPathPage(BasePage):
         self._update_space_info()
         layout.addWidget(self._space_label)
 
-        layout.addStretch(1)
+        # 上方两段留白权重 2:2 对应按钮行下方 1，按钮行落在 y≈276（与其它向导页同高）
+        layout.addStretch(2)
 
         # 快捷方式选项
         options_layout = QVBoxLayout()
@@ -83,7 +84,8 @@ class InstallPathPage(BasePage):
 
         layout.addLayout(options_layout)
 
-        layout.addStretch(1)
+        # 与上方留白同为 2，配比见上一处注释
+        layout.addStretch(2)
 
         # 导航按钮
         button_layout = QHBoxLayout()
@@ -100,7 +102,13 @@ class InstallPathPage(BasePage):
         self._install_button.clicked.connect(self._start_install)
         button_layout.addWidget(self._install_button)
 
+        # 左右弹性空间使按钮行居中
+        button_layout.addStretch(1)
+
         layout.addLayout(button_layout)
+
+        # 底部留白由弹性空间收住，按钮行不贴底
+        layout.addStretch(1)
 
         self._set_default_path()
 
