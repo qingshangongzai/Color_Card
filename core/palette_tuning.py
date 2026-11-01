@@ -8,7 +8,6 @@
 刷新、提示等）不在此实现。
 """
 
-from __future__ import annotations
 # 标准库导入
 import math
 import re

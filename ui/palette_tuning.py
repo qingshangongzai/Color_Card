@@ -4,7 +4,6 @@
 core.palette_tuning.PaletteTuningEngine 提供，本模块只负责展示与交互。
 """
 
-from __future__ import annotations
 # 标准库导入
 import math
 import re

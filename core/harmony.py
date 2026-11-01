@@ -3,8 +3,6 @@
 提供配色方案的色彩和谐度计算，支持多种和谐类型判断和评分。
 """
 
-from __future__ import annotations
-
 import math
 
 

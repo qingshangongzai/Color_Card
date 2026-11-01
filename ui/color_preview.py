@@ -11,7 +11,6 @@
 - 预览工具栏
 - 配色预览界面
 """
-from __future__ import annotations
 
 # 标准库导入
 from pathlib import Path
