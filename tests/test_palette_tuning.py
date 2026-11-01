@@ -452,6 +452,34 @@ class TestStepParam:
         assert engine.items[0].offset['s'] == 0.0
 
 
+class TestStepBaseChannel:
+    def test_step_increments_and_decrements(self):
+        """基色通道步进 ±1"""
+        engine = PaletteTuningEngine()
+        engine.step_base_channel('h', 1)
+        engine.step_base_channel('s', -1)
+        ch = engine.base_channels()
+        assert ch['h'] == 181.0
+        assert ch['s'] == 49.0
+
+    def test_step_boundary_no_op(self):
+        """基色通道到上下界无操作"""
+        engine = PaletteTuningEngine()
+        engine.set_base_channel('s', 100.0)
+        engine.step_base_channel('s', 1)
+        assert engine.base_channels()['s'] == 100.0
+        engine.set_base_channel('s', 0.0)
+        engine.step_base_channel('s', -1)
+        assert engine.base_channels()['s'] == 0.0
+
+    def test_step_recomposes_unlocked_cards(self):
+        """基色步进后联动卡片跟随变化"""
+        engine = PaletteTuningEngine()
+        before = hex_now(engine.items[0].final_rgb)
+        engine.step_base_channel('h', 1)
+        assert hex_now(engine.items[0].final_rgb) != before
+
+
 # ==================== 写后重算契约 ====================
 
 class TestRecomposeContract:

@@ -359,6 +359,20 @@ class PaletteTuningEngine:
         self._edited = None if mode.key == 'lab' else (mode.key, ch)
         self._recompose_unlocked()
 
+    def step_base_channel(self, key: str, direction: int) -> None:
+        """基色通道步进 ±1（到边界无操作）
+
+        Args:
+            key: 通道键（当前模式的通道）
+            direction: 步进方向（+1 / -1）
+        """
+        spec = MODES[self._mode].channel_of(key)
+        current = self.base_channels()[key]
+        nxt = _clamp(_round_prec(current + direction * STEP, spec.dec), spec.min, spec.max)
+        if abs(nxt - current) < 1e-9:
+            return
+        self.set_base_channel(key, nxt)
+
     def set_base_hex(self, hex_str: str) -> str | None:
         """将合法 HEX 应用为基色
 

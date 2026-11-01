@@ -664,7 +664,7 @@ class TuneCard(BaseCard):
 # ==================== 基色通道行 ====================
 
 class BaseChannelRow(QWidget):
-    """基色控制台通道行：滑块 + 数值框"""
+    """基色控制台通道行：滑块 + 步进按钮 + 数值框"""
 
     def __init__(self, spec, interface, parent=None):
         super().__init__(parent)
@@ -679,17 +679,24 @@ class BaseChannelRow(QWidget):
         self._label = QLabel(tr(spec.label_key))
         self._label.setFixedWidth(16)
 
+        self._dec_btn = RepeatToolButton(FluentIcon.REMOVE, self)
+        self._inc_btn = RepeatToolButton(FluentIcon.ADD, self)
+
         self._slider = ChannelSlider(self)
         self._slider.setRange(int(spec.min), int(spec.max))
 
         self._num = NumericLineEdit(self)
 
         layout.addWidget(self._label)
+        layout.addWidget(self._dec_btn)
         layout.addWidget(self._slider, 1)
+        layout.addWidget(self._inc_btn)
         layout.addWidget(self._num)
 
         self._slider.valueChanged.connect(self._on_slider_changed)
         self._num.editingFinished.connect(self._on_num_finished)
+        self._dec_btn.clicked.connect(lambda: self._interface._step_base_channel(spec.key, -1))
+        self._inc_btn.clicked.connect(lambda: self._interface._step_base_channel(spec.key, 1))
 
     def update_texts(self):
         """更新多语言文本"""
@@ -705,6 +712,8 @@ class BaseChannelRow(QWidget):
     def refresh(self, channels: dict[str, float], track_colors: list[str]):
         """刷新显示值"""
         value = channels[self._spec.key]
+        self._dec_btn.setEnabled(not (value <= self._spec.min + BOUNDARY_EPSILON))
+        self._inc_btn.setEnabled(not (value >= self._spec.max - BOUNDARY_EPSILON))
         self._updating = True
         self._slider.setValue(int(_round_prec(value, 0)))
         self._updating = False
@@ -1037,6 +1046,12 @@ class PaletteTuningInterface(QWidget):
     def _on_base_channel(self, key: str, value: float):
         """基色通道值变更"""
         self._engine.set_base_channel(key, value)
+        self._refresh_all()
+        self._mark_dirty()
+
+    def _step_base_channel(self, key: str, direction: int):
+        """基色通道步进 ±1"""
+        self._engine.step_base_channel(key, direction)
         self._refresh_all()
         self._mark_dirty()
 
