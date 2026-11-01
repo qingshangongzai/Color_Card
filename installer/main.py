@@ -190,6 +190,7 @@ def run_installer(
     from installer.wizard.install_wizard import InstallWizard
     from installer.wizard.pages.welcome_page import WelcomePage
     from installer.wizard.pages.install_path_page import InstallPathPage
+    from installer.wizard.pages.update_page import UpdatePage
     from installer.wizard.pages.progress_page import ProgressPage
     from installer.wizard.pages.finish_page import FinishPage
     from installer.core.install_service import InstallService
@@ -198,10 +199,14 @@ def run_installer(
 
     wizard.add_page(WelcomePage())
 
-    path_page = InstallPathPage()
-    if old_install_path:
-        path_page.set_default_path(old_install_path)
-    wizard.add_page(path_page)
+    # 旧安装目录仍在才算更新：注册表有残留但目录被删时回退到新安装
+    if old_install_path and Path(old_install_path).exists():
+        wizard.add_page(UpdatePage(old_install_path))
+    else:
+        path_page = InstallPathPage()
+        if old_install_path:
+            path_page.set_default_path(old_install_path)
+        wizard.add_page(path_page)
 
     progress_page = ProgressPage()
     install_service = InstallService()

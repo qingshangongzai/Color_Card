@@ -9,7 +9,7 @@ from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton, CheckBox
 
 # 项目模块导入
 from installer.wizard.base_page import BasePage
-from installer.core.permission_checker import is_admin, requires_admin
+from installer.core.permission_checker import is_admin, requires_admin, validate_install_path
 
 
 class InstallPathPage(BasePage):
@@ -65,7 +65,8 @@ class InstallPathPage(BasePage):
         self._update_space_info()
         layout.addWidget(self._space_label)
 
-        layout.addStretch(1)
+        # 上方两段留白权重 2:2 对应按钮行下方 1，按钮行落在 y≈276（与其它向导页同高）
+        layout.addStretch(2)
 
         # 快捷方式选项
         options_layout = QVBoxLayout()
@@ -83,7 +84,8 @@ class InstallPathPage(BasePage):
 
         layout.addLayout(options_layout)
 
-        layout.addStretch(1)
+        # 与上方留白同为 2，配比见上一处注释
+        layout.addStretch(2)
 
         # 导航按钮
         button_layout = QHBoxLayout()
@@ -100,7 +102,13 @@ class InstallPathPage(BasePage):
         self._install_button.clicked.connect(self._start_install)
         button_layout.addWidget(self._install_button)
 
+        # 左右弹性空间使按钮行居中
+        button_layout.addStretch(1)
+
         layout.addLayout(button_layout)
+
+        # 底部留白由弹性空间收住，按钮行不贴底
+        layout.addStretch(1)
 
         self._set_default_path()
 
@@ -182,7 +190,7 @@ class InstallPathPage(BasePage):
             return
 
         # 验证路径
-        if not self._validate_path(path):
+        if not validate_install_path(path):
             return
 
         # 获取快捷方式选项
@@ -211,31 +219,6 @@ class InstallPathPage(BasePage):
         # 进入下一页
         self.next_requested.emit()
 
-    def _validate_path(self, path: str) -> bool:
-        """验证路径有效性
-
-        Args:
-            path: 安装路径
-
-        Returns:
-            bool: 是否有效
-        """
-        # 检查路径是否为空
-        if not path or not path.strip():
-            return False
-
-        # 检查是否为系统关键目录
-        critical_paths = [
-            os.environ.get('SystemRoot', 'C:\\Windows'),
-            os.environ.get('SystemRoot', 'C:\\Windows') + '\\System32',
-        ]
-
-        for critical in critical_paths:
-            if critical and path.lower().startswith(critical.lower()):
-                return False
-
-        return True
-
     def can_next(self) -> bool:
         """是否可以进入下一页
 
@@ -243,7 +226,7 @@ class InstallPathPage(BasePage):
             bool: 是否可以进入下一页
         """
         path = self._path_edit.text()
-        return self._validate_path(path)
+        return validate_install_path(path)
 
     def on_enter(self):
         """进入页面时的处理"""
