@@ -222,7 +222,7 @@ def _get_project_root() -> str:
     """获取项目根目录
 
     PyInstaller：sys._MEIPASS（临时解压目录）
-    Nuitka：__file__ 所在目录（与 logo 在同一临时解压目录）
+    Nuitka：入口脚本 __file__ 所在目录（与 logo 在同一临时解压目录）
     开发环境：installer/main.py 的父目录
 
     Returns:
@@ -232,7 +232,8 @@ def _get_project_root() -> str:
         return sys._MEIPASS
     import __main__
     if getattr(__main__, '__compiled__', False):
-        return str(Path(__file__).resolve().parent)
+        # 以入口脚本所在目录为准，入口迁移时不会因本模块自身路径而取错
+        return str(Path(__main__.__file__).resolve().parent)
     return str(Path(__file__).resolve().parent.parent)
 
 
