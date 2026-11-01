@@ -2,7 +2,6 @@
 
 验证批量处理函数的正确性、性能优化和结果一致性
 """
-from __future__ import annotations
 
 import sys
 import os

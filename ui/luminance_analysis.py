@@ -3,8 +3,6 @@
 提供图片明度分析和提取功能，包含明度画布和直方图显示。
 """
 
-from __future__ import annotations
-
 # 标准库导入
 from pathlib import Path
 from typing import Any
