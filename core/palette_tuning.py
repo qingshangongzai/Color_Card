@@ -359,6 +359,20 @@ class PaletteTuningEngine:
         self._edited = None if mode.key == 'lab' else (mode.key, ch)
         self._recompose_unlocked()
 
+    def step_base_channel(self, key: str, direction: int) -> None:
+        """基色通道步进 ±1（到边界无操作）
+
+        Args:
+            key: 通道键（当前模式的通道）
+            direction: 步进方向（+1 / -1）
+        """
+        spec = MODES[self._mode].channel_of(key)
+        current = self.base_channels()[key]
+        nxt = _clamp(_round_prec(current + direction * STEP, spec.dec), spec.min, spec.max)
+        if abs(nxt - current) < 1e-9:
+            return
+        self.set_base_channel(key, nxt)
+
     def set_base_hex(self, hex_str: str) -> str | None:
         """将合法 HEX 应用为基色
 
@@ -435,10 +449,7 @@ class PaletteTuningEngine:
             return
         mode = MODES[self._mode]
         final_ch = self._channels_from_rgb(mode, item.final_rgb)
-        item.absolute = {
-            c.key: _clamp(_round_prec(final_ch[c.key], c.dec), c.min, c.max)
-            for c in mode.channels
-        }
+        item.absolute = self._absolute_from(mode, final_ch)
         item.is_locked = True
 
     def unlock_item(self, item_id: int) -> None:
@@ -451,6 +462,27 @@ class PaletteTuningEngine:
         item.offset = self._offset_from(final_ch, mode)
         item.is_locked = False
         item.absolute = None
+
+    def reset_item(self, item_id: int) -> None:
+        """重置：回到基色（锁定项保持锁定，绝对通道值改为基色通道值）
+
+        联动项偏移归零；锁定项把 absolute 改写为基色通道值，颜色随之回到基色，
+        且仍不随基色变化。
+
+        Args:
+            item_id: 配色条目 id
+        """
+        item = self._item_by_id(item_id)
+        if item is None:
+            return
+        mode = MODES[self._mode]
+        base_ch = self.base_channels()
+        if item.is_locked:
+            item.absolute = self._absolute_from(mode, base_ch)
+            item.final_rgb = self._base_rgb
+        else:
+            item.offset = {c.key: 0.0 for c in mode.channels}
+            self._compose_final(item, base_ch)
 
     def switch_mode(self, mode_key: str) -> None:
         """切换色彩模式：所有 HEX 不变，联动偏移 / 锁定绝对值按新模式重算
@@ -467,10 +499,7 @@ class PaletteTuningEngine:
         for item in self._items:
             final_ch = self._channels_from_rgb(mode, item.final_rgb)
             if item.is_locked:
-                item.absolute = {
-                    c.key: _clamp(_round_prec(final_ch[c.key], c.dec), c.min, c.max)
-                    for c in mode.channels
-                }
+                item.absolute = self._absolute_from(mode, final_ch)
                 # 锁定项的偏移量无语义，统一为新模式全 0（保证键集合与当前模式一致）
                 item.offset = {c.key: 0.0 for c in mode.channels}
             else:
@@ -504,6 +533,14 @@ class PaletteTuningEngine:
         """通道值字典合成为浮点 RGB（toRgb 方向）"""
         result = mode.to_rgb(*(ch[c.key] for c in mode.channels))
         return (float(result[0]), float(result[1]), float(result[2]))
+
+    @staticmethod
+    def _absolute_from(mode: ModeSpec, ch: dict[str, float]) -> dict[str, float]:
+        """通道值按显示精度取整并钳制，生成锁定项的绝对通道值"""
+        return {
+            c.key: _clamp(_round_prec(ch[c.key], c.dec), c.min, c.max)
+            for c in mode.channels
+        }
 
     def _item_by_id(self, item_id: int) -> TuningItem | None:
         """按 id 查找条目；不存在返回 None"""
