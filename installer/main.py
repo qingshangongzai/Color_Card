@@ -6,8 +6,10 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-# 将项目根目录添加到 sys.path（确保 installer 模块可导入）
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# 源码直接运行时将项目根目录加入 sys.path；打包后 sys.path 已由运行时配置，
+# 再插入会把解压目录里的 .py 副本顶到导入优先级之上，导致模块半初始化
+if '__compiled__' not in globals():
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 def set_app_user_model_id():

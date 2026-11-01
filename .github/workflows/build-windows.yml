@@ -268,7 +268,6 @@ jobs:
           --include-data-dir=scenes_data=scenes_data `
           --include-data-dir=ui=ui `
           --include-data-dir=utils=utils `
-          --include-data-dir=installer=installer `
           --enable-plugin=pyside6 `
           --jobs=4 `
           --output-filename="ColorCard" `
