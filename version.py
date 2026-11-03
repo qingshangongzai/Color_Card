@@ -1,6 +1,6 @@
 import subprocess
+import sys
 from pathlib import Path
-
 
 
 class VersionManager:
@@ -77,13 +77,15 @@ class VersionManager:
                 "text": True,
                 "timeout": 5,
                 "cwd": Path(__file__).resolve().parent,
-                "check": True,
             }
+            if sys.platform == "win32":
+                # GUI 程序调用控制台程序会弹出黑框，显式禁止
+                common_args["creationflags"] = subprocess.CREATE_NO_WINDOW
             number = subprocess.run(
-                ["git", "rev-list", "--count", "HEAD"], **common_args
+                ["git", "rev-list", "--count", "HEAD"], check=True, **common_args
             ).stdout.strip()
             sha = subprocess.run(
-                ["git", "rev-parse", "--short=8", "HEAD"], **common_args
+                ["git", "rev-parse", "--short=8", "HEAD"], check=True, **common_args
             ).stdout.strip()
         except (OSError, subprocess.SubprocessError):
             return "dev", ""

@@ -104,12 +104,12 @@ if sys.platform == 'win32':
     import winreg
 
 # 第三方库导入（必须在 set_app_user_model_id 之后导入）
-from PySide6.QtWidgets import QApplication  # noqa: E402
-from qfluentwidgets import setTheme, Theme  # noqa: E402
+from PySide6.QtWidgets import QApplication
+from qfluentwidgets import setTheme, Theme
 
 # 项目模块导入（必须在 set_app_user_model_id 之后导入）
-from installer.core.registry_installer import REGISTRY_KEY  # noqa: E402
-from installer.core.permission_checker import is_frozen, get_exe_path  # noqa: E402
+from installer.core.permission_checker import get_exe_path, is_frozen
+from installer.core.registry_installer import REGISTRY_KEY
 
 
 def _get_install_path() -> str:
@@ -223,25 +223,6 @@ def run_installer(
     return wizard.get_config()
 
 
-def _get_project_root() -> str:
-    """获取项目根目录
-
-    PyInstaller：sys._MEIPASS（临时解压目录）
-    Nuitka：入口脚本 __file__ 所在目录（与 logo 在同一临时解压目录）
-    开发环境：installer/main.py 的父目录
-
-    Returns:
-        str: 项目根目录
-    """
-    if hasattr(sys, '_MEIPASS'):
-        return sys._MEIPASS
-    import __main__
-    if getattr(__main__, '__compiled__', False):
-        # 以入口脚本所在目录为准，入口迁移时不会因本模块自身路径而取错
-        return str(Path(__main__.__file__).resolve().parent)
-    return str(Path(__file__).resolve().parent.parent)
-
-
 def run_uninstaller(skip_to_progress: bool = False, delete_config: bool = False):
     """运行卸载程序
 
@@ -291,16 +272,46 @@ def run_main_app():
     """
     startup_start_time = time.perf_counter()
 
-    project_root = _get_project_root()
-    os.chdir(project_root)
+    from utils import get_base_path, show_and_activate_window
 
-    splash = _create_splash_screen(project_root)
+    project_root = get_base_path()
+    os.chdir(project_root)
 
     from core import get_logger_manager, get_logger
     logger_manager = get_logger_manager()
     logger_manager.initialize()
     logger = get_logger("installer")
     setup_global_exception_handler(logger)
+
+    # 单实例检查先于启动画面，副实例不会闪出启动画面
+    from core.single_instance import SingleInstanceGuard, SingleInstanceResult
+    app = QApplication.instance()
+    guard = SingleInstanceGuard(app)
+    guard_result = guard.acquire()
+    app._single_instance_guard = guard
+    if guard_result == SingleInstanceResult.SECONDARY:
+        logger.info("检测到已有实例，已通知其激活窗口，本实例退出")
+        return None
+    if guard_result == SingleInstanceResult.PRIMARY:
+        guard.start_server()
+
+    # 启动画面会泵事件，窗口创建前收到的激活请求先记下，创建后再补做前置
+    activation_pending = False
+    main_window = None
+
+    def _on_activation_requested():
+        """副实例请求激活：主窗口尚未创建时先记下，创建后再前置"""
+        nonlocal activation_pending
+        if main_window is None:
+            activation_pending = True
+            return
+        logger.info("收到副实例激活请求，前置主窗口")
+        show_and_activate_window(main_window)
+
+    if guard_result == SingleInstanceResult.PRIMARY:
+        guard.activation_requested.connect(_on_activation_requested)
+
+    splash = _create_splash_screen(project_root)
 
     try:
         from io import StringIO
@@ -340,7 +351,12 @@ def run_main_app():
         from ui.main_window import MainWindow
         from utils import fix_windows_taskbar_icon_for_window, force_window_to_front
         window = MainWindow()
+
         window.show()
+
+        main_window = window
+        if activation_pending:
+            _on_activation_requested()
 
         if hasattr(window, 'titleBar') and hasattr(window.titleBar, 'init_theme'):
             window.titleBar.init_theme(theme_setting)
@@ -441,7 +457,10 @@ def main():
         else:
             sys.exit(0)
     else:
-        run_main_app()
+        window = run_main_app()
+        # 副实例不进入事件循环，避免挂空循环
+        if window is None:
+            sys.exit(0)
         sys.exit(app.exec())
 
 

@@ -76,6 +76,8 @@ jobs:
           --macos-app-name="Color Card" \
           --macos-app-version="${{ steps.version.outputs.version }}" \
           --include-data-files=version.py=version.py \
+          --include-data-files=app_mode.py=app_mode.py \
+          --include-data-files=instance_key.py=instance_key.py \
           --include-data-dir=color_data=color_data \
           --include-data-dir=core=core \
           --include-data-dir=dialogs=dialogs \

@@ -293,10 +293,11 @@ class _AssetSelector:
             if platform == Platform.WINDOWS:
                 if mode == AppMode.INSTALLED and "setup" in name and name.endswith(".exe"):
                     return url
-                if mode != AppMode.INSTALLED and name.endswith("x64.exe") and "setup" not in name:
+                # 便携版分发为 zip（主程序 + 启动器），旧版 x64.exe 已不再发布
+                if mode != AppMode.INSTALLED and name.endswith("x64.zip"):
                     return url
 
-        return assets[0].get("browser_download_url", "") if assets else ""
+        return ""
 
 
 class UpdateChecker(QThread):
