@@ -262,7 +262,6 @@ class MainWindow(FluentWindow):
             app.setQuitOnLastWindowClosed(False)
         if sys.platform == 'win32':
             app.commitDataRequest.connect(self._on_commit_data_request)
-            app.applicationStateChanged.connect(self._on_application_state_changed)
 
     def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
@@ -605,16 +604,6 @@ class MainWindow(FluentWindow):
         """系统关机/注销：落盘配置，不弹询问框"""
         self._session_ending = True
         self._save_state()
-
-    def _on_application_state_changed(self, state):
-        """应用重新激活时清除关机标志，覆盖关机被取消后继续运行的情况"""
-        if self._session_ending and state == Qt.ApplicationState.ApplicationActive:
-            self._session_ending = False
-
-    def showEvent(self, event):
-        """窗口显示时清除关机标志，避免关机取消后残留到下一次关闭"""
-        super().showEvent(event)
-        self._session_ending = False
 
     def nativeEvent(self, event_type, message):
         """Windows 关机/注销被取消时复位标志，避免下一次关闭跳过询问"""

@@ -259,33 +259,37 @@ class TestAssetSelector(unittest.TestCase):
 
     def test_select_windows_installed_mode(self):
         """测试 Windows 安装模式选择 Setup"""
-        from core.update_service import _AssetSelector, AppMode, Platform
+        from core.update_service import AppMode, Platform, _AssetSelector
 
         assets = [
             {"name": "color_card_1.0.0_x64.zip", "browser_download_url": "url_portable"},
             {"name": "color_card_1.0.0_x64_setup.exe", "browser_download_url": "url_setup"},
         ]
 
-        with patch('core.update_service.get_app_mode', return_value=AppMode.INSTALLED):
-            with patch('core.update_service.get_platform', return_value=Platform.WINDOWS):
-                selector = _AssetSelector()
-                result = selector.select(assets)
+        with (
+            patch('core.update_service.get_app_mode', return_value=AppMode.INSTALLED),
+            patch('core.update_service.get_platform', return_value=Platform.WINDOWS),
+        ):
+            selector = _AssetSelector()
+            result = selector.select(assets)
 
         self.assertEqual(result, "url_setup")
 
     def test_select_windows_portable_mode(self):
         """测试 Windows 便携模式选择 zip"""
-        from core.update_service import _AssetSelector, AppMode, Platform
+        from core.update_service import AppMode, Platform, _AssetSelector
 
         assets = [
             {"name": "color_card_1.0.0_x64_setup.exe", "browser_download_url": "url_setup"},
             {"name": "color_card_1.0.0_x64.zip", "browser_download_url": "url_portable"},
         ]
 
-        with patch('core.update_service.get_app_mode', return_value=AppMode.PORTABLE):
-            with patch('core.update_service.get_platform', return_value=Platform.WINDOWS):
-                selector = _AssetSelector()
-                result = selector.select(assets)
+        with (
+            patch('core.update_service.get_app_mode', return_value=AppMode.PORTABLE),
+            patch('core.update_service.get_platform', return_value=Platform.WINDOWS),
+        ):
+            selector = _AssetSelector()
+            result = selector.select(assets)
 
         self.assertEqual(result, "url_portable")
 
@@ -300,16 +304,18 @@ class TestAssetSelector(unittest.TestCase):
 
     def test_select_no_match_returns_empty(self):
         """测试无匹配资源时不回退到第一个"""
-        from core.update_service import _AssetSelector, AppMode, Platform
+        from core.update_service import AppMode, Platform, _AssetSelector
 
         assets = [
             {"name": "unknown_file.zip", "browser_download_url": "url_first"},
         ]
 
-        with patch('core.update_service.get_app_mode', return_value=AppMode.PORTABLE):
-            with patch('core.update_service.get_platform', return_value=Platform.WINDOWS):
-                selector = _AssetSelector()
-                result = selector.select(assets)
+        with (
+            patch('core.update_service.get_app_mode', return_value=AppMode.PORTABLE),
+            patch('core.update_service.get_platform', return_value=Platform.WINDOWS),
+        ):
+            selector = _AssetSelector()
+            result = selector.select(assets)
 
         self.assertEqual(result, "")
 
