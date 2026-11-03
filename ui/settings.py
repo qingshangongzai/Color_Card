@@ -4,10 +4,20 @@ from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QVBoxLayout, QWidget
 )
 from qfluentwidgets import (
-    ComboBox, FluentIcon, PushSettingCard, ScrollArea, ScrollBarHandleDisplayMode, SettingCardGroup, SubtitleLabel, SwitchButton, qconfig
+    ComboBox,
+    FluentIcon,
+    PushSettingCard,
+    ScrollArea,
+    ScrollBarHandleDisplayMode,
+    SettingCard,
+    SettingCardGroup,
+    SubtitleLabel,
+    SwitchButton,
+    qconfig,
 )
 # 项目模块导入
 from core import get_config_manager
+from core.config import CLOSE_ACTION_ASK, CLOSE_ACTION_QUIT, CLOSE_ACTION_TRAY
 from core.logger import get_logger, log_user_action
 from utils import tr, get_supported_languages, set_language, get_locale_manager
 from utils.theme_colors import get_title_color
@@ -64,6 +74,7 @@ class SettingsInterface(QWidget):
         self._dominant_color_algorithm = self._config_manager.get('settings.dominant_color_algorithm', 'mmcq')
         self._color_picker_mode = self._config_manager.get('settings.color_picker_mode', 'original')
         self._auto_check_update = self._config_manager.get('settings.auto_check_update', True)
+        self._close_action = self._config_manager.get('settings.close_action', CLOSE_ACTION_ASK)
         self._language = self._config_manager.get('settings.language', 'HY_JT')
         self._update_service = UpdateService()
         self.setup_ui()
@@ -97,13 +108,16 @@ class SettingsInterface(QWidget):
         self.title_label = SubtitleLabel(tr('settings.title'))
         layout.addWidget(self.title_label)
 
-        # 语言设置分组
-        self.language_group = SettingCardGroup(tr('settings.language'), self.content_widget)
+        # 通用设置分组（页面语言 + 关闭窗口时的动作）
+        self.general_group = SettingCardGroup(tr('settings.general'), self.content_widget)
 
         self.language_card = self._create_language_card()
-        self.language_group.addSettingCard(self.language_card)
+        self.general_group.addSettingCard(self.language_card)
 
-        layout.addWidget(self.language_group)
+        self.close_action_card = self._create_close_action_card()
+        self.general_group.addSettingCard(self.close_action_card)
+
+        layout.addWidget(self.general_group)
 
         self.card_display_group = SettingCardGroup(tr('settings.card_display'), self.content_widget)
 
@@ -337,6 +351,61 @@ class SettingsInterface(QWidget):
         
         self.language_changed.emit(language_code)
 
+    def _create_close_action_card(self):
+        """创建关闭窗口动作选择卡片"""
+        card = SettingCard(
+            FluentIcon.CLOSE,
+            tr('settings.close_action_title'),
+            tr('settings.close_action_desc'),
+            self.content_widget
+        )
+
+        combo_box = ComboBox(self.content_widget)
+        for action, text in [
+            (CLOSE_ACTION_ASK, tr('settings.close_action_ask')),
+            (CLOSE_ACTION_TRAY, tr('settings.close_action_tray')),
+            (CLOSE_ACTION_QUIT, tr('settings.close_action_quit')),
+        ]:
+            combo_box.addItem(text)
+            combo_box.setItemData(combo_box.count() - 1, action)
+
+        self._select_close_action(combo_box, self._close_action)
+
+        combo_box.setFixedWidth(140)
+        combo_box.currentIndexChanged.connect(self._on_close_action_changed)
+
+        card.hBoxLayout.addWidget(combo_box, 0, Qt.AlignmentFlag.AlignRight)
+        card.hBoxLayout.addSpacing(16)
+
+        card.combo_box = combo_box
+
+        return card
+
+    @staticmethod
+    def _select_close_action(combo_box, value: str):
+        """按配置值选中关闭动作下拉项"""
+        for i in range(combo_box.count()):
+            if combo_box.itemData(i) == value:
+                combo_box.setCurrentIndex(i)
+                break
+
+    def _on_close_action_changed(self, index):
+        """关闭窗口动作改变"""
+        value = self.close_action_card.combo_box.itemData(index)
+        self._close_action = value
+        self._config_manager.set('settings.close_action', value)
+        self._config_manager.save()
+        log_user_action("change_close_action", {"action": value})
+
+    def refresh_close_action_card(self) -> None:
+        """按当前配置刷新关闭动作下拉（询问框勾“记住”后调用）"""
+        value = self._config_manager.get('settings.close_action', CLOSE_ACTION_ASK)
+        combo_box = self.close_action_card.combo_box
+        combo_box.blockSignals(True)
+        self._select_close_action(combo_box, value)
+        combo_box.blockSignals(False)
+        self._close_action = value
+
     def _on_language_changed(self, language_code):
         """语言切换回调（来自LocaleManager）"""
         self._update_texts()
@@ -347,7 +416,6 @@ class SettingsInterface(QWidget):
         self.title_label.setText(tr('settings.title'))
 
         # 更新分组标题
-        self.language_group.titleLabel.setText(tr('settings.language'))
         self.card_display_group.titleLabel.setText(tr('settings.card_display'))
         self.sampling_group.titleLabel.setText(tr('settings.sampling'))
         self.histogram_group.titleLabel.setText(tr('settings.histogram'))
@@ -361,6 +429,14 @@ class SettingsInterface(QWidget):
         self.language_card.contentLabel.setText(tr('settings.language_desc'))
         # 更新"跟随系统"选项文本
         self.language_card.combo_box.setItemText(0, tr('settings.language_auto'))
+
+        # 更新通用设置卡片
+        self.general_group.titleLabel.setText(tr('settings.general'))
+        self.close_action_card.titleLabel.setText(tr('settings.close_action_title'))
+        self.close_action_card.contentLabel.setText(tr('settings.close_action_desc'))
+        self.close_action_card.combo_box.setItemText(0, tr('settings.close_action_ask'))
+        self.close_action_card.combo_box.setItemText(1, tr('settings.close_action_tray'))
+        self.close_action_card.combo_box.setItemText(2, tr('settings.close_action_quit'))
 
         # 更新16进制显示卡片
         self.hex_display_card.titleLabel.setText(tr('settings.hex_display'))

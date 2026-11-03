@@ -1,4 +1,6 @@
 # 标准库导入
+import ctypes
+import ctypes.wintypes
 import sys
 from typing import Any
 
@@ -6,15 +8,21 @@ from typing import Any
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QApplication, QLabel
+    QApplication, QLabel, QSystemTrayIcon
 )
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme
 
 # 项目模块导入
 from core import get_config_manager, get_logger
-from utils import tr, get_locale_manager
+from core.config import CLOSE_ACTION_ASK, CLOSE_ACTION_QUIT, CLOSE_ACTION_TRAY
+from dialogs import CloseConfirmDialog
+from utils import tr, get_locale_manager, show_and_activate_window
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
+from .tray import create_tray
+
+# Windows 会话结束消息：wParam 为 FALSE 表示关机/注销被取消
+_WM_ENDSESSION = 0x0016
 
 # 工具按钮统一样式
 _TOOLBUTTON_STYLE = """
@@ -244,6 +252,17 @@ class MainWindow(FluentWindow):
 
         # 设置 Ctrl+V 粘贴图片快捷键
         self._setup_paste_shortcut()
+
+        # 托盘与关闭行为状态
+        self._quit_requested = False
+        self._session_ending = False
+        self._tray = create_tray(self)
+        app = QApplication.instance()
+        if self._tray is not None:
+            app.setQuitOnLastWindowClosed(False)
+        if sys.platform == 'win32':
+            app.commitDataRequest.connect(self._on_commit_data_request)
+            app.applicationStateChanged.connect(self._on_application_state_changed)
 
     def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
@@ -497,7 +516,60 @@ class MainWindow(FluentWindow):
         color_analysis_interface.set_brightness_threshold(brightness_threshold)
 
     def closeEvent(self, event):
-        """窗口关闭事件，保存配置并清理后台线程"""
+        """窗口关闭事件：按配置询问、最小化到托盘或退出"""
+        if self._quit_requested or self._session_ending:
+            # 一次性标志：关机被取消后，下次关闭仍应弹询问框
+            self._session_ending = False
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            return
+
+        if (
+            sys.platform != 'win32'
+            or self._tray is None
+            or not QSystemTrayIcon.isSystemTrayAvailable()
+        ):
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            return
+
+        close_action = self._config_manager.get('settings.close_action', CLOSE_ACTION_ASK)
+        if close_action == CLOSE_ACTION_TRAY:
+            self._save_state()
+            self.hide()
+            event.ignore()
+            return
+        if close_action == CLOSE_ACTION_QUIT:
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            return
+
+        event.ignore()
+        # 从任务栏关闭时窗口可能已最小化或隐藏，先恢复主窗口再弹询问框，
+        # 否则无父窗口定位，询问框会出现在屏幕左上角
+        if self.isMinimized() or not self.isVisible():
+            show_and_activate_window(self)
+        dialog = CloseConfirmDialog(self)
+        dialog.exec()
+        chosen_action = dialog.action
+        remember = dialog.remember
+        dialog.deleteLater()
+        if chosen_action == CLOSE_ACTION_TRAY:
+            if remember:
+                self._config_manager.set('settings.close_action', CLOSE_ACTION_TRAY)
+            self._save_state()
+            self.hide()
+        elif chosen_action == CLOSE_ACTION_QUIT:
+            if remember:
+                self._config_manager.set('settings.close_action', CLOSE_ACTION_QUIT)
+            self._quit_requested = True
+            QTimer.singleShot(0, self.close)
+
+    def _save_state(self):
+        """落盘色彩微调与窗口状态"""
         # 先落盘色彩微调状态（防抖计时器可能尚未触发）
         palette_tuning_interface = self._interfaces.get('paletteTuning')
         if palette_tuning_interface is not None:
@@ -520,13 +592,49 @@ class MainWindow(FluentWindow):
 
         self._config_manager.save()
 
-        # 清理后台线程
+    def _cleanup(self):
+        """完整退出前的清理：线程、对话框、托盘与事件循环"""
         self._cleanup_background_threads()
-
-        # 关闭所有明度分析对话框
         self._close_tone_analysis_dialogs()
+        if self._tray is not None:
+            self._tray.hide()
+        if sys.platform == 'win32':
+            QApplication.quit()
 
-        event.accept()
+    def _on_commit_data_request(self, _manager):
+        """系统关机/注销：落盘配置，不弹询问框"""
+        self._session_ending = True
+        self._save_state()
+
+    def _on_application_state_changed(self, state):
+        """应用重新激活时清除关机标志，覆盖关机被取消后继续运行的情况"""
+        if self._session_ending and state == Qt.ApplicationState.ApplicationActive:
+            self._session_ending = False
+
+    def showEvent(self, event):
+        """窗口显示时清除关机标志，避免关机取消后残留到下一次关闭"""
+        super().showEvent(event)
+        self._session_ending = False
+
+    def nativeEvent(self, event_type, message):
+        """Windows 关机/注销被取消时复位标志，避免下一次关闭跳过询问"""
+        if sys.platform == 'win32':
+            msg = ctypes.wintypes.MSG.from_address(int(message))
+            if msg.message == _WM_ENDSESSION and not msg.wParam:
+                self._session_ending = False
+        return super().nativeEvent(event_type, message)
+
+    def request_quit(self) -> None:
+        """请求退出：设置一次性标志，由 closeEvent 执行完整清理"""
+        self._quit_requested = True
+        self.close()
+
+    def show_settings_page(self) -> None:
+        """显示设置页（供托盘菜单调用）"""
+        settings_interface = self._get_interface('settings')
+        show_and_activate_window(self)
+        settings_interface.refresh_close_action_card()
+        self.switchTo(settings_interface)
 
     def _cleanup_background_threads(self):
         """清理所有后台计算线程
@@ -653,6 +761,10 @@ class MainWindow(FluentWindow):
         # 如果是配色预览界面，触发延迟加载
         if current_widget.objectName() == 'colorPreview':
             self._get_interface('colorPreview').on_tab_selected()
+
+        # 设置页可能被询问框“记住我的选择”改过配置，进入时按配置同步下拉
+        if current_widget.objectName() == 'settings':
+            current_widget.refresh_close_action_card()
 
     def _setup_logo(self):
         """在导航栏左上角设置 Logo"""
@@ -911,6 +1023,8 @@ class MainWindow(FluentWindow):
         self._update_navigation_texts()
         if hasattr(self, 'titleBar') and hasattr(self.titleBar, 'update_texts'):
             self.titleBar.update_texts()
+        if self._tray is not None:
+            self._tray.update_texts()
 
     def _update_navigation_texts(self):
         """更新导航栏文本"""

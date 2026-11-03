@@ -31,6 +31,11 @@ def get_base_path() -> str:
 
 logger = get_logger("config")
 
+# 关闭窗口动作的取值真源，配置默认值、关闭分流与设置页下拉统一引用
+CLOSE_ACTION_ASK = "ask"
+CLOSE_ACTION_TRAY = "tray"
+CLOSE_ACTION_QUIT = "quit"
+
 
 class ConfigManager:
     """配置管理器，处理应用程序配置的加载和保存"""
@@ -84,7 +89,8 @@ class ConfigManager:
                 "luminance_default_grayscale": False,
                 "color_picker_mode": "original",
                 "auto_check_update": True,
-                "last_check_time": None
+                "last_check_time": None,
+                "close_action": CLOSE_ACTION_ASK
             },
             "scheme": {
                 "default_scheme": "monochromatic",

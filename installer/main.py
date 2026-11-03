@@ -372,6 +372,11 @@ def run_main_app():
         def _auto_check_update(window, config_manager):
             if not config_manager.get('settings.auto_check_update', True):
                 return
+
+            # 窗口隐藏到托盘或最小化时跳过本次检查，且不写 last_check_time
+            if not window.isVisible() or window.isMinimized():
+                return
+
             last_check = config_manager.get('settings.last_check_time')
             if last_check:
                 try:
