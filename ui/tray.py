@@ -1,17 +1,22 @@
-"""Windows 托盘图标与右键菜单"""
+"""Windows / macOS 托盘图标与右键菜单"""
 
 # 标准库导入
+import os
 import sys
 
 # 第三方库导入
 from PySide6.QtCore import QObject
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QSystemTrayIcon
 from qfluentwidgets import Action, FluentIcon, SystemTrayMenu
 
 # 项目模块导入
+from core import get_logger
 from dialogs import AboutDialog
-from utils import load_icon_universal, tr
+from utils import get_base_path, load_icon_universal, tr
 from utils.platform import show_and_activate_window
+
+logger = get_logger("tray")
 
 
 class TrayIcon(QObject):
@@ -21,7 +26,7 @@ class TrayIcon(QObject):
         super().__init__()
         self._window = window
 
-        self._tray = QSystemTrayIcon(load_icon_universal(), self)
+        self._tray = QSystemTrayIcon(_load_tray_icon(), self)
         self._menu = SystemTrayMenu()
 
         self._show_action = Action(FluentIcon.HOME, "", self)
@@ -47,7 +52,10 @@ class TrayIcon(QObject):
         self.update_texts()
         self._tray.show()
 
-        self._tray.activated.connect(self._on_activated)
+        # mac 单击即弹菜单（系统行为），恢复入口只用菜单项与 Dock 图标，
+        # 接 activated 会与菜单弹出冲突，故仅 Windows 连接
+        if sys.platform == 'win32':
+            self._tray.activated.connect(self._on_activated)
 
     def update_texts(self) -> None:
         """刷新菜单文案与托盘提示（语言切换后调用）"""
@@ -86,6 +94,25 @@ class TrayIcon(QObject):
         self._window.request_quit()
 
 
+def _load_tray_icon() -> QIcon:
+    """加载托盘图标：mac 用模板图，Windows 复用应用 ICO
+
+    Returns:
+        QIcon: 托盘图标；mac 模板图缺失或无法解码时回退通用图标
+    """
+    if sys.platform == 'darwin':
+        icon_path = os.path.join(get_base_path(), 'logo', 'tray_mac.png')
+        if os.path.exists(icon_path):
+            icon = QIcon(icon_path)
+            # 模板图只取 alpha 通道，由系统按菜单栏明暗着色；不设置会按彩色图渲染
+            if not icon.isNull():
+                icon.setIsMask(True)
+                return icon
+        # 回退彩色 ICO 在菜单栏会显示为彩色或发虚，记日志便于定位产物漏带/损坏
+        logger.warning(f"mac 托盘模板图缺失或无法解码，回退通用图标: {icon_path}")
+    return load_icon_universal()
+
+
 def create_tray(window) -> TrayIcon | None:
     """创建托盘图标
 
@@ -93,9 +120,9 @@ def create_tray(window) -> TrayIcon | None:
         window: 主窗口实例
 
     Returns:
-        TrayIcon | None: Windows 且系统托盘可用时返回托盘对象，否则返回 None
+        TrayIcon | None: Windows / macOS 且系统托盘可用时返回托盘对象，否则返回 None
     """
-    if sys.platform != 'win32':
+    if sys.platform not in ('win32', 'darwin'):
         return None
     if not QSystemTrayIcon.isSystemTrayAvailable():
         return None

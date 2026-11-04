@@ -262,6 +262,12 @@ class MainWindow(FluentWindow):
             app.setQuitOnLastWindowClosed(False)
         if sys.platform == 'win32':
             app.commitDataRequest.connect(self._on_commit_data_request)
+        elif sys.platform == 'darwin':
+            # Cmd+Q / 应用菜单“退出”不经过 closeEvent，靠 aboutToQuit 补保存与清理
+            app.aboutToQuit.connect(self._on_about_to_quit)
+            # 窗口隐藏到托盘后，点击 Dock 图标与 Cmd+Tab 都会让应用转为激活态，
+            # 恢复入口在此统一处理（单击托盘图标只弹菜单，不接 activated）
+            app.applicationStateChanged.connect(self._on_mac_application_state_changed)
 
     def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
@@ -524,11 +530,7 @@ class MainWindow(FluentWindow):
             event.accept()
             return
 
-        if (
-            sys.platform != 'win32'
-            or self._tray is None
-            or not QSystemTrayIcon.isSystemTrayAvailable()
-        ):
+        if self._tray is None or not QSystemTrayIcon.isSystemTrayAvailable():
             self._save_state()
             self._cleanup()
             event.accept()
@@ -597,13 +599,27 @@ class MainWindow(FluentWindow):
         self._close_tone_analysis_dialogs()
         if self._tray is not None:
             self._tray.hide()
-        if sys.platform == 'win32':
-            QApplication.quit()
+        # 两个平台都有托盘时已关闭“最后窗口关闭即退出”，不显式退出会留下无窗口进程
+        QApplication.quit()
 
     def _on_commit_data_request(self, _manager):
         """系统关机/注销：落盘配置，不弹询问框"""
         self._session_ending = True
         self._save_state()
+
+    def _on_about_to_quit(self) -> None:
+        """mac 正常退出（Cmd+Q / 应用菜单“退出”）：补做保存与清理"""
+        self._save_state()
+        self._cleanup()
+
+    def _on_mac_application_state_changed(self, state) -> None:
+        """应用转为激活态且主窗口不可见时恢复窗口
+
+        激活来源不限于点击 Dock 图标，Cmd+Tab 或从其他应用切回同样触发；
+        应用本就处于激活态时点击 Dock 不产生状态变化，此路径不会触发。
+        """
+        if state == Qt.ApplicationState.ApplicationActive and not self.isVisible():
+            show_and_activate_window(self)
 
     def nativeEvent(self, event_type, message):
         """Windows 关机/注销被取消时复位标志，避免下一次关闭跳过询问"""
