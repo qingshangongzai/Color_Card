@@ -55,6 +55,8 @@ ignore_names = [
     "mousePressEvent",
     "mouseMoveEvent",
     "mouseReleaseEvent",
+    # ui/palette_tile.py - SimpleCardWidget 主题背景钩子，由 qfluentwidgets 的 paintEvent 动态调用
+    "_normalBackgroundColor",
     # core/single_instance.py - QLockFile 引用只需持有以保持锁，不读取
     "_lock",
     # main.py / installer/main.py - guard 挂在 QApplication 属性上防被回收，Vulture 无法识别

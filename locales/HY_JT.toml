@@ -425,9 +425,18 @@ exit = "直接退出"
 [tray]
 tooltip = "取色卡 - 单击恢复窗口"
 show_window = "显示主窗口"
+palette_tile = "配色磁贴"
 settings = "设置"
 about = "关于"
 exit = "退出"
+
+[palette_tile]
+title = "配色磁贴"
+search_placeholder = "搜索配色或色值"
+pin_tooltip = "置顶窗口"
+close_tooltip = "关闭"
+tab_all = "全部"
+tab_common = "常用"
 
 [messages]
 palette = "配色"

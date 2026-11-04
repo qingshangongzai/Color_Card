@@ -19,6 +19,7 @@ from dialogs import CloseConfirmDialog
 from utils import tr, get_locale_manager, show_and_activate_window
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
+from .palette_tile import FloatingPaletteTile
 from .tray import create_tray
 
 # Windows 会话结束消息：wParam 为 FALSE 表示关机/注销被取消
@@ -256,6 +257,7 @@ class MainWindow(FluentWindow):
         # 托盘与关闭行为状态
         self._quit_requested = False
         self._session_ending = False
+        self._palette_tile: FloatingPaletteTile | None = None
         self._tray = create_tray(self)
         app = QApplication.instance()
         if self._tray is not None:
@@ -597,6 +599,8 @@ class MainWindow(FluentWindow):
         """完整退出前的清理：线程、对话框、托盘与事件循环"""
         self._cleanup_background_threads()
         self._close_tone_analysis_dialogs()
+        if self._palette_tile is not None:
+            self._palette_tile.hide()
         if self._tray is not None:
             self._tray.hide()
         # 两个平台都有托盘时已关闭“最后窗口关闭即退出”，不显式退出会留下无窗口进程
@@ -640,6 +644,12 @@ class MainWindow(FluentWindow):
         show_and_activate_window(self)
         settings_interface.refresh_close_action_card()
         self.switchTo(settings_interface)
+
+    def show_palette_tile(self) -> None:
+        """显示并前置配色磁贴（供托盘菜单调用，懒创建单例）"""
+        if self._palette_tile is None:
+            self._palette_tile = FloatingPaletteTile(self)
+        self._palette_tile.show_and_activate()
 
     def _cleanup_background_threads(self):
         """清理所有后台计算线程
@@ -1030,6 +1040,8 @@ class MainWindow(FluentWindow):
             self.titleBar.update_texts()
         if self._tray is not None:
             self._tray.update_texts()
+        if self._palette_tile is not None:
+            self._palette_tile.update_texts()
 
     def _update_navigation_texts(self):
         """更新导航栏文本"""

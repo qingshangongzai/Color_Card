@@ -425,9 +425,18 @@ exit = "Выйти сразу"
 [tray]
 tooltip = "Color Card - нажмите, чтобы восстановить окно"
 show_window = "Показать главное окно"
+palette_tile = "Плитка палитры"
 settings = "Настройки"
 about = "О программе"
 exit = "Выход"
+
+[palette_tile]
+title = "Плитка палитры"
+search_placeholder = "Поиск палитры или цвета"
+pin_tooltip = "Закрепить окно поверх других"
+close_tooltip = "Закрыть"
+tab_all = "Все"
+tab_common = "Закреплённые"
 
 [messages]
 palette = "Палитра"

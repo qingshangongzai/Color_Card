@@ -424,9 +424,18 @@ exit = "直接終了"
 [tray]
 tooltip = "Color Card - クリックでウィンドウを復元"
 show_window = "メインウィンドウを表示"
+palette_tile = "配色タイル"
 settings = "設定"
 about = "について"
 exit = "終了"
+
+[palette_tile]
+title = "配色タイル"
+search_placeholder = "配色または色値を検索"
+pin_tooltip = "ウィンドウを最前面に固定"
+close_tooltip = "閉じる"
+tab_all = "すべて"
+tab_common = "よく使う"
 
 [messages]
 palette = "パレット"

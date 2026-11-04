@@ -424,9 +424,18 @@ exit = "Exit Directly"
 [tray]
 tooltip = "Color Card - click to restore the window"
 show_window = "Show Main Window"
+palette_tile = "Palette Tile"
 settings = "Settings"
 about = "About"
 exit = "Exit"
+
+[palette_tile]
+title = "Palette Tile"
+search_placeholder = "Search palette or color"
+pin_tooltip = "Pin window"
+close_tooltip = "Close"
+tab_all = "All"
+tab_common = "Pinned"
 
 [messages]
 palette = "Palette"

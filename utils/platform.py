@@ -11,10 +11,27 @@ from .icon import get_icon_path
 # AllowSetForegroundWindow 常量
 ASFW_ANY = -1  # 允许任何进程设置前台窗口
 
+# SetWindowPos 常量
+HWND_TOPMOST = -1
+HWND_NOTOPMOST = -2
+SWP_NOSIZE = 0x0001
+SWP_NOMOVE = 0x0002
+SWP_NOACTIVATE = 0x0010
+
 # LoadImageW 返回 HICON（64 位句柄），提前声明返回类型避免被 ctypes 默认的
 # c_int 截断；仅在 Windows 下设置，保证跨平台 import 不失败
 if os.name == 'nt':
     ctypes.windll.user32.LoadImageW.restype = ctypes.wintypes.HANDLE
+    ctypes.windll.user32.SetWindowPos.restype = ctypes.wintypes.BOOL
+    ctypes.windll.user32.SetWindowPos.argtypes = [
+        ctypes.wintypes.HWND,
+        ctypes.wintypes.HWND,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.wintypes.UINT,
+    ]
 
 
 def set_app_user_model_id() -> bool:
@@ -167,6 +184,31 @@ def force_window_to_front(window) -> bool:
         window.activateWindow()
         return True
 
+    except (AttributeError, OSError, RuntimeError):
+        return False
+
+
+def set_window_topmost(window, topmost: bool) -> bool:
+    """切换窗口置顶状态，不重建原生窗口
+
+    Args:
+        window: PySide6 窗口对象
+        topmost: True 置顶，False 取消置顶
+
+    Returns:
+        bool: 切换成功返回 True；非 Windows 或调用失败返回 False
+    """
+    if os.name != 'nt':
+        return False
+
+    try:
+        user32 = ctypes.windll.user32
+        return bool(user32.SetWindowPos(
+            ctypes.wintypes.HWND(int(window.winId())),
+            ctypes.wintypes.HWND(HWND_TOPMOST if topmost else HWND_NOTOPMOST),
+            0, 0, 0, 0,
+            SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE,
+        ))
     except (AttributeError, OSError, RuntimeError):
         return False
 
