@@ -437,6 +437,12 @@ pin_tooltip = "置顶窗口"
 close_tooltip = "关闭"
 tab_all = "全部"
 tab_common = "常用"
+empty_title = "还没有收藏的配色"
+empty_hint = "在色彩分析或配色生成面板点击收藏按钮"
+pinned_empty_title = "还没有设为常用的配色"
+pinned_empty_hint = "在配色管理卡片或批量工具栏中设为常用"
+no_match = "没有匹配的配色"
+copied = "已复制"
 
 [messages]
 palette = "配色"

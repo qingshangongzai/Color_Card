@@ -648,7 +648,8 @@ class MainWindow(FluentWindow):
     def show_palette_tile(self) -> None:
         """显示并前置配色磁贴（供托盘菜单调用，懒创建单例）"""
         if self._palette_tile is None:
-            self._palette_tile = FloatingPaletteTile(self)
+            # 不设父对象：有 owner 的顶层窗口会被 Windows 随主窗口最小化而隐藏
+            self._palette_tile = FloatingPaletteTile()
         self._palette_tile.show_and_activate()
 
     def _cleanup_background_threads(self):

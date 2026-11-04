@@ -436,6 +436,12 @@ pin_tooltip = "Épingler la fenêtre"
 close_tooltip = "Fermer"
 tab_all = "Tout"
 tab_common = "Épinglés"
+empty_title = "Aucune palette enregistrée"
+empty_hint = "Cliquez sur Enregistrer dans Analyse des couleurs ou Génération de palettes"
+pinned_empty_title = "Aucune palette épinglée"
+pinned_empty_hint = "Épinglez une palette depuis sa carte ou la barre d'outils groupée"
+no_match = "Aucune palette correspondante"
+copied = "Copié"
 
 [messages]
 palette = "Palette"

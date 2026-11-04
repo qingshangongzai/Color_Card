@@ -23,6 +23,7 @@ from core.async_loader import BaseBatchLoader
 from core.grouping import generate_groups
 from core.logger import get_logger, log_user_action, log_performance
 from .cards import ColorModeContainer, get_text_color, get_border_color, get_placeholder_color
+from .empty_state import EmptyStateWidget
 from utils.theme_colors import get_title_color
 from dialogs import ColorblindPreviewDialog, ContrastCheckDialog, DeleteConfirmDialog, EditPaletteDialog, HarmonyAnalysisDialog, ImportModeDialog
 
@@ -843,6 +844,7 @@ class PaletteManagementList(QWidget):
         self._current_group_indices = []  # 当前分组的索引列表
         self._batch_mode = False
         self._selected_ids = set()
+        self._empty_widget: EmptyStateWidget | None = None
         self._config_manager = get_config_manager()
         super().__init__(parent)
         self.setup_ui()
@@ -893,36 +895,16 @@ class PaletteManagementList(QWidget):
         """
         self._clear_cards()
 
-        self._empty_widget = QWidget()
-        empty_layout = QVBoxLayout(self._empty_widget)
-        empty_layout.setContentsMargins(0, 0, 0, 0)
-        empty_layout.setSpacing(15)
-        empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self._icon_label = QLabel()
-        self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
-        self._icon_label.setText("🗑️" if is_group_cleared else "⭐")
-        self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(self._icon_label)
-
-        # 根据状态选择不同的文本
         if is_group_cleared:
-            text_key = 'palette_management.group_cleared_title'
+            icon = "🗑️"
+            title_key = 'palette_management.group_cleared_title'
             hint_key = 'palette_management.group_cleared_hint'
         else:
-            text_key = 'palette_management.empty_title'
+            icon = "⭐"
+            title_key = 'palette_management.empty_title'
             hint_key = 'palette_management.empty_hint'
 
-        self._text_label = QLabel(tr(text_key))
-        self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
-        self._text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(self._text_label)
-
-        self._hint_label = QLabel(tr(hint_key))
-        self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
-        self._hint_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_layout.addWidget(self._hint_label)
-
+        self._empty_widget = EmptyStateWidget(icon, title_key, hint_key, self.content_widget)
         self.content_layout.addWidget(self._empty_widget, alignment=Qt.AlignmentFlag.AlignCenter)
 
     def _clear_cards(self):
@@ -933,6 +915,7 @@ class PaletteManagementList(QWidget):
             if item.widget():
                 item.widget().deleteLater()
         self._favorite_cards = {}
+        self._empty_widget = None
 
     def _cancel_loader(self):
         """取消加载线程"""
@@ -1179,23 +1162,6 @@ class PaletteManagementList(QWidget):
 
     def _update_styles(self):
         """更新样式以适配主题 - 同时通知所有子卡片"""
-        # 更新空状态标签
-        if hasattr(self, '_icon_label') and self._icon_label is not None:
-            try:
-                self._icon_label.setStyleSheet(f"font-size: 48px; color: {get_text_color(secondary=True).name()};")
-            except RuntimeError as e:
-                logger.debug(f"Icon label already deleted: {e}")
-        if hasattr(self, '_text_label') and self._text_label is not None:
-            try:
-                self._text_label.setStyleSheet(f"font-size: 14px; color: {get_text_color(secondary=True).name()};")
-            except RuntimeError as e:
-                logger.debug(f"Text label already deleted: {e}")
-        if hasattr(self, '_hint_label') and self._hint_label is not None:
-            try:
-                self._hint_label.setStyleSheet(f"font-size: 12px; color: {get_text_color(secondary=True).name()};")
-            except RuntimeError as e:
-                logger.debug(f"Hint label already deleted: {e}")
-
         # 批量更新所有子卡片（使用 setUpdatesEnabled 减少重绘，符合规范7.3节）
         if hasattr(self, 'content_widget') and self._favorite_cards:
             self.content_widget.setUpdatesEnabled(False)
@@ -1207,16 +1173,8 @@ class PaletteManagementList(QWidget):
     
     def update_texts(self):
         """更新界面文本"""
-        if hasattr(self, '_text_label') and self._text_label is not None:
-            try:
-                self._text_label.setText(tr('palette_management.empty_title'))
-            except RuntimeError as e:
-                logger.debug(f"Text label already deleted: {e}")
-        if hasattr(self, '_hint_label') and self._hint_label is not None:
-            try:
-                self._hint_label.setText(tr('palette_management.empty_hint'))
-            except RuntimeError as e:
-                logger.debug(f"Hint label already deleted: {e}")
+        if self._empty_widget is not None:
+            self._empty_widget.retranslate()
 
     def remove_favorite_card(self, favorite_id: str, deleted_index: int) -> bool:
         """从UI移除卡片（纯UI操作，不处理数据）

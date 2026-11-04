@@ -436,6 +436,12 @@ pin_tooltip = "Pin window"
 close_tooltip = "Close"
 tab_all = "All"
 tab_common = "Pinned"
+empty_title = "No saved palettes yet"
+empty_hint = "Click Save in Color Analysis or Color Generation"
+pinned_empty_title = "No pinned palettes yet"
+pinned_empty_hint = "Pin a palette from its card or the batch toolbar"
+no_match = "No matching palettes"
+copied = "Copied"
 
 [messages]
 palette = "Palette"

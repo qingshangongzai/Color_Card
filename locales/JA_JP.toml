@@ -436,6 +436,12 @@ pin_tooltip = "ウィンドウを最前面に固定"
 close_tooltip = "閉じる"
 tab_all = "すべて"
 tab_common = "よく使う"
+empty_title = "お気に入りの配色はまだありません"
+empty_hint = "カラー分析または配色生成パネルでお気に入りに追加してください"
+pinned_empty_title = "よく使う配色はまだありません"
+pinned_empty_hint = "配色管理カードまたは一括ツールバーでよく使うに設定してください"
+no_match = "一致する配色はありません"
+copied = "コピーしました"
 
 [messages]
 palette = "パレット"
