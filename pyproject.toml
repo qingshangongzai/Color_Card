@@ -59,4 +59,7 @@ ignore_names = [
     "_lock",
     # main.py / installer/main.py - guard 挂在 QApplication 属性上防被回收，Vulture 无法识别
     "_single_instance_guard",
+    # core/config.py - 新增的常用标记方法目前只由 tests/ 调用，Vulture 不统计 tests/
+    "set_favorite_pinned",
+    "set_favorites_pinned",
 ]
