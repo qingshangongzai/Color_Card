@@ -360,11 +360,51 @@ def test_search_without_result_shows_no_match_state(tile):
     ]
 
     tile._apply_favorites(favorites)
-    tile._on_search_changed('不存在的名称')
+    tile._apply_search_query('不存在的名称')
 
     assert all(slot.isHidden() for slot in tile._slots)
     assert not tile._empty_widget.isHidden()
     assert tile._empty_widget._icon_label.text() == '🔍'
+
+
+def test_search_filters_only_after_enter_or_button(tile):
+    """输入过程不过滤；回车（returnPressed）与搜索按钮（searchSignal）触发后才过滤"""
+    favorites = [
+        _favorite('a', '春日原野', [{'hex': '#FF0000', 'rgb': (255, 0, 0)}], pinned=True),
+        _favorite('b', '冬日暖阳', [{'hex': '#00FF00', 'rgb': (0, 255, 0)}], pinned=True),
+    ]
+    tile._apply_favorites(favorites)
+
+    tile._search.textChanged.emit('春日')
+    assert tile._query == ''
+    assert not tile._slot_by_id['a'].isHidden()
+    assert not tile._slot_by_id['b'].isHidden()
+
+    tile._search.searchSignal.emit('春日')
+    assert tile._query == '春日'
+    assert not tile._slot_by_id['a'].isHidden()
+    assert tile._slot_by_id['b'].isHidden()
+
+
+def test_search_cleared_by_clear_signal_or_empty_text(tile):
+    """清空按钮 / 删光文本立即恢复全部，无需再按回车"""
+    favorites = [
+        _favorite('a', '春日原野', [{'hex': '#FF0000', 'rgb': (255, 0, 0)}], pinned=True),
+        _favorite('b', '冬日暖阳', [{'hex': '#00FF00', 'rgb': (0, 255, 0)}], pinned=True),
+    ]
+    tile._apply_favorites(favorites)
+
+    tile._apply_search_query('春日')
+    assert tile._slot_by_id['b'].isHidden()
+
+    tile._search.clearSignal.emit()
+    assert tile._query == ''
+    assert not tile._slot_by_id['b'].isHidden()
+
+    tile._apply_search_query('春日')
+    tile._search.textChanged.emit('')
+    assert tile._query == ''
+    assert not tile._slot_by_id['b'].isHidden()
 
 
 def test_common_tab_without_pinned_shows_pinned_empty_state(tile):
@@ -596,7 +636,7 @@ def test_flush_refresh_rebuilds_only_changed_group(tile, config_stub):
     config_stub.favorites = favorites
     slot_b = _build(tile, 1)
     untouched = slot_b.content
-    tile._on_search_changed('配色')
+    tile._apply_search_query('配色')
     assert slot_b.content is untouched
 
     config_stub.favorites = [dict(favorites[0], name='配色一改'), favorites[1]]

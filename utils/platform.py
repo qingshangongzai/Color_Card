@@ -18,6 +18,11 @@ SWP_NOSIZE = 0x0001
 SWP_NOMOVE = 0x0002
 SWP_NOACTIVATE = 0x0010
 
+# SetWindowLongPtrW 常量
+GWL_EXSTYLE = -20
+WS_EX_TOOLWINDOW = 0x00000080
+WS_EX_NOACTIVATE = 0x08000000
+
 # LoadImageW 返回 HICON（64 位句柄），提前声明返回类型避免被 ctypes 默认的
 # c_int 截断；仅在 Windows 下设置，保证跨平台 import 不失败
 if os.name == 'nt':
@@ -31,6 +36,17 @@ if os.name == 'nt':
         ctypes.c_int,
         ctypes.c_int,
         ctypes.wintypes.UINT,
+    ]
+    ctypes.windll.user32.GetWindowLongPtrW.restype = ctypes.c_ssize_t
+    ctypes.windll.user32.GetWindowLongPtrW.argtypes = [
+        ctypes.wintypes.HWND,
+        ctypes.c_int,
+    ]
+    ctypes.windll.user32.SetWindowLongPtrW.restype = ctypes.c_ssize_t
+    ctypes.windll.user32.SetWindowLongPtrW.argtypes = [
+        ctypes.wintypes.HWND,
+        ctypes.c_int,
+        ctypes.c_ssize_t,
     ]
 
 
@@ -209,6 +225,38 @@ def set_window_topmost(window, topmost: bool) -> bool:
             0, 0, 0, 0,
             SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE,
         ))
+    except (AttributeError, OSError, RuntimeError):
+        return False
+
+
+def set_window_tool_style(window) -> bool:
+    """给窗口加 WS_EX_TOOLWINDOW 与 WS_EX_NOACTIVATE 扩展样式
+
+    WS_EX_TOOLWINDOW：不进任务栏与 Alt+Tab；WS_EX_NOACTIVATE：点击 / 拖动
+    不抢前台，全屏应用不会被中断。只改扩展样式、不重建原生窗口，需在窗口
+    获得原生句柄后调用；需要键盘输入的子控件由调用方在点击时显式激活窗口。
+
+    Args:
+        window: PySide6 窗口对象
+
+    Returns:
+        bool: 两个标志均已生效返回 True；非 Windows 或调用失败返回 False
+    """
+    if os.name != 'nt':
+        return False
+
+    try:
+        user32 = ctypes.windll.user32
+        hwnd = ctypes.wintypes.HWND(int(window.winId()))
+        required = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
+        style = user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+        if style & required == required:
+            return True
+        user32.SetWindowLongPtrW(
+            hwnd, GWL_EXSTYLE, ctypes.c_ssize_t(style | required)
+        )
+        # SetWindowLongPtrW 返回旧样式，无法区分失败；改读回样式确认生效
+        return bool(user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE) & required == required)
     except (AttributeError, OSError, RuntimeError):
         return False
 

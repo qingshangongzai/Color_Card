@@ -5,7 +5,7 @@ import sys
 from dataclasses import dataclass
 
 # 第三方库导入
-from PySide6.QtCore import QRect, QSize, Qt, QTimer, Signal
+from PySide6.QtCore import QEvent, QRect, QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QGuiApplication, QPainter
 from PySide6.QtWidgets import (
     QApplication,
@@ -36,7 +36,13 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from core import get_config_manager
-from utils import load_icon_universal, set_window_topmost, show_and_activate_window, tr
+from utils import (
+    load_icon_universal,
+    set_window_tool_style,
+    set_window_topmost,
+    show_and_activate_window,
+    tr,
+)
 from utils.theme_colors import (
     get_dialog_bg_color,
     get_floating_tile_shadow_color,
@@ -221,7 +227,10 @@ def build_group_model(
 
 def _start_window_move(widget: QWidget) -> None:
     """交给系统原生拖动窗口，避免跨平台手算坐标"""
-    handle = widget.window().windowHandle()
+    window = widget.window()
+    # NOACTIVATE 窗口点击不抢前台也不改变 z 序，拖动前先提升，避免拖到下层
+    window.raise_()
+    handle = window.windowHandle()
     if handle is not None:
         handle.startSystemMove()
 
@@ -662,6 +671,7 @@ class FloatingPaletteTile(QWidget):
         self._snapshot: dict[str, FavoriteFingerprint] = {}
         self._dirty = False
         self._loaded = False
+        self._tool_style_applied = False
         self._slots: list[GroupSlot] = []
         self._slot_by_id: dict[str, GroupSlot] = {}
         self._collapsed_ids: set[str] = set()
@@ -768,7 +778,14 @@ class FloatingPaletteTile(QWidget):
 
         self._search = SearchLineEdit(bar)
         self._search.setFixedHeight(32)
-        self._search.textChanged.connect(self._on_search_changed)
+        # 过滤只在回车 / 搜索按钮时生效，输入过程不重建列表；
+        # 文本被删空时立即恢复全部，避免界面停留在无提示的过滤态
+        self._search.returnPressed.connect(self._search.search)
+        self._search.searchSignal.connect(self._apply_search_query)
+        self._search.clearSignal.connect(self._on_search_cleared)
+        self._search.textChanged.connect(self._on_search_text_changed)
+        # NOACTIVATE 窗口点击不激活，点搜索框时需显式激活才能接收键盘输入
+        self._search.installEventFilter(self)
         top.addWidget(self._search, 1, Qt.AlignmentFlag.AlignVCenter)
 
         self._pin_button = TransparentToggleToolButton(FluentIcon.UNPIN, bar)
@@ -851,6 +868,10 @@ class FloatingPaletteTile(QWidget):
     def showEvent(self, event) -> None:
         """每次显示摆回屏幕右下角；首次读取收藏，之后按指纹比对"""
         super().showEvent(event)
+        if not self._tool_style_applied:
+            # 首次显示后一次性设置工具窗口样式（不进任务栏 / Alt+Tab，
+            # 点击与拖动不抢前台）；失败时下次显示重试
+            self._tool_style_applied = set_window_tool_style(self)
         self._place_bottom_right()
         if not self._loaded:
             self._reload_favorites()
@@ -1036,12 +1057,30 @@ class FloatingPaletteTile(QWidget):
         self._route = route_key
         self._refresh_visibility(reset_scroll=True)
 
-    def _on_search_changed(self, text: str) -> None:
-        """搜索词空 ↔ 非空时归零滚动位置，其余输入保持当前位置"""
+    def eventFilter(self, obj, event) -> bool:
+        """点搜索框时显式激活窗口（NOACTIVATE 窗口点击不抢前台）"""
+        if obj is self._search and event.type() == QEvent.Type.MouseButtonPress:
+            self.activateWindow()
+            self._search.setFocus()
+        return super().eventFilter(obj, event)
+
+    def _apply_search_query(self, text: str) -> None:
+        """应用搜索词（回车 / 搜索按钮触发）；空 ↔ 非空时归零滚动位置"""
         query = text.strip().lower()
+        if query == self._query:
+            return
         reset_scroll = bool(self._query) != bool(query)
         self._query = query
         self._refresh_visibility(reset_scroll=reset_scroll)
+
+    def _on_search_cleared(self) -> None:
+        """清空搜索词并立即恢复全部（清空按钮 / 删光文本 / 空词回车）"""
+        self._apply_search_query('')
+
+    def _on_search_text_changed(self, text: str) -> None:
+        """输入过程不触发过滤；仅文本被删空时立即恢复"""
+        if not text.strip():
+            self._on_search_cleared()
 
     def _on_scroll_changed(self, _value: int) -> None:
         """滚动时按新的视口窗口补建 / 回收"""

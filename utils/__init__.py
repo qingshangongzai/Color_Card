@@ -12,6 +12,7 @@ from .platform import (
     fix_windows_taskbar_icon_for_window,
     force_window_to_front,
     set_app_user_model_id,
+    set_window_tool_style,
     set_window_topmost,
     show_and_activate_window,
 )
@@ -81,6 +82,7 @@ __all__ = [
     'fix_windows_taskbar_icon_for_window',
     'force_window_to_front',
     'show_and_activate_window',
+    'set_window_tool_style',
     'set_window_topmost',
     'calculate_grid_columns',
     'LocaleManager',
