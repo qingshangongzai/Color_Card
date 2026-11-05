@@ -22,6 +22,8 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 import pytest
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from tests.favorites_fixture import build_favorites
@@ -29,8 +31,10 @@ from ui.palette_tile import (
     FORM_COLLAPSED,
     FORM_GRID,
     FORM_ROW,
+    FULL_REBUILD_THRESHOLD,
     GROUP_HEADER_HEIGHT,
     GROUP_SPACING,
+    REFRESH_DEBOUNCE_MS,
     ROUTE_ALL,
     ROUTE_COMMON,
     ROW_PREVIEW_COUNT,
@@ -54,11 +58,17 @@ PALETTE_TILE_KEYS = {
 }
 
 
-class _StubConfig:
-    """测试用配置桩：显示磁贴时不读取本机收藏"""
+class _StubConfig(QObject):
+    """测试用配置桩：显示磁贴时不读取本机收藏，可手动触发变更信号"""
+
+    favorites_changed = Signal()
+
+    def __init__(self, favorites: list[dict] | None = None) -> None:
+        super().__init__()
+        self.favorites: list[dict] = favorites or []
 
     def get_favorites(self, include_deleted: bool = False) -> list[dict]:
-        return []
+        return list(self.favorites)
 
 
 def _favorite(
@@ -88,9 +98,15 @@ def _build(tile: FloatingPaletteTile, index: int):
 
 
 @pytest.fixture
-def tile(qapp, monkeypatch):
+def config_stub(qapp):
+    """可触发变更信号的配置桩"""
+    return _StubConfig()
+
+
+@pytest.fixture
+def tile(qapp, monkeypatch, config_stub):
     """已显示、不读取真实配置的磁贴（懒创建需要真实视口高度）"""
-    monkeypatch.setattr('ui.palette_tile.get_config_manager', lambda: _StubConfig())
+    monkeypatch.setattr('ui.palette_tile.get_config_manager', lambda: config_stub)
     widget = FloatingPaletteTile()
     widget.show()
     QApplication.processEvents()
@@ -303,6 +319,24 @@ def test_row_preview_uses_up_to_five_dots(tile):
 
     assert len(many._preview._colors) == ROW_PREVIEW_COUNT
     assert len(few._preview._colors) == 3
+
+
+def test_header_preview_shows_color_dots_in_common(tile):
+    colors = [
+        {'hex': f'#0000{index:02X}', 'rgb': (0, 0, index)} for index in range(1, 7)
+    ]
+    favorites = [_favorite('a', '多色', colors, pinned=True)]
+
+    tile._apply_favorites(favorites)
+    slot = _build(tile, 0)
+
+    assert isinstance(slot.content, PaletteGroup)
+    assert len(slot.content._header._preview._colors) == ROW_PREVIEW_COUNT
+
+    slot.content._toggle()
+
+    assert slot.content.expanded is False
+    assert len(slot.content._header._preview._colors) == ROW_PREVIEW_COUNT
 
 
 def test_row_click_does_not_copy(tile):
@@ -523,6 +557,135 @@ def test_full_rebuild_without_reset_keeps_scroll(tile):
     tile._apply_favorites(favorites, reset_scroll=True)
 
     assert bar.value() == 0
+
+
+def test_favorites_changed_debounces_to_single_flush(tile, config_stub, monkeypatch):
+    favorites = [
+        _favorite('a', '配色', [{'hex': '#FF0000', 'rgb': (255, 0, 0)}], pinned=True)
+    ]
+    tile._apply_favorites(favorites)
+    config_stub.favorites = favorites
+
+    rebuilds: list[str] = []
+    original = tile._rebuild_group
+
+    def record(favorite: dict) -> bool:
+        rebuilds.append(favorite.get('name', ''))
+        return original(favorite)
+
+    monkeypatch.setattr(tile, '_rebuild_group', record)
+
+    for index in range(10):
+        config_stub.favorites = [dict(favorites[0], name=f'配色{index}')]
+        config_stub.favorites_changed.emit()
+
+    assert tile.isVisible()
+    assert tile._refresh_timer.isActive()
+    QTest.qWait(REFRESH_DEBOUNCE_MS + 300)
+    assert rebuilds == ['配色9']
+    assert tile._slot_by_id['a'].model.favorite['name'] == '配色9'
+
+
+def test_flush_refresh_rebuilds_only_changed_group(tile, config_stub):
+    favorites = [
+        _favorite('a', '配色一', [{'hex': '#FF0000', 'rgb': (255, 0, 0)}], pinned=True),
+        _favorite('b', '配色二', [{'hex': '#00FF00', 'rgb': (0, 255, 0)}], pinned=True),
+    ]
+    tile._collapsed_ids.add('b')
+    tile._apply_favorites(favorites)
+    config_stub.favorites = favorites
+    slot_b = _build(tile, 1)
+    untouched = slot_b.content
+    tile._on_search_changed('配色')
+    assert slot_b.content is untouched
+
+    config_stub.favorites = [dict(favorites[0], name='配色一改'), favorites[1]]
+    config_stub.favorites_changed.emit()
+    QTest.qWait(REFRESH_DEBOUNCE_MS + 300)
+
+    assert '配色一改' in tile._slot_by_id['a'].content._header._name_label.text()
+    assert slot_b.content is untouched
+    assert tile._query == '配色'
+    assert tile._route == ROUTE_COMMON
+    assert tile._collapsed_ids == {'b'}
+
+
+def test_flush_refresh_adds_and_removes_groups(tile, config_stub):
+    favorites = [
+        _favorite('a', '配色一', [{'hex': '#FF0000', 'rgb': (255, 0, 0)}], pinned=True),
+        _favorite('b', '配色二', [{'hex': '#00FF00', 'rgb': (0, 255, 0)}], pinned=True),
+        _favorite('c', '配色三', [{'hex': '#0000FF', 'rgb': (0, 0, 255)}], pinned=True),
+    ]
+    tile._apply_favorites(favorites)
+    config_stub.favorites = favorites
+    slot_a = _build(tile, 0)
+    slot_b = _build(tile, 1)
+    content_a = slot_a.content
+    content_b = slot_b.content
+
+    config_stub.favorites = [
+        favorites[0],
+        favorites[1],
+        _favorite('d', '配色四', [{'hex': '#123456', 'rgb': (18, 52, 86)}], pinned=True),
+    ]
+    config_stub.favorites_changed.emit()
+    QTest.qWait(REFRESH_DEBOUNCE_MS + 300)
+
+    assert [slot.model.favorite_id for slot in tile._slots] == ['a', 'b', 'd']
+    assert _build(tile, 0).content is content_a
+    assert _build(tile, 1).content is content_b
+    added = _build(tile, 2)
+    assert added.model.card_index == 2
+    assert '3.配色四' in added.content._header._name_label.text()
+
+
+def test_hidden_changes_do_not_rebuild_until_show(tile, config_stub):
+    favorites = [
+        _favorite('a', '配色一', [{'hex': '#FF0000', 'rgb': (255, 0, 0)}], pinned=True)
+    ]
+    tile._apply_favorites(favorites)
+    config_stub.favorites = favorites
+    content = _build(tile, 0).content
+
+    tile.hide()
+    tile.show()
+    QApplication.processEvents()
+    assert _build(tile, 0).content is content
+
+    tile.hide()
+    config_stub.favorites = [dict(favorites[0], name='隐藏后改名')]
+    config_stub.favorites_changed.emit()
+    QTest.qWait(REFRESH_DEBOUNCE_MS + 300)
+    assert tile._slot_by_id['a'].content is content
+
+    tile.show()
+    QApplication.processEvents()
+    rebuilt = _build(tile, 0).content
+    assert rebuilt is not content
+    assert '隐藏后改名' in rebuilt._header._name_label.text()
+
+
+def test_built_change_threshold_uses_full_rebuild(tile, config_stub, monkeypatch):
+    favorites = build_favorites(20)
+    tile._apply_favorites(favorites)
+    config_stub.favorites = favorites
+    for slot in tile._slots[:FULL_REBUILD_THRESHOLD]:
+        tile._ensure_built(slot)
+
+    calls: list[bool] = []
+    original = tile._apply_favorites
+
+    def record(favorites_data: list[dict], reset_scroll: bool = True) -> None:
+        calls.append(reset_scroll)
+        original(favorites_data, reset_scroll)
+
+    monkeypatch.setattr(tile, '_apply_favorites', record)
+
+    config_stub.favorites = [dict(favorite, name=favorite['name'] + '改') for favorite in favorites]
+    config_stub.favorites_changed.emit()
+    QTest.qWait(REFRESH_DEBOUNCE_MS + 300)
+
+    assert calls == [False]
 
 
 def test_locale_palette_tile_keys_complete():

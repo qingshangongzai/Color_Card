@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import (
     CardWidget, ScrollArea, ScrollBarHandleDisplayMode, ToolButton, FluentIcon, ComboBox,
     InfoBar, InfoBarPosition, qconfig,
-    PushButton, SubtitleLabel, RoundMenu, Action
+    PushButton, SubtitleLabel, RoundMenu, Action, TransparentToggleToolButton
 )
 
 # 项目模块导入
@@ -469,6 +469,7 @@ class PaletteManagementCard(CardWidget):
     export_ase_requested = Signal(dict)
     export_image_requested = Signal(dict)
     card_clicked = Signal(str)
+    pinned_changed = Signal(str, bool)  # 信号：收藏 id, 目标常用状态
     MAX_COLORS_PER_ROW = 6
 
     def __init__(self, favorite_data: dict[str, Any], card_index: int = 0, parent=None):
@@ -479,6 +480,7 @@ class PaletteManagementCard(CardWidget):
         self._color_cards: list[PaletteManagementColorCard] = []
         self._batch_mode = False
         self._selected = False
+        self._full_name = ''
         super().__init__(parent)
         self.setup_ui()
         self._load_favorite_data()
@@ -493,19 +495,24 @@ class PaletteManagementCard(CardWidget):
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-        # 头部信息
+        # 头部信息：名称占剩余宽度，长名称按宽度省略
         header_layout = QHBoxLayout()
         header_layout.setSpacing(10)
 
         self.name_label = QLabel()
+        self.name_label.setMinimumWidth(0)
+        self.name_label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.name_label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        header_layout.addWidget(self.name_label)
+        header_layout.addWidget(self.name_label, 1)
 
-        header_layout.addStretch()
+        self.pin_button = TransparentToggleToolButton(FluentIcon.UNPIN, self)
+        self.pin_button.setFixedSize(24, 24)
+        self.pin_button.toggled.connect(self._on_pin_toggled)
+        header_layout.addWidget(self.pin_button, 0, Qt.AlignmentFlag.AlignVCenter)
 
         self.time_label = QLabel()
         self.time_label.setStyleSheet("font-size: 11px;")
-        header_layout.addWidget(self.time_label)
+        header_layout.addWidget(self.time_label, 0, Qt.AlignmentFlag.AlignVCenter)
 
         layout.addLayout(header_layout)
 
@@ -578,6 +585,7 @@ class PaletteManagementCard(CardWidget):
 
         self.name_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {name_color.name()};")
         self.time_label.setStyleSheet(f"font-size: 11px; color: {time_color.name()};")
+        self._update_pin_button()
         # 不再调用 setStyleSheet，让 qfluentwidgets 处理主题切换
 
         # 批量更新所有色卡（使用 setUpdatesEnabled 减少重绘）
@@ -662,7 +670,8 @@ class PaletteManagementCard(CardWidget):
     def _load_favorite_data(self):
         """加载收藏数据"""
         name = self._favorite_data.get('name', tr('palette_management.unnamed'))
-        self.name_label.setText(f"{self._card_index + 1}.{name}")
+        self._full_name = f"{self._card_index + 1}.{name}"
+        self._apply_elided_name()
 
         created_at = self._favorite_data.get('created_at', '')
         if created_at:
@@ -675,6 +684,8 @@ class PaletteManagementCard(CardWidget):
         else:
             self.time_label.setText('')
 
+        self._update_pin_button()
+
         colors = self._favorite_data.get('colors', [])
 
         # 清空现有色卡并根据颜色数量重新创建
@@ -685,6 +696,50 @@ class PaletteManagementCard(CardWidget):
         for i, card in enumerate(self._color_cards):
             if i < len(colors):
                 card.update_color(colors[i])
+
+    def resizeEvent(self, event):
+        """宽度变化后重新省略标题"""
+        super().resizeEvent(event)
+        self._apply_elided_name()
+
+    def _apply_elided_name(self):
+        """按名称标签当前宽度省略过长标题"""
+        width = self.name_label.width()
+        if width <= 0:
+            self.name_label.setText(self._full_name)
+            return
+        elided = self.name_label.fontMetrics().elidedText(
+            self._full_name,
+            Qt.TextElideMode.ElideRight,
+            width,
+        )
+        self.name_label.setText(elided)
+
+    def _update_pin_button(self):
+        """同步图钉选中态与图标；按钮不提供 tooltip"""
+        pinned = bool(self._favorite_data.get('pinned', False))
+        self.pin_button.blockSignals(True)
+        self.pin_button.setChecked(pinned)
+        self.pin_button.blockSignals(False)
+        self.pin_button.setIcon(FluentIcon.PIN if pinned else FluentIcon.UNPIN)
+        self.pin_button.setToolTip('')
+
+    def set_pinned(self, pinned: bool):
+        """写回常用状态并同步按钮，供接口层确认或回滚"""
+        self._favorite_data['pinned'] = bool(pinned)
+        self._update_pin_button()
+
+    def _on_pin_toggled(self, checked: bool):
+        """图钉切换只发请求，数据由配色管理界面统一写回"""
+        favorite_id = self._favorite_data.get('id', '')
+        if favorite_id:
+            self.pinned_changed.emit(favorite_id, checked)
+
+    def update_texts(self):
+        """语言切换后重算名称兜底并同步图钉状态"""
+        self._full_name = f"{self._card_index + 1}.{self._favorite_data.get('name', tr('palette_management.unnamed'))}"
+        self._apply_elided_name()
+        self._update_pin_button()
 
     def _on_delete_clicked(self):
         """删除按钮点击"""
@@ -769,7 +824,8 @@ class PaletteManagementCard(CardWidget):
             enabled: 是否启用批量模式
         """
         self._batch_mode = enabled
-        # 批量模式下隐藏操作按钮
+        # 批量模式下隐藏操作按钮，常用切换交给批量工具栏
+        self.pin_button.setVisible(not enabled)
         self.preview_panel_button.setVisible(not enabled)
         self.contrast_button.setVisible(not enabled)
         self.harmony_button.setVisible(not enabled)
@@ -826,6 +882,7 @@ class PaletteManagementList(QWidget):
     favorite_edit = Signal(dict)
     favorite_export_ase = Signal(dict)
     favorite_export_image = Signal(dict)
+    favorite_pinned_changed = Signal(str, bool)  # 信号：收藏 id, 目标常用状态
     group_changed = Signal(int)
     groups_updated = Signal(list)
     selection_changed = Signal(set)
@@ -978,6 +1035,7 @@ class PaletteManagementList(QWidget):
         card.export_ase_requested.connect(self._on_export_ase_requested)
         card.export_image_requested.connect(self._on_export_image_requested)
         card.card_clicked.connect(self._on_card_clicked)
+        card.pinned_changed.connect(self.favorite_pinned_changed)
         return card
 
     def _load_group_directly(self, group_indices: list):
@@ -1175,6 +1233,8 @@ class PaletteManagementList(QWidget):
         """更新界面文本"""
         if self._empty_widget is not None:
             self._empty_widget.retranslate()
+        for card in self._favorite_cards.values():
+            card.update_texts()
 
     def remove_favorite_card(self, favorite_id: str, deleted_index: int) -> bool:
         """从UI移除卡片（纯UI操作，不处理数据）
@@ -1423,6 +1483,11 @@ class PaletteManagementInterface(QWidget):
         self._toggle_select_btn.clicked.connect(self._on_toggle_select_clicked)
         batch_toolbar_layout.addWidget(self._toggle_select_btn)
 
+        self.pin_selected_button = PushButton(FluentIcon.PIN, tr('palette_management.pin_action'), self)
+        self.pin_selected_button.setFixedWidth(140)
+        self.pin_selected_button.clicked.connect(self._on_pin_selected_clicked)
+        batch_toolbar_layout.addWidget(self.pin_selected_button)
+
         self.delete_selected_button = PushButton(FluentIcon.DELETE, tr('palette_management.delete_selected'), self)
         self.delete_selected_button.setFixedWidth(140)
         self.delete_selected_button.clicked.connect(self._on_delete_selected_clicked)
@@ -1454,6 +1519,7 @@ class PaletteManagementInterface(QWidget):
         self.palette_management_list.favorite_edit.connect(self._on_favorite_edit)
         self.palette_management_list.favorite_export_ase.connect(self._on_favorite_export_ase)
         self.palette_management_list.favorite_export_image.connect(self._on_favorite_export_image)
+        self.palette_management_list.favorite_pinned_changed.connect(self._on_favorite_pinned_changed)
         self.palette_management_list.groups_updated.connect(self._on_groups_updated)
         self.palette_management_list.selection_changed.connect(self._on_selection_changed)
         layout.addWidget(self.palette_management_list, stretch=1)
@@ -1572,6 +1638,85 @@ class PaletteManagementInterface(QWidget):
         else:
             self.palette_management_list.clear_selection()
 
+    def _selected_all_pinned(self, selected_ids: set) -> bool:
+        """选中项是否全部已设为常用"""
+        cards = self.palette_management_list._favorite_cards
+        known_ids = [favorite_id for favorite_id in selected_ids if favorite_id in cards]
+        return bool(known_ids) and len(known_ids) == len(selected_ids) and all(
+            cards[favorite_id]._favorite_data.get('pinned', False) for favorite_id in known_ids
+        )
+
+    def _refresh_selected_pinned(self, selected_ids: set, pinned: bool):
+        """同步选中卡片的图钉状态"""
+        cards = self.palette_management_list._favorite_cards
+        for favorite_id in selected_ids:
+            card = cards.get(favorite_id)
+            if card is not None:
+                card.set_pinned(pinned)
+
+    def _on_pin_selected_clicked(self):
+        """批量设为常用 / 取消常用"""
+        selected_ids = self.palette_management_list._selected_ids
+        if not selected_ids:
+            InfoBar.warning(
+                title=tr('messages.warning.title'),
+                content=tr('palette_management.select_first'),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self
+            )
+            return
+
+        pinned = not self._selected_all_pinned(selected_ids)
+        changed = self._config_manager.set_favorites_pinned(selected_ids, pinned)
+        if not changed:
+            return
+
+        self._config_manager.save()
+        self._refresh_selected_pinned(selected_ids, pinned)
+        self._update_batch_toolbar()
+
+        InfoBar.success(
+            title=tr('messages.success.title'),
+            content=tr(
+                'palette_management.pin_success' if pinned else 'palette_management.unpin_success',
+                count=changed,
+            ),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self
+        )
+
+    def _on_favorite_pinned_changed(self, favorite_id: str, pinned: bool):
+        """单卡图钉切换：写配置、落盘并回写卡片状态"""
+        card = self.palette_management_list._favorite_cards.get(favorite_id)
+        if not self._config_manager.set_favorite_pinned(favorite_id, pinned):
+            if card is not None:
+                card.set_pinned(not pinned)
+            return
+
+        self._config_manager.save()
+        if card is not None:
+            card.set_pinned(pinned)
+        self._update_batch_toolbar()
+
+        InfoBar.success(
+            title=tr('messages.success.title'),
+            content=tr(
+                'palette_management.pin_success' if pinned else 'palette_management.unpin_success',
+                count=1,
+            ),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2000,
+            parent=self
+        )
+
     def _update_batch_toolbar(self):
         """更新批量工具栏状态"""
         selected_count = len(self.palette_management_list._selected_ids)
@@ -1588,6 +1733,12 @@ class PaletteManagementInterface(QWidget):
             self._toggle_select_btn.setText(tr('palette_management.clear_selection'))
         else:
             self._toggle_select_btn.setText(tr('palette_management.select_all'))
+
+        # 按选中项状态切换常用按钮的文案与图标
+        all_pinned = self._selected_all_pinned(self.palette_management_list._selected_ids)
+        action_key = 'unpin_action' if all_pinned else 'pin_action'
+        self.pin_selected_button.setText(tr(f'palette_management.{action_key}'))
+        self.pin_selected_button.setIcon(FluentIcon.UNPIN if all_pinned else FluentIcon.PIN)
 
     def _on_groups_updated(self, groups: list):
         """分组列表更新回调
@@ -2268,8 +2419,7 @@ class PaletteManagementInterface(QWidget):
     def _on_language_changed(self):
         """语言切换回调"""
         self.update_texts()
-        self.palette_management_list.update_texts()
-    
+
     def update_texts(self):
         """更新界面文本"""
         self.title_label.setText(tr('palette_management.title'))
@@ -2277,3 +2427,7 @@ class PaletteManagementInterface(QWidget):
         self.import_button.setText(tr('palette_management.import'))
         self.export_button.setText(tr('palette_management.export'))
         self.clear_all_button.setText(tr('palette_management.clear_all'))
+        self.batch_manage_button.setText(tr('palette_management.batch_manage'))
+        self.title_label_batch.setText(tr('palette_management.title'))
+        self.palette_management_list.update_texts()
+        self._update_batch_toolbar()

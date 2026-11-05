@@ -750,6 +750,8 @@ class ColorGenerationInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'refresh_palette_management'):
             window.refresh_palette_management()
+        if window and hasattr(window, 'refresh_color_preview'):
+            window.refresh_color_preview()
 
         InfoBar.success(
             title=tr('color_generation.favorite_success.title'),

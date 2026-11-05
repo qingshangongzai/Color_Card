@@ -81,6 +81,12 @@ EMPTY_STATE_MIN_HEIGHT = 200
 # 复制后 HEX 文本显示「已复制」的时长
 COPY_LABEL_RESTORE_MS = 1000
 
+# 收藏变更的合并窗口；同一窗口内的多次变更只触发一次刷新
+REFRESH_DEBOUNCE_MS = 50
+
+# 已建变更组数达到该值时改走一次保状态全量重建
+FULL_REBUILD_THRESHOLD = 10
+
 ROUTE_ALL = 'all'
 ROUTE_COMMON = 'common'
 
@@ -123,6 +129,37 @@ def matches_query(search_keys: tuple[str, tuple[str, ...]], query: str) -> bool:
         return True
     name, hex_values = search_keys
     return query in name or any(query in hex_value for hex_value in hex_values)
+
+
+# 颜色指纹：(hex, rgb)；收藏指纹：(name, colors, pinned)
+ColorFingerprint = tuple[str, tuple[int, ...] | None]
+FavoriteFingerprint = tuple[str, tuple[ColorFingerprint, ...], bool]
+
+
+def favorite_fingerprint(favorite: dict) -> FavoriteFingerprint:
+    """只复制影响显示的字段，避免持有配置内部 dict 的引用"""
+    color_items: list[ColorFingerprint] = []
+    colors = favorite.get('colors') or []
+    for color in colors:
+        if not isinstance(color, dict):
+            continue
+        hex_value = color.get('hex')
+        rgb = color.get('rgb')
+        rgb_tuple = tuple(rgb) if isinstance(rgb, (tuple, list)) else None
+        color_items.append((str(hex_value or ''), rgb_tuple))
+    return (
+        str(favorite.get('name', '')),
+        tuple(color_items),
+        bool(favorite.get('pinned', False)),
+    )
+
+
+def build_favorites_snapshot(favorites: list[dict]) -> dict[str, FavoriteFingerprint]:
+    """按收藏顺序生成 id → 指纹 的快照"""
+    return {
+        str(favorite.get('id', '')): favorite_fingerprint(favorite)
+        for favorite in favorites
+    }
 
 
 @dataclass
@@ -314,12 +351,13 @@ class SwatchCard(QWidget):
 
 
 class GroupHeader(QWidget):
-    """分组标题行：名称 + 折叠箭头"""
+    """分组标题行：名称 + 最多 5 个色点 + 折叠箭头"""
 
     clicked = Signal()
 
-    def __init__(self, name: str, parent: QWidget | None = None) -> None:
+    def __init__(self, model: GroupModel, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+        self._full_name = model.title_text()
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFixedHeight(GROUP_HEADER_HEIGHT)
 
@@ -327,16 +365,39 @@ class GroupHeader(QWidget):
         layout.setContentsMargins(2, 0, 4, 0)
         layout.setSpacing(8)
 
-        self._name_label = StrongBodyLabel(name, self)
+        self._name_label = StrongBodyLabel(self._full_name, self)
         self._name_label.pixelFontSize = 13
+        self._name_label.setMinimumWidth(0)
+        self._name_label.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self._name_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
-        layout.addWidget(self._name_label)
-        layout.addStretch()
+        layout.addWidget(self._name_label, 1)
+
+        # 与「全部」行视图一致：色点仅预览，不承担复制与取色
+        self._preview = RowColorDots(model.swatches, self)
+        layout.addWidget(self._preview, 0, Qt.AlignmentFlag.AlignVCenter)
 
         self._arrow = IconWidget(FluentIcon.CHEVRON_DOWN_MED, self)
         self._arrow.setFixedSize(16, 16)
         self._arrow.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         layout.addWidget(self._arrow, 0, Qt.AlignmentFlag.AlignVCenter)
+
+    def resizeEvent(self, event) -> None:
+        """宽度变化后按可用宽度省略过长标题"""
+        super().resizeEvent(event)
+        self._apply_elided_name()
+
+    def _apply_elided_name(self) -> None:
+        width = self._name_label.width()
+        if width <= 0:
+            self._name_label.setText(self._full_name)
+            return
+        self._name_label.setText(
+            self._name_label.fontMetrics().elidedText(
+                self._full_name,
+                Qt.TextElideMode.ElideRight,
+                width,
+            )
+        )
 
     def set_expanded(self, expanded: bool) -> None:
         """箭头随折叠状态切换方向"""
@@ -345,7 +406,8 @@ class GroupHeader(QWidget):
 
     def set_name(self, name: str) -> None:
         """更新标题文本；语言切换后由 PaletteGroup 重算"""
-        self._name_label.setText(name)
+        self._full_name = name
+        self._apply_elided_name()
 
     def mouseReleaseEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton \
@@ -469,7 +531,7 @@ class PaletteGroup(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(GROUP_HEADER_SPACING)
 
-        self._header = GroupHeader(model.title_text(), self)
+        self._header = GroupHeader(model, self)
         self._header.clicked.connect(self._toggle)
         layout.addWidget(self._header)
 
@@ -595,7 +657,11 @@ class FloatingPaletteTile(QWidget):
         super().__init__(parent)
         self.setObjectName('floatingPaletteTile')
 
+        self._config_manager = get_config_manager()
         self._favorites: list[dict] = []
+        self._snapshot: dict[str, FavoriteFingerprint] = {}
+        self._dirty = False
+        self._loaded = False
         self._slots: list[GroupSlot] = []
         self._slot_by_id: dict[str, GroupSlot] = {}
         self._collapsed_ids: set[str] = set()
@@ -605,6 +671,12 @@ class FloatingPaletteTile(QWidget):
         self._max_live_groups = MAX_LIVE_GROUPS
         self._tick = 0
         self._layout_dirty = False
+
+        # 单次定时器负责合并同一轮收藏变更；每次变更 start() 重启
+        self._refresh_timer = QTimer(self)
+        self._refresh_timer.setSingleShot(True)
+        self._refresh_timer.timeout.connect(self._flush_refresh)
+        self._config_manager.favorites_changed.connect(self._on_favorites_changed)
 
         # 顶层窗口：主窗口隐藏到托盘时不连带隐藏；不含置顶标志，置顶由 SetWindowPos 切换
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
@@ -777,10 +849,16 @@ class FloatingPaletteTile(QWidget):
         show_and_activate_window(self)
 
     def showEvent(self, event) -> None:
-        """每次显示都摆回屏幕右下角，并重读收藏"""
+        """每次显示摆回屏幕右下角；首次读取收藏，之后按指纹比对"""
         super().showEvent(event)
         self._place_bottom_right()
-        self._reload_favorites()
+        if not self._loaded:
+            self._reload_favorites()
+            return
+        if self._dirty:
+            # 隐藏期间的变更只标脏，显示时统一走一次比对；无变化零重建
+            self._refresh_timer.stop()
+            self._flush_refresh()
 
     def _place_bottom_right(self) -> None:
         screen = QGuiApplication.primaryScreen()
@@ -793,8 +871,9 @@ class FloatingPaletteTile(QWidget):
         )
 
     def _reload_favorites(self) -> None:
-        """读取当前收藏并重建内容"""
-        self._apply_favorites(get_config_manager().get_favorites())
+        """首次显示时读取当前收藏并重建内容"""
+        self._apply_favorites(self._config_manager.get_favorites())
+        self._loaded = True
 
     def _apply_favorites(self, favorites: list[dict], reset_scroll: bool = True) -> None:
         """重建组占位；真实控件按视口懒创建
@@ -820,8 +899,96 @@ class FloatingPaletteTile(QWidget):
             self._slot_by_id[model.favorite_id] = slot
 
         self._refresh_visibility(reset_scroll=reset_scroll)
+        self._snapshot = build_favorites_snapshot(self._favorites)
+        self._dirty = False
         # 首屏布局可能尚未完成，延后一拍按真实视口高度补建
         QTimer.singleShot(0, self._sync_viewport)
+
+    def _on_favorites_changed(self) -> None:
+        """收藏变更：隐藏时只标脏，显示时重启 50ms 合并窗口"""
+        self._dirty = True
+        if self.isVisible():
+            self._refresh_timer.start(REFRESH_DEBOUNCE_MS)
+
+    def _flush_refresh(self) -> None:
+        """按 id 指纹 diff 增量刷新；超阈值改走一次保状态全量重建"""
+        if not self.isVisible():
+            self._dirty = True
+            return
+
+        favorites = self._config_manager.get_favorites()
+        snapshot = build_favorites_snapshot(favorites)
+        if snapshot == self._snapshot and list(snapshot) == list(self._snapshot):
+            self._dirty = False
+            return
+
+        old_ids = list(self._snapshot)
+        new_ids = list(snapshot)
+        common_old = [favorite_id for favorite_id in old_ids if favorite_id in snapshot]
+        common_new = [favorite_id for favorite_id in new_ids if favorite_id in self._snapshot]
+        added = [favorite_id for favorite_id in new_ids if favorite_id not in self._snapshot]
+        removed = [favorite_id for favorite_id in old_ids if favorite_id not in snapshot]
+        changed = [
+            favorite_id for favorite_id in new_ids
+            if favorite_id in self._snapshot and self._snapshot[favorite_id] != snapshot[favorite_id]
+        ]
+        built_changed = [
+            favorite_id for favorite_id in changed
+            if self._slot_by_id[favorite_id].content is not None
+        ]
+
+        if common_old != common_new \
+                or len(built_changed) >= FULL_REBUILD_THRESHOLD \
+                or len(added) + len(removed) >= FULL_REBUILD_THRESHOLD:
+            self._apply_favorites(favorites, reset_scroll=False)
+            return
+
+        self._remove_slots(removed)
+        self._favorites = favorites
+        self._insert_slots(favorites)
+        self._renumber_slots()
+
+        favorites_by_id = {
+            str(favorite.get('id', '')): favorite for favorite in favorites
+        }
+        for favorite_id in changed:
+            self._rebuild_group(favorites_by_id[favorite_id])
+
+        self._refresh_visibility(reset_scroll=False)
+        self._snapshot = snapshot
+        self._dirty = False
+
+    def _remove_slots(self, removed: list[str]) -> None:
+        """删除已消失的组，并清掉只在旧组上有意义的折叠状态"""
+        for favorite_id in removed:
+            slot = self._slot_by_id.pop(favorite_id)
+            self._slots.remove(slot)
+            self._groups_layout.removeWidget(slot)
+            slot.recycle()
+            slot.hide()
+            slot.deleteLater()
+            self._collapsed_ids.discard(favorite_id)
+            self._row_open_ids.discard(favorite_id)
+
+    def _insert_slots(self, favorites: list[dict]) -> None:
+        """按新收藏顺序插入新增组，已有组保持原位"""
+        for position, favorite in enumerate(favorites):
+            favorite_id = str(favorite.get('id', ''))
+            if favorite_id in self._snapshot:
+                continue
+            model = build_group_model(favorite, position, self._card_height, self._row_height)
+            slot = GroupSlot(model, self._form_for(model), self._groups_host)
+            self._groups_layout.insertWidget(position, slot)
+            self._slots.insert(position, slot)
+            self._slot_by_id[favorite_id] = slot
+
+    def _renumber_slots(self) -> None:
+        """重排标题序号；已建内容按当前语言重算标题"""
+        for position, slot in enumerate(self._slots):
+            if slot.model.card_index == position:
+                continue
+            slot.model.card_index = position
+            slot.retranslate()
 
     @property
     def _group_widgets(self) -> list[QWidget]:
