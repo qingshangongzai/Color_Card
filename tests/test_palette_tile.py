@@ -499,10 +499,30 @@ def test_rebuild_group_replaces_only_target(tile):
 
     updated = dict(favorites[0], name='新名称')
     assert tile._rebuild_group(updated) is True
+    tile._sync_viewport()
 
     assert tile._favorites[0]['name'] == '新名称'
     assert '新名称' in slot_a.content._header._name_label.text()
     assert slot_b.content is untouched
+
+
+def test_full_rebuild_without_reset_keeps_scroll(tile):
+    favorites = build_favorites(200)
+    tile._apply_favorites(favorites)
+    tile._segmented.setCurrentItem(ROUTE_ALL)
+    QApplication.processEvents()
+    bar = tile._scroll.verticalScrollBar()
+    bar.setValue(bar.maximum() // 2)
+    value = bar.value()
+
+    tile._apply_favorites(favorites, reset_scroll=False)
+    QApplication.processEvents()
+
+    assert bar.value() == value
+
+    tile._apply_favorites(favorites, reset_scroll=True)
+
+    assert bar.value() == 0
 
 
 def test_locale_palette_tile_keys_complete():

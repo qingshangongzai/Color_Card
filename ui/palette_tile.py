@@ -67,7 +67,7 @@ ROW_PREVIEW_COUNT = 5
 ROW_DOT_SIZE = 12
 ROW_DOT_SPACING = 6
 
-# 已建组体回收上限；最终值待性能实测确定
+# 已建组体回收上限；按提交内存增量与滚动渲染耗时实测确定
 MAX_LIVE_GROUPS = 40
 
 # 组内容形态
@@ -796,8 +796,13 @@ class FloatingPaletteTile(QWidget):
         """读取当前收藏并重建内容"""
         self._apply_favorites(get_config_manager().get_favorites())
 
-    def _apply_favorites(self, favorites: list[dict]) -> None:
-        """重建组占位；真实控件按视口懒创建"""
+    def _apply_favorites(self, favorites: list[dict], reset_scroll: bool = True) -> None:
+        """重建组占位；真实控件按视口懒创建
+
+        Args:
+            favorites: 收藏列表
+            reset_scroll: 是否把滚动位置归零；刷新场景传 False 以保留交互状态
+        """
         self._favorites = favorites
 
         for slot in self._slots:
@@ -814,7 +819,7 @@ class FloatingPaletteTile(QWidget):
             self._slots.append(slot)
             self._slot_by_id[model.favorite_id] = slot
 
-        self._refresh_visibility(reset_scroll=True)
+        self._refresh_visibility(reset_scroll=reset_scroll)
         # 首屏布局可能尚未完成，延后一拍按真实视口高度补建
         QTimer.singleShot(0, self._sync_viewport)
 
@@ -1014,7 +1019,17 @@ class FloatingPaletteTile(QWidget):
                 break
 
     def _rebuild_group(self, favorite: dict) -> bool:
-        """原位替换单组（模型 + 已建内容），不重置搜索、滚动与折叠状态"""
+        """原位替换单组（模型 + 已建内容），不重置搜索、滚动与折叠状态
+
+        批量刷新时只做重建与标脏，由调用方在全部变更处理完后执行一次
+        `_sync_viewport()`，避免逐组重复的全表布局同步。
+
+        Args:
+            favorite: 最新收藏 dict，按 id 定位目标组
+
+        Returns:
+            bool: 是否找到对应组
+        """
         favorite_id = str(favorite.get('id', ''))
         slot = self._slot_by_id.get(favorite_id)
         if slot is None:
@@ -1030,7 +1045,6 @@ class FloatingPaletteTile(QWidget):
         if slot.content is not None:
             slot.recycle()
             self._ensure_built(slot)
-        self._sync_viewport()
         return True
 
     def _copy_hex(self, card: SwatchCard) -> None:
