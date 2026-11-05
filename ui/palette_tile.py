@@ -2,9 +2,10 @@
 
 # 标准库导入
 import sys
+from dataclasses import dataclass
 
 # 第三方库导入
-from PySide6.QtCore import QSize, Qt, QTimer, Signal
+from PySide6.QtCore import QRect, QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QGuiApplication, QPainter
 from PySide6.QtWidgets import (
     QApplication,
@@ -59,6 +60,20 @@ GRID_HORIZONTAL_SPACING = 10
 GRID_VERTICAL_SPACING = 12
 GROUP_SPACING = 14
 GROUP_HEADER_HEIGHT = 34
+GROUP_HEADER_SPACING = 8
+
+# 「全部」行视图最多预览的色点数与色点尺寸
+ROW_PREVIEW_COUNT = 5
+ROW_DOT_SIZE = 12
+ROW_DOT_SPACING = 6
+
+# 已建组体回收上限；最终值待性能实测确定
+MAX_LIVE_GROUPS = 40
+
+# 组内容形态
+FORM_GRID = 'grid'
+FORM_COLLAPSED = 'collapsed'
+FORM_ROW = 'row'
 
 # 空状态在滚动区内的最小占位高度，避免贴顶
 EMPTY_STATE_MIN_HEIGHT = 200
@@ -108,6 +123,63 @@ def matches_query(search_keys: tuple[str, tuple[str, ...]], query: str) -> bool:
         return True
     name, hex_values = search_keys
     return query in name or any(query in hex_value for hex_value in hex_values)
+
+
+@dataclass
+class GroupModel:
+    """一组收藏的只读数据模型：不建控件也能完成搜索与高度计算"""
+
+    favorite_id: str
+    favorite: dict
+    card_index: int
+    pinned: bool
+    swatches: list[tuple[str, QColor]]
+    search_keys: tuple[str, tuple[str, ...]]
+    card_height: int
+    row_height: int
+
+    def matches(self, query: str) -> bool:
+        """名称或色值是否匹配搜索词"""
+        return matches_query(self.search_keys, query)
+
+    def title_text(self) -> str:
+        """组标题：全局序号 + 名称，无名称时用配色管理的兜底文案"""
+        name = self.favorite.get('name', tr('palette_management.unnamed'))
+        return f"{self.card_index + 1}.{name}"
+
+    def height_for(self, form: str) -> int:
+        """按形态返回组的固定高度，供占位与内容控件保持一致"""
+        if form == FORM_ROW:
+            return self.row_height
+        if form == FORM_COLLAPSED:
+            return GROUP_HEADER_HEIGHT
+        rows = -(-len(self.swatches) // COLUMNS)
+        grid_height = rows * self.card_height + max(rows - 1, 0) * GRID_VERTICAL_SPACING
+        return GROUP_HEADER_HEIGHT + GROUP_HEADER_SPACING + grid_height
+
+
+def build_group_model(
+    favorite: dict,
+    card_index: int,
+    card_height: int,
+    row_height: int,
+) -> GroupModel:
+    """从收藏 dict 构造模型；色块只解析一次，搜索键从同一份色块派生"""
+    swatches = extract_swatch_data(favorite)
+    search_keys = (
+        str(favorite.get('name', '')).lower(),
+        tuple(hex_value.lower() for hex_value, _ in swatches),
+    )
+    return GroupModel(
+        favorite_id=str(favorite.get('id', '')),
+        favorite=favorite,
+        card_index=card_index,
+        pinned=bool(favorite.get('pinned', False)),
+        swatches=swatches,
+        search_keys=search_keys,
+        card_height=card_height,
+        row_height=row_height,
+    )
 
 
 def _start_window_move(widget: QWidget) -> None:
@@ -284,6 +356,98 @@ class GroupHeader(QWidget):
         super().mouseReleaseEvent(event)
 
 
+class RowColorDots(QWidget):
+    """行视图的色点预览：单控件绘制，不承担复制与取色"""
+
+    def __init__(
+        self,
+        swatches: list[tuple[str, QColor]],
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self._colors = [color for _, color in swatches[:ROW_PREVIEW_COUNT]]
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        count = len(self._colors)
+        width = count * ROW_DOT_SIZE + max(count - 1, 0) * ROW_DOT_SPACING
+        self.setFixedSize(width, ROW_DOT_SIZE)
+
+    def paintEvent(self, _event) -> None:
+        """按序绘制圆点；允许抗锯齿，色点仅预览"""
+        if not self._colors:
+            return
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setPen(Qt.PenStyle.NoPen)
+        for index, color in enumerate(self._colors):
+            painter.setBrush(color)
+            x = index * (ROW_DOT_SIZE + ROW_DOT_SPACING)
+            painter.drawEllipse(QRect(x, 0, ROW_DOT_SIZE, ROW_DOT_SIZE))
+
+
+class GroupRow(QWidget):
+    """「全部」行视图：名称 + 最多 5 个色点 + 展开箭头"""
+
+    opened = Signal(str)  # 信号：收藏 id
+
+    def __init__(self, model: GroupModel, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._model = model
+        self._full_title = model.title_text()
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(2, 0, 4, 0)
+        layout.setSpacing(8)
+
+        self._name_label = StrongBodyLabel(self._full_title, self)
+        self._name_label.pixelFontSize = 13
+        self._name_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        layout.addWidget(self._name_label, 1)
+
+        self._preview = RowColorDots(model.swatches, self)
+        layout.addWidget(self._preview, 0, Qt.AlignmentFlag.AlignVCenter)
+
+        # 与「常用」的收起标题一致：右向箭头表示可展开
+        self._arrow = IconWidget(FluentIcon.CHEVRON_RIGHT_MED, self)
+        self._arrow.setFixedSize(16, 16)
+        self._arrow.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        layout.addWidget(self._arrow, 0, Qt.AlignmentFlag.AlignVCenter)
+
+    def sizeHint(self) -> QSize:
+        """行高与组标题一致，供占位标定"""
+        return QSize(200, GROUP_HEADER_HEIGHT)
+
+    def resizeEvent(self, event) -> None:
+        """按可用宽度省略过长名称，避免把预览色块挤出可视区"""
+        self._apply_elided_title()
+        super().resizeEvent(event)
+
+    def _apply_elided_title(self) -> None:
+        elided = self._name_label.fontMetrics().elidedText(
+            self._full_title,
+            Qt.TextElideMode.ElideRight,
+            self._name_label.width(),
+        )
+        self._name_label.setText(elided)
+
+    def retranslate(self) -> None:
+        """语言切换后重算标题（用户名称本身不翻译）"""
+        self._full_title = self._model.title_text()
+        self._apply_elided_title()
+
+    def refresh_theme(self) -> None:
+        """主题切换后按新字体重新省略标题"""
+        self._apply_elided_title()
+
+    def mouseReleaseEvent(self, event) -> None:
+        if event.button() == Qt.MouseButton.LeftButton \
+                and self.rect().contains(event.position().toPoint()):
+            self.opened.emit(self._model.favorite_id)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+
 class PaletteGroup(QWidget):
     """一组收藏：标题行 + 可折叠的完整色块网格"""
 
@@ -292,30 +456,20 @@ class PaletteGroup(QWidget):
 
     def __init__(
         self,
-        favorite: dict,
+        model: GroupModel,
         expanded: bool,
-        card_index: int = 0,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
-        self.favorite_id = str(favorite.get('id', ''))
-        self.pinned = bool(favorite.get('pinned', False))
-        # 标题在语言切换后需重算，保留原始数据以重取 name 与序号
-        self._favorite = favorite
-        self._card_index = card_index
-        swatches = extract_swatch_data(favorite)
-        self._search_keys = (
-            str(favorite.get('name', '')).lower(),
-            tuple(hex_value.lower() for hex_value, _ in swatches),
-        )
+        self._model = model
+        self.favorite_id = model.favorite_id
         self._expanded = True
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(8)
+        layout.setSpacing(GROUP_HEADER_SPACING)
 
-        # 序号与配色管理卡片一致，按收藏列表位置编号；无名称时用同一个兜底文案
-        self._header = GroupHeader(self._title_text(), self)
+        self._header = GroupHeader(model.title_text(), self)
         self._header.clicked.connect(self._toggle)
         layout.addWidget(self._header)
 
@@ -329,7 +483,7 @@ class PaletteGroup(QWidget):
         layout.addWidget(self._body)
 
         self._swatches: list[SwatchCard] = []
-        for index, (hex_value, color) in enumerate(swatches):
+        for index, (hex_value, color) in enumerate(model.swatches):
             row, column = divmod(index, COLUMNS)
             card = SwatchCard(hex_value, color, self._body)
             card.clicked.connect(self.swatch_clicked)
@@ -348,18 +502,9 @@ class PaletteGroup(QWidget):
         """当前是否展开"""
         return self._expanded
 
-    def matches(self, query: str) -> bool:
-        """名称或色值是否匹配搜索词"""
-        return matches_query(self._search_keys, query)
-
-    def _title_text(self) -> str:
-        """组标题：全局序号 + 名称，无名称时用配色管理的兜底文案"""
-        name = self._favorite.get('name', tr('palette_management.unnamed'))
-        return f"{self._card_index + 1}.{name}"
-
     def retranslate(self) -> None:
         """语言切换后重算标题文本（用户名称本身不翻译）"""
-        self._header.set_name(self._title_text())
+        self._header.set_name(self._model.title_text())
 
     def set_expanded(self, expanded: bool) -> None:
         """设置折叠状态并同步箭头与组体可见性"""
@@ -375,6 +520,61 @@ class PaletteGroup(QWidget):
     def _toggle(self) -> None:
         self.set_expanded(not self._expanded)
         self.toggled.emit(self.favorite_id, self._expanded)
+
+
+class GroupSlot(QWidget):
+    """一组收藏的固定高度占位；已建时持有真实控件，回收后只保留高度"""
+
+    def __init__(
+        self,
+        model: GroupModel,
+        form: str,
+        parent: QWidget | None = None,
+    ) -> None:
+        super().__init__(parent)
+        self.model = model
+        self.form = form
+        self.content: PaletteGroup | GroupRow | None = None
+        self.last_seen = 0
+        self._layout = QVBoxLayout(self)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        self._layout.setSpacing(0)
+        self.setFixedHeight(model.height_for(form))
+
+    def attach(self, content: PaletteGroup | GroupRow) -> None:
+        """放入真实控件；slot 高度不变，内容由布局填满"""
+        self.content = content
+        self._layout.addWidget(content)
+
+    def recycle(self) -> None:
+        """丢弃真实控件，保留占位高度"""
+        if self.content is None:
+            return
+        self._layout.removeWidget(self.content)
+        self.content.hide()
+        self.content.deleteLater()
+        self.content = None
+
+    def set_model(self, model: GroupModel) -> None:
+        """替换模型并按当前形态重算高度"""
+        self.model = model
+        self.setFixedHeight(model.height_for(self.form))
+
+    def set_form(self, form: str) -> None:
+        """切换形态；已有内容随形态作废"""
+        if self.form == form:
+            return
+        self.recycle()
+        self.form = form
+        self.setFixedHeight(self.model.height_for(form))
+
+    def retranslate(self) -> None:
+        if self.content is not None:
+            self.content.retranslate()
+
+    def refresh_theme(self) -> None:
+        if self.content is not None:
+            self.content.refresh_theme()
 
 
 class DragBar(QWidget):
@@ -396,10 +596,15 @@ class FloatingPaletteTile(QWidget):
         self.setObjectName('floatingPaletteTile')
 
         self._favorites: list[dict] = []
-        self._group_widgets: list[PaletteGroup] = []
+        self._slots: list[GroupSlot] = []
+        self._slot_by_id: dict[str, GroupSlot] = {}
         self._collapsed_ids: set[str] = set()
+        self._row_open_ids: set[str] = set()
         self._query = ''
         self._route = ROUTE_COMMON
+        self._max_live_groups = MAX_LIVE_GROUPS
+        self._tick = 0
+        self._layout_dirty = False
 
         # 顶层窗口：主窗口隐藏到托盘时不连带隐藏；不含置顶标志，置顶由 SetWindowPos 切换
         self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
@@ -407,6 +612,7 @@ class FloatingPaletteTile(QWidget):
         self.setFixedSize(CARD_WIDTH + WINDOW_MARGIN * 2, CARD_HEIGHT + WINDOW_MARGIN * 2)
 
         self._setup_ui()
+        self._card_height, self._row_height = self._calibrate_heights()
         self.update_texts()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
@@ -441,6 +647,7 @@ class FloatingPaletteTile(QWidget):
         self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self._scroll.enableTransparentBackground()
         self._scroll.viewport().setAutoFillBackground(False)
+        self._scroll.verticalScrollBar().valueChanged.connect(self._on_scroll_changed)
         card_layout.addWidget(self._scroll, 1)
         self._scroll.setWidget(self._build_content())
 
@@ -530,6 +737,14 @@ class FloatingPaletteTile(QWidget):
         logo.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         return logo
 
+    def _calibrate_heights(self) -> tuple[int, int]:
+        """量一次真实色块卡片高度；行视图高度固定为组标题高度"""
+        swatch = SwatchCard('#000000', QColor('#000000'))
+        swatch.ensurePolished()
+        card_height = swatch.sizeHint().height()
+        swatch.deleteLater()
+        return card_height, GROUP_HEADER_HEIGHT
+
     def update_texts(self) -> None:
         """刷新语言相关文案（语言切换后调用）"""
         self.setWindowTitle(tr('palette_tile.title'))
@@ -538,15 +753,15 @@ class FloatingPaletteTile(QWidget):
         self._close_button.setToolTip(tr('palette_tile.close_tooltip'))
         self._segmented.setItemText(ROUTE_ALL, tr('palette_tile.tab_all'))
         self._segmented.setItemText(ROUTE_COMMON, tr('palette_tile.tab_common'))
-        for group in self._group_widgets:
-            group.retranslate()
+        for slot in self._slots:
+            slot.retranslate()
         self._empty_widget.retranslate()
 
     def _update_styles(self) -> None:
         """主题切换后刷新卡片阴影与色块文本颜色"""
         self._shadow.setColor(get_floating_tile_shadow_color())
-        for group in self._group_widgets:
-            group.refresh_theme()
+        for slot in self._slots:
+            slot.refresh_theme()
 
     def mousePressEvent(self, event) -> None:
         """窗口透明外边距区域也可拖动窗口"""
@@ -582,36 +797,67 @@ class FloatingPaletteTile(QWidget):
         self._apply_favorites(get_config_manager().get_favorites())
 
     def _apply_favorites(self, favorites: list[dict]) -> None:
-        """按收藏列表重建组控件；折叠状态按组 id 恢复"""
+        """重建组占位；真实控件按视口懒创建"""
         self._favorites = favorites
 
-        # 旧组先隐藏使其立即退出布局排布，延后销毁；析构时自动从布局移除
-        for group in self._group_widgets:
-            group.hide()
-            group.deleteLater()
-        self._group_widgets = []
+        for slot in self._slots:
+            slot.recycle()
+            slot.hide()
+            slot.deleteLater()
+        self._slots = []
+        self._slot_by_id = {}
 
         for index, favorite in enumerate(favorites):
-            favorite_id = str(favorite.get('id', ''))
-            group = PaletteGroup(
-                favorite,
-                expanded=favorite_id not in self._collapsed_ids,
-                card_index=index,
-                parent=self._groups_host,
-            )
-            group.toggled.connect(self._on_group_toggled)
-            group.swatch_clicked.connect(self._copy_hex)
-            self._groups_layout.addWidget(group)
-            self._group_widgets.append(group)
+            model = build_group_model(favorite, index, self._card_height, self._row_height)
+            slot = GroupSlot(model, self._form_for(model), self._groups_host)
+            self._groups_layout.addWidget(slot)
+            self._slots.append(slot)
+            self._slot_by_id[model.favorite_id] = slot
 
         self._refresh_visibility(reset_scroll=True)
+        # 首屏布局可能尚未完成，延后一拍按真实视口高度补建
+        QTimer.singleShot(0, self._sync_viewport)
+
+    @property
+    def _group_widgets(self) -> list[QWidget]:
+        """已建内容控件（网格或行），由 slot 派生，不单独维护"""
+        return [slot.content for slot in self._slots if slot.content is not None]
+
+    def _form_for(self, model: GroupModel) -> str:
+        """按 tab、收起与已点开状态决定组的形态"""
+        if model.favorite_id in self._collapsed_ids:
+            return FORM_COLLAPSED if self._route == ROUTE_COMMON else FORM_ROW
+        if self._route == ROUTE_ALL and model.favorite_id not in self._row_open_ids:
+            return FORM_ROW
+        return FORM_GRID
 
     def _on_group_toggled(self, favorite_id: str, expanded: bool) -> None:
-        """记录用户显式收起 / 展开的组，重建后沿用"""
+        """记录用户显式收起 / 展开的组，并切换「全部」下的行视图"""
         if expanded:
             self._collapsed_ids.discard(favorite_id)
         else:
             self._collapsed_ids.add(favorite_id)
+        slot = self._slot_by_id.get(favorite_id)
+        if slot is not None:
+            self._refresh_slot_form(slot)
+        self._sync_viewport()
+
+    def _on_row_clicked(self, favorite_id: str) -> None:
+        """点开「全部」的行：展开网格，并记入 row_open_ids"""
+        self._row_open_ids.add(favorite_id)
+        self._collapsed_ids.discard(favorite_id)
+        slot = self._slot_by_id.get(favorite_id)
+        if slot is not None:
+            self._refresh_slot_form(slot)
+        self._sync_viewport()
+
+    def _refresh_slot_form(self, slot: GroupSlot) -> None:
+        """按当前状态原地切换单组形态；内容由视口同步决定是否重建"""
+        form = self._form_for(slot.model)
+        if form == slot.form:
+            return
+        slot.set_form(form)
+        self._layout_dirty = True
 
     def _on_route_changed(self, route_key: str) -> None:
         """切换全部 / 常用，滚动位置归零"""
@@ -625,18 +871,26 @@ class FloatingPaletteTile(QWidget):
         self._query = query
         self._refresh_visibility(reset_scroll=reset_scroll)
 
+    def _on_scroll_changed(self, _value: int) -> None:
+        """滚动时按新的视口窗口补建 / 回收"""
+        self._sync_viewport()
+
     def _refresh_visibility(self, reset_scroll: bool = False) -> None:
         """按 tab 与搜索词过滤组，并在无可见组时显示对应空状态"""
         visible_count = 0
-        for group in self._group_widgets:
-            visible = (self._route == ROUTE_ALL or group.pinned) and group.matches(self._query)
-            group.setVisible(visible)
+        for slot in self._slots:
+            self._refresh_slot_form(slot)
+            visible = (self._route == ROUTE_ALL or slot.model.pinned) \
+                and slot.model.matches(self._query)
+            slot.setVisible(visible)
             if visible:
                 visible_count += 1
 
         self._update_empty_state(visible_count)
         if reset_scroll:
             self._scroll.verticalScrollBar().setValue(0)
+        self._layout_dirty = True
+        self._sync_viewport()
 
     def _update_empty_state(self, visible_count: int) -> None:
         """有可见组时隐藏空状态，否则按无匹配 / 无收藏 / 无常用区分"""
@@ -656,6 +910,128 @@ class FloatingPaletteTile(QWidget):
                 '⭐', 'palette_tile.empty_title', 'palette_tile.empty_hint'
             )
         self._empty_widget.show()
+
+    def _slot_spans(self) -> list[tuple[int, int, GroupSlot]]:
+        """按布局顺序累加未隐藏组的高度，返回 (top, bottom, slot)"""
+        spans: list[tuple[int, int, GroupSlot]] = []
+        offset = 0
+        for slot in self._slots:
+            if slot.isHidden():
+                continue
+            height = slot.height()
+            spans.append((offset, offset + height, slot))
+            offset += height + GROUP_SPACING
+        return spans
+
+    def _visible_window(self, spans: list[tuple[int, int, GroupSlot]]) -> list[GroupSlot]:
+        """视口内组 + 前后各 1 个缓冲"""
+        viewport_height = self._scroll.viewport().height()
+        if viewport_height <= 0 or not spans:
+            return []
+        top = self._scroll.verticalScrollBar().value()
+        bottom = top + viewport_height
+
+        first = len(spans) - 1
+        for index, (_, span_bottom, _) in enumerate(spans):
+            if span_bottom > top:
+                first = index
+                break
+        last = first
+        for index, (span_top, _, _) in enumerate(spans):
+            if span_top < bottom:
+                last = index
+        start = max(first - 1, 0)
+        end = min(last + 1, len(spans) - 1)
+        return [slot for _, _, slot in spans[start:end + 1]]
+
+    def _sync_viewport(self) -> None:
+        """按当前视口建必要内容，并回收超出上限的最久未用组"""
+        self._tick += 1
+        spans = self._slot_spans()
+        window = self._visible_window(spans)
+        if window:
+            for slot in window:
+                self._ensure_built(slot)
+            self._recycle_overflow(set(window))
+        if self._layout_dirty:
+            self._flush_layout()
+            self._layout_dirty = False
+
+    def _flush_layout(self) -> None:
+        """高度变化后同步激活各层布局，避免滚动区与新建内容在下一帧才完成排布"""
+        self._groups_layout.activate()
+        for slot in self._slots:
+            if slot.content is None:
+                continue
+            slot_layout = slot.layout()
+            if slot_layout is not None:
+                slot_layout.activate()
+            content_layout = slot.content.layout()
+            if content_layout is not None:
+                content_layout.activate()
+        self._content_layout.activate()
+        self._content.adjustSize()
+
+    def _ensure_built(self, slot: GroupSlot) -> None:
+        """建设一个组的真实控件（行或网格）"""
+        slot.last_seen = self._tick
+        if slot.content is not None:
+            return
+        content: PaletteGroup | GroupRow
+        if slot.form == FORM_ROW:
+            row = GroupRow(slot.model, slot)
+            row.opened.connect(self._on_row_clicked)
+            content = row
+        else:
+            group = PaletteGroup(slot.model, expanded=slot.form == FORM_GRID, parent=slot)
+            group.swatch_clicked.connect(self._copy_hex)
+            group.toggled.connect(self._on_group_toggled)
+            content = group
+        slot.attach(content)
+        content.show()
+        # 只激活本组两层布局，让新内容在当前事件内拿到正确尺寸；整表高度未变，无需全量刷新
+        slot_layout = slot.layout()
+        if slot_layout is not None:
+            slot_layout.activate()
+        content_layout = content.layout()
+        if content_layout is not None:
+            content_layout.activate()
+
+    def _recycle_overflow(self, window: set[GroupSlot]) -> None:
+        """回收窗口外最久未见的已建内容，直到不超过上限"""
+        live_count = len(self._group_widgets)
+        if live_count <= self._max_live_groups:
+            return
+        candidates = [
+            slot for slot in self._slots
+            if slot.content is not None and slot not in window
+        ]
+        candidates.sort(key=lambda slot: slot.last_seen)
+        for slot in candidates:
+            slot.recycle()
+            live_count -= 1
+            if live_count <= self._max_live_groups:
+                break
+
+    def _rebuild_group(self, favorite: dict) -> bool:
+        """原位替换单组（模型 + 已建内容），不重置搜索、滚动与折叠状态"""
+        favorite_id = str(favorite.get('id', ''))
+        slot = self._slot_by_id.get(favorite_id)
+        if slot is None:
+            return False
+
+        index = slot.model.card_index
+        self._favorites[index] = favorite
+        slot.set_model(
+            build_group_model(favorite, index, self._card_height, self._row_height)
+        )
+        self._layout_dirty = True
+
+        if slot.content is not None:
+            slot.recycle()
+            self._ensure_built(slot)
+        self._sync_viewport()
+        return True
 
     def _copy_hex(self, card: SwatchCard) -> None:
         """复制色块 HEX 到剪贴板，并在色块原位提示"""

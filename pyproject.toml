@@ -69,4 +69,6 @@ ignore_names = [
     # core/config.py - 新增的常用标记方法目前只由 tests/ 调用，Vulture 不统计 tests/
     "set_favorite_pinned",
     "set_favorites_pinned",
+    # ui/palette_tile.py - 按组刷新原语，供增量刷新与基准复用
+    "_rebuild_group",
 ]
