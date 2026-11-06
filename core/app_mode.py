@@ -94,6 +94,12 @@ def detect_mode() -> AppMode:
     _logger.debug(f"exe_path={exe_path}")
     _logger.debug(f"TEMP={temp}")
 
+    # macOS 只有打包后的 .app，没有便携版；放在 TEMP 判断之前，避免从临时路径启动时被判为安装程序
+    if sys.platform == 'darwin':
+        _mode_cache = AppMode.INSTALLED
+        _logger.info("运行模式判定: 安装版（macOS 打包）")
+        return _mode_cache
+
     # 在临时目录运行 = 安装程序运行中
     if temp and str(exe_path).lower().startswith(temp):
         _mode_cache = AppMode.INSTALLER
