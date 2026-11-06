@@ -689,7 +689,14 @@ class FloatingPaletteTile(QWidget):
         self._config_manager.favorites_changed.connect(self._on_favorites_changed)
 
         # 顶层窗口：主窗口隐藏到托盘时不连带隐藏；不含置顶标志，置顶由 SetWindowPos 切换
-        self.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint)
+        flags = Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint
+        if sys.platform == 'darwin':
+            # macOS 会给原生窗口加系统投影，且投影画在窗口之下；窗口四周边距是
+            # 半透明的，系统投影会从这圈边缘透出来，形成一道跟着窗口矩形走的灰边。
+            # 磁贴的阴影由卡片自己的 QGraphicsDropShadowEffect 画，关闭系统投影。
+            # Windows 无边框窗口没有系统投影，保持原样。
+            flags |= Qt.WindowType.NoDropShadowWindowHint
+        self.setWindowFlags(flags)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setFixedSize(CARD_WIDTH + WINDOW_MARGIN * 2, CARD_HEIGHT + WINDOW_MARGIN * 2)
 
