@@ -53,7 +53,7 @@ def compute_instance_key(program_root: Path) -> str:
 def get_key_dir() -> Path:
     """获取锁文件目录
 
-    macOS 的配置目录落在 bundle 内，会随拷贝/升级漂移，锁文件固定放用户目录。
+    macOS 的锁与配置都放用户目录。
 
     Returns:
         Path: 锁文件所在目录
