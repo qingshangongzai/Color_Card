@@ -55,8 +55,20 @@ ignore_names = [
     "mousePressEvent",
     "mouseMoveEvent",
     "mouseReleaseEvent",
+    # ui/palette_tile.py - Qt 尺寸提示虚函数，由布局与 QWidget 内部调用，Vulture 无法识别
+    "sizeHint",
+    "minimumSizeHint",
+    # ui/palette_tile.py - SimpleCardWidget 主题背景钩子，由 qfluentwidgets 的 paintEvent 动态调用
+    "_normalBackgroundColor",
+    # qfluentwidgets 标签的像素字号属性，由 setter 应用到 QFont，Vulture 无法识别
+    "pixelFontSize",
     # core/single_instance.py - QLockFile 引用只需持有以保持锁，不读取
     "_lock",
     # main.py / installer/main.py - guard 挂在 QApplication 属性上防被回收，Vulture 无法识别
     "_single_instance_guard",
+    # core/config.py - 新增的常用标记方法目前只由 tests/ 调用，Vulture 不统计 tests/
+    "set_favorite_pinned",
+    "set_favorites_pinned",
+    # ui/palette_tile.py - 按组刷新原语，供增量刷新与基准复用
+    "_rebuild_group",
 ]

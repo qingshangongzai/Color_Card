@@ -388,3 +388,9 @@ def get_harmony_score_average_color():
 def get_harmony_score_poor_color():
     """获取和谐度评分-较差颜色"""
     return QColor(244, 67, 54) if not isDarkTheme() else QColor(239, 83, 80)
+
+
+# ========== 悬浮配色磁贴颜色 ==========
+def get_floating_tile_shadow_color():
+    """获取悬浮配色磁贴的卡片阴影颜色"""
+    return QColor(0, 0, 0, 120) if isDarkTheme() else QColor(0, 0, 0, 55)

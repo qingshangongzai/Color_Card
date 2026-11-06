@@ -33,6 +33,10 @@ class TrayIcon(QObject):
         self._show_action.triggered.connect(self._show_main_window)
         self._menu.addAction(self._show_action)
 
+        self._tile_action = Action(FluentIcon.PALETTE, "", self)
+        self._tile_action.triggered.connect(self._show_palette_tile)
+        self._menu.addAction(self._tile_action)
+
         self._settings_action = Action(FluentIcon.SETTING, "", self)
         self._settings_action.triggered.connect(self._open_settings)
         self._menu.addAction(self._settings_action)
@@ -61,6 +65,7 @@ class TrayIcon(QObject):
         """刷新菜单文案与托盘提示（语言切换后调用）"""
         self._tray.setToolTip(tr('tray.tooltip'))
         self._show_action.setText(tr('tray.show_window'))
+        self._tile_action.setText(tr('tray.palette_tile'))
         self._settings_action.setText(tr('tray.settings'))
         self._about_action.setText(tr('tray.about'))
         self._exit_action.setText(tr('tray.exit'))
@@ -77,6 +82,10 @@ class TrayIcon(QObject):
     def _show_main_window(self):
         """显示并前置主窗口"""
         show_and_activate_window(self._window)
+
+    def _show_palette_tile(self):
+        """显示并前置配色磁贴"""
+        self._window.show_palette_tile()
 
     def _open_settings(self):
         """打开设置页"""
