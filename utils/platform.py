@@ -29,6 +29,8 @@ _LIBOBJC_PATH = '/usr/lib/libobjc.A.dylib'
 # NSWindow.level：普通层级 0，NSFloatingWindowLevel 3
 _NS_NORMAL_WINDOW_LEVEL = 0
 _NS_FLOATING_WINDOW_LEVEL = 3
+# NSWindowStyleMaskNonactivatingPanel：面板点击不触发应用的 Active 状态迁移
+_NS_WINDOW_STYLE_MASK_NONACTIVATING_PANEL = 1 << 7
 
 # LoadImageW 返回 HICON（64 位句柄），提前声明返回类型避免被 ctypes 默认的
 # c_int 截断；仅在 Windows 下设置，保证跨平台 import 不失败
@@ -322,6 +324,49 @@ def set_window_topmost(window, topmost: bool) -> bool:
             0, 0, 0, 0,
             SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE,
         ))
+    except (AttributeError, OSError, RuntimeError):
+        return False
+
+
+def set_window_nonactivating(window) -> bool:
+    """把窗口设为非激活面板，点击窗口不触发应用的 Active 状态迁移
+
+    只改 NSWindow.styleMask、不重建原生窗口。已置位的直接返回，可重复调用；
+    样式位可能重置 level，调用方须在其后重新应用层级。
+
+    Args:
+        window: PySide6 窗口对象
+
+    Returns:
+        bool: 样式位已生效返回 True；非 macOS 或调用失败返回 False
+    """
+    if sys.platform != 'darwin':
+        return False
+
+    try:
+        ns_window = _ns_window(window)
+        sel_style_mask = _objc_sel('styleMask')
+        sel_set_style_mask = _objc_sel('setStyleMask:')
+        send_mask = _objc_send(ctypes.c_ulong, ctypes.c_void_p, ctypes.c_void_p)
+        send_set_mask = _objc_send(
+            None, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_ulong
+        )
+        if (ns_window is None or sel_style_mask is None or sel_set_style_mask is None
+                or send_mask is None or send_set_mask is None):
+            return False
+        style_mask = send_mask(ns_window, sel_style_mask)
+        if style_mask & _NS_WINDOW_STYLE_MASK_NONACTIVATING_PANEL:
+            return True
+        send_set_mask(
+            ns_window,
+            sel_set_style_mask,
+            style_mask | _NS_WINDOW_STYLE_MASK_NONACTIVATING_PANEL,
+        )
+        # setStyleMask 无返回值，读回样式位确认生效
+        return bool(
+            send_mask(ns_window, sel_style_mask)
+            & _NS_WINDOW_STYLE_MASK_NONACTIVATING_PANEL
+        )
     except (AttributeError, OSError, RuntimeError):
         return False
 

@@ -40,6 +40,7 @@ from core import get_config_manager
 from utils import (
     load_icon_universal,
     order_front_regardless,
+    set_window_nonactivating,
     set_window_tool_style,
     set_window_topmost,
     show_and_activate_window,
@@ -882,7 +883,16 @@ class FloatingPaletteTile(QWidget):
         super().mousePressEvent(event)
 
     def show_and_activate(self) -> None:
-        """显示并前置磁贴（重复唤出只前置，不新建窗口）"""
+        """显示并前置磁贴（重复唤出只前置，不新建窗口）
+
+        macOS 只显示与前置、不激活应用：raise_() / activateWindow() 会激活应用
+        并把隐藏的主窗带出来；orderFrontRegardless 只调整窗口序。前置失败时
+        磁贴仍已显示，不退回激活路径。
+        """
+        if sys.platform == 'darwin':
+            self.show()
+            order_front_regardless(self)
+            return
         show_and_activate_window(self)
 
     def showEvent(self, event) -> None:
@@ -894,8 +904,10 @@ class FloatingPaletteTile(QWidget):
             self._tool_style_applied = set_window_tool_style(self)
         self._place_bottom_right()
         if sys.platform == 'darwin':
-            # 面板 hide/show 后 AppKit 会把 level 重置为 3，每次显示按 _pinned 重放；
-            # 失败只保留现状，留到下一个时机（应用状态变化 / 下次显示）重试
+            # 非激活样式位每次显示都补（幂等）：置位后点击磁贴不触发 Active 迁移，
+            # 主窗不会被带出；写样式位可能重置 level，顺序固定为先样式位、后层级重放；
+            # 两者失败都只保留现状，留到下一个时机（应用状态变化 / 下次显示）重试
+            set_window_nonactivating(self)
             self._apply_topmost()
         if not self._loaded:
             self._reload_favorites()
@@ -1101,7 +1113,12 @@ class FloatingPaletteTile(QWidget):
         self._refresh_visibility(reset_scroll=True)
 
     def eventFilter(self, obj, event) -> bool:
-        """点搜索框时显式激活窗口（NOACTIVATE 窗口点击不抢前台）"""
+        """点搜索框时显式激活窗口并设置焦点，让搜索框拿到键盘
+
+        Windows 的 WS_EX_NOACTIVATE 窗口与 macOS 的非激活面板点击都不触发 Active
+        迁移，但键盘焦点仍需这两步；macOS 实测保留它们时点搜索框可输入、
+        不产生 applicationStateChanged（主窗不会被带出），删掉则键盘输入失败。
+        """
         if obj is self._search and event.type() == QEvent.Type.MouseButtonPress:
             self.activateWindow()
             self._search.setFocus()
