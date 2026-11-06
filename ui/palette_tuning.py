@@ -816,7 +816,11 @@ class PaletteTuningInterface(QWidget):
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setHandleWidth(0)
-        splitter.setStyleSheet("QSplitter { border: none; background: transparent; }")
+        # 隐藏部分平台（如 Mac）残留的分割线
+        splitter.setStyleSheet("""
+            QSplitter { border: none; background: transparent; }
+            QSplitter::handle { background: transparent; border: none; }
+        """)
         splitter.addWidget(self._build_base_panel())
         splitter.addWidget(self._build_card_area())
         splitter.setStretchFactor(0, 0)
