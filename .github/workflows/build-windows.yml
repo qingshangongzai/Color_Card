@@ -99,6 +99,11 @@ jobs:
         Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
         Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
+    - name: Build Launcher
+      shell: pwsh
+      run: |
+        pwsh -File launcher/build.ps1 -MainExeName "Color Card Portable.exe" -OutputPath "Color Card Launcher.exe"
+
     - name: Build Portable EXE with Nuitka
       shell: pwsh
       run: |
@@ -132,9 +137,13 @@ jobs:
         New-Item -ItemType Directory -Force -Path $distDir
 
         $version = "${{ steps.version.outputs.version }}"
-        $portableName = "Color_Card_${version}_x64.exe"
+        $zipName = "Color_Card_${version}_x64.zip"
 
-        Copy-Item "Color Card Portable.exe" -Destination "$distDir\$portableName"
+        Copy-Item "Color Card Portable.exe" -Destination $distDir
+        Copy-Item "Color Card Launcher.exe" -Destination $distDir
+        Compress-Archive `
+          -Path @("$distDir\Color Card Portable.exe", "$distDir\Color Card Launcher.exe") `
+          -DestinationPath "$distDir\$zipName" -Force
 
         Write-Host "Portable distribution contents:"
         Get-ChildItem -Path $distDir
@@ -143,7 +152,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ColorCard-Windows-Portable
-        path: dist/*.exe
+        path: dist/*.zip
 
   build-installer:
     runs-on: windows-latest
@@ -236,6 +245,11 @@ jobs:
         Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
         Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
+    - name: Build Launcher
+      shell: pwsh
+      run: |
+        pwsh -File launcher/build.ps1 -MainExeName "Color Card.exe" -OutputPath "Color Card Launcher.exe"
+
     - name: Build Installer EXE with Nuitka
       shell: pwsh
       run: |
@@ -252,6 +266,7 @@ jobs:
           --file-description="取色卡 - Color Card (Installer)" `
           --copyright="${{ steps.version.outputs.copyright }}" `
           --include-data-files=version.py=version.py `
+          --include-data-files="Color Card Launcher.exe=Color Card Launcher.exe" `
           --include-data-dir=color_data=color_data `
           --include-data-dir=file=file `
           --include-data-dir=locales=locales `

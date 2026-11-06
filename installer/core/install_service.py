@@ -8,8 +8,9 @@ from PySide6.QtCore import QObject, Signal, QThread
 # 项目模块导入
 from core.logger import get_logger
 from installer.core.file_installer import FileInstaller
+from installer.core.permission_checker import close_app_processes, get_exe_path, is_frozen
 from installer.core.registry_installer import RegistryInstaller
-from installer.core.permission_checker import is_frozen, get_exe_path, close_app_processes
+from utils import get_base_path
 
 try:
     from version import version_manager
@@ -94,11 +95,23 @@ class InstallWorker(QThread):
                 mapped_percent = int(percent * 0.8)
                 self.progress_updated.emit(mapped_percent, message)
 
-            return self._file_installer.copy_executable(
+            if not self._file_installer.copy_executable(
                 src_exe,
                 install_path,
                 "Color Card.exe",
                 progress_callback
+            ):
+                return False
+
+            launcher_src = Path(get_base_path()) / "Color Card Launcher.exe"
+            if not launcher_src.exists():
+                logger.error(f"安装包缺少启动器: {launcher_src}")
+                return False
+
+            return self._file_installer.copy_executable(
+                launcher_src,
+                install_path,
+                "Color Card Launcher.exe"
             )
 
         except (OSError, PermissionError) as e:
@@ -147,16 +160,18 @@ class InstallWorker(QThread):
             from installer.core.shortcut_installer import ShortcutInstaller
 
             shortcut_installer = ShortcutInstaller()
+            launcher_path = install_path / "Color Card Launcher.exe"
             exe_path = install_path / "Color Card.exe"
 
             if self._config.get('create_desktop_shortcut', True):
-                if not shortcut_installer.create_desktop_shortcut(exe_path, APP_NAME):
+                if not shortcut_installer.create_desktop_shortcut(launcher_path, APP_NAME):
                     return False
 
             if self._config.get('create_start_menu', True):
-                if not shortcut_installer.create_start_menu_shortcut(exe_path, APP_NAME):
+                if not shortcut_installer.create_start_menu_shortcut(launcher_path, APP_NAME):
                     return False
 
+            # 卸载快捷方式与注册表 UninstallString 仍指向主程序，不经过启动器
             if not shortcut_installer.create_uninstall_shortcut(exe_path, APP_NAME):
                 return False
 

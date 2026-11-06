@@ -169,3 +169,21 @@ def force_window_to_front(window) -> bool:
 
     except (AttributeError, OSError, RuntimeError):
         return False
+
+
+def show_and_activate_window(window) -> bool:
+    """还原或显示窗口，并将其前置激活
+
+    Args:
+        window: PySide6 窗口对象
+
+    Returns:
+        bool: Windows 强制前置是否成功；其他平台恒为 False
+    """
+    if window.isMinimized():
+        window.showNormal()
+    elif not window.isVisible():
+        window.show()
+    window.raise_()
+    window.activateWindow()
+    return force_window_to_front(window)

@@ -275,7 +275,6 @@ gradient_mode_shade = "Монохромный градиент"
 luminance = "Извлечение яркости"
 luminance_default_grayscale = "Оттенки серого по умолчанию"
 luminance_default_grayscale_desc = "Отображать изображения в оттенках серого по умолчанию"
-language = "Язык"
 language_title = "Язык интерфейса"
 language_desc = "Выберите язык отображения приложения"
 language_auto = "Следовать системе"
@@ -296,6 +295,12 @@ rgb_optical = "RGB Оптический"
 ryb_artistic = "RYB Художественный"
 switch_on = "Вкл"
 switch_off = "Выкл"
+general = "Общие"
+close_action_title = "Действие при закрытии окна"
+close_action_desc = "Выберите поведение при нажатии кнопки закрытия"
+close_action_ask = "Спрашивать каждый раз"
+close_action_tray = "Свернуть в трей"
+close_action_quit = "Выйти сразу"
 
 [dialogs]
 
@@ -409,6 +414,20 @@ replace_option = "Заменить существующие палитры"
 confirm_btn = "Подтвердить"
 delete_btn = "Удалить"
 cancel_btn = "Отмена"
+
+[dialogs.close_confirm]
+title = "Закрытие окна"
+content = "При закрытии можно свернуть приложение в трей и оставить его работать в фоне или сразу выйти."
+remember = "Запомнить мой выбор"
+minimize = "Свернуть в трей"
+exit = "Выйти сразу"
+
+[tray]
+tooltip = "Color Card - нажмите, чтобы восстановить окно"
+show_window = "Показать главное окно"
+settings = "Настройки"
+about = "О программе"
+exit = "Выход"
 
 [messages]
 palette = "Палитра"

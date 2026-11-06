@@ -274,7 +274,6 @@ gradient_mode_shade = "单色渐变"
 luminance = "明度分析"
 luminance_default_grayscale = "默认黑白模式"
 luminance_default_grayscale_desc = "明度分析面板默认以黑白模式显示图片"
-language = "语言设置"
 language_title = "页面语言"
 language_desc = "选择应用程序的显示语言"
 language_auto = "跟随系统"
@@ -295,6 +294,12 @@ rgb_optical = "RGB 光学"
 ryb_artistic = "RYB 美术"
 switch_on = "开"
 switch_off = "关"
+general = "通用"
+close_action_title = "关闭窗口时的动作"
+close_action_desc = "选择点击关闭按钮后的行为"
+close_action_ask = "每次询问"
+close_action_tray = "最小化到托盘"
+close_action_quit = "直接退出"
 
 [dialogs]
 
@@ -409,6 +414,20 @@ replace_option = "替换现有收藏"
 confirm_btn = "确认"
 delete_btn = "删除"
 cancel_btn = "取消"
+
+[dialogs.close_confirm]
+title = "关闭窗口"
+content = "关闭后可最小化到托盘继续在后台运行，也可直接退出程序。"
+remember = "记住我的选择"
+minimize = "最小化到托盘"
+exit = "直接退出"
+
+[tray]
+tooltip = "取色卡 - 单击恢复窗口"
+show_window = "显示主窗口"
+settings = "设置"
+about = "关于"
+exit = "退出"
 
 [messages]
 palette = "配色"

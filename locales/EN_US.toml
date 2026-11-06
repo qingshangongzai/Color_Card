@@ -274,7 +274,6 @@ gradient_mode_shade = "Monochrome Gradient"
 luminance = "Luminance Extract"
 luminance_default_grayscale = "Default Grayscale Mode"
 luminance_default_grayscale_desc = "Display images in grayscale by default in luminance extract panel"
-language = "Language Settings"
 language_title = "Interface Language"
 language_desc = "Select the display language for the application"
 language_auto = "Follow System"
@@ -295,6 +294,12 @@ rgb_optical = "RGB Optical"
 ryb_artistic = "RYB Artistic"
 switch_on = "On"
 switch_off = "Off"
+general = "General"
+close_action_title = "Action on Window Close"
+close_action_desc = "Choose what happens when the close button is clicked"
+close_action_ask = "Ask Every Time"
+close_action_tray = "Minimize to Tray"
+close_action_quit = "Exit Directly"
 
 [dialogs]
 
@@ -408,6 +413,20 @@ replace_option = "Replace existing palettes"
 confirm_btn = "Confirm"
 delete_btn = "Delete"
 cancel_btn = "Cancel"
+
+[dialogs.close_confirm]
+title = "Close Window"
+content = "Closing can minimize to the tray and keep running in the background, or exit the application."
+remember = "Remember my choice"
+minimize = "Minimize to Tray"
+exit = "Exit Directly"
+
+[tray]
+tooltip = "Color Card - click to restore the window"
+show_window = "Show Main Window"
+settings = "Settings"
+about = "About"
+exit = "Exit"
 
 [messages]
 palette = "Palette"

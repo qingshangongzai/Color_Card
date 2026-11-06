@@ -274,7 +274,6 @@ gradient_mode_shade = "単色グラデーション"
 luminance = "明度抽出"
 luminance_default_grayscale = "デフォルト白黒モード"
 luminance_default_grayscale_desc = "明度抽出パネルで画像をデフォルトで白黒表示"
-language = "言語設定"
 language_title = "インターフェース言語"
 language_desc = "アプリケーションの表示言語を選択"
 language_auto = "システムに従う"
@@ -295,6 +294,12 @@ rgb_optical = "RGB光学"
 ryb_artistic = "RYB芸術"
 switch_on = "オン"
 switch_off = "オフ"
+general = "一般"
+close_action_title = "ウィンドウを閉じるときの動作"
+close_action_desc = "閉じるボタンをクリックしたときの動作を選択"
+close_action_ask = "毎回確認"
+close_action_tray = "トレイに最小化"
+close_action_quit = "直接終了"
 
 [dialogs]
 
@@ -408,6 +413,20 @@ replace_option = "既存のパレットを置き換え"
 confirm_btn = "確認"
 delete_btn = "削除"
 cancel_btn = "キャンセル"
+
+[dialogs.close_confirm]
+title = "ウィンドウを閉じる"
+content = "閉じるときはトレイに最小化してバックグラウンドで実行を続けるか、アプリを直接終了できます。"
+remember = "選択を記憶する"
+minimize = "トレイに最小化"
+exit = "直接終了"
+
+[tray]
+tooltip = "Color Card - クリックでウィンドウを復元"
+show_window = "メインウィンドウを表示"
+settings = "設定"
+about = "について"
+exit = "終了"
 
 [messages]
 palette = "パレット"
