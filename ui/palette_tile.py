@@ -3,6 +3,7 @@
 # 标准库导入
 import sys
 from dataclasses import dataclass
+from typing import cast
 
 # 第三方库导入
 from PySide6.QtCore import QEvent, QRect, QSize, Qt, QTimer, Signal
@@ -38,6 +39,7 @@ from qfluentwidgets import (
 from core import get_config_manager
 from utils import (
     load_icon_universal,
+    order_front_regardless,
     set_window_tool_style,
     set_window_topmost,
     show_and_activate_window,
@@ -681,6 +683,8 @@ class FloatingPaletteTile(QWidget):
         self._max_live_groups = MAX_LIVE_GROUPS
         self._tick = 0
         self._layout_dirty = False
+        # 置顶状态只作层级重放值；按钮勾选态是 UI 状态，不能替代它
+        self._pinned = False
 
         # 单次定时器负责合并同一轮收藏变更；每次变更 start() 重启
         self._refresh_timer = QTimer(self)
@@ -688,14 +692,19 @@ class FloatingPaletteTile(QWidget):
         self._refresh_timer.timeout.connect(self._flush_refresh)
         self._config_manager.favorites_changed.connect(self._on_favorites_changed)
 
-        # 顶层窗口：主窗口隐藏到托盘时不连带隐藏；不含置顶标志，置顶由 SetWindowPos 切换
-        flags = Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint
+        # 顶层窗口：主窗口隐藏到托盘时不连带隐藏；不含置顶标志，置顶由原生 API 切换
         if sys.platform == 'darwin':
-            # macOS 会给原生窗口加系统投影，且投影画在窗口之下；窗口四周边距是
-            # 半透明的，系统投影会从这圈边缘透出来，形成一道跟着窗口矩形走的灰边。
-            # 磁贴的阴影由卡片自己的 QGraphicsDropShadowEffect 画，关闭系统投影。
-            # Windows 无边框窗口没有系统投影，保持原样。
-            flags |= Qt.WindowType.NoDropShadowWindowHint
+            # Qt.Tool 在 macOS 上是 QNSPanel（工具面板），是承载「点击不激活应用」的
+            # 唯一载体；面板默认失焦即隐藏，WA_MacAlwaysShowToolWindow 保持常显。
+            # NoDropShadowWindowHint 必须保留：窗口四周边距是半透明的，系统投影会从
+            # 这圈边缘透出来，形成一道跟着窗口矩形走的灰边；磁贴的阴影由卡片自己的
+            # QGraphicsDropShadowEffect 画，关闭系统投影。
+            flags = Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint | \
+                Qt.WindowType.NoDropShadowWindowHint
+            self.setAttribute(Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
+        else:
+            # Windows 无边框窗口没有系统投影，保持普通顶层窗口
+            flags = Qt.WindowType.Window | Qt.WindowType.FramelessWindowHint
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setFixedSize(CARD_WIDTH + WINDOW_MARGIN * 2, CARD_HEIGHT + WINDOW_MARGIN * 2)
@@ -705,6 +714,10 @@ class FloatingPaletteTile(QWidget):
         self.update_texts()
         self._update_styles()
         qconfig.themeChangedFinished.connect(self._update_styles)
+        if sys.platform == 'darwin':
+            # 面板失焦时 AppKit 会把 level 打回 0，应用状态变化后按 _pinned 重放
+            app = cast(QApplication, QApplication.instance())
+            app.applicationStateChanged.connect(self._on_app_state_changed)
 
     def _setup_ui(self) -> None:
         """构建卡片、标题栏与滚动区"""
@@ -799,8 +812,8 @@ class FloatingPaletteTile(QWidget):
         self._pin_button.setFixedSize(28, 28)
         self._pin_button.toggled.connect(self._on_pin_toggled)
         top.addWidget(self._pin_button, 0, Qt.AlignmentFlag.AlignVCenter)
-        if sys.platform != 'win32':
-            # 置顶仅 Windows 可用，避免 mac 上出现无效开关
+        if sys.platform not in ('win32', 'darwin'):
+            # 置顶仅 Windows 与 macOS 可用，避免其它平台出现无效开关
             self._pin_button.setEnabled(False)
 
         self._close_button = TransparentToolButton(FluentIcon.CLOSE, bar)
@@ -880,6 +893,10 @@ class FloatingPaletteTile(QWidget):
             # 点击与拖动不抢前台）；失败时下次显示重试
             self._tool_style_applied = set_window_tool_style(self)
         self._place_bottom_right()
+        if sys.platform == 'darwin':
+            # 面板 hide/show 后 AppKit 会把 level 重置为 3，每次显示按 _pinned 重放；
+            # 失败只保留现状，留到下一个时机（应用状态变化 / 下次显示）重试
+            self._apply_topmost()
         if not self._loaded:
             self._reload_favorites()
             return
@@ -897,6 +914,25 @@ class FloatingPaletteTile(QWidget):
             available.right() - self.width() - SCREEN_MARGIN,
             available.bottom() - self.height() - SCREEN_MARGIN,
         )
+
+    def _apply_topmost(self) -> bool:
+        """按 _pinned 应用原生置顶；只动窗口层级，不同步按钮与状态
+
+        Returns:
+            bool: 置顶应用成功返回 True；平台不支持或调用失败返回 False
+        """
+        if not set_window_topmost(self, self._pinned):
+            return False
+        if sys.platform == 'darwin' and self._pinned and self.isVisible():
+            # 只改 level 时窗口服务器不一定立刻把窗口排到前台应用之上，
+            # 补一次前置；orderFrontRegardless 不激活应用。隐藏时不调用，
+            # 避免隐藏中的磁贴被前置带出来
+            order_front_regardless(self)
+        return True
+
+    def _on_app_state_changed(self, _state) -> None:
+        """应用激活状态变化后重放层级（面板失焦时 level 会被 AppKit 改写）"""
+        self._apply_topmost()
 
     def _reload_favorites(self) -> None:
         """首次显示时读取当前收藏并重建内容"""
@@ -1266,10 +1302,13 @@ class FloatingPaletteTile(QWidget):
         card.show_copied()
 
     def _on_pin_toggled(self, checked: bool) -> None:
-        """切换置顶状态并同步图钉图标；切换失败时回滚按钮，避免高亮与实际不符"""
-        if set_window_topmost(self, checked):
+        """切换置顶状态并同步图钉图标；切换失败时回滚状态与按钮，避免高亮与实际不符"""
+        previous = self._pinned
+        self._pinned = checked
+        if self._apply_topmost():
             self._pin_button.setIcon(FluentIcon.PIN if checked else FluentIcon.UNPIN)
             return
+        self._pinned = previous
         self._pin_button.blockSignals(True)
         self._pin_button.setChecked(not checked)
         self._pin_button.blockSignals(False)

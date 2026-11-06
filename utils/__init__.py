@@ -11,6 +11,7 @@ from .icon import load_icon_universal, get_icon_path, create_fallback_icon, get_
 from .platform import (
     fix_windows_taskbar_icon_for_window,
     force_window_to_front,
+    order_front_regardless,
     set_app_user_model_id,
     set_window_tool_style,
     set_window_topmost,
@@ -84,6 +85,7 @@ __all__ = [
     'show_and_activate_window',
     'set_window_tool_style',
     'set_window_topmost',
+    'order_front_regardless',
     'calculate_grid_columns',
     'LocaleManager',
     'get_locale_manager',
