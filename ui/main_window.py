@@ -5,7 +5,7 @@ import sys
 from typing import Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QEvent, Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QApplication, QLabel, QSystemTrayIcon
@@ -258,6 +258,7 @@ class MainWindow(FluentWindow):
         self._quit_requested = False
         self._session_ending = False
         self._palette_tile: FloatingPaletteTile | None = None
+        self._app_quitting = False
         self._tray = create_tray(self)
         app = QApplication.instance()
         if self._tray is not None:
@@ -265,7 +266,9 @@ class MainWindow(FluentWindow):
         if sys.platform == 'win32':
             app.commitDataRequest.connect(self._on_commit_data_request)
         elif sys.platform == 'darwin':
-            # Cmd+Q / 应用菜单“退出”不经过 closeEvent，靠 aboutToQuit 补保存与清理
+            # Cmd+Q / 应用菜单“退出”会先由系统关闭窗口、再发 aboutToQuit：
+            # 用事件过滤标记退出中，避免关窗阶段落入询问/托盘分支；aboutToQuit 兜底保存与清理
+            app.installEventFilter(self)
             app.aboutToQuit.connect(self._on_about_to_quit)
             # 窗口隐藏到托盘后，点击 Dock 图标与 Cmd+Tab 都会让应用转为激活态，
             # 恢复入口在此统一处理（单击托盘图标只弹菜单，不接 activated）
@@ -524,18 +527,34 @@ class MainWindow(FluentWindow):
 
     def closeEvent(self, event):
         """窗口关闭事件：按配置询问、最小化到托盘或退出"""
-        if self._quit_requested or self._session_ending:
+        if self._app_quitting:
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            return
+
+        if self._session_ending:
+            # 关机/注销由系统接管，事件循环可能来不及处理延迟退出，保持同步退出
             # 一次性标志：关机被取消后，下次关闭仍应弹询问框
             self._session_ending = False
             self._save_state()
             self._cleanup()
             event.accept()
+            QApplication.quit()
+            return
+
+        if self._quit_requested:
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            self._quit_application()
             return
 
         if self._tray is None or not QSystemTrayIcon.isSystemTrayAvailable():
             self._save_state()
             self._cleanup()
             event.accept()
+            self._quit_application()
             return
 
         close_action = self._config_manager.get('settings.close_action', CLOSE_ACTION_ASK)
@@ -548,6 +567,7 @@ class MainWindow(FluentWindow):
             self._save_state()
             self._cleanup()
             event.accept()
+            self._quit_application()
             return
 
         event.ignore()
@@ -570,6 +590,12 @@ class MainWindow(FluentWindow):
                 self._config_manager.set('settings.close_action', CLOSE_ACTION_QUIT)
             self._quit_requested = True
             QTimer.singleShot(0, self.close)
+
+    def eventFilter(self, obj, event) -> bool:
+        """mac 应用退出：标记退出中，让关窗走退出分支而不是询问/托盘分支"""
+        if obj is QApplication.instance() and event.type() == QEvent.Type.Quit:
+            self._app_quitting = True
+        return super().eventFilter(obj, event)
 
     def _save_state(self):
         """落盘色彩微调与窗口状态"""
@@ -596,15 +622,21 @@ class MainWindow(FluentWindow):
         self._config_manager.save()
 
     def _cleanup(self):
-        """完整退出前的清理：线程、对话框、托盘与事件循环"""
+        """完整退出前的清理：后台线程、分析对话框与托盘图标"""
         self._cleanup_background_threads()
         self._close_tone_analysis_dialogs()
         if self._palette_tile is not None:
             self._palette_tile.hide()
         if self._tray is not None:
             self._tray.hide()
-        # 两个平台都有托盘时已关闭“最后窗口关闭即退出”，不显式退出会留下无窗口进程
-        QApplication.quit()
+
+    def _quit_application(self) -> None:
+        """延后到当前事件处理结束再退出事件循环
+
+        在 closeEvent 内同步调用 QApplication.quit() 会让 mac 在关闭事件返回前
+        终止进程，此时 Python 侧对象尚未释放，退出析构顺序不可控。
+        """
+        QTimer.singleShot(0, QApplication.quit)
 
     def _on_commit_data_request(self, _manager):
         """系统关机/注销：落盘配置，不弹询问框"""
