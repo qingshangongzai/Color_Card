@@ -99,6 +99,11 @@ jobs:
         Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
         Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
+    - name: Build Portable Launcher
+      shell: pwsh
+      run: |
+        pwsh -File launcher/build.ps1 -OutputPath "Color Card.exe"
+
     - name: Build Portable EXE with Nuitka
       shell: pwsh
       run: |
@@ -134,23 +139,28 @@ jobs:
       shell: pwsh
       run: |
         $distDir = "dist"
-        New-Item -ItemType Directory -Force -Path $distDir
+        $appDir = "$distDir\app"
+        New-Item -ItemType Directory -Force -Path $appDir | Out-Null
 
         $version = "${{ steps.version.outputs.version }}"
         $zipName = "Color_Card_${version}_win_x64.zip"
         $zipPath = Join-Path $env:RUNNER_TEMP $zipName
 
-        Copy-Item "main.dist\*" -Destination $distDir -Recurse
+        # 根目录只放启动器与 config，主程序与运行库整体进 app/
+        Copy-Item "main.dist\*" -Destination $appDir -Recurse
+        Copy-Item "Color Card.exe" -Destination $distDir
+        # .portable 须与 app_mode.PORTABLE_LAYOUT_MARKER 保持一致，应用据此把 config 放到解压根目录
+        New-Item -ItemType File -Force -Path "$appDir\.portable" | Out-Null
 
         # --noinclude-dlls 对 Qt 插件 DLL 不生效，这里显式剔除 UI 不可达的图片格式与平台插件
         $unusedQtPlugins = @(
-          "PySide6\qt-plugins\imageformats\qpdf.dll",
-          "PySide6\qt-plugins\imageformats\qtiff.dll",
-          "PySide6\qt-plugins\imageformats\qicns.dll",
-          "PySide6\qt-plugins\imageformats\qtga.dll",
-          "PySide6\qt-plugins\imageformats\qwbmp.dll",
-          "PySide6\qt-plugins\imageformats\qwebp.dll",
-          "PySide6\qt-plugins\platforms\qdirect2d.dll"
+          "app\PySide6\qt-plugins\imageformats\qpdf.dll",
+          "app\PySide6\qt-plugins\imageformats\qtiff.dll",
+          "app\PySide6\qt-plugins\imageformats\qicns.dll",
+          "app\PySide6\qt-plugins\imageformats\qtga.dll",
+          "app\PySide6\qt-plugins\imageformats\qwbmp.dll",
+          "app\PySide6\qt-plugins\imageformats\qwebp.dll",
+          "app\PySide6\qt-plugins\platforms\qdirect2d.dll"
         )
         foreach ($plugin in $unusedQtPlugins) {
           $pluginPath = Join-Path $distDir $plugin

@@ -93,3 +93,44 @@ def test_macos_source_returns_development(tmp_path, monkeypatch):
     with patch.object(Path, "home", return_value=tmp_path):
         assert detect_mode() is AppMode.DEVELOPMENT
         assert get_config_dir() == tmp_path / ".color_card"
+
+
+def _prepare_portable_env(monkeypatch, tmp_path: Path) -> None:
+    """隔离 Windows 环境变量，避免临时目录被判为安装程序或安装版"""
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setitem(_IMPL_GLOBALS, "_check_registry_install", lambda: None)
+    for name in ("TEMP", "PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
+        monkeypatch.setenv(name, str(tmp_path / f"fake_{name.lower().replace('(', '_').replace(')', '')}"))
+
+
+@pytest.mark.unit
+def test_windows_portable_app_layout_config_dir(tmp_path, monkeypatch):
+    """便携版 app/ 布局：配置目录落在解压根目录，而不是 app/ 子目录"""
+    root = tmp_path / "portable"
+    app_dir = root / "app"
+    app_dir.mkdir(parents=True)
+    (app_dir / _IMPL_GLOBALS["PORTABLE_LAYOUT_MARKER"]).touch()
+    exe_path = app_dir / "Color Card.exe"
+    exe_path.touch()
+
+    _prepare_portable_env(monkeypatch, tmp_path)
+    monkeypatch.setattr(sys, "argv", [str(exe_path)])
+
+    assert detect_mode() is AppMode.PORTABLE
+    assert get_config_dir() == root / "config"
+
+
+@pytest.mark.unit
+def test_windows_portable_flat_config_dir(tmp_path, monkeypatch):
+    """便携版平铺布局：配置目录保持在程序所在目录"""
+    root = tmp_path / "portable"
+    root.mkdir()
+    exe_path = root / "Color Card.exe"
+    exe_path.touch()
+
+    _prepare_portable_env(monkeypatch, tmp_path)
+    monkeypatch.setattr(sys, "argv", [str(exe_path)])
+
+    assert detect_mode() is AppMode.PORTABLE
+    assert get_config_dir() == root / "config"
