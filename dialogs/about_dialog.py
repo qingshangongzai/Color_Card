@@ -324,14 +324,6 @@ class AboutDialog(BaseFramelessDialog):
     项目地址：https://github.com/Nuitka/Nuitka
     官网：https://nuitka.net/
 
-  【字体使用说明】
-  • 本程序 LOGO 的标题使用了「得意黑」字体
-    版权所有：© atelier-anchor
-    设计师：oooooohmygosh
-    许可证：SIL Open Font License 1.1
-    项目地址：https://github.com/atelier-anchor/smiley-sans
-    官方网站：https://atelier-anchor.com/typefaces/smiley-sans/
-
 【特别鸣谢】
   • 感谢 PySide6 和 PyQt-Fluent-Widgets 开发团队提供的优秀框架
   • 感谢 Trae IDE 提供的 AI 辅助编程支持
