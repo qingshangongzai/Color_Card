@@ -1,4 +1,4 @@
-name: Build Windows App with Nuitka
+name: 构建 Windows 应用（Nuitka）
 
 on:
   workflow_dispatch:
@@ -137,7 +137,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path $distDir
 
         $version = "${{ steps.version.outputs.version }}"
-        $zipName = "Color_Card_${version}_x64.zip"
+        $zipName = "Color_Card_${version}_win_x64.zip"
 
         Copy-Item "Color Card Portable.exe" -Destination $distDir
         Copy-Item "Color Card Launcher.exe" -Destination $distDir
@@ -284,7 +284,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path $distDir
 
         $version = "${{ steps.version.outputs.version }}"
-        $installerName = "Color_Card_${version}_x64_Setup.exe"
+        $installerName = "Color_Card_${version}_win_x64_Setup.exe"
 
         Copy-Item "ColorCard.exe" -Destination "$distDir\$installerName"
 

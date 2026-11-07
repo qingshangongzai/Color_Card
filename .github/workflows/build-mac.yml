@@ -1,4 +1,4 @@
-name: Build Mac App with Nuitka
+name: 构建 MacOS 应用（Nuitka）
 
 on:
   workflow_dispatch:
@@ -152,7 +152,7 @@ jobs:
             --background "logo/dmg_background.png" \
             --app-drop-link 600 250 \
             --no-internet-enable \
-            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac_arm64.dmg" \
             "dist/dmg/ColorCard.app"
         else
           create-dmg \
@@ -165,7 +165,7 @@ jobs:
             --icon "Applications" 450 200 \
             --app-drop-link 450 200 \
             --no-internet-enable \
-            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac_arm64.dmg" \
             "dist/dmg/ColorCard.app"
         fi
 
@@ -173,4 +173,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ColorCard-macOS
-        path: dist/Color_Card_*_mac.dmg
+        path: dist/Color_Card_*_mac_arm64.dmg
