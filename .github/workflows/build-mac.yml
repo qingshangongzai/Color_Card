@@ -70,23 +70,20 @@ jobs:
       env:
         NUITKA_CACHE_DIR: "$HOME/.cache/Nuitka"
       run: |
+        # core/ui/dialogs/utils 只含 .py，由导入图编译进二进制；
+        # 只有新增非 .py 数据文件时才加 --include-data-dir，且 mac 与 Windows
+        # 两端都要加，否则会漏打或刷 "No data files in directory" 警告。
         python -m nuitka \
           --mode=app \
           --macos-app-icon="logo/ColorCard.icns" \
           --macos-app-name="Color Card" \
           --macos-app-version="${{ steps.version.outputs.version }}" \
           --include-data-files=version.py=version.py \
-          --include-data-files=app_mode.py=app_mode.py \
-          --include-data-files=instance_key.py=instance_key.py \
           --include-data-dir=color_data=color_data \
-          --include-data-dir=core=core \
-          --include-data-dir=dialogs=dialogs \
           --include-data-dir=file=file \
           --include-data-dir=locales=locales \
           --include-data-dir=logo=logo \
           --include-data-dir=scenes_data=scenes_data \
-          --include-data-dir=ui=ui \
-          --include-data-dir=utils=utils \
           --enable-plugin=pyside6 \
           --jobs=4 \
           --output-dir=dist \
