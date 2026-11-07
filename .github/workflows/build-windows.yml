@@ -66,7 +66,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nuitka[onefile]
+        pip install nuitka
         pip install -r requirements.txt
 
     - name: Read version
@@ -102,14 +102,13 @@ jobs:
     - name: Build Launcher
       shell: pwsh
       run: |
-        pwsh -File launcher/build.ps1 -MainExeName "Color Card Portable.exe" -OutputPath "Color Card Launcher.exe"
+        pwsh -File launcher/build.ps1 -MainExeName "Color Card.exe" -OutputPath "Color Card Launcher.exe"
 
     - name: Build Portable EXE with Nuitka
       shell: pwsh
       run: |
         python -m nuitka `
           --standalone `
-          --onefile `
           --assume-yes-for-downloads `
           --windows-console-mode=disable `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
@@ -117,7 +116,7 @@ jobs:
           --product-name="${{ steps.version.outputs.app_name }}" `
           --file-version="${{ steps.version.outputs.file_version }}" `
           --product-version="${{ steps.version.outputs.product_version }}" `
-          --file-description="取色卡 - Color Card (Portable)" `
+          --file-description="取色卡 - Color Card" `
           --copyright="${{ steps.version.outputs.copyright }}" `
           --include-data-files=version.py=version.py `
           --include-data-dir=color_data=color_data `
@@ -127,7 +126,7 @@ jobs:
           --include-data-dir=scenes_data=scenes_data `
           --enable-plugin=pyside6 `
           --jobs=4 `
-          --output-filename="Color Card Portable" `
+          --output-filename="Color Card" `
           main.py
 
     - name: Create distribution folder
@@ -139,10 +138,13 @@ jobs:
         $version = "${{ steps.version.outputs.version }}"
         $zipName = "Color_Card_${version}_win_x64.zip"
 
-        Copy-Item "Color Card Portable.exe" -Destination $distDir
+        Copy-Item "main.dist\*" -Destination $distDir -Recurse
         Copy-Item "Color Card Launcher.exe" -Destination $distDir
+
+        # 排除目标 zip 自身，避免重复执行时把旧包打进新包
+        $items = Get-ChildItem -Path $distDir | Where-Object { $_.Name -ne $zipName }
         Compress-Archive `
-          -Path @("$distDir\Color Card Portable.exe", "$distDir\Color Card Launcher.exe") `
+          -Path $items.FullName `
           -DestinationPath "$distDir\$zipName" -Force
 
         Write-Host "Portable distribution contents:"
