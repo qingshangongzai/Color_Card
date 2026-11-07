@@ -9,10 +9,10 @@ class VersionManager:
     def __init__(self) -> None:
         """初始化版本管理器"""
         # 版本号组件
-        self.major: int = 1
-        self.minor: int = 12
-        self.patch: int = 1
-        self.prerelease: str = ""
+        self.major: int = 2
+        self.minor: int = 0
+        self.patch: int = 0
+        self.prerelease: str = " Alpha 1"
 
         # 核心版本信息
         self.version: str = f"{self.major}.{self.minor}.{self.patch}{self.prerelease}"
