@@ -13,7 +13,7 @@ from unittest.mock import patch
 import pytest
 
 # 项目模块导入
-from core.app_mode import AppMode, detect_mode, get_config_dir
+from core import AppMode, detect_mode, get_config_dir
 
 # 实现模块的全局命名空间：经公共导入的 detect_mode 反查，Dev/main 布局下是
 # core.app_mode 自身，NEXT 布局下是根 app_mode；模式缓存与 __compiled__ 都在那里

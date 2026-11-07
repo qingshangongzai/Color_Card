@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 # 项目模块导入
-from .app_mode import get_config_dir
+from app_mode import get_config_dir
 
 
 class LoggerManager:

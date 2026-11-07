@@ -11,9 +11,9 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal
 
 # 项目模块导入
+from app_mode import get_config_dir
 from version import version_manager
 
-from .app_mode import get_config_dir
 from .logger import get_logger
 
 
