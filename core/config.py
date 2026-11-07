@@ -109,7 +109,8 @@ class ConfigManager(QObject):
             "window": {
                 "width": 940,
                 "height": 660,
-                "is_maximized": False
+                "is_maximized": False,
+                "is_fullscreen": False
             },
             "favorites": [],
             "scene_templates": {}
