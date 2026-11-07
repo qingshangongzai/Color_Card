@@ -117,19 +117,14 @@ jobs:
           --include-data-dir=color_data=color_data `
           --include-data-dir=file=file `
           --include-data-dir=locales=locales `
-          --include-data-dir=logo=logo `
+          --include-data-files="logo/Color Card_logo.ico=logo/Color Card_logo.ico" `
+          --include-data-files="logo/Color Card_logo.png=logo/Color Card_logo.png" `
           --include-data-dir=scenes_data=scenes_data `
           --nofollow-import-to=PIL.AvifImagePlugin `
           --nofollow-import-to=PIL.WebPImagePlugin `
           --python-flag=no_docstrings `
           --noinclude-qt-plugins=tls `
-          --noinclude-dlls=qpdf.dll `
           --noinclude-dlls=qt6pdf.dll `
-          --noinclude-dlls=qdirect2d.dll `
-          --noinclude-dlls=qtiff.dll `
-          --noinclude-dlls=qicns.dll `
-          --noinclude-dlls=qtga.dll `
-          --noinclude-dlls=qwbmp.dll `
           --enable-plugin=pyside6 `
           --jobs=4 `
           --output-filename="Color Card" `
@@ -146,6 +141,23 @@ jobs:
         $zipPath = Join-Path $env:RUNNER_TEMP $zipName
 
         Copy-Item "main.dist\*" -Destination $distDir -Recurse
+
+        # --noinclude-dlls 对 Qt 插件 DLL 不生效，这里显式剔除 UI 不可达的图片格式与平台插件
+        $unusedQtPlugins = @(
+          "PySide6\qt-plugins\imageformats\qpdf.dll",
+          "PySide6\qt-plugins\imageformats\qtiff.dll",
+          "PySide6\qt-plugins\imageformats\qicns.dll",
+          "PySide6\qt-plugins\imageformats\qtga.dll",
+          "PySide6\qt-plugins\imageformats\qwbmp.dll",
+          "PySide6\qt-plugins\imageformats\qwebp.dll",
+          "PySide6\qt-plugins\platforms\qdirect2d.dll"
+        )
+        foreach ($plugin in $unusedQtPlugins) {
+          $pluginPath = Join-Path $distDir $plugin
+          if (Test-Path $pluginPath) {
+            Remove-Item $pluginPath -Force
+          }
+        }
 
         # Compress-Archive 压缩级别固定且偏弱，改用 zipfile level 9（同目录实测省约 2 MB）
         $zipScript = Join-Path $env:RUNNER_TEMP "make_zip.py"
@@ -283,7 +295,8 @@ jobs:
           --include-data-dir=color_data=color_data `
           --include-data-dir=file=file `
           --include-data-dir=locales=locales `
-          --include-data-dir=logo=logo `
+          --include-data-files="logo/Color Card_logo.ico=logo/Color Card_logo.ico" `
+          --include-data-files="logo/Color Card_logo.png=logo/Color Card_logo.png" `
           --include-data-dir=scenes_data=scenes_data `
           --enable-plugin=pyside6 `
           --jobs=4 `
