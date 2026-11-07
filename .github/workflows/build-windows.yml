@@ -99,11 +99,6 @@ jobs:
         Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
         Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
-    - name: Build Launcher
-      shell: pwsh
-      run: |
-        pwsh -File launcher/build.ps1 -MainExeName "Color Card.exe" -OutputPath "Color Card Launcher.exe"
-
     - name: Build Portable EXE with Nuitka
       shell: pwsh
       run: |
@@ -124,6 +119,17 @@ jobs:
           --include-data-dir=locales=locales `
           --include-data-dir=logo=logo `
           --include-data-dir=scenes_data=scenes_data `
+          --nofollow-import-to=PIL.AvifImagePlugin `
+          --nofollow-import-to=PIL.WebPImagePlugin `
+          --python-flag=no_docstrings `
+          --noinclude-qt-plugins=tls `
+          --noinclude-dlls=qpdf.dll `
+          --noinclude-dlls=qt6pdf.dll `
+          --noinclude-dlls=qdirect2d.dll `
+          --noinclude-dlls=qtiff.dll `
+          --noinclude-dlls=qicns.dll `
+          --noinclude-dlls=qtga.dll `
+          --noinclude-dlls=qwbmp.dll `
           --enable-plugin=pyside6 `
           --jobs=4 `
           --output-filename="Color Card" `
@@ -137,15 +143,26 @@ jobs:
 
         $version = "${{ steps.version.outputs.version }}"
         $zipName = "Color_Card_${version}_win_x64.zip"
+        $zipPath = Join-Path $env:RUNNER_TEMP $zipName
 
         Copy-Item "main.dist\*" -Destination $distDir -Recurse
-        Copy-Item "Color Card Launcher.exe" -Destination $distDir
 
-        # 排除目标 zip 自身，避免重复执行时把旧包打进新包
-        $items = Get-ChildItem -Path $distDir | Where-Object { $_.Name -ne $zipName }
-        Compress-Archive `
-          -Path $items.FullName `
-          -DestinationPath "$distDir\$zipName" -Force
+        # Compress-Archive 压缩级别固定且偏弱，改用 zipfile level 9（同目录实测省约 2 MB）
+        $zipScript = Join-Path $env:RUNNER_TEMP "make_zip.py"
+        @'
+        import os
+        import sys
+        import zipfile
+
+        src, dst = sys.argv[1], sys.argv[2]
+        with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+            for root, _dirs, files in os.walk(src):
+                for name in files:
+                    path = os.path.join(root, name)
+                    archive.write(path, os.path.relpath(path, src))
+        '@ | Set-Content -Path $zipScript -Encoding utf8
+        python $zipScript $distDir $zipPath
+        Move-Item $zipPath "$distDir\$zipName"
 
         Write-Host "Portable distribution contents:"
         Get-ChildItem -Path $distDir
@@ -247,11 +264,6 @@ jobs:
         Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
         Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
-    - name: Build Launcher
-      shell: pwsh
-      run: |
-        pwsh -File launcher/build.ps1 -MainExeName "Color Card.exe" -OutputPath "Color Card Launcher.exe"
-
     - name: Build Installer EXE with Nuitka
       shell: pwsh
       run: |
@@ -268,7 +280,6 @@ jobs:
           --file-description="取色卡 - Color Card (Installer)" `
           --copyright="${{ steps.version.outputs.copyright }}" `
           --include-data-files=version.py=version.py `
-          --include-data-files="Color Card Launcher.exe=Color Card Launcher.exe" `
           --include-data-dir=color_data=color_data `
           --include-data-dir=file=file `
           --include-data-dir=locales=locales `

@@ -24,9 +24,6 @@ bandit_report*.html
 # ---------- 构建与打包产物 ----------
 # CI 打包时生成的构建号文件
 /build_info.py
-# C 启动器构建生成的配置头与中间产物
-/launcher/launcher_config.h
-/launcher/build/
 # Nuitka 构建报告
 /nuitka-crash-report.xml
 /build/
