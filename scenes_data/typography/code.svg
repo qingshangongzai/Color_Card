@@ -6,15 +6,15 @@
   <rect id="window-bar" class="secondary" x="0" y="0" width="600" height="30" fill="#2d2d2d"/>
 
   <!-- 窗口按钮 -->
-  <circle id="btn-close" cx="20" cy="15" r="6" fill="#ff5f56"/>
-  <circle id="btn-minimize" cx="40" cy="15" r="6" fill="#ffbd2e"/>
-  <circle id="btn-maximize" cx="60" cy="15" r="6" fill="#27c93f"/>
+  <circle class="accent" id="btn-close" cx="20" cy="15" r="6" fill="#ff5f56"/>
+  <circle class="secondary" id="btn-minimize" cx="40" cy="15" r="6" fill="#ffbd2e"/>
+  <circle class="primary" id="btn-maximize" cx="60" cy="15" r="6" fill="#27c93f"/>
 
   <!-- 文件名 -->
   <text id="filename" class="text" x="300" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#cccccc" data-fixed-color="black">theme.js</text>
 
   <!-- 行号区域 -->
-  <rect id="line-numbers-bg" x="0" y="30" width="40" height="270" fill="#252526"/>
+  <rect class="primary" id="line-numbers-bg" x="0" y="30" width="40" height="270" fill="#252526"/>
 
   <!-- 行号 -->
   <text id="line-1-num" class="secondary" x="25" y="55" text-anchor="end" font-family="Consolas, monospace" font-size="12" fill="#6e7681" data-fixed-color="black">1</text>

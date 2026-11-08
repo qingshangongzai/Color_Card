@@ -22,58 +22,58 @@
 
   <!-- 星星 -->
   <g id="stars" class="text">
-    <circle cx="50" cy="50" r="2" fill="#ffffff" opacity="0.9"/>
-    <circle cx="120" cy="40" r="1.5" fill="#ffffff" opacity="0.7"/>
-    <circle cx="180" cy="60" r="2" fill="#ffffff" opacity="0.8"/>
-    <circle cx="250" cy="45" r="1" fill="#ffffff" opacity="0.6"/>
-    <circle cx="380" cy="80" r="2" fill="#ffffff" opacity="0.9"/>
-    <circle cx="30" cy="150" r="1.5" fill="#ffffff" opacity="0.7"/>
-    <circle cx="150" cy="120" r="1" fill="#ffffff" opacity="0.5"/>
-    <circle cx="280" cy="110" r="2" fill="#ffffff" opacity="0.8"/>
-    <circle cx="370" cy="140" r="1.5" fill="#ffffff" opacity="0.6"/>
-    <circle cx="100" cy="180" r="1" fill="#ffffff" opacity="0.5"/>
-    <circle cx="200" cy="160" r="2" fill="#ffffff" opacity="0.9"/>
-    <circle cx="300" cy="170" r="1.5" fill="#ffffff" opacity="0.7"/>
-    <circle cx="40" cy="260" r="2" fill="#ffffff" opacity="0.8"/>
-    <circle cx="130" cy="280" r="1" fill="#ffffff" opacity="0.5"/>
-    <circle cx="220" cy="250" r="1.5" fill="#ffffff" opacity="0.6"/>
-    <circle cx="330" cy="270" r="2" fill="#ffffff" opacity="0.9"/>
-    <circle cx="390" cy="240" r="1" fill="#ffffff" opacity="0.5"/>
-    <circle cx="80" cy="300" r="1.5" fill="#ffffff" opacity="0.7"/>
+    <circle class="text" cx="50" cy="50" r="2" fill="#ffffff" opacity="0.9"/>
+    <circle class="text" cx="120" cy="40" r="1.5" fill="#ffffff" opacity="0.7"/>
+    <circle class="text" cx="180" cy="60" r="2" fill="#ffffff" opacity="0.8"/>
+    <circle class="text" cx="250" cy="45" r="1" fill="#ffffff" opacity="0.6"/>
+    <circle class="text" cx="380" cy="80" r="2" fill="#ffffff" opacity="0.9"/>
+    <circle class="text" cx="30" cy="150" r="1.5" fill="#ffffff" opacity="0.7"/>
+    <circle class="text" cx="150" cy="120" r="1" fill="#ffffff" opacity="0.5"/>
+    <circle class="text" cx="280" cy="110" r="2" fill="#ffffff" opacity="0.8"/>
+    <circle class="text" cx="370" cy="140" r="1.5" fill="#ffffff" opacity="0.6"/>
+    <circle class="text" cx="100" cy="180" r="1" fill="#ffffff" opacity="0.5"/>
+    <circle class="text" cx="200" cy="160" r="2" fill="#ffffff" opacity="0.9"/>
+    <circle class="text" cx="300" cy="170" r="1.5" fill="#ffffff" opacity="0.7"/>
+    <circle class="text" cx="40" cy="260" r="2" fill="#ffffff" opacity="0.8"/>
+    <circle class="text" cx="130" cy="280" r="1" fill="#ffffff" opacity="0.5"/>
+    <circle class="text" cx="220" cy="250" r="1.5" fill="#ffffff" opacity="0.6"/>
+    <circle class="text" cx="330" cy="270" r="2" fill="#ffffff" opacity="0.9"/>
+    <circle class="text" cx="390" cy="240" r="1" fill="#ffffff" opacity="0.5"/>
+    <circle class="text" cx="80" cy="290" r="1.5" fill="#ffffff" opacity="0.7"/>
   </g>
 
   <!-- 闪烁的大星星 -->
   <g id="bright-stars" class="accent">
-    <path d="M150 80 L151 83 L154 83 L152 85 L153 88 L150 86 L147 88 L148 85 L146 83 L149 83 Z" fill="#f4d03f" opacity="0.9"/>
-    <path d="M380 30 L381 33 L384 33 L382 35 L383 38 L380 36 L377 38 L378 35 L376 33 L379 33 Z" fill="#f4d03f" opacity="0.8"/>
-    <path d="M20 100 L21 103 L24 103 L22 105 L23 108 L20 106 L17 108 L18 105 L16 103 L19 103 Z" fill="#f4d03f" opacity="0.7"/>
-    <path d="M270 250 L271 253 L274 253 L272 255 L273 258 L270 256 L267 258 L268 255 L266 253 L269 253 Z" fill="#f4d03f" opacity="0.8"/>
+    <path class="accent" d="M150 80 L151 83 L154 83 L152 85 L153 88 L150 86 L147 88 L148 85 L146 83 L149 83 Z" fill="#f4d03f" opacity="0.9"/>
+    <path class="accent" d="M380 30 L381 33 L384 33 L382 35 L383 38 L380 36 L377 38 L378 35 L376 33 L379 33 Z" fill="#f4d03f" opacity="0.8"/>
+    <path class="accent" d="M20 100 L21 103 L24 103 L22 105 L23 108 L20 106 L17 108 L18 105 L16 103 L19 103 Z" fill="#f4d03f" opacity="0.7"/>
+    <path class="accent" d="M270 250 L271 253 L274 253 L272 255 L273 258 L270 256 L267 258 L268 255 L266 253 L269 253 Z" fill="#f4d03f" opacity="0.8"/>
   </g>
 
   <!-- 星座连线 -->
   <g id="constellation" class="secondary" opacity="0.4">
-    <line x1="180" y1="200" x2="200" y2="180" stroke="#8e7cc3" stroke-width="1"/>
-    <line x1="200" y1="180" x2="230" y2="190" stroke="#8e7cc3" stroke-width="1"/>
-    <line x1="230" y1="190" x2="240" y2="220" stroke="#8e7cc3" stroke-width="1"/>
-    <line x1="180" y1="200" x2="170" y2="230" stroke="#8e7cc3" stroke-width="1"/>
-    <circle cx="180" cy="200" r="2" fill="#8e7cc3"/>
-    <circle cx="200" cy="180" r="2" fill="#8e7cc3"/>
-    <circle cx="230" cy="190" r="2" fill="#8e7cc3"/>
-    <circle cx="240" cy="220" r="2" fill="#8e7cc3"/>
-    <circle cx="170" cy="230" r="2" fill="#8e7cc3"/>
+    <line class="secondary" x1="180" y1="200" x2="200" y2="180" stroke="#8e7cc3" stroke-width="1"/>
+    <line class="secondary" x1="200" y1="180" x2="230" y2="190" stroke="#8e7cc3" stroke-width="1"/>
+    <line class="secondary" x1="230" y1="190" x2="240" y2="220" stroke="#8e7cc3" stroke-width="1"/>
+    <line class="secondary" x1="180" y1="200" x2="170" y2="230" stroke="#8e7cc3" stroke-width="1"/>
+    <circle class="secondary" cx="180" cy="200" r="2" fill="#8e7cc3"/>
+    <circle class="secondary" cx="200" cy="180" r="2" fill="#8e7cc3"/>
+    <circle class="secondary" cx="230" cy="190" r="2" fill="#8e7cc3"/>
+    <circle class="secondary" cx="240" cy="220" r="2" fill="#8e7cc3"/>
+    <circle class="secondary" cx="170" cy="230" r="2" fill="#8e7cc3"/>
   </g>
 
   <!-- 流星 -->
   <g id="meteor" class="accent" opacity="0.8">
-    <line x1="100" y1="80" x2="140" y2="120" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-    <line x1="95" y1="75" x2="100" y2="80" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
-    <line x1="90" y1="70" x2="95" y2="75" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
+    <line class="accent" x1="100" y1="80" x2="140" y2="120" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <line class="accent" x1="95" y1="75" x2="100" y2="80" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <line class="accent" x1="90" y1="70" x2="95" y2="75" stroke="#ffffff" stroke-width="1" stroke-linecap="round" opacity="0.3"/>
   </g>
 
   <!-- 流星2 -->
   <g id="meteor-2" class="accent" opacity="0.6">
-    <line x1="300" y1="100" x2="330" y2="130" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="296" y1="96" x2="300" y2="100" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+    <line class="accent" x1="300" y1="100" x2="330" y2="130" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+    <line class="accent" x1="296" y1="96" x2="300" y2="100" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
   </g>
 
   <!-- 星云 -->
@@ -106,10 +106,10 @@
     <rect id="sat-body" class="primary" x="-10" y="-8" width="20" height="16" rx="3" fill="#95a5a6"/>
     <!-- 太阳能板左 -->
     <rect id="solar-left" class="secondary" x="-35" y="-12" width="22" height="24" fill="#3498db" opacity="0.7"/>
-    <line x1="-35" y1="0" x2="-13" y2="0" stroke="#7f8c8d" stroke-width="2"/>
+    <line class="primary" x1="-35" y1="0" x2="-13" y2="0" stroke="#7f8c8d" stroke-width="2"/>
     <!-- 太阳能板右 -->
     <rect id="solar-right" class="secondary" x="13" y="-12" width="22" height="24" fill="#3498db" opacity="0.7"/>
-    <line x1="13" y1="0" x2="35" y2="0" stroke="#7f8c8d" stroke-width="2"/>
+    <line class="primary" x1="13" y1="0" x2="35" y2="0" stroke="#7f8c8d" stroke-width="2"/>
     <!-- 卫星天线 -->
     <line id="antenna" class="stroke" x1="0" y1="-8" x2="0" y2="-20" stroke="#7f8c8d" stroke-width="2"/>
     <circle id="antenna-tip" class="accent" cx="0" cy="-20" r="3" fill="#f39c12"/>
@@ -117,9 +117,9 @@
 
   <!-- 小行星 -->
   <g id="asteroid" transform="translate(350, 120)">
-    <circle cx="0" cy="0" r="10" fill="#7f8c8d" opacity="0.6"/>
-    <circle cx="-3" cy="-2" r="3" fill="#5d6d7e" opacity="0.4"/>
-    <circle cx="4" cy="3" r="2" fill="#5d6d7e" opacity="0.4"/>
+    <circle class="secondary" cx="0" cy="0" r="10" fill="#7f8c8d" opacity="0.6"/>
+    <circle class="primary" cx="-3" cy="-2" r="3" fill="#5d6d7e" opacity="0.4"/>
+    <circle class="primary" cx="4" cy="3" r="2" fill="#5d6d7e" opacity="0.4"/>
   </g>
 
   <!-- UFO -->
@@ -127,9 +127,9 @@
     <ellipse id="ufo-body" class="secondary" cx="0" cy="0" rx="20" ry="6" fill="#9b59b6" opacity="0.8"/>
     <ellipse id="ufo-dome" class="primary" cx="0" cy="-5" rx="10" ry="8" fill="#ecf0f1" opacity="0.6"/>
     <!-- UFO灯光 -->
-    <circle cx="-12" cy="2" r="2" fill="#f39c12" opacity="0.8"/>
-    <circle cx="0" cy="4" r="2" fill="#f39c12" opacity="0.8"/>
-    <circle cx="12" cy="2" r="2" fill="#f39c12" opacity="0.8"/>
+    <circle class="accent" cx="-12" cy="2" r="2" fill="#f39c12" opacity="0.8"/>
+    <circle class="accent" cx="0" cy="4" r="2" fill="#f39c12" opacity="0.8"/>
+    <circle class="accent" cx="12" cy="2" r="2" fill="#f39c12" opacity="0.8"/>
   </g>
 
   <!-- 银河光带 -->

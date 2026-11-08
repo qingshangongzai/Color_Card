@@ -54,9 +54,9 @@
 
   <!-- 代码行 -->
   <text id="code-line-1" class="text" x="190" y="185" font-family="Consolas, monospace" font-size="9" fill="#61dafb" data-fixed-color="black">$ npm install my-app</text>
-  <text id="code-line-2" class="text" x="190" y="205" font-family="Consolas, monospace" font-size="9" fill="#98c379" data-fixed-color="black">+ my-app@2.0.0</text>
-  <text id="code-line-3" class="text" x="190" y="220" font-family="Consolas, monospace" font-size="9" fill="#e6c07b" data-fixed-color="black">added 42 packages in 3s</text>
-  <text id="code-line-4" class="text" x="190" y="235" font-family="Consolas, monospace" font-size="9" fill="#ffffff" data-fixed-color="black">$ npm run dev</text>
+  <text id="code-line-2" class="text" x="190" y="202" font-family="Consolas, monospace" font-size="9" fill="#98c379" data-fixed-color="black">+ my-app@2.0.0</text>
+  <text id="code-line-3" class="text" x="190" y="219" font-family="Consolas, monospace" font-size="9" fill="#e6c07b" data-fixed-color="black">added 42 packages in 3s</text>
+  <text id="code-line-4" class="text" x="190" y="236" font-family="Consolas, monospace" font-size="9" fill="#ffffff" data-fixed-color="black">$ npm run dev</text>
 
   <!-- 复制按钮 -->
   <rect id="copy-btn" class="accent" x="540" y="170" width="30" height="18" rx="3" fill="#61dafb"/>

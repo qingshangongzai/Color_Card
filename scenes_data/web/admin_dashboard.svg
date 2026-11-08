@@ -31,14 +31,14 @@
   <rect id="calendar-card" class="secondary" x="100" y="45" width="110" height="75" rx="8" fill="#ffffff"/>
   <text id="calendar-title" class="text" x="155" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#333333" data-fixed-color="black">2021年12月</text>
   <!-- 日历网格 -->
-  <rect id="cal-day-15" class="accent" x="112" y="72" width="12" height="12" rx="2" fill="#ff8a8a"/>
-  <rect id="cal-day-16" class="secondary" x="127" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
-  <rect id="cal-day-17" class="secondary" x="142" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
-  <rect id="cal-day-18" class="secondary" x="157" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
-  <rect id="cal-day-19" class="secondary" x="172" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
-  <rect id="cal-day-20" class="secondary" x="112" y="88" width="12" height="12" rx="2" fill="#f0f0f0"/>
-  <rect id="cal-day-21" class="secondary" x="127" y="88" width="12" height="12" rx="2" fill="#f0f0f0"/>
-  <rect id="cal-day-22" class="accent" x="142" y="88" width="12" height="12" rx="2" fill="#ff8a8a"/>
+  <rect id="cal-day-15" class="accent" x="119" y="72" width="12" height="12" rx="2" fill="#ff8a8a"/>
+  <rect id="cal-day-16" class="secondary" x="134" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-17" class="secondary" x="149" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-18" class="secondary" x="164" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-19" class="secondary" x="179" y="72" width="12" height="12" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-20" class="secondary" x="119" y="88" width="12" height="12" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-21" class="secondary" x="134" y="88" width="12" height="12" rx="2" fill="#f0f0f0"/>
+  <rect id="cal-day-22" class="accent" x="149" y="88" width="12" height="12" rx="2" fill="#ff8a8a"/>
 
   <!-- 账户菜单卡片 -->
   <rect id="account-card" class="secondary" x="225" y="45" width="110" height="75" rx="8" fill="#ffffff"/>
@@ -71,7 +71,7 @@
   <text id="user3-name" class="text" x="380" y="177" font-family="Arial, sans-serif" font-size="6" fill="#333333" data-fixed-color="black">Joe Black</text>
 
   <!-- 登录表单卡片 -->
-  <rect id="login-card" class="secondary" x="100" y="130" width="110" height="80" rx="8" fill="#ffffff"/>
+  <rect id="login-card" class="secondary" x="100" y="130" width="110" height="88" rx="8" fill="#ffffff"/>
   <text id="login-title" class="text" x="115" y="148" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#333333" data-fixed-color="black">登录</text>
   <rect id="login-input-1" class="secondary" x="115" y="160" width="80" height="12" rx="2" fill="#f5f5f5"/>
   <rect id="login-input-2" class="secondary" x="115" y="180" width="80" height="12" rx="2" fill="#f5f5f5"/>
@@ -86,7 +86,7 @@
   <text id="btn-text" class="text" x="280" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" fill="#ffffff" data-fixed-color="black">按钮</text>
 
   <rect id="btn-secondary" class="secondary" x="225" y="250" width="110" height="22" rx="4" fill="#ffffff"/>
-  <rect id="btn-secondary-border" x="225" y="250" width="110" height="22" rx="4" fill="none" stroke="#ffb3b3" stroke-width="1"/>
+  <rect class="accent" id="btn-secondary-border" x="225" y="250" width="110" height="22" rx="4" fill="none" stroke="#ffb3b3" stroke-width="1"/>
 
   <!-- 图标按钮组 -->
   <rect id="icon-btn-1" class="accent" x="100" y="220" width="20" height="20" rx="4" fill="#8fa8c0"/>
