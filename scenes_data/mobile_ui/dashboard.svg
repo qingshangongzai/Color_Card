@@ -60,4 +60,9 @@
   <rect id="card-4" class="accent" x="152" y="298" width="50" height="30" rx="8" fill="#ff8a8a"/>
   <text id="card-4-time" class="text" x="177" y="313" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#ffffff" data-fixed-color="black">60 分钟</text>
   <text id="card-4-level" class="text" x="177" y="323" text-anchor="middle" font-family="Arial, sans-serif" font-size="6" fill="#ffffff" data-fixed-color="black">低强度</text>
+  <!-- 底部导航栏 -->
+  <rect id="bottom-nav" class="secondary" x="95" y="338" width="110" height="28" rx="14" fill="#f0f0f0"/>
+  <circle id="nav-icon-1" cx="120" cy="352" r="4" fill="#cccccc" data-fixed-color="black"/>
+  <circle id="nav-icon-2" class="primary" cx="150" cy="352" r="5" fill="#4a4a4a"/>
+  <circle id="nav-icon-3" cx="180" cy="352" r="4" fill="#cccccc" data-fixed-color="black"/>
 </svg>

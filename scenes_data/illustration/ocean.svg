@@ -7,26 +7,26 @@
 
   <!-- 云朵 -->
   <g id="cloud-1" class="text" opacity="0.7">
-    <ellipse cx="80" cy="45" rx="28" ry="14" fill="#ffffff"/>
-    <ellipse cx="105" cy="38" rx="22" ry="18" fill="#ffffff"/>
-    <ellipse cx="130" cy="45" rx="25" ry="13" fill="#ffffff"/>
+    <ellipse class="text" cx="80" cy="45" rx="28" ry="14" fill="#ffffff"/>
+    <ellipse class="text" cx="105" cy="38" rx="22" ry="18" fill="#ffffff"/>
+    <ellipse class="text" cx="130" cy="45" rx="25" ry="13" fill="#ffffff"/>
   </g>
 
   <g id="cloud-2" class="text" opacity="0.5">
-    <ellipse cx="220" cy="35" rx="20" ry="10" fill="#ffffff"/>
-    <ellipse cx="235" cy="30" rx="16" ry="13" fill="#ffffff"/>
-    <ellipse cx="250" cy="35" rx="18" ry="9" fill="#ffffff"/>
+    <ellipse class="text" cx="220" cy="35" rx="20" ry="10" fill="#ffffff"/>
+    <ellipse class="text" cx="235" cy="30" rx="16" ry="13" fill="#ffffff"/>
+    <ellipse class="text" cx="250" cy="35" rx="18" ry="9" fill="#ffffff"/>
   </g>
 
   <!-- 海鸥 -->
   <g id="seagull-1" class="text" opacity="0.6">
-    <path d="M150 60 Q155 55 160 60" stroke="#5d6d7e" stroke-width="1.5" fill="none"/>
-    <path d="M160 60 Q165 55 170 60" stroke="#5d6d7e" stroke-width="1.5" fill="none"/>
+    <path class="text" d="M150 60 Q155 55 160 60" stroke="#5d6d7e" stroke-width="1.5" fill="none"/>
+    <path class="text" d="M160 60 Q165 55 170 60" stroke="#5d6d7e" stroke-width="1.5" fill="none"/>
   </g>
 
   <g id="seagull-2" class="text" opacity="0.5">
-    <path d="M280 75 Q283 71 286 75" stroke="#5d6d7e" stroke-width="1.2" fill="none"/>
-    <path d="M286 75 Q289 71 292 75" stroke="#5d6d7e" stroke-width="1.2" fill="none"/>
+    <path class="text" d="M280 75 Q283 71 286 75" stroke="#5d6d7e" stroke-width="1.2" fill="none"/>
+    <path class="text" d="M286 75 Q289 71 292 75" stroke="#5d6d7e" stroke-width="1.2" fill="none"/>
   </g>
 
   <!-- 远山/岛屿 -->
@@ -47,57 +47,57 @@
 
   <!-- 浪花 -->
   <g id="foam" class="text" opacity="0.6">
-    <ellipse cx="50" cy="145" rx="8" ry="3" fill="#ffffff"/>
-    <ellipse cx="150" cy="145" rx="10" ry="3" fill="#ffffff"/>
-    <ellipse cx="250" cy="145" rx="8" ry="3" fill="#ffffff"/>
-    <ellipse cx="350" cy="145" rx="10" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="50" cy="145" rx="8" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="150" cy="145" rx="10" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="250" cy="145" rx="8" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="350" cy="145" rx="10" ry="3" fill="#ffffff"/>
 
-    <ellipse cx="80" cy="185" rx="12" ry="4" fill="#ffffff"/>
-    <ellipse cx="200" cy="185" rx="15" ry="4" fill="#ffffff"/>
-    <ellipse cx="320" cy="185" rx="12" ry="4" fill="#ffffff"/>
+    <ellipse class="text" cx="80" cy="185" rx="12" ry="4" fill="#ffffff"/>
+    <ellipse class="text" cx="200" cy="185" rx="15" ry="4" fill="#ffffff"/>
+    <ellipse class="text" cx="320" cy="185" rx="12" ry="4" fill="#ffffff"/>
 
-    <ellipse cx="60" cy="225" rx="10" ry="3" fill="#ffffff"/>
-    <ellipse cx="180" cy="225" rx="12" ry="3" fill="#ffffff"/>
-    <ellipse cx="300" cy="225" rx="10" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="60" cy="225" rx="10" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="180" cy="225" rx="12" ry="3" fill="#ffffff"/>
+    <ellipse class="text" cx="300" cy="225" rx="10" ry="3" fill="#ffffff"/>
   </g>
 
   <!-- 鱼群 -->
   <g id="fish-1" class="accent" opacity="0.7">
-    <ellipse cx="120" cy="200" rx="12" ry="6" fill="#f39c12"/>
-    <polygon points="108,200 100,195 100,205" fill="#f39c12"/>
-    <circle cx="128" cy="198" r="2" fill="#ffffff"/>
+    <ellipse class="accent" cx="120" cy="200" rx="12" ry="6" fill="#f39c12"/>
+    <polygon class="accent" points="108,200 100,195 100,205" fill="#f39c12"/>
+    <circle class="text" cx="128" cy="198" r="2" fill="#ffffff"/>
   </g>
 
   <g id="fish-2" class="accent" opacity="0.6">
-    <ellipse cx="280" cy="210" rx="10" ry="5" fill="#e74c3c"/>
-    <polygon points="270,210 263,206 263,214" fill="#e74c3c"/>
-    <circle cx="287" cy="208" r="1.5" fill="#ffffff"/>
+    <ellipse class="accent" cx="280" cy="210" rx="10" ry="5" fill="#e74c3c"/>
+    <polygon class="accent" points="270,210 263,206 263,214" fill="#e74c3c"/>
+    <circle class="text" cx="287" cy="208" r="1.5" fill="#ffffff"/>
   </g>
 
   <g id="fish-3" class="accent" opacity="0.5">
-    <ellipse cx="350" cy="195" rx="8" ry="4" fill="#9b59b6"/>
-    <polygon points="342,195 336,192 336,198" fill="#9b59b6"/>
+    <ellipse class="accent" cx="350" cy="195" rx="8" ry="4" fill="#9b59b6"/>
+    <polygon class="accent" points="342,195 336,192 336,198" fill="#9b59b6"/>
   </g>
 
   <!-- 贝壳 -->
   <g id="shell-1" class="secondary" transform="translate(60, 260)">
-    <path d="M0 0 Q10 -15 20 0 Q15 -5 10 -8 Q5 -5 0 0" fill="#d5a6bd" opacity="0.8"/>
-    <line x1="10" y1="0" x2="10" y2="-8" stroke="#c27ba0" stroke-width="1"/>
-    <line x1="5" y1="-2" x2="8" y2="-6" stroke="#c27ba0" stroke-width="1"/>
-    <line x1="15" y1="-2" x2="12" y2="-6" stroke="#c27ba0" stroke-width="1"/>
+    <path class="secondary" d="M0 0 Q10 -15 20 0 Q15 -5 10 -8 Q5 -5 0 0" fill="#d5a6bd" opacity="0.8"/>
+    <line class="secondary" x1="10" y1="0" x2="10" y2="-8" stroke="#c27ba0" stroke-width="1"/>
+    <line class="secondary" x1="5" y1="-2" x2="8" y2="-6" stroke="#c27ba0" stroke-width="1"/>
+    <line class="secondary" x1="15" y1="-2" x2="12" y2="-6" stroke="#c27ba0" stroke-width="1"/>
   </g>
 
   <g id="shell-2" class="secondary" transform="translate(320, 265)">
-    <ellipse cx="10" cy="0" rx="12" ry="8" fill="#f9e79f" opacity="0.8"/>
-    <line x1="2" y1="0" x2="18" y2="0" stroke="#f4d03f" stroke-width="1"/>
-    <line x1="4" y1="-4" x2="16" y2="-4" stroke="#f4d03f" stroke-width="1"/>
-    <line x1="4" y1="4" x2="16" y2="4" stroke="#f4d03f" stroke-width="1"/>
+    <ellipse class="secondary" cx="10" cy="0" rx="12" ry="8" fill="#f9e79f" opacity="0.8"/>
+    <line class="secondary" x1="2" y1="0" x2="18" y2="0" stroke="#f4d03f" stroke-width="1"/>
+    <line class="secondary" x1="4" y1="-4" x2="16" y2="-4" stroke="#f4d03f" stroke-width="1"/>
+    <line class="secondary" x1="4" y1="4" x2="16" y2="4" stroke="#f4d03f" stroke-width="1"/>
   </g>
 
   <!-- 海星 -->
   <g id="starfish" class="accent" transform="translate(200, 270)">
-    <polygon points="15,0 19,11 30,11 21,18 24,30 15,23 6,30 9,18 0,11 11,11" fill="#e74c3c" opacity="0.7"/>
-    <circle cx="15" cy="15" r="3" fill="#c0392b" opacity="0.5"/>
+    <polygon class="accent" points="15,0 19,11 30,11 21,18 24,30 15,23 6,30 9,18 0,11 11,11" fill="#e74c3c" opacity="0.7"/>
+    <circle class="accent" cx="15" cy="15" r="3" fill="#c0392b" opacity="0.5"/>
   </g>
 
   <!-- 沙滩 -->
@@ -105,14 +105,14 @@
 
   <!-- 气泡 -->
   <g id="bubbles" class="text" opacity="0.4">
-    <circle cx="100" cy="150" r="3" fill="#ffffff"/>
-    <circle cx="105" cy="140" r="2" fill="#ffffff"/>
-    <circle cx="95" cy="135" r="1.5" fill="#ffffff"/>
+    <circle class="text" cx="100" cy="150" r="3" fill="#ffffff"/>
+    <circle class="text" cx="105" cy="140" r="2" fill="#ffffff"/>
+    <circle class="text" cx="95" cy="135" r="1.5" fill="#ffffff"/>
 
-    <circle cx="300" cy="160" r="2.5" fill="#ffffff"/>
-    <circle cx="308" cy="150" r="2" fill="#ffffff"/>
+    <circle class="text" cx="300" cy="160" r="2.5" fill="#ffffff"/>
+    <circle class="text" cx="308" cy="150" r="2" fill="#ffffff"/>
 
-    <circle cx="200" cy="170" r="2" fill="#ffffff"/>
-    <circle cx="205" cy="162" r="1.5" fill="#ffffff"/>
+    <circle class="text" cx="200" cy="170" r="2" fill="#ffffff"/>
+    <circle class="text" cx="205" cy="162" r="1.5" fill="#ffffff"/>
   </g>
 </svg>

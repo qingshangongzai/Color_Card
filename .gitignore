@@ -47,7 +47,7 @@ upx-*.zip
 # 根目录 skills/ 为唯一维护源，各工具下的副本不单独维护
 /.trae/
 /.qoder/
-/.arts/
+/.dsh/
 /.zcode/
 /.codebuddy/
 /.idea/

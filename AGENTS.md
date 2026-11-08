@@ -39,5 +39,5 @@
 
 ## Skill 副本同步
 
-- `skills/` 是唯一维护源；`.trae/`、`.qoder/`、`.arts/`、`.zcode/` 下的副本整目录同步，不单独维护。同步命令：`Copy-Item skills\* <工具目录>\skills\ -Recurse -Force`，四个目录各执行一次。
+- `skills/` 是唯一维护源；`.trae/`、`.qoder/`、`.dsh/`、`.zcode/` 下的副本整目录同步，不单独维护。同步命令：`Copy-Item skills\* <工具目录>\skills\ -Recurse -Force`，四个目录各执行一次。
 - 同步后按**全目录**哈希比对，不只校验本次改动的文件。

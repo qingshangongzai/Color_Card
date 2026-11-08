@@ -46,21 +46,21 @@
 
 | 指标    | 数据                       |
 | :---- | :----------------------- |
-| 发布版本  | 18 个版本（v1.0.0 → v1.12.0） |
-| 开发周期  | 269 天                    |
-| 总更新项  | **214 项**                |
-| 平均每版本 | 11.9 项                   |
+| 发布版本  | 19 个版本（v1.0.0 → v1.12.1） |
+| 开发周期  | 276 天                    |
+| 总更新项  | **218 项**                |
+| 平均每版本 | 11.5 项                   |
 
 **详细分类统计**：
 
 | 分类       |   数量   | 说明              |
 | :------- | :----: | :-------------- |
 | ✨ 新增功能   | **53** | 包含首次发布的 9 项核心功能 |
-| 🔧 问题修复  | **50** | 持续修复 Bug，提升稳定性  |
-| 🎨 界面优化  | **51** | 用户体验打磨          |
+| 🔧 问题修复  | **51** | 持续修复 Bug，提升稳定性  |
+| 🎨 界面优化  | **52** | 用户体验打磨          |
 | ⚡ 性能提升   | **18** | 缓存机制、启动优化等      |
-| 📝 内容调整  | **15** | 文本、名称等调整        |
-| ⚙️ 体验优化  | **10** | 交互体验改进          |
+| 📝 内容调整  | **16** | 文本、名称等调整        |
+| ⚙️ 体验优化  | **11** | 交互体验改进          |
 | 🏗️ 代码优化 |  **9** | 代码结构优化          |
 | 🔮 逻辑优化  |  **2** | 算法逻辑改进          |
 | 📛 命名调整  |  **3** | 面板名称统一          |
@@ -334,21 +334,21 @@ Since the release of the first version on 2026-02-05, the project has maintained
 
 | Metric              | Data                           |
 | :------------------ | :----------------------------- |
-| Released Versions   | 18 versions (v1.0.0 → v1.12.0) |
-| Development Period  | 269 days                       |
-| Total Updates       | **214 items**                  |
-| Average per Version | 11.9 items                     |
+| Released Versions   | 19 versions (v1.0.0 → v1.12.1) |
+| Development Period  | 276 days                       |
+| Total Updates       | **218 items**                  |
+| Average per Version | 11.5 items                     |
 
 **Detailed Category Statistics**:
 
 | Category               |  Count | Description                                  |
 | :--------------------- | :----: | :------------------------------------------- |
 | ✨ New Features         | **53** | Including 9 core features from v1.0.0 launch |
-| 🔧 Bug Fixes           | **50** | Continuous bug fixes for stability           |
-| 🎨 UI Improvements     | **51** | User experience refinements                  |
+| 🔧 Bug Fixes           | **51** | Continuous bug fixes for stability           |
+| 🎨 UI Improvements     | **52** | User experience refinements                  |
 | ⚡ Performance          | **18** | Cache mechanism, startup optimization        |
-| 📝 Content Adjustments | **15** | Text, naming adjustments                     |
-| ⚙️ Experience          | **10** | Interaction improvements                     |
+| 📝 Content Adjustments | **16** | Text, naming adjustments                     |
+| ⚙️ Experience          | **11** | Interaction improvements                     |
 | 🏗️ Code Optimization  |  **9** | Code structure optimization                  |
 | 🔮 Logic Optimization  |  **2** | Algorithm improvements                       |
 | 📛 Naming Adjustment   |  **3** | Panel name unification                       |

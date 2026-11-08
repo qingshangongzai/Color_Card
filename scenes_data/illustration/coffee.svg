@@ -20,9 +20,9 @@
 
   <!-- 蒸汽 -->
   <g id="steam" class="text" opacity="0.4">
-    <path d="M135 180 Q140 165 135 150 Q130 135 135 120" stroke="#a89080" stroke-width="3" fill="none" opacity="0.6"/>
-    <path d="M150 175 Q155 160 150 145 Q145 130 150 115" stroke="#a89080" stroke-width="3" fill="none" opacity="0.5"/>
-    <path d="M165 180 Q170 165 165 150 Q160 135 165 120" stroke="#a89080" stroke-width="3" fill="none" opacity="0.6"/>
+    <path class="text" d="M135 180 Q140 165 135 150 Q130 135 135 120" stroke="#a89080" stroke-width="3" fill="none" opacity="0.6"/>
+    <path class="text" d="M150 175 Q155 160 150 145 Q145 130 150 115" stroke="#a89080" stroke-width="3" fill="none" opacity="0.5"/>
+    <path class="text" d="M165 180 Q170 165 165 150 Q160 135 165 120" stroke="#a89080" stroke-width="3" fill="none" opacity="0.6"/>
   </g>
 
   <!-- 咖啡杯 - 小杯 -->
@@ -41,11 +41,11 @@
 
   <!-- 咖啡豆散落 -->
   <g id="coffee-beans" class="accent">
-    <ellipse cx="80" cy="260" rx="6" ry="4" fill="#4a3728" transform="rotate(30 80 260)"/>
-    <ellipse cx="95" cy="275" rx="5" ry="3" fill="#4a3728" transform="rotate(-20 95 275)"/>
-    <ellipse cx="220" cy="265" rx="6" ry="4" fill="#4a3728" transform="rotate(45 220 265)"/>
-    <ellipse cx="240" cy="280" rx="5" ry="3" fill="#4a3728" transform="rotate(10 240 280)"/>
-    <ellipse cx="320" cy="270" rx="6" ry="4" fill="#4a3728" transform="rotate(-30 320 270)"/>
+    <ellipse class="accent" cx="80" cy="260" rx="6" ry="4" fill="#4a3728" transform="rotate(30 80 260)"/>
+    <ellipse class="accent" cx="95" cy="275" rx="5" ry="3" fill="#4a3728" transform="rotate(-20 95 275)"/>
+    <ellipse class="accent" cx="220" cy="265" rx="6" ry="4" fill="#4a3728" transform="rotate(45 220 265)"/>
+    <ellipse class="accent" cx="240" cy="280" rx="5" ry="3" fill="#4a3728" transform="rotate(10 240 280)"/>
+    <ellipse class="accent" cx="320" cy="270" rx="6" ry="4" fill="#4a3728" transform="rotate(-30 320 270)"/>
   </g>
 
   <!-- 咖啡豆袋 -->
@@ -57,7 +57,7 @@
     <!-- 标签 -->
     <rect id="bag-label" class="text" x="15" y="30" width="30" height="25" fill="#f5ebe0" opacity="0.9"/>
     <!-- 咖啡豆图标 -->
-    <ellipse cx="30" cy="42" rx="8" ry="5" fill="#4a3728" transform="rotate(45 30 42)"/>
+    <ellipse class="accent" cx="30" cy="42" rx="8" ry="5" fill="#4a3728" transform="rotate(45 30 42)"/>
   </g>
 
   <!-- 法式压滤壶 -->
@@ -88,34 +88,34 @@
   <g id="cookie" transform="translate(240, 180)">
     <circle id="cookie-body" class="secondary" cx="0" cy="0" r="20" fill="#d4a574"/>
     <!-- 巧克力豆 -->
-    <circle cx="-8" cy="-5" r="3" fill="#4a3728"/>
-    <circle cx="5" cy="-8" r="2.5" fill="#4a3728"/>
-    <circle cx="8" cy="5" r="3" fill="#4a3728"/>
-    <circle cx="-5" cy="8" r="2.5" fill="#4a3728"/>
-    <circle cx="0" cy="0" r="2" fill="#4a3728"/>
+    <circle class="accent" cx="-8" cy="-5" r="3" fill="#4a3728"/>
+    <circle class="accent" cx="5" cy="-8" r="2.5" fill="#4a3728"/>
+    <circle class="accent" cx="8" cy="5" r="3" fill="#4a3728"/>
+    <circle class="accent" cx="-5" cy="8" r="2.5" fill="#4a3728"/>
+    <circle class="accent" cx="0" cy="0" r="2" fill="#4a3728"/>
   </g>
 
   <!-- 书本/杂志 -->
   <g id="book" transform="translate(350, 240)">
     <rect id="book-cover" class="primary" x="-30" y="-40" width="60" height="45" fill="#5c4a42" transform="rotate(10)"/>
     <rect id="book-pages" class="text" x="-28" y="-38" width="54" height="40" fill="#f5ebe0" transform="rotate(10)"/>
-    <line x1="-20" y1="-30" x2="20" y2="-25" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
-    <line x1="-20" y1="-22" x2="20" y2="-17" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
-    <line x1="-20" y1="-14" x2="20" y2="-9" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
+    <line class="secondary" x1="-20" y1="-30" x2="20" y2="-25" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
+    <line class="secondary" x1="-20" y1="-22" x2="20" y2="-17" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
+    <line class="secondary" x1="-20" y1="-14" x2="20" y2="-9" stroke="#a89080" stroke-width="1" transform="rotate(10)"/>
   </g>
 
   <!-- 装饰性线条 -->
   <g id="deco-lines" class="stroke" opacity="0.3">
-    <line x1="30" y1="30" x2="100" y2="30" stroke="#a89080" stroke-width="1"/>
-    <line x1="30" y1="35" x2="80" y2="35" stroke="#a89080" stroke-width="1"/>
-    <line x1="300" y1="50" x2="370" y2="50" stroke="#a89080" stroke-width="1"/>
+    <line class="stroke" x1="30" y1="30" x2="100" y2="30" stroke="#a89080" stroke-width="1"/>
+    <line class="stroke" x1="30" y1="35" x2="80" y2="35" stroke="#a89080" stroke-width="1"/>
+    <line class="stroke" x1="300" y1="50" x2="370" y2="50" stroke="#a89080" stroke-width="1"/>
   </g>
 
   <!-- 点状装饰 -->
   <g id="dots" class="accent" opacity="0.5">
-    <circle cx="40" cy="100" r="3" fill="#d4a574"/>
-    <circle cx="55" cy="95" r="2" fill="#d4a574"/>
-    <circle cx="380" cy="120" r="3" fill="#d4a574"/>
-    <circle cx="370" cy="135" r="2" fill="#d4a574"/>
+    <circle class="accent" cx="40" cy="100" r="3" fill="#d4a574"/>
+    <circle class="accent" cx="55" cy="95" r="2" fill="#d4a574"/>
+    <circle class="accent" cx="380" cy="120" r="3" fill="#d4a574"/>
+    <circle class="accent" cx="370" cy="135" r="2" fill="#d4a574"/>
   </g>
 </svg>
