@@ -130,7 +130,7 @@ def _run_uninstall(skip_to_progress: bool, delete_config: bool) -> None:
     from utils import load_icon_universal
     app.setWindowIcon(load_icon_universal())
 
-    from installer.uninstaller.runner import run_uninstall
+    from uninstaller.runner import run_uninstall
     run_uninstall(skip_to_progress=skip_to_progress, delete_config=delete_config)
 
 

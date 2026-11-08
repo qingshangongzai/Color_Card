@@ -11,7 +11,7 @@ import subprocess
 # 项目模块导入
 from core.logger import get_logger
 from installer.core.registry_installer import RegistryInstaller
-from installer.uninstaller.uninstall_dialog import UninstallDialog
+from uninstaller.uninstall_dialog import UninstallDialog
 
 logger = get_logger("installer")
 
