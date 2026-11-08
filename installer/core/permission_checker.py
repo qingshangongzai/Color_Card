@@ -177,7 +177,11 @@ def run_as_admin(
         args = ""
     else:
         exe_path = sys.executable
-        script_path = Path(__file__).resolve().parent.parent / 'main.py'
+        # 卸载入口在主程序 main.py，安装入口在 installer/main.py
+        script_path = (
+            Path(__file__).resolve().parents[2] / 'main.py' if is_uninstall
+            else Path(__file__).resolve().parent.parent / 'main.py'
+        )
         args = f'"{script_path}"'
 
     if is_uninstall:

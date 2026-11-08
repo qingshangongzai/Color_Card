@@ -1,4 +1,5 @@
 # 标准库导入
+import argparse
 import ctypes
 import os
 import sys
@@ -110,6 +111,29 @@ def _create_splash_screen():
     return splash
 
 
+def _run_uninstall(skip_to_progress: bool, delete_config: bool) -> None:
+    """以卸载模式启动
+
+    卸载对话框是 QWidget，必须在独立的 QApplication 就绪后才能创建；
+    该分支不复用主程序的应用程序实例。
+
+    Args:
+        skip_to_progress: 是否直接开始卸载
+        delete_config: 是否删除用户配置
+    """
+    from PySide6.QtWidgets import QApplication
+    from qfluentwidgets import Theme, setTheme
+
+    app = QApplication(sys.argv)
+    setTheme(Theme.AUTO)
+
+    from utils import load_icon_universal
+    app.setWindowIcon(load_icon_universal())
+
+    from installer.uninstaller.runner import run_uninstall
+    run_uninstall(skip_to_progress=skip_to_progress, delete_config=delete_config)
+
+
 def main():
     # 增加 Qt 图像分配限制，支持超大图片（1GB）
     os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
@@ -125,6 +149,20 @@ def main():
 
     # 设置全局异常处理器
     setup_global_exception_handler(logger)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--uninstall', action='store_true', help='运行卸载程序')
+    parser.add_argument('--skip-to-uninstall-progress', action='store_true', help='直接开始卸载')
+    parser.add_argument('--delete-config', action='store_true', help='删除用户配置')
+    # macOS 的 LaunchServices 可能附加 -psn_* 等未知参数，严格解析会导致启动失败
+    args, _ = parser.parse_known_args()
+
+    # 分流必须早于单实例守卫：应用运行中执行 --uninstall 不能被判为副实例而静默退出
+    if args.uninstall:
+        if sys.platform == 'win32':
+            _run_uninstall(args.skip_to_uninstall_progress, args.delete_config)
+            sys.exit(0)
+        logger.warning("--uninstall 仅在 Windows 生效，按正常模式启动")
 
     # 单实例检查先于 QApplication：副实例不创建 QApplication 与窗口，通知已有实例后直接退出。
     # 单实例模块自身只用 QtCore/QtNetwork；core 包因日志初始化已在上一步导入。
