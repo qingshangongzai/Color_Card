@@ -1,56 +1,90 @@
 # 标准库导入
 import os
 import shutil
+import zipfile
 from collections.abc import Callable
 from pathlib import Path
 
 # 项目模块导入
+from app_mode import PORTABLE_LAYOUT_MARKER
 from core.logger import get_logger
 
 logger = get_logger("installer.file_installer")
+
+# 载荷内 app/ 子树前缀：与 build-windows.yml 便携打包布局（main.dist 内容置于 app/）一致
+PAYLOAD_APP_PREFIX = "app/"
+# 便携布局标记条目，仅便携版需要，安装铺开时跳过
+PAYLOAD_MARKER_ENTRY = f"app/{PORTABLE_LAYOUT_MARKER}"
+
+
+def _extract_member(payload: zipfile.ZipFile, info: zipfile.ZipInfo, dst_dir: Path) -> None:
+    """解压单个载荷条目并平铺（app/x → dst_dir/x）"""
+    target = dst_dir / info.filename[len(PAYLOAD_APP_PREFIX):]
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with payload.open(info) as src_file, target.open("wb") as dst_file:
+        shutil.copyfileobj(src_file, dst_file)
 
 
 class FileInstaller:
     """文件安装器
 
-    负责复制程序文件到安装目录。
+    负责解压安装载荷与统计安装目录体积。
     """
 
     @staticmethod
-    def copy_executable(
-        src_exe: Path,
+    def extract_payload(
+        src_zip: Path,
         dst_dir: Path,
-        dst_name: str = "Color Card.exe",
         progress_callback: Callable[[int, str], None] | None = None
     ) -> bool:
-        """复制可执行文件到安装目录
+        """解压安装载荷到安装目录
+
+        载荷复用便携包布局（根启动器 + app/ 子树）：只解压 app/ 前缀条目并
+        平铺（app/x → dst_dir/x），跳过 .portable 布局标记；根启动器条目不
+        在 app/ 前缀内，自然排除。
 
         Args:
-            src_exe: 源可执行文件路径
-            dst_dir: 目标目录
-            dst_name: 目标文件名
-            progress_callback: 进度回调函数 (percent, message)
+            src_zip: 载荷 zip 路径
+            dst_dir: 目标安装目录
+            progress_callback: 进度回调函数 (percent, message)，percent 按
+                实际解压字节计（0~100）
 
         Returns:
             bool: 是否成功
         """
+        def report_progress(percent: int, message: str) -> None:
+            if progress_callback:
+                progress_callback(percent, message)
+
         try:
-            dst_dir.mkdir(parents=True, exist_ok=True)
-            dst_file = dst_dir / dst_name
+            with zipfile.ZipFile(src_zip) as payload:
+                members = [
+                    info for info in payload.infolist()
+                    if info.filename.startswith(PAYLOAD_APP_PREFIX)
+                    and not info.is_dir()
+                    and info.filename != PAYLOAD_MARKER_ENTRY
+                ]
+                if not members:
+                    logger.error(f"载荷中没有可解压的 app/ 条目: {src_zip}")
+                    return False
 
-            if progress_callback:
-                progress_callback(0, f"正在复制 {src_exe.name}... |")
+                total_bytes = sum(info.file_size for info in members)
+                extracted_bytes = 0
+                report_progress(0, "正在解压程序文件... |")
 
-            shutil.copy2(src_exe, dst_file)
+                for info in members:
+                    _extract_member(payload, info, dst_dir)
+                    extracted_bytes += info.file_size
+                    percent = int(extracted_bytes * 100 / total_bytes) if total_bytes else 100
+                    report_progress(percent, f"正在解压程序文件... {percent}%")
 
-            if progress_callback:
-                progress_callback(100, f"复制完成 | {dst_name}")
+                report_progress(100, "解压完成 |")
 
-            logger.info(f"可执行文件复制完成: {src_exe} -> {dst_file}")
+            logger.info(f"载荷解压完成: {src_zip} -> {dst_dir}（{len(members)} 个条目）")
             return True
 
-        except (OSError, shutil.Error) as e:
-            logger.error(f"可执行文件复制失败: {str(e)}")
+        except (OSError, zipfile.BadZipFile, EOFError) as e:
+            logger.error(f"载荷解压失败: {e}")
             return False
 
     @staticmethod
