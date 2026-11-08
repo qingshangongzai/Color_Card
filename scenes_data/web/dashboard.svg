@@ -30,25 +30,25 @@
 
   <!-- 统计卡片区域 -->
   <!-- 卡片1: 总收入 -->
-  <rect id="stat-card-1" class="secondary" x="90" y="65" width="140" height="70" rx="8" fill="#ffffff"/>
+  <rect id="stat-card-1" class="secondary" x="90" y="65" width="150" height="70" rx="8" fill="#ffffff"/>
   <text id="stat-1-label" class="text" x="100" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3" data-fixed-color="black">总收入</text>
   <text id="stat-1-value" class="text" x="100" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">¥128K</text>
   <rect id="stat-1-bar" class="accent" x="100" y="118" width="110" height="6" rx="3" fill="#00b894"/>
 
   <!-- 卡片2: 用户数 -->
-  <rect id="stat-card-2" class="secondary" x="245" y="65" width="140" height="70" rx="8" fill="#ffffff"/>
-  <text id="stat-2-label" class="text" x="255" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3" data-fixed-color="black">用户数</text>
-  <text id="stat-2-value" class="text" x="255" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">8,542</text>
-  <rect id="stat-2-bar" class="primary" x="255" y="118" width="80" height="6" rx="3" fill="#74b9ff"/>
+  <rect id="stat-card-2" class="secondary" x="250" y="65" width="150" height="70" rx="8" fill="#ffffff"/>
+  <text id="stat-2-label" class="text" x="260" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3" data-fixed-color="black">用户数</text>
+  <text id="stat-2-value" class="text" x="260" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">8,542</text>
+  <rect id="stat-2-bar" class="primary" x="260" y="118" width="80" height="6" rx="3" fill="#74b9ff"/>
 
   <!-- 卡片3: 订单量 -->
-  <rect id="stat-card-3" class="secondary" x="400" y="65" width="140" height="70" rx="8" fill="#ffffff"/>
-  <text id="stat-3-label" class="text" x="410" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3" data-fixed-color="black">订单量</text>
-  <text id="stat-3-value" class="text" x="410" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">3,215</text>
-  <rect id="stat-3-bar" class="accent" x="410" y="118" width="100" height="6" rx="3" fill="#fdcb6e"/>
+  <rect id="stat-card-3" class="secondary" x="410" y="65" width="150" height="70" rx="8" fill="#ffffff"/>
+  <text id="stat-3-label" class="text" x="420" y="85" font-family="Arial, sans-serif" font-size="9" fill="#b2bec3" data-fixed-color="black">订单量</text>
+  <text id="stat-3-value" class="text" x="420" y="110" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#2d3436" data-fixed-color="black">3,215</text>
+  <rect id="stat-3-bar" class="accent" x="420" y="118" width="100" height="6" rx="3" fill="#fdcb6e"/>
 
   <!-- 图表区域 -->
-  <rect id="chart-card" class="secondary" x="90" y="145" width="320" height="140" rx="8" fill="#ffffff"/>
+  <rect id="chart-card" class="secondary" x="90" y="145" width="310" height="140" rx="8" fill="#ffffff"/>
   <text id="chart-title" class="text" x="105" y="170" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2d3436" data-fixed-color="black">访问趋势</text>
 
   <!-- 折线图 -->
@@ -68,19 +68,19 @@
   <line id="axis-y" class="stroke" x1="105" y1="175" x2="105" y2="260" stroke="#dfe6e9" stroke-width="1"/>
 
   <!-- 右侧活动列表 -->
-  <rect id="activity-card" class="secondary" x="420" y="145" width="140" height="140" rx="8" fill="#ffffff"/>
-  <text id="activity-title" class="text" x="490" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#2d3436" data-fixed-color="black">最近活动</text>
+  <rect id="activity-card" class="secondary" x="410" y="145" width="150" height="140" rx="8" fill="#ffffff"/>
+  <text id="activity-title" class="text" x="485" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#2d3436" data-fixed-color="black">最近活动</text>
 
   <!-- 活动项 -->
   <circle id="act-1-icon" class="accent" cx="435" cy="195" r="6" fill="#00b894"/>
-  <text id="act-1-text" class="text" x="490" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">新订单</text>
+  <text id="act-1-text" class="text" x="485" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">新订单</text>
 
   <circle id="act-2-icon" class="primary" cx="435" cy="220" r="6" fill="#74b9ff"/>
-  <text id="act-2-text" class="text" x="490" y="223" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">用户注册</text>
+  <text id="act-2-text" class="text" x="485" y="223" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">用户注册</text>
 
   <circle id="act-3-icon" class="accent" cx="435" cy="245" r="6" fill="#fdcb6e"/>
-  <text id="act-3-text" class="text" x="490" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">评论新增</text>
+  <text id="act-3-text" class="text" x="485" y="248" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">评论新增</text>
 
   <circle id="act-4-icon" class="primary" cx="435" cy="270" r="6" fill="#a29bfe"/>
-  <text id="act-4-text" class="text" x="490" y="273" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">系统更新</text>
+  <text id="act-4-text" class="text" x="485" y="273" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">系统更新</text>
 </svg>

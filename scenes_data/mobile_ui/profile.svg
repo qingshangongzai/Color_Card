@@ -18,11 +18,11 @@
   <path id="back-btn" d="M 95 45 L 90 48 L 95 51" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-fixed-color="black"/>
 
   <!-- 设置按钮 -->
-  <circle id="settings-btn" cx="195" cy="48" r="10" fill="#ffffff" opacity="0.3"/>
+  <circle class="background" id="settings-btn" cx="195" cy="48" r="10" fill="#ffffff" opacity="0.3"/>
   <circle id="settings-dot" cx="195" cy="48" r="2" fill="#ffffff" data-fixed-color="black"/>
 
   <!-- 用户头像 -->
-  <circle id="avatar-bg" cx="150" cy="105" r="28" fill="#ffffff"/>
+  <circle class="background" id="avatar-bg" cx="150" cy="105" r="28" fill="#ffffff"/>
   <circle id="avatar" class="primary" cx="150" cy="105" r="25" fill="#4a4a4a"/>
   <text id="avatar-text" x="150" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" data-fixed-color="black">A</text>
 

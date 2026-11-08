@@ -70,6 +70,6 @@
   <!-- 提醒开关 -->
   <rect id="reminder-item" class="secondary" x="95" y="325" width="110" height="35" rx="8" fill="#f5f5f5"/>
   <text id="reminder-text" class="text" x="110" y="347" font-family="Arial, sans-serif" font-size="10" fill="#333333" data-fixed-color="black">开启提醒</text>
-  <rect id="switch-bg" x="175" y="337" width="22" height="12" rx="6" fill="#4CAF50"/>
-  <circle id="switch-knob" cx="193" cy="343" r="5" fill="#ffffff"/>
+  <rect class="accent" id="switch-bg" x="175" y="337" width="22" height="12" rx="6" fill="#4CAF50"/>
+  <circle class="background" id="switch-knob" cx="193" cy="343" r="5" fill="#ffffff"/>
 </svg>

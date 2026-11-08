@@ -11,23 +11,23 @@
   <circle id="vinyl-ring-1" class="secondary" cx="100" cy="150" r="55" fill="none" stroke="#333333" stroke-width="2"/>
   <circle id="vinyl-ring-2" class="secondary" cx="100" cy="150" r="40" fill="none" stroke="#333333" stroke-width="2"/>
   <circle id="vinyl-center" class="accent" cx="100" cy="150" r="15" fill="#ff6b6b"/>
-  <circle id="vinyl-hole" cx="100" cy="150" r="5" fill="#1a1a2e"/>
+  <circle class="background" id="vinyl-hole" cx="100" cy="150" r="5" fill="#1a1a2e"/>
 
   <!-- 音符装饰 -->
   <g id="note-1" class="accent">
-    <ellipse cx="250" cy="80" rx="8" ry="6" fill="#ff6b6b"/>
-    <rect x="256" y="80" width="3" height="25" fill="#ff6b6b"/>
-    <path d="M256,105 Q265,100 270,95" stroke="#ff6b6b" stroke-width="3" fill="none"/>
+    <ellipse class="accent" cx="250" cy="80" rx="8" ry="6" fill="#ff6b6b"/>
+    <rect class="accent" x="256" y="80" width="3" height="25" fill="#ff6b6b"/>
+    <path class="accent" d="M256,105 Q265,100 270,95" stroke="#ff6b6b" stroke-width="3" fill="none"/>
   </g>
 
   <g id="note-2" class="accent">
-    <ellipse cx="300" cy="120" rx="8" ry="6" fill="#ff6b6b"/>
-    <rect x="306" y="120" width="3" height="25" fill="#ff6b6b"/>
+    <ellipse class="accent" cx="300" cy="120" rx="8" ry="6" fill="#ff6b6b"/>
+    <rect class="accent" x="306" y="120" width="3" height="25" fill="#ff6b6b"/>
   </g>
 
   <g id="note-3" class="secondary">
-    <ellipse cx="280" cy="180" rx="6" ry="5" fill="#e94560"/>
-    <rect x="284" y="180" width="2" height="20" fill="#e94560"/>
+    <ellipse class="secondary" cx="280" cy="180" rx="6" ry="5" fill="#e94560"/>
+    <rect class="secondary" x="284" y="180" width="2" height="20" fill="#e94560"/>
   </g>
 
   <!-- 主标题 -->
