@@ -17,15 +17,15 @@
   <!-- 作品网格 2x2 -->
   <!-- 作品1 -->
   <rect id="work-1" class="secondary" x="90" y="135" width="200" height="100" rx="4" fill="#f8f9fa"/>
-  <rect id="work-1-img" class="primary" x="100" y="145" width="180" height="70" rx="2" fill="#74b9ff"/>
-  <text id="work-1-title" class="text" x="117" y="230" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2d3436" data-fixed-color="black">品牌视觉</text>
-  <text id="work-1-cat" class="text" x="117" y="242" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">品牌设计</text>
+  <rect id="work-1-img" class="primary" x="100" y="145" width="180" height="55" rx="2" fill="#74b9ff"/>
+  <text id="work-1-title" class="text" x="117" y="215" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2d3436" data-fixed-color="black">品牌视觉</text>
+  <text id="work-1-cat" class="text" x="117" y="228" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">品牌设计</text>
 
   <!-- 作品2 -->
   <rect id="work-2" class="secondary" x="310" y="135" width="200" height="100" rx="4" fill="#f8f9fa"/>
-  <rect id="work-2-img" class="accent" x="320" y="145" width="180" height="70" rx="2" fill="#fd79a8"/>
-  <text id="work-2-title" class="text" x="337" y="230" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2d3436" data-fixed-color="black">移动应用</text>
-  <text id="work-2-cat" class="text" x="337" y="242" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">UI/UX</text>
+  <rect id="work-2-img" class="accent" x="320" y="145" width="180" height="55" rx="2" fill="#fd79a8"/>
+  <text id="work-2-title" class="text" x="337" y="215" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#2d3436" data-fixed-color="black">移动应用</text>
+  <text id="work-2-cat" class="text" x="337" y="228" font-family="Arial, sans-serif" font-size="8" fill="#636e72" data-fixed-color="black">UI/UX</text>
 
   <!-- 作品3 -->
   <rect id="work-3" class="secondary" x="90" y="245" width="200" height="40" rx="4" fill="#f8f9fa"/>

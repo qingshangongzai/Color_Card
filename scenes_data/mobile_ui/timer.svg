@@ -41,6 +41,4 @@
   <rect id="cancel-btn" class="primary" x="105" y="320" width="90" height="30" rx="15" fill="#4a4a4a"/>
   <text id="cancel-text" class="text" x="150" y="339" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#ffffff" data-fixed-color="black">取消</text>
 
-  <!-- 装饰性背景色块 - 左下角 -->
-  <path id="deco-left" class="secondary" d="M 80 250 Q 105 270 80 300 Z" fill="#c8e0c8" opacity="0.5"/>
 </svg>
