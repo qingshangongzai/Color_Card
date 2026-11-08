@@ -196,6 +196,8 @@ jobs:
         path: dist/*.zip
 
   build-installer:
+    # 载荷复用便携 job 产物 zip，两条产物线共用一次 onedir 编译
+    needs: build-portable
     runs-on: windows-latest
 
     steps:
@@ -286,9 +288,27 @@ jobs:
         Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
         Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
 
+    - name: Download portable payload
+      uses: actions/download-artifact@v4
+      with:
+        name: ColorCard-Windows-Portable
+
+    - name: Prepare installer payload
+      shell: pwsh
+      run: |
+        # 便携产物 zip 文件名含版本号与空格，通配定位；目标名须与 installer/core/install_service.py 的 PAYLOAD_ZIP_NAME 一致
+        $payloadSource = Get-ChildItem -Filter "Color_Card_*_win_x64.zip" | Select-Object -First 1
+        if (-not $payloadSource) {
+          throw "未找到便携载荷 zip（预期匹配 Color_Card_*_win_x64.zip）"
+        }
+        Copy-Item $payloadSource.FullName -Destination "Color Card Payload.zip"
+        Write-Host "载荷已就位: $($payloadSource.Name) -> Color Card Payload.zip"
+
     - name: Build Installer EXE with Nuitka
       shell: pwsh
       run: |
+        # 数据目录由载荷 zip 自带（安装时解压铺开），向导自身仅需 logo ico 与载荷文件；
+        # ui 不入产物——installer 零 ui 导入，core 内 ui 引用均为函数级且安装器运行期不触达
         python -m nuitka `
           --standalone `
           --onefile `
@@ -302,12 +322,9 @@ jobs:
           --file-description="取色卡 - Color Card (Installer)" `
           --copyright="${{ steps.version.outputs.copyright }}" `
           --include-data-files=version.py=version.py `
-          --include-data-dir=color_data=color_data `
-          --include-data-dir=file=file `
-          --include-data-dir=locales=locales `
           --include-data-files="logo/Color Card_logo.ico=logo/Color Card_logo.ico" `
-          --include-data-files="logo/Color Card_logo.png=logo/Color Card_logo.png" `
-          --include-data-dir=scenes_data=scenes_data `
+          --include-data-files="Color Card Payload.zip=Color Card Payload.zip" `
+          --nofollow-import-to=ui `
           --enable-plugin=pyside6 `
           --jobs=4 `
           --output-filename="ColorCard" `
