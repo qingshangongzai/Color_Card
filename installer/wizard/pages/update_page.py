@@ -2,10 +2,10 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Signal
-from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton
 
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.wizard.mini_widgets import LineEdit, PushButton, PrimaryPushButton
 from installer.core.permission_checker import is_admin, requires_admin, validate_install_path
 
 

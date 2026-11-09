@@ -1,10 +1,10 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
-from qfluentwidgets import ProgressBar
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.wizard.mini_widgets import ProgressBar
+from installer.wizard.mini_style import resolve_tokens
 
 
 class ProgressPage(BasePage):
@@ -119,15 +119,15 @@ class ProgressPage(BasePage):
     def _update_styles(self):
         super()._update_styles()
 
-        text_color = QColor(40, 40, 40)
-        secondary_color = QColor(120, 120, 120)
+        text_color = resolve_tokens()['window_fg']
+        secondary_color = resolve_tokens()['fg_secondary']
 
         for child in self._content_widget.findChildren(QLabel):
             if "正在安装" in child.text():
-                child.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {text_color};")
             elif child.text().endswith('%'):
-                child.setStyleSheet(f"font-size: 14px; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 14px; color: {text_color};")
             elif "准备安装" in child.text() or "安装失败" in child.text():
-                child.setStyleSheet(f"font-size: 12px; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 12px; color: {text_color};")
             else:
-                child.setStyleSheet(f"font-size: 11px; color: {secondary_color.name()};")
+                child.setStyleSheet(f"font-size: 11px; color: {secondary_color};")

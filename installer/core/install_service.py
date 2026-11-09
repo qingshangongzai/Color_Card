@@ -8,7 +8,6 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal, QThread
 
 # 项目模块导入
-from core.logger import get_logger
 from installer.core.file_installer import FileInstaller
 from installer.core.permission_checker import close_app_processes
 from installer.core.registry_installer import RegistryInstaller
@@ -19,8 +18,6 @@ try:
     APP_NAME = version_manager.app_info['name']
 except ImportError:
     APP_NAME = "取色卡"
-
-logger = get_logger("installer.install_service")
 
 # 主程序与载荷文件名：与打包产物命名一致（registry_installer / build-windows.yml 同源使用）
 APP_EXE_NAME = "Color Card.exe"
@@ -67,7 +64,6 @@ class InstallWorker(QThread):
             self.install_completed.emit(True, "安装成功")
 
         except (OSError, PermissionError, RuntimeError) as e:
-            logger.error(f"安装过程异常: {str(e)}")
             self.install_completed.emit(False, f"安装失败: {str(e)}")
 
     def _close_old_app(self, install_path: Path) -> None:
@@ -80,7 +76,6 @@ class InstallWorker(QThread):
         if not exe_path.exists():
             return
         close_app_processes(APP_EXE_NAME)
-        logger.info("已关闭旧版本程序")
 
     def _deploy_files(self, install_path: Path) -> bool:
         """部署程序文件：关闭旧版 → 清空前护栏 → 清空 → 解压载荷铺开
@@ -98,14 +93,12 @@ class InstallWorker(QThread):
             self._close_old_app(install_path)
 
             if not self._ensure_safe_to_clear(install_path):
-                logger.error(f"目标目录包含非应用文件，已中止安装: {install_path}")
                 self.install_completed.emit(False, "目标目录包含非应用文件，请确认安装路径")
                 return False
 
             # 载荷检查放在清空之前，避免载荷缺失时已把旧安装清掉
             payload_path = Path(get_base_path()) / PAYLOAD_ZIP_NAME
             if not payload_path.exists():
-                logger.error(f"安装包载荷缺失: {payload_path}")
                 self.install_completed.emit(False, "安装包载荷缺失")
                 return False
 
@@ -123,7 +116,6 @@ class InstallWorker(QThread):
             return True
 
         except OSError as e:
-            logger.error(f"文件部署失败: {e}")
             self.install_completed.emit(False, f"文件部署失败: {e}")
             return False
 
@@ -167,17 +159,13 @@ class InstallWorker(QThread):
         if not install_path.exists():
             return True
 
-        last_error: OSError | None = None
         for attempt in range(1, CLEAR_RETRY_TIMES + 1):
             try:
                 shutil.rmtree(install_path)
                 return True
-            except OSError as e:
-                last_error = e
-                logger.warning(f"清空安装目录失败（第 {attempt}/{CLEAR_RETRY_TIMES} 次）: {e}")
+            except OSError:
                 time.sleep(CLEAR_RETRY_INTERVAL_SECONDS)
 
-        logger.error(f"清空安装目录失败，已中止安装: {last_error}")
         self.install_completed.emit(False, "无法清空目标目录，请关闭相关程序后重试")
         return False
 
@@ -206,8 +194,7 @@ class InstallWorker(QThread):
 
             return True
 
-        except OSError as e:
-            logger.error(f"注册表写入失败: {str(e)}")
+        except OSError:
             return False
 
     def _create_shortcuts(self, install_path: Path) -> bool:
@@ -239,8 +226,7 @@ class InstallWorker(QThread):
 
             return True
 
-        except (ImportError, OSError) as e:
-            logger.error(f"快捷方式创建失败: {str(e)}")
+        except (ImportError, OSError):
             return False
 
 

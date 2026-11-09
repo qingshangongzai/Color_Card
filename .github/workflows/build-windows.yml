@@ -326,8 +326,8 @@ jobs:
       shell: pwsh
       run: |
         # 数据目录由载荷 zip 自带（安装时解压铺开），向导自身仅需 logo ico 与载荷文件；
-        # ui 不入产物——installer 零 ui 导入，core 内 ui 引用均为函数级且安装器运行期不触达；
-        # onefile 无法在打包后清理文件，仅用实测对 Qt 插件生效的 noinclude 参数（tls 插件、qt6pdf.dll）
+        # installer 已脱耦 qfluentwidgets/dialogs/core，nofollow 三项防误 import 静默回流（运行期 ImportError 报警）；
+        # ui 为历史护栏，PIL 两条为历史残留参数；onefile 无法在打包后清理文件，仅用实测对 Qt 插件生效的 noinclude 参数（tls 插件、qt6pdf.dll）
         python -m nuitka `
           --standalone `
           --onefile `
@@ -343,6 +343,9 @@ jobs:
           --include-data-files=version.py=version.py `
           --include-data-files="logo/Color Card_logo.ico=logo/Color Card_logo.ico" `
           --include-data-files="Color Card Payload.zip=Color Card Payload.zip" `
+          --nofollow-import-to=qfluentwidgets `
+          --nofollow-import-to=dialogs `
+          --nofollow-import-to=core `
           --nofollow-import-to=ui `
           --nofollow-import-to=PIL.AvifImagePlugin `
           --nofollow-import-to=PIL.WebPImagePlugin `

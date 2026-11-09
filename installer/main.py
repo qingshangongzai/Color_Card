@@ -36,7 +36,6 @@ if sys.platform == 'win32':
 
 # 第三方库导入（必须在 set_app_user_model_id 之后导入）
 from PySide6.QtWidgets import QApplication
-from qfluentwidgets import setTheme, Theme
 
 # 项目模块导入（必须在 set_app_user_model_id 之后导入）
 from installer.core.registry_installer import REGISTRY_KEY
@@ -134,7 +133,10 @@ def main():
     os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
 
     app = QApplication(sys.argv)
-    setTheme(Theme.AUTO)
+
+    # 迷你样式层：深浅色启动时判定一次并烘焙进 QSS（替代原组件库主题入口）
+    from installer.wizard.mini_style import apply_mini_style
+    apply_mini_style(app)
 
     from utils import load_icon_universal
     app_icon = load_icon_universal()

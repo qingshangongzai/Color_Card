@@ -7,9 +7,6 @@ from pathlib import Path
 
 # 项目模块导入
 from app_mode import PORTABLE_LAYOUT_MARKER
-from core.logger import get_logger
-
-logger = get_logger("installer.file_installer")
 
 # 载荷内 app/ 子树前缀：与 build-windows.yml 便携打包布局（main.dist 内容置于 app/）一致
 PAYLOAD_APP_PREFIX = "app/"
@@ -65,7 +62,6 @@ class FileInstaller:
                     and info.filename != PAYLOAD_MARKER_ENTRY
                 ]
                 if not members:
-                    logger.error(f"载荷中没有可解压的 app/ 条目: {src_zip}")
                     return False
 
                 total_bytes = sum(info.file_size for info in members)
@@ -80,11 +76,9 @@ class FileInstaller:
 
                 report_progress(100, "解压完成 |")
 
-            logger.info(f"载荷解压完成: {src_zip} -> {dst_dir}（{len(members)} 个条目）")
             return True
 
-        except (OSError, zipfile.BadZipFile, EOFError) as e:
-            logger.error(f"载荷解压失败: {e}")
+        except (OSError, zipfile.BadZipFile, EOFError):
             return False
 
     @staticmethod
