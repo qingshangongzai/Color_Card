@@ -38,6 +38,7 @@ if sys.platform == 'win32':
 from PySide6.QtWidgets import QApplication
 
 # 项目模块导入（必须在 set_app_user_model_id 之后导入）
+from installer.core.constants import APP_EXE_NAME
 from installer.core.registry_installer import REGISTRY_KEY
 
 
@@ -162,7 +163,7 @@ def main():
     if config.get('run_after_install', False):
         install_path = config.get('install_path', '')
         if install_path:
-            exe_path = Path(install_path) / "Color Card.exe"
+            exe_path = Path(install_path) / APP_EXE_NAME
             if exe_path.exists():
                 import subprocess
                 subprocess.Popen(

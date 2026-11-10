@@ -3,7 +3,7 @@ import os
 import shutil
 import zipfile
 from collections.abc import Callable
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 # 项目模块导入
 from app_mode import PORTABLE_LAYOUT_MARKER
@@ -12,6 +12,26 @@ from app_mode import PORTABLE_LAYOUT_MARKER
 PAYLOAD_APP_PREFIX = "app/"
 # 便携布局标记条目，仅便携版需要，安装铺开时跳过
 PAYLOAD_MARKER_ENTRY = f"app/{PORTABLE_LAYOUT_MARKER}"
+
+
+def _is_safe_member(name: str) -> bool:
+    """条目平铺后的相对路径必须落在目标目录内
+
+    拒绝绝对路径、盘符/UNC 前缀与 `..`，防止载荷条目写出安装目录。
+
+    Args:
+        name: 载荷内条目名（已确认以 `app/` 开头）
+
+    Returns:
+        bool: 是否可安全解压
+    """
+    relative = PureWindowsPath(name[len(PAYLOAD_APP_PREFIX):])
+    return (
+        bool(relative.parts)
+        and not relative.root
+        and not relative.drive
+        and ".." not in relative.parts
+    )
 
 
 def _extract_member(payload: zipfile.ZipFile, info: zipfile.ZipInfo, dst_dir: Path) -> None:
@@ -60,6 +80,7 @@ class FileInstaller:
                     if info.filename.startswith(PAYLOAD_APP_PREFIX)
                     and not info.is_dir()
                     and info.filename != PAYLOAD_MARKER_ENTRY
+                    and _is_safe_member(info.filename)
                 ]
                 if not members:
                     return False

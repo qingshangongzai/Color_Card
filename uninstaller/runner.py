@@ -13,7 +13,7 @@ from core.logger import get_logger
 from installer.core.registry_installer import RegistryInstaller
 from uninstaller.uninstall_dialog import UninstallDialog
 
-logger = get_logger("installer")
+logger = get_logger("uninstaller")
 
 
 def run_uninstall(skip_to_progress: bool = False, delete_config: bool = False) -> None:

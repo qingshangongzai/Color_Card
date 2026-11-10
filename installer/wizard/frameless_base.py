@@ -2,6 +2,7 @@
 
 收编自 dialogs/base_frameless_dialog.py 并裁剪：去掉组件库主题信号与
 theme_colors 依赖，改由 mini_style 提供静态色值。原文件保持不动。
+修改标题栏 / 淡入逻辑时须同步 dialogs/base_frameless_dialog.py。
 """
 
 # 第三方库导入

@@ -8,6 +8,7 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal, QThread
 
 # 项目模块导入
+from installer.core.constants import APP_EXE_NAME, PAYLOAD_ZIP_NAME
 from installer.core.file_installer import FileInstaller
 from installer.core.permission_checker import close_app_processes
 from installer.core.registry_installer import RegistryInstaller
@@ -19,9 +20,6 @@ try:
 except ImportError:
     APP_NAME = "取色卡"
 
-# 主程序与载荷文件名：与打包产物命名一致（registry_installer / build-windows.yml 同源使用）
-APP_EXE_NAME = "Color Card.exe"
-PAYLOAD_ZIP_NAME = "Color Card Payload.zip"
 # 清空安装目录的有限重试：进程关闭后句柄释放与杀软扫描存在延迟
 CLEAR_RETRY_TIMES = 3
 CLEAR_RETRY_INTERVAL_SECONDS = 0.5
@@ -159,12 +157,14 @@ class InstallWorker(QThread):
         if not install_path.exists():
             return True
 
-        for attempt in range(1, CLEAR_RETRY_TIMES + 1):
+        for remaining in range(CLEAR_RETRY_TIMES, 0, -1):
             try:
                 shutil.rmtree(install_path)
                 return True
             except OSError:
-                time.sleep(CLEAR_RETRY_INTERVAL_SECONDS)
+                # 最后一次失败不再等待，直接进入失败分支
+                if remaining > 1:
+                    time.sleep(CLEAR_RETRY_INTERVAL_SECONDS)
 
         self.install_completed.emit(False, "无法清空目标目录，请关闭相关程序后重试")
         return False
@@ -210,7 +210,7 @@ class InstallWorker(QThread):
             from installer.core.shortcut_installer import ShortcutInstaller
 
             shortcut_installer = ShortcutInstaller()
-            exe_path = install_path / "Color Card.exe"
+            exe_path = install_path / APP_EXE_NAME
 
             if self._config.get('create_desktop_shortcut', True):
                 if not shortcut_installer.create_desktop_shortcut(exe_path, APP_NAME):

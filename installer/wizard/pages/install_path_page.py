@@ -65,6 +65,11 @@ class InstallPathPage(BasePage):
         self._update_space_info()
         layout.addWidget(self._space_label)
 
+        # 清空语义提示：安装前会删除所选目录内原有文件（对应 install_service 的清空步骤）
+        clear_hint_label = QLabel("安装时会清空该目录中的原有文件")
+        clear_hint_label.setStyleSheet("font-size: 12px;")
+        layout.addWidget(clear_hint_label)
+
         # 上方两段留白权重 2:2 对应按钮行下方 1，按钮行落在 y≈276（与其它向导页同高）
         layout.addStretch(2)
 

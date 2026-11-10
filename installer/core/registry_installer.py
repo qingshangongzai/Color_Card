@@ -9,6 +9,7 @@ if sys.platform == 'win32':
     import winreg
 
 # 项目模块导入
+from installer.core.constants import APP_EXE_NAME
 from version import version_manager
 
 APP_ID = "{8EBD3944-B989-4878-B943-DE4558FDF22C}"
@@ -71,7 +72,7 @@ class RegistryInstaller:
 
         try:
             install_path = Path(config['install_path'])
-            exe_path = install_path / "Color Card.exe"
+            exe_path = install_path / APP_EXE_NAME
 
             uninstall_key_path = f"{UNINSTALL_KEY}\\{APP_ID}"
             key = winreg.CreateKeyEx(

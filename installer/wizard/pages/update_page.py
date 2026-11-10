@@ -62,7 +62,7 @@ class UpdatePage(BasePage):
         hint_title.setStyleSheet("font-size: 13px;")
         hint_layout.addWidget(hint_title)
 
-        for hint_item in ("关闭正在运行的取色卡", "将程序文件覆盖到原安装位置", "保留已保存的配色与设置"):
+        for hint_item in ("关闭正在运行的取色卡", "清空原安装位置后重新写入程序文件", "保留已保存的配色与设置"):
             item_label = QLabel(f"• {hint_item}")
             item_label.setStyleSheet("font-size: 12px;")
             hint_layout.addWidget(item_label)

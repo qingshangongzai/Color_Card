@@ -6,6 +6,7 @@
 
 # 标准库导入
 import shutil
+import sys
 import time
 import zipfile
 from pathlib import Path
@@ -86,11 +87,42 @@ class TestExtractPayload:
             zf.writestr("Color Card.exe", b"LAUNCHER")
         assert FileInstaller.extract_payload(empty, tmp_path / "dst") is False
 
+    @pytest.mark.unit
+    def test_extract_lzma_payload(self, tmp_path):
+        """CI 载荷以 LZMA 重压，解压路径需支持该压缩格式"""
+        pytest.importorskip("lzma")
+        payload = tmp_path / "payload.zip"
+        with zipfile.ZipFile(payload, "w", zipfile.ZIP_LZMA) as zf:
+            zf.writestr("app/Color Card.exe", b"MAIN-EXE")
+        dst = tmp_path / "install"
+
+        assert FileInstaller.extract_payload(payload, dst) is True
+        assert (dst / "Color Card.exe").read_bytes() == b"MAIN-EXE"
+
+    @pytest.mark.unit
+    def test_extract_skips_unsafe_entries(self, tmp_path):
+        """绝对路径、盘符与 .. 条目不得写出目标目录"""
+        payload = tmp_path / "payload.zip"
+        entries = {
+            "app/../escaped.txt": b"OUT",
+            "app/C:/escaped.txt": b"OUT",
+            "app/ok.txt": b"OK",
+        }
+        with zipfile.ZipFile(payload, "w") as zf:
+            for name, data in entries.items():
+                zf.writestr(name, data)
+        dst = tmp_path / "install"
+
+        assert FileInstaller.extract_payload(payload, dst) is True
+        assert (dst / "ok.txt").read_bytes() == b"OK"
+        assert not (tmp_path / "escaped.txt").exists()
+
 
 class TestEnsureSafeToClear:
     """InstallWorker._ensure_safe_to_clear 护栏测试（注册表读取已打桩）"""
 
     @pytest.mark.unit
+    @pytest.mark.skipif(sys.platform != "win32", reason="依赖 Windows 路径比较的大小写不敏感语义")
     def test_registry_path_match_passes(self, qtbot, tmp_path, monkeypatch):
         """注册表安装路径与目标一致时通过（Windows 下大小写不敏感）"""
         worker = InstallWorker({"install_path": str(tmp_path)})
