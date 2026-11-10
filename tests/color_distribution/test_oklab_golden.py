@@ -8,7 +8,7 @@
 import numpy as np
 import pytest
 
-from core import color_distribution as e
+from core import color_space as e
 
 
 # (sRGB 0~255, 期望 OKLab [L, a, b])，参考 Ottosson OKLab 原文

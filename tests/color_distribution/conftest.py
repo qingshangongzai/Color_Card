@@ -10,8 +10,15 @@ import os
 import numpy as np
 from PIL import Image, ImageCms
 
+from core.color_space import oklab_to_lch, srgb_to_oklab
+
 # 项目根目录（验证集素材相对此路径）
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+
+def ok_hue(rgb: tuple[int, int, int]) -> float:
+    """sRGB 0~255 三元组的 OKLCH 色相角（构造合成信号的 h_ok）"""
+    return float(oklab_to_lch(srgb_to_oklab(np.array([rgb], dtype=np.uint8)))[2][0])
 
 
 def materials_missing(*dirs: str) -> bool:

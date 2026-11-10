@@ -62,6 +62,15 @@ from .color import (
     ZONE_WIDTH,
 )
 
+# 颜色空间转换（纯 NumPy，不依赖 Qt）
+from .color_space import (
+    srgb_to_oklab,
+    srgb255_to_oklab,
+    oklab_to_srgb,
+    oklab_to_lch,
+    oklab_to_hsb_hue,
+)
+
 # 动态色彩微调调色板引擎（轻量级，立即导入）
 from .palette_tuning import (
     MODES,
@@ -215,6 +224,12 @@ __all__ = [
     'extract_dominant_colors_kmeans',
     'find_dominant_color_positions',
     'ZONE_WIDTH',
+    # 颜色空间转换
+    'srgb_to_oklab',
+    'srgb255_to_oklab',
+    'oklab_to_srgb',
+    'oklab_to_lch',
+    'oklab_to_hsb_hue',
     # 动态色彩微调调色板
     'MODES',
     'ChannelSpec',

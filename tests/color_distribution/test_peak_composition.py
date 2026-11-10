@@ -13,7 +13,8 @@ rep_weight 代表值口径与 analyze_hue_peaks 的 composition 字段，
 import numpy as np
 
 from core import color_distribution as e
-
+from core import color_naming as naming
+from tests.color_distribution.conftest import ok_hue
 
 # ==================== max_results 截断参数 ====================
 
@@ -62,13 +63,16 @@ def test_rep_weight_chroma_flips_pname():
     C = np.concatenate([np.full(n_hi, 0.09), np.full(n_lo, 0.01)])
     L = np.concatenate([np.full(n_hi, 0.34), np.full(n_lo, 0.60)])
     h = np.full(n_hi + n_lo, 5.0)            # 全落红段
+    h_ok = np.full(n_hi + n_lo, ok_hue((91, 37, 28)))
 
-    comp_area = e.analyze_hue_composition(C, h, None, L)
-    comp_chroma = e.analyze_hue_composition(C, h, None, L, rep_weight='chroma')
+    comp_area = e.analyze_hue_composition(C, h, None, L, h_ok)
+    comp_chroma = e.analyze_hue_composition(C, h, None, L, h_ok, rep_weight='chroma')
     assert comp_area[0]['name'] == 'red'
     assert comp_area[0]['pname'] == 'warm_gray'      # 面积口径：稀释 → 灰族
     assert comp_chroma[0]['name'] == 'red'
     assert comp_chroma[0]['pname'] == 'deep_red'     # chroma 口径：仅可见成员 → 深红
+    for item in (comp_area[0], comp_chroma[0]):
+        assert item['pname'] == naming.perceptual_color_name_from_rgb(item['rgb'])
 
 
 def test_rep_weight_uniform_value_consistent():
@@ -77,8 +81,9 @@ def test_rep_weight_uniform_value_consistent():
     C = np.full(n, 0.082)
     h = np.full(n, 6.9)
     L = np.full(n, 0.34)
-    comp_area = e.analyze_hue_composition(C, h, None, L)
-    comp_chroma = e.analyze_hue_composition(C, h, None, L, rep_weight='chroma')
+    h_ok = np.full(n, ok_hue((91, 37, 28)))
+    comp_area = e.analyze_hue_composition(C, h, None, L, h_ok)
+    comp_chroma = e.analyze_hue_composition(C, h, None, L, h_ok, rep_weight='chroma')
     assert comp_area[0]['pname'] == comp_chroma[0]['pname'] == 'deep_red'
     assert comp_area[0]['rgb'] == comp_chroma[0]['rgb']
 
@@ -99,15 +104,20 @@ def test_zone_composition_carries_rgb():
     assert comp[0]['name'] == 'red'
     assert comp[0]['rgb'] is not None, 'rgb 不得为 None（UI 绘制中断回归）'
     assert all(abs(a - b) <= 2 for a, b in zip(rgb0, comp[0]['rgb'])), comp[0]['rgb']
+    assert comp[0]['pname'] == naming.perceptual_color_name_from_rgb(comp[0]['rgb'])
 
 
 # ==================== analyze_hue_peaks 每峰 composition ====================
 
 def test_peak_composition_carries_l():
-    """analyze_hue_peaks 加 L 形参：峰内构成携带 pname，L 生效判深红"""
+    """analyze_hue_peaks 加 L 形参：峰内构成携带 pname，L 生效判深红
+
+    h 是 OKLCH 角（红约 29°），hsb_h 是展示轴角（红约 5°）；名称由
+    L 与 h_ok 合成的代表 RGB 计算，两轴不可混用。
+    """
     n1, n2 = 2000, 1000
     C = np.full(n1 + n2, 0.09)
-    h = np.full(n1 + n2, 5.0)
+    h = np.full(n1 + n2, 29.0)
     hsb_h = np.full(n1 + n2, 5.0)
     L = np.concatenate([np.full(n1, 0.30), np.full(n2, 0.70)])
 
@@ -116,6 +126,7 @@ def test_peak_composition_carries_l():
     comp = peaks[0]['composition']
     assert comp and comp[0]['name'] == 'red'
     assert comp[0]['pname'] == 'deep_red'    # 加权 rep_l≈0.43 < 0.55 且 C≥0.08
+    assert comp[0]['pname'] == naming.perceptual_color_name_from_rgb(comp[0]['rgb'])
 
     peaks_no_l = e.analyze_hue_peaks(C, h, hsb_h)
     assert peaks_no_l[0]['composition'][0]['pname'] == 'red'   # L 缺省回退 0.6
@@ -147,7 +158,7 @@ def test_peak_composition_rgb_roundtrip():
 
 
 def test_peak_composition_low_chroma_gray_fallback():
-    """整段成员均不可见（C < 0.02）时 rgb 兜底中性灰且非 None
+    """整段成员均不可见（C < 0.02）时 rgb 兜底中性灰、名称取 gray
 
     回归：低彩图（mean_chroma 高于灰调线但全图无可见彩度成员）曾输出
     rgb=None，UI 端 QColor.fromRgb(*None) 抛 TypeError 绘制中断。
@@ -162,6 +173,17 @@ def test_peak_composition_low_chroma_gray_fallback():
             assert item['rgb'] is not None, 'rgb 不得为 None（UI 崩溃回归）'
             r, g, b = item['rgb']
             assert max(r, g, b) - min(r, g, b) <= 2, '无可见成员段应为中性灰'
+            assert item['pname'] == 'gray', '中性兜底色不得命名为暖灰/蓝灰'
+
+
+def test_peak_composition_low_chroma_fallback_is_gray():
+    """低彩蓝峰的兜底中性灰不得沿用段色相判成 blue_gray 或 warm_gray"""
+    n = 3000
+    peaks = e.analyze_hue_peaks(
+        np.full(n, 0.012), np.full(n, 240.0), np.full(n, 240.0), np.full(n, 0.5))
+    item = peaks[0]['composition'][0]
+    assert item['rgb'] == (128, 128, 128)
+    assert item['pname'] == 'gray'
 
 
 def test_peak_composition_uses_hsb_axis():

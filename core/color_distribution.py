@@ -21,6 +21,20 @@ import numpy as np
 from PIL import Image
 
 from .cache_base import BaseCache
+from .color_naming import (
+    PERCEPT_COOL_NAMES,
+    PERCEPT_WARM_NAMES,
+    PERCEPT_ZONE_MIX_MIN_PCT,
+    hue_name,
+    perceptual_color_name_from_rgb,
+)
+from .color_space import (
+    oklab_to_lch,
+    oklab_to_srgb,
+    oklab_to_srgb_float,
+    srgb_hsb_hue,
+    srgb_to_oklab,
+)
 
 # ==================== 阈值常量（验证集标定后冻结） ====================
 
@@ -110,61 +124,10 @@ COLORFULNESS_KEYS = ('colorfulness_none', 'colorfulness_slight',
                      'colorfulness_strong', 'colorfulness_high',
                      'colorfulness_extreme')
 
-# 感知色名（van de Weijer 2009：棕/粉/灰需 L/C/h 共同决定，仅用于展示名）
-PERCEPT_GRAY_CHROMA = 0.03       # OKLab C 低于此归灰族（介于 ZONE_NEUTRAL 0.02 与 CHROMA_LOW 0.05 间）
-PERCEPT_BROWN_L_MAX = 0.55       # 暗暖色明度低于此：红段判深红/栗红，橙红/黄判"棕"
-PERCEPT_DEEP_RED_CHROMA_MIN = 0.08  # 暗红彩度分界：高于此"深红"，以下（足彩）"栗红"
-PERCEPT_PINK_L_MIN = 0.70        # 亮低饱和红/品红/紫红明度高于此判"粉"
-PERCEPT_PINK_CHROMA_MAX = 0.10   # "粉"的彩度上限（比浓红/品红淡）
-PERCEPT_WARM_NAMES = ('red', 'orange_red', 'yellow', 'magenta', 'purple_red')   # 灰族暖侧 / 冷暖混合暖侧
-PERCEPT_COOL_NAMES = ('cyan', 'cyan_blue', 'blue', 'purple')                    # 灰族冷侧 / 冷暖混合冷侧
-PERCEPT_BROWN_NAMES = ('orange_red', 'yellow')                           # 暗橙红/暗黄 → 棕（暗红不归棕）
-PERCEPT_PINK_NAMES = ('red', 'magenta', 'purple_red')                           # 亮低饱和 → 粉
-PERCEPT_ZONE_MIX_MIN_PCT = 20.0  # 近中性分区冷暖双向提示：暖侧与冷侧 chroma 权重占比均超此
-
 # 色轮密度图可视化（随结果缓存）
 WHEEL_HUE_BINS = 72        # 色轮角度 bin 数（每 bin 5°，HSB 色相）
 WHEEL_CHROMA_BINS = 24     # 色轮半径 bin 数（OKLCH chroma）
 WHEEL_CHROMA_MAX = 0.35    # 色轮半径上限（chroma 裁剪）
-
-# ==================== 色名映射（主项目 HSB 12 色环标准） ====================
-
-# HSB 色相角每 30° 一段，色名 id 居中（0°=red、30°=orange_red ... 330°=purple_red），
-# 与 locales 既有 color_wheel.hue_* 词条一一对应
-_HUE_NAMES = ('red', 'orange_red', 'yellow', 'yellow_green', 'green', 'cyan_green',
-              'cyan', 'cyan_blue', 'blue', 'purple', 'magenta', 'purple_red')
-
-
-def hue_name(hue: float) -> str:
-    """HSB 色相角（度）转主项目 12 色名 id"""
-    return _HUE_NAMES[int(((hue + 15.0) % 360.0) // 30.0)]
-
-
-def perceptual_color_name(lightness: float, chroma: float, hue_hsb: float) -> str:
-    """感知色名 id：由 L/C/h 共同决定的展示名，修饰 12 段基名
-
-    van de Weijer 2009：棕/粉/灰无法由纯色相得出。仅用于主色卡与
-    构成条目展示，hue_name（12 段）本身不变。
-    - 低彩 → 灰族（暖侧 warm_gray / 冷侧 blue_gray / 其余 gray）
-    - 暗红 → deep_red（高彩）/ maroon（低彩），不归棕（"棕"感知上对应暗橙/暗黄）
-    - 暗橙红/暗黄 → brown
-    - 亮低饱和红/品红/紫红 → pink
-    """
-    base = hue_name(hue_hsb)
-    if chroma < PERCEPT_GRAY_CHROMA:
-        if base in PERCEPT_WARM_NAMES:
-            return 'warm_gray'
-        if base in PERCEPT_COOL_NAMES:
-            return 'blue_gray'
-        return 'gray'
-    if base == 'red' and lightness < PERCEPT_BROWN_L_MAX:
-        return 'deep_red' if chroma >= PERCEPT_DEEP_RED_CHROMA_MIN else 'maroon'
-    if base in PERCEPT_BROWN_NAMES and lightness < PERCEPT_BROWN_L_MAX:
-        return 'brown'
-    if (base in PERCEPT_PINK_NAMES and lightness >= PERCEPT_PINK_L_MIN
-            and chroma < PERCEPT_PINK_CHROMA_MAX):
-        return 'pink'
-    return base
 
 
 def _neutral_zone_mix(comp: list[dict]) -> bool:
@@ -178,117 +141,6 @@ def _neutral_zone_mix(comp: list[dict]) -> bool:
     warm = sum(c['weight_pct'] for c in comp if c['name'] in PERCEPT_WARM_NAMES)
     cool = sum(c['weight_pct'] for c in comp if c['name'] in PERCEPT_COOL_NAMES)
     return warm >= PERCEPT_ZONE_MIX_MIN_PCT and cool >= PERCEPT_ZONE_MIX_MIN_PCT
-
-
-# ==================== sRGB → OKLab ====================
-
-# Ottosson OKLab 线性 RGB → LMS 矩阵
-_M1 = np.array([
-    [0.4122214708, 0.5363325363, 0.0514459929],
-    [0.2119034982, 0.6806995451, 0.1073969566],
-    [0.0883024619, 0.2817188376, 0.6299787005],
-], dtype=np.float64)
-
-# LMS'（立方根后）→ OKLab 矩阵
-_M2 = np.array([
-    [0.2104542553, 0.7936177850, -0.0040720468],
-    [1.9779984951, -2.4285922050, 0.4505937099],
-    [0.0259040371, 0.7827717662, -0.8086757660],
-], dtype=np.float64)
-
-# 逆矩阵预计算（oklab → sRGB 还原用）
-_M1_INV = np.linalg.inv(_M1)
-_M2_INV = np.linalg.inv(_M2)
-
-
-def _srgb_to_linear(srgb: np.ndarray) -> np.ndarray:
-    """sRGB 传递函数解码到线性 RGB（分段 gamma）
-
-    这一步不可省略：直接对 gamma 值做矩阵运算是最常见的 OKLab 实现错误。
-    """
-    a = 0.055
-    return np.where(
-        srgb <= 0.04045,
-        srgb / 12.92,
-        ((srgb + a) / (1 + a)) ** 2.4,
-    )
-
-
-def srgb_to_oklab(rgb: np.ndarray) -> np.ndarray:
-    """sRGB（0~1 或 0~255）转 OKLab
-
-    Args:
-        rgb: (..., 3) 数组，float(0~1) 或 uint8(0~255)
-
-    Returns:
-        (..., 3) 的 OKLab 数组 [L, a, b]
-    """
-    x = np.asarray(rgb, dtype=np.float64)
-    if x.max() > 1.0 + 1e-6:
-        x = x / 255.0
-
-    linear = _srgb_to_linear(x)
-    lms = linear @ _M1.T
-    lms_cbrt = np.cbrt(lms)
-    lab = lms_cbrt @ _M2.T
-    return lab
-
-
-def oklab_to_lch(lab: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """OKLab 转 L / C / h（h 单位为度，范围 0~360）"""
-    L = lab[..., 0]
-    a = lab[..., 1]
-    b = lab[..., 2]
-    C = np.sqrt(a * a + b * b)
-    h = np.degrees(np.arctan2(b, a)) % 360.0
-    return L, C, h
-
-
-def oklab_to_srgb(lab: np.ndarray) -> np.ndarray:
-    """OKLab 转 sRGB（0~255 uint8），用于主色卡还原"""
-    return (_oklab_to_srgb_float(lab) * 255.0).astype(np.uint8)
-
-
-def _oklab_to_srgb_float(lab: np.ndarray) -> np.ndarray:
-    """OKLab 转 sRGB 浮点（0~1 裁剪）"""
-    lms_cbrt = lab @ _M2_INV.T
-    lms = lms_cbrt ** 3
-    linear = lms @ _M1_INV.T
-    a = 0.055
-    srgb = np.where(
-        linear <= 0.0031308,
-        linear * 12.92,
-        (1 + a) * np.clip(linear, 0, None) ** (1 / 2.4) - a,
-    )
-    return np.clip(srgb, 0.0, 1.0)
-
-
-def oklab_to_hsb_hue(lab: np.ndarray) -> np.ndarray:
-    """OKLab 转 HSB 色相角（度，0~360），主项目色相标准的坐标轴
-
-    统计权重仍用 OKLCH chroma，仅色相角度/色名按 HSB 轴展示，
-    与主项目色环及拾色器读数一致。
-    """
-    return _srgb_hsb_hue(_oklab_to_srgb_float(lab))
-
-
-def _srgb_hsb_hue(srgb: np.ndarray) -> np.ndarray:
-    """sRGB 浮点（0~1）转 HSB 色相角（供已有 sRGB 数组时免重复转换）"""
-    r = srgb[..., 0]
-    g = srgb[..., 1]
-    b = srgb[..., 2]
-    mx = np.max(srgb, axis=-1)
-    delta = mx - np.min(srgb, axis=-1)
-
-    hue = np.zeros_like(mx)
-    nz = delta > 1e-12
-    rm = nz & (mx == r)
-    gm = nz & (mx == g) & ~rm
-    bm = nz & (mx == b) & ~rm & ~gm
-    hue[rm] = (60.0 * (g[rm] - b[rm]) / delta[rm]) % 360.0
-    hue[gm] = 60.0 * (b[gm] - r[gm]) / delta[gm] + 120.0
-    hue[bm] = 60.0 * (r[bm] - g[bm]) / delta[bm] + 240.0
-    return hue % 360.0
 
 
 # ==================== 环形统计工具 ====================
@@ -765,18 +617,18 @@ def _merge_close_peaks(peaks: list[int], arr: np.ndarray, bin_width: float) -> l
 
 
 def _rep_rgb(rep_l: float, rep_c: float, rep_h_ok: float) -> tuple[int, int, int]:
-    """段代表 OKLCH → sRGB 0~255 三元组（超界由 _oklab_to_srgb_float 裁剪）"""
+    """段代表 OKLCH → sRGB 0~255 三元组（超界由 oklab_to_srgb_float 裁剪）"""
     a = rep_c * math.cos(math.radians(rep_h_ok))
     b = rep_c * math.sin(math.radians(rep_h_ok))
-    srgb = _oklab_to_srgb_float(np.array([[rep_l, a, b]], dtype=np.float64))
+    srgb = oklab_to_srgb_float(np.array([[rep_l, a, b]], dtype=np.float64))
     r, g, b = (srgb[0] * 255.0).round().astype(int).tolist()
     return (r, g, b)
 
 
 def _segment_rep(C: np.ndarray, L: np.ndarray | None, h_ok: np.ndarray | None,
                  rep_sel: np.ndarray, rep_w: np.ndarray
-                 ) -> tuple[float, float, tuple[int, int, int] | None]:
-    """段代表彩度/明度/真实代表色（与感知色名同权重口径、同源合成）
+                 ) -> tuple[float, tuple[int, int, int] | None]:
+    """段代表彩度/真实代表色（与感知色名同权重口径、同源合成）
 
     rep_sel 为参与代表值计算的成员掩码（'chroma' 口径限定可见彩度成员），
     rep_w 为对应权重。rep_w_sum=0（如峰内整段均为不可见低彩成员）时
@@ -795,7 +647,7 @@ def _segment_rep(C: np.ndarray, L: np.ndarray | None, h_ok: np.ndarray | None,
         rgb = _rep_rgb(rep_l, rep_c, float(rep_h_ok))
     else:
         rgb = _rep_rgb(0.6, 0.0, 0.0)
-    return rep_c, rep_l, rgb
+    return rep_c, rgb
 
 
 def _rep_selection(mask: np.ndarray, visible: np.ndarray, area_w: np.ndarray,
@@ -831,7 +683,7 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
         h: 逐像素 HSB 展示轴色相（度），段归属与展示角度用。
         area_w: 分区隶属度权重，None 时按全像素等权；
             权重口径按 area_w*C 加权，面积口径按 area_w 软计数。
-        L: 逐像素 OKLab 明度（感知色名用），None 时段代表明度回退中值。
+        L: 逐像素 OKLab 明度（段代表色合成用），None 时代表明度回退 0.6。
         h_ok: 逐像素 OKLCH 色相（度），段真实代表色合成用；None 时
             条目不携带 rgb。
         max_results: 返回条目上限，None 不截断；默认 COMP_MAX 为分区调色
@@ -848,10 +700,10 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
         [{'name', 'pname', 'hue', 'weight_pct', 'area_pct', 'range',
           'rep_c', 'rgb'}, ...]，
         权重 >= COMP_MIN_PCT 或可见面积 >= COMP_MIN_AREA_PCT 的条目
-        按权重降序，最多 max_results 个。name 为 12 段色名 id，pname 为感知
-        色名 id，rep_c 为段代表彩度（与 pname 同权重口径），rgb 为段真实
-        代表色（rep_l/rep_c + 段内 OKLCH 色相均值合成，与 pname 同源，
-        保证名字与色块恒一致）。
+        按权重降序，最多 max_results 个。name 为 12 段色名 id，rgb 为段真实
+        代表色（rep_l/rep_c + 段内 OKLCH 色相均值合成），pname 由该 rgb
+        调用统一命名入口得到，保证名字与色块来自同一三元组；rgb 为 None
+        （未传 h_ok）时 pname 为 None，不回退到其他命名输入。
     """
     if area_w is None:
         area_w = np.ones_like(C)
@@ -875,12 +727,12 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
         hues = lo + rel[mask]                # 可能超 360，报告时取模
         mean_hue = float(np.average(hues, weights=w))
         q10, q90 = _weighted_quantile(hues, w, (0.10, 0.90))
-        # 8.6 感知色名：段代表 L/C + 真实代表色 rgb（口径见 _rep_selection）
+        # 8.6 感知色名：先定段代表色 rgb，再由该 rgb 计算 pname
         rep_sel, rep_w = _rep_selection(mask, visible, area_w, weight, rep_weight)
-        rep_c, rep_l, rgb = _segment_rep(C, L, h_ok, rep_sel, rep_w)
+        rep_c, rgb = _segment_rep(C, L, h_ok, rep_sel, rep_w)
         results.append({
-            'name': _HUE_NAMES[seg],
-            'pname': perceptual_color_name(rep_l, rep_c, mean_hue % 360.0),
+            'name': hue_name(seg * 30.0),
+            'pname': perceptual_color_name_from_rgb(rgb) if rgb is not None else None,
             'hue': mean_hue % 360.0,
             'weight_pct': pct,
             'area_pct': area_pct,
@@ -1088,7 +940,7 @@ def analyze_palette(lab: np.ndarray, k: int = PALETTE_K) -> list:
     合并 ΔE_OK 过近的中心，输出自适应个数的主色。
 
     Returns:
-        [((r, g, b), pct, pname), ...]，按占比降序（pname 为 8.6 感知色名 id）。
+        [((r, g, b), pct, pname), ...]，按占比降序（pname 由最终 rgb 计算）。
     """
     n = lab.shape[0]
     if n == 0 or k <= 0:
@@ -1120,10 +972,9 @@ def analyze_palette(lab: np.ndarray, k: int = PALETTE_K) -> list:
     result = []
     for center, mw in merged:
         r, g, b = (int(v) for v in oklab_to_srgb(center))
-        cl, cc, _ = oklab_to_lch(center)
-        h_hsb = float(oklab_to_hsb_hue(center.reshape(1, 3))[0])
-        pname = perceptual_color_name(float(cl), float(cc), h_hsb)
-        result.append(((r, g, b), float(mw / total * 100.0), pname))
+        rgb = (r, g, b)
+        pname = perceptual_color_name_from_rgb(rgb)
+        result.append((rgb, float(mw / total * 100.0), pname))
     result.sort(key=lambda x: x[1], reverse=True)
     return result
 
@@ -1192,8 +1043,8 @@ def analyze_lab(lab: np.ndarray) -> dict:
     """
     L, C, h = oklab_to_lch(lab)
     # sRGB 只还原一次，HSB 色相轴与彩色度 M 共用（往返误差可忽略）
-    srgb = _oklab_to_srgb_float(lab)
-    hsb_h = _srgb_hsb_hue(srgb)
+    srgb = oklab_to_srgb_float(lab)
+    hsb_h = srgb_hsb_hue(srgb)
     a = lab[:, 1]
     b = lab[:, 2]
     mean_chroma = float(C.mean())

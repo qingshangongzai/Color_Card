@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 from qfluentwidgets import BodyLabel, qconfig
 
 from core import analyze_color_distribution, get_color_distribution_cache
-from core.color_distribution import hue_name
+from core.color_naming import hue_name
 from utils import tr
 
 from .base_frameless_dialog import BaseFramelessDialog
