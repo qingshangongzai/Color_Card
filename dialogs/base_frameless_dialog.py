@@ -20,6 +20,9 @@ class BaseFramelessDialog(FramelessDialog):
     提供统一的 Fluent Design 风格标题栏和主题适配功能。
     子类只需调用 _setup_title_bar() 和 _update_styles() 即可。
 
+    安装器使用裁剪副本 installer/wizard/frameless_base.py（不依赖 qfluentwidgets），
+    修改标题栏 / 淡入逻辑时须同步该副本。
+
     使用示例:
         class MyDialog(BaseFramelessDialog):
             def __init__(self, parent=None):

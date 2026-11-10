@@ -4,11 +4,11 @@ import shutil
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout, QFileDialog
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
-from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton, CheckBox
 
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.wizard.mini_widgets import LineEdit, PushButton, PrimaryPushButton, CheckBox
+from installer.wizard.mini_style import resolve_tokens
 from installer.core.permission_checker import is_admin, requires_admin, validate_install_path
 
 
@@ -64,6 +64,11 @@ class InstallPathPage(BasePage):
         self._space_label.setStyleSheet("font-size: 12px;")
         self._update_space_info()
         layout.addWidget(self._space_label)
+
+        # 清空语义提示：安装前会删除所选目录内原有文件（对应 install_service 的清空步骤）
+        clear_hint_label = QLabel("安装时会清空该目录中的原有文件")
+        clear_hint_label.setStyleSheet("font-size: 12px;")
+        layout.addWidget(clear_hint_label)
 
         # 上方两段留白权重 2:2 对应按钮行下方 1，按钮行落在 y≈276（与其它向导页同高）
         layout.addStretch(2)
@@ -235,11 +240,11 @@ class InstallPathPage(BasePage):
     def _update_styles(self):
         super()._update_styles()
 
-        text_color = QColor(40, 40, 40)
-        secondary_color = QColor(120, 120, 120)
+        text_color = resolve_tokens()['window_fg']
+        secondary_color = resolve_tokens()['fg_secondary']
 
         for child in self._content_widget.findChildren(QLabel):
             if "选择安装位置" in child.text():
-                child.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 18px; font-weight: bold; color: {text_color};")
             elif "所需空间" in child.text():
-                child.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
+                child.setStyleSheet(f"font-size: 12px; color: {secondary_color};")

@@ -1,15 +1,12 @@
-﻿# 构建单实例启动器（MSVC）
+﻿# 构建便携版根目录启动器（MSVC）
 #
 # 本脚本含中文常量，须保存为 UTF-8 with BOM：Windows PowerShell 5.1 对无 BOM 的脚本按 ANSI 解析，中文会乱码
 # 用法：
-#   pwsh -File launcher/build.ps1 -MainExeName "Color Card Portable.exe" -OutputPath "dist\Color Card Launcher.exe"
+#   pwsh -File launcher/build.ps1 -OutputPath "Color Card.exe"
 #
 # 依赖本机或 CI 的 Visual Studio（含 C++ 生成工具），通过 vswhere 定位。
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$MainExeName,
-
     [Parameter(Mandatory = $true)]
     [string]$OutputPath
 )
@@ -18,12 +15,6 @@ $ErrorActionPreference = 'Stop'
 $launcherDir = $PSScriptRoot
 $buildDir = Join-Path $launcherDir 'build'
 New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
-
-$configHeader = Join-Path $launcherDir 'launcher_config.h'
-Set-Content -Path $configHeader -Encoding utf8 -Value @"
-#pragma once
-#define MAIN_EXE_NAME L"$MainExeName"
-"@
 
 # 版本与版权信息和 CI 打包同源：读根目录 version.txt（唯一真源），写入 VERSIONINFO 资源
 # -Encoding utf8 显式声明读取编码：该文件无 BOM，Windows PowerShell 默认按 ANSI 读取会把中文读乱

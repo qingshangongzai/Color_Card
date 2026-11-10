@@ -1,4 +1,6 @@
 # 标准库导入
+import shutil
+import time
 from pathlib import Path
 from typing import Any
 
@@ -6,9 +8,9 @@ from typing import Any
 from PySide6.QtCore import QObject, Signal, QThread
 
 # 项目模块导入
-from core.logger import get_logger
+from installer.core.constants import APP_EXE_NAME, PAYLOAD_ZIP_NAME
 from installer.core.file_installer import FileInstaller
-from installer.core.permission_checker import close_app_processes, get_exe_path, is_frozen
+from installer.core.permission_checker import close_app_processes
 from installer.core.registry_installer import RegistryInstaller
 from utils import get_base_path
 
@@ -18,7 +20,9 @@ try:
 except ImportError:
     APP_NAME = "取色卡"
 
-logger = get_logger("installer.install_service")
+# 清空安装目录的有限重试：进程关闭后句柄释放与杀软扫描存在延迟
+CLEAR_RETRY_TIMES = 3
+CLEAR_RETRY_INTERVAL_SECONDS = 0.5
 
 
 class InstallWorker(QThread):
@@ -41,8 +45,7 @@ class InstallWorker(QThread):
             install_path = Path(self._config['install_path'])
 
             self.progress_updated.emit(0, "正在准备安装... |")
-            if not self._copy_files(install_path):
-                self.install_completed.emit(False, "文件复制失败")
+            if not self._deploy_files(install_path):
                 return
 
             self.progress_updated.emit(80, "正在写入注册表... |")
@@ -59,7 +62,6 @@ class InstallWorker(QThread):
             self.install_completed.emit(True, "安装成功")
 
         except (OSError, PermissionError, RuntimeError) as e:
-            logger.error(f"安装过程异常: {str(e)}")
             self.install_completed.emit(False, f"安装失败: {str(e)}")
 
     def _close_old_app(self, install_path: Path) -> None:
@@ -68,14 +70,16 @@ class InstallWorker(QThread):
         Args:
             install_path: 安装路径
         """
-        exe_path = install_path / "Color Card.exe"
+        exe_path = install_path / APP_EXE_NAME
         if not exe_path.exists():
             return
-        close_app_processes("Color Card.exe")
-        logger.info("已关闭旧版本程序")
+        close_app_processes(APP_EXE_NAME)
 
-    def _copy_files(self, install_path: Path) -> bool:
-        """复制程序文件
+    def _deploy_files(self, install_path: Path) -> bool:
+        """部署程序文件：关闭旧版 → 清空前护栏 → 清空 → 解压载荷铺开
+
+        失败时通过 install_completed 信号发出具体原因并返回 False，调用方
+        直接结束安装流程，不再重复发出失败信号。
 
         Args:
             install_path: 安装路径
@@ -86,37 +90,84 @@ class InstallWorker(QThread):
         try:
             self._close_old_app(install_path)
 
-            if is_frozen():
-                src_exe = get_exe_path()
-            else:
-                return True
+            if not self._ensure_safe_to_clear(install_path):
+                self.install_completed.emit(False, "目标目录包含非应用文件，请确认安装路径")
+                return False
+
+            # 载荷检查放在清空之前，避免载荷缺失时已把旧安装清掉
+            payload_path = Path(get_base_path()) / PAYLOAD_ZIP_NAME
+            if not payload_path.exists():
+                self.install_completed.emit(False, "安装包载荷缺失")
+                return False
+
+            if not self._clear_install_path(install_path):
+                return False
 
             def progress_callback(percent: int, message: str):
                 mapped_percent = int(percent * 0.8)
                 self.progress_updated.emit(mapped_percent, message)
 
-            if not self._file_installer.copy_executable(
-                src_exe,
-                install_path,
-                "Color Card.exe",
-                progress_callback
-            ):
+            if not self._file_installer.extract_payload(payload_path, install_path, progress_callback):
+                self.install_completed.emit(False, "程序文件解压失败")
                 return False
 
-            launcher_src = Path(get_base_path()) / "Color Card Launcher.exe"
-            if not launcher_src.exists():
-                logger.error(f"安装包缺少启动器: {launcher_src}")
-                return False
+            return True
 
-            return self._file_installer.copy_executable(
-                launcher_src,
-                install_path,
-                "Color Card Launcher.exe"
-            )
-
-        except (OSError, PermissionError) as e:
-            logger.error(f"文件复制失败: {str(e)}")
+        except OSError as e:
+            self.install_completed.emit(False, f"文件部署失败: {e}")
             return False
+
+    def _ensure_safe_to_clear(self, install_path: Path) -> bool:
+        """检查目标目录是否可安全清空
+
+        满足任一条件即通过：注册表记录的安装路径与目标一致（Windows 下
+        pathlib 比较大小写不敏感）、目录内存在应用标记主程序、目录不存在
+        或为空。
+
+        Args:
+            install_path: 安装路径
+
+        Returns:
+            bool: 是否可安全清空
+        """
+        if not install_path.exists():
+            return True
+
+        if not any(install_path.iterdir()):
+            return True
+
+        registry_path = self._registry_installer.get_install_path()
+        if registry_path is not None and registry_path == install_path:
+            return True
+
+        return (install_path / APP_EXE_NAME).exists()
+
+    def _clear_install_path(self, install_path: Path) -> bool:
+        """清空安装目录（整目录删除，随后由载荷解压重建）
+
+        删除做有限重试，覆盖进程关闭后句柄释放延迟与杀软扫描；重试耗尽仍
+        失败则发出失败信号并中止，不进入解压。目录不存在直接跳过。
+
+        Args:
+            install_path: 安装路径
+
+        Returns:
+            bool: 是否成功
+        """
+        if not install_path.exists():
+            return True
+
+        for remaining in range(CLEAR_RETRY_TIMES, 0, -1):
+            try:
+                shutil.rmtree(install_path)
+                return True
+            except OSError:
+                # 最后一次失败不再等待，直接进入失败分支
+                if remaining > 1:
+                    time.sleep(CLEAR_RETRY_INTERVAL_SECONDS)
+
+        self.install_completed.emit(False, "无法清空目标目录，请关闭相关程序后重试")
+        return False
 
     def _write_registry(self, install_path: Path) -> bool:
         """写入注册表
@@ -143,8 +194,7 @@ class InstallWorker(QThread):
 
             return True
 
-        except (OSError, PermissionError) as e:
-            logger.error(f"注册表写入失败: {str(e)}")
+        except OSError:
             return False
 
     def _create_shortcuts(self, install_path: Path) -> bool:
@@ -160,25 +210,23 @@ class InstallWorker(QThread):
             from installer.core.shortcut_installer import ShortcutInstaller
 
             shortcut_installer = ShortcutInstaller()
-            launcher_path = install_path / "Color Card Launcher.exe"
-            exe_path = install_path / "Color Card.exe"
+            exe_path = install_path / APP_EXE_NAME
 
             if self._config.get('create_desktop_shortcut', True):
-                if not shortcut_installer.create_desktop_shortcut(launcher_path, APP_NAME):
+                if not shortcut_installer.create_desktop_shortcut(exe_path, APP_NAME):
                     return False
 
             if self._config.get('create_start_menu', True):
-                if not shortcut_installer.create_start_menu_shortcut(launcher_path, APP_NAME):
+                if not shortcut_installer.create_start_menu_shortcut(exe_path, APP_NAME):
                     return False
 
-            # 卸载快捷方式与注册表 UninstallString 仍指向主程序，不经过启动器
+            # 卸载快捷方式与注册表 UninstallString 同样指向主程序
             if not shortcut_installer.create_uninstall_shortcut(exe_path, APP_NAME):
                 return False
 
             return True
 
-        except (ImportError, OSError, PermissionError) as e:
-            logger.error(f"快捷方式创建失败: {str(e)}")
+        except (ImportError, OSError):
             return False
 
 

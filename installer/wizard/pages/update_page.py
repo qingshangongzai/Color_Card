@@ -2,10 +2,10 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Signal
-from qfluentwidgets import LineEdit, PushButton, PrimaryPushButton
 
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.wizard.mini_widgets import LineEdit, PushButton, PrimaryPushButton
 from installer.core.permission_checker import is_admin, requires_admin, validate_install_path
 
 
@@ -62,8 +62,8 @@ class UpdatePage(BasePage):
         hint_title.setStyleSheet("font-size: 13px;")
         hint_layout.addWidget(hint_title)
 
-        for hint_item in ("关闭正在运行的取色卡", "将程序文件覆盖到原安装位置", "保留已保存的配色与设置"):
-            item_label = QLabel(f"· {hint_item}")
+        for hint_item in ("关闭正在运行的取色卡", "清空原安装位置后重新写入程序文件", "保留已保存的配色与设置"):
+            item_label = QLabel(f"• {hint_item}")
             item_label.setStyleSheet("font-size: 12px;")
             hint_layout.addWidget(item_label)
 

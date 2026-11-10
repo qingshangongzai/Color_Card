@@ -2,10 +2,10 @@
 # 第三方库导入
 from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtCore import Qt
-from qfluentwidgets import PrimaryPushButton, PushButton, qconfig, setThemeColor
 
 # 项目模块导入
-from dialogs.base_frameless_dialog import BaseFramelessDialog
+from installer.wizard.frameless_base import BaseFramelessDialog
+from installer.wizard.mini_widgets import PrimaryPushButton, PushButton
 from utils.icon import load_icon_universal
 from utils.platform import fix_windows_taskbar_icon_for_window
 
@@ -30,17 +30,11 @@ class ElevationDialog(BaseFramelessDialog):
         self.setWindowTitle("需要管理员权限")
         self.setFixedSize(400, 180)
 
-        setThemeColor('#0078d4')
-
         self.setWindowIcon(load_icon_universal())
 
         self._setup_title_bar()
         self._update_styles()
         self.setup_ui()
-
-        self._theme_connection = qconfig.themeChangedFinished.connect(
-            self._update_styles
-        )
 
         self._enable_show()
         fix_windows_taskbar_icon_for_window(self)

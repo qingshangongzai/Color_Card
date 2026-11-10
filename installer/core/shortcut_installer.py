@@ -11,11 +11,6 @@ if sys.platform == 'win32':
 else:
     HAS_WIN32COM = False
 
-# 项目模块导入
-from core.logger import get_logger
-
-logger = get_logger("installer.shortcut_installer")
-
 
 class ShortcutInstaller:
     """快捷方式安装器
@@ -34,17 +29,14 @@ class ShortcutInstaller:
             bool: 是否成功
         """
         if not HAS_WIN32COM:
-            logger.warning("缺少 win32com 模块：跳过快捷方式创建")
             return True
 
         try:
             desktop = Path.home() / "Desktop"
             shortcut_path = desktop / f"{name}.lnk"
             self._create_shortcut(shortcut_path, str(exe_path), "", f"启动 {name}")
-            logger.info(f"桌面快捷方式创建成功: {shortcut_path}")
             return True
-        except (OSError, PermissionError) as e:
-            logger.error(f"桌面快捷方式创建失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def create_start_menu_shortcut(self, exe_path: Path, name: str) -> bool:
@@ -58,7 +50,6 @@ class ShortcutInstaller:
             bool: 是否成功
         """
         if not HAS_WIN32COM:
-            logger.warning("缺少 win32com 模块：跳过快捷方式创建")
             return True
 
         try:
@@ -67,10 +58,8 @@ class ShortcutInstaller:
             program_group.mkdir(parents=True, exist_ok=True)
             shortcut_path = program_group / f"{name}.lnk"
             self._create_shortcut(shortcut_path, str(exe_path), "", f"启动 {name}")
-            logger.info(f"开始菜单快捷方式创建成功: {shortcut_path}")
             return True
-        except (OSError, PermissionError) as e:
-            logger.error(f"开始菜单快捷方式创建失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def create_uninstall_shortcut(self, exe_path: Path, name: str) -> bool:
@@ -84,7 +73,6 @@ class ShortcutInstaller:
             bool: 是否成功
         """
         if not HAS_WIN32COM:
-            logger.warning("缺少 win32com 模块：跳过快捷方式创建")
             return True
 
         try:
@@ -92,10 +80,8 @@ class ShortcutInstaller:
             program_group = start_menu / name
             shortcut_path = program_group / "卸载.lnk"
             self._create_shortcut(shortcut_path, str(exe_path), "--uninstall", f"卸载 {name}")
-            logger.info(f"卸载快捷方式创建成功: {shortcut_path}")
             return True
-        except (OSError, PermissionError) as e:
-            logger.error(f"卸载快捷方式创建失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def remove_desktop_shortcut(self, name: str) -> bool:
@@ -112,10 +98,8 @@ class ShortcutInstaller:
             shortcut_path = desktop / f"{name}.lnk"
             if shortcut_path.exists():
                 shortcut_path.unlink()
-                logger.info(f"桌面快捷方式删除成功: {shortcut_path}")
             return True
-        except (OSError, PermissionError) as e:
-            logger.error(f"桌面快捷方式删除失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def remove_start_menu_shortcuts(self, name: str) -> bool:
@@ -135,10 +119,8 @@ class ShortcutInstaller:
                     if item.is_file():
                         item.unlink()
                 program_group.rmdir()
-                logger.info(f"开始菜单快捷方式删除成功: {program_group}")
             return True
-        except (OSError, PermissionError) as e:
-            logger.error(f"开始菜单快捷方式删除失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def _create_shortcut(self, shortcut_path: Path, target: str, arguments: str, description: str):

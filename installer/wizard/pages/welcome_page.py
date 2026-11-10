@@ -1,10 +1,11 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QHBoxLayout
 from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QIcon, QColor
-from qfluentwidgets import PrimaryPushButton, PushButton
+from PySide6.QtGui import QIcon
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.wizard.mini_widgets import PrimaryPushButton, PushButton
+from installer.wizard.mini_style import resolve_tokens
 from utils.icon import get_icon_path
 from version import version_manager
 
@@ -77,13 +78,13 @@ class WelcomePage(BasePage):
     def _update_styles(self):
         super()._update_styles()
 
-        text_color = QColor(40, 40, 40)
-        secondary_color = QColor(120, 120, 120)
+        text_color = resolve_tokens()['window_fg']
+        secondary_color = resolve_tokens()['fg_secondary']
 
         for child in self._content_widget.findChildren(QLabel):
             if "欢迎安装" in child.text():
-                child.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {text_color};")
             elif "Color Card v" in child.text():
-                child.setStyleSheet(f"font-size: 14px; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 14px; color: {text_color};")
             elif "一站式" in child.text():
-                child.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
+                child.setStyleSheet(f"font-size: 12px; color: {secondary_color};")

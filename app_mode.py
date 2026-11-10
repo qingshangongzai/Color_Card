@@ -35,6 +35,9 @@ class Platform(Enum):
 _mode_cache: AppMode | None = None
 _platform_cache: Platform | None = None
 
+# 便携版 app/ 布局标记：主程序位于 <解压根目录>\app\，配置文件放 <解压根目录>\config
+PORTABLE_LAYOUT_MARKER = ".portable"
+
 
 def _check_registry_install() -> Path | None:
     """从注册表检查安装路径
@@ -156,21 +159,28 @@ def get_config_dir() -> Path:
 
     根据运行模式返回不同的配置目录：
     - 安装版/开发模式: ~/.color_card/
-    - 便携版/安装程序: 程序目录/config/
+    - 便携版（app/ 布局）: 解压根目录/config/（exe 在 <根目录>/app/，带 .portable 标记）
+    - 便携版（平铺）/安装程序: 程序目录/config/
 
     Returns:
         Path: 配置目录路径
     """
     mode = detect_mode()
+    exe_dir = Path(sys.argv[0]).parent
 
     if mode in (AppMode.INSTALLED, AppMode.DEVELOPMENT):
         config_path = Path.home() / ".color_card"
         _logger.info(f"配置目录={config_path}（安装版/开发模式）")
         return config_path
-    else:
-        config_path = Path(sys.argv[0]).parent / "config"
-        _logger.info(f"配置目录={config_path}（便携版/安装程序）")
+
+    if mode == AppMode.PORTABLE and (exe_dir / PORTABLE_LAYOUT_MARKER).exists():
+        config_path = exe_dir.parent / "config"
+        _logger.info(f"配置目录={config_path}（便携版 app 布局）")
         return config_path
+
+    config_path = exe_dir / "config"
+    _logger.info(f"配置目录={config_path}（便携版/安装程序）")
+    return config_path
 
 
 def detect_platform() -> Platform:
