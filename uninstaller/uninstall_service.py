@@ -16,7 +16,7 @@ try:
 except ImportError:
     APP_NAME = "取色卡"
 
-logger = get_logger("installer.uninstall_service")
+logger = get_logger("uninstaller.uninstall_service")
 
 
 class UninstallWorker(QThread):

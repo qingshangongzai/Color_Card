@@ -1,10 +1,7 @@
-name: Build Windows App with Nuitka
+name: 构建 Windows 应用（Nuitka）
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:
 
 env:
   TZ: Asia/Shanghai
@@ -17,11 +14,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 完整历史，保证 git rev-list --count 构建号准确
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.14'
 
     - name: Restore pip cache
       uses: actions/cache@v4
@@ -66,7 +66,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install nuitka[onefile]
+        pip install nuitka
         pip install -r requirements.txt
 
     - name: Read version
@@ -90,12 +90,25 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
 
+    - name: Generate build info
+      shell: pwsh
+      run: |
+        $buildNumber = git rev-list --count HEAD
+        $commitSha = git rev-parse --short=8 HEAD
+        Write-Host "Build number: $buildNumber, commit: $commitSha"
+        Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
+        Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
+
+    - name: Build Portable Launcher
+      shell: pwsh
+      run: |
+        pwsh -File launcher/build.ps1 -OutputPath "Color Card.exe"
+
     - name: Build Portable EXE with Nuitka
       shell: pwsh
       run: |
         python -m nuitka `
           --standalone `
-          --onefile `
           --assume-yes-for-downloads `
           --windows-console-mode=disable `
           --windows-icon-from-ico="logo/Color Card_logo.ico" `
@@ -103,33 +116,75 @@ jobs:
           --product-name="${{ steps.version.outputs.app_name }}" `
           --file-version="${{ steps.version.outputs.file_version }}" `
           --product-version="${{ steps.version.outputs.product_version }}" `
-          --file-description="取色卡 - Color Card (Portable)" `
+          --file-description="取色卡 - Color Card" `
           --copyright="${{ steps.version.outputs.copyright }}" `
           --include-data-files=version.py=version.py `
           --include-data-dir=color_data=color_data `
-          --include-data-dir=core=core `
-          --include-data-dir=dialogs=dialogs `
           --include-data-dir=file=file `
           --include-data-dir=locales=locales `
-          --include-data-dir=logo=logo `
+          --include-data-files="logo/Color Card_logo.ico=logo/Color Card_logo.ico" `
+          --include-data-files="logo/Color Card_logo.png=logo/Color Card_logo.png" `
           --include-data-dir=scenes_data=scenes_data `
-          --include-data-dir=ui=ui `
-          --include-data-dir=utils=utils `
+          --nofollow-import-to=PIL.AvifImagePlugin `
+          --nofollow-import-to=PIL.WebPImagePlugin `
+          --python-flag=no_docstrings `
+          --noinclude-qt-plugins=tls `
+          --noinclude-dlls=qt6pdf.dll `
           --enable-plugin=pyside6 `
           --jobs=4 `
-          --output-filename="Color Card Portable" `
+          --output-filename="Color Card" `
           main.py
 
     - name: Create distribution folder
       shell: pwsh
       run: |
         $distDir = "dist"
-        New-Item -ItemType Directory -Force -Path $distDir
+        $appDir = "$distDir\app"
+        New-Item -ItemType Directory -Force -Path $appDir | Out-Null
 
         $version = "${{ steps.version.outputs.version }}"
-        $portableName = "Color_Card_${version}_x64.exe"
+        $zipName = "Color_Card_${version}_win_x64.zip"
+        $zipPath = Join-Path $env:RUNNER_TEMP $zipName
 
-        Copy-Item "Color Card Portable.exe" -Destination "$distDir\$portableName"
+        # 根目录只放启动器与 config，主程序与运行库整体进 app/
+        Copy-Item "main.dist\*" -Destination $appDir -Recurse
+        Copy-Item "Color Card.exe" -Destination $distDir
+        # .portable 须与 app_mode.PORTABLE_LAYOUT_MARKER 保持一致，应用据此把 config 放到解压根目录
+        New-Item -ItemType File -Force -Path "$appDir\.portable" | Out-Null
+
+        # --noinclude-dlls 对 Qt 插件 DLL 不生效，这里显式剔除 UI 不可达的图片格式与平台插件
+        $unusedQtPlugins = @(
+          "app\PySide6\qt-plugins\imageformats\qpdf.dll",
+          "app\PySide6\qt-plugins\imageformats\qtiff.dll",
+          "app\PySide6\qt-plugins\imageformats\qicns.dll",
+          "app\PySide6\qt-plugins\imageformats\qtga.dll",
+          "app\PySide6\qt-plugins\imageformats\qwbmp.dll",
+          "app\PySide6\qt-plugins\imageformats\qwebp.dll",
+          "app\PySide6\qt-plugins\platforms\qdirect2d.dll"
+        )
+        foreach ($plugin in $unusedQtPlugins) {
+          $pluginPath = Join-Path $distDir $plugin
+          if (Test-Path $pluginPath) {
+            Remove-Item $pluginPath -Force
+          }
+        }
+
+        # Compress-Archive 压缩级别固定且偏弱，改用 zipfile level 9（同目录实测省约 2 MB）
+        $zipScript = Join-Path $env:RUNNER_TEMP "make_zip.py"
+        @'
+        import os
+        import sys
+        import zipfile
+
+        src, dst = sys.argv[1], sys.argv[2]
+        with zipfile.ZipFile(dst, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+            for root, _dirs, files in os.walk(src):
+                for name in files:
+                    path = os.path.join(root, name)
+                    archive.write(path, os.path.relpath(path, src))
+        '@ | Set-Content -Path $zipScript -Encoding utf8
+        python $zipScript $distDir $zipPath
+        Move-Item $zipPath "$distDir\$zipName"
 
         Write-Host "Portable distribution contents:"
         Get-ChildItem -Path $distDir
@@ -138,19 +193,24 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ColorCard-Windows-Portable
-        path: dist/*.exe
+        path: dist/*.zip
 
   build-installer:
+    # 载荷复用便携 job 产物 zip，两条产物线共用一次 onedir 编译
+    needs: build-portable
     runs-on: windows-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 完整历史，保证 git rev-list --count 构建号准确
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.14'
 
     - name: Restore pip cache
       uses: actions/cache@v4
@@ -219,9 +279,55 @@ jobs:
         Add-Content -Path $env:GITHUB_OUTPUT -Value "copyright=$COPYRIGHT"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "app_name=$APP_NAME"
 
+    - name: Generate build info
+      shell: pwsh
+      run: |
+        $buildNumber = git rev-list --count HEAD
+        $commitSha = git rev-parse --short=8 HEAD
+        Write-Host "Build number: $buildNumber, commit: $commitSha"
+        Set-Content -Path build_info.py -Value "BUILD_NUMBER = `"$buildNumber`""
+        Add-Content -Path build_info.py -Value "COMMIT_SHA = `"$commitSha`""
+
+    - name: Download portable payload
+      uses: actions/download-artifact@v4
+      with:
+        name: ColorCard-Windows-Portable
+
+    - name: Prepare installer payload
+      shell: pwsh
+      run: |
+        # 便携产物 zip 文件名含版本号与空格，通配定位；目标名须与 installer/core/install_service.py 的 PAYLOAD_ZIP_NAME 一致
+        $payloadSource = Get-ChildItem -Filter "Color_Card_*_win_x64.zip" | Select-Object -First 1
+        if (-not $payloadSource) {
+          throw "未找到便携载荷 zip（预期匹配 Color_Card_*_win_x64.zip）"
+        }
+        # 载荷重压为 LZMA：实测较 deflate-9 省 ~15 MB。Windows Explorer 不支持 LZMA，便携 zip 保持 deflate，仅安装器内嵌载荷重压（内容零加工，条目集合不变）
+        $rezipScript = Join-Path $env:RUNNER_TEMP "rezip_payload.py"
+        @'
+        import shutil
+        import sys
+        import zipfile
+
+        src, dst = sys.argv[1], sys.argv[2]
+        with zipfile.ZipFile(src) as archive_in, zipfile.ZipFile(dst, "w", zipfile.ZIP_LZMA) as archive_out:
+            for info in archive_in.infolist():
+                if info.is_dir():
+                    continue
+                with archive_in.open(info) as member_in, archive_out.open(info.filename, "w") as member_out:
+                    shutil.copyfileobj(member_in, member_out)
+        '@ | Set-Content -Path $rezipScript -Encoding utf8
+        python $rezipScript $payloadSource.FullName "Color Card Payload.zip"
+        if ($LASTEXITCODE -ne 0) {
+          throw "载荷重压失败（python 退出码 $LASTEXITCODE）"
+        }
+        Write-Host "载荷已就位(重压 LZMA): $($payloadSource.Name) -> Color Card Payload.zip"
+
     - name: Build Installer EXE with Nuitka
       shell: pwsh
       run: |
+        # 数据目录由载荷 zip 自带（安装时解压铺开），向导自身仅需 logo ico 与载荷文件；
+        # installer 已脱耦 qfluentwidgets/dialogs/core，nofollow 三项防误 import 静默回流（运行期 ImportError 报警）；
+        # ui 为历史护栏，PIL 两条为历史残留参数；onefile 无法在打包后清理文件，仅用实测对 Qt 插件生效的 noinclude 参数（tls 插件、qt6pdf.dll）
         python -m nuitka `
           --standalone `
           --onefile `
@@ -235,20 +341,21 @@ jobs:
           --file-description="取色卡 - Color Card (Installer)" `
           --copyright="${{ steps.version.outputs.copyright }}" `
           --include-data-files=version.py=version.py `
-          --include-data-dir=color_data=color_data `
-          --include-data-dir=core=core `
-          --include-data-dir=dialogs=dialogs `
-          --include-data-dir=file=file `
-          --include-data-dir=locales=locales `
-          --include-data-dir=logo=logo `
-          --include-data-dir=scenes_data=scenes_data `
-          --include-data-dir=ui=ui `
-          --include-data-dir=utils=utils `
-          --include-data-dir=installer=installer `
+          --include-data-files="logo/Color Card_logo.ico=logo/Color Card_logo.ico" `
+          --include-data-files="Color Card Payload.zip=Color Card Payload.zip" `
+          --nofollow-import-to=qfluentwidgets `
+          --nofollow-import-to=dialogs `
+          --nofollow-import-to=core `
+          --nofollow-import-to=ui `
+          --nofollow-import-to=PIL.AvifImagePlugin `
+          --nofollow-import-to=PIL.WebPImagePlugin `
+          --noinclude-qt-plugins=tls `
+          --noinclude-dlls=qt6pdf.dll `
+          --python-flag=no_docstrings `
           --enable-plugin=pyside6 `
           --jobs=4 `
           --output-filename="ColorCard" `
-          installer/main.py
+          installer_main.py
 
     - name: Create distribution folder
       shell: pwsh
@@ -257,7 +364,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path $distDir
 
         $version = "${{ steps.version.outputs.version }}"
-        $installerName = "Color_Card_${version}_x64_Setup.exe"
+        $installerName = "Color_Card_${version}_win_x64_Setup.exe"
 
         Copy-Item "ColorCard.exe" -Destination "$distDir\$installerName"
 

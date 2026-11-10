@@ -1,134 +1,84 @@
-/widgets/__pycache__
-debug.log
-output/1.exe
-/.trae
-/__pycache__
-测试.jpg
-指令合集.txt
-Image_1767614094030.jpg
-封面.png
-打包/1.json
-/output
-色彩提取色卡_20260204_031736.png
-PixPin_2026-02-04_04-08-56.png
-/ui/widgets/__pycache__
-/ui/canvases/__pycache__
-/ui/__pycache__
-/dialogs/__pycache__
-/core/__pycache__
-/ui/interfaces/__pycache__
-/utils/__pycache__
-README - BetterGI StellTrack.md
-/打包
-upx-5.1.0-win64.zip
-/upx/upx-5.1.0-win64
-发行说明.md
-PyQt6_Windows_TitleBar_DarkMode_Guide.md
-PyQt6_Windows_TitleBar_DarkMode_Guide.md
+# ============================================================
+# 取色卡 (Color Card) Git 忽略规则
+# 只保留结构性规则，不为单个临时文件添加条目
+# ============================================================
 
-# 虚拟环境
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.so
 .venv/
 venv/
 env/
 ENV/
 
-版权完善计划.md
-THIRD_PARTY_LICENSES.md
-activate.ps1
-activate.bat
-Python3.14t性能优化计划.md
+# ---------- 测试与静态检查 ----------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+bandit_report*.html
+
+# ---------- 构建与打包产物 ----------
+# CI 打包时生成的构建号文件
+/build_info.py
+# C 启动器构建生成的中间产物
+/launcher/build/
+# Nuitka 构建报告
+/nuitka-crash-report.xml
+/build/
+/dist/
+/output/
+_nuitka_cache/
+*.build/
+*.dist/
+*.onefile-build/
+*.spec
+*.exe
+*.app/
+*.dmg
+/upx/
+upx-*.zip
+/打包/
+
+# ---------- 运行日志 ----------
+/logs/
+*.log
+
+# ---------- AI 工具与 IDE 工作目录 ----------
+# 根目录 skills/ 为唯一维护源，各工具下的副本不单独维护
+/.trae/
+/.qoder/
+/.dsh/
+/.zcode/
+/.codebuddy/
+/.idea/
+/.vscode/
+*.swp
+*~
+
+# ---------- 网站 (Vite) ----------
+node_modules/
+/website/dist/
+
+# ---------- 操作系统文件 ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- 项目私有文件 ----------
+# 过程性文档（方案/计划/分析类）整体不入库
+/文档/过程性文档/
+# 本地演示脚本与测试图片素材，不入库
+/demo/
+/测试图片/
+# 应用导出的配色文件与色卡图片
+color_card_*.json
 color_card_favorites.json
-/测试图片
-/preview_scenes/__pycache__
-文档/开发规范 - BetterGI StellTrack.md
-文档/color_card_20260221_134235.json
-CHANGELOG.md
-*.pyc
-
-# ====================
-# Website (Node.js)
-# ====================
-# Dependencies
-website/node_modules/
-
-# Build output
-website/dist/
-website/build/
-
-# Logs
-website/npm-debug.log*
-website/yarn-debug.log*
-website/yarn-error.log*
-
-# Editor directories and files
-website/.vscode/
-website/.idea/
-website/*.suo
-website/*.ntvs*
-website/*.njsproj
-website/*.sln
-website/*.sw?
-
-# OS files
-website/.DS_Store
-website/Thumbs.db
-/宣传图
-文档/1.4.0 更新内容.txt
-文档/更新内容.txt
-生成源代码文档.py
-生成源代码文档_v2.py
-/著作权材料
-md转docx.py
-审核PDF.py
-最终审核报告.md
-检查CSS描述.py
-检查说明书.py
-深度审核.py
-生成源代码文档_v3.py
-生成源代码文档_v4.py
-生成源代码文档_v5.py
-文档/使用说明.txt
-文档/color_card_20260313_142803.json
-文档/color_card_20260313_161405.json
-/测试
-/创作过程
-bandit_report.html
-bandit_project_report.html
-/.idea
-/logs
-文档/改进问题汇总.txt
-文档/待改进问题汇总.txt
-文档/临时.txt
-文档/临时.txt
-文档/临时.txt
-/配色方案
-明度分析.py
-明度分析_GUI.py
-/demos
-影调分析/
-ui/palette_management_lazy.py
-check_real_config.py
-test_json_bottleneck.py
-test_separate_storage.py
-test_results.json
-test_lazy_loading.py
-
-/dist
-/121231221
-tone_labeler/基于直方图的影调自动分类算法.md
-/.qoder
-/51055510
-logo-generator-skill/
-tone_labeler/labels.json
-/tone_labeler/data
-# 过程性文档（方案/计划/分析类，整体不入库）
-/过程性文档
-.git-diff.txt
-svg/diagram (2).svg
-svg/diagram (1).svg
-/svg
-文档/待核实问题清单.txt
-/.arts
-/.zcode
-/.codebuddy
-/文档/过程性文档
+色彩提取色卡_*.png
+PixPin_*.png
+# 临时文件
+*.tmp
+~$*

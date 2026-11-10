@@ -4,8 +4,6 @@
 使用 Machado 2009 LMS 色彩空间矩阵实现准确的色盲模拟。
 """
 
-from __future__ import annotations
-
 # 色盲类型定义
 COLORBLIND_TYPES = {
     'normal': {

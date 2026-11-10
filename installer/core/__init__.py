@@ -1,13 +1,5 @@
-"""安装/卸载业务逻辑模块"""
+"""安装/卸载业务逻辑模块
 
-from installer.core.install_service import InstallService
-from installer.core.file_installer import FileInstaller
-from installer.core.registry_installer import RegistryInstaller
-from installer.core.shortcut_installer import ShortcutInstaller
-
-__all__ = [
-    'InstallService',
-    'FileInstaller',
-    'RegistryInstaller',
-    'ShortcutInstaller'
-]
+保持空白入口：调用方直接导入子模块（如 installer.core.install_service），
+避免导入任意子模块时触发入口级联加载，进而形成循环导入。
+"""

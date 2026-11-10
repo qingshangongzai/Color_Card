@@ -24,7 +24,7 @@
 
   <!-- 专辑封面区域 -->
   <rect id="album-cover" class="primary" x="105" y="95" width="90" height="90" rx="8" fill="#4a4a4a"/>
-  <circle id="album-icon" cx="150" cy="140" r="20" fill="#666666"/>
+  <circle class="secondary" id="album-icon" cx="150" cy="140" r="20" fill="#666666"/>
   <path id="music-note" d="M 145 135 L 145 148 L 155 148 L 155 138" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" data-fixed-color="black"/>
 
   <!-- 歌曲信息 -->
@@ -34,7 +34,7 @@
   <!-- 进度条 -->
   <rect id="progress-bg" class="secondary" x="95" y="240" width="110" height="4" rx="2" fill="#e0e0e0"/>
   <rect id="progress-bar" class="accent" x="95" y="240" width="65" height="4" rx="2" fill="#7c4dff"/>
-  <circle id="progress-knob" cx="160" cy="242" r="5" fill="#7c4dff"/>
+  <circle class="accent" id="progress-knob" cx="160" cy="242" r="5" fill="#7c4dff"/>
 
   <!-- 时间显示 -->
   <text id="current-time" class="text" x="95" y="255" font-family="Arial, sans-serif" font-size="8" fill="#888888" data-fixed-color="black">2:34</text>

@@ -1,5 +1,6 @@
-from __future__ import annotations
-
+import subprocess
+import sys
+from pathlib import Path
 
 
 class VersionManager:
@@ -8,13 +9,16 @@ class VersionManager:
     def __init__(self) -> None:
         """初始化版本管理器"""
         # 版本号组件
-        self.major: int = 1
-        self.minor: int = 11
+        self.major: int = 2
+        self.minor: int = 0
         self.patch: int = 0
-        self.prerelease: str = ""
+        self.prerelease: str = " Alpha 1"
 
         # 核心版本信息
         self.version: str = f"{self.major}.{self.minor}.{self.patch}{self.prerelease}"
+
+        # 构建信息（git 提交序号与 SHA，仅在启动时解析一次）
+        self.build_number, self.commit_sha = self._resolve_build_info()
 
         # 应用程序元数据
         self.app_info: dict[str, str] = {
@@ -36,6 +40,56 @@ class VersionManager:
             str: 应用程序版本号，格式为"X.Y.Z"
         """
         return self.version
+
+    def get_display_version(self) -> str:
+        """获取展示用的完整版本号（含构建号，用于日志等展示场景）
+
+        版本比较（更新检查等）请使用 get_version()，构建信息只用于展示。
+
+        Returns:
+            str: 展示版本号，格式为"X.Y.Z[预发布].构建号"
+        """
+        return f"{self.version}.{self.build_number}"
+
+    def _resolve_build_info(self) -> tuple[str, str]:
+        """解析构建信息：优先读打包时固化的 build_info.py，其次查询 git
+
+        Returns:
+            tuple[str, str]: (构建号, 提交 SHA)，git 不可用时返回 ("dev", "")
+        """
+        try:
+            # build_info.py 由 CI 打包前生成（源码仓库中不存在，故为可选导入）
+            from build_info import BUILD_NUMBER, COMMIT_SHA
+        except ImportError:
+            return self._query_git_build_info()
+        return BUILD_NUMBER, COMMIT_SHA
+
+    def _query_git_build_info(self) -> tuple[str, str]:
+        """查询 git 提交序号与 SHA 作为构建信息（源码运行模式）
+
+        Returns:
+            tuple[str, str]: (构建号, 提交 SHA)，git 不可用时返回 ("dev", "")
+        """
+        try:
+            # 打包后没有 .git 目录，此路径只在源码模式可达，cwd 用文件所在目录即仓库根
+            common_args = {
+                "capture_output": True,
+                "text": True,
+                "timeout": 5,
+                "cwd": Path(__file__).resolve().parent,
+            }
+            if sys.platform == "win32":
+                # GUI 程序调用控制台程序会弹出黑框，显式禁止
+                common_args["creationflags"] = subprocess.CREATE_NO_WINDOW
+            number = subprocess.run(
+                ["git", "rev-list", "--count", "HEAD"], check=True, **common_args
+            ).stdout.strip()
+            sha = subprocess.run(
+                ["git", "rev-parse", "--short=8", "HEAD"], check=True, **common_args
+            ).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            return "dev", ""
+        return number, sha
 
     def get_app_info(self) -> dict[str, str]:
         """获取应用程序信息

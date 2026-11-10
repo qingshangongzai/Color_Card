@@ -11,13 +11,25 @@
 下拉框：ComboBox
 滚动区域：ScrollArea
 提示条：InfoBar
+悬停提示：tooltip
 
 # qfluentwidgets 组件
 设置卡片：PushSettingCard
 设置卡片分组：SettingCardGroup
 副标题标签：SubtitleLabel
+滑块：Slider
+分段控件：SegmentedWidget
+透明工具按钮：TransparentToolButton
+卡片控件：CardWidget
+标题栏：FluentTitleBar
 
 # 自定义组件
+卡片基类：BaseCard
+卡片面板基类：BaseCardPanel
+画布基类：BaseCanvas
+明度画布：LuminanceCanvas
+直方图基类：BaseHistogram
+颜色选择器：ColorPicker
 色卡：ColorCard
 色卡面板：ColorCardPanel
 明度卡：LuminanceCard
@@ -31,21 +43,42 @@ HSB色环：HSBColorWheel
 RGB直方图：RGBHistogramWidget
 色相直方图：HueHistogramWidget
 缩放查看器：ZoomViewer
+渐变预览：GradientPreviewWidget
+渐变色卡面板：GradientCardPanel
+配色生成色卡：GenerationColorInfoCard
+配色生成面板：GenerationColorPanel
+配色管理卡片：PaletteManagementCard
+配色管理列表：PaletteManagementList
+配色卡：PaletteCard
+内置色彩卡：PresetColorCard
+内置色彩列表：PresetColorList
+SVG 预览：SVGPreviewWidget
+颜色色块：ColorSwatch
+通道滑块：ChannelSlider
+长按连发按钮：RepeatToolButton
+数值输入框：NumericLineEdit
+HEX 输入框：HexLineEdit
+配色微调卡片：TuneCard
 
 # 对话框
 关于对话框：AboutDialog
 更新对话框：UpdateAvailableDialog
 编辑配色对话框：EditPaletteDialog
+颜色选择器对话框：ColorPickerDialog
+通用确认对话框：ConfirmDialog
 删除确认对话框：DeleteConfirmDialog
 导入模式对话框：ImportModeDialog
 色盲模拟对话框：ColorblindDialog
 对比度检查对话框：ContrastDialog
+和谐度分析对话框：HarmonyAnalysisDialog
+明度分析对话框：ToneAnalysisDialog
 导出设置对话框：ExportSettingsDialog
 
 # 界面模块
 色彩分析界面：ColorAnalysisInterface
 明度分析界面：LuminanceAnalysisInterface
 渐变生成界面：GradientGenerationInterface
+色彩微调界面：PaletteTuningInterface
 配色生成界面：ColorGenerationInterface
 配色管理界面：PaletteManagementInterface
 内置色彩界面：PresetColorInterface
@@ -55,5 +88,6 @@ RGB直方图：RGBHistogramWidget
 # 布局组件
 水平布局：QHBoxLayout
 垂直布局：QVBoxLayout
+网格布局：QGridLayout
 分割器：QSplitter
 堆叠窗口：QStackedWidget

@@ -1,4 +1,3 @@
-from __future__ import annotations
 # 标准库导入
 import sys
 from datetime import datetime
@@ -10,10 +9,8 @@ if sys.platform == 'win32':
     import winreg
 
 # 项目模块导入
-from core.logger import get_logger
+from installer.core.constants import APP_EXE_NAME
 from version import version_manager
-
-logger = get_logger("installer.registry_installer")
 
 APP_ID = "{8EBD3944-B989-4878-B943-DE4558FDF22C}"
 
@@ -38,7 +35,6 @@ class RegistryInstaller:
             bool: 是否成功
         """
         if sys.platform != 'win32':
-            logger.warning("非 Windows 平台：跳过注册表写入")
             return True
 
         try:
@@ -55,11 +51,9 @@ class RegistryInstaller:
                 winreg.SetValueEx(key, "Version", 0, winreg.REG_SZ, version_manager.version)
                 winreg.SetValueEx(key, "CompanyName", 0, winreg.REG_SZ, version_manager.app_info['company'])
 
-            logger.info(f"注册表写入成功: {REGISTRY_KEY}")
             return True
 
-        except (OSError, PermissionError) as e:
-            logger.error(f"注册表写入失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def write_uninstall_entry(self, config: dict[str, Any]) -> bool:
@@ -74,12 +68,11 @@ class RegistryInstaller:
             bool: 是否成功
         """
         if sys.platform != 'win32':
-            logger.warning("非 Windows 平台：跳过卸载条目写入")
             return True
 
         try:
             install_path = Path(config['install_path'])
-            exe_path = install_path / "Color Card.exe"
+            exe_path = install_path / APP_EXE_NAME
 
             uninstall_key_path = f"{UNINSTALL_KEY}\\{APP_ID}"
             key = winreg.CreateKeyEx(
@@ -105,11 +98,9 @@ class RegistryInstaller:
                     winreg.SetValueEx(key, "EstimatedSize", 0, winreg.REG_DWORD,
                                       int(config['install_size_kb']))
 
-            logger.info(f"卸载条目写入成功: {uninstall_key_path}")
             return True
 
-        except (OSError, PermissionError) as e:
-            logger.error(f"卸载条目写入失败: {str(e)}")
+        except (OSError, PermissionError):
             return False
 
     def remove_install_info(self) -> bool:
@@ -123,10 +114,8 @@ class RegistryInstaller:
 
         try:
             winreg.DeleteKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
-            logger.info(f"注册表删除成功: {REGISTRY_KEY}")
             return True
-        except (OSError, FileNotFoundError) as e:
-            logger.warning(f"注册表删除失败: {str(e)}")
+        except (OSError, FileNotFoundError):
             return False
 
     def remove_uninstall_entry(self) -> bool:
@@ -141,10 +130,8 @@ class RegistryInstaller:
         try:
             uninstall_key_path = f"{UNINSTALL_KEY}\\{APP_ID}"
             winreg.DeleteKey(winreg.HKEY_CURRENT_USER, uninstall_key_path)
-            logger.info(f"卸载条目删除成功: {uninstall_key_path}")
             return True
-        except (OSError, FileNotFoundError) as e:
-            logger.warning(f"卸载条目删除失败: {str(e)}")
+        except (OSError, FileNotFoundError):
             return False
 
     def find_inno_install_path(self) -> Path | None:
@@ -177,7 +164,6 @@ class RegistryInstaller:
         inno_key = f"{UNINSTALL_KEY}\\{APP_ID}_is1"
         try:
             winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, inno_key)
-            logger.info(f"已删除旧 Inno 注册表项: {inno_key}")
             return True
         except (OSError, FileNotFoundError):
             return False

@@ -1,7 +1,9 @@
 # 第三方库导入
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
+
+# 项目模块导入
+from installer.wizard.mini_style import resolve_tokens
 
 class BasePage(QWidget):
     """向导页面基类
@@ -42,11 +44,10 @@ class BasePage(QWidget):
         pass
 
     def _update_styles(self):
-        text_color = QColor(40, 40, 40)
+        text_color = resolve_tokens()['window_fg']
         self.setStyleSheet(f"""
-            QWidget {{
-                color: {text_color.name()};
-                background-color: transparent;
+            QLabel {{
+                color: {text_color};
             }}
         """)
 

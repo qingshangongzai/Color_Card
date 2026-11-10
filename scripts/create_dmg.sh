@@ -7,7 +7,7 @@ set -e
 # 参数
 VERSION="${VERSION:-1.4.1}"
 APP_NAME="ColorCard"
-DMG_NAME="Color_Card_${VERSION}_mac.dmg"
+DMG_NAME="Color_Card_${VERSION}_mac_arm64.dmg"
 SOURCE_APP="dist/ColorCard.app"
 OUTPUT_DMG="dist/${DMG_NAME}"
 TEMP_DIR="dist/dmg_temp"

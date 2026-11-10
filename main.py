@@ -1,4 +1,5 @@
 # 标准库导入
+import argparse
 import ctypes
 import os
 import sys
@@ -49,11 +50,6 @@ def setup_global_exception_handler(logger):
 # 立即调用（在导入 PySide6 之前）
 set_app_user_model_id()
 
-# 只导入启动画面必需的模块（必须在 set_app_user_model_id 之后导入）
-from PySide6.QtCore import Qt, QTimer, QSize  # noqa: E402
-from PySide6.QtGui import QColor, QIcon  # noqa: E402
-from PySide6.QtWidgets import QApplication, QSplashScreen  # noqa: E402
-
 
 def _get_base_path() -> str:
     """获取应用程序基础路径
@@ -74,6 +70,10 @@ def _get_base_path() -> str:
 
 def _create_splash_screen():
     """创建并显示启动画面"""
+    from PySide6.QtCore import Qt, QSize
+    from PySide6.QtGui import QColor, QIcon
+    from PySide6.QtWidgets import QApplication, QSplashScreen
+
     base_path = _get_base_path()
     logo_path = os.path.join(base_path, 'logo', 'Color Card_logo.ico')
 
@@ -111,15 +111,32 @@ def _create_splash_screen():
     return splash
 
 
-def main():
-    QApplication.setHighDpiScaleFactorRoundingPolicy(
-        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-    )
+def _run_uninstall(skip_to_progress: bool, delete_config: bool) -> None:
+    """以卸载模式启动
 
-    # 增加 Qt 图像分配限制，支持超大图片（1GB）
-    os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
+    卸载对话框是 QWidget，必须在独立的 QApplication 就绪后才能创建；
+    该分支不复用主程序的应用程序实例。
+
+    Args:
+        skip_to_progress: 是否直接开始卸载
+        delete_config: 是否删除用户配置
+    """
+    from PySide6.QtWidgets import QApplication
+    from qfluentwidgets import Theme, setTheme
 
     app = QApplication(sys.argv)
+    setTheme(Theme.AUTO)
+
+    from utils import load_icon_universal
+    app.setWindowIcon(load_icon_universal())
+
+    from uninstaller.runner import run_uninstall
+    run_uninstall(skip_to_progress=skip_to_progress, delete_config=delete_config)
+
+
+def main():
+    # 增加 Qt 图像分配限制，支持超大图片（1GB）
+    os.environ['QT_IMAGEIO_MAXALLOC'] = '1024'
 
     # 初始化日志系统
     from core import get_logger_manager, get_logger
@@ -132,6 +149,41 @@ def main():
 
     # 设置全局异常处理器
     setup_global_exception_handler(logger)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--uninstall', action='store_true', help='运行卸载程序')
+    parser.add_argument('--skip-to-uninstall-progress', action='store_true', help='直接开始卸载')
+    parser.add_argument('--delete-config', action='store_true', help='删除用户配置')
+    # macOS 的 LaunchServices 可能附加 -psn_* 等未知参数，严格解析会导致启动失败
+    args, _ = parser.parse_known_args()
+
+    # 分流必须早于单实例守卫：应用运行中执行 --uninstall 不能被判为副实例而静默退出
+    if args.uninstall:
+        if sys.platform == 'win32':
+            _run_uninstall(args.skip_to_uninstall_progress, args.delete_config)
+            sys.exit(0)
+        logger.warning("--uninstall 仅在 Windows 生效，按正常模式启动")
+
+    # 单实例检查先于 QApplication：副实例不创建 QApplication 与窗口，通知已有实例后直接退出。
+    # 单实例模块自身只用 QtCore/QtNetwork；core 包因日志初始化已在上一步导入。
+    from core.single_instance import SingleInstanceGuard, SingleInstanceResult
+    guard = SingleInstanceGuard()
+    guard_result = guard.acquire()
+    if guard_result == SingleInstanceResult.SECONDARY:
+        logger.info("检测到已有实例，已通知其激活窗口，本实例退出")
+        return
+
+    from PySide6.QtCore import Qt, QTimer
+    from PySide6.QtGui import QGuiApplication
+    from PySide6.QtWidgets import QApplication
+
+    QGuiApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+    )
+    app = QApplication(sys.argv)
+    app._single_instance_guard = guard
+    if guard_result == SingleInstanceResult.PRIMARY:
+        guard.start_server()
 
     # 立即显示启动画面（在其他模块导入前）
     splash = _create_splash_screen()
@@ -169,7 +221,7 @@ def main():
         from core import get_config_manager
         logger.info("core 模块导入完成")
 
-        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager, force_window_to_front
+        from utils import fix_windows_taskbar_icon_for_window, load_icon_universal, get_locale_manager, force_window_to_front, show_and_activate_window
         logger.info("utils 模块导入完成")
 
         from ui import MainWindow
@@ -206,6 +258,14 @@ def main():
         logger.info("创建主窗口...")
         window = MainWindow()
 
+        def _activate_window():
+            """副实例请求激活时还原并前置主窗口"""
+            logger.info("收到副实例激活请求，前置主窗口")
+            show_and_activate_window(window)
+
+        if guard_result == SingleInstanceResult.PRIMARY:
+            guard.activation_requested.connect(_activate_window)
+
         # 初始化标题栏主题按钮状态
         if hasattr(window, 'titleBar') and hasattr(window.titleBar, 'init_theme'):
             window.titleBar.init_theme(theme_setting)
@@ -231,6 +291,11 @@ def main():
         def _auto_check_update(window, config_manager):
             """自动检查更新（每周一次）"""
             if not config_manager.get('settings.auto_check_update', True):
+                return
+
+            # 窗口隐藏到托盘或最小化时跳过本次检查，且不写 last_check_time；
+            # 定时器只触发一次，下次启动且窗口可见时才会重新检查
+            if not window.isVisible() or window.isMinimized():
                 return
 
             last_check = config_manager.get('settings.last_check_time')

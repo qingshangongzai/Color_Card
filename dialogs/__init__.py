@@ -4,7 +4,12 @@ from .about_dialog import AboutDialog
 from .base_frameless_dialog import BaseFramelessDialog
 from .colorblind_dialog import ColorblindPreviewDialog
 from .color_distribution_dialog import ColorDistributionDialog
-from .confirm_dialogs import DeleteConfirmDialog, ImportModeDialog
+from .confirm_dialogs import (
+    CloseConfirmDialog,
+    ConfirmDialog,
+    DeleteConfirmDialog,
+    ImportModeDialog,
+)
 from .contrast_dialog import ContrastCheckDialog
 from .edit_palette import EditPaletteDialog, ColorPickerDialog
 from .export_settings_dialog import ExportSettingsDialog
@@ -15,8 +20,10 @@ from .update_dialog import UpdateAvailableDialog
 __all__ = [
     'AboutDialog',
     'BaseFramelessDialog',
+    'CloseConfirmDialog',
     'ColorblindPreviewDialog',
     'ColorDistributionDialog',
+    'ConfirmDialog',
     'ColorPickerDialog',
     'ContrastCheckDialog',
     'DeleteConfirmDialog',

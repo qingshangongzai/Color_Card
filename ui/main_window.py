@@ -1,21 +1,29 @@
-from __future__ import annotations
 # 标准库导入
+import ctypes
+import ctypes.wintypes
 import sys
 from typing import Any
 
 # 第三方库导入
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import QEvent, Qt, QTimer
 from PySide6.QtGui import QIcon, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QApplication, QLabel
+    QApplication, QLabel, QSystemTrayIcon
 )
 from qfluentwidgets import FluentIcon, FluentWindow, NavigationItemPosition, qrouter, FluentTitleBar, ToolButton, setTheme, Theme
 
 # 项目模块导入
 from core import get_config_manager, get_logger
-from utils import tr, get_locale_manager
+from core.config import CLOSE_ACTION_ASK, CLOSE_ACTION_QUIT, CLOSE_ACTION_TRAY
+from dialogs import CloseConfirmDialog
+from utils import tr, get_locale_manager, show_and_activate_window
 from version import version_manager
 from .color_wheel import HSBColorWheel, InteractiveColorWheel
+from .palette_tile import FloatingPaletteTile
+from .tray import create_tray
+
+# Windows 会话结束消息：wParam 为 FALSE 表示关机/注销被取消
+_WM_ENDSESSION = 0x0016
 
 # 工具按钮统一样式
 _TOOLBUTTON_STYLE = """
@@ -214,6 +222,7 @@ class MainWindow(FluentWindow):
             'colorAnalysis': ('ui.color_analysis', 'ColorAnalysisInterface'),
             'luminanceAnalysis': ('ui.luminance_analysis', 'LuminanceAnalysisInterface'),
             'gradientGeneration': ('ui.gradient_generation', 'GradientGenerationInterface'),
+            'paletteTuning': ('ui.palette_tuning', 'PaletteTuningInterface'),
             'colorGeneration': ('ui.color_generation', 'ColorGenerationInterface'),
             'paletteManagement': ('ui.palette_management', 'PaletteManagementInterface'),
             'presetColor': ('ui.preset_color', 'PresetColorInterface'),
@@ -244,6 +253,26 @@ class MainWindow(FluentWindow):
 
         # 设置 Ctrl+V 粘贴图片快捷键
         self._setup_paste_shortcut()
+
+        # 托盘与关闭行为状态
+        self._quit_requested = False
+        self._session_ending = False
+        self._palette_tile: FloatingPaletteTile | None = None
+        self._app_quitting = False
+        self._tray = create_tray(self)
+        app = QApplication.instance()
+        if self._tray is not None:
+            app.setQuitOnLastWindowClosed(False)
+        if sys.platform == 'win32':
+            app.commitDataRequest.connect(self._on_commit_data_request)
+        elif sys.platform == 'darwin':
+            # Cmd+Q / 应用菜单“退出”会先由系统关闭窗口、再发 aboutToQuit：
+            # 用事件过滤标记退出中，避免关窗阶段落入询问/托盘分支；aboutToQuit 兜底保存与清理
+            app.installEventFilter(self)
+            app.aboutToQuit.connect(self._on_about_to_quit)
+            # 窗口隐藏到托盘后，点击 Dock 图标与 Cmd+Tab 都会让应用转为激活态，
+            # 恢复入口在此统一处理（单击托盘图标只弹菜单，不接 activated）
+            app.applicationStateChanged.connect(self._on_mac_application_state_changed)
 
     def _get_interface(self, interface_id: str) -> Any:
         """按需获取界面实例
@@ -296,6 +325,10 @@ class MainWindow(FluentWindow):
         # 连接渐变生成界面的收藏信号
         if interface_id == 'gradientGeneration':
             interface.favorite_requested.connect(self._on_gradient_generation_favorite)
+
+        # 连接色彩微调界面的收藏信号
+        if interface_id == 'paletteTuning':
+            interface.favorite_requested.connect(self._on_palette_tuning_favorite)
 
     def _connect_settings_signals(self, settings_interface: Any):
         """连接设置界面的信号
@@ -493,7 +526,84 @@ class MainWindow(FluentWindow):
         color_analysis_interface.set_brightness_threshold(brightness_threshold)
 
     def closeEvent(self, event):
-        """窗口关闭事件，保存配置并清理后台线程"""
+        """窗口关闭事件：按配置询问、最小化到托盘或退出"""
+        if self._app_quitting:
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            return
+
+        if self._session_ending:
+            # 关机/注销由系统接管，事件循环可能来不及处理延迟退出，保持同步退出
+            # 一次性标志：关机被取消后，下次关闭仍应弹询问框
+            self._session_ending = False
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            QApplication.quit()
+            return
+
+        if self._quit_requested:
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            self._quit_application()
+            return
+
+        if self._tray is None or not QSystemTrayIcon.isSystemTrayAvailable():
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            self._quit_application()
+            return
+
+        close_action = self._config_manager.get('settings.close_action', CLOSE_ACTION_ASK)
+        if close_action == CLOSE_ACTION_TRAY:
+            self._save_state()
+            self.hide()
+            event.ignore()
+            return
+        if close_action == CLOSE_ACTION_QUIT:
+            self._save_state()
+            self._cleanup()
+            event.accept()
+            self._quit_application()
+            return
+
+        event.ignore()
+        # 从任务栏关闭时窗口可能已最小化或隐藏，先恢复主窗口再弹询问框，
+        # 否则无父窗口定位，询问框会出现在屏幕左上角
+        if self.isMinimized() or not self.isVisible():
+            show_and_activate_window(self)
+        dialog = CloseConfirmDialog(self)
+        dialog.exec()
+        chosen_action = dialog.action
+        remember = dialog.remember
+        dialog.deleteLater()
+        if chosen_action == CLOSE_ACTION_TRAY:
+            if remember:
+                self._config_manager.set('settings.close_action', CLOSE_ACTION_TRAY)
+            self._save_state()
+            self.hide()
+        elif chosen_action == CLOSE_ACTION_QUIT:
+            if remember:
+                self._config_manager.set('settings.close_action', CLOSE_ACTION_QUIT)
+            self._quit_requested = True
+            QTimer.singleShot(0, self.close)
+
+    def eventFilter(self, obj, event) -> bool:
+        """mac 应用退出：标记退出中，让关窗走退出分支而不是询问/托盘分支"""
+        if obj is QApplication.instance() and event.type() == QEvent.Type.Quit:
+            self._app_quitting = True
+        return super().eventFilter(obj, event)
+
+    def _save_state(self):
+        """落盘色彩微调与窗口状态"""
+        # 先落盘色彩微调状态（防抖计时器可能尚未触发）
+        palette_tuning_interface = self._interfaces.get('paletteTuning')
+        if palette_tuning_interface is not None:
+            palette_tuning_interface.flush_save()
+
         # 保存窗口状态（全屏和最大化需要区分保存）
         is_fullscreen = self.isFullScreen()
         is_maximized = self.isMaximized()
@@ -511,13 +621,68 @@ class MainWindow(FluentWindow):
 
         self._config_manager.save()
 
-        # 清理后台线程
+    def _cleanup(self):
+        """完整退出前的清理：后台线程、分析对话框与托盘图标"""
         self._cleanup_background_threads()
-
-        # 关闭所有明度分析对话框
         self._close_tone_analysis_dialogs()
+        if self._palette_tile is not None:
+            self._palette_tile.hide()
+        if self._tray is not None:
+            self._tray.hide()
 
-        event.accept()
+    def _quit_application(self) -> None:
+        """延后到当前事件处理结束再退出事件循环
+
+        在 closeEvent 内同步调用 QApplication.quit() 会让 mac 在关闭事件返回前
+        终止进程，此时 Python 侧对象尚未释放，退出析构顺序不可控。
+        """
+        QTimer.singleShot(0, QApplication.quit)
+
+    def _on_commit_data_request(self, _manager):
+        """系统关机/注销：落盘配置，不弹询问框"""
+        self._session_ending = True
+        self._save_state()
+
+    def _on_about_to_quit(self) -> None:
+        """mac 正常退出（Cmd+Q / 应用菜单“退出”）：补做保存与清理"""
+        self._save_state()
+        self._cleanup()
+
+    def _on_mac_application_state_changed(self, state) -> None:
+        """应用转为激活态且主窗口不可见时恢复窗口
+
+        激活来源不限于点击 Dock 图标，Cmd+Tab 或从其他应用切回同样触发；
+        应用本就处于激活态时点击 Dock 不产生状态变化，此路径不会触发。
+        """
+        if state == Qt.ApplicationState.ApplicationActive and not self.isVisible():
+            show_and_activate_window(self)
+
+    def nativeEvent(self, event_type, message):
+        """Windows 关机/注销被取消时复位标志，避免下一次关闭跳过询问"""
+        if sys.platform == 'win32':
+            msg = ctypes.wintypes.MSG.from_address(int(message))
+            if msg.message == _WM_ENDSESSION and not msg.wParam:
+                self._session_ending = False
+        return super().nativeEvent(event_type, message)
+
+    def request_quit(self) -> None:
+        """请求退出：设置一次性标志，由 closeEvent 执行完整清理"""
+        self._quit_requested = True
+        self.close()
+
+    def show_settings_page(self) -> None:
+        """显示设置页（供托盘菜单调用）"""
+        settings_interface = self._get_interface('settings')
+        show_and_activate_window(self)
+        settings_interface.refresh_close_action_card()
+        self.switchTo(settings_interface)
+
+    def show_palette_tile(self) -> None:
+        """显示并前置配色磁贴（供托盘菜单调用，懒创建单例）"""
+        if self._palette_tile is None:
+            # 不设父对象：有 owner 的顶层窗口会被 Windows 随主窗口最小化而隐藏
+            self._palette_tile = FloatingPaletteTile()
+        self._palette_tile.show_and_activate()
 
     def _cleanup_background_threads(self):
         """清理所有后台计算线程
@@ -583,6 +748,14 @@ class MainWindow(FluentWindow):
             position=NavigationItemPosition.TOP
         )
 
+        # 色彩微调
+        self.addSubInterface(
+            self._get_interface('paletteTuning'),
+            FluentIcon.ALIGNMENT,
+            tr('navigation.palette_tuning'),
+            position=NavigationItemPosition.TOP
+        )
+
         # 配色生成
         self.addSubInterface(
             self._get_interface('colorGeneration'),
@@ -636,6 +809,10 @@ class MainWindow(FluentWindow):
         # 如果是配色预览界面，触发延迟加载
         if current_widget.objectName() == 'colorPreview':
             self._get_interface('colorPreview').on_tab_selected()
+
+        # 设置页可能被询问框“记住我的选择”改过配置，进入时按配置同步下拉
+        if current_widget.objectName() == 'settings':
+            current_widget.refresh_close_action_card()
 
     def _setup_logo(self):
         """在导航栏左上角设置 Logo"""
@@ -745,11 +922,16 @@ class MainWindow(FluentWindow):
         Args:
             favorite_data: 收藏数据字典
         """
-        # 保存到配置
+        self._save_favorite(favorite_data)
+
+    def _save_favorite(self, favorite_data: dict):
+        """保存收藏并刷新配色管理与配色预览
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
         self._config_manager.add_favorite(favorite_data)
         self._config_manager.save()
-
-        # 刷新配色管理界面和配色预览界面
         self.refresh_palette_management()
         self.refresh_color_preview()
 
@@ -759,13 +941,15 @@ class MainWindow(FluentWindow):
         Args:
             favorite_data: 收藏数据字典
         """
-        # 保存到配置
-        self._config_manager.add_favorite(favorite_data)
-        self._config_manager.save()
+        self._save_favorite(favorite_data)
 
-        # 刷新配色管理界面和配色预览界面
-        self.refresh_palette_management()
-        self.refresh_color_preview()
+    def _on_palette_tuning_favorite(self, favorite_data: dict):
+        """处理色彩微调界面的收藏请求
+
+        Args:
+            favorite_data: 收藏数据字典
+        """
+        self._save_favorite(favorite_data)
 
     def _on_preset_color_preview(self, preview_data: dict[str, Any]):
         """处理内置色彩界面的预览请求
@@ -887,6 +1071,10 @@ class MainWindow(FluentWindow):
         self._update_navigation_texts()
         if hasattr(self, 'titleBar') and hasattr(self.titleBar, 'update_texts'):
             self.titleBar.update_texts()
+        if self._tray is not None:
+            self._tray.update_texts()
+        if self._palette_tile is not None:
+            self._palette_tile.update_texts()
 
     def _update_navigation_texts(self):
         """更新导航栏文本"""
@@ -894,6 +1082,7 @@ class MainWindow(FluentWindow):
             ('colorAnalysis', tr('navigation.color_analysis')),
             ('luminanceAnalysis', tr('navigation.luminance_analysis')),
             ('gradientGeneration', tr('navigation.gradient_generation')),
+            ('paletteTuning', tr('navigation.palette_tuning')),
             ('colorGeneration', tr('navigation.color_generation')),
             ('paletteManagement', tr('navigation.palette_management')),
             ('presetColor', tr('navigation.preset_color')),

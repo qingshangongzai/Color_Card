@@ -15,8 +15,8 @@
   <rect id="hero" class="secondary" x="0" y="35" width="600" height="85" fill="#3a3a3a"/>
   <text id="hero-title" class="text" x="300" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffffff" data-fixed-color="black">欢迎来到我们的网站</text>
   <text id="hero-subtitle" class="text" x="300" y="85" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#cccccc" data-fixed-color="black">探索无限可能，创造美好未来</text>
-  <rect id="hero-button" class="accent" x="270" y="98" width="60" height="18" rx="4" fill="#ff6b6b"/>
-  <text id="button-text" class="text" x="300" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" data-fixed-color="black">立即开始</text>
+  <rect id="hero-button" class="accent" x="270" y="94" width="60" height="18" rx="4" fill="#ff6b6b"/>
+  <text id="button-text" class="text" x="300" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#ffffff" data-fixed-color="black">立即开始</text>
 
   <!-- 卡片区域 - 横向排列 -->
   <!-- 卡片1 -->

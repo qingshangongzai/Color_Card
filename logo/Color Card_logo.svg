@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_图层_1" data-name="图层 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.73 141.73">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f6e7c6;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6 {
+        isolation: isolate;
+      }
+
+      .cls-1, .cls-3, .cls-5, .cls-6 {
+        opacity: .85;
+      }
+
+      .cls-2 {
+        opacity: .55;
+      }
+
+      .cls-2, .cls-7, .cls-4 {
+        fill: #fff;
+      }
+
+      .cls-3 {
+        fill: #f2c4cf;
+      }
+
+      .cls-4 {
+        opacity: .75;
+      }
+
+      .cls-5 {
+        fill: #acd4e2;
+      }
+
+      .cls-6 {
+        fill: #b0dabf;
+      }
+
+      .cls-8 {
+        fill: #3a474b;
+      }
+    </style>
+  </defs>
+  <rect class="cls-7" x=".4" y=".4" width="140.94" height="140.94" rx="40" ry="40"/>
+  <rect class="cls-1" x="33.3" y="44.04" width="75.13" height="53.67" rx="12" ry="12" transform="translate(-27.83 53.47) rotate(-35)"/>
+  <rect class="cls-3" x="33.3" y="44.03" width="75.13" height="53.67" rx="12" ry="12" transform="translate(-13.19 16.28) rotate(-12)"/>
+  <rect class="cls-5" x="44.03" y="33.31" width="53.67" height="75.13" rx="12" ry="12" transform="translate(-13.19 125.46) rotate(-78)"/>
+  <rect class="cls-6" x="44.03" y="33.29" width="53.67" height="75.13" rx="12" ry="12" transform="translate(-27.83 88.26) rotate(-55)"/>
+  <path class="cls-4" d="M70.87,47.25c8.44,0,16.23,4.5,20.45,11.81l-11.16,6.44c-1.92-3.32-5.45-5.36-9.28-5.37v-12.88h-.01Z"/>
+  <path class="cls-2" d="M91.31,59.05c4.22,7.31,4.22,16.31,0,23.61l-11.16-6.44c1.92-3.32,1.92-7.41,0-10.73,0,0,11.16-6.44,11.16-6.44Z"/>
+  <path class="cls-4" d="M91.31,82.67c-4.22,7.3-12.01,11.81-20.45,11.81v-12.88c3.83,0,7.37-2.05,9.28-5.37l11.16,6.44h0Z"/>
+  <path class="cls-2" d="M70.87,94.47c-8.44,0-16.23-4.5-20.45-11.81l11.16-6.44c1.92,3.32,5.45,5.36,9.28,5.37v12.88h.01Z"/>
+  <path class="cls-4" d="M50.42,82.67c-4.22-7.31-4.22-16.31,0-23.61l11.16,6.44c-1.92,3.32-1.92,7.41,0,10.73l-11.16,6.44Z"/>
+  <path class="cls-2" d="M50.42,59.05c4.22-7.3,12.01-11.81,20.45-11.81v12.88c-3.83,0-7.37,2.05-9.28,5.37l-11.16-6.44h0Z"/>
+  <circle class="cls-7" cx="70.87" cy="70.86" r="10.73"/>
+  <polygon class="cls-8" points="59.25 64.15 69.26 73.65 77.84 74.88 72.48 68.07 59.25 64.15"/>
+</svg>

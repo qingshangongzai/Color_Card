@@ -5,6 +5,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+# 项目模块导入
+from installer.core.constants import APP_EXE_NAME
+
+
 def is_frozen() -> bool:
     """检测是否为打包后的环境（支持 PyInstaller 和 Nuitka）
 
@@ -38,13 +42,13 @@ def get_exe_path() -> Path:
     return Path(sys.executable)
 
 
-def close_app_processes(exe_name: str = "Color Card.exe") -> None:
+def close_app_processes(exe_name: str = APP_EXE_NAME) -> None:
     """关闭指定名称的应用程序进程（排除当前进程）
 
     用于卸载和覆盖安装场景，关闭旧版本程序。
 
     Args:
-        exe_name: 可执行文件名称，默认为 "Color Card.exe"
+        exe_name: 可执行文件名称，默认取 `installer.core.constants.APP_EXE_NAME`
     """
     try:
         current_pid = os.getpid()
@@ -131,6 +135,31 @@ def requires_admin(path: str | Path) -> bool:
         return True
 
 
+def validate_install_path(path: str) -> bool:
+    """校验安装路径是否可用
+
+    Args:
+        path: 安装路径
+
+    Returns:
+        bool: 是否可用
+    """
+    if not path or not path.strip():
+        return False
+
+    # 系统关键目录不允许作为安装目录
+    critical_paths = [
+        os.environ.get('SystemRoot', 'C:\\Windows'),
+        os.environ.get('SystemRoot', 'C:\\Windows') + '\\System32',
+    ]
+
+    for critical in critical_paths:
+        if critical and path.lower().startswith(critical.lower()):
+            return False
+
+    return True
+
+
 def run_as_admin(
     install_path: str | None = None,
     create_desktop_shortcut: bool = True,
@@ -152,7 +181,11 @@ def run_as_admin(
         args = ""
     else:
         exe_path = sys.executable
-        script_path = Path(__file__).resolve().parent.parent / 'main.py'
+        # 卸载入口在主程序 main.py，安装入口在 installer/main.py
+        script_path = (
+            Path(__file__).resolve().parents[2] / 'main.py' if is_uninstall
+            else Path(__file__).resolve().parent.parent / 'main.py'
+        )
         args = f'"{script_path}"'
 
     if is_uninstall:

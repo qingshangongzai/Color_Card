@@ -44,9 +44,9 @@
   <text id="content-1-2" class="text" x="105" y="192" font-family="Arial, sans-serif" font-size="9" fill="#333333" data-fixed-color="black">感觉太棒了 💪</text>
 
   <!-- 互动按钮1 -->
-  <circle id="like-1" cx="110" cy="212" r="5" fill="#ff6b6b" opacity="0.3"/>
+  <circle class="accent" id="like-1" cx="110" cy="212" r="5" fill="#ff6b6b" opacity="0.3"/>
   <text id="like-count-1" class="text" x="120" y="215" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">128</text>
-  <circle id="comment-1" cx="150" cy="212" r="5" fill="#999999" opacity="0.3"/>
+  <circle class="secondary" id="comment-1" cx="150" cy="212" r="5" fill="#999999" opacity="0.3"/>
   <text id="comment-count-1" class="text" x="160" y="215" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">23</text>
 
   <!-- 动态卡片2 -->
@@ -67,7 +67,7 @@
   <rect id="image-2" class="primary" x="105" y="280" width="40" height="18" rx="4" fill="#4a4a4a"/>
 
   <!-- 互动按钮2 -->
-  <circle id="like-2" cx="115" cy="290" r="5" fill="#999999" opacity="0.3"/>
+  <circle class="secondary" id="like-2" cx="115" cy="290" r="5" fill="#999999" opacity="0.3"/>
   <text id="like-count-2" class="text" x="125" y="293" font-family="Arial, sans-serif" font-size="7" fill="#888888" data-fixed-color="black">86</text>
 
   <!-- 底部导航栏 -->

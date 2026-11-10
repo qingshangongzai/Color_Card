@@ -4,8 +4,6 @@
 限制最大内存占用，自动清理旧图片。
 """
 
-from __future__ import annotations
-
 # 标准库导入
 import gc
 import time

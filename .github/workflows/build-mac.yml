@@ -1,10 +1,7 @@
-name: Build Mac App with Nuitka
+name: 构建 MacOS 应用（Nuitka）
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
   build-macos:
@@ -17,11 +14,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # 完整历史，保证 git rev-list --count 构建号准确
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.13'
+        python-version: '3.14'
 
     - name: Cache pip packages
       uses: actions/cache@v4
@@ -56,10 +56,23 @@ jobs:
         echo "copyright=$COPYRIGHT" >> "$GITHUB_OUTPUT"
         echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
 
+    - name: Generate build info
+      run: |
+        BUILD_NUMBER=$(git rev-list --count HEAD)
+        COMMIT_SHA=$(git rev-parse --short=8 HEAD)
+        echo "Build number: $BUILD_NUMBER, commit: $COMMIT_SHA"
+        {
+          echo "BUILD_NUMBER = \"$BUILD_NUMBER\""
+          echo "COMMIT_SHA = \"$COMMIT_SHA\""
+        } > build_info.py
+
     - name: Build Mac App with Nuitka
       env:
         NUITKA_CACHE_DIR: "$HOME/.cache/Nuitka"
       run: |
+        # core/ui/dialogs/utils 只含 .py，由导入图编译进二进制；
+        # 只有新增非 .py 数据文件时才加 --include-data-dir，且 mac 与 Windows
+        # 两端都要加，否则会漏打或刷 "No data files in directory" 警告。
         python -m nuitka \
           --mode=app \
           --macos-app-icon="logo/ColorCard.icns" \
@@ -67,14 +80,10 @@ jobs:
           --macos-app-version="${{ steps.version.outputs.version }}" \
           --include-data-files=version.py=version.py \
           --include-data-dir=color_data=color_data \
-          --include-data-dir=core=core \
-          --include-data-dir=dialogs=dialogs \
           --include-data-dir=file=file \
           --include-data-dir=locales=locales \
           --include-data-dir=logo=logo \
           --include-data-dir=scenes_data=scenes_data \
-          --include-data-dir=ui=ui \
-          --include-data-dir=utils=utils \
           --enable-plugin=pyside6 \
           --jobs=4 \
           --output-dir=dist \
@@ -143,7 +152,7 @@ jobs:
             --background "logo/dmg_background.png" \
             --app-drop-link 600 250 \
             --no-internet-enable \
-            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac_arm64.dmg" \
             "dist/dmg/ColorCard.app"
         else
           create-dmg \
@@ -156,7 +165,7 @@ jobs:
             --icon "Applications" 450 200 \
             --app-drop-link 450 200 \
             --no-internet-enable \
-            "dist/Color_Card_${{ steps.version.outputs.version }}_mac.dmg" \
+            "dist/Color_Card_${{ steps.version.outputs.version }}_mac_arm64.dmg" \
             "dist/dmg/ColorCard.app"
         fi
 
@@ -164,4 +173,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ColorCard-macOS
-        path: dist/Color_Card_*_mac.dmg
+        path: dist/Color_Card_*_mac_arm64.dmg

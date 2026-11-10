@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 # 标准库导入
+import builtins
 import json
 import os
 import sys
@@ -8,10 +7,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+# 第三方库导入
+from PySide6.QtCore import QObject, Signal
+
 # 项目模块导入
+from app_mode import get_config_dir
 from version import version_manager
+
 from .logger import get_logger
-from .app_mode import get_config_dir
 
 
 def get_base_path() -> str:
@@ -33,9 +36,17 @@ def get_base_path() -> str:
 
 logger = get_logger("config")
 
+# 关闭窗口动作的取值真源，配置默认值、关闭分流与设置页下拉统一引用
+CLOSE_ACTION_ASK = "ask"
+CLOSE_ACTION_TRAY = "tray"
+CLOSE_ACTION_QUIT = "quit"
 
-class ConfigManager:
+
+class ConfigManager(QObject):
     """配置管理器，处理应用程序配置的加载和保存"""
+
+    # 信号：收藏数据变更时发射，由下方写方法触发；save() 与 cleanup_deleted_favorites() 等不发射
+    favorites_changed = Signal()
 
     CONFIG_VERSION: str = "1.0"
     CONFIG_DIR_NAME: str = ".color_card"
@@ -43,6 +54,7 @@ class ConfigManager:
 
     def __init__(self) -> None:
         """初始化配置管理器"""
+        super().__init__()
         self._config_path: Path = self._get_config_path()
         self._config: dict[str, Any] = {}
         self._load_default_config()
@@ -78,11 +90,16 @@ class ConfigManager:
                 "color_wheel_labels_visible": True,
                 "language": "auto",
                 "gradient_mode": "gradient",
+                "palette_tuning_mode": "hsb",
+                "palette_tuning_base_rgb": [63.75, 127.5, 127.5],
+                "palette_tuning_count": 6,
+                "palette_tuning_items": [],
                 "dominant_color_algorithm": "mmcq",
                 "luminance_default_grayscale": False,
                 "color_picker_mode": "original",
                 "auto_check_update": True,
-                "last_check_time": None
+                "last_check_time": None,
+                "close_action": CLOSE_ACTION_ASK
             },
             "scheme": {
                 "default_scheme": "monochromatic",
@@ -92,7 +109,8 @@ class ConfigManager:
             "window": {
                 "width": 940,
                 "height": 660,
-                "is_maximized": False
+                "is_maximized": False,
+                "is_fullscreen": False
             },
             "favorites": [],
             "scene_templates": {}
@@ -194,8 +212,18 @@ class ConfigManager:
         Args:
             key: 配置键，支持点号分隔的嵌套路径（如 "settings.hex_visible"）
             value: 配置值
+
+        Raises:
+            ValueError: 键以 favorites 开头时抛出。收藏是列表结构，点号路径会在
+                list 上按字符串建键并抛 TypeError，且绕过 favorites_changed，
+                故统一拦下，改由收藏专用写方法处理
         """
         keys = key.split('.')
+        if keys[0] == "favorites":
+            raise ValueError(
+                "收藏数据不能通过 set() 修改，"
+                "请使用 add_favorite / update_favorite / set_favorite_pinned 等专用方法"
+            )
         config = self._config
 
         for k in keys[:-1]:
@@ -252,10 +280,16 @@ class ConfigManager:
         # 检查是否已存在
         for i, existing in enumerate(self._config["favorites"]):
             if existing.get("id") == favorite_id:
+                # 同 id 覆盖时保留原工作区状态字段，避免整份替换丢失常用标记与软删标记
+                for state_key in ("pinned", "_deleted"):
+                    if state_key in existing and state_key not in favorite_data:
+                        favorite_data[state_key] = existing[state_key]
                 self._config["favorites"][i] = favorite_data
+                self.favorites_changed.emit()
                 return favorite_id
 
         self._config["favorites"].append(favorite_data)
+        self.favorites_changed.emit()
         return favorite_id
 
     def delete_favorite(self, favorite_id: str) -> bool:
@@ -270,6 +304,7 @@ class ConfigManager:
         favorite = self.get_favorite(favorite_id, include_deleted=True)
         if favorite:
             favorite['_deleted'] = True
+            self.favorites_changed.emit()
             return True
         return False
 
@@ -284,7 +319,7 @@ class ConfigManager:
         self._config['favorites'] = [f for f in favorites if not f.get('_deleted')]
         return original_count - len(self._config['favorites'])
 
-    def get_valid_indices(self) -> set[int]:  # type: ignore[name-defined]  # set 为内置类型，与 ConfigManager.set 方法名冲突导致类型检查器误报
+    def get_valid_indices(self) -> builtins.set[int]:
         """获取有效（未删除）数据的索引集合
 
         Returns:
@@ -311,6 +346,7 @@ class ConfigManager:
     def clear_favorites(self) -> None:
         """清空所有收藏"""
         self._config["favorites"] = []
+        self.favorites_changed.emit()
 
     def set_favorites(self, favorites: list[dict[str, Any]]) -> None:
         """设置收藏列表（用于批量替换）
@@ -340,6 +376,7 @@ class ConfigManager:
                 colors = fav.get("colors", [])
                 if 0 <= color_index < len(colors):
                     colors[color_index] = color_info
+                    self.favorites_changed.emit()
                     return True
 
         return False
@@ -362,9 +399,52 @@ class ConfigManager:
             if fav.get("id") == favorite_id:
                 fav['name'] = palette_data.get('name', fav.get('name', ''))
                 fav['colors'] = palette_data.get('colors', fav.get('colors', []))
+                self.favorites_changed.emit()
                 return True
 
         return False
+
+    def set_favorite_pinned(self, favorite_id: str, pinned: bool) -> bool:
+        """设置单个收藏的「常用」标记
+
+        只改内存，save() 由调用方执行。
+
+        Args:
+            favorite_id: 收藏ID
+            pinned: 是否设为常用
+
+        Returns:
+            bool: 是否设置成功（收藏不存在或已软删除时返回 False）
+        """
+        favorite = self.get_favorite(favorite_id)
+        if favorite is None:
+            return False
+        favorite["pinned"] = bool(pinned)
+        self.favorites_changed.emit()
+        return True
+
+    def set_favorites_pinned(self, ids: builtins.set[str], pinned: bool) -> int:
+        """批量设置收藏的「常用」标记
+
+        只改内存，save() 由调用方执行；已软删除的收藏不参与。
+
+        Args:
+            ids: 收藏ID集合
+            pinned: 是否设为常用
+
+        Returns:
+            int: 实际修改的收藏数量
+        """
+        favorites = self._config.get("favorites", [])
+        changed = 0
+        for fav in favorites:
+            if fav.get("_deleted") or fav.get("id") not in ids:
+                continue
+            fav["pinned"] = bool(pinned)
+            changed += 1
+        if changed:
+            self.favorites_changed.emit()
+        return changed
 
     def add_scene_template(self, scene_type: str, template_data: dict[str, Any]) -> bool:
         """添加场景模板

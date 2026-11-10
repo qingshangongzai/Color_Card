@@ -3,8 +3,6 @@
 包含配色生成的界面组件和主界面，支持多种配色算法和交互式色轮。
 """
 
-from __future__ import annotations
-
 # ==================== 导入 ====================
 # 标准库导入
 import uuid
@@ -752,6 +750,8 @@ class ColorGenerationInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'refresh_palette_management'):
             window.refresh_palette_management()
+        if window and hasattr(window, 'refresh_color_preview'):
+            window.refresh_color_preview()
 
         InfoBar.success(
             title=tr('color_generation.favorite_success.title'),

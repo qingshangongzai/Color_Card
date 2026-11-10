@@ -1,3 +1,5 @@
+"""应用运行模式与平台检测（供应用与轻量启动器共用）"""
+
 # 标准库导入
 import logging
 import os
@@ -32,6 +34,9 @@ class Platform(Enum):
 # 缓存检测结果
 _mode_cache: AppMode | None = None
 _platform_cache: Platform | None = None
+
+# 便携版 app/ 布局标记：主程序位于 <解压根目录>\app\，配置文件放 <解压根目录>\config
+PORTABLE_LAYOUT_MARKER = ".portable"
 
 
 def _check_registry_install() -> Path | None:
@@ -94,6 +99,12 @@ def detect_mode() -> AppMode:
     _logger.debug(f"exe_path={exe_path}")
     _logger.debug(f"TEMP={temp}")
 
+    # macOS 只有打包后的 .app，没有便携版；放在 TEMP 判断之前，避免从临时路径启动时被判为安装程序
+    if sys.platform == 'darwin':
+        _mode_cache = AppMode.INSTALLED
+        _logger.info("运行模式判定: 安装版（macOS 打包）")
+        return _mode_cache
+
     # 在临时目录运行 = 安装程序运行中
     if temp and str(exe_path).lower().startswith(temp):
         _mode_cache = AppMode.INSTALLER
@@ -115,7 +126,6 @@ def detect_mode() -> AppMode:
             except ValueError:
                 # 不在注册表记录的安装目录中
                 _logger.debug("不在注册表记录的安装目录中")
-                pass
 
     # 在系统目录运行 = 安装版（备用检测）
     system_paths = [
@@ -149,21 +159,28 @@ def get_config_dir() -> Path:
 
     根据运行模式返回不同的配置目录：
     - 安装版/开发模式: ~/.color_card/
-    - 便携版/安装程序: 程序目录/config/
+    - 便携版（app/ 布局）: 解压根目录/config/（exe 在 <根目录>/app/，带 .portable 标记）
+    - 便携版（平铺）/安装程序: 程序目录/config/
 
     Returns:
         Path: 配置目录路径
     """
     mode = detect_mode()
+    exe_dir = Path(sys.argv[0]).parent
 
     if mode in (AppMode.INSTALLED, AppMode.DEVELOPMENT):
         config_path = Path.home() / ".color_card"
         _logger.info(f"配置目录={config_path}（安装版/开发模式）")
         return config_path
-    else:
-        config_path = Path(sys.argv[0]).parent / "config"
-        _logger.info(f"配置目录={config_path}（便携版/安装程序）")
+
+    if mode == AppMode.PORTABLE and (exe_dir / PORTABLE_LAYOUT_MARKER).exists():
+        config_path = exe_dir.parent / "config"
+        _logger.info(f"配置目录={config_path}（便携版 app 布局）")
         return config_path
+
+    config_path = exe_dir / "config"
+    _logger.info(f"配置目录={config_path}（便携版/安装程序）")
+    return config_path
 
 
 def detect_platform() -> Platform:
@@ -189,12 +206,9 @@ def detect_platform() -> Platform:
 
 
 def get_platform() -> Platform:
-    """获取运行平台（带缓存）
+    """获取平台类型（带缓存）
 
     Returns:
-        Platform: 平台类型枚举值
+        Platform: 平台枚举值
     """
     return detect_platform()
-
-
-

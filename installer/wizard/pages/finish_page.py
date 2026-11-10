@@ -1,10 +1,11 @@
 # 第三方库导入
 from PySide6.QtWidgets import QLabel, QHBoxLayout
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QColor
-from qfluentwidgets import PrimaryPushButton, CheckBox
+from PySide6.QtGui import QFont
 # 项目模块导入
 from installer.wizard.base_page import BasePage
+from installer.wizard.mini_widgets import PrimaryPushButton, CheckBox
+from installer.wizard.mini_style import resolve_tokens
 
 
 class FinishPage(BasePage):
@@ -52,6 +53,9 @@ class FinishPage(BasePage):
         button_layout.addStretch(1)
         layout.addLayout(button_layout)
 
+        # 底部留白由弹性空间收住，按钮行按离屏实测对齐 y≈266（其它向导页同高）
+        layout.addStretch(1)
+
     def _finish(self):
         self._config['run_after_install'] = self._run_checkbox.isChecked()
         self.close_requested.emit()
@@ -59,11 +63,11 @@ class FinishPage(BasePage):
     def _update_styles(self):
         super()._update_styles()
 
-        text_color = QColor(40, 40, 40)
-        secondary_color = QColor(120, 120, 120)
+        text_color = resolve_tokens()['window_fg']
+        secondary_color = resolve_tokens()['fg_secondary']
 
         for child in self._content_widget.findChildren(QLabel):
             if "安装完成" in child.text():
-                child.setStyleSheet(f"font-size: 20px; font-weight: bold; color: {text_color.name()};")
+                child.setStyleSheet(f"font-size: 20px; font-weight: bold; color: {text_color};")
             elif "取色卡已成功安装" in child.text():
-                child.setStyleSheet(f"font-size: 12px; color: {secondary_color.name()};")
+                child.setStyleSheet(f"font-size: 12px; color: {secondary_color};")

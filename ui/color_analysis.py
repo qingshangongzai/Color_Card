@@ -394,6 +394,8 @@ class ColorAnalysisInterface(QWidget):
         window = self.window()
         if window and hasattr(window, 'refresh_palette_management'):
             window.refresh_palette_management()
+        if window and hasattr(window, 'refresh_color_preview'):
+            window.refresh_color_preview()
 
         QTimer.singleShot(0, lambda: InfoBar.success(
             title=tr('messages.favorite_success.title'),

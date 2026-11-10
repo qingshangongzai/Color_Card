@@ -13,7 +13,8 @@ from qfluentwidgets import (
 
 # 项目模块导入
 from dialogs.base_frameless_dialog import BaseFramelessDialog
-from installer.uninstaller.uninstall_service import UninstallService
+from uninstaller.uninstall_service import UninstallService
+from installer.core.constants import APP_EXE_NAME
 from installer.core.permission_checker import is_admin, requires_admin, run_as_admin, close_app_processes
 from utils.icon import load_icon_universal
 from utils.platform import fix_windows_taskbar_icon_for_window
@@ -140,7 +141,7 @@ class UninstallDialog(BaseFramelessDialog):
 
     def _close_main_app(self):
         """关闭主程序进程（排除当前卸载程序进程）"""
-        close_app_processes("Color Card.exe")
+        close_app_processes(APP_EXE_NAME)
 
     def start_uninstall(self, delete_config: bool = False):
         """直接开始卸载（提权重启后调用）

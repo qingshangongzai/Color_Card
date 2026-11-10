@@ -1,14 +1,12 @@
-from __future__ import annotations
 # 标准库导入
 from typing import Any
 
 # 第三方库导入
 from PySide6.QtWidgets import QStackedWidget, QVBoxLayout
 from PySide6.QtCore import QTimer
-from qfluentwidgets import setThemeColor
 
 # 项目模块导入
-from dialogs.base_frameless_dialog import BaseFramelessDialog
+from installer.wizard.frameless_base import BaseFramelessDialog
 from installer.wizard.base_page import BasePage
 from installer.core.permission_checker import run_as_admin
 from utils.icon import load_icon_universal
@@ -24,8 +22,6 @@ class InstallWizard(BaseFramelessDialog):
         super().__init__(parent)
         self.setWindowTitle("取色卡安装向导")
         self.setFixedSize(520, 380)
-
-        setThemeColor('#0078d4')
 
         app_icon = load_icon_universal()
         self.setWindowIcon(app_icon)
