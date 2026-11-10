@@ -60,7 +60,8 @@ class LineEdit(QLineEdit):
 
     def paintEvent(self, event):
         super().paintEvent(event)
-        if not self.hasFocus():
+        # 只读框不接受编辑，聚焦时也不应出现编辑态高亮带
+        if self.isReadOnly() or not self.hasFocus():
             return
 
         # 原型先画内容再叠带子：文字因此在聚焦前后位置不动。带子为下沿 10px 高的圆角矩形

@@ -30,16 +30,12 @@ def set_app_user_model_id():
 set_app_user_model_id()
 
 
-# Windows 注册表支持
-if sys.platform == 'win32':
-    import winreg
-
 # 第三方库导入（必须在 set_app_user_model_id 之后导入）
 from PySide6.QtWidgets import QApplication
 
 # 项目模块导入（必须在 set_app_user_model_id 之后导入）
 from installer.core.constants import APP_EXE_NAME
-from installer.core.registry_installer import REGISTRY_KEY
+from installer.core.registry_installer import RegistryInstaller
 
 
 def _get_install_path() -> str:
@@ -50,25 +46,13 @@ def _get_install_path() -> str:
     Returns:
         str: 安装路径，未找到返回空字符串
     """
-    if sys.platform != 'win32':
-        return ''
-
-    try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REGISTRY_KEY)
-        with key:
-            path, _ = winreg.QueryValueEx(key, "InstallPath")
-            if path:
-                return path
-    except (OSError, FileNotFoundError):
-        pass
-
-    from installer.core.registry_installer import RegistryInstaller
     registry = RegistryInstaller()
-    inno_path = registry.find_inno_install_path()
-    if inno_path:
-        return str(inno_path)
+    path = registry.get_install_path()
+    if path:
+        return str(path)
 
-    return ''
+    inno_path = registry.find_inno_install_path()
+    return str(inno_path) if inno_path else ''
 
 
 def run_installer(
