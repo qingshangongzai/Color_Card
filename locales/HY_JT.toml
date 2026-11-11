@@ -687,6 +687,8 @@ zone_mix_suffix = "（冷暖混合）"
 dominant = "主色{index}"
 area = "面积 {pct}%"
 peak_minor = " · 次峰"
+peak_title_single = "峰 {index} · {range} · {weight} · 主导色：{name}{minor}"
+peak_title_multi = "峰 {index} · {range} · {weight}{minor}"
 peaks_empty = "灰调 · 无显著色相峰"
 
 [common]

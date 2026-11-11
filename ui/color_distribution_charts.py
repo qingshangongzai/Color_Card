@@ -8,17 +8,14 @@
 from __future__ import annotations
 
 import math
+from typing import ClassVar
 
 import numpy as np
 from PySide6.QtCore import QPointF, QRect, QRectF, Qt
-from PySide6.QtGui import (
-    QBrush, QColor, QFont, QLinearGradient, QPainter, QPainterPath, QPen
-)
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
-from core.color_distribution import (
-    WHEEL_CHROMA_BINS, WHEEL_CHROMA_MAX, WHEEL_HUE_BINS
-)
+from core.color_distribution import WHEEL_CHROMA_BINS, WHEEL_CHROMA_MAX, WHEEL_HUE_BINS
 from utils.theme_colors import get_histogram_grid_color, get_tone_chart_text_color
 
 
@@ -187,21 +184,21 @@ class HuePeaksWidget(_ChartBase):
     """色相峰列表：每峰标题行 + 峰内 12 段构成条目（列表式，条目不截断）
 
     视图模型（对话框注入，文案已翻译）：
-        {'peaks': [{'title_text', 'hue',
-                    'items': [{'hue', 'range', 'rgb', 'text'}]}, ...],
+        {'peaks': [{'title_text', 'show_swatch', 'swatch_rgb',
+                    'items': [{'rgb', 'text'}]}, ...],
          'empty_text': str}
+    show_swatch 仅在峰内只有一个有效构成项时为 True，swatch_rgb 取该
+    构成项的真实代表色；多构成峰不显示单色块，标题不借用子项名称。
     items.rgb 为条目真实代表色（与文字里的感知色名同源）。
     """
 
     _HEAD_H = 21      # 峰标题行高
     _ROW_H = 17       # 构成条目行高
     _GAP = 6          # 峰块间距
-    _SWATCH_W = 24    # 条目渐变条宽
+    _SWATCH_W = 24    # 条目色块宽
     _HEAD_SWATCH = 10  # 峰标题色块边长
     _TEXT_GAP = 6     # 色块与文字的间距
     _INDENT = _HEAD_SWATCH + _TEXT_GAP   # 文字缩进：让过标题色块右缘
-    _FALLBACK_SAT = 0.65   # 无构成条目时标题色块的饱和度（示意色回退）
-    _FALLBACK_VAL = 0.92   # 无构成条目时标题色块的明度
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -256,20 +253,13 @@ class HuePeaksWidget(_ChartBase):
 
     def _paint_peak_header(self, painter: QPainter, font: QFont,
                            rect: QRect, peak: dict, y: int) -> None:
-        """峰标题行：色相小方块 + 色名/角度区间/权重（次峰标注已并入标题）"""
-        # 色块取峰内权重最高条目的真实代表色（与条目同源）；
-        # 无构成条目时回退示意色
-        items = peak['items']
-        if items and items[0]['rgb']:
-            head_color = QColor.fromRgb(*items[0]['rgb'])
-        else:
-            head_color = _hsb_qcolor(peak['hue'], self._FALLBACK_SAT,
-                                     self._FALLBACK_VAL)
-        swatch_y = y + (self._HEAD_H - self._HEAD_SWATCH) // 2
-        painter.setPen(QPen(self._grid_color(), 1))
-        painter.setBrush(QBrush(head_color))
-        painter.drawRect(QRect(rect.left(), swatch_y,
-                               self._HEAD_SWATCH, self._HEAD_SWATCH))
+        """峰标题行：单一构成时绘制该构成项纯色块 + 标题（次峰并入标题）"""
+        if peak['show_swatch']:
+            swatch_y = y + (self._HEAD_H - self._HEAD_SWATCH) // 2
+            painter.setPen(QPen(self._grid_color(), 1))
+            painter.setBrush(QBrush(QColor.fromRgb(*peak['swatch_rgb'])))
+            painter.drawRect(QRect(rect.left(), swatch_y,
+                                   self._HEAD_SWATCH, self._HEAD_SWATCH))
         painter.setPen(QPen(self._text_color()))
         font.setPointSize(9)
         font.setBold(True)
@@ -282,18 +272,11 @@ class HuePeaksWidget(_ChartBase):
 
     def _paint_peak_item(self, painter: QPainter, font: QFont,
                          rect: QRect, item: dict, y: int) -> None:
-        """构成条目行：真实代表色渐变条 + 色名/角度区间/占比"""
-        lo, hi = item['range']
+        """构成条目行：真实代表色纯色块 + 色名/角度区间/占比"""
         bar = QRect(rect.left() + self._INDENT, y + 3,
                     self._SWATCH_W, self._ROW_H - 6)
-        mid_color = QColor.fromRgb(*item['rgb'])
-        _, sat_f, val_f, _ = mid_color.getHsvF()
-        grad = QLinearGradient(bar.topLeft(), bar.topRight())
-        grad.setColorAt(0.0, _hsb_qcolor(lo, sat_f, val_f))
-        grad.setColorAt(0.5, mid_color)
-        grad.setColorAt(1.0, _hsb_qcolor(hi, sat_f, val_f))
         painter.setPen(QPen(self._grid_color(), 1))
-        painter.setBrush(QBrush(grad))
+        painter.setBrush(QBrush(QColor.fromRgb(*item['rgb'])))
         painter.drawRect(bar)
         painter.setPen(QPen(self._text_color()))
         font.setPointSize(9)
@@ -312,13 +295,12 @@ class ZoneToningBarWidget(_ChartBase):
     视图模型（对话框注入，文案已翻译）：
         {'style_text': str,
          'zones': [{'key','name_text','is_empty','status_text',
-                    'composition':[{'hue','range','weight_pct','rgb',
+                    'composition':[{'weight_pct','rgb',
                                     'line1','line2'}]}, ...]}
-    条目色块直出段真实代表色 rgb（引擎侧与感知色名同源合成），
-    两端按色相区间、代表色的饱和度/明度展开渐变。
+    条目色块直出段真实代表色 rgb（与感知色名同源），不再按色相区间渐变。
     """
 
-    _ZONE_V = {'dark': 0.45, 'mid': 0.68, 'bright': 0.9}
+    _ZONE_V: ClassVar[dict[str, float]] = {'dark': 0.45, 'mid': 0.68, 'bright': 0.9}
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -327,11 +309,6 @@ class ZoneToningBarWidget(_ChartBase):
     def update_data(self, zones_view: dict) -> None:
         self._data = zones_view
         self.update()
-
-    @staticmethod
-    def _range_text(item: dict) -> str:
-        lo, hi = item['range']
-        return f"{lo:.0f}°~{hi % 360:.0f}°"
 
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
@@ -400,17 +377,10 @@ class ZoneToningBarWidget(_ChartBase):
             if idx == len(comp) - 1:
                 seg_h = block_rect.bottom() - y + 1
             seg_rect = QRect(block_rect.left(), int(y), block_rect.width(), int(seg_h))
-            # 真实代表色为主体，两端按色相区间展开（沿用代表色的饱和度/明度）
-            lo, hi = item['range']
-            mid_color = QColor.fromRgb(*item['rgb'])
-            _, sat_f, val_f, _ = mid_color.getHsvF()
-            grad = QLinearGradient(seg_rect.topLeft(), seg_rect.topRight())
-            grad.setColorAt(0.0, _hsb_qcolor(lo, sat_f, val_f))
-            grad.setColorAt(0.5, mid_color)
-            grad.setColorAt(1.0, _hsb_qcolor(hi, sat_f, val_f))
-            painter.setBrush(QBrush(grad))
+            color = QColor.fromRgb(*item['rgb'])
+            painter.setBrush(color)
             painter.drawRect(seg_rect)
-            self._draw_segment_text(painter, font, seg_rect, mid_color,
+            self._draw_segment_text(painter, font, seg_rect, color,
                                     item['line1'], item['line2'])
             y += seg_h
 

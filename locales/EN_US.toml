@@ -686,6 +686,8 @@ zone_mix_suffix = " (warm/cool mix)"
 dominant = "Color {index}"
 area = "area {pct}%"
 peak_minor = " · minor"
+peak_title_single = "Peak {index} · {range} · {weight} · dominant: {name}{minor}"
+peak_title_multi = "Peak {index} · {range} · {weight}{minor}"
 peaks_empty = "Graytone · no distinct hue peak"
 
 [common]

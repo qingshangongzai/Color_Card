@@ -686,6 +686,8 @@ zone_mix_suffix = " (тёплый/холодный микс)"
 dominant = "Цвет {index}"
 area = "площадь {pct}%"
 peak_minor = " · вторичный"
+peak_title_single = "Пик {index} · {range} · {weight} · доминанта: {name}{minor}"
+peak_title_multi = "Пик {index} · {range} · {weight}{minor}"
 peaks_empty = "Серый тон · нет выраженных пиков"
 
 [common]

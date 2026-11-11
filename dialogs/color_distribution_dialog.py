@@ -13,19 +13,27 @@ import numpy as np
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (
-    QGridLayout, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout, QWidget
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
 )
 from qfluentwidgets import BodyLabel, qconfig
 
 from core import analyze_color_distribution, get_color_distribution_cache
 from core.color_naming import hue_name
+from ui.color_distribution_charts import (
+    DominantColorsBarWidget,
+    HuePeaksWidget,
+    HueWheelWidget,
+    ZoneToningBarWidget,
+)
 from utils import tr
 
 from .base_frameless_dialog import BaseFramelessDialog
 from .tone_analysis_dialog import StatCard
-from ui.color_distribution_charts import (
-    DominantColorsBarWidget, HuePeaksWidget, HueWheelWidget, ZoneToningBarWidget
-)
 
 # 感知色名 id：属 color_distribution.pname_* 词条，其余色名 id 回落 color_wheel.hue_*
 _PNAME_IDS = ('gray', 'warm_gray', 'blue_gray', 'brown', 'deep_red', 'maroon', 'pink')
@@ -316,26 +324,47 @@ class ColorDistributionDialog(BaseFramelessDialog):
     def _weight_text(comp: dict) -> str:
         """构成条目占比文案：权重 <1% 时改报可见面积口径"""
         if comp['weight_pct'] < 1.0:
-            return tr('color_distribution.area', pct=int(round(comp['area_pct'])))
+            return tr('color_distribution.area', pct=round(comp['area_pct']))
         return f'{comp["weight_pct"]:.0f}%'
 
-    def _peaks_view(self, peaks: list) -> dict:
-        """色相峰列表视图模型（文案已翻译；条目不截断，全量注入）"""
+    @staticmethod
+    def _peaks_view(peaks: list[dict]) -> dict:
+        """色相峰列表视图模型（文案已翻译；条目不截断，全量注入）
+
+        峰标题按有效构成项数量分两种语义：只有单一构成时显示该构成项
+        名称与纯色块（主导色），区间和权重仍取峰级；多构成或空构成只
+        显示峰序号、峰级区间与权重，不借用某个子项的名称或代表色。
+        峰序号按传入顺序（权重降序）从 1 开始，视图层不得二次排序。
+        """
         views = []
-        for p in peaks:
-            title = (f'{self._pname_text(p["name"])} {self._range_text(p["range"])}'
-                     f' {p["weight_pct"]:.1f}%')
-            if p['minor']:
-                title += tr('color_distribution.peak_minor')
+        for index, p in enumerate(peaks, 1):
+            minor = tr('color_distribution.peak_minor') if p['minor'] else ''
+            range_text = ColorDistributionDialog._range_text(p['range'])
+            weight_text = f'{p["weight_pct"]:.1f}%'
             items = []
             for c in p['composition']:
                 items.append({
-                    'hue': c['hue'], 'range': c['range'],
                     'rgb': c['rgb'],
-                    'text': (f'{self._pname_text(c["pname"])} '
-                             f'{self._range_text(c["range"])} {self._weight_text(c)}'),
+                    'text': (f'{ColorDistributionDialog._pname_text(c["pname"])} '
+                             f'{ColorDistributionDialog._range_text(c["range"])} '
+                             f'{ColorDistributionDialog._weight_text(c)}'),
                 })
-            views.append({'title_text': title, 'hue': p['hue'], 'items': items})
+            if len(p['composition']) == 1:
+                item = p['composition'][0]
+                title = tr('color_distribution.peak_title_single', index=index,
+                           range=range_text, weight=weight_text, minor=minor,
+                           name=ColorDistributionDialog._pname_text(item['pname']))
+                swatch_rgb = item['rgb']
+            else:
+                title = tr('color_distribution.peak_title_multi', index=index,
+                           range=range_text, weight=weight_text, minor=minor)
+                swatch_rgb = None
+            views.append({
+                'title_text': title,
+                'show_swatch': swatch_rgb is not None,
+                'swatch_rgb': swatch_rgb,
+                'items': items,
+            })
         return {'peaks': views, 'empty_text': tr('color_distribution.peaks_empty')}
 
     def _zones_view(self, zones: dict) -> dict:
@@ -348,7 +377,6 @@ class ColorDistributionDialog(BaseFramelessDialog):
                 line1 = f'{self._pname_text(c["pname"])} {self._range_text(c["range"])}'
                 line2 = self._weight_text(c)
                 composition.append({
-                    'hue': c['hue'], 'range': c['range'],
                     'weight_pct': c['weight_pct'], 'line1': line1, 'line2': line2,
                     'rgb': c['rgb'],
                 })

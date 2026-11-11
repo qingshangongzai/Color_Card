@@ -686,6 +686,8 @@ zone_mix_suffix = " (mélange chaud/froid)"
 dominant = "Couleur {index}"
 area = "surface {pct}%"
 peak_minor = " · secondaire"
+peak_title_single = "Pic {index} · {range} · {weight} · dominante : {name}{minor}"
+peak_title_multi = "Pic {index} · {range} · {weight}{minor}"
 peaks_empty = "Tons gris · aucune dominante nette"
 
 [common]
