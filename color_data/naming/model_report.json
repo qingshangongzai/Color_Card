@@ -1,0 +1,877 @@
+{
+  "baseline": {
+    "commit": "666a081",
+    "mapping_sha256": "a61a45c94246606d9814b0084eb2520aad22b5a373edbae6e1a68dd700f45776",
+    "pname_to_family": {
+      "blue": "blue",
+      "blue_gray": "gray",
+      "brown": "brown",
+      "cyan": "cyan",
+      "cyan_blue": "blue",
+      "cyan_green": "cyan",
+      "deep_red": "red",
+      "gray": "gray",
+      "green": "green",
+      "magenta": "magenta",
+      "maroon": "red",
+      "orange_red": "orange",
+      "pink": "pink",
+      "purple": "purple",
+      "purple_red": "magenta",
+      "red": "red",
+      "warm_gray": "gray",
+      "yellow": "yellow",
+      "yellow_green": "green"
+    }
+  },
+  "bootstrap": {
+    "ci_lower": 0.168253,
+    "ci_upper": 0.37946,
+    "conclusion": "优于基线",
+    "delta_mean": 0.274379,
+    "iterations": 1000,
+    "seed": 0
+  },
+  "cv": {
+    "candidates": [
+      {
+        "k": 8,
+        "macro_f1": 0.738323,
+        "micro_f1": 0.816245,
+        "recall": {
+          "black": "N/A",
+          "blue": 0.888889,
+          "brown": 0.8,
+          "cyan": 0.684211,
+          "gray": 0.392857,
+          "green": 0.973545,
+          "magenta": 0.52381,
+          "orange": 0.583333,
+          "pink": 0.755102,
+          "purple": 0.813333,
+          "red": 0.843137,
+          "white": 0.833333,
+          "yellow": 0.793103
+        }
+      },
+      {
+        "k": 16,
+        "macro_f1": 0.731616,
+        "micro_f1": 0.808256,
+        "recall": {
+          "black": "N/A",
+          "blue": 0.898148,
+          "brown": 0.777778,
+          "cyan": 0.578947,
+          "gray": 0.285714,
+          "green": 0.978836,
+          "magenta": 0.52381,
+          "orange": 0.555556,
+          "pink": 0.77551,
+          "purple": 0.813333,
+          "red": 0.882353,
+          "white": 0.833333,
+          "yellow": 0.775862
+        }
+      },
+      {
+        "k": 32,
+        "macro_f1": 0.691924,
+        "micro_f1": 0.789614,
+        "recall": {
+          "black": "N/A",
+          "blue": 0.898148,
+          "brown": 0.788889,
+          "cyan": 0.315789,
+          "gray": 0.214286,
+          "green": 0.989418,
+          "magenta": 0.47619,
+          "orange": 0.361111,
+          "pink": 0.77551,
+          "purple": 0.813333,
+          "red": 0.921569,
+          "white": 0.833333,
+          "yellow": 0.793103
+        }
+      }
+    ],
+    "folds": 5,
+    "seed": 0,
+    "selected_k": 8,
+    "selection_metric": "macro_f1（仅统计总数 >= 5 的色系）"
+  },
+  "data": {
+    "evaluated_families": [
+      "white",
+      "gray",
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple",
+      "magenta",
+      "pink",
+      "brown"
+    ],
+    "excluded": {
+      "blue/green": "斜杠并列两种色名，无法确定单一主色系",
+      "blue/grey": "斜杠并列两种色名，无法确定单一主色系",
+      "blue/purple": "斜杠并列两种色名，无法确定单一主色系",
+      "green/blue": "斜杠并列两种色名，无法确定单一主色系",
+      "green/yellow": "斜杠并列两种色名，无法确定单一主色系",
+      "grey/blue": "斜杠并列两种色名，无法确定单一主色系",
+      "grey/green": "斜杠并列两种色名，无法确定单一主色系",
+      "pink/purple": "斜杠并列两种色名，无法确定单一主色系",
+      "purple/blue": "斜杠并列两种色名，无法确定单一主色系",
+      "purple/pink": "斜杠并列两种色名，无法确定单一主色系",
+      "yellow/green": "斜杠并列两种色名，无法确定单一主色系"
+    },
+    "family_support": {
+      "black": {
+        "test": 1,
+        "total": 3,
+        "train": 2
+      },
+      "blue": {
+        "test": 27,
+        "total": 135,
+        "train": 108
+      },
+      "brown": {
+        "test": 22,
+        "total": 112,
+        "train": 90
+      },
+      "cyan": {
+        "test": 9,
+        "total": 47,
+        "train": 38
+      },
+      "gray": {
+        "test": 7,
+        "total": 35,
+        "train": 28
+      },
+      "green": {
+        "test": 47,
+        "total": 236,
+        "train": 189
+      },
+      "magenta": {
+        "test": 5,
+        "total": 26,
+        "train": 21
+      },
+      "orange": {
+        "test": 9,
+        "total": 45,
+        "train": 36
+      },
+      "pink": {
+        "test": 12,
+        "total": 61,
+        "train": 49
+      },
+      "purple": {
+        "test": 19,
+        "total": 94,
+        "train": 75
+      },
+      "red": {
+        "test": 13,
+        "total": 64,
+        "train": 51
+      },
+      "white": {
+        "test": 2,
+        "total": 8,
+        "train": 6
+      },
+      "yellow": {
+        "test": 14,
+        "total": 72,
+        "train": 58
+      }
+    },
+    "small_families": [
+      "black"
+    ]
+  },
+  "notes": [
+    "KNN_EPS = 1e-3 用于避免零距离除零，并匹配 OKLab 距离量级（约 0.05~0.3）；1e-6 会使权重退化为最近邻。",
+    "宏平均 F1 只统计总数 >= 5 的色系；小样本色系仍参与训练，单列支持数、N/A 召回率与预测计数。",
+    "过渡名称占比按次高色系概率差 < 0.15 统计；过渡命中率指真值等于主色系或次色系。",
+    "xkcd 数据是英文众包屏幕色名，不等同于中文人眼感知真值；本报告只证明模型相对基线的改进。"
+  ],
+  "source": {
+    "data_rows": 949,
+    "data_sha256": "450cca88fa6fa9a1e79c969969e05e6900b41a94f0a3a5f134e3d0b79077f890",
+    "excluded_rows": 11,
+    "included_rows": 938,
+    "license": "CC0 1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "mapping_sha256": "f58c47b8c210067af47eb0fa33ff4e0ff1ae5826ff99890f8172e8014fc8f321",
+    "url": "https://xkcd.com/color/rgb.txt"
+  },
+  "split": {
+    "method": "按 family_id 分层，固定随机种子 0，80% 训练 / 20% 最终测试",
+    "seed": 0,
+    "test_ratio": 0.2,
+    "test_samples": 187,
+    "train_samples": 751
+  },
+  "test": {
+    "baseline": {
+      "confusion_labels": [
+        "black",
+        "white",
+        "gray",
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "cyan",
+        "blue",
+        "purple",
+        "magenta",
+        "pink",
+        "brown"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          2,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          9,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          7,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          13,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          9,
+          26,
+          9,
+          0,
+          0,
+          0,
+          0,
+          3
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          9,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          7,
+          19,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          6,
+          10,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          5,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          9,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          10
+        ]
+      ],
+      "macro_f1": 0.494777,
+      "micro_f1": 0.582888,
+      "per_family": {
+        "black": {
+          "evaluated": false,
+          "f1": "N/A",
+          "precision": null,
+          "predicted_count": 0,
+          "recall": "N/A",
+          "test_support": 1
+        },
+        "blue": {
+          "evaluated": true,
+          "f1": 0.76,
+          "precision": 0.826087,
+          "predicted_count": 23,
+          "recall": 0.703704,
+          "test_support": 27
+        },
+        "brown": {
+          "evaluated": true,
+          "f1": 0.540541,
+          "precision": 0.666667,
+          "predicted_count": 15,
+          "recall": 0.454545,
+          "test_support": 22
+        },
+        "cyan": {
+          "evaluated": true,
+          "f1": 0.529412,
+          "precision": 0.36,
+          "predicted_count": 25,
+          "recall": 1.0,
+          "test_support": 9
+        },
+        "gray": {
+          "evaluated": true,
+          "f1": 0.5,
+          "precision": 0.6,
+          "predicted_count": 5,
+          "recall": 0.428571,
+          "test_support": 7
+        },
+        "green": {
+          "evaluated": true,
+          "f1": 0.693333,
+          "precision": 0.928571,
+          "predicted_count": 28,
+          "recall": 0.553191,
+          "test_support": 47
+        },
+        "magenta": {
+          "evaluated": true,
+          "f1": 0.37037,
+          "precision": 0.227273,
+          "predicted_count": 22,
+          "recall": 1.0,
+          "test_support": 5
+        },
+        "orange": {
+          "evaluated": true,
+          "f1": 0.538462,
+          "precision": 0.411765,
+          "predicted_count": 17,
+          "recall": 0.777778,
+          "test_support": 9
+        },
+        "pink": {
+          "evaluated": true,
+          "f1": 0.266667,
+          "precision": 0.666667,
+          "predicted_count": 3,
+          "recall": 0.166667,
+          "test_support": 12
+        },
+        "purple": {
+          "evaluated": true,
+          "f1": 0.461538,
+          "precision": 0.857143,
+          "predicted_count": 7,
+          "recall": 0.315789,
+          "test_support": 19
+        },
+        "red": {
+          "evaluated": true,
+          "f1": 0.642857,
+          "precision": 0.6,
+          "predicted_count": 15,
+          "recall": 0.692308,
+          "test_support": 13
+        },
+        "white": {
+          "evaluated": true,
+          "f1": 0.0,
+          "precision": 0.0,
+          "predicted_count": 0,
+          "recall": 0.0,
+          "test_support": 2
+        },
+        "yellow": {
+          "evaluated": true,
+          "f1": 0.634146,
+          "precision": 0.481481,
+          "predicted_count": 27,
+          "recall": 0.928571,
+          "test_support": 14
+        }
+      }
+    },
+    "model": {
+      "confusion_labels": [
+        "black",
+        "white",
+        "gray",
+        "red",
+        "orange",
+        "yellow",
+        "green",
+        "cyan",
+        "blue",
+        "purple",
+        "magenta",
+        "pink",
+        "brown"
+      ],
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          5,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          11,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2,
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          13,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          46,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          8,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          2,
+          2,
+          21,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          3,
+          13,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          3,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          9,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          19
+        ]
+      ],
+      "macro_f1": 0.783983,
+      "micro_f1": 0.828877,
+      "per_family": {
+        "black": {
+          "evaluated": false,
+          "f1": "N/A",
+          "precision": null,
+          "predicted_count": 0,
+          "recall": "N/A",
+          "test_support": 1
+        },
+        "blue": {
+          "evaluated": true,
+          "f1": 0.792453,
+          "precision": 0.807692,
+          "predicted_count": 26,
+          "recall": 0.777778,
+          "test_support": 27
+        },
+        "brown": {
+          "evaluated": true,
+          "f1": 0.863636,
+          "precision": 0.863636,
+          "predicted_count": 22,
+          "recall": 0.863636,
+          "test_support": 22
+        },
+        "cyan": {
+          "evaluated": true,
+          "f1": 0.842105,
+          "precision": 0.8,
+          "predicted_count": 10,
+          "recall": 0.888889,
+          "test_support": 9
+        },
+        "gray": {
+          "evaluated": true,
+          "f1": 0.769231,
+          "precision": 0.833333,
+          "predicted_count": 6,
+          "recall": 0.714286,
+          "test_support": 7
+        },
+        "green": {
+          "evaluated": true,
+          "f1": 0.929293,
+          "precision": 0.884615,
+          "predicted_count": 52,
+          "recall": 0.978723,
+          "test_support": 47
+        },
+        "magenta": {
+          "evaluated": true,
+          "f1": 0.545455,
+          "precision": 0.5,
+          "predicted_count": 6,
+          "recall": 0.6,
+          "test_support": 5
+        },
+        "orange": {
+          "evaluated": true,
+          "f1": 0.8,
+          "precision": 1.0,
+          "predicted_count": 6,
+          "recall": 0.666667,
+          "test_support": 9
+        },
+        "pink": {
+          "evaluated": true,
+          "f1": 0.818182,
+          "precision": 0.9,
+          "predicted_count": 10,
+          "recall": 0.75,
+          "test_support": 12
+        },
+        "purple": {
+          "evaluated": true,
+          "f1": 0.764706,
+          "precision": 0.866667,
+          "predicted_count": 15,
+          "recall": 0.684211,
+          "test_support": 19
+        },
+        "red": {
+          "evaluated": true,
+          "f1": 0.6875,
+          "precision": 0.578947,
+          "predicted_count": 19,
+          "recall": 0.846154,
+          "test_support": 13
+        },
+        "white": {
+          "evaluated": true,
+          "f1": 0.666667,
+          "precision": 1.0,
+          "predicted_count": 1,
+          "recall": 0.5,
+          "test_support": 2
+        },
+        "yellow": {
+          "evaluated": true,
+          "f1": 0.928571,
+          "precision": 0.928571,
+          "predicted_count": 14,
+          "recall": 0.928571,
+          "test_support": 14
+        }
+      }
+    }
+  },
+  "transition": {
+    "count": 20,
+    "hit_rate": 0.8,
+    "share": 0.106952
+  },
+  "version": "1.0"
+}

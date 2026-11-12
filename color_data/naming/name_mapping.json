@@ -1,0 +1,5841 @@
+{
+  "allowed_hue_modifiers": {
+    "black": [],
+    "blue": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "brown": [
+      "red",
+      "orange",
+      "yellow"
+    ],
+    "cyan": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "gray": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "green": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "magenta": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "orange": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "pink": [
+      "red",
+      "purple"
+    ],
+    "purple": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "red": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ],
+    "white": [],
+    "yellow": [
+      "red",
+      "orange",
+      "yellow",
+      "green",
+      "cyan",
+      "blue",
+      "purple"
+    ]
+  },
+  "allowed_tones": {
+    "black": [
+      "none"
+    ],
+    "blue": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "brown": [
+      "none",
+      "dark",
+      "muted"
+    ],
+    "cyan": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "gray": [
+      "none",
+      "light",
+      "dark"
+    ],
+    "green": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "magenta": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "orange": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "pink": [
+      "none",
+      "light",
+      "pale"
+    ],
+    "purple": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "red": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ],
+    "white": [
+      "none"
+    ],
+    "yellow": [
+      "none",
+      "vivid",
+      "deep",
+      "light",
+      "dark",
+      "pale",
+      "muted"
+    ]
+  },
+  "excluded": {
+    "blue/green": "斜杠并列两种色名，无法确定单一主色系",
+    "blue/grey": "斜杠并列两种色名，无法确定单一主色系",
+    "blue/purple": "斜杠并列两种色名，无法确定单一主色系",
+    "green/blue": "斜杠并列两种色名，无法确定单一主色系",
+    "green/yellow": "斜杠并列两种色名，无法确定单一主色系",
+    "grey/blue": "斜杠并列两种色名，无法确定单一主色系",
+    "grey/green": "斜杠并列两种色名，无法确定单一主色系",
+    "pink/purple": "斜杠并列两种色名，无法确定单一主色系",
+    "purple/blue": "斜杠并列两种色名，无法确定单一主色系",
+    "purple/pink": "斜杠并列两种色名，无法确定单一主色系",
+    "yellow/green": "斜杠并列两种色名，无法确定单一主色系"
+  },
+  "names": {
+    "acid green": {
+      "family_id": "green",
+      "hex": "#8ffe09",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "adobe": {
+      "family_id": "brown",
+      "hex": "#bd6c48",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "algae": {
+      "family_id": "green",
+      "hex": "#54ac68",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "algae green": {
+      "family_id": "green",
+      "hex": "#21c36f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "almost black": {
+      "family_id": "black",
+      "hex": "#070d0d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "amber": {
+      "family_id": "orange",
+      "hex": "#feb308",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "amethyst": {
+      "family_id": "purple",
+      "hex": "#9b5fc0",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "apple": {
+      "family_id": "green",
+      "hex": "#6ecb3c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "apple green": {
+      "family_id": "green",
+      "hex": "#76cd26",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "apricot": {
+      "family_id": "orange",
+      "hex": "#ffb16d",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "aqua": {
+      "family_id": "cyan",
+      "hex": "#13eac9",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "aqua blue": {
+      "family_id": "blue",
+      "hex": "#02d8e9",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "aqua green": {
+      "family_id": "green",
+      "hex": "#12e193",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "aqua marine": {
+      "family_id": "cyan",
+      "hex": "#2ee8bb",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "aquamarine": {
+      "family_id": "cyan",
+      "hex": "#04d8b2",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "army green": {
+      "family_id": "green",
+      "hex": "#4b5d16",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "asparagus": {
+      "family_id": "green",
+      "hex": "#77ab56",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "aubergine": {
+      "family_id": "purple",
+      "hex": "#3d0734",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "auburn": {
+      "family_id": "brown",
+      "hex": "#9a3001",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "avocado": {
+      "family_id": "green",
+      "hex": "#90b134",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "avocado green": {
+      "family_id": "green",
+      "hex": "#87a922",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "azul": {
+      "family_id": "blue",
+      "hex": "#1d5dec",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "azure": {
+      "family_id": "blue",
+      "hex": "#069af3",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "baby blue": {
+      "family_id": "blue",
+      "hex": "#a2cffe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "baby green": {
+      "family_id": "green",
+      "hex": "#8cff9e",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "baby pink": {
+      "family_id": "pink",
+      "hex": "#ffb7ce",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "baby poo": {
+      "family_id": "brown",
+      "hex": "#ab9004",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "baby poop": {
+      "family_id": "brown",
+      "hex": "#937c00",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "baby poop green": {
+      "family_id": "green",
+      "hex": "#8f9805",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "baby puke green": {
+      "family_id": "green",
+      "hex": "#b6c406",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "baby purple": {
+      "family_id": "purple",
+      "hex": "#ca9bf7",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "baby shit brown": {
+      "family_id": "brown",
+      "hex": "#ad900d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "baby shit green": {
+      "family_id": "green",
+      "hex": "#889717",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "banana": {
+      "family_id": "yellow",
+      "hex": "#ffff7e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "banana yellow": {
+      "family_id": "yellow",
+      "hex": "#fafe4b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "barbie pink": {
+      "family_id": "pink",
+      "hex": "#fe46a5",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "barf green": {
+      "family_id": "green",
+      "hex": "#94ac02",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "barney": {
+      "family_id": "purple",
+      "hex": "#ac1db8",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "barney purple": {
+      "family_id": "purple",
+      "hex": "#a00498",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "battleship grey": {
+      "family_id": "gray",
+      "hex": "#6b7c85",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "beige": {
+      "family_id": "brown",
+      "hex": "#e6daa6",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "berry": {
+      "family_id": "magenta",
+      "hex": "#990f4b",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "bile": {
+      "family_id": "yellow",
+      "hex": "#b5c306",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "black": {
+      "family_id": "black",
+      "hex": "#000000",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "bland": {
+      "family_id": "gray",
+      "hex": "#afa88b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "blood": {
+      "family_id": "red",
+      "hex": "#770001",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "blood orange": {
+      "family_id": "orange",
+      "hex": "#fe4b03",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "blood red": {
+      "family_id": "red",
+      "hex": "#980002",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "blue": {
+      "family_id": "blue",
+      "hex": "#0343df",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "blue blue": {
+      "family_id": "blue",
+      "hex": "#2242c7",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "blue green": {
+      "family_id": "green",
+      "hex": "#137e6d",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "blue grey": {
+      "family_id": "gray",
+      "hex": "#607c8e",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "blue purple": {
+      "family_id": "purple",
+      "hex": "#5729ce",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "blue violet": {
+      "family_id": "purple",
+      "hex": "#5d06e9",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "blue with a hint of purple": {
+      "family_id": "blue",
+      "hex": "#533cc6",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "blueberry": {
+      "family_id": "purple",
+      "hex": "#464196",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluegreen": {
+      "family_id": "green",
+      "hex": "#017a79",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluegrey": {
+      "family_id": "gray",
+      "hex": "#85a3b2",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluey green": {
+      "family_id": "green",
+      "hex": "#2bb179",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluey grey": {
+      "family_id": "gray",
+      "hex": "#89a0b0",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluey purple": {
+      "family_id": "purple",
+      "hex": "#6241c7",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluish": {
+      "family_id": "blue",
+      "hex": "#2976bb",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "bluish green": {
+      "family_id": "green",
+      "hex": "#10a674",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluish grey": {
+      "family_id": "gray",
+      "hex": "#748b97",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "bluish purple": {
+      "family_id": "purple",
+      "hex": "#703be7",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "blurple": {
+      "family_id": "purple",
+      "hex": "#5539cc",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "blush": {
+      "family_id": "pink",
+      "hex": "#f29e8e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "blush pink": {
+      "family_id": "pink",
+      "hex": "#fe828c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "booger": {
+      "family_id": "green",
+      "hex": "#9bb53c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "booger green": {
+      "family_id": "green",
+      "hex": "#96b403",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "bordeaux": {
+      "family_id": "red",
+      "hex": "#7b002c",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "boring green": {
+      "family_id": "green",
+      "hex": "#63b365",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "bottle green": {
+      "family_id": "green",
+      "hex": "#044a05",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "brick": {
+      "family_id": "red",
+      "hex": "#a03623",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "brick orange": {
+      "family_id": "orange",
+      "hex": "#c14a09",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "brick red": {
+      "family_id": "red",
+      "hex": "#8f1402",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "bright aqua": {
+      "family_id": "cyan",
+      "hex": "#0bf9ea",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright blue": {
+      "family_id": "blue",
+      "hex": "#0165fc",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright cyan": {
+      "family_id": "cyan",
+      "hex": "#41fdfe",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright green": {
+      "family_id": "green",
+      "hex": "#01ff07",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright lavender": {
+      "family_id": "purple",
+      "hex": "#c760ff",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright light blue": {
+      "family_id": "blue",
+      "hex": "#26f7fd",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "bright light green": {
+      "family_id": "green",
+      "hex": "#2dfe54",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "bright lilac": {
+      "family_id": "purple",
+      "hex": "#c95efb",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright lime": {
+      "family_id": "green",
+      "hex": "#87fd05",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright lime green": {
+      "family_id": "green",
+      "hex": "#65fe08",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright magenta": {
+      "family_id": "magenta",
+      "hex": "#ff08e8",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright olive": {
+      "family_id": "green",
+      "hex": "#9cbb04",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright orange": {
+      "family_id": "orange",
+      "hex": "#ff5b00",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright pink": {
+      "family_id": "magenta",
+      "hex": "#fe01b1",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright purple": {
+      "family_id": "purple",
+      "hex": "#be03fd",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright red": {
+      "family_id": "red",
+      "hex": "#ff000d",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright sea green": {
+      "family_id": "green",
+      "hex": "#05ffa6",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright sky blue": {
+      "family_id": "blue",
+      "hex": "#02ccfe",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright teal": {
+      "family_id": "cyan",
+      "hex": "#01f9c6",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright turquoise": {
+      "family_id": "cyan",
+      "hex": "#0ffef9",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright violet": {
+      "family_id": "purple",
+      "hex": "#ad0afd",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright yellow": {
+      "family_id": "yellow",
+      "hex": "#fffd01",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "bright yellow green": {
+      "family_id": "green",
+      "hex": "#9dff00",
+      "hue_modifier_id": "yellow",
+      "tone_id": "vivid"
+    },
+    "british racing green": {
+      "family_id": "green",
+      "hex": "#05480d",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "bronze": {
+      "family_id": "brown",
+      "hex": "#a87900",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "brown": {
+      "family_id": "brown",
+      "hex": "#653700",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "brown green": {
+      "family_id": "green",
+      "hex": "#706c11",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brown grey": {
+      "family_id": "gray",
+      "hex": "#8d8468",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "brown orange": {
+      "family_id": "orange",
+      "hex": "#b96902",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brown red": {
+      "family_id": "red",
+      "hex": "#922b05",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brown yellow": {
+      "family_id": "yellow",
+      "hex": "#b29705",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brownish": {
+      "family_id": "brown",
+      "hex": "#9c6d57",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "brownish green": {
+      "family_id": "green",
+      "hex": "#6a6e09",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brownish grey": {
+      "family_id": "gray",
+      "hex": "#86775f",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "brownish orange": {
+      "family_id": "orange",
+      "hex": "#cb7723",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brownish pink": {
+      "family_id": "pink",
+      "hex": "#c27e79",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "brownish purple": {
+      "family_id": "purple",
+      "hex": "#76424e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brownish red": {
+      "family_id": "red",
+      "hex": "#9e3623",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "brownish yellow": {
+      "family_id": "yellow",
+      "hex": "#c9b003",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "browny green": {
+      "family_id": "green",
+      "hex": "#6f6c0a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "browny orange": {
+      "family_id": "orange",
+      "hex": "#ca6b02",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "bruise": {
+      "family_id": "purple",
+      "hex": "#7e4071",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "bubble gum pink": {
+      "family_id": "pink",
+      "hex": "#ff69af",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "bubblegum": {
+      "family_id": "pink",
+      "hex": "#ff6cb5",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "bubblegum pink": {
+      "family_id": "pink",
+      "hex": "#fe83cc",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "buff": {
+      "family_id": "brown",
+      "hex": "#fef69e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "burgundy": {
+      "family_id": "red",
+      "hex": "#610023",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burnt orange": {
+      "family_id": "orange",
+      "hex": "#c04e01",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burnt red": {
+      "family_id": "red",
+      "hex": "#9f2305",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burnt siena": {
+      "family_id": "brown",
+      "hex": "#b75203",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burnt sienna": {
+      "family_id": "brown",
+      "hex": "#b04e0f",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burnt umber": {
+      "family_id": "brown",
+      "hex": "#a0450e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burnt yellow": {
+      "family_id": "yellow",
+      "hex": "#d5ab09",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "burple": {
+      "family_id": "purple",
+      "hex": "#6832e3",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "butter": {
+      "family_id": "yellow",
+      "hex": "#ffff81",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "butter yellow": {
+      "family_id": "yellow",
+      "hex": "#fffd74",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "butterscotch": {
+      "family_id": "yellow",
+      "hex": "#fdb147",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cadet blue": {
+      "family_id": "blue",
+      "hex": "#4e7496",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "camel": {
+      "family_id": "brown",
+      "hex": "#c69f59",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "camo": {
+      "family_id": "green",
+      "hex": "#7f8f4e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "camo green": {
+      "family_id": "green",
+      "hex": "#526525",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "camouflage green": {
+      "family_id": "green",
+      "hex": "#4b6113",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "canary": {
+      "family_id": "yellow",
+      "hex": "#fdff63",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "canary yellow": {
+      "family_id": "yellow",
+      "hex": "#fffe40",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "candy pink": {
+      "family_id": "pink",
+      "hex": "#ff63e9",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "caramel": {
+      "family_id": "brown",
+      "hex": "#af6f09",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "carmine": {
+      "family_id": "red",
+      "hex": "#9d0216",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "carnation": {
+      "family_id": "pink",
+      "hex": "#fd798f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "carnation pink": {
+      "family_id": "pink",
+      "hex": "#ff7fa7",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "carolina blue": {
+      "family_id": "blue",
+      "hex": "#8ab8fe",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "celadon": {
+      "family_id": "green",
+      "hex": "#befdb7",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "celery": {
+      "family_id": "green",
+      "hex": "#c1fd95",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "cement": {
+      "family_id": "gray",
+      "hex": "#a5a391",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cerise": {
+      "family_id": "magenta",
+      "hex": "#de0c62",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "cerulean": {
+      "family_id": "blue",
+      "hex": "#0485d1",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "cerulean blue": {
+      "family_id": "blue",
+      "hex": "#056eee",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "charcoal": {
+      "family_id": "gray",
+      "hex": "#343837",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "charcoal grey": {
+      "family_id": "gray",
+      "hex": "#3c4142",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "chartreuse": {
+      "family_id": "green",
+      "hex": "#c1f80a",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "cherry": {
+      "family_id": "red",
+      "hex": "#cf0234",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cherry red": {
+      "family_id": "red",
+      "hex": "#f7022a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "chestnut": {
+      "family_id": "brown",
+      "hex": "#742802",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "chocolate": {
+      "family_id": "brown",
+      "hex": "#3d1c02",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "chocolate brown": {
+      "family_id": "brown",
+      "hex": "#411900",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cinnamon": {
+      "family_id": "brown",
+      "hex": "#ac4f06",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "claret": {
+      "family_id": "red",
+      "hex": "#680018",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "clay": {
+      "family_id": "brown",
+      "hex": "#b66a50",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "clay brown": {
+      "family_id": "brown",
+      "hex": "#b2713d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "clear blue": {
+      "family_id": "blue",
+      "hex": "#247afd",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cloudy blue": {
+      "family_id": "blue",
+      "hex": "#acc2d9",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "cobalt": {
+      "family_id": "blue",
+      "hex": "#1e488f",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "cobalt blue": {
+      "family_id": "blue",
+      "hex": "#030aa7",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "cocoa": {
+      "family_id": "brown",
+      "hex": "#875f42",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "coffee": {
+      "family_id": "brown",
+      "hex": "#a6814c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cool blue": {
+      "family_id": "blue",
+      "hex": "#4984b8",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "cool green": {
+      "family_id": "green",
+      "hex": "#33b864",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "cool grey": {
+      "family_id": "gray",
+      "hex": "#95a3a6",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "copper": {
+      "family_id": "brown",
+      "hex": "#b66325",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "coral": {
+      "family_id": "orange",
+      "hex": "#fc5a50",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "coral pink": {
+      "family_id": "pink",
+      "hex": "#ff6163",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "cornflower": {
+      "family_id": "blue",
+      "hex": "#6a79f7",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cornflower blue": {
+      "family_id": "blue",
+      "hex": "#5170d7",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "cranberry": {
+      "family_id": "red",
+      "hex": "#9e003a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "cream": {
+      "family_id": "white",
+      "hex": "#ffffc2",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "creme": {
+      "family_id": "white",
+      "hex": "#ffffb6",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "crimson": {
+      "family_id": "red",
+      "hex": "#8c000f",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "custard": {
+      "family_id": "yellow",
+      "hex": "#fffd78",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "cyan": {
+      "family_id": "cyan",
+      "hex": "#00ffff",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dandelion": {
+      "family_id": "yellow",
+      "hex": "#fedf08",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dark": {
+      "family_id": "black",
+      "hex": "#1b2431",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dark aqua": {
+      "family_id": "cyan",
+      "hex": "#05696b",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark aquamarine": {
+      "family_id": "cyan",
+      "hex": "#017371",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark beige": {
+      "family_id": "brown",
+      "hex": "#ac9362",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark blue": {
+      "family_id": "blue",
+      "hex": "#00035b",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark blue green": {
+      "family_id": "green",
+      "hex": "#005249",
+      "hue_modifier_id": "blue",
+      "tone_id": "dark"
+    },
+    "dark blue grey": {
+      "family_id": "gray",
+      "hex": "#1f3b4d",
+      "hue_modifier_id": "blue",
+      "tone_id": "dark"
+    },
+    "dark brown": {
+      "family_id": "brown",
+      "hex": "#341c02",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark coral": {
+      "family_id": "orange",
+      "hex": "#cf524e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark cream": {
+      "family_id": "yellow",
+      "hex": "#fff39a",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "dark cyan": {
+      "family_id": "cyan",
+      "hex": "#0a888a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark forest green": {
+      "family_id": "green",
+      "hex": "#002d04",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark fuchsia": {
+      "family_id": "magenta",
+      "hex": "#9d0759",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark gold": {
+      "family_id": "yellow",
+      "hex": "#b59410",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark grass green": {
+      "family_id": "green",
+      "hex": "#388004",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark green": {
+      "family_id": "green",
+      "hex": "#033500",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark green blue": {
+      "family_id": "blue",
+      "hex": "#1f6357",
+      "hue_modifier_id": "green",
+      "tone_id": "dark"
+    },
+    "dark grey": {
+      "family_id": "gray",
+      "hex": "#363737",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark grey blue": {
+      "family_id": "blue",
+      "hex": "#29465b",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark hot pink": {
+      "family_id": "pink",
+      "hex": "#d90166",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dark indigo": {
+      "family_id": "blue",
+      "hex": "#1f0954",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark khaki": {
+      "family_id": "brown",
+      "hex": "#9b8f55",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark lavender": {
+      "family_id": "purple",
+      "hex": "#856798",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark lilac": {
+      "family_id": "purple",
+      "hex": "#9c6da5",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark lime": {
+      "family_id": "green",
+      "hex": "#84b701",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark lime green": {
+      "family_id": "green",
+      "hex": "#7ebd01",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark magenta": {
+      "family_id": "magenta",
+      "hex": "#960056",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark maroon": {
+      "family_id": "red",
+      "hex": "#3c0008",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark mauve": {
+      "family_id": "purple",
+      "hex": "#874c62",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark mint": {
+      "family_id": "green",
+      "hex": "#48c072",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark mint green": {
+      "family_id": "green",
+      "hex": "#20c073",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark mustard": {
+      "family_id": "yellow",
+      "hex": "#a88905",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark navy": {
+      "family_id": "blue",
+      "hex": "#000435",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark navy blue": {
+      "family_id": "blue",
+      "hex": "#00022e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark olive": {
+      "family_id": "green",
+      "hex": "#373e02",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark olive green": {
+      "family_id": "green",
+      "hex": "#3c4d03",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark orange": {
+      "family_id": "orange",
+      "hex": "#c65102",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark pastel green": {
+      "family_id": "green",
+      "hex": "#56ae57",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark peach": {
+      "family_id": "orange",
+      "hex": "#de7e5d",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark periwinkle": {
+      "family_id": "blue",
+      "hex": "#665fd1",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark pink": {
+      "family_id": "magenta",
+      "hex": "#cb416b",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark plum": {
+      "family_id": "purple",
+      "hex": "#3f012c",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark purple": {
+      "family_id": "purple",
+      "hex": "#35063e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark red": {
+      "family_id": "red",
+      "hex": "#840000",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark rose": {
+      "family_id": "pink",
+      "hex": "#b5485d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dark royal blue": {
+      "family_id": "blue",
+      "hex": "#02066f",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark sage": {
+      "family_id": "green",
+      "hex": "#598556",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark salmon": {
+      "family_id": "orange",
+      "hex": "#c85a53",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark sand": {
+      "family_id": "brown",
+      "hex": "#a88f59",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark sea green": {
+      "family_id": "green",
+      "hex": "#11875d",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark seafoam": {
+      "family_id": "green",
+      "hex": "#1fb57a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark seafoam green": {
+      "family_id": "green",
+      "hex": "#3eaf76",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark sky blue": {
+      "family_id": "blue",
+      "hex": "#448ee4",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark slate blue": {
+      "family_id": "blue",
+      "hex": "#214761",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark tan": {
+      "family_id": "brown",
+      "hex": "#af884a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark taupe": {
+      "family_id": "brown",
+      "hex": "#7f684e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark teal": {
+      "family_id": "cyan",
+      "hex": "#014d4e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark turquoise": {
+      "family_id": "cyan",
+      "hex": "#045c5a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark violet": {
+      "family_id": "purple",
+      "hex": "#34013f",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark yellow": {
+      "family_id": "yellow",
+      "hex": "#d5b60a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dark yellow green": {
+      "family_id": "green",
+      "hex": "#728f02",
+      "hue_modifier_id": "yellow",
+      "tone_id": "dark"
+    },
+    "darkblue": {
+      "family_id": "blue",
+      "hex": "#030764",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "darkgreen": {
+      "family_id": "green",
+      "hex": "#054907",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "darkish blue": {
+      "family_id": "blue",
+      "hex": "#014182",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "darkish green": {
+      "family_id": "green",
+      "hex": "#287c37",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "darkish pink": {
+      "family_id": "pink",
+      "hex": "#da467d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "darkish purple": {
+      "family_id": "purple",
+      "hex": "#751973",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "darkish red": {
+      "family_id": "red",
+      "hex": "#a90308",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "deep aqua": {
+      "family_id": "cyan",
+      "hex": "#08787f",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep blue": {
+      "family_id": "blue",
+      "hex": "#040273",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep brown": {
+      "family_id": "brown",
+      "hex": "#410200",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "deep green": {
+      "family_id": "green",
+      "hex": "#02590f",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep lavender": {
+      "family_id": "purple",
+      "hex": "#8d5eb7",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep lilac": {
+      "family_id": "purple",
+      "hex": "#966ebd",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep magenta": {
+      "family_id": "magenta",
+      "hex": "#a0025c",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep orange": {
+      "family_id": "orange",
+      "hex": "#dc4d01",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep pink": {
+      "family_id": "magenta",
+      "hex": "#cb0162",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep purple": {
+      "family_id": "purple",
+      "hex": "#36013f",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep red": {
+      "family_id": "red",
+      "hex": "#9a0200",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep rose": {
+      "family_id": "pink",
+      "hex": "#c74767",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "deep sea blue": {
+      "family_id": "blue",
+      "hex": "#015482",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep sky blue": {
+      "family_id": "blue",
+      "hex": "#0d75f8",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep teal": {
+      "family_id": "cyan",
+      "hex": "#00555a",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep turquoise": {
+      "family_id": "cyan",
+      "hex": "#017374",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "deep violet": {
+      "family_id": "purple",
+      "hex": "#490648",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "denim": {
+      "family_id": "blue",
+      "hex": "#3b638c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "denim blue": {
+      "family_id": "blue",
+      "hex": "#3b5b92",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "desert": {
+      "family_id": "brown",
+      "hex": "#ccad60",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "diarrhea": {
+      "family_id": "brown",
+      "hex": "#9f8303",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dirt": {
+      "family_id": "brown",
+      "hex": "#8a6e45",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dirt brown": {
+      "family_id": "brown",
+      "hex": "#836539",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dirty blue": {
+      "family_id": "blue",
+      "hex": "#3f829d",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dirty green": {
+      "family_id": "green",
+      "hex": "#667e2c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dirty orange": {
+      "family_id": "orange",
+      "hex": "#c87606",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dirty pink": {
+      "family_id": "pink",
+      "hex": "#ca7b80",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "dirty purple": {
+      "family_id": "purple",
+      "hex": "#734a65",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dirty yellow": {
+      "family_id": "yellow",
+      "hex": "#cdc50a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dodger blue": {
+      "family_id": "blue",
+      "hex": "#3e82fc",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "drab": {
+      "family_id": "green",
+      "hex": "#828344",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "drab green": {
+      "family_id": "green",
+      "hex": "#749551",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dried blood": {
+      "family_id": "red",
+      "hex": "#4b0101",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "duck egg blue": {
+      "family_id": "cyan",
+      "hex": "#c3fbf4",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "dull blue": {
+      "family_id": "blue",
+      "hex": "#49759c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull brown": {
+      "family_id": "brown",
+      "hex": "#876e4b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull green": {
+      "family_id": "green",
+      "hex": "#74a662",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull orange": {
+      "family_id": "orange",
+      "hex": "#d8863b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull pink": {
+      "family_id": "pink",
+      "hex": "#d5869d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dull purple": {
+      "family_id": "purple",
+      "hex": "#84597e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull red": {
+      "family_id": "red",
+      "hex": "#bb3f3f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull teal": {
+      "family_id": "cyan",
+      "hex": "#5f9e8f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dull yellow": {
+      "family_id": "yellow",
+      "hex": "#eedc5b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusk": {
+      "family_id": "purple",
+      "hex": "#4e5481",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dusk blue": {
+      "family_id": "blue",
+      "hex": "#26538d",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "dusky blue": {
+      "family_id": "blue",
+      "hex": "#475f94",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusky pink": {
+      "family_id": "pink",
+      "hex": "#cc7a8b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dusky purple": {
+      "family_id": "purple",
+      "hex": "#895b7b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusky rose": {
+      "family_id": "pink",
+      "hex": "#ba6873",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dust": {
+      "family_id": "brown",
+      "hex": "#b2996e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dusty blue": {
+      "family_id": "blue",
+      "hex": "#5a86ad",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusty green": {
+      "family_id": "green",
+      "hex": "#76a973",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusty lavender": {
+      "family_id": "purple",
+      "hex": "#ac86a8",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusty orange": {
+      "family_id": "orange",
+      "hex": "#f0833a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusty pink": {
+      "family_id": "pink",
+      "hex": "#d58a94",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dusty purple": {
+      "family_id": "purple",
+      "hex": "#825f87",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusty red": {
+      "family_id": "red",
+      "hex": "#b9484e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "dusty rose": {
+      "family_id": "pink",
+      "hex": "#c0737a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "dusty teal": {
+      "family_id": "cyan",
+      "hex": "#4c9085",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "earth": {
+      "family_id": "brown",
+      "hex": "#a2653e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "easter green": {
+      "family_id": "green",
+      "hex": "#8cfd7e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "easter purple": {
+      "family_id": "purple",
+      "hex": "#c071fe",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "ecru": {
+      "family_id": "white",
+      "hex": "#feffca",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "egg shell": {
+      "family_id": "white",
+      "hex": "#fffcc4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "eggplant": {
+      "family_id": "purple",
+      "hex": "#380835",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "eggplant purple": {
+      "family_id": "purple",
+      "hex": "#430541",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "eggshell": {
+      "family_id": "white",
+      "hex": "#ffffd4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "eggshell blue": {
+      "family_id": "cyan",
+      "hex": "#c4fff7",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "electric blue": {
+      "family_id": "blue",
+      "hex": "#0652ff",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "electric green": {
+      "family_id": "green",
+      "hex": "#21fc0d",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "electric lime": {
+      "family_id": "green",
+      "hex": "#a8ff04",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "electric pink": {
+      "family_id": "magenta",
+      "hex": "#ff0490",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "electric purple": {
+      "family_id": "purple",
+      "hex": "#aa23ff",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "emerald": {
+      "family_id": "green",
+      "hex": "#01a049",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "emerald green": {
+      "family_id": "green",
+      "hex": "#028f1e",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "evergreen": {
+      "family_id": "green",
+      "hex": "#05472a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "faded blue": {
+      "family_id": "blue",
+      "hex": "#658cbb",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "faded green": {
+      "family_id": "green",
+      "hex": "#7bb274",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "faded orange": {
+      "family_id": "orange",
+      "hex": "#f0944d",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "faded pink": {
+      "family_id": "pink",
+      "hex": "#de9dac",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "faded purple": {
+      "family_id": "purple",
+      "hex": "#916e99",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "faded red": {
+      "family_id": "red",
+      "hex": "#d3494e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "faded yellow": {
+      "family_id": "yellow",
+      "hex": "#feff7f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "fawn": {
+      "family_id": "brown",
+      "hex": "#cfaf7b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "fern": {
+      "family_id": "green",
+      "hex": "#63a950",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "fern green": {
+      "family_id": "green",
+      "hex": "#548d44",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "fire engine red": {
+      "family_id": "red",
+      "hex": "#fe0002",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "flat blue": {
+      "family_id": "blue",
+      "hex": "#3c73a8",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "flat green": {
+      "family_id": "green",
+      "hex": "#699d4c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "fluorescent green": {
+      "family_id": "green",
+      "hex": "#08ff08",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "fluro green": {
+      "family_id": "green",
+      "hex": "#0aff02",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "foam green": {
+      "family_id": "green",
+      "hex": "#90fda9",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "forest": {
+      "family_id": "green",
+      "hex": "#0b5509",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "forest green": {
+      "family_id": "green",
+      "hex": "#06470c",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "forrest green": {
+      "family_id": "green",
+      "hex": "#154406",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "french blue": {
+      "family_id": "blue",
+      "hex": "#436bad",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "fresh green": {
+      "family_id": "green",
+      "hex": "#69d84f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "frog green": {
+      "family_id": "green",
+      "hex": "#58bc08",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "fuchsia": {
+      "family_id": "magenta",
+      "hex": "#ed0dd9",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "gold": {
+      "family_id": "yellow",
+      "hex": "#dbb40c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "golden": {
+      "family_id": "yellow",
+      "hex": "#f5bf03",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "golden brown": {
+      "family_id": "brown",
+      "hex": "#b27a01",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "golden rod": {
+      "family_id": "yellow",
+      "hex": "#f9bc08",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "golden yellow": {
+      "family_id": "yellow",
+      "hex": "#fec615",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "goldenrod": {
+      "family_id": "yellow",
+      "hex": "#fac205",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "grape": {
+      "family_id": "purple",
+      "hex": "#6c3461",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "grape purple": {
+      "family_id": "purple",
+      "hex": "#5d1451",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "grapefruit": {
+      "family_id": "red",
+      "hex": "#fd5956",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "grass": {
+      "family_id": "green",
+      "hex": "#5cac2d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "grass green": {
+      "family_id": "green",
+      "hex": "#3f9b0b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "grassy green": {
+      "family_id": "green",
+      "hex": "#419c03",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "green": {
+      "family_id": "green",
+      "hex": "#15b01a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "green apple": {
+      "family_id": "green",
+      "hex": "#5edc1f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "green blue": {
+      "family_id": "blue",
+      "hex": "#06b48b",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "green brown": {
+      "family_id": "brown",
+      "hex": "#544e03",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "green grey": {
+      "family_id": "gray",
+      "hex": "#77926f",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "green teal": {
+      "family_id": "cyan",
+      "hex": "#0cb577",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "green yellow": {
+      "family_id": "yellow",
+      "hex": "#c9ff27",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenblue": {
+      "family_id": "blue",
+      "hex": "#23c48b",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenish": {
+      "family_id": "green",
+      "hex": "#40a368",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "greenish beige": {
+      "family_id": "brown",
+      "hex": "#c9d179",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greenish blue": {
+      "family_id": "blue",
+      "hex": "#0b8b87",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenish brown": {
+      "family_id": "brown",
+      "hex": "#696112",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greenish cyan": {
+      "family_id": "cyan",
+      "hex": "#2afeb7",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenish grey": {
+      "family_id": "gray",
+      "hex": "#96ae8d",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenish tan": {
+      "family_id": "brown",
+      "hex": "#bccb7a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greenish teal": {
+      "family_id": "cyan",
+      "hex": "#32bf84",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenish turquoise": {
+      "family_id": "cyan",
+      "hex": "#00fbb0",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greenish yellow": {
+      "family_id": "yellow",
+      "hex": "#cdfd02",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greeny blue": {
+      "family_id": "blue",
+      "hex": "#42b395",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greeny brown": {
+      "family_id": "brown",
+      "hex": "#696006",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greeny grey": {
+      "family_id": "gray",
+      "hex": "#7ea07a",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "greeny yellow": {
+      "family_id": "yellow",
+      "hex": "#c6f808",
+      "hue_modifier_id": "green",
+      "tone_id": "none"
+    },
+    "grey": {
+      "family_id": "gray",
+      "hex": "#929591",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "grey blue": {
+      "family_id": "blue",
+      "hex": "#6b8ba4",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "grey brown": {
+      "family_id": "brown",
+      "hex": "#7f7053",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "grey green": {
+      "family_id": "green",
+      "hex": "#789b73",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "grey pink": {
+      "family_id": "pink",
+      "hex": "#c3909b",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "grey purple": {
+      "family_id": "purple",
+      "hex": "#826d8c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "grey teal": {
+      "family_id": "cyan",
+      "hex": "#5e9b8a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greyblue": {
+      "family_id": "blue",
+      "hex": "#77a1b5",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greyish": {
+      "family_id": "gray",
+      "hex": "#a8a495",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "greyish blue": {
+      "family_id": "blue",
+      "hex": "#5e819d",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greyish brown": {
+      "family_id": "brown",
+      "hex": "#7a6a4f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greyish green": {
+      "family_id": "green",
+      "hex": "#82a67d",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greyish pink": {
+      "family_id": "pink",
+      "hex": "#c88d94",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "greyish purple": {
+      "family_id": "purple",
+      "hex": "#887191",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "greyish teal": {
+      "family_id": "cyan",
+      "hex": "#719f91",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "gross green": {
+      "family_id": "green",
+      "hex": "#a0bf16",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "gunmetal": {
+      "family_id": "gray",
+      "hex": "#536267",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "hazel": {
+      "family_id": "brown",
+      "hex": "#8e7618",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "heather": {
+      "family_id": "purple",
+      "hex": "#a484ac",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "heliotrope": {
+      "family_id": "magenta",
+      "hex": "#d94ff5",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "highlighter green": {
+      "family_id": "green",
+      "hex": "#1bfc06",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "hospital green": {
+      "family_id": "green",
+      "hex": "#9be5aa",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "hot green": {
+      "family_id": "green",
+      "hex": "#25ff29",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "hot magenta": {
+      "family_id": "magenta",
+      "hex": "#f504c9",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "hot pink": {
+      "family_id": "magenta",
+      "hex": "#ff028d",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "hot purple": {
+      "family_id": "purple",
+      "hex": "#cb00f5",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "hunter green": {
+      "family_id": "green",
+      "hex": "#0b4008",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "ice": {
+      "family_id": "cyan",
+      "hex": "#d6fffa",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "ice blue": {
+      "family_id": "blue",
+      "hex": "#d7fffe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "icky green": {
+      "family_id": "green",
+      "hex": "#8fae22",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "indian red": {
+      "family_id": "red",
+      "hex": "#850e04",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "indigo": {
+      "family_id": "blue",
+      "hex": "#380282",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "indigo blue": {
+      "family_id": "blue",
+      "hex": "#3a18b1",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "iris": {
+      "family_id": "purple",
+      "hex": "#6258c4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "irish green": {
+      "family_id": "green",
+      "hex": "#019529",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "ivory": {
+      "family_id": "white",
+      "hex": "#ffffcb",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "jade": {
+      "family_id": "green",
+      "hex": "#1fa774",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "jade green": {
+      "family_id": "green",
+      "hex": "#2baf6a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "jungle green": {
+      "family_id": "green",
+      "hex": "#048243",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "kelley green": {
+      "family_id": "green",
+      "hex": "#009337",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "kelly green": {
+      "family_id": "green",
+      "hex": "#02ab2e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "kermit green": {
+      "family_id": "green",
+      "hex": "#5cb200",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "key lime": {
+      "family_id": "green",
+      "hex": "#aeff6e",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "khaki": {
+      "family_id": "brown",
+      "hex": "#aaa662",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "khaki green": {
+      "family_id": "green",
+      "hex": "#728639",
+      "hue_modifier_id": "yellow",
+      "tone_id": "muted"
+    },
+    "kiwi": {
+      "family_id": "green",
+      "hex": "#9cef43",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "kiwi green": {
+      "family_id": "green",
+      "hex": "#8ee53f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lavender": {
+      "family_id": "purple",
+      "hex": "#c79fef",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "lavender blue": {
+      "family_id": "blue",
+      "hex": "#8b88f8",
+      "hue_modifier_id": "purple",
+      "tone_id": "pale"
+    },
+    "lavender pink": {
+      "family_id": "pink",
+      "hex": "#dd85d7",
+      "hue_modifier_id": "purple",
+      "tone_id": "pale"
+    },
+    "lawn green": {
+      "family_id": "green",
+      "hex": "#4da409",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "leaf": {
+      "family_id": "green",
+      "hex": "#71aa34",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "leaf green": {
+      "family_id": "green",
+      "hex": "#5ca904",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "leafy green": {
+      "family_id": "green",
+      "hex": "#51b73b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "leather": {
+      "family_id": "brown",
+      "hex": "#ac7434",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lemon": {
+      "family_id": "yellow",
+      "hex": "#fdff52",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lemon green": {
+      "family_id": "green",
+      "hex": "#adf802",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "lemon lime": {
+      "family_id": "green",
+      "hex": "#bffe28",
+      "hue_modifier_id": "yellow",
+      "tone_id": "vivid"
+    },
+    "lemon yellow": {
+      "family_id": "yellow",
+      "hex": "#fdff38",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lichen": {
+      "family_id": "green",
+      "hex": "#8fb67b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "light aqua": {
+      "family_id": "cyan",
+      "hex": "#8cffdb",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light aquamarine": {
+      "family_id": "cyan",
+      "hex": "#7bfdc7",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light beige": {
+      "family_id": "brown",
+      "hex": "#fffeb6",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "light blue": {
+      "family_id": "blue",
+      "hex": "#95d0fc",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light blue green": {
+      "family_id": "green",
+      "hex": "#7efbb3",
+      "hue_modifier_id": "blue",
+      "tone_id": "light"
+    },
+    "light blue grey": {
+      "family_id": "gray",
+      "hex": "#b7c9e2",
+      "hue_modifier_id": "blue",
+      "tone_id": "light"
+    },
+    "light bluish green": {
+      "family_id": "green",
+      "hex": "#76fda8",
+      "hue_modifier_id": "blue",
+      "tone_id": "light"
+    },
+    "light bright green": {
+      "family_id": "green",
+      "hex": "#53fe5c",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light brown": {
+      "family_id": "brown",
+      "hex": "#ad8150",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "light burgundy": {
+      "family_id": "red",
+      "hex": "#a8415b",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light cyan": {
+      "family_id": "cyan",
+      "hex": "#acfffc",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light eggplant": {
+      "family_id": "purple",
+      "hex": "#894585",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light forest green": {
+      "family_id": "green",
+      "hex": "#4f9153",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light gold": {
+      "family_id": "yellow",
+      "hex": "#fddc5c",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light grass green": {
+      "family_id": "green",
+      "hex": "#9af764",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light green": {
+      "family_id": "green",
+      "hex": "#96f97b",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light green blue": {
+      "family_id": "blue",
+      "hex": "#56fca2",
+      "hue_modifier_id": "green",
+      "tone_id": "light"
+    },
+    "light greenish blue": {
+      "family_id": "blue",
+      "hex": "#63f7b4",
+      "hue_modifier_id": "green",
+      "tone_id": "light"
+    },
+    "light grey": {
+      "family_id": "gray",
+      "hex": "#d8dcd6",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light grey blue": {
+      "family_id": "blue",
+      "hex": "#9dbcd4",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light grey green": {
+      "family_id": "green",
+      "hex": "#b7e1a1",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light indigo": {
+      "family_id": "blue",
+      "hex": "#6d5acf",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light khaki": {
+      "family_id": "brown",
+      "hex": "#e6f2a2",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "light lavendar": {
+      "family_id": "purple",
+      "hex": "#efc0fe",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light lavender": {
+      "family_id": "purple",
+      "hex": "#dfc5fe",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light light blue": {
+      "family_id": "blue",
+      "hex": "#cafffb",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light light green": {
+      "family_id": "green",
+      "hex": "#c8ffb0",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light lilac": {
+      "family_id": "purple",
+      "hex": "#edc8ff",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light lime": {
+      "family_id": "green",
+      "hex": "#aefd6c",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light lime green": {
+      "family_id": "green",
+      "hex": "#b9ff66",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light magenta": {
+      "family_id": "magenta",
+      "hex": "#fa5ff7",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light maroon": {
+      "family_id": "red",
+      "hex": "#a24857",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light mauve": {
+      "family_id": "purple",
+      "hex": "#c292a1",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light mint": {
+      "family_id": "green",
+      "hex": "#b6ffbb",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light mint green": {
+      "family_id": "green",
+      "hex": "#a6fbb2",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light moss green": {
+      "family_id": "green",
+      "hex": "#a6c875",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light mustard": {
+      "family_id": "yellow",
+      "hex": "#f7d560",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light navy": {
+      "family_id": "blue",
+      "hex": "#155084",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light navy blue": {
+      "family_id": "blue",
+      "hex": "#2e5a88",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light neon green": {
+      "family_id": "green",
+      "hex": "#4efd54",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light olive": {
+      "family_id": "green",
+      "hex": "#acbf69",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light olive green": {
+      "family_id": "green",
+      "hex": "#a4be5c",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light orange": {
+      "family_id": "orange",
+      "hex": "#fdaa48",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light pastel green": {
+      "family_id": "green",
+      "hex": "#b2fba5",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "light pea green": {
+      "family_id": "green",
+      "hex": "#c4fe82",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light peach": {
+      "family_id": "orange",
+      "hex": "#ffd8b1",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light periwinkle": {
+      "family_id": "blue",
+      "hex": "#c1c6fc",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light pink": {
+      "family_id": "pink",
+      "hex": "#ffd1df",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light plum": {
+      "family_id": "purple",
+      "hex": "#9d5783",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light purple": {
+      "family_id": "purple",
+      "hex": "#bf77f6",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light red": {
+      "family_id": "red",
+      "hex": "#ff474c",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light rose": {
+      "family_id": "pink",
+      "hex": "#ffc5cb",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light royal blue": {
+      "family_id": "blue",
+      "hex": "#3a2efe",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light sage": {
+      "family_id": "green",
+      "hex": "#bcecac",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light salmon": {
+      "family_id": "orange",
+      "hex": "#fea993",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light sea green": {
+      "family_id": "green",
+      "hex": "#98f6b0",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light seafoam": {
+      "family_id": "green",
+      "hex": "#a0febf",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "light seafoam green": {
+      "family_id": "green",
+      "hex": "#a7ffb5",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "light sky blue": {
+      "family_id": "blue",
+      "hex": "#c6fcff",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light tan": {
+      "family_id": "brown",
+      "hex": "#fbeeac",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "light teal": {
+      "family_id": "cyan",
+      "hex": "#90e4c1",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light turquoise": {
+      "family_id": "cyan",
+      "hex": "#7ef4cc",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light urple": {
+      "family_id": "purple",
+      "hex": "#b36ff6",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light violet": {
+      "family_id": "purple",
+      "hex": "#d6b4fc",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light yellow": {
+      "family_id": "yellow",
+      "hex": "#fffe7a",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "light yellow green": {
+      "family_id": "green",
+      "hex": "#ccfd7f",
+      "hue_modifier_id": "yellow",
+      "tone_id": "light"
+    },
+    "light yellowish green": {
+      "family_id": "green",
+      "hex": "#c2ff89",
+      "hue_modifier_id": "yellow",
+      "tone_id": "light"
+    },
+    "lightblue": {
+      "family_id": "blue",
+      "hex": "#7bc8f6",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "lighter green": {
+      "family_id": "green",
+      "hex": "#75fd63",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lighter purple": {
+      "family_id": "purple",
+      "hex": "#a55af4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lightgreen": {
+      "family_id": "green",
+      "hex": "#76ff7b",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "lightish blue": {
+      "family_id": "blue",
+      "hex": "#3d7afd",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "lightish green": {
+      "family_id": "green",
+      "hex": "#61e160",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "lightish purple": {
+      "family_id": "purple",
+      "hex": "#a552e6",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "lightish red": {
+      "family_id": "red",
+      "hex": "#fe2f4a",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "lilac": {
+      "family_id": "purple",
+      "hex": "#cea2fd",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "liliac": {
+      "family_id": "purple",
+      "hex": "#c48efd",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "lime": {
+      "family_id": "green",
+      "hex": "#aaff32",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "lime green": {
+      "family_id": "green",
+      "hex": "#89fe05",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "lime yellow": {
+      "family_id": "yellow",
+      "hex": "#d0fe1d",
+      "hue_modifier_id": "green",
+      "tone_id": "vivid"
+    },
+    "lipstick": {
+      "family_id": "red",
+      "hex": "#d5174e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "lipstick red": {
+      "family_id": "red",
+      "hex": "#c0022f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "macaroni and cheese": {
+      "family_id": "orange",
+      "hex": "#efb435",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "magenta": {
+      "family_id": "magenta",
+      "hex": "#c20078",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "mahogany": {
+      "family_id": "brown",
+      "hex": "#4a0100",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "maize": {
+      "family_id": "yellow",
+      "hex": "#f4d054",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "mango": {
+      "family_id": "orange",
+      "hex": "#ffa62b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "manilla": {
+      "family_id": "yellow",
+      "hex": "#fffa86",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "marigold": {
+      "family_id": "yellow",
+      "hex": "#fcc006",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "marine": {
+      "family_id": "blue",
+      "hex": "#042e60",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "marine blue": {
+      "family_id": "blue",
+      "hex": "#01386a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "maroon": {
+      "family_id": "red",
+      "hex": "#650021",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "mauve": {
+      "family_id": "purple",
+      "hex": "#ae7181",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "medium blue": {
+      "family_id": "blue",
+      "hex": "#2c6fbb",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "medium brown": {
+      "family_id": "brown",
+      "hex": "#7f5112",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "medium green": {
+      "family_id": "green",
+      "hex": "#39ad48",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "medium grey": {
+      "family_id": "gray",
+      "hex": "#7d7f7c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "medium pink": {
+      "family_id": "pink",
+      "hex": "#f36196",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "medium purple": {
+      "family_id": "purple",
+      "hex": "#9e43a2",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "melon": {
+      "family_id": "orange",
+      "hex": "#ff7855",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "merlot": {
+      "family_id": "red",
+      "hex": "#730039",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "metallic blue": {
+      "family_id": "blue",
+      "hex": "#4f738e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "mid blue": {
+      "family_id": "blue",
+      "hex": "#276ab3",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "mid green": {
+      "family_id": "green",
+      "hex": "#50a747",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "midnight": {
+      "family_id": "blue",
+      "hex": "#03012d",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "midnight blue": {
+      "family_id": "blue",
+      "hex": "#020035",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "midnight purple": {
+      "family_id": "purple",
+      "hex": "#280137",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "military green": {
+      "family_id": "green",
+      "hex": "#667c3e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "milk chocolate": {
+      "family_id": "brown",
+      "hex": "#7f4e1e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "mint": {
+      "family_id": "green",
+      "hex": "#9ffeb0",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "mint green": {
+      "family_id": "green",
+      "hex": "#8fff9f",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "minty green": {
+      "family_id": "green",
+      "hex": "#0bf77d",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "mocha": {
+      "family_id": "brown",
+      "hex": "#9d7651",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "moss": {
+      "family_id": "green",
+      "hex": "#769958",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "moss green": {
+      "family_id": "green",
+      "hex": "#658b38",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "mossy green": {
+      "family_id": "green",
+      "hex": "#638b27",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "mud": {
+      "family_id": "brown",
+      "hex": "#735c12",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "mud brown": {
+      "family_id": "brown",
+      "hex": "#60460f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "mud green": {
+      "family_id": "green",
+      "hex": "#606602",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "muddy brown": {
+      "family_id": "brown",
+      "hex": "#886806",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "muddy green": {
+      "family_id": "green",
+      "hex": "#657432",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "muddy yellow": {
+      "family_id": "yellow",
+      "hex": "#bfac05",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "mulberry": {
+      "family_id": "magenta",
+      "hex": "#920a4e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "murky green": {
+      "family_id": "green",
+      "hex": "#6c7a0e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "mushroom": {
+      "family_id": "brown",
+      "hex": "#ba9e88",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "mustard": {
+      "family_id": "yellow",
+      "hex": "#ceb301",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "mustard brown": {
+      "family_id": "brown",
+      "hex": "#ac7e04",
+      "hue_modifier_id": "yellow",
+      "tone_id": "muted"
+    },
+    "mustard green": {
+      "family_id": "green",
+      "hex": "#a8b504",
+      "hue_modifier_id": "yellow",
+      "tone_id": "muted"
+    },
+    "mustard yellow": {
+      "family_id": "yellow",
+      "hex": "#d2bd0a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "muted blue": {
+      "family_id": "blue",
+      "hex": "#3b719f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "muted green": {
+      "family_id": "green",
+      "hex": "#5fa052",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "muted pink": {
+      "family_id": "pink",
+      "hex": "#d1768f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "muted purple": {
+      "family_id": "purple",
+      "hex": "#805b87",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "nasty green": {
+      "family_id": "green",
+      "hex": "#70b23f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "navy": {
+      "family_id": "blue",
+      "hex": "#01153e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "navy blue": {
+      "family_id": "blue",
+      "hex": "#001146",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "navy green": {
+      "family_id": "green",
+      "hex": "#35530a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "neon blue": {
+      "family_id": "blue",
+      "hex": "#04d9ff",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "neon green": {
+      "family_id": "green",
+      "hex": "#0cff0c",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "neon pink": {
+      "family_id": "magenta",
+      "hex": "#fe019a",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "neon purple": {
+      "family_id": "purple",
+      "hex": "#bc13fe",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "neon red": {
+      "family_id": "red",
+      "hex": "#ff073a",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "neon yellow": {
+      "family_id": "yellow",
+      "hex": "#cfff04",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "nice blue": {
+      "family_id": "blue",
+      "hex": "#107ab0",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "night blue": {
+      "family_id": "blue",
+      "hex": "#040348",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "ocean": {
+      "family_id": "cyan",
+      "hex": "#017b92",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "ocean blue": {
+      "family_id": "blue",
+      "hex": "#03719c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "ocean green": {
+      "family_id": "green",
+      "hex": "#3d9973",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "ocher": {
+      "family_id": "yellow",
+      "hex": "#bf9b0c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ochre": {
+      "family_id": "yellow",
+      "hex": "#bf9005",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ocre": {
+      "family_id": "yellow",
+      "hex": "#c69c04",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "off blue": {
+      "family_id": "blue",
+      "hex": "#5684ae",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "off green": {
+      "family_id": "green",
+      "hex": "#6ba353",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "off white": {
+      "family_id": "white",
+      "hex": "#ffffe4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "off yellow": {
+      "family_id": "yellow",
+      "hex": "#f1f33f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "old pink": {
+      "family_id": "pink",
+      "hex": "#c77986",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "old rose": {
+      "family_id": "pink",
+      "hex": "#c87f89",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "olive": {
+      "family_id": "green",
+      "hex": "#6e750e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "olive brown": {
+      "family_id": "brown",
+      "hex": "#645403",
+      "hue_modifier_id": "yellow",
+      "tone_id": "muted"
+    },
+    "olive drab": {
+      "family_id": "green",
+      "hex": "#6f7632",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "olive green": {
+      "family_id": "green",
+      "hex": "#677a04",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "olive yellow": {
+      "family_id": "yellow",
+      "hex": "#c2b709",
+      "hue_modifier_id": "green",
+      "tone_id": "muted"
+    },
+    "orange": {
+      "family_id": "orange",
+      "hex": "#f97306",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "orange brown": {
+      "family_id": "brown",
+      "hex": "#be6400",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orange pink": {
+      "family_id": "pink",
+      "hex": "#ff6f52",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "orange red": {
+      "family_id": "red",
+      "hex": "#fd411e",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orange yellow": {
+      "family_id": "yellow",
+      "hex": "#ffad01",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orangeish": {
+      "family_id": "orange",
+      "hex": "#fd8d49",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "orangered": {
+      "family_id": "red",
+      "hex": "#fe420f",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orangey brown": {
+      "family_id": "brown",
+      "hex": "#b16002",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orangey red": {
+      "family_id": "red",
+      "hex": "#fa4224",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orangey yellow": {
+      "family_id": "yellow",
+      "hex": "#fdb915",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orangish": {
+      "family_id": "orange",
+      "hex": "#fc824a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "orangish brown": {
+      "family_id": "brown",
+      "hex": "#b25f03",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orangish red": {
+      "family_id": "red",
+      "hex": "#f43605",
+      "hue_modifier_id": "orange",
+      "tone_id": "none"
+    },
+    "orchid": {
+      "family_id": "magenta",
+      "hex": "#c875c4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pale": {
+      "family_id": "yellow",
+      "hex": "#fff9d0",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale aqua": {
+      "family_id": "cyan",
+      "hex": "#b8ffeb",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale blue": {
+      "family_id": "blue",
+      "hex": "#d0fefe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale brown": {
+      "family_id": "brown",
+      "hex": "#b1916e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pale cyan": {
+      "family_id": "cyan",
+      "hex": "#b7fffa",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale gold": {
+      "family_id": "yellow",
+      "hex": "#fdde6c",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale green": {
+      "family_id": "green",
+      "hex": "#c7fdb5",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale grey": {
+      "family_id": "gray",
+      "hex": "#fdfdfe",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "pale lavender": {
+      "family_id": "purple",
+      "hex": "#eecffe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale light green": {
+      "family_id": "green",
+      "hex": "#b1fc99",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale lilac": {
+      "family_id": "purple",
+      "hex": "#e4cbff",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale lime": {
+      "family_id": "green",
+      "hex": "#befd73",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale lime green": {
+      "family_id": "green",
+      "hex": "#b1ff65",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale magenta": {
+      "family_id": "magenta",
+      "hex": "#d767ad",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale mauve": {
+      "family_id": "purple",
+      "hex": "#fed0fc",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale olive": {
+      "family_id": "green",
+      "hex": "#b9cc81",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale olive green": {
+      "family_id": "green",
+      "hex": "#b1d27b",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale orange": {
+      "family_id": "orange",
+      "hex": "#ffa756",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale peach": {
+      "family_id": "orange",
+      "hex": "#ffe5ad",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale pink": {
+      "family_id": "pink",
+      "hex": "#ffcfdc",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale purple": {
+      "family_id": "purple",
+      "hex": "#b790d4",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale red": {
+      "family_id": "red",
+      "hex": "#d9544d",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale rose": {
+      "family_id": "pink",
+      "hex": "#fdc1c5",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale salmon": {
+      "family_id": "orange",
+      "hex": "#ffb19a",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale sky blue": {
+      "family_id": "blue",
+      "hex": "#bdf6fe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale teal": {
+      "family_id": "cyan",
+      "hex": "#82cbb2",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale turquoise": {
+      "family_id": "cyan",
+      "hex": "#a5fbd5",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale violet": {
+      "family_id": "purple",
+      "hex": "#ceaefa",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pale yellow": {
+      "family_id": "yellow",
+      "hex": "#ffff84",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "parchment": {
+      "family_id": "yellow",
+      "hex": "#fefcaf",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel blue": {
+      "family_id": "blue",
+      "hex": "#a2bffe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel green": {
+      "family_id": "green",
+      "hex": "#b0ff9d",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel orange": {
+      "family_id": "orange",
+      "hex": "#ff964f",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel pink": {
+      "family_id": "pink",
+      "hex": "#ffbacd",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel purple": {
+      "family_id": "purple",
+      "hex": "#caa0ff",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel red": {
+      "family_id": "red",
+      "hex": "#db5856",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pastel yellow": {
+      "family_id": "yellow",
+      "hex": "#fffe71",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "pea": {
+      "family_id": "green",
+      "hex": "#a4bf20",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pea green": {
+      "family_id": "green",
+      "hex": "#8eab12",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pea soup": {
+      "family_id": "green",
+      "hex": "#929901",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "pea soup green": {
+      "family_id": "green",
+      "hex": "#94a617",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "peach": {
+      "family_id": "orange",
+      "hex": "#ffb07c",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "peachy pink": {
+      "family_id": "pink",
+      "hex": "#ff9a8a",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "peacock blue": {
+      "family_id": "blue",
+      "hex": "#016795",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "pear": {
+      "family_id": "green",
+      "hex": "#cbf85f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "periwinkle": {
+      "family_id": "blue",
+      "hex": "#8e82fe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "periwinkle blue": {
+      "family_id": "blue",
+      "hex": "#8f99fb",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "perrywinkle": {
+      "family_id": "blue",
+      "hex": "#8f8ce7",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "petrol": {
+      "family_id": "cyan",
+      "hex": "#005f6a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pig pink": {
+      "family_id": "pink",
+      "hex": "#e78ea5",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pine": {
+      "family_id": "green",
+      "hex": "#2b5d34",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "pine green": {
+      "family_id": "green",
+      "hex": "#0a481e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "pink": {
+      "family_id": "pink",
+      "hex": "#ff81c0",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pink purple": {
+      "family_id": "magenta",
+      "hex": "#db4bda",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "pink red": {
+      "family_id": "red",
+      "hex": "#f5054f",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "pinkish": {
+      "family_id": "pink",
+      "hex": "#d46a7e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pinkish brown": {
+      "family_id": "brown",
+      "hex": "#b17261",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "pinkish grey": {
+      "family_id": "gray",
+      "hex": "#c8aca9",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "pinkish orange": {
+      "family_id": "orange",
+      "hex": "#ff724c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "pinkish purple": {
+      "family_id": "magenta",
+      "hex": "#d648d7",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "pinkish red": {
+      "family_id": "red",
+      "hex": "#f10c45",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "pinkish tan": {
+      "family_id": "brown",
+      "hex": "#d99b82",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "pinky": {
+      "family_id": "pink",
+      "hex": "#fc86aa",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pinky purple": {
+      "family_id": "magenta",
+      "hex": "#c94cbe",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "pinky red": {
+      "family_id": "red",
+      "hex": "#fc2647",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "piss yellow": {
+      "family_id": "yellow",
+      "hex": "#ddd618",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pistachio": {
+      "family_id": "green",
+      "hex": "#c0fa8b",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "plum": {
+      "family_id": "purple",
+      "hex": "#580f41",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "plum purple": {
+      "family_id": "purple",
+      "hex": "#4e0550",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "poison green": {
+      "family_id": "green",
+      "hex": "#40fd14",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "poo": {
+      "family_id": "brown",
+      "hex": "#8f7303",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "poo brown": {
+      "family_id": "brown",
+      "hex": "#885f01",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "poop": {
+      "family_id": "brown",
+      "hex": "#7f5e00",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "poop brown": {
+      "family_id": "brown",
+      "hex": "#7a5901",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "poop green": {
+      "family_id": "green",
+      "hex": "#6f7c00",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "powder blue": {
+      "family_id": "blue",
+      "hex": "#b1d1fc",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "powder pink": {
+      "family_id": "pink",
+      "hex": "#ffb2d0",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "primary blue": {
+      "family_id": "blue",
+      "hex": "#0804f9",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "prussian blue": {
+      "family_id": "blue",
+      "hex": "#004577",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "puce": {
+      "family_id": "brown",
+      "hex": "#a57e52",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "puke": {
+      "family_id": "green",
+      "hex": "#a5a502",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "puke brown": {
+      "family_id": "brown",
+      "hex": "#947706",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "puke green": {
+      "family_id": "green",
+      "hex": "#9aae07",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "puke yellow": {
+      "family_id": "yellow",
+      "hex": "#c2be0e",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "pumpkin": {
+      "family_id": "orange",
+      "hex": "#e17701",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pumpkin orange": {
+      "family_id": "orange",
+      "hex": "#fb7d07",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "pure blue": {
+      "family_id": "blue",
+      "hex": "#0203e2",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "purple": {
+      "family_id": "purple",
+      "hex": "#7e1e9c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "purple blue": {
+      "family_id": "blue",
+      "hex": "#632de9",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purple brown": {
+      "family_id": "brown",
+      "hex": "#673a3f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "purple grey": {
+      "family_id": "gray",
+      "hex": "#866f85",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purple pink": {
+      "family_id": "pink",
+      "hex": "#e03fd8",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purple red": {
+      "family_id": "red",
+      "hex": "#990147",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purpleish": {
+      "family_id": "purple",
+      "hex": "#98568d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "purpleish blue": {
+      "family_id": "blue",
+      "hex": "#6140ef",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purpleish pink": {
+      "family_id": "pink",
+      "hex": "#df4ec8",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purpley": {
+      "family_id": "purple",
+      "hex": "#8756e4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "purpley blue": {
+      "family_id": "blue",
+      "hex": "#5f34e7",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purpley grey": {
+      "family_id": "gray",
+      "hex": "#947e94",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purpley pink": {
+      "family_id": "pink",
+      "hex": "#c83cb9",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purplish": {
+      "family_id": "purple",
+      "hex": "#94568c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "purplish blue": {
+      "family_id": "blue",
+      "hex": "#601ef9",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purplish brown": {
+      "family_id": "brown",
+      "hex": "#6b4247",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "purplish grey": {
+      "family_id": "gray",
+      "hex": "#7a687f",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purplish pink": {
+      "family_id": "pink",
+      "hex": "#ce5dae",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purplish red": {
+      "family_id": "red",
+      "hex": "#b0054b",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purply": {
+      "family_id": "purple",
+      "hex": "#983fb2",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "purply blue": {
+      "family_id": "blue",
+      "hex": "#661aee",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "purply pink": {
+      "family_id": "pink",
+      "hex": "#f075e6",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "putty": {
+      "family_id": "brown",
+      "hex": "#beae8a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "racing green": {
+      "family_id": "green",
+      "hex": "#014600",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "radioactive green": {
+      "family_id": "green",
+      "hex": "#2cfa1f",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "raspberry": {
+      "family_id": "magenta",
+      "hex": "#b00149",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "raw sienna": {
+      "family_id": "brown",
+      "hex": "#9a6200",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "raw umber": {
+      "family_id": "brown",
+      "hex": "#a75e09",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "really light blue": {
+      "family_id": "blue",
+      "hex": "#d4ffff",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "red": {
+      "family_id": "red",
+      "hex": "#e50000",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "red brown": {
+      "family_id": "brown",
+      "hex": "#8b2e16",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "red orange": {
+      "family_id": "orange",
+      "hex": "#fd3c06",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "red pink": {
+      "family_id": "pink",
+      "hex": "#fa2a55",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "red purple": {
+      "family_id": "purple",
+      "hex": "#820747",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "red violet": {
+      "family_id": "purple",
+      "hex": "#9e0168",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "red wine": {
+      "family_id": "red",
+      "hex": "#8c0034",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "reddish": {
+      "family_id": "red",
+      "hex": "#c44240",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "reddish brown": {
+      "family_id": "brown",
+      "hex": "#7f2b0a",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "reddish grey": {
+      "family_id": "gray",
+      "hex": "#997570",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "reddish orange": {
+      "family_id": "orange",
+      "hex": "#f8481c",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "reddish pink": {
+      "family_id": "pink",
+      "hex": "#fe2c54",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "reddish purple": {
+      "family_id": "purple",
+      "hex": "#910951",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "reddy brown": {
+      "family_id": "brown",
+      "hex": "#6e1005",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "rich blue": {
+      "family_id": "blue",
+      "hex": "#021bf9",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "rich purple": {
+      "family_id": "purple",
+      "hex": "#720058",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "robin egg blue": {
+      "family_id": "cyan",
+      "hex": "#8af1fe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "robin's egg": {
+      "family_id": "cyan",
+      "hex": "#6dedfd",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "robin's egg blue": {
+      "family_id": "cyan",
+      "hex": "#98eff9",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "rosa": {
+      "family_id": "pink",
+      "hex": "#fe86a4",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "rose": {
+      "family_id": "pink",
+      "hex": "#cf6275",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "rose pink": {
+      "family_id": "pink",
+      "hex": "#f7879a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "rose red": {
+      "family_id": "red",
+      "hex": "#be013c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "rosy pink": {
+      "family_id": "pink",
+      "hex": "#f6688e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "rouge": {
+      "family_id": "red",
+      "hex": "#ab1239",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "royal": {
+      "family_id": "blue",
+      "hex": "#0c1793",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "royal blue": {
+      "family_id": "blue",
+      "hex": "#0504aa",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "royal purple": {
+      "family_id": "purple",
+      "hex": "#4b006e",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "ruby": {
+      "family_id": "red",
+      "hex": "#ca0147",
+      "hue_modifier_id": null,
+      "tone_id": "deep"
+    },
+    "russet": {
+      "family_id": "brown",
+      "hex": "#a13905",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "rust": {
+      "family_id": "orange",
+      "hex": "#a83c09",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "rust brown": {
+      "family_id": "brown",
+      "hex": "#8b3103",
+      "hue_modifier_id": "orange",
+      "tone_id": "muted"
+    },
+    "rust orange": {
+      "family_id": "orange",
+      "hex": "#c45508",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "rust red": {
+      "family_id": "red",
+      "hex": "#aa2704",
+      "hue_modifier_id": "orange",
+      "tone_id": "muted"
+    },
+    "rusty orange": {
+      "family_id": "orange",
+      "hex": "#cd5909",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "rusty red": {
+      "family_id": "red",
+      "hex": "#af2f0d",
+      "hue_modifier_id": "orange",
+      "tone_id": "muted"
+    },
+    "saffron": {
+      "family_id": "yellow",
+      "hex": "#feb209",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sage": {
+      "family_id": "green",
+      "hex": "#87ae73",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "sage green": {
+      "family_id": "green",
+      "hex": "#88b378",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "salmon": {
+      "family_id": "pink",
+      "hex": "#ff796c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "salmon pink": {
+      "family_id": "pink",
+      "hex": "#fe7b7c",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "sand": {
+      "family_id": "brown",
+      "hex": "#e2ca76",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sand brown": {
+      "family_id": "brown",
+      "hex": "#cba560",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sand yellow": {
+      "family_id": "yellow",
+      "hex": "#fce166",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sandstone": {
+      "family_id": "brown",
+      "hex": "#c9ae74",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sandy": {
+      "family_id": "brown",
+      "hex": "#f1da7a",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sandy brown": {
+      "family_id": "brown",
+      "hex": "#c4a661",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sandy yellow": {
+      "family_id": "yellow",
+      "hex": "#fdee73",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sap green": {
+      "family_id": "green",
+      "hex": "#5c8b15",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sapphire": {
+      "family_id": "blue",
+      "hex": "#2138ab",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "scarlet": {
+      "family_id": "red",
+      "hex": "#be0119",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "sea": {
+      "family_id": "cyan",
+      "hex": "#3c9992",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sea blue": {
+      "family_id": "blue",
+      "hex": "#047495",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sea green": {
+      "family_id": "green",
+      "hex": "#53fca1",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "seafoam": {
+      "family_id": "green",
+      "hex": "#80f9ad",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "seafoam blue": {
+      "family_id": "blue",
+      "hex": "#78d1b6",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "seafoam green": {
+      "family_id": "green",
+      "hex": "#7af9ab",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "seaweed": {
+      "family_id": "green",
+      "hex": "#18d17b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "seaweed green": {
+      "family_id": "green",
+      "hex": "#35ad6b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "sepia": {
+      "family_id": "brown",
+      "hex": "#985e2b",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "shamrock": {
+      "family_id": "green",
+      "hex": "#01b44c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "shamrock green": {
+      "family_id": "green",
+      "hex": "#02c14d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "shit": {
+      "family_id": "brown",
+      "hex": "#7f5f00",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "shit brown": {
+      "family_id": "brown",
+      "hex": "#7b5804",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "shit green": {
+      "family_id": "green",
+      "hex": "#758000",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "shocking pink": {
+      "family_id": "magenta",
+      "hex": "#fe02a2",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "sick green": {
+      "family_id": "green",
+      "hex": "#9db92c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "sickly green": {
+      "family_id": "green",
+      "hex": "#94b21c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "sickly yellow": {
+      "family_id": "yellow",
+      "hex": "#d0e429",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "sienna": {
+      "family_id": "brown",
+      "hex": "#a9561e",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "silver": {
+      "family_id": "gray",
+      "hex": "#c5c9c7",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "sky": {
+      "family_id": "blue",
+      "hex": "#82cafc",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "sky blue": {
+      "family_id": "blue",
+      "hex": "#75bbfd",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "slate": {
+      "family_id": "gray",
+      "hex": "#516572",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "slate blue": {
+      "family_id": "blue",
+      "hex": "#5b7c99",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "slate green": {
+      "family_id": "green",
+      "hex": "#658d6d",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "slate grey": {
+      "family_id": "gray",
+      "hex": "#59656d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "slime green": {
+      "family_id": "green",
+      "hex": "#99cc04",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "snot": {
+      "family_id": "green",
+      "hex": "#acbb0d",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "snot green": {
+      "family_id": "green",
+      "hex": "#9dc100",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "soft blue": {
+      "family_id": "blue",
+      "hex": "#6488ea",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "soft green": {
+      "family_id": "green",
+      "hex": "#6fc276",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "soft pink": {
+      "family_id": "pink",
+      "hex": "#fdb0c0",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "soft purple": {
+      "family_id": "purple",
+      "hex": "#a66fb5",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "spearmint": {
+      "family_id": "green",
+      "hex": "#1ef876",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "spring green": {
+      "family_id": "green",
+      "hex": "#a9f971",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "spruce": {
+      "family_id": "green",
+      "hex": "#0a5f38",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "squash": {
+      "family_id": "orange",
+      "hex": "#f2ab15",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "steel": {
+      "family_id": "blue",
+      "hex": "#738595",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "steel blue": {
+      "family_id": "blue",
+      "hex": "#5a7d9a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "steel grey": {
+      "family_id": "gray",
+      "hex": "#6f828a",
+      "hue_modifier_id": "blue",
+      "tone_id": "none"
+    },
+    "stone": {
+      "family_id": "gray",
+      "hex": "#ada587",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "stormy blue": {
+      "family_id": "blue",
+      "hex": "#507b9c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "straw": {
+      "family_id": "yellow",
+      "hex": "#fcf679",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "strawberry": {
+      "family_id": "red",
+      "hex": "#fb2943",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "strong blue": {
+      "family_id": "blue",
+      "hex": "#0c06f7",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "strong pink": {
+      "family_id": "magenta",
+      "hex": "#ff0789",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "sun yellow": {
+      "family_id": "yellow",
+      "hex": "#ffdf22",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sunflower": {
+      "family_id": "yellow",
+      "hex": "#ffc512",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sunflower yellow": {
+      "family_id": "yellow",
+      "hex": "#ffda03",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "sunny yellow": {
+      "family_id": "yellow",
+      "hex": "#fff917",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "sunshine yellow": {
+      "family_id": "yellow",
+      "hex": "#fffd37",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "swamp": {
+      "family_id": "green",
+      "hex": "#698339",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "swamp green": {
+      "family_id": "green",
+      "hex": "#748500",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "tan": {
+      "family_id": "brown",
+      "hex": "#d1b26f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tan brown": {
+      "family_id": "brown",
+      "hex": "#ab7e4c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tan green": {
+      "family_id": "green",
+      "hex": "#a9be70",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "tangerine": {
+      "family_id": "orange",
+      "hex": "#ff9408",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "taupe": {
+      "family_id": "brown",
+      "hex": "#b9a281",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tea": {
+      "family_id": "green",
+      "hex": "#65ab7c",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tea green": {
+      "family_id": "green",
+      "hex": "#bdf8a3",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "teal": {
+      "family_id": "cyan",
+      "hex": "#029386",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "teal blue": {
+      "family_id": "blue",
+      "hex": "#01889f",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "teal green": {
+      "family_id": "green",
+      "hex": "#25a36f",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "tealish": {
+      "family_id": "cyan",
+      "hex": "#24bca8",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tealish green": {
+      "family_id": "green",
+      "hex": "#0cdc73",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "terra cotta": {
+      "family_id": "brown",
+      "hex": "#c9643b",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "terracota": {
+      "family_id": "brown",
+      "hex": "#cb6843",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "terracotta": {
+      "family_id": "brown",
+      "hex": "#ca6641",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tiffany blue": {
+      "family_id": "cyan",
+      "hex": "#7bf2da",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "tomato": {
+      "family_id": "red",
+      "hex": "#ef4026",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "tomato red": {
+      "family_id": "red",
+      "hex": "#ec2d01",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "topaz": {
+      "family_id": "cyan",
+      "hex": "#13bbaf",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "toupe": {
+      "family_id": "brown",
+      "hex": "#c7ac7d",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "toxic green": {
+      "family_id": "green",
+      "hex": "#61de2a",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "tree green": {
+      "family_id": "green",
+      "hex": "#2a7e19",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "true blue": {
+      "family_id": "blue",
+      "hex": "#010fcc",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "true green": {
+      "family_id": "green",
+      "hex": "#089404",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "turquoise": {
+      "family_id": "cyan",
+      "hex": "#06c2ac",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "turquoise blue": {
+      "family_id": "blue",
+      "hex": "#06b1c4",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "turquoise green": {
+      "family_id": "green",
+      "hex": "#04f489",
+      "hue_modifier_id": "cyan",
+      "tone_id": "none"
+    },
+    "turtle green": {
+      "family_id": "green",
+      "hex": "#75b84f",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "twilight": {
+      "family_id": "purple",
+      "hex": "#4e518b",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "twilight blue": {
+      "family_id": "blue",
+      "hex": "#0a437a",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "ugly blue": {
+      "family_id": "blue",
+      "hex": "#31668a",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ugly brown": {
+      "family_id": "brown",
+      "hex": "#7d7103",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ugly green": {
+      "family_id": "green",
+      "hex": "#7a9703",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ugly pink": {
+      "family_id": "pink",
+      "hex": "#cd7584",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "ugly purple": {
+      "family_id": "purple",
+      "hex": "#a442a0",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ugly yellow": {
+      "family_id": "yellow",
+      "hex": "#d0c101",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "ultramarine": {
+      "family_id": "blue",
+      "hex": "#2000b1",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "ultramarine blue": {
+      "family_id": "blue",
+      "hex": "#1805db",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "umber": {
+      "family_id": "brown",
+      "hex": "#b26400",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "velvet": {
+      "family_id": "red",
+      "hex": "#750851",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "vermillion": {
+      "family_id": "red",
+      "hex": "#f4320c",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "very dark blue": {
+      "family_id": "blue",
+      "hex": "#000133",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "very dark brown": {
+      "family_id": "brown",
+      "hex": "#1d0200",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "very dark green": {
+      "family_id": "green",
+      "hex": "#062e03",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "very dark purple": {
+      "family_id": "purple",
+      "hex": "#2a0134",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "very light blue": {
+      "family_id": "blue",
+      "hex": "#d5ffff",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "very light brown": {
+      "family_id": "brown",
+      "hex": "#d3b683",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "very light green": {
+      "family_id": "green",
+      "hex": "#d1ffbd",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "very light pink": {
+      "family_id": "pink",
+      "hex": "#fff4f2",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "very light purple": {
+      "family_id": "purple",
+      "hex": "#f6cefc",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "very pale blue": {
+      "family_id": "blue",
+      "hex": "#d6fffe",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "very pale green": {
+      "family_id": "green",
+      "hex": "#cffdbc",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "vibrant blue": {
+      "family_id": "blue",
+      "hex": "#0339f8",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "vibrant green": {
+      "family_id": "green",
+      "hex": "#0add08",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "vibrant purple": {
+      "family_id": "purple",
+      "hex": "#ad03de",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "violet": {
+      "family_id": "purple",
+      "hex": "#9a0eea",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "violet blue": {
+      "family_id": "blue",
+      "hex": "#510ac9",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "violet pink": {
+      "family_id": "pink",
+      "hex": "#fb5ffc",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "violet red": {
+      "family_id": "red",
+      "hex": "#a50055",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "viridian": {
+      "family_id": "green",
+      "hex": "#1e9167",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "vivid blue": {
+      "family_id": "blue",
+      "hex": "#152eff",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "vivid green": {
+      "family_id": "green",
+      "hex": "#2fef10",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "vivid purple": {
+      "family_id": "purple",
+      "hex": "#9900fa",
+      "hue_modifier_id": null,
+      "tone_id": "vivid"
+    },
+    "vomit": {
+      "family_id": "green",
+      "hex": "#a2a415",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "vomit green": {
+      "family_id": "green",
+      "hex": "#89a203",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "vomit yellow": {
+      "family_id": "yellow",
+      "hex": "#c7c10c",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "warm blue": {
+      "family_id": "blue",
+      "hex": "#4b57db",
+      "hue_modifier_id": "purple",
+      "tone_id": "none"
+    },
+    "warm brown": {
+      "family_id": "brown",
+      "hex": "#964e02",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "warm grey": {
+      "family_id": "gray",
+      "hex": "#978a84",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "warm pink": {
+      "family_id": "pink",
+      "hex": "#fb5581",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "warm purple": {
+      "family_id": "purple",
+      "hex": "#952e8f",
+      "hue_modifier_id": "red",
+      "tone_id": "none"
+    },
+    "washed out green": {
+      "family_id": "green",
+      "hex": "#bcf5a6",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "water blue": {
+      "family_id": "blue",
+      "hex": "#0e87cc",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "watermelon": {
+      "family_id": "pink",
+      "hex": "#fd4659",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "weird green": {
+      "family_id": "green",
+      "hex": "#3ae57f",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "wheat": {
+      "family_id": "yellow",
+      "hex": "#fbdd7e",
+      "hue_modifier_id": null,
+      "tone_id": "pale"
+    },
+    "white": {
+      "family_id": "white",
+      "hex": "#ffffff",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "windows blue": {
+      "family_id": "blue",
+      "hex": "#3778bf",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "wine": {
+      "family_id": "red",
+      "hex": "#80013f",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "wine red": {
+      "family_id": "red",
+      "hex": "#7b0323",
+      "hue_modifier_id": null,
+      "tone_id": "dark"
+    },
+    "wintergreen": {
+      "family_id": "green",
+      "hex": "#20f986",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "wisteria": {
+      "family_id": "purple",
+      "hex": "#a87dc2",
+      "hue_modifier_id": null,
+      "tone_id": "light"
+    },
+    "yellow": {
+      "family_id": "yellow",
+      "hex": "#ffff14",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "yellow brown": {
+      "family_id": "brown",
+      "hex": "#b79400",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellow green": {
+      "family_id": "green",
+      "hex": "#c0fb2d",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellow ochre": {
+      "family_id": "yellow",
+      "hex": "#cb9d06",
+      "hue_modifier_id": null,
+      "tone_id": "muted"
+    },
+    "yellow orange": {
+      "family_id": "orange",
+      "hex": "#fcb001",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellow tan": {
+      "family_id": "brown",
+      "hex": "#ffe36e",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowgreen": {
+      "family_id": "green",
+      "hex": "#bbf90f",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowish": {
+      "family_id": "yellow",
+      "hex": "#faee66",
+      "hue_modifier_id": null,
+      "tone_id": "none"
+    },
+    "yellowish brown": {
+      "family_id": "brown",
+      "hex": "#9b7a01",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowish green": {
+      "family_id": "green",
+      "hex": "#b0dd16",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowish orange": {
+      "family_id": "orange",
+      "hex": "#ffab0f",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowish tan": {
+      "family_id": "brown",
+      "hex": "#fcfc81",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowy brown": {
+      "family_id": "brown",
+      "hex": "#ae8b0c",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    },
+    "yellowy green": {
+      "family_id": "green",
+      "hex": "#bff128",
+      "hue_modifier_id": "yellow",
+      "tone_id": "none"
+    }
+  },
+  "source": {
+    "data_rows": 949,
+    "license": "CC0 1.0",
+    "name": "xkcd Color Name Survey",
+    "url": "https://xkcd.com/color/rgb.txt"
+  },
+  "version": "1.0"
+}

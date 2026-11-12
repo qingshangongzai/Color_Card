@@ -1,0 +1,41 @@
+{
+  "baseline_commit": "666a081",
+  "description": "十二段 HSB 技术色名与 7 个感知色名补丁到 13 个感知色系的预注册映射；在数据划分与最终测试前冻结，不得依据测试结果调整。",
+  "families": [
+    "black",
+    "white",
+    "gray",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "cyan",
+    "blue",
+    "purple",
+    "magenta",
+    "pink",
+    "brown"
+  ],
+  "mapping": {
+    "blue": "blue",
+    "blue_gray": "gray",
+    "brown": "brown",
+    "cyan": "cyan",
+    "cyan_blue": "blue",
+    "cyan_green": "cyan",
+    "deep_red": "red",
+    "gray": "gray",
+    "green": "green",
+    "magenta": "magenta",
+    "maroon": "red",
+    "orange_red": "orange",
+    "pink": "pink",
+    "purple": "purple",
+    "purple_red": "magenta",
+    "red": "red",
+    "warm_gray": "gray",
+    "yellow": "yellow",
+    "yellow_green": "green"
+  },
+  "version": "1.0"
+}
