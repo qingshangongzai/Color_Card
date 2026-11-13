@@ -51,13 +51,13 @@ def test_composition_max_results_explicit():
 
 # ==================== rep_weight 段代表 L/C 口径 ====================
 
-def test_rep_weight_chroma_flips_pname():
+def test_rep_weight_chroma_flips_name():
     """红裙机理合成复现：red 段内高彩暗红少数 + 近白高光多数
 
-    面积权重下 rep_c 被低彩像素稀释 < 0.03 判灰族（warm_gray）；
+    面积权重下代表色被低彩像素稀释成灰族；
     chroma 权重与归属口径同源，且代表值只在可见彩度成员（C >= 0.02）
     上计算——近白高光（色相数值落段但无色彩感知）不参与代表值，
-    忠实判深红（红裙实测：82% 成员为 C≈0.006 近白高光）。
+    代表色忠实落到暗红（红裙实测：82% 成员为 C≈0.006 近白高光）。
     """
     n_hi, n_lo = 300, 2700
     C = np.concatenate([np.full(n_hi, 0.09), np.full(n_lo, 0.01)])
@@ -68,11 +68,11 @@ def test_rep_weight_chroma_flips_pname():
     comp_area = e.analyze_hue_composition(C, h, None, L, h_ok)
     comp_chroma = e.analyze_hue_composition(C, h, None, L, h_ok, rep_weight='chroma')
     assert comp_area[0]['name'] == 'red'
-    assert comp_area[0]['pname'] == 'warm_gray'      # 面积口径：稀释 → 灰族
+    assert comp_area[0]['color_name']['family_id'] == 'gray'      # 面积口径：稀释 → 灰族
     assert comp_chroma[0]['name'] == 'red'
-    assert comp_chroma[0]['pname'] == 'deep_red'     # chroma 口径：仅可见成员 → 深红
+    assert comp_chroma[0]['color_name']['family_id'] == 'red'     # chroma 口径：仅可见成员
     for item in (comp_area[0], comp_chroma[0]):
-        assert item['pname'] == naming.perceptual_color_name_from_rgb(item['rgb'])
+        assert item['color_name'] == naming.classify_color_name(item['rgb'])
 
 
 def test_rep_weight_uniform_value_consistent():
@@ -84,7 +84,7 @@ def test_rep_weight_uniform_value_consistent():
     h_ok = np.full(n, ok_hue((91, 37, 28)))
     comp_area = e.analyze_hue_composition(C, h, None, L, h_ok)
     comp_chroma = e.analyze_hue_composition(C, h, None, L, h_ok, rep_weight='chroma')
-    assert comp_area[0]['pname'] == comp_chroma[0]['pname'] == 'deep_red'
+    assert comp_area[0]['color_name'] == comp_chroma[0]['color_name']
     assert comp_area[0]['rgb'] == comp_chroma[0]['rgb']
 
 
@@ -104,16 +104,16 @@ def test_zone_composition_carries_rgb():
     assert comp[0]['name'] == 'red'
     assert comp[0]['rgb'] is not None, 'rgb 不得为 None（UI 绘制中断回归）'
     assert all(abs(a - b) <= 2 for a, b in zip(rgb0, comp[0]['rgb'])), comp[0]['rgb']
-    assert comp[0]['pname'] == naming.perceptual_color_name_from_rgb(comp[0]['rgb'])
+    assert comp[0]['color_name'] == naming.classify_color_name(comp[0]['rgb'])
 
 
 # ==================== analyze_hue_peaks 每峰 composition ====================
 
 def test_peak_composition_carries_l():
-    """analyze_hue_peaks 加 L 形参：峰内构成携带 pname，L 生效判深红
+    """analyze_hue_peaks 加 L 形参：峰内构成名称由 L 与 h_ok 合成 RGB 计算
 
-    h 是 OKLCH 角（红约 29°），hsb_h 是展示轴角（红约 5°）；名称由
-    L 与 h_ok 合成的代表 RGB 计算，两轴不可混用。
+    h 是 OKLCH 角（红约 29°），hsb_h 是展示轴角（红约 5°）；两轴不可混用。
+    L 缺省时代表明度回退 0.6，RGB 与名称随之改变。
     """
     n1, n2 = 2000, 1000
     C = np.full(n1 + n2, 0.09)
@@ -125,11 +125,12 @@ def test_peak_composition_carries_l():
     assert len(peaks) == 1
     comp = peaks[0]['composition']
     assert comp and comp[0]['name'] == 'red'
-    assert comp[0]['pname'] == 'deep_red'    # 加权 rep_l≈0.43 < 0.55 且 C≥0.08
-    assert comp[0]['pname'] == naming.perceptual_color_name_from_rgb(comp[0]['rgb'])
+    assert comp[0]['color_name'] == naming.classify_color_name(comp[0]['rgb'])
 
     peaks_no_l = e.analyze_hue_peaks(C, h, hsb_h)
-    assert peaks_no_l[0]['composition'][0]['pname'] == 'red'   # L 缺省回退 0.6
+    no_l_item = peaks_no_l[0]['composition'][0]
+    assert no_l_item['color_name'] == naming.classify_color_name(no_l_item['rgb'])
+    assert no_l_item['rgb'] != comp[0]['rgb']
 
 
 def test_peak_composition_structure():
@@ -142,7 +143,7 @@ def test_peak_composition_structure():
     comp = peaks[0]['composition']
     assert comp
     for item in comp:
-        assert {'name', 'pname', 'hue', 'weight_pct', 'area_pct', 'range',
+        assert {'name', 'color_name', 'hue', 'weight_pct', 'area_pct', 'range',
                 'rep_c', 'rgb'} <= set(item)
         assert isinstance(item['rgb'], tuple) and len(item['rgb']) == 3
         assert all(isinstance(v, int) and 0 <= v <= 255 for v in item['rgb'])
@@ -173,17 +174,18 @@ def test_peak_composition_low_chroma_gray_fallback():
             assert item['rgb'] is not None, 'rgb 不得为 None（UI 崩溃回归）'
             r, g, b = item['rgb']
             assert max(r, g, b) - min(r, g, b) <= 2, '无可见成员段应为中性灰'
-            assert item['pname'] == 'gray', '中性兜底色不得命名为暖灰/蓝灰'
+            assert item['color_name']['family_id'] == 'gray', \
+                '中性兜底色不得命名为有彩色系'
 
 
 def test_peak_composition_low_chroma_fallback_is_gray():
-    """低彩蓝峰的兜底中性灰不得沿用段色相判成 blue_gray 或 warm_gray"""
+    """低彩蓝峰的兜底中性灰不得沿用段色相判成有彩色系"""
     n = 3000
     peaks = e.analyze_hue_peaks(
         np.full(n, 0.012), np.full(n, 240.0), np.full(n, 240.0), np.full(n, 0.5))
     item = peaks[0]['composition'][0]
     assert item['rgb'] == (128, 128, 128)
-    assert item['pname'] == 'gray'
+    assert item['color_name']['family_id'] == 'gray'
 
 
 def test_peak_composition_uses_hsb_axis():

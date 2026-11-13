@@ -12992,7 +12992,7 @@
     "included_rows": 938,
     "license": "CC0 1.0",
     "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-    "mapping_sha256": "f58c47b8c210067af47eb0fa33ff4e0ff1ae5826ff99890f8172e8014fc8f321",
+    "mapping_sha256": "cd5c1a29d74d9f764c34eba6db19c257968ad70899492ef60c7e65bfdd8f4f67",
     "url": "https://xkcd.com/color/rgb.txt"
   },
   "split": {
@@ -13010,5 +13010,5 @@
     "pale",
     "muted"
   ],
-  "version": "1.0-a354cb5ad15b"
+  "version": "1.0-c87f3e109858"
 }

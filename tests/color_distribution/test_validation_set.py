@@ -26,7 +26,7 @@ HUE_TOL = 10.0        # 色相角容差（度）
 VALUE_TOL = 0.02      # 连续值容差
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _analyze(rel: str) -> dict:
     path = os.path.join(ROOT, rel)
     if not os.path.exists(path):
@@ -180,7 +180,8 @@ def test_output_structure():
     assert r['wheel'].shape == (e.WHEEL_HUE_BINS, e.WHEEL_CHROMA_BINS)
     assert len(r['image_size']) == 2
     assert 1 <= len(r['palette']) <= e.PALETTE_K
-    for (rgb, pct, pname) in r['palette']:
+    for item in r['palette']:
+        rgb, pct = item['rgb'], item['weight_pct']
         assert len(rgb) == 3 and all(0 <= c <= 255 for c in rgb)
         assert isinstance(pct, float)
-        assert isinstance(pname, str) and pname
+        assert isinstance(item['color_name'], dict) and item['color_name']['family_id']

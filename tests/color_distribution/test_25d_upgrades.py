@@ -4,55 +4,97 @@
 参照 test_25c_upgrades.py 的合成信号模式。
 """
 
+import json
+import os
+
 import numpy as np
 
 from core import color_distribution as e
 from core import color_naming as naming
+from core.color_data import get_base_path
 from tests.color_distribution.conftest import ok_hue
 
-# ==================== 8.6 感知色名 perceptual_color_name ====================
+# ==================== 结构化感知色名 classify_color_name ====================
 
-def test_pname_gray_family_by_warmth():
-    """低彩 → 灰族：暖侧暖灰 / 冷侧蓝灰 / 中间灰"""
-    assert naming.perceptual_color_name(0.5, 0.02, 30.0) == 'warm_gray'    # 橙红
-    assert naming.perceptual_color_name(0.5, 0.02, 240.0) == 'blue_gray'   # 蓝
-    assert naming.perceptual_color_name(0.5, 0.02, 120.0) == 'gray'        # 绿（非冷非暖）
-
-
-def test_pname_brown():
-    """暗橙红/暗黄 + 足彩 → 棕（红段已退出棕，另见 test_pname_deep_red_and_maroon）"""
-    assert naming.perceptual_color_name(0.40, 0.08, 30.0) == 'brown'       # 暗橙红
-    assert naming.perceptual_color_name(0.54, 0.08, 60.0) == 'brown'       # 暗黄，L 边界内
-    # 亮橙红不归棕（L >= 阈值）
-    assert naming.perceptual_color_name(0.55, 0.08, 30.0) == 'orange_red'
+FAMILIES = {'black', 'white', 'gray', 'red', 'orange', 'yellow', 'green',
+            'cyan', 'blue', 'purple', 'magenta', 'pink', 'brown'}
+TONES = {'none', 'vivid', 'deep', 'light', 'dark', 'pale', 'muted'}
+HUE_MODIFIERS = {'red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple'}
 
 
-def test_pname_deep_red_and_maroon():
-    """暗红不再归棕：高彩"深红"、低彩"栗红"（红裙暗部 red 段实测 C=0.082）"""
-    assert naming.perceptual_color_name(0.339, 0.082, 6.9) == 'deep_red'   # 红裙暗部锚点
-    assert naming.perceptual_color_name(0.40, 0.05, 350.0) == 'maroon'     # 浊暗红
-    # 彩度分界：C >= 0.08 深红，以下（足彩）栗红
-    assert naming.perceptual_color_name(0.40, 0.08, 0.0) == 'deep_red'
-    assert naming.perceptual_color_name(0.40, 0.079, 0.0) == 'maroon'
-    # 明度边界：L >= 0.55 恢复基名"红"
-    assert naming.perceptual_color_name(0.55, 0.10, 0.0) == 'red'
-    # 低彩暗红仍归灰族（暖侧）
-    assert naming.perceptual_color_name(0.40, 0.02, 0.0) == 'warm_gray'
+def test_classify_color_name_contract():
+    """结构化色名字段固定，ID 均属词表，置信度在 0~1"""
+    name = naming.classify_color_name((180, 146, 170))
+    assert set(name) == {'family_id', 'secondary_family_id', 'tone_id',
+                         'hue_modifier_id', 'confidence', 'technical_hue_id'}
+    assert name['family_id'] in FAMILIES
+    assert name['secondary_family_id'] is None or name['secondary_family_id'] in FAMILIES
+    assert name['tone_id'] in TONES
+    assert name['hue_modifier_id'] is None or name['hue_modifier_id'] in HUE_MODIFIERS
+    assert 0.0 < name['confidence'] <= 1.0
+    assert name['technical_hue_id'] == 'purple_red'
 
 
-def test_pname_pink():
-    """亮低饱和红/品红/紫红 → 粉"""
-    assert naming.perceptual_color_name(0.75, 0.06, 300.0) == 'pink'       # 亮低饱和品红
-    # 浓品红不归粉（彩度过高）
-    assert naming.perceptual_color_name(0.75, 0.14, 300.0) == 'magenta'
-    # 暗品红不归粉（明度不足）
-    assert naming.perceptual_color_name(0.60, 0.06, 300.0) == 'magenta'
+def _load_model_artifact() -> dict:
+    model_path = os.path.join(get_base_path(), 'color_data', 'naming',
+                              'color_name_model.json')
+    with open(model_path, encoding='utf-8') as handle:
+        return json.load(handle)
 
 
-def test_pname_fallthrough_keeps_base():
-    """足彩非棕非粉 → 保持 12 段基名，与 hue_name 一致"""
-    for hue in (0.0, 60.0, 120.0, 200.0, 240.0, 330.0):
-        assert naming.perceptual_color_name(0.6, 0.18, hue) == naming.hue_name(hue)
+def test_classify_color_name_projects_to_allowed_combinations():
+    """全色域抽样：tone 与细色相修饰始终落在模型的允许集合内"""
+    model = _load_model_artifact()
+    allowed_tones = model['allowed_tones']
+    allowed_modifiers = model['allowed_hue_modifiers']
+    for r in range(0, 256, 51):
+        for g in range(0, 256, 51):
+            for b in range(0, 256, 51):
+                name = naming.classify_color_name((r, g, b))
+                family = name['family_id']
+                assert family in FAMILIES
+                assert name['tone_id'] in TONES
+                assert name['tone_id'] in allowed_tones[family]
+                assert name['hue_modifier_id'] != family
+                assert (name['hue_modifier_id'] is None
+                        or name['hue_modifier_id'] in allowed_modifiers[family])
+                if family in ('black', 'white'):
+                    assert name['tone_id'] == 'none'
+                    assert name['hue_modifier_id'] is None
+
+
+def test_classify_color_name_known_anchors():
+    """最终 RGB 锚点：纯色落到对应色系，近黑按暗色处理而非满通道蓝"""
+    assert naming.classify_color_name((255, 0, 0))['family_id'] == 'red'
+    assert naming.classify_color_name((0, 255, 0))['family_id'] == 'green'
+    assert naming.classify_color_name((0, 0, 255))['family_id'] == 'blue'
+    assert naming.classify_color_name((128, 128, 128))['family_id'] == 'gray'
+    assert naming.classify_color_name((255, 255, 255))['family_id'] == 'white'
+    assert naming.classify_color_name((0, 0, 0))['family_id'] == 'black'
+    near_black = naming.classify_color_name((0, 0, 1))
+    assert near_black['tone_id'] != 'vivid'
+    assert near_black['confidence'] < 1.0
+
+
+def test_classify_color_name_stable():
+    """同一 RGB 多次命名结果一致（模型只读）"""
+    rgb = (180, 146, 170)
+    assert len({str(naming.classify_color_name(rgb)) for _ in range(5)}) == 1
+
+
+def test_naming_model_version_matches_artifact():
+    """运行时模型版本等于模型 JSON 的 version 字段"""
+    assert naming.get_naming_model_version() == _load_model_artifact()['version']
+
+
+def test_cache_key_includes_naming_model_version(monkeypatch):
+    """缓存键含模型版本：更换模型版本后旧分析结果不再命中"""
+    cache = e.ColorDistributionCache(max_size=2)
+    monkeypatch.setattr(e, 'get_naming_model_version', lambda: 'v1')
+    cache.set('img', {'palette': []})
+    assert cache.get('img') == {'palette': []}
+    monkeypatch.setattr(e, 'get_naming_model_version', lambda: 'v2')
+    assert cache.get('img') is None
 
 
 # ==================== 8.6 近中性分区冷暖混合 ====================
@@ -89,8 +131,9 @@ def test_zones_neutral_mix_label():
     zones = e.analyze_zones(L, C, h_ok, hsb)
     dark = zones['dark']
     assert dark['label_key'] == 'zone_neutral' and dark['mix'] is True
-    pnames = {c['pname'] for c in dark['composition']}
-    assert 'warm_gray' in pnames and 'blue_gray' in pnames
+    assert {c['name'] for c in dark['composition']} == {'orange_red', 'blue'}
+    for c in dark['composition']:
+        assert c['color_name'] == naming.classify_color_name(c['rgb'])
 
 
 def test_zones_neutral_single_side_plain():
@@ -102,7 +145,7 @@ def test_zones_neutral_single_side_plain():
     assert dark['composition'] == []
 
 
-# ==================== 8.6 主色卡 / 构成携带 pname ====================
+# ==================== 主色卡 / 构成携带结构化色名 ====================
 
 def _lab_clusters(*clusters):
     parts = []
@@ -116,19 +159,20 @@ def _lab_clusters(*clusters):
     return np.concatenate(parts)
 
 
-def test_palette_carries_pname():
-    """主色卡为三元组 ((r,g,b), pct, pname)，pname 为非空感知色名 id"""
+def test_palette_carries_color_name():
+    """主色卡条目为 {rgb, weight_pct, color_name}，名称由最终 RGB 计算"""
     lab = _lab_clusters(((0.40, 0.05, 0.06), 5000, 1),
                         ((0.55, 0.0, -0.14), 3000, 2))
     result = e.analyze_palette(lab)
-    assert result and all(len(entry) == 3 for entry in result)
-    for rgb, pct, pname in result:
-        assert len(rgb) == 3 and isinstance(pct, float)
-        assert isinstance(pname, str) and pname
+    assert result
+    for item in result:
+        assert set(item) == {'rgb', 'weight_pct', 'color_name'}
+        assert len(item['rgb']) == 3 and isinstance(item['weight_pct'], float)
+        assert item['color_name'] == naming.classify_color_name(item['rgb'])
 
 
-def test_composition_carries_pname():
-    """构成条目含 pname；暗暖足彩段命中"棕\""""
+def test_composition_carries_color_name():
+    """构成条目含 color_name；暗暖足彩段命中棕"""
     n = 3000
     C = np.full(n, 0.10)
     h = np.full(n, 30.0)             # 橙红
@@ -136,63 +180,50 @@ def test_composition_carries_pname():
     h_ok = np.full(n, ok_hue((200, 120, 40)))
     comp = e.analyze_hue_composition(C, h, None, L, h_ok)
     assert comp and comp[0]['name'] == 'orange_red'
-    assert comp[0]['pname'] == 'brown'
-    assert comp[0]['pname'] == naming.perceptual_color_name_from_rgb(comp[0]['rgb'])
+    assert comp[0]['color_name'] == naming.classify_color_name(comp[0]['rgb'])
+    assert comp[0]['color_name']['family_id'] == 'brown'
 
 
-def test_composition_red_segment_deep_red():
-    """暗红段构成 pname 不再是 brown（红裙锚点：hue 6.9、L 0.34、C 0.082）"""
+def test_composition_red_segment_color_name():
+    """暗红段构成名称与代表色同源（红裙锚点：hue 6.9、L 0.34、C 0.082）"""
     n = 3000
     C = np.full(n, 0.082)
     h = np.full(n, 6.9)              # 红
-    L = np.full(n, 0.34)            # 暗 → 深红
+    L = np.full(n, 0.34)            # 暗
     h_ok = np.full(n, ok_hue((91, 37, 28)))
     comp = e.analyze_hue_composition(C, h, None, L, h_ok)
     assert comp and comp[0]['name'] == 'red'
-    assert comp[0]['pname'] == 'deep_red'
-    assert comp[0]['pname'] == naming.perceptual_color_name_from_rgb(comp[0]['rgb'])
+    assert comp[0]['color_name'] == naming.classify_color_name(comp[0]['rgb'])
+    assert comp[0]['color_name']['family_id'] in ('red', 'brown')
 
 
-# ==================== 阶段一：名称与最终 RGB 同源 ====================
+# ==================== 名称与最终 RGB 同源 ====================
 
-def test_perceptual_name_from_rgb_regression():
-    """主色 2 的最终 RGB 判紫红；(0,0,1) 显式 /255 后按近黑灰族处理"""
-    assert naming.perceptual_color_name_from_rgb((180, 146, 170)) == 'purple_red'
-    assert naming.perceptual_color_name_from_rgb((0, 0, 1)) == 'blue_gray'
-    assert naming.perceptual_color_name_from_rgb((128, 128, 128)) == 'gray'
-
-
-def test_perceptual_name_from_rgb_stable():
-    """同一 RGB 多次命名结果一致"""
-    rgb = (180, 146, 170)
-    assert len({naming.perceptual_color_name_from_rgb(rgb) for _ in range(5)}) == 1
-
-
-def test_palette_pname_same_source():
+def test_palette_color_name_same_source():
     """主色卡名称可由条目最终 RGB 复算"""
     lab = _lab_clusters(((0.40, 0.05, 0.06), 5000, 1),
                         ((0.55, 0.0, -0.14), 3000, 2))
-    for rgb, _, pname in e.analyze_palette(lab):
-        assert pname == naming.perceptual_color_name_from_rgb(rgb)
+    for item in e.analyze_palette(lab):
+        assert item['color_name'] == naming.classify_color_name(item['rgb'])
 
 
-def test_composition_pname_none_without_rgb():
-    """未传 h_ok 没有代表 RGB 时 pname 为 None，不回退另一套命名输入"""
+def test_composition_color_name_none_without_rgb():
+    """未传 h_ok 没有代表 RGB 时 color_name 为 None，不回退另一套命名输入"""
     n = 3000
     comp = e.analyze_hue_composition(
         np.full(n, 0.10), np.full(n, 30.0), None, np.full(n, 0.40))
     assert comp and comp[0]['rgb'] is None
-    assert comp[0]['pname'] is None
+    assert comp[0]['color_name'] is None
 
 
-def test_peak_composition_pname_same_source():
+def test_peak_composition_color_name_same_source():
     """峰内构成名称与绘制 RGB 同源"""
     n = 3000
     peaks = e.analyze_hue_peaks(
         np.full(n, 0.09), np.full(n, 29.0), np.full(n, 0.0), np.full(n, 0.34))
     assert peaks
     for item in peaks[0]['composition']:
-        assert item['pname'] == naming.perceptual_color_name_from_rgb(item['rgb'])
+        assert item['color_name'] == naming.classify_color_name(item['rgb'])
 
 
 # ==================== 8.7 冷暖五档阈值（校准后冻结） ====================
@@ -206,7 +237,7 @@ def test_warmth_constants_frozen():
 def _warmth_key(value, n=10000):
     """构造 h=55(cos=1) 与 h=145(cos=0) 两组，令 warmth 值 ≈ value（可负）"""
     warm_pole = 55.0 if value >= 0 else 235.0    # 235° 相对 55° cos=-1
-    n1 = int(round(abs(value) * n))
+    n1 = round(abs(value) * n)
     C = np.full(n, 0.2)
     h = np.concatenate([np.full(n1, warm_pole), np.full(n - n1, 145.0)])
     return e.analyze_warmth(C, h)['label_key']

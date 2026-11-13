@@ -154,7 +154,7 @@ def test_palette_separates_clusters_with_weights():
                         ((0.55, 0.0, -0.15), 2000, 3))
     result = e.analyze_palette(lab)
     assert len(result) == 3
-    pcts = [pct for _, pct, _ in result]
+    pcts = [item['weight_pct'] for item in result]
     assert abs(pcts[0] - 50.0) < 3.0
     assert abs(pcts[1] - 30.0) < 3.0
     assert abs(pcts[2] - 20.0) < 3.0
@@ -167,7 +167,7 @@ def test_palette_merges_near_centers():
                         ((0.3, -0.1, -0.1), 2000, 3))
     result = e.analyze_palette(lab)
     assert len(result) == 2
-    assert abs(result[0][1] - 80.0) < 3.0
+    assert abs(result[0]['weight_pct'] - 80.0) < 3.0
 
 
 # ==================== 8.5 彩色度 ====================

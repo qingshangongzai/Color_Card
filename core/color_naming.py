@@ -1,14 +1,23 @@
-"""色名规则（HSB 十二段技术色名与感知色名）
+"""感知色名模型与 HSB 十二段技术色名
 
-技术色相名只描述色相轴，不替代感知色名；感知色名由最终 sRGB 三元组计算，
-保证名称与显示的色块来自同一个数值输入。
+技术色相名只描述色相轴，不替代感知色名；感知色名由最终 sRGB 三元组
+经离线 OKLab kNN 模型计算，保证名称与显示的色块来自同一个数值输入。
+模型数据位于 color_data/naming/color_name_model.json，延迟加载且加载后只读。
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
+import os
+import threading
+from collections.abc import Sequence
+from typing import TypeVar
+
 import numpy as np
 
-from .color_space import oklab_to_lch, srgb255_to_oklab, srgb_hsb_hue
+from .color_data import get_base_path
+from .color_space import srgb255_to_oklab, srgb_hsb_hue
 
 # ==================== 色名映射（主项目 HSB 12 色环标准） ====================
 
@@ -17,17 +26,14 @@ from .color_space import oklab_to_lch, srgb255_to_oklab, srgb_hsb_hue
 _HUE_NAMES = ('red', 'orange_red', 'yellow', 'yellow_green', 'green', 'cyan_green',
               'cyan', 'cyan_blue', 'blue', 'purple', 'magenta', 'purple_red')
 
-# 感知色名（van de Weijer 2009：棕/粉/灰需 L/C/h 共同决定，仅用于展示名）
-PERCEPT_GRAY_CHROMA = 0.03       # OKLab C 低于此归灰族（介于 ZONE_NEUTRAL 0.02 与 CHROMA_LOW 0.05 间）
-PERCEPT_BROWN_L_MAX = 0.55       # 暗暖色明度低于此：红段判深红/栗红，橙红/黄判"棕"
-PERCEPT_DEEP_RED_CHROMA_MIN = 0.08  # 暗红彩度分界：高于此"深红"，以下（足彩）"栗红"
-PERCEPT_PINK_L_MIN = 0.70        # 亮低饱和红/品红/紫红明度高于此判"粉"
-PERCEPT_PINK_CHROMA_MAX = 0.10   # "粉"的彩度上限（比浓红/品红淡）
+# 技术色名冷暖分组（近中性分区冷暖混合提示用，不参与感知命名）
 PERCEPT_WARM_NAMES = ('red', 'orange_red', 'yellow', 'magenta', 'purple_red')   # 灰族暖侧 / 冷暖混合暖侧
 PERCEPT_COOL_NAMES = ('cyan', 'cyan_blue', 'blue', 'purple')                    # 灰族冷侧 / 冷暖混合冷侧
-PERCEPT_BROWN_NAMES = ('orange_red', 'yellow')                           # 暗橙红/暗黄 → 棕（暗红不归棕）
-PERCEPT_PINK_NAMES = ('red', 'magenta', 'purple_red')                           # 亮低饱和 → 粉
 PERCEPT_ZONE_MIX_MIN_PCT = 20.0  # 近中性分区冷暖双向提示：暖侧与冷侧 chroma 权重占比均超此
+
+MODEL_RELATIVE_PATH = ('color_data', 'naming', 'color_name_model.json')
+
+_LabelT = TypeVar('_LabelT')
 
 
 def hue_name(hue: float) -> str:
@@ -35,44 +41,117 @@ def hue_name(hue: float) -> str:
     return _HUE_NAMES[int(((hue + 15.0) % 360.0) // 30.0)]
 
 
-def perceptual_color_name(lightness: float, chroma: float, hue_hsb: float) -> str:
-    """感知色名 id：由 L/C/h 共同决定的展示名，修饰 12 段基名
+class _KnnModel:
+    """只读 kNN 模型：加载时把训练样本转成数组，推理期不再修改共享数据"""
 
-    van de Weijer 2009：棕/粉/灰无法由纯色相得出。仅用于主色卡与
-    构成条目展示，hue_name（12 段）本身不变。
-    - 低彩 → 灰族（暖侧 warm_gray / 冷侧 blue_gray / 其余 gray）
-    - 暗红 → deep_red（高彩）/ maroon（低彩），不归棕（"棕"感知上对应暗橙/暗黄）
-    - 暗橙红/暗黄 → brown
-    - 亮低饱和红/品红/紫红 → pink
+    def __init__(self, payload: dict, version: str) -> None:
+        self.version = version
+        self.k = int(payload['k'])
+        self.eps = float(payload['knn_eps'])
+        self.secondary_margin = float(payload['secondary_margin'])
+        self.allowed_tones: dict[str, list[str]] = payload['allowed_tones']
+        self.allowed_modifiers: dict[str, list[str]] = payload['allowed_hue_modifiers']
+        samples = payload['samples']
+        self.oklab = np.asarray([sample['oklab'] for sample in samples], dtype=np.float64)
+        self.families = [str(sample['family_id']) for sample in samples]
+        self.tones = [str(sample['tone_id']) for sample in samples]
+        self.modifiers: list[str | None] = [sample['hue_modifier_id'] for sample in samples]
+
+
+_model_lock = threading.Lock()
+_model_cache: tuple[tuple[int, int], _KnnModel] | None = None
+
+
+def _dump_version(payload: dict, path: str) -> str:
+    """模型版本：优先取 JSON 的 version 字段，缺失时取文件 SHA256 前 12 位"""
+    version = payload.get('version')
+    if isinstance(version, str) and version:
+        return version
+    with open(path, 'rb') as handle:
+        return hashlib.sha256(handle.read()).hexdigest()[:12]
+
+
+def _load_model() -> _KnnModel:
+    """按文件修改时间与大小延迟加载模型；文件变化后重新读取"""
+    global _model_cache
+    path = os.path.join(get_base_path(), *MODEL_RELATIVE_PATH)
+    stat = os.stat(path)
+    signature = (stat.st_mtime_ns, stat.st_size)
+    cached = _model_cache
+    if cached is not None and cached[0] == signature:
+        return cached[1]
+
+    with _model_lock:
+        cached = _model_cache
+        if cached is not None and cached[0] == signature:
+            return cached[1]
+        with open(path, 'r', encoding='utf-8') as handle:
+            payload = json.load(handle)
+        if not isinstance(payload, dict) or payload.get('model_type') != 'oklab_knn':
+            raise ValueError(f'色名模型格式不支持: {path}')
+        model = _KnnModel(payload, _dump_version(payload, path))
+        _model_cache = (signature, model)
+        return model
+
+
+def get_naming_model_version() -> str:
+    """当前色名模型版本（缓存键用，模型文件更换后随之变化）"""
+    return _load_model().version
+
+
+def _vote(labels: Sequence[_LabelT], indices: np.ndarray,
+          weights: np.ndarray) -> dict[_LabelT, float]:
+    """近邻标签逆距离加权投票，返回各标签的概率"""
+    totals: dict[_LabelT, float] = {}
+    for index, weight in zip(indices, weights):
+        label = labels[int(index)]
+        totals[label] = totals.get(label, 0.0) + float(weight)
+    total = sum(totals.values())
+    return {label: value / total for label, value in totals.items()}
+
+
+def _top_label(probabilities: dict[_LabelT, float]) -> _LabelT:
+    """概率最高的标签；同概率按标签字典序，None 视为空串"""
+    return min(probabilities.items(),
+               key=lambda item: (-item[1], '' if item[0] is None else str(item[0])))[0]
+
+
+def classify_color_name(rgb: tuple[int, int, int]) -> dict:
+    """最终 sRGB 0~255 三元组 → 结构化感知色名
+
+    只接受与绘制色块相同的最终 RGB，内部显式除以 255 后转 OKLab 查表。
+    返回字段固定为 family_id / secondary_family_id / tone_id /
+    hue_modifier_id / confidence / technical_hue_id；越界组合按固定规则
+    投影到模型 JSON 的允许集合（构建时由 name_mapping.json 生成），
+    不二次搜索、不按概率另选。
     """
-    base = hue_name(hue_hsb)
-    if chroma < PERCEPT_GRAY_CHROMA:
-        if base in PERCEPT_WARM_NAMES:
-            return 'warm_gray'
-        if base in PERCEPT_COOL_NAMES:
-            return 'blue_gray'
-        return 'gray'
-    if base == 'red' and lightness < PERCEPT_BROWN_L_MAX:
-        return 'deep_red' if chroma >= PERCEPT_DEEP_RED_CHROMA_MIN else 'maroon'
-    if base in PERCEPT_BROWN_NAMES and lightness < PERCEPT_BROWN_L_MAX:
-        return 'brown'
-    if (base in PERCEPT_PINK_NAMES and lightness >= PERCEPT_PINK_L_MIN
-            and chroma < PERCEPT_PINK_CHROMA_MAX):
-        return 'pink'
-    return base
+    model = _load_model()
+    lab = srgb255_to_oklab(rgb)
+    distances = np.linalg.norm(model.oklab - lab, axis=1)
+    nearest = np.argsort(distances, kind='stable')[:model.k]
+    weights = 1.0 / (distances[nearest] + model.eps)
 
+    family_probs = _vote(model.families, nearest, weights)
+    ranked = sorted(family_probs.items(), key=lambda item: (-item[1], item[0]))
+    family_id, confidence = ranked[0]
+    secondary_id = None
+    if len(ranked) > 1 and ranked[0][1] - ranked[1][1] < model.secondary_margin:
+        secondary_id = ranked[1][0]
 
-def perceptual_color_name_from_rgb(rgb: tuple[int, int, int]) -> str:
-    """感知色名 id：只接受 0~255 的 int 三元组，内部显式除以 255
+    tone_id = _top_label(_vote(model.tones, nearest, weights))
+    modifier_id = _top_label(_vote(model.modifiers, nearest, weights))
+    if (modifier_id == family_id
+            or modifier_id not in model.allowed_modifiers.get(family_id, ())):
+        modifier_id = None
+    if tone_id not in model.allowed_tones.get(family_id, ('none',)):
+        tone_id = 'none'
 
-    主色卡、构成项等展示名称必须由与绘制色块相同的最终 RGB 计算，
-    避免浮点中心、平均角或另一构成项带来的名称与色块不同源。
-    三通道相等时 HSB 色相无定义（退化为 0°），直接判灰，避免中性灰
-    因色相默认值被误判为暖灰。
-    """
-    if rgb[0] == rgb[1] == rgb[2]:
-        return 'gray'
     srgb = np.asarray(rgb, dtype=np.float64) / 255.0
-    L, C, _ = oklab_to_lch(srgb255_to_oklab(rgb))
-    hue_hsb = float(srgb_hsb_hue(srgb))
-    return perceptual_color_name(float(L), float(C), hue_hsb)
+    return {
+        'family_id': family_id,
+        'secondary_family_id': secondary_id,
+        'tone_id': tone_id,
+        'hue_modifier_id': modifier_id,
+        'confidence': float(confidence),
+        'technical_hue_id': hue_name(float(srgb_hsb_hue(srgb))),
+    }

@@ -25,8 +25,9 @@ from .color_naming import (
     PERCEPT_COOL_NAMES,
     PERCEPT_WARM_NAMES,
     PERCEPT_ZONE_MIX_MIN_PCT,
+    classify_color_name,
+    get_naming_model_version,
     hue_name,
-    perceptual_color_name_from_rgb,
 )
 from .color_space import (
     oklab_to_lch,
@@ -579,7 +580,7 @@ def _peak_results(smoothed: np.ndarray, peaks: list[int], bin_width: float,
 
 def _circular_gaussian_smooth(hist: np.ndarray, sigma_bins: float) -> np.ndarray:
     """首尾相接的环形高斯平滑"""
-    radius = max(1, int(math.ceil(sigma_bins * 3)))
+    radius = max(1, math.ceil(sigma_bins * 3))
     offsets = np.arange(-radius, radius + 1)
     kernel = np.exp(-(offsets ** 2) / (2 * sigma_bins ** 2))
     kernel /= kernel.sum()
@@ -632,9 +633,9 @@ def _segment_rep(C: np.ndarray, L: np.ndarray | None, h_ok: np.ndarray | None,
 
     rep_sel 为参与代表值计算的成员掩码（'chroma' 口径限定可见彩度成员），
     rep_w 为对应权重。rep_w_sum=0（如峰内整段均为不可见低彩成员）时
-    L/C 走灰族回退 (0.6, 0.0)、rgb 输出对应中性灰——与灰族 pname 同源，
-    保证 UI 端恒有有效色值且名字与色块一致。h_ok=None 时 rgb 为 None
-    （仅供不关心代表色的直调方）。
+    L/C 走灰族回退 (0.6, 0.0)、rgb 输出对应中性灰——保证 UI 端恒有有效
+    色值且名称与色块一致。h_ok=None 时 rgb 为 None（仅供不关心代表色的
+    直调方）。
     """
     rep_w_sum = float(rep_w.sum())
     rep_c = float(np.average(C[rep_sel], weights=rep_w)) if rep_w_sum > 0 else 0.0
@@ -697,13 +698,13 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
             且面积口径本就不计它们。
 
     Returns:
-        [{'name', 'pname', 'hue', 'weight_pct', 'area_pct', 'range',
+        [{'name', 'color_name', 'hue', 'weight_pct', 'area_pct', 'range',
           'rep_c', 'rgb'}, ...]，
         权重 >= COMP_MIN_PCT 或可见面积 >= COMP_MIN_AREA_PCT 的条目
-        按权重降序，最多 max_results 个。name 为 12 段色名 id，rgb 为段真实
-        代表色（rep_l/rep_c + 段内 OKLCH 色相均值合成），pname 由该 rgb
-        调用统一命名入口得到，保证名字与色块来自同一三元组；rgb 为 None
-        （未传 h_ok）时 pname 为 None，不回退到其他命名输入。
+        按权重降序，最多 max_results 个。name 为 12 段技术色名 id，rgb 为段
+        真实代表色（rep_l/rep_c + 段内 OKLCH 色相均值合成），color_name 由
+        该 rgb 调用统一命名入口得到，保证名称与色块来自同一三元组；rgb 为
+        None（未传 h_ok）时 color_name 为 None，不回退到其他命名输入。
     """
     if area_w is None:
         area_w = np.ones_like(C)
@@ -727,12 +728,12 @@ def analyze_hue_composition(C: np.ndarray, h: np.ndarray,
         hues = lo + rel[mask]                # 可能超 360，报告时取模
         mean_hue = float(np.average(hues, weights=w))
         q10, q90 = _weighted_quantile(hues, w, (0.10, 0.90))
-        # 8.6 感知色名：先定段代表色 rgb，再由该 rgb 计算 pname
+        # 先定段代表色 rgb，再由该 rgb 计算结构化色名
         rep_sel, rep_w = _rep_selection(mask, visible, area_w, weight, rep_weight)
         rep_c, rgb = _segment_rep(C, L, h_ok, rep_sel, rep_w)
         results.append({
             'name': hue_name(seg * 30.0),
-            'pname': perceptual_color_name_from_rgb(rgb) if rgb is not None else None,
+            'color_name': classify_color_name(rgb) if rgb is not None else None,
             'hue': mean_hue % 360.0,
             'weight_pct': pct,
             'area_pct': area_pct,
@@ -940,7 +941,8 @@ def analyze_palette(lab: np.ndarray, k: int = PALETTE_K) -> list:
     合并 ΔE_OK 过近的中心，输出自适应个数的主色。
 
     Returns:
-        [((r, g, b), pct, pname), ...]，按占比降序（pname 由最终 rgb 计算）。
+        [{'rgb': (r, g, b), 'weight_pct': float, 'color_name': {...}}, ...]，
+        按占比降序（color_name 由最终 rgb 计算）。
     """
     n = lab.shape[0]
     if n == 0 or k <= 0:
@@ -969,13 +971,16 @@ def analyze_palette(lab: np.ndarray, k: int = PALETTE_K) -> list:
     merged = _merge_centers(restored, cw)
 
     total = sum(mw for _, mw in merged)
-    result = []
+    result: list[dict] = []
     for center, mw in merged:
         r, g, b = (int(v) for v in oklab_to_srgb(center))
         rgb = (r, g, b)
-        pname = perceptual_color_name_from_rgb(rgb)
-        result.append((rgb, float(mw / total * 100.0), pname))
-    result.sort(key=lambda x: x[1], reverse=True)
+        result.append({
+            'rgb': rgb,
+            'weight_pct': float(mw / total * 100.0),
+            'color_name': classify_color_name(rgb),
+        })
+    result.sort(key=lambda item: item['weight_pct'], reverse=True)
     return result
 
 
@@ -1116,7 +1121,7 @@ class ColorDistributionCache(BaseCache):
 
     使用LRU策略管理分析结果缓存，避免重复计算同一张图片的色彩分布。
 
-    缓存键格式: (image_fingerprint,)
+    缓存键格式: (image_fingerprint, naming_model_version)
     """
 
     def __init__(self, max_size: int = 20):
@@ -1150,7 +1155,7 @@ class ColorDistributionCache(BaseCache):
         self._set_to_cache(key, result)
 
     def _get_key(self, image_key: str) -> tuple:
-        """生成缓存键
+        """生成缓存键（含色名模型版本，模型文件更换后旧结果不命中）
 
         Args:
             image_key: 图片指纹键
@@ -1158,7 +1163,7 @@ class ColorDistributionCache(BaseCache):
         Returns:
             tuple: 缓存键元组
         """
-        return (image_key,)
+        return (image_key, get_naming_model_version())
 
 
 # 全局缓存实例
@@ -1179,6 +1184,5 @@ def get_color_distribution_cache() -> ColorDistributionCache:
 
 def clear_color_distribution_cache() -> None:
     """清空全局色彩分布分析缓存"""
-    global _color_distribution_cache
     if _color_distribution_cache is not None:
         _color_distribution_cache.clear()

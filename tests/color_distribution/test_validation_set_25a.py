@@ -20,6 +20,7 @@ import os
 import pytest
 
 from core import color_distribution as e
+from core.color_naming import classify_color_name
 from tests.color_distribution.conftest import ROOT, load_image_rgb, materials_missing
 
 # 素材目录不随仓库分发，其他机器整模块跳过（本机必跑）
@@ -30,7 +31,7 @@ pytestmark = pytest.mark.skipif(
 HUE_TOL = 10.0
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _analyze(rel: str) -> dict:
     path = os.path.join(ROOT, rel)
     if not os.path.exists(path):
@@ -204,37 +205,26 @@ VALIDATION = [
 
     # ---------- 组3 网络风格化（场景缺口补齐） ----------
     ('测试图片/3/1774980698568.jpg', '绿植风光', {
-        # 感知色名阶段一：红裙暗部第 4 条 red 段（C=0.082）不再归棕 → 深红；
-        # 暗橙红段仍为棕（双轴偏移属阶段三范畴）
+        # 感知名称由公开模型按最终 RGB 生成，golden 只锁定技术段顺序；
+        # 感知名称的模型语义由 test_25d_upgrades 的结构契约与同源用例覆盖
         'top_peak': ('yellow_green', 90),
-        'dark_comp': [('cyan_green', 'cyan_green'), ('green', 'green'),
-                      ('orange_red', 'brown'), ('red', 'deep_red')],
-        # 阶段三验收 1：橙红峰内出现 red 段（峰内 14.95% ≥1%，pname=red）——
-        # HSB 段归属 + chroma 权重可见成员代表值，红裙红色身份端到端呈现；
+        'dark_comp': ['cyan_green', 'green', 'orange_red', 'red'],
         # yellow_green 峰 5 条固化"不截断"裁决
         'peaks_comp': [
-            ('yellow_green', [('yellow_green', 'yellow_green'),
-                              ('yellow', 'warm_gray'), ('green', 'green'),
-                              ('cyan_green', 'cyan_green'),
-                              ('orange_red', 'orange_red')]),
-            ('orange_red', [('orange_red', 'orange_red'), ('red', 'red')]),
-            ('cyan', [('cyan_blue', 'cyan_blue'), ('cyan', 'cyan'),
-                      ('cyan_green', 'cyan_green')]),
+            ('yellow_green', ['yellow_green', 'yellow', 'green',
+                              'cyan_green', 'orange_red']),
+            ('orange_red', ['orange_red', 'red']),
+            ('cyan', ['cyan_blue', 'cyan', 'cyan_green']),
         ],
     }),
     ('测试图片/3/DM_20260518185447_001.jpg', '风光(青绿+黄多色构成)', {
         # 2.5b：宽黄绿家族+对向窄蓝紫，Y 模板拟合达标，旧"自由"系规则盲区
         'harmony': 'harmony_split_complementary',
         'top_peak_name': 'yellow_green',
-        # 阶段三验收 2：yellow_green 峰内 yellow 段（峰内 16.08% ≥1%）——
-        # 黄色身份在绿峰内呈现；暗黄可见成员忠实判棕
         'peaks_comp': [
-            ('yellow_green', [('yellow_green', 'yellow_green'),
-                              ('yellow', 'brown'), ('green', 'green')]),
-            ('cyan_blue', [('cyan_blue', 'cyan_blue'), ('blue', 'blue'),
-                           ('cyan', 'cyan')]),
-            ('orange_red', [('orange_red', 'orange_red'),
-                            ('red', 'deep_red')]),
+            ('yellow_green', ['yellow_green', 'yellow', 'green']),
+            ('cyan_blue', ['cyan_blue', 'blue', 'cyan']),
+            ('orange_red', ['orange_red', 'red']),
         ],
     }),
     ('测试图片/3/imgi_20_24a15955fce2433a92d38bcecf8ba8ef.jpg', '绿调风光(整体绿调)', {
@@ -295,21 +285,17 @@ VALIDATION = [
         'style': {'label_key': 'style_unified', 'label_args': {'hue': 'orange_red'}},
         'top_peak': ('orange_red', 44),
         'warmth_key': 'warmth_strong_warm',
-        # 感知色名阶段一反例锚点：真棕仍为棕（暗黄 brown、中间调双 brown），
-        # 暗部 red 段 C=0.015 属灰族不翻转（仍 warm_gray）
-        'dark_comp': [('orange_red', 'warm_gray'), ('yellow', 'brown'),
-                      ('red', 'warm_gray')],
-        'mid_comp': [('orange_red', 'brown'), ('yellow', 'brown')],
+        # 真棕样本：暗部与中间调均为暗黄/橙红段，技术段顺序锁定
+        'dark_comp': ['orange_red', 'yellow', 'red'],
+        'mid_comp': ['orange_red', 'yellow'],
     }),
     ('测试图片/3/imgi_4_500px1073341026.jpg', '暖黄风光', {
         'top_peak': ('yellow', 48),
         'warmth_key': 'warmth_strong_warm',
         'harmony': 'harmony_monochromatic',
-        # 阶段三辅证锚点：单峰 100% 展开 4 条；red 段可见成员彩度仍低
-        # （面积 0.83%），忠实保持灰族 warm_gray——灰族不误翻红的反向边界
+        # 单峰 100% 展开 4 条（不截断）
         'peaks_comp': [
-            ('yellow', [('yellow', 'yellow'), ('orange_red', 'orange_red'),
-                        ('yellow_green', 'yellow_green'), ('red', 'warm_gray')]),
+            ('yellow', ['yellow', 'orange_red', 'yellow_green', 'red']),
         ],
     }),
     ('测试图片/3/imgi_57_d4523d4bfdb4473a9f57daa6c506d76f.jpg', '蓝金风光(风格化判别正样本)', {
@@ -342,6 +328,16 @@ VALIDATION = [
 def test_validation_image_25a(rel, note, expect):
     r = _analyze(rel)
 
+    # 图片级同源闭环：所有分区/峰内构成的名称必须由条目最终 RGB 复算
+    for zone_key in ('dark', 'mid', 'bright'):
+        for item in r['zones'][zone_key]['composition']:
+            assert item['color_name'] == classify_color_name(item['rgb']), \
+                f'{note} {zone_key} 构成名称不同源'
+    for peak in r['hue_peaks']:
+        for item in peak['composition']:
+            assert item['color_name'] == classify_color_name(item['rgb']), \
+                f'{note} 峰内构成名称不同源'
+
     if 'harmony' in expect:
         assert r['harmony'] == expect['harmony'], f'{note} harmony'
     if 'chroma_key' in expect:
@@ -373,16 +369,16 @@ def test_validation_image_25a(rel, note, expect):
         assert tp['name'] == name, f'{note} 主峰色名 got {tp["name"]}'
         assert _hue_close(tp['hue'], hue), f'{note} 主峰色相 {tp["hue"]:.0f} vs {hue}'
     if 'dark_comp' in expect:
-        got = [(c['name'], c['pname']) for c in r['zones']['dark']['composition']]
+        got = [c['name'] for c in r['zones']['dark']['composition']]
         assert got == expect['dark_comp'], f'{note} 暗部构成 {got}'
     if 'mid_comp' in expect:
-        got = [(c['name'], c['pname']) for c in r['zones']['mid']['composition']]
+        got = [c['name'] for c in r['zones']['mid']['composition']]
         assert got == expect['mid_comp'], f'{note} 中间调构成 {got}'
     if 'peaks_comp' in expect:
-        # 阶段三峰内构成：(峰名, [(段名, 感知名), ...]) 有序精确断言；
-        # 列表按峰权重降序、段按峰内权重降序，不截断（yellow_green 峰
-        # 5 条 > COMP_MAX=4 同时固化"不截断"裁决）
-        got = [(p['name'], [(c['name'], c['pname']) for c in p['composition']])
+        # 峰内技术段：(峰名, [段名, ...]) 有序精确断言；列表按峰权重降序、
+        # 段按峰内权重降序，不截断（yellow_green 峰 5 条 > COMP_MAX=4
+        # 同时固化"不截断"裁决）
+        got = [(p['name'], [c['name'] for c in p['composition']])
                for p in r['hue_peaks']]
         assert got == expect['peaks_comp'], f'{note} 峰内构成 {got}'
     if expect.get('bright_dominant'):

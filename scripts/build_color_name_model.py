@@ -76,7 +76,8 @@ def _require(condition: bool, message: str) -> None:
 
 
 def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    """按 LF 归一化后计算 SHA256，避免 Windows 检出把 CRLF 写进数据指纹"""
+    return hashlib.sha256(path.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
 
 
 def _model_version(data_sha: str, mapping_sha: str, k: int) -> str:

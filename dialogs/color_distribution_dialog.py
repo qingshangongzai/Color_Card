@@ -35,8 +35,9 @@ from utils import tr
 from .base_frameless_dialog import BaseFramelessDialog
 from .tone_analysis_dialog import StatCard
 
-# 感知色名 id：属 color_distribution.pname_* 词条，其余色名 id 回落 color_wheel.hue_*
-_PNAME_IDS = ('gray', 'warm_gray', 'blue_gray', 'brown', 'deep_red', 'maroon', 'pink')
+# 灰族保留暖灰/冷灰语义：细色相修饰按冷暖分组落到专属词条，其余走通用模板
+_GRAY_WARM_MODIFIERS = ('red', 'orange', 'yellow')
+_GRAY_COOL_MODIFIERS = ('cyan', 'blue', 'purple')
 
 
 class AnalysisWorker(QThread):
@@ -243,11 +244,37 @@ class ColorDistributionDialog(BaseFramelessDialog):
     # ==================== label_key → 已翻译文案 ====================
 
     @staticmethod
-    def _pname_text(pid: str) -> str:
-        """感知色名 id 译文（7 个专属 pname，其余回落 12 色相名）"""
-        if pid in _PNAME_IDS:
-            return tr(f'color_distribution.pname_{pid}')
-        return tr(f'color_wheel.hue_{pid}')
+    def _color_name_text(color_name: dict) -> str:
+        """结构化色名 → 译文（只翻译 ID 并套词条模板，不在 Python 内拼语序）
+
+        过渡名称只显示两个色系；单名称按 tone/hue_modifier 组合选模板。
+        灰族修饰词按冷暖分组落到暖灰/冷灰，明暗修饰进入对应暖冷模板；
+        其余色系走通用修饰模板。
+        """
+        if color_name['secondary_family_id']:
+            return tr('color_name.template_transition',
+                      first=tr(f'color_name.family_{color_name["family_id"]}'),
+                      second=tr(f'color_name.family_{color_name["secondary_family_id"]}'))
+        family = tr(f'color_name.family_{color_name["family_id"]}')
+        tone_id = color_name['tone_id']
+        modifier_id = color_name['hue_modifier_id']
+        if modifier_id and color_name['family_id'] == 'gray':
+            warmth = ('warm' if modifier_id in _GRAY_WARM_MODIFIERS
+                      else 'cool' if modifier_id in _GRAY_COOL_MODIFIERS else None)
+            if warmth:
+                if tone_id in ('light', 'dark'):
+                    return tr(f'color_name.gray_{warmth}_{tone_id}')
+                return tr(f'color_name.gray_{warmth}')
+        if tone_id == 'none' and modifier_id is None:
+            return tr('color_name.template_plain', family=family)
+        if tone_id == 'none':
+            return tr('color_name.template_modifier', family=family,
+                      modifier=tr(f'color_name.modifier_{modifier_id}'))
+        tone = tr(f'color_name.tone_{tone_id}')
+        if modifier_id is None:
+            return tr('color_name.template_tone', family=family, tone=tone)
+        return tr('color_name.template_tone_modifier', family=family, tone=tone,
+                  modifier=tr(f'color_name.modifier_{modifier_id}'))
 
     def _cast_text(self, cast: dict) -> str:
         """色偏结论文案（含方向/级别参数与低置信后缀）"""
@@ -345,7 +372,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
             for c in p['composition']:
                 items.append({
                     'rgb': c['rgb'],
-                    'text': (f'{ColorDistributionDialog._pname_text(c["pname"])} '
+                    'text': (f'{ColorDistributionDialog._color_name_text(c["color_name"])} '
                              f'{ColorDistributionDialog._range_text(c["range"])} '
                              f'{ColorDistributionDialog._weight_text(c)}'),
                 })
@@ -353,7 +380,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
                 item = p['composition'][0]
                 title = tr('color_distribution.peak_title_single', index=index,
                            range=range_text, weight=weight_text, minor=minor,
-                           name=ColorDistributionDialog._pname_text(item['pname']))
+                           name=ColorDistributionDialog._color_name_text(item['color_name']))
                 swatch_rgb = item['rgb']
             else:
                 title = tr('color_distribution.peak_title_multi', index=index,
@@ -374,7 +401,8 @@ class ColorDistributionDialog(BaseFramelessDialog):
             zone = zones[key]
             composition = []
             for c in zone['composition']:
-                line1 = f'{self._pname_text(c["pname"])} {self._range_text(c["range"])}'
+                line1 = (f'{self._color_name_text(c["color_name"])} '
+                         f'{self._range_text(c["range"])}')
                 line2 = self._weight_text(c)
                 composition.append({
                     'weight_pct': c['weight_pct'], 'line1': line1, 'line2': line2,
@@ -397,10 +425,10 @@ class ColorDistributionDialog(BaseFramelessDialog):
     def _palette_view(self, palette: list) -> list[dict]:
         """主色卡视图模型"""
         views = []
-        for i, (rgb, pct, pname) in enumerate(palette, 1):
+        for i, item in enumerate(palette, 1):
             views.append({
-                'rgb': rgb, 'pct': pct,
-                'display_name': self._pname_text(pname),
+                'rgb': item['rgb'], 'pct': item['weight_pct'],
+                'display_name': self._color_name_text(item['color_name']),
                 'index_label': tr('color_distribution.dominant', index=i),
             })
         return views

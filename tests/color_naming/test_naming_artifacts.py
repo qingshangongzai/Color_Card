@@ -58,6 +58,11 @@ def _load_module(module_name: str, path: Path) -> ModuleType:
     return module
 
 
+def _file_sha256(path: Path) -> str:
+    """按 LF 归一化后计算 SHA256，与构建脚本的跨平台口径一致"""
+    return hashlib.sha256(path.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+
+
 def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding='utf-8'))
 
@@ -147,8 +152,8 @@ def test_model_metadata_and_samples(color_space: ModuleType) -> None:
     assert source['url'] == 'https://xkcd.com/color/rgb.txt'
     assert source['license'] == 'CC0 1.0'
     assert source['data_rows'] == 949
-    assert source['data_sha256'] == hashlib.sha256(DATA_PATH.read_bytes()).hexdigest()
-    assert source['mapping_sha256'] == hashlib.sha256(MAPPING_PATH.read_bytes()).hexdigest()
+    assert source['data_sha256'] == _file_sha256(DATA_PATH)
+    assert source['mapping_sha256'] == _file_sha256(MAPPING_PATH)
     expected_version = hashlib.sha256(
         f'{source["data_sha256"]}:{source["mapping_sha256"]}:{model["k"]}:'
         f'{model["knn_eps"]:g}:{model["secondary_margin"]:g}'.encode()
