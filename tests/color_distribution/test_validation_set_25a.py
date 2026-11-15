@@ -185,13 +185,11 @@ VALIDATION = [
         'dark_dominant': True,
     }),
     ('测试图片/2/761801996.jpg', '黄金时刻逆光人群(整体染色)', {
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'orange_red'}},
         'warmth_key': 'warmth_strong_warm',
         'top_peak': ('orange_red', 32),
         'cast_dir_any': ('warm_yellow',),
     }),
     ('测试图片/2/922040775.jpg', '蓝调大桥长曝光(风格化vs白平衡判别正样本)', {
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'cyan_blue'}},
         'top_peak': ('cyan_blue', 206),
         'cast_dir_any': ('cool_blue',),
         'warmth_key': 'warmth_strong_cool',
@@ -229,19 +227,16 @@ VALIDATION = [
     }),
     ('测试图片/3/imgi_20_24a15955fce2433a92d38bcecf8ba8ef.jpg', '绿调风光(整体绿调)', {
         # 2.5b：全部色相落在约 90° 连续扇区内，V 模板即单色大扇区——
-        # 单色↔邻近边界图，按模板词汇归单色（style 仍锁定整体染绿）
+        # 单色↔邻近边界图，按模板词汇归单色
         'harmony': 'harmony_monochromatic',
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'green'}},
         'top_peak': ('cyan_green', 158),
         'dark_dominant': True,
     }),
     ('测试图片/3/imgi_23_824170d5a5d24995bcef2df6333696a4.jpg', '紫橙对比风光', {
-        'style': {'label_key': 'style_teal_orange', 'label_args': {}},
         'top_peak': ('blue', 233),
     }),
     ('测试图片/3/imgi_25_631fa5ad48f84f79a33ff9dbff1a7d10.jpg', '品红/紫调(色相跨0°邻域)', {
         'top_peak': ('purple_red', 332),
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'purple_red'}},
     }),
     ('测试图片/3/imgi_28_05d4c5a1d5ce4cdc804c9cdb42cec08f.jpg', '雪山小镇航拍(高调偏蓝)', {
         # 8.1：雪地亮带高度集中地偏蓝(D/σ=8.3)，证据一缺席时低置信报出
@@ -255,12 +250,10 @@ VALIDATION = [
         'warmth_key': 'warmth_strong_cool',
     }),
     ('测试图片/3/imgi_32_0195f827801d4139b4ddea808f13f82e.jpg', '雪村夜景(蓝调雪地+暖窗灯)', {
-        'style': {'label_key': 'style_teal_orange', 'label_args': {}},
         'top_peak': ('cyan_blue', 215),
         'warmth_key': 'warmth_strong_cool',
     }),
     ('测试图片/3/imgi_169_43d954f9aa0f4659afa210a1182ab35d.jpg', '雪林鹿剪影(粉橘日落,色相跨0°)', {
-        'style': {'label_key': 'style_teal_orange', 'label_args': {}},
         'top_peak': ('red', 0),
         'chroma_key': 'chroma_low',
     }),
@@ -282,7 +275,6 @@ VALIDATION = [
     }),
     ('测试图片/3/imgi_44_cover-500px96506015f4a2b3a8a504cad8d082faf9b86ef7c.jpg',
      '秋日森林小径(8.6感知色名"棕"样本)', {
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'orange_red'}},
         'top_peak': ('orange_red', 44),
         'warmth_key': 'warmth_strong_warm',
         # 真棕样本：暗部与中间调均为暗黄/橙红段，技术段顺序锁定
@@ -300,8 +292,7 @@ VALIDATION = [
     }),
     ('测试图片/3/imgi_57_d4523d4bfdb4473a9f57daa6c506d76f.jpg', '蓝金风光(风格化判别正样本)', {
         # 2.5b 平滑隶属度：亮部纳入过渡带橙调后均值 40° 归橙红（原 47° 黄边界），
-        # 暗部 201° 青蓝，风格命中青橙规则——与蓝金同属冷暖对比，边界图改判合理
-        'style': {'label_key': 'style_teal_orange', 'label_args': {}},
+        # 暗部 201° 青蓝、亮部橙红——与蓝金同属冷暖对比，边界图改判合理
         'top_peak': ('orange_red', 28),
         'warmth_key': 'warmth_warm',
     }),
@@ -311,7 +302,6 @@ VALIDATION = [
         'top_peak': ('purple_red', 328),
     }),
     ('测试图片/3/imgi_8_1115639033.jpg', '蓝调夜空(单色蓝)', {
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'cyan_blue'}},
         'top_peak': ('cyan_blue', 215),
         'warmth_key': 'warmth_strong_cool',
     }),
@@ -357,8 +347,6 @@ def test_validation_image_25a(rel, note, expect):
         assert any(d in direction for d in expect['cast_dir_any']), f'{note} cast 方向'
     if expect.get('cast_not_strong'):
         assert r['cast']['label_args'].get('level') != 'strong', f'{note} 直出图不得报明显偏色'
-    if 'style' in expect:
-        assert r['zones']['style'] == expect['style'], f'{note} style'
     if 'top_peak_name' in expect:
         tp = _top_peak(r)
         assert tp is not None and tp['name'] == expect['top_peak_name'], f'{note} 主峰色名'

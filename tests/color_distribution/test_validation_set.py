@@ -63,7 +63,6 @@ VALIDATION = [
     }),
     ('51055510/imgi_26_4d9cb11be7e44f26b981147a25778884.jpg', '蓝金·风电场(蓝天+金色荒漠)', {
         'harmony': 'harmony_complementary',
-        'style': {'label_key': 'style_blue_gold', 'label_args': {}},
         'warmth_key': 'warmth_warm',
         'top_peak_name': 'orange_red',
     }),
@@ -78,14 +77,12 @@ VALIDATION = [
         'warmth_key': 'warmth_strong_cool',
         'top_peak': ('cyan_blue', 206),
         'cast_dir_any': ('cool_blue',),
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'cyan_blue'}},
     }),
     ('51055510/imgi_24_500px1122030971.jpg', '暖调·晨雾日出', {
         'warmth_key': 'warmth_strong_warm',
         'harmony': 'harmony_monochromatic',
         'cast_dir_any': ('warm_yellow',),
         'top_peak': ('orange_red', 28),
-        'style': {'label_key': 'style_unified', 'label_args': {'hue': 'orange_red'}},
     }),
     ('51055510/DM_20260518185501_001.jpg', '暖调·沙漠日落', {
         'warmth_key': 'warmth_strong_warm',
@@ -131,8 +128,6 @@ def test_validation_image(rel, note, expect):
     if 'cast_dir_any' in expect:
         direction = r['cast']['label_args'].get('direction', ())
         assert any(d in direction for d in expect['cast_dir_any']), f'{note} cast 方向'
-    if 'style' in expect:
-        assert r['zones']['style'] == expect['style'], f'{note} style'
     if expect.get('peaks_empty'):
         assert r['hue_peaks'] == [], f'{note} 应无色相峰'
     if 'top_peak_name' in expect:
@@ -172,7 +167,8 @@ def test_output_structure():
     r = _analyze('121231221/测试-photo RGB.jpg')
     assert set(r) == {'cast', 'zones', 'hue_peaks', 'harmony', 'harmony_fit',
                       'palette', 'warmth', 'chroma_dist', 'wheel', 'image_size'}
-    assert set(r['zones']) == {'dark', 'mid', 'bright', 'style'}
+    assert set(r['zones']) == {'dark', 'mid', 'bright'}
+    assert 'hue_ok' not in r['zones']['dark']
     assert set(r['cast']) >= {'vector', 'strength', 'label_key', 'label_args'}
     assert set(r['harmony_fit']) == {'template', 'rotation', 'error', 'confidence'}
     assert r['harmony_fit']['template'] in ('i', 'V', 'L', 'I', 'T', 'Y', 'X', 'N')

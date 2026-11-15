@@ -72,8 +72,6 @@ ZONE_MEMBER_MIN = 0.01            # 隶属度低于此的像素不参与该区�
 ZONE_NEUTRAL_CHROMA = 0.02        # 低于此加权彩度视为无染色
 ZONE_MIN_R = 0.4                  # 环形合矢量长度低于此视为色相分散
 ZONE_MIN_PCT = 2.0                # 分区占比低于此标"内容极少"
-STYLE_ANALOG_MAX = 40.0           # 暗亮同色相判定上限
-STYLE_OPPOSITE_MIN = 120.0        # 暗亮对立色相判定下限
 
 # 色相峰检测
 HUE_BINS = 72                     # 色相直方图 bin 数（每 bin 5°）
@@ -362,12 +360,12 @@ def analyze_zones(L: np.ndarray, C: np.ndarray, h_ok: np.ndarray,
         wz = w_zone[sel]
         zc = C[sel]
         weight = wz * zc                       # 隶属度 × chroma 双重加权
-        mean_hue_ok, R = circular_stats(h_ok[sel], weight)
+        _, R = circular_stats(h_ok[sel], weight)
         # 展示色相：分区像素的 HSB 加权环形均值（与拾色器读数一致）
         mean_hue_hsb, _ = circular_stats(hsb_h[sel], weight)
         zone_chroma = float(weight.sum() / wz.sum())
 
-        zones[key] = _zone_result(key, mean_hue_ok, mean_hue_hsb, R, zone_chroma, pixel_pct)
+        zones[key] = _zone_result(key, mean_hue_hsb, R, zone_chroma, pixel_pct)
         # 分区内部色彩构成（HSB 轴按色名区域统计，含 8.6 感知色名）
         if zone_chroma >= ZONE_NEUTRAL_CHROMA:
             zones[key]['composition'] = analyze_hue_composition(
@@ -383,27 +381,26 @@ def analyze_zones(L: np.ndarray, C: np.ndarray, h_ok: np.ndarray,
         else:
             zones[key]['composition'] = []
 
-    zones['style'] = _toning_style(zones)
     return zones
 
 
 def _empty_zone(key: str, pixel_pct: float) -> dict:
     """隶属度全为 0 的空分区（如无暗部像素的高调图）"""
     return {
-        'hue': None, 'hue_ok': None, 'hue_name': None, 'R': 0.0, 'chroma': 0.0,
+        'hue': None, 'hue_name': None, 'R': 0.0, 'chroma': 0.0,
         'pixel_pct': pixel_pct, 'label_key': 'zone_no_pixels',
         'label_args': {'zone': key}, 'mix': False, 'composition': [],
     }
 
 
-def _zone_result(key: str, hue_ok: float, hue_hsb: float, R: float,
+def _zone_result(key: str, hue_hsb: float, R: float,
                  chroma: float, pixel_pct: float) -> dict:
-    """单分区结论判定（hue_ok 为 OKLCH 角供风格判定，hue_hsb 为展示角）"""
+    """单分区结论判定（hue_hsb 为展示角）"""
     hsb = hue_hsb if not math.isnan(hue_hsb) else None
     if pixel_pct < ZONE_MIN_PCT:
         valid = chroma >= ZONE_NEUTRAL_CHROMA and R >= ZONE_MIN_R and hsb is not None
         return {
-            'hue': hsb if valid else None, 'hue_ok': hue_ok if valid else None,
+            'hue': hsb if valid else None,
             'hue_name': hue_name(hsb) if valid else None,
             'R': R, 'chroma': chroma, 'pixel_pct': pixel_pct,
             'label_key': 'zone_scarce', 'label_args': {'zone': key}, 'mix': False,
@@ -411,45 +408,22 @@ def _zone_result(key: str, hue_ok: float, hue_hsb: float, R: float,
 
     if chroma < ZONE_NEUTRAL_CHROMA:
         return {
-            'hue': None, 'hue_ok': None, 'hue_name': None, 'R': R, 'chroma': chroma,
+            'hue': None, 'hue_name': None, 'R': R, 'chroma': chroma,
             'pixel_pct': pixel_pct,
             'label_key': 'zone_neutral', 'label_args': {'zone': key}, 'mix': False,
         }
     if R < ZONE_MIN_R:
         return {
-            'hue': None, 'hue_ok': None, 'hue_name': None, 'R': R, 'chroma': chroma,
+            'hue': None, 'hue_name': None, 'R': R, 'chroma': chroma,
             'pixel_pct': pixel_pct,
             'label_key': 'zone_scattered', 'label_args': {'zone': key}, 'mix': False,
         }
     cn = hue_name(hsb)
     return {
-        'hue': hsb, 'hue_ok': hue_ok, 'hue_name': cn, 'R': R, 'chroma': chroma,
+        'hue': hsb, 'hue_name': cn, 'R': R, 'chroma': chroma,
         'pixel_pct': pixel_pct,
         'label_key': 'zone_tinted', 'label_args': {'zone': key, 'hue': cn}, 'mix': False,
     }
-
-
-def _toning_style(zones: dict) -> dict | None:
-    """暗部与亮部风格命名，返回 {'label_key', 'label_args'} 或 None"""
-    dark = zones['dark']
-    bright = zones['bright']
-    if dark['hue'] is None or bright['hue'] is None:
-        return None
-
-    diff = circular_diff(dark['hue_ok'], bright['hue_ok'])
-    dn = dark['hue_name']
-    bn = bright['hue_name']
-
-    if diff < STYLE_ANALOG_MAX:
-        return {'label_key': 'style_unified', 'label_args': {'hue': dn}}
-    if diff >= STYLE_OPPOSITE_MIN:
-        # HSB 12 色名下的经典风格：暗部青/蓝系 + 亮部橙/黄系
-        if dn in ('cyan', 'cyan_blue', 'blue') and bn in ('orange_red', 'red'):
-            return {'label_key': 'style_teal_orange', 'label_args': {}}
-        if dn in ('blue', 'cyan_blue') and bn in ('yellow', 'yellow_green'):
-            return {'label_key': 'style_blue_gold', 'label_args': {}}
-        return {'label_key': 'style_contrast', 'label_args': {'dark': dn, 'bright': bn}}
-    return None
 
 
 def analyze_hue_peaks(C: np.ndarray, h: np.ndarray, hsb_h: np.ndarray,

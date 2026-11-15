@@ -300,18 +300,6 @@ class ColorDistributionDialog(BaseFramelessDialog):
         return f'{base} ({int(confidence * 100)}%)'
 
     @staticmethod
-    def _style_text(style: dict | None) -> str:
-        """调色风格文案（无风格时显示占位词条）"""
-        if style is None:
-            return tr('color_distribution.style_none')
-        args = style['label_args']
-        kwargs = {}
-        for key in ('dark', 'bright', 'hue'):
-            if key in args:
-                kwargs[key] = tr(f'color_wheel.hue_{args[key]}')
-        return tr(f'color_distribution.{style["label_key"]}', **kwargs)
-
-    @staticmethod
     def _warmth_text(warmth: dict) -> str:
         """冷暖倾向文案（档名 + 连续值）"""
         label = tr(f'color_distribution.{warmth["label_key"]}')
@@ -422,8 +410,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
                 'status_text': ColorDistributionDialog._zone_status_text(zone),
                 'composition': composition,
             })
-        return {'style_text': ColorDistributionDialog._style_text(zones['style']),
-                'zones': zone_views}
+        return {'style_text': '', 'zones': zone_views}
 
     @staticmethod
     def _zone_status_text(zone: dict) -> str:
@@ -471,7 +458,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
             (tr('color_distribution.card_cast'), self._cast_text(result['cast']),
              tr('color_distribution.cast_hint')),
             (tr('color_distribution.card_harmony'), self._harmony_text(result), ''),
-            (tr('color_distribution.card_style'), self._style_text(zones['style']), ''),
+            (tr('color_distribution.card_style'), '', ''),
             (tr('color_distribution.card_warmth'), self._warmth_text(result['warmth']), ''),
             (tr('color_distribution.card_dark'), self._zone_text(zones['dark']), ''),
             (tr('color_distribution.card_mid'), self._zone_text(zones['mid']), ''),
