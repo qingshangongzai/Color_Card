@@ -682,6 +682,7 @@ peak_minor = " · 副峰"
 peak_title_single = "ピーク {index} · {range} · {weight} · 主導色：{name}{minor}"
 peak_title_multi = "ピーク {index} · {range} · {weight}{minor}"
 peaks_empty = "グレー調 · 明確な色相ピークなし"
+hue_none = "—"
 
 [color_name]
 family_black = "黒"

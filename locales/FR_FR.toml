@@ -682,6 +682,7 @@ peak_minor = " · secondaire"
 peak_title_single = "Pic {index} · {range} · {weight} · dominante : {name}{minor}"
 peak_title_multi = "Pic {index} · {range} · {weight}{minor}"
 peaks_empty = "Tons gris · aucune dominante nette"
+hue_none = "—"
 
 [color_name]
 family_black = "noir"

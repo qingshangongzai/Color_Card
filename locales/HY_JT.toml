@@ -683,6 +683,7 @@ peak_minor = " · 次峰"
 peak_title_single = "峰 {index} · {range} · {weight} · 主导色：{name}{minor}"
 peak_title_multi = "峰 {index} · {range} · {weight}{minor}"
 peaks_empty = "灰调 · 无显著色相峰"
+hue_none = "—"
 
 [color_name]
 family_black = "黑"

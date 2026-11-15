@@ -24,6 +24,7 @@ from qfluentwidgets import BodyLabel, qconfig
 
 from core import analyze_color_distribution, get_color_distribution_cache
 from core.color_naming import hue_name
+from core.color_space import srgb_hsb_hue
 from ui.color_distribution_charts import (
     DominantColorsBarWidget,
     HuePeaksWidget,
@@ -429,16 +430,30 @@ class ColorDistributionDialog(BaseFramelessDialog):
         """无构成分区的状态词（不含分区名，块下已单独标注分区名）"""
         return tr(f'color_distribution.{zone["label_key"]}')
 
-    def _palette_view(self, palette: list) -> list[dict]:
-        """主色卡视图模型"""
+    @staticmethod
+    def _palette_view(palette: list) -> list[dict]:
+        """主色卡视图模型（色相角由该条色块 RGB 现算，与色块同源）"""
         views = []
         for i, item in enumerate(palette, 1):
             views.append({
                 'rgb': item['rgb'], 'pct': item['weight_pct'],
-                'display_name': self._color_name_text(item['color_name']),
+                'display_name': ColorDistributionDialog._color_name_text(item['color_name']),
+                'hue_text': ColorDistributionDialog._hue_text(item['rgb']),
                 'index_label': tr('color_distribution.dominant', index=i),
             })
         return views
+
+    @staticmethod
+    def _hue_text(rgb: tuple[int, int, int]) -> str:
+        """主色色块的色相角文案（HSB 轴，与色块同一 RGB 三元组）
+
+        三通道相等的纯中性色没有色相，显示占位符；其余按整数度显示，
+        四舍五入后到 360° 的按环形回绕为 0°。
+        """
+        if max(rgb) == min(rgb):
+            return tr('color_distribution.hue_none')
+        hue = float(srgb_hsb_hue(np.asarray(rgb, dtype=np.float64) / 255.0))
+        return f'{round(hue) % 360}°'
 
     # ==================== 卡片 ====================
 

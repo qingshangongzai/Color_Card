@@ -461,9 +461,10 @@ class ZoneToningBarWidget(_ChartBase):
 
 
 class DominantColorsBarWidget(_ChartBase):
-    """主色卡色条（含 RGB 值与感知色名标注）
+    """主色卡色条（含色相角与感知色名标注）
 
-    视图模型（对话框注入）：[{'rgb':(r,g,b),'pct','display_name','index_label'}, ...]
+    视图模型（对话框注入）：
+    [{'rgb':(r,g,b),'pct','display_name','hue_text','index_label'}, ...]
     """
 
     def __init__(self, parent: QWidget | None = None):
@@ -514,5 +515,5 @@ class DominantColorsBarWidget(_ChartBase):
                 QRect(int(bar_rect.right() + 6), bar_rect.top(),
                       chart_rect.right() - bar_rect.right() - 6, bar_rect.height()),
                 Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-                f"{item['display_name']}  {item['pct']:.1f}%  RGB({r},{g},{b})"
+                f"{item['display_name']}  {item['pct']:.1f}%  {item['hue_text']}"
             )

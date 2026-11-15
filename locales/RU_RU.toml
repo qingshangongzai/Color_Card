@@ -682,6 +682,7 @@ peak_minor = " · вторичный"
 peak_title_single = "Пик {index} · {range} · {weight} · доминанта: {name}{minor}"
 peak_title_multi = "Пик {index} · {range} · {weight}{minor}"
 peaks_empty = "Серый тон · нет выраженных пиков"
+hue_none = "—"
 
 [color_name]
 family_black = "чёрный"
