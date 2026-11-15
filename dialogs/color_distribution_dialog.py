@@ -348,6 +348,11 @@ class ColorDistributionDialog(BaseFramelessDialog):
         return f'{lo:.0f}°~{hi % 360:.0f}°'
 
     @staticmethod
+    def _start_text(rng: tuple[float, float]) -> str:
+        """构成条目起始角文案（单行放不下完整区间时的降级表述）"""
+        return f'{rng[0]:.0f}°'
+
+    @staticmethod
     def _weight_text(comp: dict) -> str:
         """构成条目占比文案：权重 <1% 时改报可见面积口径"""
         if comp['weight_pct'] < 1.0:
@@ -394,28 +399,30 @@ class ColorDistributionDialog(BaseFramelessDialog):
             })
         return {'peaks': views, 'empty_text': tr('color_distribution.peaks_empty')}
 
-    def _zones_view(self, zones: dict) -> dict:
-        """分区调色条视图模型（文案已翻译）"""
+    @staticmethod
+    def _zones_view(zones: dict) -> dict:
+        """分区调色条视图模型（文案已翻译；段内只留区间与占比，不承载色名）"""
         zone_views = []
         for key in ('dark', 'mid', 'bright'):
             zone = zones[key]
             composition = []
             for c in zone['composition']:
-                line1 = (f'{self._color_name_text(c["color_name"])} '
-                         f'{self._range_text(c["range"])}')
-                line2 = self._weight_text(c)
+                line1 = ColorDistributionDialog._range_text(c['range'])
+                line2 = ColorDistributionDialog._weight_text(c)
                 composition.append({
                     'weight_pct': c['weight_pct'], 'line1': line1, 'line2': line2,
+                    'start_text': ColorDistributionDialog._start_text(c['range']),
                     'rgb': c['rgb'],
                 })
             zone_views.append({
                 'key': key,
                 'name_text': tr(f'color_distribution.zone_{key}'),
                 'is_empty': zone['pixel_pct'] < 0.05,
-                'status_text': self._zone_status_text(zone),
+                'status_text': ColorDistributionDialog._zone_status_text(zone),
                 'composition': composition,
             })
-        return {'style_text': self._style_text(zones['style']), 'zones': zone_views}
+        return {'style_text': ColorDistributionDialog._style_text(zones['style']),
+                'zones': zone_views}
 
     @staticmethod
     def _zone_status_text(zone: dict) -> str:

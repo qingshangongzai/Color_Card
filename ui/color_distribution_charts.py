@@ -12,7 +12,15 @@ from typing import ClassVar
 
 import numpy as np
 from PySide6.QtCore import QPointF, QRect, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPainterPath, QPen
+from PySide6.QtGui import (
+    QBrush,
+    QColor,
+    QFont,
+    QFontMetrics,
+    QPainter,
+    QPainterPath,
+    QPen,
+)
 from PySide6.QtWidgets import QSizePolicy, QWidget
 
 from core.color_distribution import WHEEL_CHROMA_BINS, WHEEL_CHROMA_MAX, WHEEL_HUE_BINS
@@ -290,17 +298,21 @@ class HuePeaksWidget(_ChartBase):
 
 
 class ZoneToningBarWidget(_ChartBase):
-    """分区调色条：每区按色名构成分段显示染色，下方标注风格名
+    """分区调色条：每区按构成分段显示染色，下方标注风格名
 
     视图模型（对话框注入，文案已翻译）：
         {'style_text': str,
          'zones': [{'key','name_text','is_empty','status_text',
                     'composition':[{'weight_pct','rgb',
-                                    'line1','line2'}]}, ...]}
+                                    'line1'（色相区间）,'line2'（占比）,
+                                    'start_text'（起始角，单行放不下完整区间时用）}]}, ...]}
     条目色块直出段真实代表色 rgb（与感知色名同源），不再按色相区间渐变。
+    段内只画区间与占比这两个可测量量，不承载感知名：段代表色是合成平均色，
+    且段身份来自 30° 技术分箱，与分区级单一主导色的命名不是同一粒度。
     """
 
     _ZONE_V: ClassVar[dict[str, float]] = {'dark': 0.45, 'mid': 0.68, 'bright': 0.9}
+    _TEXT_INSET: ClassVar[int] = 2    # 段内文字左右内缩（像素），太贴边影响可读
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -381,7 +393,7 @@ class ZoneToningBarWidget(_ChartBase):
             painter.setBrush(color)
             painter.drawRect(seg_rect)
             self._draw_segment_text(painter, font, seg_rect, color,
-                                    item['line1'], item['line2'])
+                                    item['line1'], item['line2'], item['start_text'])
             y += seg_h
 
     @staticmethod
@@ -401,8 +413,9 @@ class ZoneToningBarWidget(_ChartBase):
         return [round(x) for x in heights]
 
     def _draw_segment_text(self, painter: QPainter, font: QFont, rect: QRect,
-                           bg_color: QColor, line1: str, line2: str) -> None:
-        """段内两行标注，空间不够时逐级省略"""
+                           bg_color: QColor, line1: str, line2: str,
+                           start_text: str = '') -> None:
+        """段内两行标注；段高不足 36px 时合并单行，单行仍超宽则逐级降级"""
         if rect.height() < 16:
             return
         # 按背景明度选黑/白，保证可读（对比逻辑非主题色）
@@ -411,19 +424,40 @@ class ZoneToningBarWidget(_ChartBase):
         font.setPointSize(9)
         font.setBold(True)
         painter.setFont(font)
+        inset = self._TEXT_INSET
         if line2 and rect.height() >= 36:
             half = rect.height() // 2
-            painter.drawText(rect.adjusted(2, 0, -2, -half),
+            painter.drawText(rect.adjusted(inset, 0, -inset, -half),
                              Qt.AlignmentFlag.AlignCenter, line1)
             font.setBold(False)
             painter.setFont(font)
-            painter.drawText(rect.adjusted(2, half, -2, 0),
+            painter.drawText(rect.adjusted(inset, half, -inset, 0),
                              Qt.AlignmentFlag.AlignCenter, line2)
         else:
-            painter.drawText(rect.adjusted(2, 0, -2, 0),
-                             Qt.AlignmentFlag.AlignCenter,
-                             f"{line1} {line2}".strip())
+            text_rect = rect.adjusted(inset, 0, -inset, 0)
+            text = f'{line1} {line2}'.strip()
+            if line2:
+                text = self._fit_text(font, text_rect.width(), text,
+                                      f'{start_text} {line2}'.strip(), line2)
+            painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, text)
         painter.setPen(QPen(self._grid_color(), 1))
+
+    @staticmethod
+    def _fit_text(font: QFont, available: int, *candidates: str) -> str:
+        """取第一个绘制宽度不超过 available 的候选文案
+
+        候选由长到短排列，最后一个无条件返回：它是最短表述，再窄也只剩它。
+
+        Args:
+            font: 绘制字体（调用方已设好字号与粗细）
+            available: 可绘制宽度（像素）
+            candidates: 候选文案，由长到短排列
+        """
+        metrics = QFontMetrics(font)
+        for text in candidates[:-1]:
+            if metrics.horizontalAdvance(text) <= available:
+                return text
+        return candidates[-1]
 
 
 class DominantColorsBarWidget(_ChartBase):
