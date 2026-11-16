@@ -300,6 +300,28 @@ class ColorDistributionDialog(BaseFramelessDialog):
         return f'{base} ({int(confidence * 100)}%)'
 
     @staticmethod
+    def _split_word(zone: dict) -> str:
+        """分离色调一端的文案：染色端出全称色名，其余端出分区状态词"""
+        if zone['label_key'] == 'zone_tinted':
+            return tr(f'color_wheel.hue_long_{zone["hue_name"]}')
+        return tr(f'color_distribution.{zone["label_key"]}')
+
+    @staticmethod
+    def _split_text(zones: dict) -> str:
+        """分离色调值行：暗部端 → 亮部端（两端同状态且非染色时只出一个词）
+
+        两端状态与色名都取自分区既有字段，视图只做翻译与拼接；
+        本卡不输出分离角。
+        """
+        dark, bright = zones['dark'], zones['bright']
+        if dark['label_key'] == bright['label_key'] == 'zone_no_pixels':
+            return tr('color_distribution.split_empty')
+        if dark['label_key'] == bright['label_key'] != 'zone_tinted':
+            return ColorDistributionDialog._split_word(dark)
+        return (f'{ColorDistributionDialog._split_word(dark)} → '
+                f'{ColorDistributionDialog._split_word(bright)}')
+
+    @staticmethod
     def _warmth_text(warmth: dict) -> str:
         """冷暖倾向文案（档名 + 连续值）"""
         label = tr(f'color_distribution.{warmth["label_key"]}')
@@ -389,7 +411,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
         return {'peaks': views, 'empty_text': tr('color_distribution.peaks_empty')}
 
     @staticmethod
-    def _zones_view(zones: dict) -> dict:
+    def _zones_view(zones: dict) -> list[dict]:
         """分区调色条视图模型（文案已翻译；段内只留区间与占比，不承载色名）"""
         zone_views = []
         for key in ('dark', 'mid', 'bright'):
@@ -410,7 +432,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
                 'status_text': ColorDistributionDialog._zone_status_text(zone),
                 'composition': composition,
             })
-        return {'style_text': '', 'zones': zone_views}
+        return zone_views
 
     @staticmethod
     def _zone_status_text(zone: dict) -> str:
@@ -458,7 +480,7 @@ class ColorDistributionDialog(BaseFramelessDialog):
             (tr('color_distribution.card_cast'), self._cast_text(result['cast']),
              tr('color_distribution.cast_hint')),
             (tr('color_distribution.card_harmony'), self._harmony_text(result), ''),
-            (tr('color_distribution.card_style'), '', ''),
+            (tr('color_distribution.card_split'), self._split_text(zones), ''),
             (tr('color_distribution.card_warmth'), self._warmth_text(result['warmth']), ''),
             (tr('color_distribution.card_dark'), self._zone_text(zones['dark']), ''),
             (tr('color_distribution.card_mid'), self._zone_text(zones['mid']), ''),

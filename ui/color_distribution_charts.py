@@ -298,14 +298,13 @@ class HuePeaksWidget(_ChartBase):
 
 
 class ZoneToningBarWidget(_ChartBase):
-    """分区调色条：每区按构成分段显示染色，下方标注风格名
+    """分区调色条：分区色块 + 分区名，底部无风格行
 
     视图模型（对话框注入，文案已翻译）：
-        {'style_text': str,
-         'zones': [{'key','name_text','is_empty','status_text',
-                    'composition':[{'weight_pct','rgb',
-                                    'line1'（色相区间）,'line2'（占比）,
-                                    'start_text'（起始角，单行放不下完整区间时用）}]}, ...]}
+        [{'key','name_text','is_empty','status_text',
+          'composition':[{'weight_pct','rgb',
+                          'line1'（色相区间）,'line2'（占比）,
+                          'start_text'（起始角，单行放不下完整区间时用）}]}, ...]
     条目色块直出段真实代表色 rgb（与感知色名同源），不再按色相区间渐变。
     段内只画区间与占比这两个可测量量，不承载感知名：段代表色是合成平均色，
     且段身份来自 30° 技术分箱，与分区级单一主导色的命名不是同一粒度。
@@ -318,7 +317,7 @@ class ZoneToningBarWidget(_ChartBase):
         super().__init__(parent)
         self.setMinimumSize(220, 145)
 
-    def update_data(self, zones_view: dict) -> None:
+    def update_data(self, zones_view: list[dict]) -> None:
         self._data = zones_view
         self.update()
 
@@ -329,10 +328,9 @@ class ZoneToningBarWidget(_ChartBase):
         if not self._data:
             return
 
-        zones = self._data['zones']
+        zones = self._data
         margin = 16
-        style_h = 26
-        chart_rect = self.rect().adjusted(margin, margin, -margin, -margin - style_h)
+        chart_rect = self.rect().adjusted(margin, margin, -margin, -margin)
         spacing = chart_rect.width() / len(zones)
         block_w = spacing * 0.86
 
@@ -349,13 +347,6 @@ class ZoneToningBarWidget(_ChartBase):
             painter.setFont(font)
             painter.drawText(QRect(int(x), block_rect.bottom() + 3, int(block_w), 18),
                              Qt.AlignmentFlag.AlignCenter, zone['name_text'])
-
-        painter.setPen(QPen(self._text_color()))
-        font.setPointSize(10)
-        font.setBold(True)
-        painter.setFont(font)
-        painter.drawText(QRect(0, self.height() - style_h, self.width(), style_h),
-                         Qt.AlignmentFlag.AlignCenter, self._data['style_text'])
 
     def _paint_zone_block(self, painter: QPainter, font: QFont,
                           block_rect: QRect, zone: dict) -> None:

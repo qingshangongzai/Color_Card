@@ -57,3 +57,18 @@ def test_locale_files_share_same_placeholders():
             got = set(_PLACEHOLDER.findall(str(other.get(key, ''))))
             assert expected == got, (
                 f'{lang} 词条 {key} 占位符 {sorted(got)} != {sorted(expected)}')
+
+
+# 与 core/color_naming._HUE_NAMES 同步；本文件不 import core，避免拉起 PySide6
+_HUE_LONG_IDS = ('red', 'orange_red', 'yellow', 'yellow_green', 'green', 'cyan_green',
+                 'cyan', 'cyan_blue', 'blue', 'purple', 'magenta', 'purple_red')
+
+
+def test_color_wheel_has_long_hue_names():
+    """12 个色名 id 在每份语言里都有全称条目（分离色调卡值行使用）"""
+    for lang in LOCALES:
+        flat = _load(lang)
+        missing = [hue_id for hue_id in _HUE_LONG_IDS
+                   if f'color_wheel.hue_long_{hue_id}' not in flat]
+        assert not missing, f'{lang} 缺失全称色名词条: {missing}'
+
